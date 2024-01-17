@@ -1,20 +1,24 @@
 package components;
 
 import TCB_Field.Component;
+import org.joml.Vector4f;
 
 public class SpriteRender extends Component {
-    private boolean isFirst = false;
+
+    private Vector4f color;
+
+    public SpriteRender(Vector4f color) {
+        this.color = color;
+    }
     @Override
     public void start() {
-        System.out.println("Loading sprite.");
 
     }
     @Override
     public void update(float dt) {
-        if (!isFirst) {
-            System.out.println("Sprite updating.");
-            isFirst = true;
-        }
 
+    }
+    public Vector4f getColor() {
+        return this.color;
     }
 }

@@ -1,10 +1,13 @@
 package TCB_Field;
 
+import render.Renderer;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public abstract class Scene {
 
+    protected Renderer renderer = new Renderer();
     protected  Viewport viewport;
     private boolean isOn = false;
 
@@ -17,6 +20,7 @@ public abstract class Scene {
     public void start() {
         for (GameObject go: gObjects) {
             go.start();
+            this.renderer.add(go);
         }
         isOn = true;
     }
@@ -27,8 +31,13 @@ public abstract class Scene {
         } else {
             gObjects.add(go);
             go.start();
+            this.renderer.add(go);
         }
     }
 
     public abstract void update(float dt);
+
+    public Viewport viewport() {
+        return this.viewport;
+    }
 }
