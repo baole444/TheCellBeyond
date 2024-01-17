@@ -78,6 +78,9 @@ public class Batch {
 
         // Add property to vertex array
         loadVertexProp(index);
+        if (countSprite >= this.maxBatchSize) {
+            this.hasSpace = false;
+        }
     }
 
     public void render() {
