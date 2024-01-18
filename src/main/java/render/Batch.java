@@ -3,6 +3,7 @@ package render;
 import TCB_Field.Window;
 import components.SpriteRender;
 import org.joml.Vector4f;
+import utility.AssetsPool;
 
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
@@ -33,8 +34,7 @@ public class Batch {
     private Shader shader;
 
     public Batch(int maxBatchSize) {
-        shader = new Shader("assets/shaders/default.glsl");
-        shader.compile();
+        shader = AssetsPool.loadShader("assets/shaders/default.glsl");
         this.sprites = new SpriteRender[maxBatchSize];
         this.maxBatchSize = maxBatchSize;
 

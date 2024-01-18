@@ -3,6 +3,7 @@ package TCB_Field;
 import components.SpriteRender;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
+import utility.AssetsPool;
 
 public class LevelEditorScene extends Scene {
 
@@ -13,16 +14,17 @@ public class LevelEditorScene extends Scene {
 
     @Override
     public void init() {
-        this.viewport = new Viewport(new Vector2f());
+
+        this.viewport = new Viewport(new Vector2f(-250, 0));
         int xOffset = 10;
         int yOffset = 10;
 
-        float totalWidth = (float)(320 - xOffset * 2);
-        float totalHeight = (float)(240 - yOffset * 2);
+        float totalWidth = (float)(640 - xOffset * 2);
+        float totalHeight = (float)(480 - yOffset * 2);
         float sizeX = totalWidth / 100.0f;
-        float sizeY = totalHeight /100.0f;
+        float sizeY = totalHeight / 100.0f;
 
-        for (int x = 0; x <100; x++) {
+        for (int x = 0; x < 100; x++) {
             for (int y = 0; y < 100; y++) {
                 float xPos = xOffset + (x + sizeX);
                 float yPos = yOffset + (y * sizeY);
@@ -32,6 +34,12 @@ public class LevelEditorScene extends Scene {
                 this.addObjToScene(go);
             }
         }
+
+        loadRes();
+    }
+
+    private  void loadRes() {
+        AssetsPool.loadShader("assets/shaders/default.glsl");
     }
 
     @Override
