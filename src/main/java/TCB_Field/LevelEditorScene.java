@@ -2,7 +2,6 @@ package TCB_Field;
 
 import components.SpriteRender;
 import org.joml.Vector2f;
-import org.joml.Vector4f;
 import utility.AssetsPool;
 
 public class LevelEditorScene extends Scene {
@@ -15,27 +14,17 @@ public class LevelEditorScene extends Scene {
     @Override
     public void init() {
 
-        this.viewport = new Viewport(new Vector2f(-250, 0));
-        int xOffset = 10;
-        int yOffset = 10;
+        this.viewport = new Viewport(new Vector2f(0, 0)); //View point position
 
-        float totalWidth = (float)(640 - xOffset * 2);
-        float totalHeight = (float)(480 - yOffset * 2);
-        float sizeX = totalWidth / 100.0f;
-        float sizeY = totalHeight / 100.0f;
+        GameObject placeholder_object = new GameObject("placeholder_object", new Transform(new Vector2f(150, 200), new Vector2f(96, 96)));
+        placeholder_object.addComponent(new SpriteRender(AssetsPool.loadTexture("assets/texture/Just_a_placeholder.png")));
+        this.addObjToScene(placeholder_object);
 
-        for (int x = 0; x < 100; x++) {
-            for (int y = 0; y < 100; y++) {
-                float xPos = xOffset + (x + sizeX);
-                float yPos = yOffset + (y * sizeY);
+        GameObject niko_drawing = new GameObject("niko_drawing", new Transform(new Vector2f(400, 200), new Vector2f(96,96)));
+        niko_drawing.addComponent(new SpriteRender(AssetsPool.loadTexture("assets/texture/af.png")));
+        this.addObjToScene(niko_drawing);
 
-                GameObject go = new GameObject("Obj " + x + " " + y, new Transform(new Vector2f(xPos, yPos), new Vector2f(sizeX, sizeY)));
-                go.addComponent(new SpriteRender(new Vector4f(xPos / totalWidth, yPos / totalHeight, 1, 1)));
-                this.addObjToScene(go);
-            }
-        }
-
-        loadRes();
+        loadRes(); //Don't touch
     }
 
     private  void loadRes() {
