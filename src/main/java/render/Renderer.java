@@ -25,9 +25,12 @@ public class Renderer {
         boolean isAdd = false;
         for (Batch batch: batches) {
             if (batch.hasSpace()) {
-                batch.loadSprite(sprite);
-                isAdd = true;
-                break;
+                Texture t = sprite.loadTexture();
+                if (t == null || (batch.isTex(t) || batch.isTexCapValid())) {
+                    batch.loadSprite(sprite);
+                    isAdd = true;
+                    break;
+                }
             }
         }
 
@@ -44,4 +47,5 @@ public class Renderer {
             batch.render();
         }
     }
+
 }

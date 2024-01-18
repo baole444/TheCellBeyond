@@ -1,5 +1,6 @@
 package utility;
 
+import components.SpriteSheet;
 import render.Shader;
 import render.Texture;
 
@@ -10,6 +11,7 @@ import java.util.Map;
 public class AssetsPool {
     private static Map<String, Shader> shader = new HashMap<>();
     private static Map<String, Texture> texture = new HashMap<>();
+    private static Map<String, SpriteSheet> spritesheet = new HashMap<>();
 
     public static Shader loadShader(String rss) {
         File file = new File(rss);
@@ -32,5 +34,20 @@ public class AssetsPool {
             AssetsPool.texture.put(file.getAbsolutePath(), texture);
             return texture;
         }
+    }
+
+    public static void addSpSheet(String rss, SpriteSheet spritesheet) {
+        File file = new File(rss);
+        if (!AssetsPool.spritesheet.containsKey(file.getAbsolutePath())) {
+            AssetsPool.spritesheet.put(file.getAbsolutePath(), spritesheet);
+        }
+    }
+
+    public static SpriteSheet loadSprite(String rss) {
+        File file = new File(rss);
+        if (!AssetsPool.spritesheet.containsKey(file.getAbsolutePath())) {
+            assert false : "Error: failed to '" + rss + " ' , no assets added.";
+        }
+        return AssetsPool.spritesheet.getOrDefault(file.getAbsolutePath(), null);
     }
 }

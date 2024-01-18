@@ -15,6 +15,7 @@ import static org.lwjgl.opengl.GL30.*;
 
 public class Batch {
 
+    private final int MAX_TEX_BATCH = 8;
     //Vertices
 
     //Position      Color               Coordinate          TexID
@@ -224,4 +225,11 @@ public class Batch {
     public boolean hasSpace() {
         return this.hasSpace;
     }
+
+    public boolean isTexCapValid () {
+        return this.textures.size() < MAX_TEX_BATCH;
+    }
+     public boolean isTex(Texture t) {
+        return this.textures.contains(t);
+     }
 }

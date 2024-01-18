@@ -11,6 +11,7 @@ import static org.lwjgl.stb.STBImage.*;
 public class Texture {
     private String filepath;
     private int texID;
+    private int width, height;
     public Texture(String filepath) {
         this.filepath = filepath;
 
@@ -31,13 +32,17 @@ public class Texture {
         // Downsize
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
+        stbi_set_flip_vertically_on_load(true);
+
         IntBuffer width = BufferUtils.createIntBuffer(1);
         IntBuffer height = BufferUtils.createIntBuffer(1);
         IntBuffer channels = BufferUtils.createIntBuffer(1);
+
         ByteBuffer image = stbi_load(filepath, width, height, channels, 0);
-        stbi_set_flip_vertically_on_load(true);
 
         if (image != null ) {
+            this.width = width.get(0);
+            this.height = height.get(0);
             if (channels.get(0) == 3) {
                 glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width.get(0), height.get(0),
                         0, GL_RGB, GL_UNSIGNED_BYTE, image);
@@ -61,5 +66,13 @@ public class Texture {
 
     public void unbind() {
         glBindTexture(GL_TEXTURE_2D, 0);
+    }
+
+    public int loadWidth() {
+        return this.width;
+    }
+
+    public int loadHeight() {
+        return this.height;
     }
 }
