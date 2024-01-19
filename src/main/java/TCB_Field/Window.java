@@ -21,9 +21,9 @@ public class Window {
         this.width = 640;
         this.height = 480;
         this.title = "The Cell Beyond";
-        r = 0;
-        g = 0;
-        b = 0;
+        r = 0.027f;
+        g = 0.122f;
+        b = 0.067f;
         a = 1;
 
     }
@@ -117,6 +117,8 @@ public class Window {
         bindings available for use.
         */
         GL.createCapabilities();
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
         Window.changeScene(0);
     }

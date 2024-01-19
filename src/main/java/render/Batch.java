@@ -13,7 +13,7 @@ import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL30.*;
 
-public class Batch {
+public class Batch implements Comparable<Batch> {
 
     private final int MAX_TEX_BATCH = 8;
     //Vertices
@@ -42,8 +42,10 @@ public class Batch {
     private int vaoID, vboID;
     private int maxBatchSize;
     private Shader shader;
+    private  int zIndex;
 
-    public Batch(int maxBatchSize) {
+    public Batch(int maxBatchSize, int zIndex) {
+        this.zIndex = zIndex;
         shader = AssetsPool.loadShader("assets/shaders/default.glsl");
         this.sprites = new SpriteRender[maxBatchSize];
         this.maxBatchSize = maxBatchSize;
@@ -108,10 +110,20 @@ public class Batch {
     }
 
     public void render() {
-        //Re-buffer data/frame
-        glBindBuffer(GL_ARRAY_BUFFER, vboID);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, vertices);
-
+        boolean rebufferData = false;
+        for (int i = 0; i < countSprite; i++) {
+            SpriteRender spr = sprites[i];
+            if (spr.isDamage()) {
+                loadVertexProp(i);
+                spr.notDamage();
+                rebufferData = true;
+            }
+        }
+        if (rebufferData) {
+            //Legacy: Re-buffer data/frame | New: Re-buffer data/change only
+            glBindBuffer(GL_ARRAY_BUFFER, vboID);
+            glBufferSubData(GL_ARRAY_BUFFER, 0, vertices);
+        }
         // Shader
         shader.use();
         shader.loadMat4f("uProject", Window.getScene().viewport().getProjectMatrix());
@@ -232,4 +244,13 @@ public class Batch {
      public boolean isTex(Texture t) {
         return this.textures.contains(t);
      }
+
+     public int zIndex() {
+        return this.zIndex;
+     }
+
+    @Override
+    public int compareTo(Batch o) {
+        return Integer.compare(this.zIndex, o.zIndex());
+    }
 }
