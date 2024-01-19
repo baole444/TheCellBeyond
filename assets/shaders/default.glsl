@@ -36,6 +36,9 @@ void main()
 {
         if (fTexID > 0) {
                 int id = int(fTexID);
+                //vec4 texColor = texture(uTex[id], fTexCrd);
+
+                //olor = vec4(texColor.rgb * fColor.a, fColor.a * texColor.a);
                 // (1, 1, 1, 1) * (0.5, 0.5, 0.5, 0.5) = result color;
                 color = fColor * texture(uTex[id], fTexCrd);
                 //color = vec4(fTexCrd, 0, 1);

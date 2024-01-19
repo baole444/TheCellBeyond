@@ -43,7 +43,7 @@ public class AssetsPool {
         }
     }
 
-    public static SpriteSheet loadSprite(String rss) {
+    public static SpriteSheet loadSpSheet(String rss) {
         File file = new File(rss);
         if (!AssetsPool.spritesheet.containsKey(file.getAbsolutePath())) {
             assert false : "Error: failed to '" + rss + " ' , no assets added.";
