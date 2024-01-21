@@ -1,6 +1,13 @@
 package TCB_Field;
 
+import components.ImGuiLayer;
+import imgui.ImGui;
+import imgui.ImGuiIO;
+import imgui.flag.ImGuiConfigFlags;
+import imgui.gl3.ImGuiImplGl3;
+import imgui.glfw.ImGuiImplGlfw;
 import org.lwjgl.Version;
+import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
 
@@ -10,14 +17,21 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 public class Window {
+
+    private final ImGuiImplGlfw imGuiGlfw = new ImGuiImplGlfw();
+    private final ImGuiImplGl3 imGuiGl3 = new ImGuiImplGl3();
     private int width, height;
     private String title;
-    private long glfwWindow;
+    private long glfwWindow; //windows pointer
     public float r, g, b, a;
-    private boolean fadeToBlack = false;
     private static Window window = null; // start with no window
     private static Scene currentScene;
-    private Window() {
+
+    private  String glslVer = null;
+    private ImGuiLayer imGuiLayer;
+
+    public Window(ImGuiLayer layer) {
+        imGuiLayer = layer;
         this.width = 640;
         this.height = 480;
         this.title = "The Cell Beyond";
@@ -25,7 +39,6 @@ public class Window {
         g = 0.122f;
         b = 0.067f;
         a = 1;
-
     }
 
     public static void changeScene(int newScene) {
@@ -49,10 +62,11 @@ public class Window {
     public static Window get() {
         // make new windows at begin
         if (Window.window == null) {
-            Window.window = new Window();
+            Window.window = new Window(new ImGuiLayer());
         }
 
         return Window.window;
+
     }
 
     public static Scene getScene() {
@@ -63,27 +77,38 @@ public class Window {
         System.out.println("Starting " + Version.getVersion() + " i");
 
         init();
+
         loop();
 
-        //free fcking memories
+        //free memories
 
-        glfwFreeCallbacks(glfwWindow);
-        glfwDestroyWindow(glfwWindow);
-
+        endScr();
         //end GLFW and error callback
 
-        glfwTerminate();
         glfwSetErrorCallback(null).free();
     }
 
     public void init() {
+        initWindow();
+        initImGui();
+        imGuiGlfw.init(glfwWindow, true);
+        imGuiGl3.init(glslVer);
+    }
+
+
+    private void initWindow() {
         //error return
         GLFWErrorCallback.createPrint(System.err).set();
 
         //start GLFW
         if (!glfwInit()) {
-            throw new IllegalStateException("Unable to start GLFW.");
+            System.out.println("Unable to start GLFW.");
+            System.exit(-1);
         }
+
+        glslVer = "#version 410";
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
 
         //config GLFW
         glfwDefaultWindowHints();
@@ -94,7 +119,8 @@ public class Window {
         //spawn window
         glfwWindow = glfwCreateWindow(this.width, this.height, this.title, NULL, NULL);
         if (glfwWindow == NULL) {
-            throw new IllegalStateException("Failed to spawn window.");
+            System.out.println("Failed to spawn window.");
+            System.exit(-1);
         }
 
         glfwSetCursorPosCallback(glfwWindow, MouseListener::mousePosCallback); // :: is java syntax lambda function
@@ -110,37 +136,61 @@ public class Window {
         //Make window visible
         glfwShowWindow(glfwWindow);
 
-        /*
-        LWJGL's interoperation with GLFW's
-        openGL context, or any that managed externally
-        LWJGL detect context that is in current thread,
-        bindings available for use.
-        */
         GL.createCapabilities();
         glEnable(GL_BLEND);
         glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-
         Window.changeScene(0);
     }
 
+    public void initImGui() {
+        ImGui.createContext();
+        ImGuiIO io = ImGui.getIO();
+        io.addConfigFlags(ImGuiConfigFlags.ViewportsEnable);
+    }
+
+    public void endScr(){
+        imGuiGl3.dispose();
+        imGuiGlfw.dispose();
+        ImGui.destroyContext();
+        glfwFreeCallbacks(glfwWindow);
+        glfwDestroyWindow(glfwWindow);
+        glfwTerminate();
+    }
+
     public void loop () {
+        glfwPollEvents(); //poll events
+
         float beginTime = (float)glfwGetTime();
         float endTime;
         float dt = -1.0f;
 
         while (!glfwWindowShouldClose(glfwWindow)) {
-            //poll events
-            glfwPollEvents();
 
             glClearColor(r, g, b, a);
             glClear(GL_COLOR_BUFFER_BIT);
+
+            imGuiGlfw.newFrame();
+            ImGui.newFrame();
+
+            imGuiLayer.imgui();
+
+            ImGui.render();
+            imGuiGl3.renderDrawData(ImGui.getDrawData());
+
+            if (ImGui.getIO().hasConfigFlags(ImGuiConfigFlags.ViewportsEnable)) {
+                final long backupWindowPtr = org.lwjgl.glfw.GLFW.glfwGetCurrentContext();
+                ImGui.updatePlatformWindows();
+                ImGui.renderPlatformWindowsDefault();
+                GLFW.glfwMakeContextCurrent(backupWindowPtr);
+            }
+
 
             if (dt >= 0) {
                 currentScene.update(dt);
             }
 
-            glfwSwapBuffers(glfwWindow);
 
+            glfwSwapBuffers(glfwWindow);
             endTime = (float)glfwGetTime();
             dt = endTime - beginTime;
             beginTime = endTime;
