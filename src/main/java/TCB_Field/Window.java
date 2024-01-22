@@ -142,6 +142,10 @@ public class Window {
         Window.changeScene(0);
     }
 
+    public final long getGlfwWindow () {
+        return glfwWindow;
+    }
+
     public void initImGui() {
         ImGui.createContext();
         ImGuiIO io = ImGui.getIO();
@@ -152,13 +156,13 @@ public class Window {
         imGuiGl3.dispose();
         imGuiGlfw.dispose();
         ImGui.destroyContext();
-        glfwFreeCallbacks(glfwWindow);
-        glfwDestroyWindow(glfwWindow);
+        glfwFreeCallbacks(window.getGlfwWindow());
+        glfwDestroyWindow(window.getGlfwWindow());
         glfwTerminate();
     }
 
     public void loop () {
-        glfwPollEvents(); //poll events
+
 
         float beginTime = (float)glfwGetTime();
         float endTime;
@@ -191,6 +195,7 @@ public class Window {
 
 
             glfwSwapBuffers(glfwWindow);
+            glfwPollEvents(); //poll events
             endTime = (float)glfwGetTime();
             dt = endTime - beginTime;
             beginTime = endTime;
