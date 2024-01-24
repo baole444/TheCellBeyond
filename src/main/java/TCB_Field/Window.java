@@ -88,7 +88,7 @@ public class Window {
         glfwSetErrorCallback(null).free();
     }
 
-    public void init() {
+    private void init() {
         initWindow();
         initImGui();
         imGuiGlfw.init(glfwWindow, true);
@@ -146,7 +146,7 @@ public class Window {
         return glfwWindow;
     }
 
-    public void initImGui() {
+    private void initImGui() {
         ImGui.createContext();
         ImGuiIO io = ImGui.getIO();
         io.addConfigFlags(ImGuiConfigFlags.ViewportsEnable);
