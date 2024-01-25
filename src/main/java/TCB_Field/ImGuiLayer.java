@@ -26,7 +26,7 @@ public class ImGuiLayer {
         //fontConfig.setMergeMode(true); //For multiple font, turn this back on
         fontConfig.setPixelSnapH(true);
 
-        fontAtlas.addFontFromFileTTF("assets/fonts/Consola.ttf", 20, fontConfig);
+        fontAtlas.addFontFromFileTTF("assets/fonts/Consola.ttf", 19, fontConfig);
 
         fontConfig.destroy();
     }

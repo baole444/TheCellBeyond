@@ -1,8 +1,14 @@
 package TCB_Field;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import imgui.ImGui;
 import render.Renderer;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,6 +20,8 @@ public abstract class Scene {
     protected List<GameObject> gObjects = new ArrayList<>();
 
     protected GameObject activeGameObject = null;
+
+    protected boolean isLoaded = false;
 
     public Scene() {}
 
@@ -53,4 +61,42 @@ public abstract class Scene {
     }
 
     public void imgui() {}
+
+    public void saveLevel() {
+        Gson gson = new GsonBuilder()
+                .setPrettyPrinting()
+                .registerTypeAdapter(Component.class, new CompDeSerializer())
+                .registerTypeAdapter(GameObject.class, new GameObjDeSerializer())
+                .create();
+
+        try {
+            FileWriter writer = new FileWriter("level.tcb");
+            writer.write(gson.toJson(this.gObjects));
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void loadLevel() {
+        Gson gson = new GsonBuilder()
+                .setPrettyPrinting()
+                .registerTypeAdapter(Component.class, new CompDeSerializer())
+                .registerTypeAdapter(GameObject.class, new GameObjDeSerializer())
+                .create();
+        String loadFile = "";
+        try {
+            loadFile = new String(Files.readAllBytes(Paths.get("level.tcb")));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        if (!loadFile.equals("")) {
+            GameObject[] objs = gson.fromJson(loadFile, GameObject[].class);
+            for (int i = 0; i < objs.length; i++) {
+                addObjToScene(objs[i]);
+            }
+            this.isLoaded = true;
+        }
+    }
 }

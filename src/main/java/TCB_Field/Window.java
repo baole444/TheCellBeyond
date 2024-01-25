@@ -43,18 +43,18 @@ public class Window {
         switch (newScene)  {
             case 0:
                 currentScene = new LevelEditorScene();
-                currentScene.init();
-                currentScene.start();
                 break;
             case 1:
                 currentScene = new LevelScene();
-                currentScene.init();
-                currentScene.start();
                 break;
             default:
                 assert false: "Unknown scene '" + newScene + "'";
                 break;
         }
+
+        currentScene.loadLevel();
+        currentScene.init();
+        currentScene.start();
     }
 
     public static Window get() {
@@ -72,7 +72,7 @@ public class Window {
     }
 
     public void run() {
-        System.out.println("Starting " + Version.getVersion() + " i");
+        System.out.println("Starting LWJGL " + Version.getVersion() + "!");
 
         init();
 
@@ -162,7 +162,6 @@ public class Window {
 
     public void loop () {
 
-
         float beginTime = (float)glfwGetTime();
         float endTime;
         float dt = -1.0f;
@@ -185,6 +184,8 @@ public class Window {
             endTime = (float)glfwGetTime();
             dt = endTime - beginTime;
             beginTime = endTime;
+
+            currentScene.saveLevel();
         }
 
     }

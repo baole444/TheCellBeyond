@@ -25,6 +25,9 @@ project.ext.jomlVersion = "1.10.5"
 project.ext.lwjglNatives = "natives-windows"
 
 dependencies {
+    //Google Gson
+    implementation 'com.google.code.gson:gson:2.10.1'
+
     // imGUI library
     implementation fileTree('library') { include '*.jar' }
 
