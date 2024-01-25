@@ -1,13 +1,11 @@
 package TCB_Field;
 
-import components.ImGuiLayer;
 import imgui.ImGui;
 import imgui.ImGuiIO;
 import imgui.flag.ImGuiConfigFlags;
 import imgui.gl3.ImGuiImplGl3;
 import imgui.glfw.ImGuiImplGlfw;
 import org.lwjgl.Version;
-import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
 
@@ -149,6 +147,7 @@ public class Window {
     private void initImGui() {
         ImGui.createContext();
         ImGuiIO io = ImGui.getIO();
+        imGuiLayer.guiFont(io);
         io.addConfigFlags(ImGuiConfigFlags.ViewportsEnable);
     }
 
@@ -173,21 +172,8 @@ public class Window {
             glClearColor(r, g, b, a);
             glClear(GL_COLOR_BUFFER_BIT);
 
-            imGuiGlfw.newFrame();
-            ImGui.newFrame();
 
-            imGuiLayer.imgui();
-
-            ImGui.render();
-            imGuiGl3.renderDrawData(ImGui.getDrawData());
-
-            if (ImGui.getIO().hasConfigFlags(ImGuiConfigFlags.ViewportsEnable)) {
-                final long backupWindowPtr = org.lwjgl.glfw.GLFW.glfwGetCurrentContext();
-                ImGui.updatePlatformWindows();
-                ImGui.renderPlatformWindowsDefault();
-                GLFW.glfwMakeContextCurrent(backupWindowPtr);
-            }
-
+            this.imGuiLayer.update(dt, currentScene, ImGui.getIO(), imGuiGlfw, imGuiGl3);
 
             if (dt >= 0) {
                 currentScene.update(dt);

@@ -2,6 +2,7 @@ package components;
 
 import TCB_Field.Component;
 import TCB_Field.Transform;
+import imgui.ImGui;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import render.Texture;
@@ -29,6 +30,7 @@ public class SpriteRender extends Component {
     public void start() {
         this.lastT = gameObject.transform.copy();
     }
+
     @Override
     public void update(float dt) {
         if (!this.lastT.equals(this.gameObject.transform)) {
@@ -37,6 +39,16 @@ public class SpriteRender extends Component {
 
         }
     }
+
+    @Override
+    public void imgui() {
+        float[] igColor = {color.x, color.y, color.z, color.w};
+        if (ImGui.colorPicker4("Color tweak: ", igColor)) {
+            this.color.set(igColor[0], igColor[1], igColor[2], igColor[3]);
+            this.isDamage = true;
+        }
+    }
+
     public Vector4f loadColor() {
         return this.color;
     }
@@ -67,4 +79,6 @@ public class SpriteRender extends Component {
     public void notDamage() {
         this.isDamage = false;
     }
+
+
 }

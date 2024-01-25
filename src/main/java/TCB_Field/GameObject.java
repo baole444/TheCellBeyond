@@ -20,6 +20,7 @@ public class GameObject {
 
     public GameObject(String name, Transform transform, int zIndex) {
         this.name = name;
+        this.zIndex = zIndex;
         this.components = new ArrayList<>();
         this.transform = transform;
 
@@ -62,6 +63,12 @@ public class GameObject {
     public void start() {
         for (int i = 0; i < components.size(); i++) {
             components.get(i).start();
+        }
+    }
+
+    public void imgui() {
+        for (Component c: components) {
+            c.imgui();
         }
     }
 

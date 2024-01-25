@@ -2,10 +2,12 @@ package TCB_Field;
 
 import components.SpriteRender;
 import components.SpriteSheet;
+import imgui.ImGui;
 import org.joml.Vector2f;
 import utility.AssetsPool;
 
 public class LevelEditorScene extends Scene {
+    private boolean showText = false;
     private GameObject obj1, obj2, obj3;
     private SpriteSheet sprites;
     public LevelEditorScene() {
@@ -24,6 +26,7 @@ public class LevelEditorScene extends Scene {
         obj1 = new GameObject("obj1", new Transform(new Vector2f(100, 200), new Vector2f(90, 90)), 0);
         obj1.addComponent(new SpriteRender(sprites.spriteIndex(0)));
         this.addObjToScene(obj1);
+        this.activeGameObject = obj1;
 
         obj2 = new GameObject("obj2", new Transform(new Vector2f(280, 200), new Vector2f(90,90)), 1);
         obj2.addComponent(new SpriteRender(sprites.spriteIndex(4)));
@@ -64,6 +67,25 @@ public class LevelEditorScene extends Scene {
         }
 
         this.renderer.render();
+    }
+
+    @Override
+    public void imgui() {
+        ImGui.begin("Test");
+
+        if (ImGui.button("test button")) {
+            showText = true;
+        }
+
+        if (showText) {
+            ImGui.text("button registered");
+            ImGui.sameLine();
+            if (ImGui.button("End text")) {
+                showText = false;
+            }
+        }
+
+        ImGui.end();
     }
 
 }
