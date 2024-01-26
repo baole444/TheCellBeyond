@@ -1,7 +1,12 @@
-package TCB_Field;
+package scene;
 
+import TCB_Field.GameObjDeSerializer;
+import TCB_Field.GameObject;
+import TCB_Field.Viewport;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import components.CompDeSerializer;
+import components.Component;
 import imgui.ImGui;
 import render.Renderer;
 
@@ -14,7 +19,7 @@ import java.util.List;
 
 public abstract class Scene {
     protected Renderer renderer = new Renderer();
-    protected  Viewport viewport;
+    protected Viewport viewport;
     private boolean isOn = false;
 
     protected List<GameObject> gObjects = new ArrayList<>();
@@ -84,6 +89,7 @@ public abstract class Scene {
                 .registerTypeAdapter(Component.class, new CompDeSerializer())
                 .registerTypeAdapter(GameObject.class, new GameObjDeSerializer())
                 .create();
+
         String loadFile = "";
         try {
             loadFile = new String(Files.readAllBytes(Paths.get("level.tcb")));
@@ -92,10 +98,30 @@ public abstract class Scene {
         }
 
         if (!loadFile.equals("")) {
+            int maxObjID = -1;
+            int maxCompID = -1;
+
             GameObject[] objs = gson.fromJson(loadFile, GameObject[].class);
             for (int i = 0; i < objs.length; i++) {
                 addObjToScene(objs[i]);
+
+                for (Component c : objs[i].loadAllComp()) {
+                    if (c.loadUID() > maxCompID) {
+                        maxCompID = c.loadUID();
+                    }
+                }
+
+                if (objs[i].loadUid() > maxObjID) {
+                    maxObjID = objs[i].loadUid();
+                }
+
             }
+
+            maxObjID++;
+            maxCompID++;
+            GameObject.init(maxObjID);
+            Component.init(maxCompID);
+
             this.isLoaded = true;
         }
     }

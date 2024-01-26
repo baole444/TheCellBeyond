@@ -33,6 +33,8 @@ public class SpriteSheet {
             Sprite sprite = new Sprite();
             sprite.setTex(this.texture);
             sprite.setTexCrd(texCoord);
+            sprite.setWidth(spsWidth);
+            sprite.setHeight(spsHeight);
             this.sprites.add(sprite);
             instX += spsWidth + spacing;
             if (instX >= texture.loadWidth()) {
@@ -44,5 +46,9 @@ public class SpriteSheet {
 
     public Sprite spriteIndex(int index) {
         return this.sprites.get(index);
+    }
+
+    public int size() {
+        return sprites.size();
     }
 }

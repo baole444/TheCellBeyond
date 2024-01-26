@@ -1,4 +1,7 @@
-package TCB_Field;
+package scene;
+
+import TCB_Field.Window;
+import scene.Scene;
 
 public class LevelScene extends Scene {
     public LevelScene() {

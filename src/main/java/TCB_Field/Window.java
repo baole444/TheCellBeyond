@@ -8,6 +8,10 @@ import imgui.glfw.ImGuiImplGlfw;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
+import render.DebugDraw;
+import scene.LevelEditorScene;
+import scene.LevelScene;
+import scene.Scene;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
@@ -18,7 +22,8 @@ public class Window {
 
     private final ImGuiImplGlfw imGuiGlfw = new ImGuiImplGlfw();
     private final ImGuiImplGl3 imGuiGl3 = new ImGuiImplGl3();
-    private int width, height;
+    private int width;
+    private int height;
     private String title;
     private long glfwWindow; //windows pointer
     public float r, g, b, a;
@@ -69,6 +74,14 @@ public class Window {
 
     public static Scene getScene() {
         return get().currentScene;
+    }
+
+    public static int loadWidth() {
+        return get().width;
+    }
+
+    public static int loadHeight() {
+        return get().height;
     }
 
     public void run() {
@@ -168,6 +181,8 @@ public class Window {
 
         while (!glfwWindowShouldClose(glfwWindow)) {
 
+            DebugDraw.startFrame();
+
             glClearColor(r, g, b, a);
             glClear(GL_COLOR_BUFFER_BIT);
 
@@ -175,6 +190,7 @@ public class Window {
             this.imGuiLayer.update(dt, currentScene, ImGui.getIO(), imGuiGlfw, imGuiGl3);
 
             if (dt >= 0) {
+                DebugDraw.draw();
                 currentScene.update(dt);
             }
 

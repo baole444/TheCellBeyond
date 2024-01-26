@@ -1,5 +1,7 @@
 package TCB_Field;
 
+import org.joml.Vector4f;
+
 import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
 import static org.lwjgl.glfw.GLFW.GLFW_RELEASE;
 
@@ -67,6 +69,36 @@ public class MouseListener {
 
     public static float getY() {
         return (float)get().yPos;
+    }
+
+    public static float getOrthoX() {
+        float instX = getX();
+        instX = (instX / (float)Window.loadWidth()) * 2.0f - 1.0f;
+        Vector4f tmp = new Vector4f(instX, 0, 0, 1);
+
+        tmp.mul(Window.getScene().viewport().getInverseProject()
+                .mul(Window.getScene().viewport().getInverseView())
+        );
+
+        instX = tmp.x;
+
+
+        return instX;
+    }
+
+    public static float getOrthoY() {
+        float instY = Window.loadHeight() - getY();
+        instY = (instY / (float)Window.loadHeight()) * 2.0f - 1.0f;
+        Vector4f tmp = new Vector4f(0, instY, 0, 1);
+
+        tmp.mul(Window.getScene().viewport().getInverseProject()
+                .mul(Window.getScene().viewport().getInverseView())
+        );
+
+        instY = tmp.y;
+
+
+        return instY;
     }
 
     public static float getDX() {

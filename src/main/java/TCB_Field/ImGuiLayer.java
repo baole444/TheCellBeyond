@@ -8,10 +8,10 @@ import imgui.flag.ImGuiConfigFlags;
 import imgui.gl3.ImGuiImplGl3;
 import imgui.glfw.ImGuiImplGlfw;
 import org.lwjgl.glfw.GLFW;
+import scene.Scene;
 
 public class ImGuiLayer {
 
-    public ImGuiLayer() {}
     public void guiFont(ImGuiIO io) {
         final ImFontAtlas fontAtlas = io.getFonts();
 
@@ -32,7 +32,15 @@ public class ImGuiLayer {
     }
 
     public void update(float dt, Scene currentScene, ImGuiIO io, ImGuiImplGlfw imGuiGlfw, ImGuiImplGl3 imGuiGl3) {
+        //Define windows original space (important)
+        float[] winWidth = {Window.loadWidth()};
+        float[] winHeight = {Window.loadHeight()};
+        io.setDisplaySize(winWidth[0], winHeight[0]);
+        io.setDisplayFramebufferScale(1f, 1f);
+        //This can be removed if element shifting on screen is desired, but it is not recommended.
+
         io.setDeltaTime(dt);
+
         imGuiGlfw.newFrame();
         ImGui.newFrame();
 

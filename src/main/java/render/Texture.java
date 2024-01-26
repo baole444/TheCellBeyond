@@ -79,4 +79,6 @@ public class Texture {
     public int loadHeight() {
         return this.height;
     }
+
+    public int loadID() {return texID;}
 }

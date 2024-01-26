@@ -1,7 +1,5 @@
 package components;
 
-import TCB_Field.Component;
-
 public class FontRender extends Component {
 
     @Override

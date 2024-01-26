@@ -1,6 +1,5 @@
 package components;
 
-import TCB_Field.Component;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 

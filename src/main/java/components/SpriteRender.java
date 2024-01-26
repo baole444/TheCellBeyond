@@ -1,6 +1,5 @@
 package components;
 
-import TCB_Field.Component;
 import TCB_Field.Transform;
 import imgui.ImGui;
 import org.joml.Vector2f;
