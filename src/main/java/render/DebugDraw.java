@@ -4,6 +4,7 @@ import TCB_Field.Window;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 import utility.AssetsPool;
+import utility.TCBMath;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -134,20 +135,62 @@ public class DebugDraw {
 
     // Box2D methods
 
-//   public static void addBox2(Vector2f centre, Vector2f dimension,
-//                              float rotate, Vector3f color, int alive) {
-//       Vector2f min = new Vector2f(centre).sub(new Vector2f(dimension).mul(0.5f));
-//       Vector2f max = new Vector2f(centre).add(new Vector2f(dimension).mul(0.5f));
+    public static void addBox2(Vector2f centre, Vector2f dimension, float rotate) {
 
-//       Vector2f[] vertices = {
-//               new Vector2f(min.x, min.y), new Vector2f(min.x, max.y),
-//               new Vector2f(max.x, max.y), new Vector2f(max.x, min.y)
-//       };
+        addBox2(centre, dimension, rotate, new Vector3f(1, 1, 0), 1);
+    }
 
-//       //if (rotate != 0.0f) {
-//       //    for (Vector2f v : vertices) {
-//       //        JMath.rotate(v, rotate, centre);
-//       //    }
-//       //}
-//   }
+    public static void addBox2(Vector2f centre, Vector2f dimension, float rotate, Vector3f color) {
+        addBox2(centre, dimension, rotate, color, 1);
+    }
+
+   public static void addBox2(Vector2f centre, Vector2f dimension,
+                              float rotate, Vector3f color, int alive)
+   {
+       Vector2f min = new Vector2f(centre).sub(new Vector2f(dimension).mul(0.5f));
+       Vector2f max = new Vector2f(centre).add(new Vector2f(dimension).mul(0.5f));
+       Vector2f[] vertices = {
+               new Vector2f(min.x, min.y), new Vector2f(min.x, max.y),
+               new Vector2f(max.x, max.y), new Vector2f(max.x, min.y)
+       };
+       if (rotate != 0.0f) {
+           for (Vector2f v : vertices) {
+               TCBMath.rotate(v, rotate, centre);
+           }
+       }
+
+       addLine2(vertices[0], vertices[1], color, alive);
+       addLine2(vertices[0], vertices[3], color, alive);
+       addLine2(vertices[1], vertices[2], color, alive);
+       addLine2(vertices[2], vertices[3], color, alive);
+
+   }
+
+   // Circle methods
+
+    public static void addCircle(Vector2f centre, float radius) {
+        addCircle(centre, radius, new Vector3f(1, 1, 0), 1);
+    }
+
+    public static void addCircle(Vector2f centre, float radius, Vector3f color) {
+        addCircle(centre, radius, color, 1);
+    }
+    public static void addCircle(Vector2f centre, float radius, Vector3f color, int alive) {
+        Vector2f[] pt = new Vector2f[24];
+        int step = 360 / pt.length;
+        int startAngle = 0;
+
+        for (int i = 0; i < pt.length; i++) {
+            Vector2f tmp = new Vector2f(radius, 0);
+            TCBMath.rotate(tmp, startAngle, new Vector2f());
+            pt[i] = new Vector2f(tmp).add(centre);
+
+            if (i > 0) {
+                addLine2(pt[i - 1], pt[i], color, alive);
+            }
+
+            startAngle += step;
+        }
+        addLine2(pt[pt.length - 1], pt[0], color, alive);
+    }
 }

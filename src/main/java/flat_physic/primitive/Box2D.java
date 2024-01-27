@@ -2,10 +2,11 @@ package flat_physic.primitive;
 
 import flat_physic.hardobject.HardObject;
 import org.joml.Vector2f;
+import utility.TCBMath;
 
 public class Box2D {
     private Vector2f size = new Vector2f();
-    private Vector2f isHalf = new Vector2f();
+    private Vector2f isHalf;
     private HardObject hardObject = null;
 
     public Box2D() {
@@ -25,6 +26,10 @@ public class Box2D {
         return new Vector2f(this.hardObject.loadPos()).add(this.isHalf);
     }
 
+    public Vector2f loadHalfSize () {
+        return this.isHalf;
+    }
+
     public Vector2f[] loadVertices() {
         Vector2f min = loadMin();
         Vector2f max = loadMax();
@@ -38,7 +43,7 @@ public class Box2D {
             for (Vector2f v : vertices) {
                 // TODO: implement this
                 // Rotate point V2f about centre(Vector2f) by rotation((float)degree)
-                //TCB_Math.rotate(v, this.hardObject.loadPos(), this.hardObject.loadRotate());
+                TCBMath.rotate(v, this.hardObject.loadRotate(), this.hardObject.loadPos());
             }
         }
 

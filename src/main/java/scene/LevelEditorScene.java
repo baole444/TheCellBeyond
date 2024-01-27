@@ -8,6 +8,8 @@ import components.*;
 import imgui.ImGui;
 import imgui.ImVec2;
 import org.joml.Vector2f;
+import org.joml.Vector3f;
+import render.DebugDraw;
 import utility.AssetsPool;
 
 public class LevelEditorScene extends Scene {
@@ -30,7 +32,7 @@ public class LevelEditorScene extends Scene {
         this.viewport = new Viewport(new Vector2f(0, 0)); //View point position
         sprites = AssetsPool.loadSpSheet("assets/texture/Main char.png");
         if (isLoaded) {
-            this.activeGameObject = gObjects.get(2);
+            //this.activeGameObject = gObjects.get(0);
             return;
         }
 
@@ -77,10 +79,15 @@ public class LevelEditorScene extends Scene {
 //    private int spriteIndex = 0;
 //    private float spriteFlipTime = 0.5f;
 //    private float spriteFlipTimeLeft = 0.0f;
+    float x = 0.0f;
+    float y = 0.0f;
 
     @Override
     public void update(float dt) {
         levelEditorObject.update(dt);
+        DebugDraw.addCircle(new Vector2f(x, y), 50, new Vector3f(1, 1,1), 1);
+        x += 50f * dt;
+        y += 50f * dt;
 
 //        spriteFlipTimeLeft -= dt;
 //        if (spriteFlipTimeLeft <= 0) {

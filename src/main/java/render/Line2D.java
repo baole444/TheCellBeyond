@@ -46,4 +46,8 @@ public class Line2D {
         return color;
     }
 
+    public float lengthSqr() {
+        return new Vector2f(end).sub(start).lengthSquared();
+    }
+
 }
