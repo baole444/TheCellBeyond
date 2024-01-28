@@ -3,6 +3,7 @@ package TCB_Field;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
+import render.ObjectSelection;
 
 import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
 import static org.lwjgl.glfw.GLFW.GLFW_RELEASE;
@@ -16,6 +17,7 @@ public class MouseListener {
 
     private Vector2f workViewportPos = new Vector2f();
     private Vector2f workViewportSize = new Vector2f();
+    private ObjectSelection objectSelection;
 
     private MouseListener() {
         this.scrollX = 0.0;
@@ -104,6 +106,20 @@ public class MouseListener {
         }
     }
 
+    public static float loadScrX() {
+        float instX = getX() - get().workViewportPos.x;
+        instX = (instX / get().workViewportSize.x) * 1920.0f;
+
+
+        return instX;
+    }
+    public static float loadScrY() {
+        float instY = getY() - get().workViewportPos.y;
+        instY = 1080.0f - ((instY / get().workViewportSize.y) * 1080.0f);
+
+        return instY;
+    }
+
     public static float getOrthoX() {
         float instX = getX() - get().workViewportPos.x;
         instX = (instX / get().workViewportSize.x) * 2.0f - 1.0f;
@@ -111,13 +127,12 @@ public class MouseListener {
 
         Viewport vp = Window.getScene().viewport();
         Matrix4f viewProject = new Matrix4f();
-        vp.getInverseProject().mul(vp.getInverseView(), viewProject);
+        vp.getInverseView().mul(vp.getInverseProject(), viewProject);
 
         tmp.mul(viewProject);
 
         instX = tmp.x;
 
-        System.out.println(instX);
 
         return instX;
     }
@@ -129,7 +144,7 @@ public class MouseListener {
 
         Viewport vp = Window.getScene().viewport();
         Matrix4f viewProject = new Matrix4f();
-        vp.getInverseProject().mul(vp.getInverseView(), viewProject);
+        vp.getInverseView().mul(vp.getInverseProject(), viewProject);
 
         tmp.mul(viewProject);
 

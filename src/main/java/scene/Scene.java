@@ -7,7 +7,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import components.CompDeSerializer;
 import components.Component;
-import imgui.ImGui;
 import render.Renderer;
 
 import java.io.FileWriter;
@@ -16,15 +15,13 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public abstract class Scene {
     protected Renderer renderer = new Renderer();
     protected Viewport viewport;
     private boolean isOn = false;
-
     protected List<GameObject> gObjects = new ArrayList<>();
-
-    protected GameObject activeGameObject = null;
 
     protected boolean isLoaded = false;
 
@@ -50,19 +47,19 @@ public abstract class Scene {
         }
     }
 
+    public GameObject loadGameObj(int gObjectID) {
+        Optional<GameObject> result = this.gObjects.stream().
+                filter(gameObject -> gameObject.loadUid() == gObjectID).
+                findFirst();
+
+        return result.orElse(null);
+    }
+
     public abstract void update(float dt);
+    public abstract void render();
 
     public Viewport viewport() {
         return this.viewport;
-    }
-
-    public void sceneImGui() {
-        if (activeGameObject != null) {
-            ImGui.begin("Loader");
-            activeGameObject.imgui();
-            ImGui.end();
-        }
-        imgui();
     }
 
     public void imgui() {}

@@ -4,14 +4,14 @@ import TCB_Field.Window;
 import components.SpriteRender;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
-import utility.AssetsPool;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
-import static org.lwjgl.opengl.GL30.*;
+import static org.lwjgl.opengl.GL30.glBindVertexArray;
+import static org.lwjgl.opengl.GL30.glGenVertexArrays;
 
 public class Batch implements Comparable<Batch> {
 
@@ -25,11 +25,14 @@ public class Batch implements Comparable<Batch> {
     private final int COLOR_SIZE = 4;
     private final int TEX_COORD_SIZE = 2;
     private final int TEX_ID_SIZE = 1;
+    private final int OBJECT_ID_SIZE = 1;
+
     private final int POS_OFFSET = 0;
     private final int COLOR_OFFSET = POS_OFFSET + POS_SIZE *Float.BYTES;
     private final int TEX_COORD_OFFSET = COLOR_OFFSET + COLOR_SIZE * Float.BYTES;
     private final int TEX_ID_OFFSET = TEX_COORD_OFFSET + TEX_COORD_SIZE * Float.BYTES;
-    private final int VERTEX_SIZE = 9;
+    private final int VERTEX_SIZE = 10;
+    private final int OBJECT_ID_OFFSET = TEX_ID_OFFSET + TEX_ID_SIZE * Float.BYTES;
     private final int VERTEX_SIZE_BYTES = VERTEX_SIZE * Float.BYTES;
 
     private SpriteRender[] sprites;
@@ -41,12 +44,11 @@ public class Batch implements Comparable<Batch> {
     private List<Texture> textures;
     private int vaoID, vboID;
     private int maxBatchSize;
-    private Shader shader;
+
     private  int zIndex;
 
     public Batch(int maxBatchSize, int zIndex) {
         this.zIndex = zIndex;
-        shader = AssetsPool.loadShader("assets/shaders/default.glsl");
         this.sprites = new SpriteRender[maxBatchSize];
         this.maxBatchSize = maxBatchSize;
 
@@ -87,6 +89,9 @@ public class Batch implements Comparable<Batch> {
 
         glVertexAttribPointer(3, TEX_ID_SIZE, GL_FLOAT, false, VERTEX_SIZE_BYTES, TEX_ID_OFFSET);
         glEnableVertexAttribArray(3);
+
+        glVertexAttribPointer(4, OBJECT_ID_SIZE, GL_FLOAT, false, VERTEX_SIZE_BYTES, OBJECT_ID_OFFSET);
+        glEnableVertexAttribArray(4);
     }
 
     public void loadSprite(SpriteRender spt) {
@@ -125,6 +130,9 @@ public class Batch implements Comparable<Batch> {
             glBufferSubData(GL_ARRAY_BUFFER, 0, vertices);
         }
         // Shader
+
+        Shader shader = Renderer.loadShader();
+
         shader.use();
         shader.loadMat4f("uProject", Window.getScene().viewport().getProjectMatrix());
         shader.loadMat4f("uView", Window.getScene().viewport().getViewMatrix());
@@ -202,6 +210,9 @@ public class Batch implements Comparable<Batch> {
 
             // Load id
             vertices[offset + 8] = ID;
+
+            // Load obj Id
+            vertices[offset + 9] = spt.gameObject.loadUid() + 1;
 
             offset += VERTEX_SIZE;
         }

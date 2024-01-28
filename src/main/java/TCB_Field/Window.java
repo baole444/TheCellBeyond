@@ -1,19 +1,19 @@
 package TCB_Field;
 
+import editor.Properties;
 import imgui.ImGui;
 import imgui.ImGuiIO;
-import imgui.flag.ImGuiBackendFlags;
 import imgui.flag.ImGuiConfigFlags;
 import imgui.gl3.ImGuiImplGl3;
 import imgui.glfw.ImGuiImplGlfw;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
-import render.DebugDraw;
-import render.FrameBuffer;
+import render.*;
 import scene.LevelEditorScene;
 import scene.LevelScene;
 import scene.Scene;
+import utility.AssetsPool;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
@@ -21,7 +21,6 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 public class Window {
-
     private final ImGuiImplGlfw imGuiGlfw = new ImGuiImplGlfw();
     private final ImGuiImplGl3 imGuiGl3 = new ImGuiImplGl3();
     private int width;
@@ -35,6 +34,8 @@ public class Window {
     private  String glslVer = null;
     private ImGuiLayer imGuiLayer;
     private FrameBuffer frameBuffer;
+    private ObjectSelection objectSelection;
+    private Properties properties;
 
     public Window(ImGuiLayer layer) {
         imGuiLayer = layer;
@@ -105,10 +106,9 @@ public class Window {
     private void init() {
         initWindow();
         initImGui();
-        imGuiGlfw.init(glfwWindow, true);
+        imGuiGlfw.init(glfwWindow, false);
         imGuiGl3.init(glslVer);
     }
-
 
     private void initWindow() {
         //error return
@@ -120,9 +120,9 @@ public class Window {
             System.exit(-1);
         }
 
-        glslVer = "#version 410";
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+        glslVer = "#version 330 core";
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 
         //config GLFW
         glfwDefaultWindowHints();
@@ -156,26 +156,26 @@ public class Window {
         Window.changeScene(0);
 
         this.frameBuffer = new FrameBuffer(1920, 1080);
+        this.objectSelection = new ObjectSelection(1920, 1080);
         glViewport(0, 0, 1920, 1080);
 
     }
 
-    public final long getGlfwWindow () {
+    public final long getGlfwWindow() {
         return glfwWindow;
     }
 
-    private void initImGui() {
+    public void initImGui() {
         ImGui.createContext();
         ImGuiIO io = ImGui.getIO();
-        io.setConfigFlags(ImGuiConfigFlags.NavEnableKeyboard); // Navigation with keyboard
-        io.setBackendFlags(ImGuiBackendFlags.HasMouseCursors); // Mouse cursors to display while resizing windows etc.
         imGuiLayer.guiFont(io);
         imGuiLayer.guiMouseCallback(glfwWindow, io);
         io.addConfigFlags(ImGuiConfigFlags.ViewportsEnable);
         io.setConfigFlags(ImGuiConfigFlags.DockingEnable);
+        this.properties = new Properties(objectSelection);
+
 
     }
-
     public void endScr(){
         imGuiGl3.dispose();
         imGuiGlfw.dispose();
@@ -191,7 +191,26 @@ public class Window {
         float endTime;
         float dt = -1.0f;
 
+        Shader defaultShader = AssetsPool.loadShader("assets/shaders/default.glsl");
+        Shader objectSelectShader = AssetsPool.loadShader("assets/shaders/objSelection.glsl");
+
         while (!glfwWindowShouldClose(glfwWindow)) {
+
+            // Pass 1: object selection layer (invisible)
+            glDisable(GL_BLEND);
+            objectSelection.useWrite();
+
+            glViewport(0, 0, 1920, 1080);
+            glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            Renderer.setShader(objectSelectShader);
+            currentScene.render();
+
+            objectSelection.detachWrite();
+            glEnable(GL_BLEND);
+
+            // Pass 2: Visualized scene
 
             DebugDraw.startFrame();
 
@@ -200,15 +219,15 @@ public class Window {
             glClearColor(r, g, b, a);
             glClear(GL_COLOR_BUFFER_BIT);
 
-
-
             if (dt >= 0) {
                 DebugDraw.draw();
+                Renderer.setShader(defaultShader);
                 currentScene.update(dt);
+                currentScene.render();
             }
             this.frameBuffer.detach();
 
-            this.imGuiLayer.update(glfwWindow, dt, currentScene, ImGui.getIO(), imGuiGlfw, imGuiGl3);
+            this.imGuiLayer.update(glfwWindow, dt, currentScene, ImGui.getIO(), properties, imGuiGlfw, imGuiGl3);
 
             glfwSwapBuffers(glfwWindow);
             glfwPollEvents(); //poll events

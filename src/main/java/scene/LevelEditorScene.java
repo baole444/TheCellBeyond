@@ -28,41 +28,6 @@ public class LevelEditorScene extends Scene {
         loadRes(); //Don't touch
         this.viewport = new Viewport(new Vector2f(0, 0)); //View point position
         sprites = AssetsPool.loadSpSheet("assets/texture/Main char.png");
-        if (isLoaded) {
-            if (gObjects.size() > 0) {
-                this.activeGameObject = gObjects.get(0);
-            }
-            return;
-        }
-
-//        obj1 = new GameObject("obj1",
-//                new Transform(new Vector2f(100, 200),
-//                        new Vector2f(90, 90)), 0);
-//        SpriteRender obj1Sprite = new SpriteRender();
-//        obj1Sprite.setSprite(sprites.spriteIndex(0));
-//        obj1.addComponent(obj1Sprite);
-//        this.addObjToScene(obj1);
-//
-//
-//        obj2 = new GameObject("obj2",
-//                new Transform(new Vector2f(280, 200),
-//                        new Vector2f(90,90)), 0);
-//        SpriteRender obj2Sprite = new SpriteRender();
-//        Sprite obj2Tex = new Sprite();
-//        obj2Tex.setTex(AssetsPool.loadTexture("assets/texture/Just_a_placeholder.png"));
-//        obj2Sprite.setSprite(obj2Tex);
-//        obj2.addComponent(obj2Sprite);
-//        this.addObjToScene(obj2);
-//
-//        obj3 = new GameObject("obj3",
-//                new Transform(new Vector2f(450, 200),
-//                        new Vector2f(90,90)), 0);
-//        obj3Sprite = new SpriteRender();
-//        obj3Sprite.setColor(new Vector4f(1, 1 , 1, 1));
-//        obj3.addComponent(obj3Sprite);
-//        obj3.addComponent(new HardObject());
-//        this.addObjToScene(obj3);
-
 
     }
 
@@ -93,9 +58,13 @@ public class LevelEditorScene extends Scene {
         for (GameObject go : this.gObjects) {
             go.update(dt);
         }
+    }
 
+    @Override
+    public void render() {
         this.renderer.render();
     }
+
 
     @Override
     public void imgui() {

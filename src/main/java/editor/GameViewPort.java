@@ -6,10 +6,13 @@ import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.ImGuiWindowFlags;
 import org.joml.Vector2f;
+import org.joml.Vector3f;
+import render.DebugDraw;
 
 public class GameViewPort {
-    private static float leftX, rightX, topY, bottomY;
-    public static void imgui() {
+    private float leftX, rightX, topY, bottomY;
+    public void imgui() {
+        // TODO: BROKEN COORDINATE, WILL NEED TO FIX FOR CURSOR LIMITATION WILL WORK
         ImGui.begin("Game Viewport", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse);
 
         ImVec2 winSize = loadMaxViewportSize();
@@ -22,10 +25,11 @@ public class GameViewPort {
         topLeft.x -= ImGui.getScrollX();
         topLeft.y -= ImGui.getScrollY();
         leftX = topLeft.x;
-        topY = topLeft.y;
+        bottomY = topLeft.y;
         rightX = topLeft.x + winSize.x;
-        bottomY = topLeft.y - winSize.y;
+        topY = topLeft.y + winSize.y;
 
+        DebugDraw.addLine2(new Vector2f(leftX, bottomY), new Vector2f(rightX, topY), new Vector3f(1, 1, 1), 600);
         int texID = Window.loadFrameBuffer().loadTexID();
 
         ImGui.image(texID, winSize.x, winSize.y, 0, 1, 1, 0);
@@ -36,14 +40,15 @@ public class GameViewPort {
         ImGui.end();
     }
 
-    public static boolean getWantCaptureMouse() {
+    public boolean getWantCaptureMouse() {
         return MouseListener.getX() >= leftX &&
                 MouseListener.getX() <= rightX &&
-                MouseListener.getY() >= bottomY &&
-                MouseListener.getY() <= topY;
+                MouseListener.getY() <= bottomY &&
+                MouseListener.getY() >= topY;
+
     }
 
-    private static ImVec2 loadMaxViewportSize() {
+    private ImVec2 loadMaxViewportSize() {
         ImVec2 winSize = new ImVec2();
         ImGui.getContentRegionAvail(winSize);
         winSize.x -= ImGui.getScrollX();
@@ -60,7 +65,7 @@ public class GameViewPort {
         return new ImVec2(usableWidth, usableHeight);
     }
 
-    private static ImVec2 loadViewportToCentral(ImVec2 usableSize) {
+    private ImVec2 loadViewportToCentral(ImVec2 usableSize) {
         ImVec2 winSize = new ImVec2();
         ImGui.getContentRegionAvail(winSize);
         winSize.x -= ImGui.getScrollX();

@@ -1,6 +1,7 @@
 package TCB_Field;
 
 import editor.GameViewPort;
+import editor.Properties;
 import imgui.ImFontAtlas;
 import imgui.ImFontConfig;
 import imgui.ImGui;
@@ -17,11 +18,17 @@ import scene.Scene;
 import static org.lwjgl.glfw.GLFW.*;
 
 public class ImGuiLayer {
+    private GameViewPort gameViewPort;
     private final long[] mouseCursors = new long[ImGuiMouseCursor.COUNT];
 
+    public ImGuiLayer() {
+        this.gameViewPort = new GameViewPort();
+    }
     //Temporary solution of defining mouse and key control for the ImGui window
-    public void guiMouseCallback(long glfwWindow, ImGuiIO io) {
 
+    public void guiMouseCallback(long glfwWindow, ImGuiIO io) {
+        io.setConfigFlags(ImGuiConfigFlags.NavEnableKeyboard); // Navigation with keyboard
+        io.setBackendFlags(ImGuiBackendFlags.HasMouseCursors); // Mouse cursors to display while resizing windows etc.
         io.setBackendPlatformName("imgui_java_impl_glfw");
 
         // ------------------------------------------------------------
@@ -104,7 +111,7 @@ public class ImGuiLayer {
                 ImGui.setWindowFocus(null);
             }
 
-            if (!io.getWantCaptureMouse() || !GameViewPort.getWantCaptureMouse()) {
+            if (!io.getWantCaptureMouse() || !gameViewPort.getWantCaptureMouse()) {
                 MouseListener.mouseButtonCallback(w, button, action, mods);
             }
         });
@@ -155,7 +162,7 @@ public class ImGuiLayer {
         fontConfig.destroy();
     }
 
-    public void update(long glfwWindow,float dt, Scene currentScene, ImGuiIO io, ImGuiImplGlfw imGuiGlfw, ImGuiImplGl3 imGuiGl3) {
+    public void update(long glfwWindow,float dt, Scene currentScene, ImGuiIO io, Properties properties, ImGuiImplGlfw imGuiGlfw, ImGuiImplGl3 imGuiGl3) {
        double[] mousePosX = {0};
        double[] mousePosY = {0};
        glfwGetCursorPos(glfwWindow, mousePosX, mousePosY);
@@ -186,9 +193,11 @@ public class ImGuiLayer {
 
         imDocking();
 
-        currentScene.sceneImGui();
+        currentScene.imgui();
 
-        GameViewPort.imgui();
+        gameViewPort.imgui();
+        properties.update(dt, currentScene);
+        properties.imgui();
 
         ImGui.end();
 

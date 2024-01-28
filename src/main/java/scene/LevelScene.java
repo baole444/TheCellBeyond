@@ -1,7 +1,6 @@
 package scene;
 
 import TCB_Field.Window;
-import scene.Scene;
 
 public class LevelScene extends Scene {
     public LevelScene() {
@@ -14,5 +13,8 @@ public class LevelScene extends Scene {
     @Override
     public void update(float dt) {
 
+    }
+    @Override
+    public void render() {
     }
 }

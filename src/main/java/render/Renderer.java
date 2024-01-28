@@ -8,8 +8,11 @@ import java.util.Collections;
 import java.util.List;
 
 public class Renderer {
+
     private final int MAX_BATCH_SIZE = 1000;
     private List<Batch> batches;
+
+    private static Shader instShader;
 
     public Renderer() {
         this.batches = new ArrayList<>();
@@ -44,7 +47,16 @@ public class Renderer {
         }
     }
 
+    public static void setShader(Shader shader) {
+        instShader = shader;
+    }
+
+    public static Shader loadShader() {
+        return instShader;
+    }
+
     public void render() {
+        instShader.use();
         for (Batch batch : batches) {
             batch.render();
         }
