@@ -8,12 +8,9 @@ import components.*;
 import imgui.ImGui;
 import imgui.ImVec2;
 import org.joml.Vector2f;
-import org.joml.Vector3f;
-import render.DebugDraw;
 import utility.AssetsPool;
 
 public class LevelEditorScene extends Scene {
-    private boolean showText = false;
     private GameObject obj1, obj2, obj3;
     private SpriteSheet sprites;
     private SpriteRender obj3Sprite;
@@ -32,7 +29,9 @@ public class LevelEditorScene extends Scene {
         this.viewport = new Viewport(new Vector2f(0, 0)); //View point position
         sprites = AssetsPool.loadSpSheet("assets/texture/Main char.png");
         if (isLoaded) {
-            //this.activeGameObject = gObjects.get(0);
+            if (gObjects.size() > 0) {
+                this.activeGameObject = gObjects.get(0);
+            }
             return;
         }
 
@@ -74,30 +73,22 @@ public class LevelEditorScene extends Scene {
                         16, 16, 13, 16)
         );
         AssetsPool.loadTexture("assets/texture/Just_a_placeholder.png");
-    }
 
-//    private int spriteIndex = 0;
-//    private float spriteFlipTime = 0.5f;
-//    private float spriteFlipTimeLeft = 0.0f;
-    float x = 0.0f;
-    float y = 0.0f;
+        // Only generate if not existed
+        for (GameObject obj : gObjects) {
+            if (obj.getComponent(SpriteRender.class) != null) {
+                SpriteRender spr = obj.getComponent(SpriteRender.class);
+                if (spr.loadTexture() != null) {
+                    spr.setTex(AssetsPool.loadTexture(spr.loadTexture().loadFilePath()));
+                }
+            }
+        }
+    }
 
     @Override
     public void update(float dt) {
         levelEditorObject.update(dt);
-        DebugDraw.addCircle(new Vector2f(x, y), 50, new Vector3f(1, 1,1), 1);
-        x += 50f * dt;
-        y += 50f * dt;
 
-//        spriteFlipTimeLeft -= dt;
-//        if (spriteFlipTimeLeft <= 0) {
-//            spriteFlipTimeLeft = spriteFlipTime;
-//            spriteIndex++;
-//            if(spriteIndex > 3) {
-//                spriteIndex = 0;
-//            }
-//            obj1.getComponent(SpriteRender.class).setSprite(sprites.spriteIndex(spriteIndex));
-//        }
 
         for (GameObject go : this.gObjects) {
             go.update(dt);
@@ -108,7 +99,7 @@ public class LevelEditorScene extends Scene {
 
     @Override
     public void imgui() {
-        ImGui.begin("Test");
+        ImGui.begin("Sprite list");
 
         ImVec2 windowPos = new ImVec2();
         ImGui.getWindowPos(windowPos);
@@ -118,7 +109,7 @@ public class LevelEditorScene extends Scene {
         ImVec2 objectSpace = new ImVec2();
         ImGui.getStyle().getItemSpacing(objectSpace);
 
-        float windowX2 = windowPos.x + windowPos.x;
+        float windowX2 = windowPos.x + windowSize.x;
         for (int i = 0; i < sprites.size(); i++) {
             Sprite sprite = sprites.spriteIndex(i);
             float spriteWidth = sprite.loadWidth() * 3;

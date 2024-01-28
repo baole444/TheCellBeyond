@@ -166,7 +166,7 @@ public class Batch implements Comparable<Batch> {
 
         if (spt.loadTexture() != null) {
             for (int i = 0; i < textures.size(); i++) {
-                if (textures.get(i) == spt.loadTexture()) {
+                if (textures.get(i).equals(spt.loadTexture())) {
                     ID = i + 1;
                     break;
                 }

@@ -1,5 +1,7 @@
 package TCB_Field;
 
+import org.joml.Matrix4f;
+import org.joml.Vector2f;
 import org.joml.Vector4f;
 
 import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
@@ -11,6 +13,9 @@ public class MouseListener {
     private double xPos, yPos, lastY, lastX;
     private boolean mouseButtonPressed[] = new boolean[3];
     private boolean isDragging;
+
+    private Vector2f workViewportPos = new Vector2f();
+    private Vector2f workViewportSize = new Vector2f();
 
     private MouseListener() {
         this.scrollX = 0.0;
@@ -71,36 +76,6 @@ public class MouseListener {
         return (float)get().yPos;
     }
 
-    public static float getOrthoX() {
-        float instX = getX();
-        instX = (instX / (float)Window.loadWidth()) * 2.0f - 1.0f;
-        Vector4f tmp = new Vector4f(instX, 0, 0, 1);
-
-        tmp.mul(Window.getScene().viewport().getInverseProject()
-                .mul(Window.getScene().viewport().getInverseView())
-        );
-
-        instX = tmp.x;
-
-
-        return instX;
-    }
-
-    public static float getOrthoY() {
-        float instY = Window.loadHeight() - getY();
-        instY = (instY / (float)Window.loadHeight()) * 2.0f - 1.0f;
-        Vector4f tmp = new Vector4f(0, instY, 0, 1);
-
-        tmp.mul(Window.getScene().viewport().getInverseProject()
-                .mul(Window.getScene().viewport().getInverseView())
-        );
-
-        instY = tmp.y;
-
-
-        return instY;
-    }
-
     public static float getDX() {
         return (float)(get().lastX - get().xPos);
     }
@@ -127,5 +102,47 @@ public class MouseListener {
         } else {
             return false;
         }
+    }
+
+    public static float getOrthoX() {
+        float instX = getX() - get().workViewportPos.x;
+        instX = (instX / get().workViewportSize.x) * 2.0f - 1.0f;
+        Vector4f tmp = new Vector4f(instX, 0, 0, 1);
+
+        Viewport vp = Window.getScene().viewport();
+        Matrix4f viewProject = new Matrix4f();
+        vp.getInverseProject().mul(vp.getInverseView(), viewProject);
+
+        tmp.mul(viewProject);
+
+        instX = tmp.x;
+
+        System.out.println(instX);
+
+        return instX;
+    }
+
+    public static float getOrthoY() {
+        float instY = getY() - get().workViewportPos.y;
+        instY = -((instY / get().workViewportSize.y) * 2.0f - 1.0f);
+        Vector4f tmp = new Vector4f(0, instY, 0, 1);
+
+        Viewport vp = Window.getScene().viewport();
+        Matrix4f viewProject = new Matrix4f();
+        vp.getInverseProject().mul(vp.getInverseView(), viewProject);
+
+        tmp.mul(viewProject);
+
+        instY = tmp.y;
+
+        return instY;
+    }
+
+    public static void setWorkViewportPos(Vector2f workViewportPos) {
+        get().workViewportPos.set(workViewportPos);
+    }
+
+    public static void setWorkViewportSize(Vector2f workViewportSize) {
+        get().workViewportSize.set(workViewportSize);
     }
 }

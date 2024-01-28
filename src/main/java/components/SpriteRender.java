@@ -79,5 +79,8 @@ public class SpriteRender extends Component {
         this.isDamage = false;
     }
 
+    public void setTex(Texture texture) {
+        this.sprite.setTex(texture);
+    }
 
 }

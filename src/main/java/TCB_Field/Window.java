@@ -2,6 +2,7 @@ package TCB_Field;
 
 import imgui.ImGui;
 import imgui.ImGuiIO;
+import imgui.flag.ImGuiBackendFlags;
 import imgui.flag.ImGuiConfigFlags;
 import imgui.gl3.ImGuiImplGl3;
 import imgui.glfw.ImGuiImplGlfw;
@@ -9,6 +10,7 @@ import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
 import render.DebugDraw;
+import render.FrameBuffer;
 import scene.LevelEditorScene;
 import scene.LevelScene;
 import scene.Scene;
@@ -32,6 +34,7 @@ public class Window {
 
     private  String glslVer = null;
     private ImGuiLayer imGuiLayer;
+    private FrameBuffer frameBuffer;
 
     public Window(ImGuiLayer layer) {
         imGuiLayer = layer;
@@ -151,6 +154,10 @@ public class Window {
         glEnable(GL_BLEND);
         glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
         Window.changeScene(0);
+
+        this.frameBuffer = new FrameBuffer(1920, 1080);
+        glViewport(0, 0, 1920, 1080);
+
     }
 
     public final long getGlfwWindow () {
@@ -160,8 +167,13 @@ public class Window {
     private void initImGui() {
         ImGui.createContext();
         ImGuiIO io = ImGui.getIO();
+        io.setConfigFlags(ImGuiConfigFlags.NavEnableKeyboard); // Navigation with keyboard
+        io.setBackendFlags(ImGuiBackendFlags.HasMouseCursors); // Mouse cursors to display while resizing windows etc.
         imGuiLayer.guiFont(io);
+        imGuiLayer.guiMouseCallback(glfwWindow, io);
         io.addConfigFlags(ImGuiConfigFlags.ViewportsEnable);
+        io.setConfigFlags(ImGuiConfigFlags.DockingEnable);
+
     }
 
     public void endScr(){
@@ -183,17 +195,20 @@ public class Window {
 
             DebugDraw.startFrame();
 
+            this.frameBuffer.use();
+
             glClearColor(r, g, b, a);
             glClear(GL_COLOR_BUFFER_BIT);
 
 
-            this.imGuiLayer.update(dt, currentScene, ImGui.getIO(), imGuiGlfw, imGuiGl3);
 
             if (dt >= 0) {
                 DebugDraw.draw();
                 currentScene.update(dt);
             }
+            this.frameBuffer.detach();
 
+            this.imGuiLayer.update(glfwWindow, dt, currentScene, ImGui.getIO(), imGuiGlfw, imGuiGl3);
 
             glfwSwapBuffers(glfwWindow);
             glfwPollEvents(); //poll events
@@ -203,6 +218,13 @@ public class Window {
 
             currentScene.saveLevel();
         }
+    }
 
+    public static FrameBuffer loadFrameBuffer() {
+        return get().frameBuffer;
+    }
+
+    public static float loadTargetAspectRatio() {
+        return 4.0f / 3.0f;
     }
 }
