@@ -176,7 +176,7 @@ public class DebugDraw {
         addCircle(centre, radius, color, 1);
     }
     public static void addCircle(Vector2f centre, float radius, Vector3f color, int alive) {
-        Vector2f[] pt = new Vector2f[24];
+        Vector2f[] pt = new Vector2f[36];
         int step = 360 / pt.length;
         int startAngle = 0;
 

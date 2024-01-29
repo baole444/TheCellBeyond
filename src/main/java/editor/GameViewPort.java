@@ -11,7 +11,7 @@ public class GameViewPort {
     private float leftX, rightX, topY, bottomY;
     private static float[] printDebug;
     public void imgui() {
-        // TODO: BROKEN COORDINATE, WILL NEED TO FIX FOR CURSOR LIMITATION WILL WORK
+
         ImGui.begin("Game Viewport", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse);
 
         ImVec2 winSize = loadMaxViewportSize();
@@ -24,9 +24,9 @@ public class GameViewPort {
         topLeft.x -= ImGui.getScrollX();
         topLeft.y -= ImGui.getScrollY();
         leftX = topLeft.x;
-        topY =  topLeft.y;
+        bottomY =  topLeft.y;
         rightX = topLeft.x + winSize.x;
-        bottomY = winSize.y - topY;
+        topY = topLeft.y + winSize.y;
 
         this.printDebug = new float[] {winSize.x, winSize.y,winPos.x, winPos.y, leftX, rightX, bottomY, topY};
 
@@ -47,8 +47,8 @@ public class GameViewPort {
     public boolean getWantCaptureMouse() {
         return MouseListener.getX() >= leftX &&
                 MouseListener.getX() <= rightX &&
-                MouseListener.getY() <= bottomY &&
-                MouseListener.getY() >= topY;
+                MouseListener.getY() >= bottomY &&
+                MouseListener.getY() <= topY;
 
     }
 
