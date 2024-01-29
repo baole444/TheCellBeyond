@@ -2,6 +2,7 @@ package TCB_Field;
 
 import editor.GameViewPort;
 import editor.Properties;
+import editor.DebugGui;
 import imgui.ImFontAtlas;
 import imgui.ImFontConfig;
 import imgui.ImGui;
@@ -19,10 +20,12 @@ import static org.lwjgl.glfw.GLFW.*;
 
 public class ImGuiLayer {
     private GameViewPort gameViewPort;
+    private DebugGui debugGui;
     private final long[] mouseCursors = new long[ImGuiMouseCursor.COUNT];
 
     public ImGuiLayer() {
         this.gameViewPort = new GameViewPort();
+        this.debugGui = new DebugGui();
     }
     //Temporary solution of defining mouse and key control for the ImGui window
 
@@ -196,6 +199,7 @@ public class ImGuiLayer {
         currentScene.imgui();
 
         gameViewPort.imgui();
+        debugGui.imgui();
         properties.update(dt, currentScene);
         properties.imgui();
 

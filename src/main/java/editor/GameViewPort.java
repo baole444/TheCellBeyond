@@ -6,11 +6,10 @@ import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.ImGuiWindowFlags;
 import org.joml.Vector2f;
-import org.joml.Vector3f;
-import render.DebugDraw;
 
 public class GameViewPort {
     private float leftX, rightX, topY, bottomY;
+    private static float[] printDebug;
     public void imgui() {
         // TODO: BROKEN COORDINATE, WILL NEED TO FIX FOR CURSOR LIMITATION WILL WORK
         ImGui.begin("Game Viewport", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse);
@@ -25,11 +24,12 @@ public class GameViewPort {
         topLeft.x -= ImGui.getScrollX();
         topLeft.y -= ImGui.getScrollY();
         leftX = topLeft.x;
-        bottomY = topLeft.y;
+        topY =  topLeft.y;
         rightX = topLeft.x + winSize.x;
-        topY = topLeft.y + winSize.y;
+        bottomY = winSize.y - topY;
 
-        DebugDraw.addLine2(new Vector2f(leftX, bottomY), new Vector2f(rightX, topY), new Vector3f(1, 1, 1), 600);
+        this.printDebug = new float[] {winSize.x, winSize.y,winPos.x, winPos.y, leftX, rightX, bottomY, topY};
+
         int texID = Window.loadFrameBuffer().loadTexID();
 
         ImGui.image(texID, winSize.x, winSize.y, 0, 1, 1, 0);
@@ -38,6 +38,10 @@ public class GameViewPort {
         MouseListener.setWorkViewportSize(new Vector2f(winSize.x, winSize.y));
 
         ImGui.end();
+    }
+
+    public static float[] debugOutput() {
+        return printDebug;
     }
 
     public boolean getWantCaptureMouse() {
