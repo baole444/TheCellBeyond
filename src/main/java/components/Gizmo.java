@@ -11,12 +11,13 @@ import org.joml.Vector4f;
 import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_RIGHT;
 
 public class Gizmo extends Component {
-    private Vector4f xAxisColor = new Vector4f(0.091f, 0.206f, 0.223f ,1);
-    private Vector4f xHover = new Vector4f(0.102f, 0.227f, 0.246f, 1);
-    private Vector4f yAxisColor = new Vector4f(0.223f,0.091f,0.091f,1);
-    private Vector4f yHover = new Vector4f(0.246f, 0.102f, 0.102f, 1);
-    private Vector2f xOffset = new Vector2f(60.0f, -2.0f);
-    private Vector2f yOffset = new Vector2f(14.0f, 60.0f);
+    private final Vector4f resetColor = new Vector4f(0, 0, 0 , 0);
+    private final Vector4f xAxisColor = new Vector4f(0.7f, 0.2f, 0.2f, 1.0f);
+    private final Vector4f xHover = new Vector4f(0.85f, 0.35f, 0.35f, 1.0f);
+    private final Vector4f yAxisColor = new Vector4f(0.2f, 0.7f, 0.2f, 1.0f);
+    private final Vector4f yHover = new Vector4f(0.35f, 0.85f, 0.35f, 1.0f);
+    private final Vector2f xOffset = new Vector2f(63.0f, 8f);
+    private final Vector2f yOffset = new Vector2f(24.0f, 63.0f);
     private int gizWidth = 16;
     private int gizHeight = 48;
     protected boolean xActiveDrag = false;
@@ -97,8 +98,8 @@ public class Gizmo extends Component {
 
     private void setInactiveObj() {
         this.activeGameObj = null;
-        this.xAxisSpr.setColor(new Vector4f(0, 0, 0 , 0));
-        this.yAxisSpr.setColor(new Vector4f(0, 0, 0 , 0));
+        this.xAxisSpr.setColor(resetColor);
+        this.yAxisSpr.setColor(resetColor);
     }
 
     private boolean isHoverX() {

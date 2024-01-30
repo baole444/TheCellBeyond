@@ -31,10 +31,10 @@ public class GizmoControl extends Component {
         }
 
 
-        // Make keybind of Ctrl + S = scale | Ctrl + T = translate
-        if (KeyListener.isKeyPressed(GLFW_KEY_LEFT_CONTROL) && KeyListener.isKeyPressed(GLFW_KEY_T)) {
+        // Make keybind of Shift + S = scale | Shift + T = translate
+        if ((KeyListener.isKeyPressed(GLFW_KEY_LEFT_SHIFT) || KeyListener.isKeyPressed(GLFW_KEY_RIGHT_SHIFT)) && KeyListener.isKeyPressed(GLFW_KEY_T)) {
             isGizUse = 0;
-        } else if (KeyListener.isKeyPressed(GLFW_KEY_LEFT_CONTROL) && KeyListener.isKeyPressed(GLFW_KEY_S)) {
+        } else if ((KeyListener.isKeyPressed(GLFW_KEY_LEFT_SHIFT) || KeyListener.isKeyPressed(GLFW_KEY_RIGHT_SHIFT)) && KeyListener.isKeyPressed(GLFW_KEY_S)) {
             isGizUse = 1;
         }
 

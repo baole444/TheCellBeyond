@@ -15,6 +15,7 @@ public class ImEditorGui {
     public static void drawVec2Ctrl(String label, Vector2f val, float resetVal) {
         drawVec2Ctrl(label, val, resetVal, defaultWidth);
     }
+
     public static void drawVec2Ctrl(String label, Vector2f val, float resetVal, float columnWidth) {
         ImGui.pushID(label);
 

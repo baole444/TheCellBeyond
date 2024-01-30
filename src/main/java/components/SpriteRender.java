@@ -62,7 +62,7 @@ public class SpriteRender extends Component {
     }
 
     public void setColor(Vector4f color) {
-        if(this.color.equals(color)) {
+        if(!this.color.equals(color)) {
             this.isDamage = true;
             this.color.set(color);
         }
