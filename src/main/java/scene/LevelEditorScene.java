@@ -1,20 +1,16 @@
 package scene;
 
-import TCB_Field.GameObject;
-import TCB_Field.Prefab;
-import TCB_Field.Transform;
-import TCB_Field.Viewport;
+import TCB_Field.*;
 import components.*;
+import editor.Gizmo;
+import editor.WorkViewport;
 import imgui.ImGui;
 import imgui.ImVec2;
 import org.joml.Vector2f;
 import utility.AssetsPool;
 
 public class LevelEditorScene extends Scene {
-    private GameObject obj1, obj2, obj3;
     private SpriteSheet sprites;
-    private SpriteRender obj3Sprite;
-
     GameObject levelEditorObject = new GameObject("Lvl Editor", new Transform(new Vector2f()), 0);
     public LevelEditorScene() {
 
@@ -22,21 +18,34 @@ public class LevelEditorScene extends Scene {
 
     @Override
     public void init() {
+        loadRes(); //Don't touch
+
+        sprites = AssetsPool.loadSpSheet("assets/texture/Main char.png");
+        SpriteSheet gizmo = AssetsPool.loadSpSheet("assets/texture/Gizmo.png");
+
+        this.viewport = new Viewport(new Vector2f(0, 0)); //View point position
+
         levelEditorObject.addComponent(new MouseCtrl());
         levelEditorObject.addComponent(new Grid());
+        levelEditorObject.addComponent(new WorkViewport(this.viewport));
+        levelEditorObject.addComponent(new Gizmo(gizmo.spriteIndex(1), Window.loadImGui().loadProperties()));
 
-        loadRes(); //Don't touch
-        this.viewport = new Viewport(new Vector2f(0, 0)); //View point position
-        sprites = AssetsPool.loadSpSheet("assets/texture/Main char.png");
-
+        levelEditorObject.start();
     }
 
     private void loadRes() {
         AssetsPool.loadShader("assets/shaders/default.glsl");
+
         AssetsPool.addSpSheet("assets/texture/Main char.png",
-                new SpriteSheet((AssetsPool.loadTexture("assets/texture/Main char.png")),
+                new SpriteSheet(AssetsPool.loadTexture("assets/texture/Main char.png"),
                         16, 16, 13, 16)
         );
+
+        AssetsPool.addSpSheet("assets/texture/Gizmo.png",
+                new SpriteSheet(AssetsPool.loadTexture("assets/texture/Gizmo.png"),
+                         16, 32, 2, 0)
+        );
+
         AssetsPool.loadTexture("assets/texture/Just_a_placeholder.png");
 
         // Only generate if not existed
@@ -53,7 +62,7 @@ public class LevelEditorScene extends Scene {
     @Override
     public void update(float dt) {
         levelEditorObject.update(dt);
-
+        this.viewport.adjustProjection();
 
         for (GameObject go : this.gObjects) {
             go.update(dt);
@@ -68,6 +77,10 @@ public class LevelEditorScene extends Scene {
 
     @Override
     public void imgui() {
+        ImGui.begin("Level Editor Debug");
+        levelEditorObject.imgui();
+        ImGui.end();
+
         ImGui.begin("Sprite list");
 
         ImVec2 windowPos = new ImVec2();

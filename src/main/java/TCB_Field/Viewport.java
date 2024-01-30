@@ -8,7 +8,10 @@ public class Viewport {
     private Matrix4f projectMatrix, viewMatrix, inverseProject, inverseView;
     public Vector2f position;
 
-    private Vector2f projectSize = new Vector2f(640.0f, 480.0f);
+    private float sceneScale = 7.0f;
+    private Vector2f aspectRatio = new Vector2f(4.0f, 3.0f);
+    private Vector2f projectSize = new Vector2f(32.0f * aspectRatio.x * sceneScale, 32.0f * aspectRatio.y * sceneScale);
+    private float zoom = 1.0f;
 
     public Viewport(Vector2f position) {
         this.position = position;
@@ -21,7 +24,7 @@ public class Viewport {
 
     public void adjustProjection() {
         projectMatrix.identity();
-        projectMatrix.ortho(0.0f, projectSize.x, 0.0f, projectSize.y, 0.0f, 100.0f);
+        projectMatrix.ortho(0.0f, projectSize.x * this.zoom, 0.0f, projectSize.y * this.zoom, 0.0f, 100.0f);
         projectMatrix.invert(inverseProject);
     }
 
@@ -52,5 +55,17 @@ public class Viewport {
 
     public Vector2f loadProjectSize() {
         return this.projectSize;
+    }
+
+    public float loadZoom() {
+        return zoom;
+    }
+
+    public void setZoom(float zoom) {
+        this.zoom = zoom;
+    }
+
+    public void addZoom(float val) {
+        this.zoom += val;
     }
 }

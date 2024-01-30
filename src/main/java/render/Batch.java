@@ -2,6 +2,7 @@ package render;
 
 import TCB_Field.Window;
 import components.SpriteRender;
+import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 
@@ -182,6 +183,16 @@ public class Batch implements Comparable<Batch> {
             }
         }
 
+        boolean isRotate = spt.gameObject.transform.rotate != 0.0f;
+        Matrix4f transformMatrix = new Matrix4f().identity();
+        if (isRotate) {
+            transformMatrix.translate(spt.gameObject.transform.position.x, spt.gameObject.transform.position.y, 0);
+
+            transformMatrix.rotate((float)Math.toRadians(spt.gameObject.transform.rotate) , 0, 0, 1);
+
+            transformMatrix.scale(spt.gameObject.transform.scale.x, spt.gameObject.transform.scale.y, 1);
+        }
+
         // Load match vertex
         float xAdd = 1.0f;
         float yAdd = 1.0f;
@@ -194,9 +205,17 @@ public class Batch implements Comparable<Batch> {
                 yAdd = 1.0f;
             }
 
+            Vector4f instPos = new Vector4f(spt.gameObject.transform.position.x + (xAdd * spt.gameObject.transform.scale.x),
+                    spt.gameObject.transform.position.y + (yAdd * spt.gameObject.transform.scale.y),
+                    0, 1
+            );
+            if (isRotate) {
+                instPos = new Vector4f(xAdd, yAdd, 0, 1).mul(transformMatrix);
+            }
+
             // Load position
-            vertices[offset] = spt.gameObject.transform.position.x + (xAdd * spt.gameObject.transform.scale.x);
-            vertices[offset + 1] = spt.gameObject.transform.position.y + (yAdd * spt.gameObject.transform.scale.y);
+            vertices[offset] = instPos.x;
+            vertices[offset + 1] = instPos.y;
 
             // Load color
             vertices[offset + 2] = color.x;

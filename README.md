@@ -8,7 +8,13 @@ A simple 2D (and maybe 3D) graphic engine for Java application.
 + Object and component loading.
 + Keyboard and pointer(cursor) event.
 + Scene handling.
++ Viewport and docking support.
++ Debug draw tool.
 
 
-__*Currently, this has no implementation, codes are for reference only.*__
+__Current implementations:__
++ (WIP) Flat physic (2D).
++ ImGui for editor.
++ Sprite controlling.
++ GSON for loading and saving scene.
 

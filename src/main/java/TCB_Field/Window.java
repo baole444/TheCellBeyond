@@ -2,10 +2,6 @@ package TCB_Field;
 
 import editor.Properties;
 import imgui.ImGui;
-import imgui.ImGuiIO;
-import imgui.flag.ImGuiConfigFlags;
-import imgui.gl3.ImGuiImplGl3;
-import imgui.glfw.ImGuiImplGlfw;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
@@ -21,8 +17,6 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 public class Window {
-    private final ImGuiImplGlfw imGuiGlfw = new ImGuiImplGlfw();
-    private final ImGuiImplGl3 imGuiGl3 = new ImGuiImplGl3();
     private int width;
     private int height;
     private String title;
@@ -37,8 +31,7 @@ public class Window {
     private ObjectSelection objectSelection;
     private Properties properties;
 
-    public Window(ImGuiLayer layer) {
-        imGuiLayer = layer;
+    public Window() {
         this.width = 640;
         this.height = 480;
         this.title = "The Cell Beyond";
@@ -60,7 +53,6 @@ public class Window {
                 assert false: "Unknown scene '" + newScene + "'";
                 break;
         }
-
         currentScene.loadLevel();
         currentScene.init();
         currentScene.start();
@@ -69,11 +61,9 @@ public class Window {
     public static Window get() {
         // make new windows at begin
         if (Window.window == null) {
-            Window.window = new Window(new ImGuiLayer());
+            Window.window = new Window();
         }
-
         return Window.window;
-
     }
 
     public static Scene getScene() {
@@ -89,9 +79,9 @@ public class Window {
     }
 
     public void run() {
-        System.out.println("Starting LWJGL " + Version.getVersion() + "!");
+        System.out.println("Starting LWJGL " + Version.getVersion());
 
-        init();
+        initWindow();
 
         loop();
 
@@ -101,13 +91,6 @@ public class Window {
         //end GLFW and error callback
 
         glfwSetErrorCallback(null).free();
-    }
-
-    private void init() {
-        initWindow();
-        initImGui();
-        imGuiGlfw.init(glfwWindow, false);
-        imGuiGl3.init(glslVer);
     }
 
     private void initWindow() {
@@ -153,35 +136,24 @@ public class Window {
         GL.createCapabilities();
         glEnable(GL_BLEND);
         glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-        Window.changeScene(0);
 
         this.frameBuffer = new FrameBuffer(1920, 1080);
         this.objectSelection = new ObjectSelection(1920, 1080);
+
         glViewport(0, 0, 1920, 1080);
 
+        this.imGuiLayer = new ImGuiLayer(glfwWindow, objectSelection);
+        this.imGuiLayer.initImGui(glslVer);
+
+        Window.changeScene(0);
     }
 
-    public final long getGlfwWindow() {
-        return glfwWindow;
-    }
-
-    public void initImGui() {
-        ImGui.createContext();
-        ImGuiIO io = ImGui.getIO();
-        imGuiLayer.guiFont(io);
-        imGuiLayer.guiMouseCallback(glfwWindow, io);
-        io.addConfigFlags(ImGuiConfigFlags.ViewportsEnable);
-        io.setConfigFlags(ImGuiConfigFlags.DockingEnable);
-        this.properties = new Properties(objectSelection);
-
-
-    }
     public void endScr(){
-        imGuiGl3.dispose();
-        imGuiGlfw.dispose();
+        imGuiLayer.getImGuiGl3().dispose();
+        imGuiLayer.getImGuiGlfw().dispose();
         ImGui.destroyContext();
-        glfwFreeCallbacks(window.getGlfwWindow());
-        glfwDestroyWindow(window.getGlfwWindow());
+        glfwFreeCallbacks(window.glfwWindow);
+        glfwDestroyWindow(window.glfwWindow);
         glfwTerminate();
     }
 
@@ -220,16 +192,19 @@ public class Window {
             glClear(GL_COLOR_BUFFER_BIT);
 
             if (dt >= 0) {
-                DebugDraw.draw();
                 Renderer.setShader(defaultShader);
                 currentScene.update(dt);
                 currentScene.render();
+                DebugDraw.draw();
             }
             this.frameBuffer.detach();
 
-            this.imGuiLayer.update(glfwWindow, dt, currentScene, ImGui.getIO(), properties, imGuiGlfw, imGuiGl3);
+            this.imGuiLayer.update(dt, currentScene);
 
             glfwSwapBuffers(glfwWindow);
+
+            MouseListener.endFrame();
+
             glfwPollEvents(); //poll events
             endTime = (float)glfwGetTime();
             dt = endTime - beginTime;
@@ -246,4 +221,9 @@ public class Window {
     public static float loadTargetAspectRatio() {
         return 4.0f / 3.0f;
     }
+
+    public static ImGuiLayer loadImGui() {
+        return get().imGuiLayer;
+    }
+
 }

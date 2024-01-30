@@ -1,8 +1,8 @@
 package TCB_Field;
 
+import editor.DebugGui;
 import editor.GameViewPort;
 import editor.Properties;
-import editor.DebugGui;
 import imgui.ImFontAtlas;
 import imgui.ImFontConfig;
 import imgui.ImGui;
@@ -13,20 +13,40 @@ import imgui.flag.*;
 import imgui.gl3.ImGuiImplGl3;
 import imgui.glfw.ImGuiImplGlfw;
 import imgui.type.ImBoolean;
-import org.lwjgl.glfw.GLFW;
+import render.ObjectSelection;
 import scene.Scene;
 
 import static org.lwjgl.glfw.GLFW.*;
 
 public class ImGuiLayer {
+    private final ImGuiImplGlfw imGuiGlfw = new ImGuiImplGlfw();
+    private final ImGuiImplGl3 imGuiGl3 = new ImGuiImplGl3();
+    private long glfwWindow;
+    private ImGuiIO io;
     private GameViewPort gameViewPort;
     private DebugGui debugGui;
     private final long[] mouseCursors = new long[ImGuiMouseCursor.COUNT];
+    private Properties properties;
 
-    public ImGuiLayer() {
+    public ImGuiLayer(long glfwWindow, ObjectSelection objectSelection) {
         this.gameViewPort = new GameViewPort();
         this.debugGui = new DebugGui();
+        this.glfwWindow = glfwWindow;
+        this.properties = new Properties(objectSelection);
     }
+
+    public void initImGui(String glslVer) {
+        ImGui.createContext();
+        imGuiGlfw.init(glfwWindow, false);
+        this.io = ImGui.getIO();
+        guiFont(io);
+        guiMouseCallback(glfwWindow, io);
+        io.addConfigFlags(ImGuiConfigFlags.ViewportsEnable);
+        io.setConfigFlags(ImGuiConfigFlags.DockingEnable);
+        imGuiGl3.init(glslVer);
+    }
+
+
     //Temporary solution of defining mouse and key control for the ImGui window
 
     public void guiMouseCallback(long glfwWindow, ImGuiIO io) {
@@ -122,6 +142,7 @@ public class ImGuiLayer {
         glfwSetScrollCallback(glfwWindow, (w, xOffset, yOffset) -> {
             io.setMouseWheelH(io.getMouseWheelH() + (float) xOffset);
             io.setMouseWheel(io.getMouseWheel() + (float) yOffset);
+            MouseListener.mouseScrollCallback(w, xOffset, yOffset);
         });
 
         io.setSetClipboardTextFn(new ImStrConsumer() {
@@ -165,10 +186,10 @@ public class ImGuiLayer {
         fontConfig.destroy();
     }
 
-    public void update(long glfwWindow,float dt, Scene currentScene, ImGuiIO io, Properties properties, ImGuiImplGlfw imGuiGlfw, ImGuiImplGl3 imGuiGl3) {
-       double[] mousePosX = {0};
-       double[] mousePosY = {0};
-       glfwGetCursorPos(glfwWindow, mousePosX, mousePosY);
+    public void update(float dt, Scene currentScene) {
+        double[] mousePosX = {0};
+        double[] mousePosY = {0};
+        glfwGetCursorPos(glfwWindow, mousePosX, mousePosY);
 
 
         //Define windows original space (important)
@@ -213,7 +234,7 @@ public class ImGuiLayer {
             final long backupWindowPtr = org.lwjgl.glfw.GLFW.glfwGetCurrentContext();
             ImGui.updatePlatformWindows();
             ImGui.renderPlatformWindowsDefault();
-            GLFW.glfwMakeContextCurrent(backupWindowPtr);
+            org.lwjgl.glfw.GLFW.glfwMakeContextCurrent(backupWindowPtr);
         }
     }
 
@@ -234,6 +255,18 @@ public class ImGuiLayer {
 
         // Dock space
         ImGui.dockSpace(ImGui.getID("Dock"));
+    }
+
+    public ImGuiImplGlfw getImGuiGlfw() {
+        return imGuiGlfw;
+    }
+
+    public ImGuiImplGl3 getImGuiGl3() {
+        return imGuiGl3;
+    }
+
+    public Properties loadProperties() {
+        return this.properties;
     }
 
 }

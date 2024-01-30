@@ -12,6 +12,7 @@ public class GameObject {
     private List<Component> components;
     public Transform transform;
     private int zIndex;
+    private boolean isSerialize = true;
 
     public GameObject(String name, Transform transform, int zIndex) {
         this.name = name;
@@ -84,5 +85,13 @@ public class GameObject {
 
     public List<Component> loadAllComp() {
         return this.components;
+    }
+
+    public void isNotSerialize() {
+        this.isSerialize = false;
+    }
+
+    public boolean isSerialize() {
+        return this.isSerialize;
     }
 }
