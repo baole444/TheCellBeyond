@@ -94,7 +94,17 @@ public class DebugGui {
                 }
                 ImGui.text("    x " + x);
                 ImGui.text("    y " + y);
+                ImGui.text("    Is Dragging:");
+                ImGui.sameLine();
+                if (MouseListener.isDragging()) {
+                    ImGui.text("TRUE");
+                } else {
+                    ImGui.text("FALSE");
+                }
+
             }
+
+
         }
         ImGui.end();
     }

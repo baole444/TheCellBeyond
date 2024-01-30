@@ -2,6 +2,7 @@ package editor;
 
 import TCB_Field.GameObject;
 import TCB_Field.MouseListener;
+import components.IsNotSelectable;
 import imgui.ImGui;
 import render.ObjectSelection;
 import scene.Scene;
@@ -24,7 +25,13 @@ public class Properties {
             int x = (int)MouseListener.loadScrX();
             int y = (int)MouseListener.loadScrY();
             int gObjectId = objectSelection.pixelCheck(x, y);
-            activeGameObject = currentScene.loadGameObj(gObjectId);
+            GameObject selectedObj = currentScene.loadGameObj(gObjectId);
+            // Excluding the gizmo
+            if (selectedObj != null && selectedObj.getComponent(IsNotSelectable.class) == null) {
+                activeGameObject = selectedObj;
+            } else if (selectedObj == null && !MouseListener.isDragging()) {
+                activeGameObject = null;
+            }
             this.clickInit = 0.2f;
         }
     }

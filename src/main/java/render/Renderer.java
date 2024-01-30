@@ -28,7 +28,7 @@ public class Renderer {
     private void add(SpriteRender sprite) {
         boolean isAdd = false;
         for (Batch batch: batches) {
-            if (batch.hasSpace() && batch.zIndex() == sprite.gameObject.zIndex()) {
+            if (batch.hasSpace() && batch.zIndex() == sprite.gameObject.transform.zIndex) {
                 Texture t = sprite.loadTexture();
                 if (t == null || (batch.isTex(t) || batch.isTexCapValid())) {
                     batch.loadSprite(sprite);
@@ -39,7 +39,7 @@ public class Renderer {
         }
 
         if (!isAdd) {
-            Batch newBatch = new Batch(MAX_BATCH_SIZE, sprite.gameObject.zIndex());
+            Batch newBatch = new Batch(MAX_BATCH_SIZE, sprite.gameObject.transform.zIndex);
             newBatch.start();
             batches.add(newBatch);
             newBatch.loadSprite(sprite);

@@ -1,7 +1,7 @@
 package components;
 
 import TCB_Field.Transform;
-import imgui.ImGui;
+import editor.ImEditorGui;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import render.Texture;
@@ -41,9 +41,7 @@ public class SpriteRender extends Component {
 
     @Override
     public void imgui() {
-        float[] igColor = {color.x, color.y, color.z, color.w};
-        if (ImGui.colorPicker4("Color tweak: ", igColor)) {
-            this.color.set(igColor[0], igColor[1], igColor[2], igColor[3]);
+        if (ImEditorGui.colorCtrl("color", this.color)) {
             this.isDamage = true;
         }
     }

@@ -1,8 +1,9 @@
 package scene;
 
-import TCB_Field.*;
+import TCB_Field.GameObject;
+import TCB_Field.Prefab;
+import TCB_Field.Viewport;
 import components.*;
-import editor.Gizmo;
 import editor.WorkViewport;
 import imgui.ImGui;
 import imgui.ImVec2;
@@ -11,7 +12,7 @@ import utility.AssetsPool;
 
 public class LevelEditorScene extends Scene {
     private SpriteSheet sprites;
-    GameObject levelEditorObject = new GameObject("Lvl Editor", new Transform(new Vector2f()), 0);
+    GameObject levelEditorObject = this.generateObject("Lvl Editor");
     public LevelEditorScene() {
 
     }
@@ -28,8 +29,7 @@ public class LevelEditorScene extends Scene {
         levelEditorObject.addComponent(new MouseCtrl());
         levelEditorObject.addComponent(new Grid());
         levelEditorObject.addComponent(new WorkViewport(this.viewport));
-        levelEditorObject.addComponent(new Gizmo(gizmo.spriteIndex(1), Window.loadImGui().loadProperties()));
-
+        levelEditorObject.addComponent(new GizmoControl(gizmo));
         levelEditorObject.start();
     }
 
@@ -43,7 +43,7 @@ public class LevelEditorScene extends Scene {
 
         AssetsPool.addSpSheet("assets/texture/Gizmo.png",
                 new SpriteSheet(AssetsPool.loadTexture("assets/texture/Gizmo.png"),
-                         16, 32, 2, 0)
+                         16, 48, 3, 0)
         );
 
         AssetsPool.loadTexture("assets/texture/Just_a_placeholder.png");

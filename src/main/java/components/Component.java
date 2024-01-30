@@ -1,6 +1,7 @@
 package components;
 
 import TCB_Field.GameObject;
+import editor.ImEditorGui;
 import imgui.ImGui;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
@@ -39,15 +40,14 @@ public abstract class Component {
                 if (type == int.class) {
                     int val = (int)value;
                     int[] isInt = {val};
-                    if (ImGui.dragInt(name, isInt)) {
-                        field.set(this, isInt[0]);
-                    }
+
+                    field.set(this, ImEditorGui.dragIntCtrl(name, val));
+
                 } else if (type == float.class) {
                     float val = (float)value;
-                    float[] isFloat = {val};
-                    if (ImGui.dragFloat(name, isFloat)) {
-                        field.set(this, isFloat[0]);
-                    }
+
+                    field.set(this, ImEditorGui.dragFloatCtrl(name, val));
+
                 } else if (type == boolean.class) {
                     boolean val = (boolean)value;
                     if (ImGui.checkbox(name, val)) {
@@ -56,10 +56,9 @@ public abstract class Component {
                     }
                 } else if (type == Vector2f.class) {
                     Vector2f val = (Vector2f)value;
-                    float[] isVec = {val.x, val.y};
-                    if (ImGui.dragFloat2(name, isVec)) {
-                        val.set(isVec[0], isVec[1]);
-                    }
+
+                    ImEditorGui.drawVec2Ctrl(name, val);
+
                 } else if (type == Vector3f.class) {
                     Vector3f val = (Vector3f)value;
                     float[] isVec = {val.x, val.y, val.z};

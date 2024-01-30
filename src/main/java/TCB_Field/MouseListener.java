@@ -11,10 +11,10 @@ import static org.lwjgl.glfw.GLFW.GLFW_RELEASE;
 public class MouseListener {
     private  static MouseListener instance;
     private double scrollX, scrollY;
-    private double xPos, yPos, lastY, lastX;
+    private double xPos, yPos, lastY, lastX, xWorld, yWorld, xWorldLast, yWorldLast;
     private boolean mouseButtonPressed[] = new boolean[3];
     private boolean isDragging;
-
+    private int mouseButtonDown = 0;
     private Vector2f workViewportPos = new Vector2f();
     private Vector2f workViewportSize = new Vector2f();
     private ObjectSelection objectSelection;
@@ -38,19 +38,30 @@ public class MouseListener {
     }
 
     public static void mousePosCallback(long window, double xpos, double ypos) {
+        if (get().mouseButtonDown > 0) {
+            get().isDragging = true;
+        }
+
         get().lastX = get().xPos;
         get().lastY = get().yPos;
+        get().xWorldLast = get().xWorld;
+        get().yWorldLast = get().yWorld;
         get().xPos  = xpos;
         get().yPos = ypos;
-        get().isDragging = get().mouseButtonPressed[0] || get().mouseButtonPressed[1] || get().mouseButtonPressed[2];
+        getWorldX();
+        getWorldY();
     }
 
     public static void mouseButtonCallback(long window, int button, int action, int mods) {
         if (action == GLFW_PRESS) {
+            get().mouseButtonDown++;
+
             if (button < get().mouseButtonPressed.length) {
                 get().mouseButtonPressed[button] = true;
             }
         } else if (action == GLFW_RELEASE) {
+            get().mouseButtonDown--;
+
             if (button < get().mouseButtonPressed.length) {
                 get().mouseButtonPressed[button] = false;
                 get().isDragging = false;
@@ -68,6 +79,8 @@ public class MouseListener {
         get().scrollY = 0;
         get().lastX = get().xPos;
         get().lastY = get().yPos;
+        get().xWorldLast = get().xWorld;
+        get().yWorldLast = get().yWorld;
     }
 
     public static float getX() {
@@ -82,8 +95,16 @@ public class MouseListener {
         return (float)(get().lastX - get().xPos);
     }
 
+    public static float getWorldDX() {
+        return (float)(get().xWorldLast - get().xWorld);
+    }
+
     public static float getDY() {
         return (float) (get().lastY - get().yPos);
+    }
+
+    public static float getWorldDY() {
+        return (float)(get().yWorldLast - get().yWorld);
     }
 
     public static float getScrollX() {
@@ -120,7 +141,23 @@ public class MouseListener {
         return instY;
     }
 
+    public static void setWorkViewportPos(Vector2f workViewportPos) {
+        get().workViewportPos.set(workViewportPos);
+    }
+
+    public static void setWorkViewportSize(Vector2f workViewportSize) {
+        get().workViewportSize.set(workViewportSize);
+    }
+
+    // Remove the need to recalculate mouse callback each time it is call in a same frame
     public static float getOrthoX() {
+        return (float)get().xWorld;
+    }
+
+    public static float getOrthoY() {
+        return (float)get().yWorld;
+    }
+    private static void getWorldX() {
         float instX = getX() - get().workViewportPos.x;
         instX = (instX / get().workViewportSize.x) * 2.0f - 1.0f;
         Vector4f tmp = new Vector4f(instX, 0, 0, 1);
@@ -133,11 +170,10 @@ public class MouseListener {
 
         instX = tmp.x;
 
-
-        return instX;
+        get().xWorld = instX;
     }
 
-    public static float getOrthoY() {
+    private static void getWorldY() {
         float instY = getY() - get().workViewportPos.y;
         instY = -((instY / get().workViewportSize.y) * 2.0f - 1.0f);
         Vector4f tmp = new Vector4f(0, instY, 0, 1);
@@ -150,14 +186,7 @@ public class MouseListener {
 
         instY = tmp.y;
 
-        return instY;
+        get().yWorld = instY;
     }
-
-    public static void setWorkViewportPos(Vector2f workViewportPos) {
-        get().workViewportPos.set(workViewportPos);
-    }
-
-    public static void setWorkViewportSize(Vector2f workViewportSize) {
-        get().workViewportSize.set(workViewportSize);
-    }
+    //--------------------------------------------------------------------
 }

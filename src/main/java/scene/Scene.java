@@ -2,6 +2,7 @@ package scene;
 
 import TCB_Field.GameObjDeSerializer;
 import TCB_Field.GameObject;
+import TCB_Field.Transform;
 import TCB_Field.Viewport;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -63,6 +64,14 @@ public abstract class Scene {
     }
 
     public void imgui() {}
+
+    public GameObject generateObject(String name) {
+        GameObject obj = new GameObject(name);
+        obj.addComponent(new Transform());
+        obj.transform = obj.getComponent(Transform.class);
+
+        return obj;
+    }
 
     public void saveLevel() {
         Gson gson = new GsonBuilder()
