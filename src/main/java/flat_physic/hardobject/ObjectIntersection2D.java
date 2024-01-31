@@ -230,7 +230,7 @@ public class ObjectIntersection2D {
                 yA.dot(p)
         );
         //    min x, max x, min y max y
-        float[] t = {0, 0, 0, 0};
+        float[] tA = {0, 0, 0, 0};
         for (int i = 0; i < 2; i++) {
             if (TCBMath.compare(hPa.get(i), 0)) {
                 // Check ray if parallel to current axis and origin -> no hit
@@ -238,10 +238,31 @@ public class ObjectIntersection2D {
                     return false;
                 }
 
-                //hPa.set
+                hPa.setComponent(i, 0.00001f); // Make sure that we don't divide by 0
             }
+
+            tA[i  * 2 + 0] = (pjPa.get(i) + size.get(i)) / hPa.get(i); // get tmax on axis
+            tA[i * 2 + 1] = (pjPa.get(i) - size.get(i)) / hPa.get(i); // get tmin on axis
         }
 
+        float tmin = Math.max(Math.min(tA[0], tA[1]), Math.min(tA[2], tA[3]));
+        float tmax = Math.min(Math.max(tA[0], tA[1]), Math.max(tA[2], tA[3]));
+
+        float t = (tmin < 0f) ? tmax : tmin;
+        boolean hit = t > 0.0f; //&& t * t < ray.loadMax();
+        if (!hit) {
+            return false;
+        }
+
+        if (result != null) {
+            Vector2f pt = new Vector2f(ray.loadOrigin()).add(
+                    new Vector2f(ray.loadHead().mul(t))
+            );
+            Vector2f normal = new Vector2f(ray.loadOrigin()).sub(pt);
+            normal.normalize();
+
+            result.init(pt, normal, t, true);
+        }
         return true;
     }
 }
