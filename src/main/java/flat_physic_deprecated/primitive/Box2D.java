@@ -1,6 +1,6 @@
-package flat_physic.primitive;
+package flat_physic_deprecated.primitive;
 
-import flat_physic.hardobject.HardObject;
+import flat_physic_deprecated.hardobject.HardObject;
 import org.joml.Vector2f;
 import utility.TCBMath;
 

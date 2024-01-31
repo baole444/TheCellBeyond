@@ -1,4 +1,4 @@
-package flat_physic.primitive;
+package flat_physic_deprecated.primitive;
 
 import org.joml.Vector2f;
 

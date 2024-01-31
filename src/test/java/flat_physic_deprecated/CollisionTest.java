@@ -1,10 +1,10 @@
-package flat_physic;
+package flat_physic_deprecated;
 
-import flat_physic.hardobject.HardObject;
-import flat_physic.hardobject.ObjectIntersection2D;
-import flat_physic.primitive.Circle;
-import flat_physic.primitive.Ray2D;
-import flat_physic.primitive.ReturnRayCollision;
+import flat_physic_deprecated.hardobject.HardObject;
+import flat_physic_deprecated.hardobject.ObjectIntersection2D;
+import flat_physic_deprecated.primitive.Circle;
+import flat_physic_deprecated.primitive.Ray2D;
+import flat_physic_deprecated.primitive.ReturnRayCollision;
 import org.joml.Vector2f;
 import org.junit.jupiter.api.Test;
 import render.Line2D;

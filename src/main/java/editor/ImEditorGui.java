@@ -1,16 +1,23 @@
 package editor;
 
+import TCB_Field.GameObject;
 import TCB_Field.KeyListener;
+import TCB_Field.Prefab;
+import components.MouseCtrl;
+import components.Sprite;
+import components.SpriteSheet;
 import imgui.ImGui;
+import imgui.ImVec2;
 import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiStyleVar;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
+import utility.AssetsPool;
 
 import static org.lwjgl.glfw.GLFW.*;
 
 public class ImEditorGui {
-    private static float defaultWidth = 90.0f;
+    private static float defaultWidth = 180.0f;
     public static void drawVec2Ctrl(String label, Vector2f val) {
         drawVec2Ctrl(label, val, 0.0f, defaultWidth);
     }
@@ -82,7 +89,7 @@ public class ImEditorGui {
         ImGui.pushID(label);
         ImGui.newLine();
         ImGui.columns(2);
-        ImGui.setColumnWidth(0, defaultWidth * 1.25f);
+        ImGui.setColumnWidth(0, defaultWidth);
         ImGui.nextColumn();
 
         ImGui.pushStyleVar(ImGuiStyleVar.ItemSpacing, 0, 0);
@@ -280,5 +287,151 @@ public class ImEditorGui {
         ImGui.popID();
 
         return result;
+    }
+
+    public static void drawSpriteList (SpriteSheet spriteSps, GameObject levelEditorObject, ImVec2 winPos, ImVec2 winSize) {
+        ImVec2 objectSpace = new ImVec2();
+        ImGui.getStyle().getItemSpacing(objectSpace);
+
+        float windowX2 = winPos.x + winSize.x;
+        for (int i = 0; i < spriteSps.size(); i++) {
+            Sprite sprites = spriteSps.spriteIndex(i);
+            float spriteWidth = sprites.loadWidth() * 3;
+            float spriteHeight = sprites.loadHeight() * 3;
+            int id = sprites.loadTexId();
+
+            Vector2f[] texCoord = sprites.loadTexCrd();
+
+            ImGui.pushID(i);
+
+            if (ImGui.imageButton(id, spriteWidth, spriteHeight,
+                    texCoord[2].x, texCoord[0].y,
+                    texCoord[0].x, texCoord[2].y
+            )
+            ) {
+                GameObject obj = Prefab.genSpsObj(sprites, 32, 32);
+
+                // Bind to mouse cursor
+                levelEditorObject.getComponent(MouseCtrl.class).pickObj(obj);
+            }
+
+            ImGui.popID();
+
+            ImVec2 lastButtonPos = new ImVec2();
+            ImGui.getItemRectMax(lastButtonPos);
+            float lastButtonX2 = lastButtonPos.x;
+            float nextButtonX2 = lastButtonX2 + objectSpace.x + spriteWidth;
+
+            if (i + 1 < spriteSps.size() && nextButtonX2 < windowX2) {
+                ImGui.sameLine();
+            }
+        }
+    }
+
+    public static void drawSpriteList (String spritePath, GameObject levelEditorObject, ImVec2 winPos, ImVec2 winSize, int widthMod) {
+        ImVec2 objectSpace = new ImVec2();
+        ImGui.getStyle().getItemSpacing(objectSpace);
+
+        SpriteSheet spriteSps = AssetsPool.loadSpSheet(spritePath);
+
+
+        float windowX2 = winPos.x + (winSize.x / widthMod);
+        for (int i = 0; i < spriteSps.size(); i++) {
+            Sprite sprites = spriteSps.spriteIndex(i);
+
+            /*
+                Ratio in this context is how much smaller (for ratio >= 1) the image is compare to allowed space for object button
+                If width < height => height should be scale to match allowed space. (height is currently closer to target)
+                    width will use same ratio as height to maintain image aspect ratio.
+
+                Ratio in this context is how much bigger (for ratio < 1) the image is compare to allowed space for object button
+                If width < height => width should be scale to match allowed space (width is currently closer to target)
+                    height will use same ratio as height to maintain image aspect ratio.
+
+                Keep scaling to minimum for compact design and fast calculation
+            */
+            float ratioX = 48.0f / sprites.loadWidth();
+            float ratioY = 48.0f /  sprites.loadWidth();
+            if (ratioX >= 1.0f && ratioY >= 1.0f) {
+                if (ratioX < ratioY) {
+                    ratioX = ratioY;
+                } else if (ratioX >= ratioY) {
+                    ratioY = ratioX;
+                }
+            } else if (ratioX < 1.0f && ratioY < 1.0f) {
+                if (ratioX >= ratioY) {
+                    ratioX = ratioY;
+                } else if (ratioX < ratioY) {
+                    ratioY = ratioX;
+                }
+            }
+
+
+            float spriteWidth = sprites.loadWidth() * ratioX;
+            float spriteHeight = sprites.loadHeight() * ratioY;
+            int id = sprites.loadTexId();
+
+            Vector2f[] texCoord = sprites.loadTexCrd();
+
+            ImGui.pushID(i);
+
+            if (ImGui.imageButton(id, spriteWidth, spriteHeight,
+                    texCoord[2].x, texCoord[0].y,
+                    texCoord[0].x, texCoord[2].y
+            )
+            ) {
+                float rX = 32.0f / sprites.loadWidth();
+                float rY = 32.0f /  sprites.loadWidth();
+                if (rX >= 1.0f && rY >= 1.0f) {
+                    if (rX < rY) {
+                        rX = rY;
+                    } else if (rX >= rY) {
+                        rY = rX;
+                    }
+                } else if (rX < 1.0f && rY < 1.0f) {
+                    if (rX >= ratioY) {
+                        rX = rY;
+                    } else if (rX < rY) {
+                        rY = rX;
+                    }
+                }
+                GameObject obj = Prefab.genSpsObj(sprites, sprites.loadWidth() * rX, sprites.loadHeight() * rY);
+
+                // Bind to mouse cursor
+                levelEditorObject.getComponent(MouseCtrl.class).pickObj(obj);
+            }
+
+            ImGui.popID();
+
+            ImVec2 lastButtonPos = new ImVec2();
+            ImGui.getItemRectMax(lastButtonPos);
+            float lastButtonX2 = lastButtonPos.x;
+            float nextButtonX2 = lastButtonX2 + objectSpace.x + spriteWidth;
+
+            if (i + 1 < spriteSps.size() && nextButtonX2 < windowX2) {
+                ImGui.sameLine();
+            }
+        }
+    }
+
+    public static void drawSpriteList (String[] spritePath, GameObject levelEditorObject, ImVec2 winPos, ImVec2 winSize) {
+        ImGui.newLine();
+        ImGui.columns(spritePath.length);
+
+        ImGui.pushStyleVar(ImGuiStyleVar.ItemSpacing, 0, 0);
+        float remainWidth = (ImGui.calcItemWidth() / spritePath.length);
+
+        for (int i = 0; i < spritePath.length; i++) {
+            ImGui.setColumnWidth(i, (winSize.x) / spritePath.length);
+            ImGui.pushItemWidth(remainWidth);
+            drawSpriteList(spritePath[i], levelEditorObject, winPos, winSize, spritePath.length);
+            ImGui.popItemWidth();
+
+            ImGui.sameLine();
+            ImGui.nextColumn();
+        }
+
+        ImGui.popStyleVar();
+        ImGui.columns(1);
     }
 }

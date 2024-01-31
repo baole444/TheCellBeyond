@@ -1,6 +1,6 @@
-package flat_physic.hardobject;
+package flat_physic_deprecated.hardobject;
 
-import flat_physic.primitive.*;
+import flat_physic_deprecated.primitive.*;
 import org.joml.Math;
 import org.joml.Vector2f;
 import render.Line2D;

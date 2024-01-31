@@ -134,7 +134,7 @@ public class ImGuiLayer {
                 ImGui.setWindowFocus(null);
             }
 
-            if (!io.getWantCaptureMouse() || gameViewPort.getWantCaptureMouse()) {
+            if (gameViewPort.getWantCaptureMouse()) {
                 MouseListener.mouseButtonCallback(w, button, action, mods);
             }
         });
@@ -142,7 +142,7 @@ public class ImGuiLayer {
         glfwSetScrollCallback(glfwWindow, (w, xOffset, yOffset) -> {
             io.setMouseWheelH(io.getMouseWheelH() + (float) xOffset);
             io.setMouseWheel(io.getMouseWheel() + (float) yOffset);
-            MouseListener.mouseScrollCallback(w, xOffset, yOffset);
+            MouseListener.mouseScrollCallback(glfwWindow, xOffset, yOffset);
         });
 
         io.setSetClipboardTextFn(new ImStrConsumer() {
@@ -187,21 +187,16 @@ public class ImGuiLayer {
     }
 
     public void update(float dt, Scene currentScene) {
+        float[] winWidth = {Window.loadWidth()};
+        float[] winHeight = {Window.loadHeight()};
         double[] mousePosX = {0};
         double[] mousePosY = {0};
         glfwGetCursorPos(glfwWindow, mousePosX, mousePosY);
 
-
-        //Define windows original space (important)
-        float[] winWidth = {Window.loadWidth()};
-        float[] winHeight = {Window.loadHeight()};
+        final ImGuiIO io = ImGui.getIO();
         io.setDisplaySize(winWidth[0], winHeight[0]);
         io.setDisplayFramebufferScale(1f, 1f);
-        //This can be removed if element shifting on screen is desired, but it is not recommended.
-
-
         io.setMousePos((float) mousePosX[0], (float) mousePosY[0]);
-
         io.setDeltaTime(dt);
 
         //Mouse update

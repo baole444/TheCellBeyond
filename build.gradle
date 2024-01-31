@@ -8,6 +8,10 @@ version '1.0-SNAPSHOT'
 sourceCompatibility = 1.21
 
 repositories {
+    flatDir {
+        dirs 'library'
+    }
+
     mavenCentral()
 }
 
@@ -31,6 +35,8 @@ dependencies {
     // imGUI library
     implementation fileTree('library') { include '*.jar' }
 
+    // jbox2d library
+    implementation name: 'jbox2d-library'
     // LWJGL
     implementation platform("org.lwjgl:lwjgl-bom:$lwjglVersion")
 

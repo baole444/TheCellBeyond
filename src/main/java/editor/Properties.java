@@ -4,6 +4,9 @@ import TCB_Field.GameObject;
 import TCB_Field.MouseListener;
 import components.IsNotSelectable;
 import imgui.ImGui;
+import physic_2d.components.HardObject;
+import physic_2d.components.collider.Collider2D;
+import physic_2d.components.collider.ColliderCircle;
 import render.ObjectSelection;
 import scene.Scene;
 
@@ -39,6 +42,32 @@ public class Properties {
     public void imgui() {
         if (activeGameObject != null) {
             ImGui.begin("Object properties");
+
+            if (ImGui.beginPopupContextWindow("AddComponent")) {
+                if (ImGui.menuItem("Generate Hard Object")) {
+                    // TODO: add support for multi component item
+                    if (activeGameObject.getComponent(HardObject.class) == null) {
+                        activeGameObject.addComponent(new HardObject());
+                    }
+                }
+
+                if (ImGui.menuItem("Generate Box Collider")) {
+                    if ((activeGameObject.getComponent(Collider2D.class) == null) &&
+                            (activeGameObject.getComponent(ColliderCircle.class) == null)) {
+                        activeGameObject.addComponent(new Collider2D());
+                    }
+                }
+
+                if (ImGui.menuItem("Generate Circle Collider")) {
+                    if ((activeGameObject.getComponent(ColliderCircle.class) == null) &&
+                            (activeGameObject.getComponent(Collider2D.class) == null)) {
+                        activeGameObject.addComponent(new ColliderCircle());
+                    }
+                }
+                ImGui.endPopup();
+            }
+
+
             activeGameObject.imgui();
             ImGui.end();
         }

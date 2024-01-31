@@ -1,9 +1,9 @@
 package scene;
 
 import TCB_Field.GameObject;
-import TCB_Field.Prefab;
 import TCB_Field.Viewport;
 import components.*;
+import editor.ImEditorGui;
 import editor.WorkViewport;
 import imgui.ImGui;
 import imgui.ImVec2;
@@ -11,7 +11,7 @@ import org.joml.Vector2f;
 import utility.AssetsPool;
 
 public class LevelEditorScene extends Scene {
-    private SpriteSheet sprites;
+    private SpriteSheet sprites, gizmo;
     GameObject levelEditorObject = this.generateObject("Lvl Editor");
     public LevelEditorScene() {
 
@@ -22,7 +22,7 @@ public class LevelEditorScene extends Scene {
         loadRes(); //Don't touch
 
         sprites = AssetsPool.loadSpSheet("assets/texture/Main char.png");
-        SpriteSheet gizmo = AssetsPool.loadSpSheet("assets/texture/Gizmo.png");
+        gizmo = AssetsPool.loadSpSheet("assets/texture/Gizmo.png");
 
         this.viewport = new Viewport(new Vector2f(0, 0)); //View point position
 
@@ -45,8 +45,10 @@ public class LevelEditorScene extends Scene {
                 new SpriteSheet(AssetsPool.loadTexture("assets/texture/Gizmo.png"),
                          16, 48, 3, 0)
         );
-
-        AssetsPool.loadTexture("assets/texture/Just_a_placeholder.png");
+        AssetsPool.addSpSheet("assets/texture/Just_a_placeholder.png",
+                new SpriteSheet(AssetsPool.loadTexture("assets/texture/Just_a_placeholder.png"),
+                        64, 64, 1, 0)
+        );
 
         // Only generate if not existed
         for (GameObject obj : gObjects) {
@@ -82,48 +84,14 @@ public class LevelEditorScene extends Scene {
         ImGui.end();
 
         ImGui.begin("Sprite list");
-
         ImVec2 windowPos = new ImVec2();
         ImGui.getWindowPos(windowPos);
         ImVec2 windowSize = new ImVec2();
         ImGui.getWindowSize(windowSize);
-
-        ImVec2 objectSpace = new ImVec2();
-        ImGui.getStyle().getItemSpacing(objectSpace);
-
-        float windowX2 = windowPos.x + windowSize.x;
-        for (int i = 0; i < sprites.size(); i++) {
-            Sprite sprite = sprites.spriteIndex(i);
-            float spriteWidth = sprite.loadWidth() * 3;
-            float spriteHeight = sprite.loadHeight() * 3;
-            int id = sprite.loadTexId();
-
-            Vector2f[] texCoord = sprite.loadTexCrd();
-
-            ImGui.pushID(i);
-
-            if (ImGui.imageButton(id, spriteWidth, spriteHeight,
-                    texCoord[2].x, texCoord[0].y,
-                    texCoord[0].x, texCoord[2].y
-                )
-            ) {
-                GameObject obj = Prefab.genSpsObj(sprite, 32, 32);
-
-                // Bind to mouse cursor
-                levelEditorObject.getComponent(MouseCtrl.class).pickObj(obj);
-            }
-
-            ImGui.popID();
-
-            ImVec2 lastButtonPos = new ImVec2();
-            ImGui.getItemRectMax(lastButtonPos);
-            float lastButtonX2 = lastButtonPos.x;
-            float nextButtonX2 = lastButtonX2 + objectSpace.x + spriteWidth;
-
-            if (i + 1 < sprites.size() && nextButtonX2 < windowX2) {
-                ImGui.sameLine();
-            }
-        }
+        String[] spriteSpsA = new String[2];
+        spriteSpsA[0] = "assets/texture/Main char.png";
+        spriteSpsA[1] = "assets/texture/Just_a_placeholder.png";
+        ImEditorGui.drawSpriteList(spriteSpsA, levelEditorObject, windowPos, windowSize);
 
         ImGui.end();
     }
