@@ -33,8 +33,8 @@ public class FlatPhysic {
             BodyDef objDef = new BodyDef();
             objDef.angle = (float)Math.toRadians(transform.rotate);
             objDef.position.set(transform.position.x, transform.position.y);
-            objDef.angularDamping = hardObject.loadRollResistance();
-            objDef.linearDamping = hardObject.loadTranslateResistance();
+            objDef.angularDamping = hardObject.loadRollResist();
+            objDef.linearDamping = hardObject.loadTranslateResist();
             objDef.fixedRotation = hardObject.isRotatable();
             objDef.bullet = hardObject.isNoneStopCollision();
 
@@ -69,6 +69,17 @@ public class FlatPhysic {
             hardObject.setInstObject(obj);
 
             obj.createFixture(shape, hardObject.loadMass());
+        }
+    }
+
+    public void destroyGameObj(GameObject obj) {
+        HardObject hObj = obj.getComponent(HardObject.class);
+
+        if (hObj != null) {
+            if (hObj.loadInstObject() != null) {
+                world.destroyBody(hObj.loadInstObject());
+                hObj.setInstObject(null);
+            }
         }
     }
 

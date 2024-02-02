@@ -1,14 +1,17 @@
 package TCB_Field;
 
 import editor.Properties;
+import eventviewer.EventSystem;
+import eventviewer.EventViewer;
+import eventviewer.event.Event;
 import imgui.ImGui;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
 import render.*;
 import scene.LevelEditorScene;
-import scene.LevelScene;
 import scene.Scene;
+import scene.SceneInit;
 import utility.AssetsPool;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
@@ -16,7 +19,7 @@ import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
-public class Window {
+public class Window implements EventViewer {
     private int width;
     private int height;
     private String title;
@@ -24,6 +27,7 @@ public class Window {
     public float r, g, b, a;
     private static Window window = null; // start with no window
     private static Scene currentScene;
+    private boolean runtimeStart = false;
 
     private  String glslVer = null;
     private ImGuiLayer imGuiLayer;
@@ -39,20 +43,19 @@ public class Window {
         g = 0.122f;
         b = 0.067f;
         a = 1;
+        EventSystem.addViewer(this);
     }
 
-    public static void changeScene(int newScene) {
-        switch (newScene)  {
-            case 0:
-                currentScene = new LevelEditorScene();
-                break;
-            case 1:
-                currentScene = new LevelScene();
-                break;
-            default:
-                assert false: "Unknown scene '" + newScene + "'";
-                break;
+    public static void changeScene(SceneInit sceneInit) {
+        if (currentScene != null) {
+            // End scene
+            currentScene.end();
+
         }
+        loadImGui().loadProperties().setActiveObj(null);
+
+        currentScene = new Scene(sceneInit);
+
         currentScene.loadLevel();
         currentScene.init();
         currentScene.start();
@@ -145,7 +148,7 @@ public class Window {
         this.imGuiLayer = new ImGuiLayer(glfwWindow, objectSelection);
         this.imGuiLayer.initImGui(glslVer);
 
-        Window.changeScene(0);
+        Window.changeScene(new LevelEditorScene());
     }
 
     public void endScr(){
@@ -192,10 +195,16 @@ public class Window {
             glClear(GL_COLOR_BUFFER_BIT);
 
             if (dt >= 0) {
-                Renderer.setShader(defaultShader);
-                currentScene.update(dt);
-                currentScene.render();
                 DebugDraw.draw();
+                Renderer.setShader(defaultShader);
+
+                if (runtimeStart) {
+                    currentScene.update(dt);
+                } else {
+                    currentScene.updateEditor(dt);
+                }
+
+                currentScene.render();
             }
             this.frameBuffer.detach();
 
@@ -209,8 +218,6 @@ public class Window {
             endTime = (float)glfwGetTime();
             dt = endTime - beginTime;
             beginTime = endTime;
-
-            currentScene.saveLevel();
         }
     }
 
@@ -226,4 +233,27 @@ public class Window {
         return get().imGuiLayer;
     }
 
+    @Override
+    public void whenNotice(GameObject object, Event event) {
+        switch (event.type) {
+            case EngineStart:
+                System.out.println("Start event passed!");
+                this.runtimeStart = true;
+                currentScene.saveLevel();
+                Window.changeScene(new LevelEditorScene());
+                break;
+            case EngineEnd:
+                System.out.println("End event passed!");
+                this.runtimeStart = false;
+                Window.changeScene(new LevelEditorScene());
+                break;
+            case LevelLoad:
+                Window.changeScene(new LevelEditorScene());
+                break;
+            case LevelSave:
+                currentScene.saveLevel();
+                break;
+
+        }
+    }
 }

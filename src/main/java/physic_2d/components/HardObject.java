@@ -7,13 +7,13 @@ import physic_2d.enums.ObjectClassification;
 
 public class HardObject extends Component {
     private Vector2f velocity = new Vector2f();
-    private float rollResistance = 0.8f;
-    private float translateResistance = 0.9f;
+    private float rollResist = 0.8f;
+    private float translateResist = 0.9f;
     private float mass = 0;
     private ObjectClassification objectClassification = ObjectClassification.Dynamic;
     private boolean isRotatable = false;
     private boolean isNoneStopCollision = true;
-    private Body instObject = null;
+    private transient Body instObject = null;
 
     @Override
     public void update(float dt) {
@@ -36,20 +36,20 @@ public class HardObject extends Component {
         this.velocity = velocity;
     }
 
-    public float loadRollResistance() {
-        return rollResistance;
+    public float loadRollResist() {
+        return rollResist;
     }
 
-    public void setRollResistance(float rollResistance) {
-        this.rollResistance = rollResistance;
+    public void setRollResist(float rollResist) {
+        this.rollResist = rollResist;
     }
 
-    public float loadTranslateResistance() {
-        return translateResistance;
+    public float loadTranslateResist() {
+        return translateResist;
     }
 
-    public void setTranslateResistance(float translateResistance) {
-        this.translateResistance = translateResistance;
+    public void setTranslateResist(float translateResist) {
+        this.translateResist = translateResist;
     }
 
     public float loadMass() {

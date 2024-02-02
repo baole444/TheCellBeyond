@@ -8,6 +8,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import components.CompDeSerializer;
 import components.Component;
+import org.joml.Vector2f;
+import physic_2d.FlatPhysic;
 import render.Renderer;
 
 import java.io.FileWriter;
@@ -18,22 +20,35 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public abstract class Scene {
-    protected Renderer renderer = new Renderer();
-    protected Viewport viewport;
-    private boolean isOn = false;
-    protected List<GameObject> gObjects = new ArrayList<>();
+public class Scene {
+    private Renderer renderer;
+    private Viewport viewport;
+    private boolean isOn;
+    private List<GameObject> gObjects;
+    private SceneInit sceneInit;
+    private FlatPhysic flatPhysic;
 
-    protected boolean isLoaded = false;
+    public Scene(SceneInit sceneInit) {
+        this.sceneInit = sceneInit;
+        this.flatPhysic = new FlatPhysic();
+        this.renderer = new Renderer();
+        this.gObjects = new ArrayList<>();
+        this.isOn = false;
+    }
 
-    public Scene() {}
-
-    public void init() {}
+    public void init() {
+        this.viewport = new Viewport(new Vector2f(0, 0)); //View point position
+        this.sceneInit.loadRes(this);
+        this.sceneInit.init(this);
+    }
 
     public void start() {
-        for (GameObject go: gObjects) {
+        for (int i = 0; i < gObjects.size(); i++) {
+            GameObject go = gObjects.get(i);
+
             go.start();
             this.renderer.add(go);
+            this.flatPhysic.add(go);
         }
         isOn = true;
     }
@@ -45,7 +60,18 @@ public abstract class Scene {
             gObjects.add(go);
             go.start();
             this.renderer.add(go);
+            this.flatPhysic.add(go);
         }
+    }
+
+    public void end() {
+        for (GameObject go: gObjects) {
+            go.destroy();
+        }
+    }
+
+    public List<GameObject> loadGameObjects() {
+        return this.gObjects;
     }
 
     public GameObject loadGameObj(int gObjectID) {
@@ -56,14 +82,51 @@ public abstract class Scene {
         return result.orElse(null);
     }
 
-    public abstract void update(float dt);
-    public abstract void render();
+    public void updateEditor(float dt) {
+        this.viewport.adjustProjection();
+
+        for (int i = 0; i < gObjects.size(); i++) {
+            GameObject go = gObjects.get(i);
+            go.updateEditor(dt);
+
+            if (go.isGone()) {
+                gObjects.remove(i);
+                this.renderer.destroyGameObj(go);
+                this.flatPhysic.destroyGameObj(go);
+
+                i--; //step back if destroyed something
+            }
+        }
+    }
+
+    public void update(float dt) {
+        this.viewport.adjustProjection();
+        this.flatPhysic.update(dt);
+
+        for (int i = 0; i < gObjects.size(); i++) {
+            GameObject go = gObjects.get(i);
+            go.update(dt);
+
+            if (go.isGone()) {
+                gObjects.remove(i);
+                this.renderer.destroyGameObj(go);
+                this.flatPhysic.destroyGameObj(go);
+
+                i--; //step back if destroyed something
+            }
+        }
+    }
+    public void render() {
+        this.renderer.render();
+    }
 
     public Viewport viewport() {
         return this.viewport;
     }
 
-    public void imgui() {}
+    public void imgui() {
+        this.sceneInit.imgui();
+    }
 
     public GameObject generateObject(String name) {
         GameObject obj = new GameObject(name);
@@ -133,8 +196,6 @@ public abstract class Scene {
             maxCompID++;
             GameObject.init(maxObjID);
             Component.init(maxCompID);
-
-            this.isLoaded = true;
         }
     }
 }

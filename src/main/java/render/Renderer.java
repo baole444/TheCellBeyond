@@ -39,11 +39,20 @@ public class Renderer {
         }
 
         if (!isAdd) {
-            Batch newBatch = new Batch(MAX_BATCH_SIZE, sprite.gameObject.transform.zIndex);
+            Batch newBatch = new Batch(MAX_BATCH_SIZE, sprite.gameObject.transform.zIndex, this);
             newBatch.start();
             batches.add(newBatch);
             newBatch.loadSprite(sprite);
             Collections.sort(batches);
+        }
+    }
+
+    public void destroyGameObj(GameObject obj) {
+        if(obj.getComponent(SpriteRender.class) == null) return;
+        for (Batch batch : batches) {
+            if (batch.isExistToRemove(obj)) {
+                return;
+            }
         }
     }
 
@@ -57,7 +66,8 @@ public class Renderer {
 
     public void render() {
         instShader.use();
-        for (Batch batch : batches) {
+        for (int i = 0; i < batches.size(); i++) {
+            Batch batch = batches.get(i);
             batch.render();
         }
     }

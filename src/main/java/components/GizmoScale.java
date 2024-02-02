@@ -9,7 +9,7 @@ public class GizmoScale extends Gizmo{
     }
 
     @Override
-    public void update(float dt) {
+    public void updateEditor(float dt) {
         if (activeGameObj != null) {
             if (xActiveDrag && !yActiveDrag) {
                 activeGameObj.transform.scale.x -= MouseListener.getWorldDX();
@@ -18,6 +18,6 @@ public class GizmoScale extends Gizmo{
             }
         }
 
-        super.update(dt);
+        super.updateEditor(dt);
     }
 }

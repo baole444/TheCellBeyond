@@ -1,7 +1,12 @@
 package TCB_Field;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import components.CompDeSerializer;
 import components.Component;
+import components.SpriteRender;
 import imgui.ImGui;
+import utility.AssetsPool;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +18,7 @@ public class GameObject {
     private List<Component> components;
     public transient Transform transform;
     private boolean isSerialize = true;
+    private boolean isGone = false;
 
     public GameObject(String name) {
         this.name = name;
@@ -57,6 +63,12 @@ public class GameObject {
         }
     }
 
+    public void updateEditor(float dt) {
+        for (int i = 0; i < components.size(); i++) {
+            components.get(i).updateEditor(dt);
+        }
+    }
+
     public void start() {
         for (int i = 0; i < components.size(); i++) {
             components.get(i).start();
@@ -70,12 +82,50 @@ public class GameObject {
         }
     }
 
+    public void destroy() {
+        this.isGone = true;
+        for (int i = 0; i < components.size(); i++) {
+            components.get(i).destroy();
+        }
+    }
+
+    public GameObject duplicate() {
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(Component.class, new CompDeSerializer())
+                .registerTypeAdapter(GameObject.class, new GameObjDeSerializer())
+                .create();
+
+        String oJson = gson.toJson(this);
+        GameObject obj = gson.fromJson(oJson, GameObject.class);
+
+        obj.setUid();
+
+        for (Component c: obj.loadAllComp()) {
+            c.genId();
+        }
+
+        SpriteRender spr = obj.getComponent(SpriteRender.class);
+        if (spr != null && spr.loadTexture() != null) {
+            spr.setTex(AssetsPool.loadTexture(spr.loadTexture().loadFilePath()));
+        }
+
+        return obj;
+    }
+
+    public boolean isGone() {
+        return this.isGone;
+    }
+
     public static void init(int maxID) {
         ID_COUNTER = maxID;
     }
 
     public int loadUid() {
         return this.uID;
+    }
+
+    public void setUid() {
+        this.uID = ID_COUNTER++;
     }
 
     public List<Component> loadAllComp() {

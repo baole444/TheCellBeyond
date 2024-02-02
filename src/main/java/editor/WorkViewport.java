@@ -25,7 +25,7 @@ public class WorkViewport extends Component {
     }
 
     @Override
-    public void update(float dt) {
+    public void updateEditor(float dt) {
         if (MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_MIDDLE) && dragInit > 0) {
             this.clickOrigin = new Vector2f(MouseListener.getOrthoX(), MouseListener.getOrthoY());
             dragInit -= dt;

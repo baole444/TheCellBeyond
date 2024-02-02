@@ -10,6 +10,7 @@ import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiStyleVar;
+import org.joml.Math;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import utility.AssetsPool;
@@ -17,7 +18,7 @@ import utility.AssetsPool;
 import static org.lwjgl.glfw.GLFW.*;
 
 public class ImEditorGui {
-    private static float defaultWidth = 180.0f;
+    private static float defaultWidth = 160.0f;
     public static void drawVec2Ctrl(String label, Vector2f val) {
         drawVec2Ctrl(label, val, 0.0f, defaultWidth);
     }
@@ -85,7 +86,7 @@ public class ImEditorGui {
         ImGui.popID();
     }
 
-    public static void spriteKeyTransform(String label, Vector2f val, int step) {
+    public static void spriteKeyTransform(String label, Vector2f val, float step) {
         ImGui.pushID(label);
         ImGui.newLine();
         ImGui.columns(2);
@@ -141,25 +142,29 @@ public class ImEditorGui {
         ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0.6f, 0.25f, 0.0f, 1.0f);
 
         if (ImGui.button("Nearest", 80.0f, labelSize.y) || KeyListener.isKeyPressed(GLFW_KEY_N)) {
-            while (val.x % 32.0f != 0.0f || val.y % 32.0f != 0.0f) {
-                float offsetX = val.x % 32.0f;
-                float offsetY = val.y % 32.0f;
-                if (offsetX != 0 && Math.abs(offsetX) >= 16.0f) {
+            float epsilon = 0.0001f;
+            while (Math.abs(val.x % 0.32f) > epsilon) {
+                float offsetX = val.x % 0.32f;
+                if (offsetX != 0 && Math.abs(offsetX) >= 0.16f) {
                     val.x += offsetX;
-                } else if (offsetX != 0 && Math.abs(offsetX) < 16.0f) {
+                } else if (offsetX != 0 && Math.abs(offsetX) < 0.16f) {
                     val.x -= offsetX;
                 } else {
-                    val.x += 0;
-                }
-
-                if (offsetY != 0 && Math.abs(offsetY) >= 16.0f) {
-                    val.y += offsetY;
-                } else if (offsetY != 0 && Math.abs(offsetY) < 16.0f) {
-                    val.y -= offsetY;
-                } else {
-                    val.y += 0;
+                    break;
                 }
             }
+
+            while (Math.abs(val.y % 0.32f) > epsilon) {
+                float offsetY = val.y % 0.32f;
+                if (offsetY != 0 && Math.abs(offsetY) >= 0.16f) {
+                    val.y += offsetY;
+                } else if (offsetY != 0 && Math.abs(offsetY) < 0.16f) {
+                    val.y -= offsetY;
+                } else {
+                    break;
+                }
+            }
+
         }
         ImGui.popStyleColor(3);
 
@@ -228,12 +233,25 @@ public class ImEditorGui {
         ImGui.pushStyleColor(ImGuiCol.Button, 0.7f, 0.2f, 0.2f, 1.0f);
         ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.8f, 0.3f, 0.3f, 1.0f);
         ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0.7f, 0.2f, 0.2f, 1.0f);
+        float[] valA = {val};
+        float reset = 0.0f;
         if (ImGui.button("Reset", labelSize.x, labelSize.y)) {
-            val = 0.0f;
+            float toZ = val;
+            if (val != 0) {
+                for (int i = 0; i < Math.abs(toZ); i++) {
+
+                    if (toZ < 0) {
+                        reset += 1.0f;
+                    }
+                    if (toZ > 0) {
+                        reset -= 1.0f;
+                    }
+                }
+                System.out.println(reset);
+            }
         }
         ImGui.popStyleColor(3);
         ImGui.sameLine();
-        float[] valA = {val};
         ImGui.dragFloat("##dragFloat", valA, 1.0f);
         ImGui.popItemWidth();
         ImGui.sameLine();
@@ -246,7 +264,7 @@ public class ImEditorGui {
         ImGui.columns(1);
         ImGui.popID();
 
-        return valA[0];
+        return valA[0] + reset;
     }
 
     public static int dragIntCtrl(String label, int val) {
@@ -309,7 +327,7 @@ public class ImEditorGui {
                     texCoord[0].x, texCoord[2].y
             )
             ) {
-                GameObject obj = Prefab.genSpsObj(sprites, 32, 32);
+                GameObject obj = Prefab.genSpsObj(sprites, 0.32f, 0.32f);
 
                 // Bind to mouse cursor
                 levelEditorObject.getComponent(MouseCtrl.class).pickObj(obj);
@@ -395,7 +413,7 @@ public class ImEditorGui {
                         rY = rX;
                     }
                 }
-                GameObject obj = Prefab.genSpsObj(sprites, sprites.loadWidth() * rX, sprites.loadHeight() * rY);
+                GameObject obj = Prefab.genSpsObj(sprites, (sprites.loadWidth() / 100.0f * rX) , (sprites.loadHeight() / 100.0f * rY));
 
                 // Bind to mouse cursor
                 levelEditorObject.getComponent(MouseCtrl.class).pickObj(obj);

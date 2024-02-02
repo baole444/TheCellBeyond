@@ -1,5 +1,6 @@
 package render;
 
+import TCB_Field.GameObject;
 import TCB_Field.Window;
 import components.SpriteRender;
 import org.joml.Matrix4f;
@@ -16,7 +17,7 @@ import static org.lwjgl.opengl.GL30.glGenVertexArrays;
 
 public class Batch implements Comparable<Batch> {
 
-    private final int MAX_TEX_BATCH = 8;
+    private final int MAX_TEX_BATCH = 7;
     //Vertices
 
     //Position      Color               Coordinate          TexID
@@ -45,10 +46,11 @@ public class Batch implements Comparable<Batch> {
     private List<Texture> textures;
     private int vaoID, vboID;
     private int maxBatchSize;
-
+    private Renderer renderer;
     private  int zIndex;
 
-    public Batch(int maxBatchSize, int zIndex) {
+    public Batch(int maxBatchSize, int zIndex, Renderer renderer) {
+        this.renderer = renderer;
         this.zIndex = zIndex;
         this.sprites = new SpriteRender[maxBatchSize];
         this.maxBatchSize = maxBatchSize;
@@ -124,6 +126,14 @@ public class Batch implements Comparable<Batch> {
                 spr.notDamage();
                 rebufferData = true;
             }
+
+            //TODO: temporary
+            if(spr.gameObject.transform.zIndex != this.zIndex) {
+                isExistToRemove(spr.gameObject);
+                renderer.add(spr.gameObject);
+                i--;
+            }
+
         }
         if (rebufferData) {
             //Legacy: Re-buffer data/frame | New: Re-buffer data/change only
@@ -161,6 +171,23 @@ public class Batch implements Comparable<Batch> {
         shader.detach();
     }
 
+    public boolean isExistToRemove(GameObject obj) {
+        SpriteRender sprite = obj.getComponent(SpriteRender.class);
+        for (int i = 0; i < countSprite; i++) {
+            if (sprites[i] == sprite) {
+                for (int j = i; j < countSprite - 1; j++) {
+                    sprites[j] = sprites[j + 1];
+                    sprites[j].setDamage();
+                }
+                countSprite--;
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private void loadVertexProp(int index) {
         SpriteRender spt = this.sprites[index];
 
@@ -194,15 +221,15 @@ public class Batch implements Comparable<Batch> {
         }
 
         // Load match vertex
-        float xAdd = 1.0f;
-        float yAdd = 1.0f;
+        float xAdd = 0.5f;
+        float yAdd = 0.5f;
         for (int i = 0; i < 4; i++) {
             if ( i == 1) {
-                yAdd = 0.0f;
+                yAdd = -0.5f;
             } else if (i == 2) {
-                xAdd = 0.0f;
+                xAdd = -0.5f;
             } else if (i == 3) {
-                yAdd = 1.0f;
+                yAdd = 0.5f;
             }
 
             Vector4f instPos = new Vector4f(spt.gameObject.transform.position.x + (xAdd * spt.gameObject.transform.scale.x),

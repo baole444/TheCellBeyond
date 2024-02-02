@@ -3,6 +3,7 @@ package components;
 import TCB_Field.GameObject;
 import editor.ImEditorGui;
 import imgui.ImGui;
+import imgui.type.ImInt;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
@@ -18,6 +19,8 @@ public abstract class Component {
     public void start() {}
 
     public void update(float dt) {}
+
+    public void updateEditor (float dt) {}
 
     public void imgui() {
         try {
@@ -39,7 +42,6 @@ public abstract class Component {
 
                 if (type == int.class) {
                     int val = (int)value;
-                    int[] isInt = {val};
 
                     field.set(this, ImEditorGui.dragIntCtrl(name, val));
 
@@ -71,6 +73,14 @@ public abstract class Component {
                     if (ImGui.dragFloat4(name, isVec)) {
                         val.set(isVec[0], isVec[1], isVec[2], isVec[3]);
                     }
+                } else if (type.isEnum()) {
+                    String[] enumVal = loadEnumVal(type);
+                    String enumType = ((Enum)value).name();
+                    ImInt index = new ImInt(indexOf(enumType, enumVal));
+
+                    if (ImGui.combo(field.getName(), index, enumVal, enumVal.length)) {
+                        field.set(this, type.getEnumConstants()[index.get()]);
+                    }
                 }
 
                 if (isPrivate) {
@@ -86,6 +96,29 @@ public abstract class Component {
         if (this.uID == -1) {
             this.uID = ID_COUNTER++;
         }
+    }
+
+    private <T extends Enum<T>> String[] loadEnumVal(Class<T> enumType) {
+        String[] enumVal = new String[enumType.getEnumConstants().length];
+        int i = 0;
+        for (T enumIntVal : enumType.getEnumConstants()) {
+            enumVal[i] = enumIntVal.name();
+            i++;
+        }
+        return enumVal;
+    }
+
+    private int indexOf(String str, String[] a) {
+        for (int i = 0; i <a.length; i++) {
+            if (str.equals(a[i])) {
+                return i;
+            }
+        }
+        return  -1;
+    }
+
+    public void destroy() {
+
     }
 
     public int loadUID() {

@@ -2,6 +2,7 @@ package TCB_Field;
 
 import editor.DebugGui;
 import editor.GameViewPort;
+import editor.MenuBar;
 import editor.Properties;
 import imgui.ImFontAtlas;
 import imgui.ImFontConfig;
@@ -27,12 +28,14 @@ public class ImGuiLayer {
     private DebugGui debugGui;
     private final long[] mouseCursors = new long[ImGuiMouseCursor.COUNT];
     private Properties properties;
+    private MenuBar menuBar;
 
     public ImGuiLayer(long glfwWindow, ObjectSelection objectSelection) {
         this.gameViewPort = new GameViewPort();
         this.debugGui = new DebugGui();
         this.glfwWindow = glfwWindow;
         this.properties = new Properties(objectSelection);
+        this.menuBar = new MenuBar();
     }
 
     public void initImGui(String glslVer) {
@@ -218,6 +221,7 @@ public class ImGuiLayer {
         debugGui.imgui();
         properties.update(dt, currentScene);
         properties.imgui();
+        menuBar.imgui();
 
         ImGui.end();
 

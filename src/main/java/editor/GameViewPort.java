@@ -2,6 +2,9 @@ package editor;
 
 import TCB_Field.MouseListener;
 import TCB_Field.Window;
+import eventviewer.EventSystem;
+import eventviewer.event.Event;
+import eventviewer.event.EventType;
 import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.ImGuiWindowFlags;
@@ -10,9 +13,24 @@ import org.joml.Vector2f;
 public class GameViewPort {
     private float leftX, rightX, topY, bottomY;
     private static float[] printDebug;
+    private boolean isBegun = false;
     public void imgui() {
 
-        ImGui.begin("Game Viewport", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse);
+        ImGui.begin("Game Viewport", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.MenuBar);
+
+        ImGui.beginMenuBar();
+
+        if (ImGui.menuItem("Play", "", isBegun, !isBegun)) {
+            isBegun = true;
+            EventSystem.notice(null, new Event(EventType.EngineStart));
+        }
+
+        if (ImGui.menuItem("Stop", "", !isBegun, isBegun)) {
+            isBegun = false;
+            EventSystem.notice(null, new Event(EventType.EngineEnd));
+        }
+
+        ImGui.endMenuBar();
 
         ImVec2 winSize = loadMaxViewportSize();
         ImVec2 winPos = loadViewportToCentral(winSize);

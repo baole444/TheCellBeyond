@@ -8,7 +8,7 @@ public class Transform extends Component {
     public Vector2f position;
     public Vector2f scale;
     public float rotate = 0.0f;
-    public int step = 32;
+    public float step = 0.32f;
     public int zIndex;
 
     public Transform() {
@@ -42,8 +42,8 @@ public class Transform extends Component {
         ImEditorGui.drawVec2Ctrl("Position", this.position);
         ImEditorGui.spriteKeyTransform("Sprite move", this.position, this.step);
         ImEditorGui.drawVec2Ctrl("Scale", this.scale, 32.0f);
-        ImEditorGui.dragFloatCtrl("Rotation", this.rotate);
-        ImEditorGui.dragIntCtrl("Z-Index", this.zIndex);
+        this.rotate = ImEditorGui.dragFloatCtrl("Rotation", this.rotate);
+        this.zIndex = ImEditorGui.dragIntCtrl("Z-Index", this.zIndex);
     }
 
     @Override

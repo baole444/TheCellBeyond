@@ -76,4 +76,8 @@ public class Properties {
     public GameObject loadActiveObj() {
         return this.activeGameObject;
     }
+
+    public void setActiveObj(GameObject obj) {
+        this.activeGameObject = obj;
+    }
 }

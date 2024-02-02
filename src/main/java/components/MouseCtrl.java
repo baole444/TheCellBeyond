@@ -20,10 +20,10 @@ public class MouseCtrl extends Component {
     }
 
     @Override
-    public void update(float dt) {
+    public void updateEditor(float dt) {
         if (holdObj != null) {
-            holdObj.transform.position.x = MouseListener.getOrthoX() - 16;
-            holdObj.transform.position.y = MouseListener.getOrthoY() - 16;
+            holdObj.transform.position.x = MouseListener.getOrthoX() - 0.16f;
+            holdObj.transform.position.y = MouseListener.getOrthoY() - 0.16f;
             holdObj.transform.position.x = (int)(holdObj.transform.position.x / Settings.GRID_WIDTH) * Settings.GRID_WIDTH;
             holdObj.transform.position.y = (int)(holdObj.transform.position.y / Settings.GRID_HEIGHT) * Settings.GRID_HEIGHT;
             if (MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_LEFT)) {
