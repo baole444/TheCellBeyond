@@ -3,7 +3,7 @@ package scene;
 import TCB_Field.GameObject;
 import components.*;
 import editor.ImEditorGui;
-import editor.WorkViewport;
+import components.WorkViewport;
 import imgui.ImGui;
 import imgui.ImVec2;
 import utility.AssetsPool;

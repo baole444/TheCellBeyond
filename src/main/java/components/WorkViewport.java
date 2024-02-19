@@ -1,9 +1,8 @@
-package editor;
+package components;
 
 import TCB_Field.KeyListener;
 import TCB_Field.MouseListener;
 import TCB_Field.Viewport;
-import components.Component;
 import org.joml.Vector2f;
 
 import static org.lwjgl.glfw.GLFW.*;
@@ -27,16 +26,15 @@ public class WorkViewport extends Component {
     @Override
     public void updateEditor(float dt) {
         if (MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_MIDDLE) && dragInit > 0) {
-            this.clickOrigin = new Vector2f(MouseListener.getOrthoX(), MouseListener.getOrthoY());
+            this.clickOrigin = MouseListener.getWorld();
             dragInit -= dt;
             return;
 
         } else if (MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_MIDDLE)) {
-            Vector2f cursorPos = new Vector2f(MouseListener.getOrthoX(), MouseListener.getOrthoY());
+            Vector2f cursorPos = MouseListener.getWorld();
             Vector2f delta = new Vector2f(cursorPos).sub(this.clickOrigin);
             workViewport.position.sub(delta.mul(dt).mul(dragSensitivity));
             this.clickOrigin.lerp(cursorPos, dt);
-
         }
 
         if (dragInit <= 0.0f && !MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_MIDDLE)) {

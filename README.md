@@ -18,3 +18,4 @@ __Current implementations:__
 + Sprite controlling.
 + GSON for loading and saving scene.
 
+*Note: Currently the coordinate is broken for the work viewport (editor), I will continue to fix it in later builds.*

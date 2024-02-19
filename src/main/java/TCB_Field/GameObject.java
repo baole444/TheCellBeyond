@@ -14,7 +14,7 @@ import java.util.List;
 public class GameObject {
     private static  int ID_COUNTER = 0;
     private int uID = -1;
-    private String name;
+    public String name;
     private List<Component> components;
     public transient Transform transform;
     private boolean isSerialize = true;

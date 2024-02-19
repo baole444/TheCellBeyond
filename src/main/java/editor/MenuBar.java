@@ -10,7 +10,7 @@ import static org.lwjgl.glfw.GLFW.*;
 
 public class MenuBar {
     public void imgui() {
-        ImGui.beginMainMenuBar();
+        ImGui.beginMenuBar();
 
         if (ImGui.beginMenu("File")) {
             if (ImGui.menuItem("Save", "Ctrl+S") || ((KeyListener.isKeyPressed(GLFW_KEY_LEFT_CONTROL) || KeyListener.isKeyPressed(GLFW_KEY_RIGHT_CONTROL)) && KeyListener.isKeyTapped(GLFW_KEY_S))) {
@@ -26,6 +26,6 @@ public class MenuBar {
             ImGui.endMenu();
         }
 
-        ImGui.endMainMenuBar();
+        ImGui.endMenuBar();
     }
 }

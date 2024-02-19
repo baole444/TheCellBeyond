@@ -15,14 +15,14 @@ public class Grid extends Component {
         Vector2f viewPos = viewport.position;
         Vector2f projectSize = viewport.loadProjectSize();
 
-        float firstX = ((int)(viewPos.x / Settings.GRID_WIDTH) - 1) * Settings.GRID_WIDTH;
-        float firstY = ((int)(viewPos.y / Settings.GRID_HEIGHT) - 1) * Settings.GRID_HEIGHT;
+        float firstX = ((int)(viewPos.x / Settings.GRID_WIDTH)) * Settings.GRID_WIDTH;
+        float firstY = ((int)(viewPos.y / Settings.GRID_HEIGHT)) * Settings.GRID_HEIGHT;
 
-        int countVertical = (int)(projectSize.x * viewport.loadZoom() / Settings.GRID_WIDTH) + 2;
-        int countHorizontal = (int)(projectSize.y *viewport.loadZoom() / Settings.GRID_HEIGHT) + 2;
+        int countVertical = (int)(projectSize.x * viewport.loadZoom() / Settings.GRID_WIDTH) + 3;
+        int countHorizontal = (int)(projectSize.y *viewport.loadZoom() / Settings.GRID_HEIGHT) + 3;
 
-        float height = (int)(projectSize.y * viewport.loadZoom()) + Settings.GRID_HEIGHT * 2;
-        float width = (int)(projectSize.x * viewport.loadZoom()) + Settings.GRID_WIDTH * 2;
+        float height = (int)(projectSize.y * viewport.loadZoom()) + (5 * Settings.GRID_HEIGHT);
+        float width = (int)(projectSize.x * viewport.loadZoom()) + (5 * Settings.GRID_WIDTH);
 
         int maxLines = Math.max(countVertical, countHorizontal);
         Vector3f color = new Vector3f(0.4f, 0.4f, 0.0f);

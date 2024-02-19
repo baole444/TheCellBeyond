@@ -1,13 +1,7 @@
 package TCB_Field;
 
-import editor.DebugGui;
-import editor.GameViewPort;
-import editor.MenuBar;
-import editor.Properties;
-import imgui.ImFontAtlas;
-import imgui.ImFontConfig;
-import imgui.ImGui;
-import imgui.ImGuiIO;
+import editor.*;
+import imgui.*;
 import imgui.callback.ImStrConsumer;
 import imgui.callback.ImStrSupplier;
 import imgui.flag.*;
@@ -18,6 +12,9 @@ import render.ObjectSelection;
 import scene.Scene;
 
 import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL30.GL_FRAMEBUFFER;
+import static org.lwjgl.opengl.GL30.glBindFramebuffer;
 
 public class ImGuiLayer {
     private final ImGuiImplGlfw imGuiGlfw = new ImGuiImplGlfw();
@@ -26,9 +23,10 @@ public class ImGuiLayer {
     private ImGuiIO io;
     private GameViewPort gameViewPort;
     private DebugGui debugGui;
-    private final long[] mouseCursors = new long[ImGuiMouseCursor.COUNT];
+
     private Properties properties;
     private MenuBar menuBar;
+    private SceneGroup sceneGroup;
 
     public ImGuiLayer(long glfwWindow, ObjectSelection objectSelection) {
         this.gameViewPort = new GameViewPort();
@@ -36,68 +34,29 @@ public class ImGuiLayer {
         this.glfwWindow = glfwWindow;
         this.properties = new Properties(objectSelection);
         this.menuBar = new MenuBar();
+        this.sceneGroup = new SceneGroup();
     }
 
     public void initImGui(String glslVer) {
         ImGui.createContext();
-        imGuiGlfw.init(glfwWindow, false);
         this.io = ImGui.getIO();
         guiFont(io);
         guiMouseCallback(glfwWindow, io);
+        io.addConfigFlags(ImGuiConfigFlags.DockingEnable);
         io.addConfigFlags(ImGuiConfigFlags.ViewportsEnable);
-        io.setConfigFlags(ImGuiConfigFlags.DockingEnable);
+        imGuiGlfw.init(glfwWindow, false);
         imGuiGl3.init(glslVer);
     }
 
-
+    public GameViewPort loadGameViewPort() {
+        return this.gameViewPort;
+    }
     //Temporary solution of defining mouse and key control for the ImGui window
 
     public void guiMouseCallback(long glfwWindow, ImGuiIO io) {
-        io.setConfigFlags(ImGuiConfigFlags.NavEnableKeyboard); // Navigation with keyboard
-        io.setBackendFlags(ImGuiBackendFlags.HasMouseCursors); // Mouse cursors to display while resizing windows etc.
+        //io.setConfigFlags(ImGuiConfigFlags.NavEnableKeyboard); // Navigation with keyboard
+        //io.setBackendFlags(ImGuiBackendFlags.HasMouseCursors); // Mouse cursors to display while resizing windows etc.
         io.setBackendPlatformName("imgui_java_impl_glfw");
-
-        // ------------------------------------------------------------
-        // Keyboard mapping. ImGui will use those indices to peek into the io.KeysDown[] array.
-        final int[] keyMap = new int[ImGuiKey.COUNT];
-        keyMap[ImGuiKey.Tab] = GLFW_KEY_TAB;
-        keyMap[ImGuiKey.LeftArrow] = GLFW_KEY_LEFT;
-        keyMap[ImGuiKey.RightArrow] = GLFW_KEY_RIGHT;
-        keyMap[ImGuiKey.UpArrow] = GLFW_KEY_UP;
-        keyMap[ImGuiKey.DownArrow] = GLFW_KEY_DOWN;
-        keyMap[ImGuiKey.PageUp] = GLFW_KEY_PAGE_UP;
-        keyMap[ImGuiKey.PageDown] = GLFW_KEY_PAGE_DOWN;
-        keyMap[ImGuiKey.Home] = GLFW_KEY_HOME;
-        keyMap[ImGuiKey.End] = GLFW_KEY_END;
-        keyMap[ImGuiKey.Insert] = GLFW_KEY_INSERT;
-        keyMap[ImGuiKey.Delete] = GLFW_KEY_DELETE;
-        keyMap[ImGuiKey.Backspace] = GLFW_KEY_BACKSPACE;
-        keyMap[ImGuiKey.Space] = GLFW_KEY_SPACE;
-        keyMap[ImGuiKey.Enter] = GLFW_KEY_ENTER;
-        keyMap[ImGuiKey.Escape] = GLFW_KEY_ESCAPE;
-        keyMap[ImGuiKey.KeyPadEnter] = GLFW_KEY_KP_ENTER;
-        keyMap[ImGuiKey.A] = GLFW_KEY_A;
-        keyMap[ImGuiKey.C] = GLFW_KEY_C;
-        keyMap[ImGuiKey.V] = GLFW_KEY_V;
-        keyMap[ImGuiKey.X] = GLFW_KEY_X;
-        keyMap[ImGuiKey.Y] = GLFW_KEY_Y;
-        keyMap[ImGuiKey.Z] = GLFW_KEY_Z;
-        io.setKeyMap(keyMap);
-
-        // ------------------------------------------------------------
-        // Mouse cursors mapping
-        mouseCursors[ImGuiMouseCursor.Arrow] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
-        mouseCursors[ImGuiMouseCursor.TextInput] = glfwCreateStandardCursor(GLFW_IBEAM_CURSOR);
-        mouseCursors[ImGuiMouseCursor.ResizeAll] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
-        mouseCursors[ImGuiMouseCursor.ResizeNS] = glfwCreateStandardCursor(GLFW_VRESIZE_CURSOR);
-        mouseCursors[ImGuiMouseCursor.ResizeEW] = glfwCreateStandardCursor(GLFW_HRESIZE_CURSOR);
-        mouseCursors[ImGuiMouseCursor.ResizeNESW] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
-        mouseCursors[ImGuiMouseCursor.ResizeNWSE] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
-        mouseCursors[ImGuiMouseCursor.Hand] = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
-        mouseCursors[ImGuiMouseCursor.NotAllowed] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
-
-        // ------------------------------------------------------------
-        // GLFW callbacks to handle user input
 
         glfwSetKeyCallback(glfwWindow, (w, key, scancode, action, mods) -> {
             if (action == GLFW_PRESS) {
@@ -190,24 +149,6 @@ public class ImGuiLayer {
     }
 
     public void update(float dt, Scene currentScene) {
-        float[] winWidth = {Window.loadWidth()};
-        float[] winHeight = {Window.loadHeight()};
-        double[] mousePosX = {0};
-        double[] mousePosY = {0};
-        glfwGetCursorPos(glfwWindow, mousePosX, mousePosY);
-
-        final ImGuiIO io = ImGui.getIO();
-        io.setDisplaySize(winWidth[0], winHeight[0]);
-        io.setDisplayFramebufferScale(1f, 1f);
-        io.setMousePos((float) mousePosX[0], (float) mousePosY[0]);
-        io.setDeltaTime(dt);
-
-        //Mouse update
-        final int imguiCursor = ImGui.getMouseCursor();
-        glfwSetCursor(glfwWindow, mouseCursors[imguiCursor]);
-        glfwSetInputMode(glfwWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-
-
         // ImGui frame
         imGuiGlfw.newFrame();
 
@@ -221,10 +162,12 @@ public class ImGuiLayer {
         debugGui.imgui();
         properties.update(dt, currentScene);
         properties.imgui();
-        menuBar.imgui();
+        sceneGroup.imgui();
 
-        ImGui.end();
-
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glViewport(0, 0, Window.loadWidth(), Window.loadHeight());
+        glClearColor(0, 0, 0 ,1);
+        glClear(GL_COLOR_BUFFER_BIT);
         ImGui.render();
         imGuiGl3.renderDrawData(ImGui.getDrawData());
 
@@ -240,8 +183,13 @@ public class ImGuiLayer {
     private void imDocking() {
         int winFlag = ImGuiWindowFlags.MenuBar | ImGuiWindowFlags.NoDocking;
 
-        ImGui.setNextWindowPos(0.0f, 0.0f, ImGuiCond.Always);
-        ImGui.setNextWindowSize(1920, 1080);
+        ImGuiViewport imGuiViewport = ImGui.getMainViewport();
+        ImGui.setNextWindowPos(imGuiViewport.getWorkPosX(), imGuiViewport.getWorkPosY());
+        ImGui.setNextWindowPos(imGuiViewport.getWorkSizeX(), imGuiViewport.getWorkSizeY());
+        ImGui.setNextWindowViewport(imGuiViewport.getID());
+
+        ImGui.setNextWindowPos(imGuiViewport.getWorkPosX(), imGuiViewport.getWorkPosY());
+        ImGui.setNextWindowSize(imGuiViewport.getWorkSizeX(), imGuiViewport.getWorkSizeY());
 
         ImGui.pushStyleVar(ImGuiStyleVar.WindowRounding, 0.0f);
         ImGui.pushStyleVar(ImGuiStyleVar.WindowBorderSize, 0.0f);
@@ -254,6 +202,10 @@ public class ImGuiLayer {
 
         // Dock space
         ImGui.dockSpace(ImGui.getID("Dock"));
+
+        menuBar.imgui();
+
+        ImGui.end();
     }
 
     public ImGuiImplGlfw getImGuiGlfw() {

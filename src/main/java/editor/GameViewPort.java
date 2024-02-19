@@ -32,19 +32,15 @@ public class GameViewPort {
 
         ImGui.endMenuBar();
 
+        ImGui.setCursorPos(ImGui.getCursorPosX(), ImGui.getCursorPosY());
         ImVec2 winSize = loadMaxViewportSize();
         ImVec2 winPos = loadViewportToCentral(winSize);
-
         ImGui.setCursorPos(winPos.x, winPos.y);
 
-        ImVec2 topLeft = new ImVec2();
-        ImGui.getCursorScreenPos(topLeft);
-        topLeft.x -= ImGui.getScrollX();
-        topLeft.y -= ImGui.getScrollY();
-        leftX = topLeft.x;
-        bottomY =  topLeft.y;
-        rightX = topLeft.x + winSize.x;
-        topY = topLeft.y + winSize.y;
+        leftX = winPos.x + 2;
+        bottomY =  winPos.y;
+        rightX = winPos.x + winSize.x + 2;
+        topY = winPos.y + winSize.y;
 
         this.printDebug = new float[] {winSize.x, winSize.y,winPos.x, winPos.y, leftX, rightX, bottomY, topY};
 
@@ -52,7 +48,7 @@ public class GameViewPort {
 
         ImGui.image(texID, winSize.x, winSize.y, 0, 1, 1, 0);
 
-        MouseListener.setWorkViewportPos(new Vector2f(topLeft.x, topLeft.y));
+        MouseListener.setWorkViewportPos(new Vector2f(winPos.x + 2, winPos.y));
         MouseListener.setWorkViewportSize(new Vector2f(winSize.x, winSize.y));
 
         ImGui.end();
@@ -73,8 +69,6 @@ public class GameViewPort {
     private ImVec2 loadMaxViewportSize() {
         ImVec2 winSize = new ImVec2();
         ImGui.getContentRegionAvail(winSize);
-        winSize.x -= ImGui.getScrollX();
-        winSize.y -= ImGui.getScrollY();
 
         float usableWidth = winSize.x;
         float usableHeight = usableWidth / Window.loadTargetAspectRatio();
@@ -90,8 +84,6 @@ public class GameViewPort {
     private ImVec2 loadViewportToCentral(ImVec2 usableSize) {
         ImVec2 winSize = new ImVec2();
         ImGui.getContentRegionAvail(winSize);
-        winSize.x -= ImGui.getScrollX();
-        winSize.y -= ImGui.getScrollY();
 
         float portX = (winSize.x / 2.0f) - (usableSize.x / 2.0f);
         float portY = (winSize.y / 2.0f) - (usableSize.y / 2.0f);

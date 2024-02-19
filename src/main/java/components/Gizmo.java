@@ -119,7 +119,7 @@ public class Gizmo extends Component {
     }
 
     private boolean isHoverX() {
-        Vector2f cursorPos = new Vector2f(MouseListener.getOrthoX(), MouseListener.getOrthoY());
+        Vector2f cursorPos = MouseListener.getWorld();
         if (cursorPos.x <= xAxisObj.transform.position.x + (gizHeight / 2.0f)&&
                 cursorPos.x >= xAxisObj.transform.position.x - (gizWidth / 2.0f) &&
                 cursorPos.y >= xAxisObj.transform.position.y - ( gizHeight / 2.0f) &&
@@ -133,7 +133,7 @@ public class Gizmo extends Component {
     }
 
     private boolean isHoverY() {
-        Vector2f cursorPos = new Vector2f(MouseListener.getOrthoX(), MouseListener.getOrthoY());
+        Vector2f cursorPos = MouseListener.getWorld();
         if (cursorPos.x <= yAxisObj.transform.position.x  + (gizWidth / 2.0f) &&
                 cursorPos.x >= yAxisObj.transform.position.x - (gizWidth / 2.0f) &&
                 cursorPos.y <= yAxisObj.transform.position.y + (gizHeight / 2.0f)&&

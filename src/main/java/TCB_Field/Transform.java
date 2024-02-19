@@ -39,6 +39,9 @@ public class Transform extends Component {
 
     @Override
     public void imgui() {
+        gameObject.name = ImEditorGui.nameCtrl("Name: ", gameObject.name);
+
+
         ImEditorGui.drawVec2Ctrl("Position", this.position);
         ImEditorGui.spriteKeyTransform("Sprite move", this.position, this.step);
         ImEditorGui.drawVec2Ctrl("Scale", this.scale, 32.0f);

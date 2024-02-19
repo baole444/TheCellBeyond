@@ -12,6 +12,7 @@ import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_RIGHT;
 public class DebugGui {
     private float[] printDebug;
     private int x, y;
+    private float wX, wY;
 
     private boolean[] showContent = new boolean[] {false, false, false, false, false, false};
     public void imgui(){
@@ -54,14 +55,14 @@ public class DebugGui {
             ImGui.text("    Circle:");
             ImGui.sameLine();
             if (ImGui.button("Central")) {
-                DebugDraw.addCircle(new Vector2f(320, 240), 100, new Vector3f(1, 1, 1), 300);
+                DebugDraw.addCircle(new Vector2f(3.2f, 2.4f), 1, new Vector3f(1, 1, 1), 300);
             }
 
             ImGui.text("    Lines:");
             ImGui.sameLine();
             if (ImGui.button("Screen crossing")) {
-                DebugDraw.addLine2(new Vector2f(0, 0), new Vector2f(640, 480), new Vector3f(1, 1, 1), 300);
-                DebugDraw.addLine2(new Vector2f(0, 480), new Vector2f(640, 0), new Vector3f(1, 1, 1), 300);
+                DebugDraw.addLine2(new Vector2f(0, 0), new Vector2f(6.4f, 4.8f), new Vector3f(1, 1, 1), 300);
+                DebugDraw.addLine2(new Vector2f(0, 4.8f), new Vector2f(6.4f, 0), new Vector3f(1, 1, 1), 300);
             }
 
             ImGui.newLine();
@@ -87,13 +88,19 @@ public class DebugGui {
 
                 x = 0;
                 y = 0;
+                wX = 0.0f;
+                wY = 0.0f;
 
                 if (mouseButtonDown(GLFW_MOUSE_BUTTON_RIGHT)) {
                     x = (int)MouseListener.loadScrX();
                     y = (int)MouseListener.loadScrY();
+                    wX = MouseListener.getWorldX();
+                    wY = MouseListener.getWorldY();
                 }
                 ImGui.text("    x " + x);
                 ImGui.text("    y " + y);
+                ImGui.text("    worldX " + wX);
+                ImGui.text("    worldY " + wY);
                 ImGui.text("    Is Dragging:");
                 ImGui.sameLine();
                 if (MouseListener.isDragging()) {
