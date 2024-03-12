@@ -123,10 +123,15 @@ public class Window implements EventViewer {
             System.exit(-1);
         }
 
+        //Texture setIcon = new Texture(16,16);
+        //GLFWImage icons[1];
+        //    icons[0] = ;
+
         glfwSetCursorPosCallback(glfwWindow, MouseListener::mousePosCallback); // :: is java syntax lambda function
         glfwSetMouseButtonCallback(glfwWindow, MouseListener::mouseButtonCallback);
         glfwSetScrollCallback(glfwWindow, MouseListener::mouseScrollCallback);
         glfwSetKeyCallback(glfwWindow, KeyListener::keyCallback);
+        //glfwSetWindowIcon(glfwWindow, );
 
         // OpenGL context current
         glfwMakeContextCurrent(glfwWindow);

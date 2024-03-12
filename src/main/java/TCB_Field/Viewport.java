@@ -24,7 +24,7 @@ public class Viewport {
     public void adjustProjection() {
         projectMatrix.identity();
         projectMatrix.ortho(0.0f, projectSize.x * this.zoom, 0.0f, projectSize.y * this.zoom, 0.0f, 100.0f);
-        projectMatrix.invert(inverseProject);
+        inverseProject = new Matrix4f(projectMatrix).invert();
     }
 
     public Matrix4f getViewMatrix() {
@@ -34,7 +34,7 @@ public class Viewport {
         viewMatrix.lookAt(new Vector3f(position.x, position.y, 20.0f),
                                             Front.add(position.x, position.y, 0.0f),Up);
 
-        this.viewMatrix.invert(inverseView);
+        inverseView = new Matrix4f(this.viewMatrix).invert();
 
         return this.viewMatrix;
     }

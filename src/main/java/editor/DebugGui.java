@@ -6,9 +6,6 @@ import org.joml.Vector2f;
 import org.joml.Vector3f;
 import render.DebugDraw;
 
-import static TCB_Field.MouseListener.mouseButtonDown;
-import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_RIGHT;
-
 public class DebugGui {
     private float[] printDebug;
     private int x, y;
@@ -67,6 +64,21 @@ public class DebugGui {
 
             ImGui.newLine();
 
+            ImGui.text("    Corners:");
+            ImGui.sameLine();
+            if (ImGui.button("Screen corners")) {
+                DebugDraw.addCircle(new Vector2f(0, 0), 1, new Vector3f(1, 1, 1), 300);
+                DebugDraw.addCircle(new Vector2f(0, 4.8f), 1, new Vector3f(1, 1, 1), 300);
+                DebugDraw.addCircle(new Vector2f(6.4f, 4.8f), 1, new Vector3f(1, 1, 1), 300);
+                DebugDraw.addCircle(new Vector2f(6.4f, 0), 1, new Vector3f(1, 1, 1), 300);
+                DebugDraw.addLine2(new Vector2f(0, 0), new Vector2f(0, 4.8f), new Vector3f(1, 1, 1), 300);
+                DebugDraw.addLine2(new Vector2f(0, 0), new Vector2f(6.4f, 0), new Vector3f(1, 1, 1), 300);
+                DebugDraw.addLine2(new Vector2f(6.4f, 0), new Vector2f(6.4f, 4.8f), new Vector3f(1, 1, 1), 300);
+                DebugDraw.addLine2(new Vector2f(6.4f, 4.8f), new Vector2f(0, 4.8f), new Vector3f(1, 1, 1), 300);
+            }
+
+            ImGui.newLine();
+
             ImGui.text("  Callback commands:");
             ImGui.newLine();
 
@@ -86,17 +98,11 @@ public class DebugGui {
                     showContent[2] = false;
                 }
 
-                x = 0;
-                y = 0;
-                wX = 0.0f;
-                wY = 0.0f;
-
-                if (mouseButtonDown(GLFW_MOUSE_BUTTON_RIGHT)) {
-                    x = (int)MouseListener.loadScrX();
-                    y = (int)MouseListener.loadScrY();
-                    wX = MouseListener.getWorldX();
-                    wY = MouseListener.getWorldY();
-                }
+                x = (int)MouseListener.loadScrX();
+                y = (int)MouseListener.loadScrY();
+                wX = MouseListener.getWorldX();
+                wY = MouseListener.getWorldY();
+                DebugDraw.addCircle(new Vector2f(wX, wY), 0.5f, new Vector3f(1, 1, 1), 1);
                 ImGui.text("    x " + x);
                 ImGui.text("    y " + y);
                 ImGui.text("    worldX " + wX);

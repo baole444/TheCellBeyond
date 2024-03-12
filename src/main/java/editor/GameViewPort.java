@@ -37,9 +37,9 @@ public class GameViewPort {
         ImVec2 winPos = loadViewportToCentral(winSize);
         ImGui.setCursorPos(winPos.x, winPos.y);
 
-        leftX = winPos.x + 2;
+        leftX = winPos.x + ImGui.getWindowPosX();
+        rightX = winPos.x + winSize.x + ImGui.getWindowPosX();
         bottomY =  winPos.y;
-        rightX = winPos.x + winSize.x + 2;
         topY = winPos.y + winSize.y;
 
         this.printDebug = new float[] {winSize.x, winSize.y,winPos.x, winPos.y, leftX, rightX, bottomY, topY};
@@ -48,7 +48,7 @@ public class GameViewPort {
 
         ImGui.image(texID, winSize.x, winSize.y, 0, 1, 1, 0);
 
-        MouseListener.setWorkViewportPos(new Vector2f(winPos.x + 2, winPos.y));
+        MouseListener.setWorkViewportPos(new Vector2f(winPos.x + ImGui.getWindowPosX(), winPos.y));
         MouseListener.setWorkViewportSize(new Vector2f(winSize.x, winSize.y));
 
         ImGui.end();

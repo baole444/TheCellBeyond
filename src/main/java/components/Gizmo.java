@@ -15,8 +15,8 @@ public class Gizmo extends Component {
     private final Vector4f yHover = new Vector4f(0.35f, 0.85f, 0.35f, 1.0f);
     private final Vector2f xOffset = new Vector2f(0.3f, 0.0f);
     private final Vector2f yOffset = new Vector2f(0.0f, 0.3f);
-    private float gizWidth = 0.16f;
-    private float gizHeight = 0.48f;
+    private float gizWidth = 1.6f;
+    private float gizHeight = 4.8f;
     protected boolean xActiveDrag = false;
     protected boolean yActiveDrag = false;
     private boolean isUsed = false;
@@ -119,7 +119,7 @@ public class Gizmo extends Component {
     }
 
     private boolean isHoverX() {
-        Vector2f cursorPos = MouseListener.getWorld();
+        Vector2f cursorPos = new Vector2f(MouseListener.getWorldX(), MouseListener.getWorldY());
         if (cursorPos.x <= xAxisObj.transform.position.x + (gizHeight / 2.0f)&&
                 cursorPos.x >= xAxisObj.transform.position.x - (gizWidth / 2.0f) &&
                 cursorPos.y >= xAxisObj.transform.position.y - ( gizHeight / 2.0f) &&
@@ -133,7 +133,7 @@ public class Gizmo extends Component {
     }
 
     private boolean isHoverY() {
-        Vector2f cursorPos = MouseListener.getWorld();
+        Vector2f cursorPos = new Vector2f(MouseListener.getWorldX(), MouseListener.getWorldY());
         if (cursorPos.x <= yAxisObj.transform.position.x  + (gizWidth / 2.0f) &&
                 cursorPos.x >= yAxisObj.transform.position.x - (gizWidth / 2.0f) &&
                 cursorPos.y <= yAxisObj.transform.position.y + (gizHeight / 2.0f)&&

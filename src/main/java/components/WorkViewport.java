@@ -26,12 +26,12 @@ public class WorkViewport extends Component {
     @Override
     public void updateEditor(float dt) {
         if (MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_MIDDLE) && dragInit > 0) {
-            this.clickOrigin = MouseListener.getWorld();
+            this.clickOrigin = new Vector2f(MouseListener.getWorldX(), MouseListener.getWorldY());
             dragInit -= dt;
             return;
 
         } else if (MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_MIDDLE)) {
-            Vector2f cursorPos = MouseListener.getWorld();
+            Vector2f cursorPos = new Vector2f(MouseListener.getWorldX(), MouseListener.getWorldY());
             Vector2f delta = new Vector2f(cursorPos).sub(this.clickOrigin);
             workViewport.position.sub(delta.mul(dt).mul(dragSensitivity));
             this.clickOrigin.lerp(cursorPos, dt);

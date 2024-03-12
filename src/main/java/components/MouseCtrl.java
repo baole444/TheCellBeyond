@@ -45,7 +45,6 @@ public class MouseCtrl extends Component {
             float y = MouseListener.getWorldY();
             holdObj.transform.position.x = ((int)Math.floor(x / Settings.GRID_WIDTH) * Settings.GRID_WIDTH) + Settings.GRID_WIDTH / 2.0f;
             holdObj.transform.position.y = ((int)Math.floor(y / Settings.GRID_HEIGHT) * Settings.GRID_HEIGHT) + Settings.GRID_HEIGHT / 2.0f;
-
             if (MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_LEFT)) {
                 placeObj();
                 unHold = holdInit;

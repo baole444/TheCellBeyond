@@ -142,16 +142,16 @@ public class MouseListener {
     }
 
     public static Vector2f getWorld() {
-        float instX = getX() - get().workViewportPos.x;
+        float  instX = getX() - get().workViewportPos.x;
         instX = (2.0f * (instX / get().workViewportSize.x)) - 1.0f;
-        float instY = getY() - get().workViewportPos.y;
-        instY =  (2.0f * (1.0f - (instY / get().workViewportSize.y))) - 1;
-        Vector4f tmp = new Vector4f(instX, instY, 0, 1);
+        float instY = (getY() - get().workViewportPos.y);
+        instY = (2.0f * (1.0f - (instY / get().workViewportSize.y))) - 1.0f;
 
-        Viewport vp = Window.getScene().viewport();
-        Matrix4f viewInverse = new Matrix4f(vp.getInverseView());
-        Matrix4f projectInverse = new Matrix4f(vp.getInverseProject());
-        tmp.mul(viewInverse.mul(projectInverse));
+        Viewport viewport = Window.getScene().viewport();
+        Vector4f tmp = new Vector4f(instX, instY, 0, 1);
+        Matrix4f inverseView = new Matrix4f(viewport.getInverseView());
+        Matrix4f inverseProjection = new Matrix4f(viewport.getInverseProject());
+        tmp.mul(inverseView.mul(inverseProjection));
 
         return new Vector2f(tmp.x, tmp.y);
     }
