@@ -71,7 +71,7 @@ public class ObjectSelection {
     public void detachWrite() {
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
     }
-
+    //TODO: need to check on glReadPixels
     public int pixelCheck(int x, int y) {
         glBindFramebuffer(GL_READ_FRAMEBUFFER, frameBufferObj);
         glReadBuffer(GL_COLOR_ATTACHMENT0);

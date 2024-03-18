@@ -13,8 +13,8 @@ public class Gizmo extends Component {
     private final Vector4f xHover = new Vector4f(0.85f, 0.35f, 0.35f, 1.0f);
     private final Vector4f yAxisColor = new Vector4f(0.2f, 0.7f, 0.2f, 1.0f);
     private final Vector4f yHover = new Vector4f(0.35f, 0.85f, 0.35f, 1.0f);
-    private final Vector2f xOffset = new Vector2f(0.3f, 0.0f);
-    private final Vector2f yOffset = new Vector2f(0.0f, 0.3f);
+    private final Vector2f xOffset = new Vector2f(0.03f, 0.0f);
+    private final Vector2f yOffset = new Vector2f(0.0f, 0.03f);
     private float gizWidth = 1.6f;
     private float gizHeight = 4.8f;
     protected boolean xActiveDrag = false;
