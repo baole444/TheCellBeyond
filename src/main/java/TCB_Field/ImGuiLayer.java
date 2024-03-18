@@ -160,7 +160,7 @@ public class ImGuiLayer {
 
         gameViewPort.imgui();
         debugGui.imgui();
-        properties.update(dt, currentScene);
+        //properties.update(dt, currentScene);
         properties.imgui();
         sceneGroup.imgui();
 

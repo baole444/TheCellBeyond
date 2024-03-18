@@ -172,6 +172,40 @@ public class MouseListener {
 
         return new Vector2f(instX, instY);
     }
+
+    public static Vector2f scr2World(Vector2f scCoord) {
+        Vector2f normalizedScrCoords = new Vector2f(
+                scCoord.x / Window.loadWidth(),
+                scCoord.y / Window.loadHeight()
+        );
+        normalizedScrCoords.mul(2.0f).sub(new Vector2f(1.0f, 1.0f));
+
+        Viewport vp = Window.getScene().viewport();
+        Vector4f tmp = new Vector4f(normalizedScrCoords.x, normalizedScrCoords.y, 0, 1);
+
+        Matrix4f inverseView = new Matrix4f(vp.getInverseView());
+        Matrix4f inverseProject = new Matrix4f(vp.getInverseProject());
+        tmp.mul(inverseView.mul(inverseProject));
+
+        return new Vector2f(tmp.x, tmp.y);
+    }
+
+    public static Vector2f world2Scr(Vector2f worldCoords) {
+        Viewport vp = Window.getScene().viewport();
+
+        Vector4f iwSpacePos = new Vector4f(worldCoords.x, worldCoords.y, 0 , 1);
+        Matrix4f view = new Matrix4f(vp.getViewMatrix());
+        Matrix4f project = new Matrix4f(vp.getProjectMatrix());
+
+        iwSpacePos.mul(project.mul(view));
+
+        Vector2f winSpace = new Vector2f(iwSpacePos.x, iwSpacePos.y).mul(1.0f / iwSpacePos.w);
+
+        winSpace.add(new Vector2f(1.0f, 1.0f)).mul(0.5f);
+        winSpace.mul(new Vector2f(Window.loadWidth(), Window.loadHeight()));
+
+        return winSpace;
+    }
     //--------------------------------------------------------------------
 
     public static void setWorkViewportPos(Vector2f workViewportPos) {
