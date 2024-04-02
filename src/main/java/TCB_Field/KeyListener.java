@@ -1,12 +1,13 @@
 package TCB_Field;
 
-import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
-import static org.lwjgl.glfw.GLFW.GLFW_RELEASE;
+import java.util.Arrays;
+
+import static org.lwjgl.glfw.GLFW.*;
 
 public class KeyListener {
     private static KeyListener instance;
-    private boolean keyTapped[] = new boolean[350];
-    private boolean keyPressed[] = new boolean[350];
+    private boolean keyTapped[] = new boolean[GLFW_KEY_LAST + 1];
+    private boolean keyPressed[] = new boolean[GLFW_KEY_LAST + 1];
 
     private KeyListener() {}
     public static KeyListener get() {
@@ -36,5 +37,9 @@ public class KeyListener {
             get().keyTapped[keyCode] = false;
         }
         return rs;
+    }
+
+    public static void endFrame() {
+        Arrays.fill(get().keyPressed, false);
     }
 }

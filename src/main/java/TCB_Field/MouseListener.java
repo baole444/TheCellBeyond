@@ -3,7 +3,8 @@ package TCB_Field;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
-import render.ObjectSelection;
+
+import java.util.Arrays;
 
 import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
 import static org.lwjgl.glfw.GLFW.GLFW_RELEASE;
@@ -17,7 +18,6 @@ public class MouseListener {
     private int mouseButtonDown = 0;
     private Vector2f workViewportPos = new Vector2f();
     private Vector2f workViewportSize = new Vector2f();
-    private ObjectSelection objectSelection;
 
     private MouseListener() {
         this.scrollX = 0.0;
@@ -42,14 +42,15 @@ public class MouseListener {
         get().yLast = 0.0;
         get().mouseButtonDown = 0;
         get().isDragging = false;
-        for (int i = 0; i < get().mouseButtonPressed.length; i++) {
-            get().mouseButtonPressed[i] = false;
-        }
+        Arrays.fill(get().mouseButtonPressed, false);
+//       for (int i = 0; i < get().mouseButtonPressed.length; i++) {
+//           get().mouseButtonPressed[i] = false;
+//       }
     }
 
     public static MouseListener get() {
         if (MouseListener.instance == null) {
-            instance = new MouseListener();
+            MouseListener.instance = new MouseListener();
         }
 
         return MouseListener.instance;
@@ -68,7 +69,7 @@ public class MouseListener {
         get().yLast = get().yPos;
         get().xWorldLast = get().xWorld;
         get().yWorldLast = get().yWorld;
-        get().xPos  = xpos;
+        get().xPos = xpos;
         get().yPos = ypos;
     }
 
@@ -111,11 +112,11 @@ public class MouseListener {
     }
 
     public static float getWorldDX() {
-        return (float)(get().xWorldLast - get().xPos);
+        return (float)(get().xWorldLast - get().xWorld);
     }
 
     public static float getWorldDY() {
-        return (float)(get().yWorldLast - get().yPos);
+        return (float)(get().yWorldLast - get().yWorld);
     }
 
     public static boolean isDragging() {
@@ -129,8 +130,6 @@ public class MouseListener {
             return false;
         }
     }
-
-
 
     // Remove the need to recalculate mouse callback each time it is call in a same frame
     public static float getWorldX() {

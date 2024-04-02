@@ -3,7 +3,7 @@ package scene;
 import TCB_Field.GameObject;
 import components.*;
 import editor.ImEditorGui;
-import components.WorkViewport;
+import components.EditorViewport;
 import imgui.ImGui;
 import imgui.ImVec2;
 import utility.AssetsPool;
@@ -24,7 +24,7 @@ public class LevelEditorScene extends SceneInit {
         levelEditorObject.isNotSerialize();
         levelEditorObject.addComponent(new MouseCtrl());
         levelEditorObject.addComponent(new Grid());
-        levelEditorObject.addComponent(new WorkViewport(scene.viewport()));
+        levelEditorObject.addComponent(new EditorViewport(scene.viewport()));
         levelEditorObject.addComponent(new GizmoControl(gizmo));
 
         scene.addObjToScene(levelEditorObject);

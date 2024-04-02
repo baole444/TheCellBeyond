@@ -93,6 +93,7 @@ public class GameObject {
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(Component.class, new CompDeSerializer())
                 .registerTypeAdapter(GameObject.class, new GameObjDeSerializer())
+                .enableComplexMapKeySerialization()
                 .create();
 
         String oJson = gson.toJson(this);

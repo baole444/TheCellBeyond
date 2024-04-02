@@ -25,6 +25,7 @@ public class Scene {
     private Viewport viewport;
     private boolean isOn;
     private List<GameObject> gObjects;
+    private List<GameObject> queueObj;
     private SceneInit sceneInit;
     private FlatPhysic flatPhysic;
 
@@ -33,7 +34,12 @@ public class Scene {
         this.flatPhysic = new FlatPhysic();
         this.renderer = new Renderer();
         this.gObjects = new ArrayList<>();
+        this.queueObj = new ArrayList<>();
         this.isOn = false;
+    }
+
+    public FlatPhysic loadPhysic() {
+        return this.flatPhysic;
     }
 
     public void init() {
@@ -57,17 +63,24 @@ public class Scene {
         if (!isOn) {
             gObjects.add(go);
         } else {
-            gObjects.add(go);
-            go.start();
-            this.renderer.add(go);
-            this.flatPhysic.add(go);
+            queueObj.add(go);
         }
     }
 
-    public void end() {
+    public void destroy() {
         for (GameObject go: gObjects) {
             go.destroy();
         }
+    }
+
+    public <T extends Component> GameObject loadObjCombo(Class<T> clazz) {
+        for (GameObject obj : gObjects) {
+            if (obj.getComponent(clazz) != null) {
+                return obj;
+            }
+        }
+
+        return null;
     }
 
     public List<GameObject> loadGameObjects() {
@@ -97,6 +110,14 @@ public class Scene {
                 i--; //step back if destroyed something
             }
         }
+
+        for (GameObject go : queueObj) {
+            gObjects.add(go);
+            go.start();
+            this.renderer.add(go);
+            this.flatPhysic.add(go);
+        }
+        queueObj.clear();
     }
 
     public void update(float dt) {
@@ -115,6 +136,14 @@ public class Scene {
                 i--; //step back if destroyed something
             }
         }
+
+        for (GameObject go : queueObj) {
+            gObjects.add(go);
+            go.start();
+            this.renderer.add(go);
+            this.flatPhysic.add(go);
+        }
+        queueObj.clear();
     }
     public void render() {
         this.renderer.render();
@@ -163,6 +192,7 @@ public class Scene {
                 .setPrettyPrinting()
                 .registerTypeAdapter(Component.class, new CompDeSerializer())
                 .registerTypeAdapter(GameObject.class, new GameObjDeSerializer())
+                .enableComplexMapKeySerialization()
                 .create();
 
         String loadFile = "";

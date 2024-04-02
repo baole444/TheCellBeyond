@@ -49,7 +49,7 @@ public class Window implements EventViewer {
     public static void changeScene(SceneInit sceneInit) {
         if (currentScene != null) {
             // End scene
-            currentScene.end();
+            currentScene.destroy();
 
         }
         loadImGui().loadProperties().setActiveObj(null);
@@ -131,6 +131,11 @@ public class Window implements EventViewer {
         glfwSetMouseButtonCallback(glfwWindow, MouseListener::mouseButtonCallback);
         glfwSetScrollCallback(glfwWindow, MouseListener::mouseScrollCallback);
         glfwSetKeyCallback(glfwWindow, KeyListener::keyCallback);
+        glfwSetWindowSizeCallback(glfwWindow, (w, newWidth, newHeight) -> {
+            Window.setWidth(newWidth);
+            Window.setHeight(newHeight);
+        });
+
         //glfwSetWindowIcon(glfwWindow, );
 
         // OpenGL context current
@@ -143,6 +148,7 @@ public class Window implements EventViewer {
         glfwShowWindow(glfwWindow);
 
         GL.createCapabilities();
+
         glEnable(GL_BLEND);
         glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -176,7 +182,7 @@ public class Window implements EventViewer {
         Shader objectSelectShader = AssetsPool.loadShader("assets/shaders/objSelection.glsl");
 
         while (!glfwWindowShouldClose(glfwWindow)) {
-
+            glfwPollEvents(); //poll events
             // Pass 1: object selection layer (invisible)
             glDisable(GL_BLEND);
             objectSelection.useWrite();
@@ -201,7 +207,6 @@ public class Window implements EventViewer {
             glClear(GL_COLOR_BUFFER_BIT);
 
             if (dt >= 0) {
-                DebugDraw.draw();
                 Renderer.setShader(defaultShader);
 
                 if (runtimeStart) {
@@ -211,16 +216,18 @@ public class Window implements EventViewer {
                 }
 
                 currentScene.render();
+                DebugDraw.draw();
             }
             this.frameBuffer.detach();
 
             this.imGuiLayer.update(dt, currentScene);
 
-            glfwSwapBuffers(glfwWindow);
+            KeyListener.endFrame();
 
             MouseListener.endFrame();
 
-            glfwPollEvents(); //poll events
+            glfwSwapBuffers(glfwWindow);
+
             endTime = (float)glfwGetTime();
             dt = endTime - beginTime;
             beginTime = endTime;
@@ -237,6 +244,14 @@ public class Window implements EventViewer {
 
     public static ImGuiLayer loadImGui() {
         return get().imGuiLayer;
+    }
+
+    public static void setWidth(int newWidth) {
+        get().width = newWidth;
+    }
+
+    public static void setHeight(int newHeight) {
+        get().height = newHeight;
     }
 
     @Override
