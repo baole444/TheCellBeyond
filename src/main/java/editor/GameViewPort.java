@@ -23,10 +23,10 @@ public class GameViewPort {
         ImGui.getCursorScreenPos(topLeft);
         topLeft.x -= ImGui.getScrollX();
         topLeft.y -= ImGui.getScrollY();
-        leftX = topLeft.x;
-        bottomY =  topLeft.y;
-        rightX = topLeft.x + winSize.x;
-        topY = topLeft.y + winSize.y;
+        leftX = winPos.x + ImGui.getWindowPosX();
+        rightX = winPos.x + winSize.x + ImGui.getWindowPosX();
+        bottomY =  winPos.y + ImGui.getWindowPosY();
+        topY = winPos.y + winSize.y + ImGui.getWindowPosY();
 
         this.printDebug = new float[] {winSize.x, winSize.y,winPos.x, winPos.y, leftX, rightX, bottomY, topY};
 

@@ -32,6 +32,9 @@ public class Gizmo extends Component {
     private SpriteRender yAxisSpr;
     private Properties properties;
 
+    // Create Gizmo, give it size, position, and color.
+    // Mark Gizmo arrow is not a selectable object.
+    // Push gizmo to the scene.
     public Gizmo(Sprite arrowSprite, Properties properties) {
         this.xAxisObj = Prefab.genSpsObj(arrowSprite, 16, 48);
         this.yAxisObj = Prefab.genSpsObj(arrowSprite, 16, 48);
@@ -49,10 +52,15 @@ public class Gizmo extends Component {
 
     @Override
     public void start() {
+        // Give gizmo correct rotation direction.
         this.xAxisObj.transform.rotate = 90;
         this.yAxisObj.transform.rotate = 180;
+
+        // Push gizmo index to high value in order for the texture to be above the item.
         this.xAxisObj.transform.zIndex = 100;
         this.yAxisObj.transform.zIndex = 100;
+
+        // Make gizmo not store to level save file.
         this.xAxisObj.isNotSerialize();
         this.yAxisObj.isNotSerialize();
     }
@@ -61,6 +69,7 @@ public class Gizmo extends Component {
     public void update(float dt) {
         if (!isUsed) return;
 
+        // Update onscreen active object.
         this.activeGameObj = this.properties.loadActiveObj();
         if (this.activeGameObj != null) {
             this.setActiveObj();
@@ -69,6 +78,7 @@ public class Gizmo extends Component {
             return;
         }
 
+        // Update if gizmo is being hover.
         boolean xAxisHover = isHoverX();
         boolean yAxisHover = isHoverY();
 

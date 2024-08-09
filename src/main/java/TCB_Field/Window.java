@@ -2,6 +2,7 @@ package TCB_Field;
 
 import editor.Properties;
 import imgui.ImGui;
+import org.joml.Vector2i;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
@@ -10,6 +11,8 @@ import scene.LevelEditorScene;
 import scene.LevelScene;
 import scene.Scene;
 import utility.AssetsPool;
+
+import java.awt.*;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
@@ -107,18 +110,23 @@ public class Window {
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 
+        // Update width, height to current screen resolution
+        this.width = getScrSize().x;
+        this.height = getScrSize().y;
+
         //config GLFW
         glfwDefaultWindowHints();
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
         glfwWindowHint(GLFW_MAXIMIZED, GLFW_FALSE);
 
-        //spawn window
+        // Spawn window
         glfwWindow = glfwCreateWindow(this.width, this.height, this.title, NULL, NULL);
         if (glfwWindow == NULL) {
             System.out.println("Failed to spawn window.");
             System.exit(-1);
         }
+        System.out.println("Generating " + this.width + "x" + this.height + " Window: " + this.glfwWindow);
 
         glfwSetCursorPosCallback(glfwWindow, MouseListener::mousePosCallback); // :: is java syntax lambda function
         glfwSetMouseButtonCallback(glfwWindow, MouseListener::mouseButtonCallback);
@@ -137,15 +145,35 @@ public class Window {
         glEnable(GL_BLEND);
         glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
-        this.frameBuffer = new FrameBuffer(1920, 1080);
-        this.objectSelection = new ObjectSelection(1920, 1080);
+        this.frameBuffer = new FrameBuffer(this.width, this.height);
+        this.objectSelection = new ObjectSelection(this.width, this.height);
 
-        glViewport(0, 0, 1920, 1080);
+        glViewport(0, 0, this.width, this.height);
 
         this.imGuiLayer = new ImGuiLayer(glfwWindow, objectSelection);
         this.imGuiLayer.initImGui(glslVer);
 
         Window.changeScene(0);
+    }
+
+
+    /**
+     * Return current active display size that the windows is on.
+     * <ul>
+     *      <li>Format: <code>Vector(width, height);</code></li>
+     *      <li>Type: <cite>integer</cite></li>
+     *      <li>Use: joml <code>Vector2i</code> class</li>
+     * </ul>
+     * Call:<br>
+     * <code>this.variable_one = getScrSize().x;<br>
+     * this.variable_two = getScrSize().y;</code>
+    */
+    public Vector2i getScrSize() {
+        GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+        int w = device.getDisplayMode().getWidth();
+        int h = device.getDisplayMode().getHeight();
+
+        return new Vector2i(w, h);
     }
 
     public void endScr(){
@@ -167,7 +195,7 @@ public class Window {
         Shader objectSelectShader = AssetsPool.loadShader("assets/shaders/objSelection.glsl");
 
         while (!glfwWindowShouldClose(glfwWindow)) {
-
+            glfwPollEvents(); //poll events
             // Pass 1: object selection layer (invisible)
             glDisable(GL_BLEND);
             objectSelection.useWrite();
@@ -205,7 +233,7 @@ public class Window {
 
             MouseListener.endFrame();
 
-            glfwPollEvents(); //poll events
+
             endTime = (float)glfwGetTime();
             dt = endTime - beginTime;
             beginTime = endTime;

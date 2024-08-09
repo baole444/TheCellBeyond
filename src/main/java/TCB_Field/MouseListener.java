@@ -188,5 +188,19 @@ public class MouseListener {
 
         get().yWorld = instY;
     }
+
+    public static Vector2f getWorld() {
+        float currentX = getX() - get().workViewportPos.x;
+        currentX = (2.0f * (currentX / get().workViewportSize.x)) - 1.0f;
+        float currentY = (getY() - get().workViewportPos.y);
+        currentY = (2.0f * (1.0f - (currentY / get().workViewportSize.y))) - 1;
+
+        Viewport camera = Window.getScene().viewport();
+        Vector4f tmp = new Vector4f(currentX, currentY, 0, 1);
+        Matrix4f inverseView = new Matrix4f(camera.getInverseView());
+        Matrix4f inverseProjection = new Matrix4f(camera.getInverseProject());
+        tmp.mul(inverseView.mul(inverseProjection));
+        return new Vector2f(tmp.x, tmp.y);
+    }
     //--------------------------------------------------------------------
 }
