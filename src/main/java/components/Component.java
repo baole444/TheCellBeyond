@@ -18,6 +18,8 @@ public abstract class Component {
 
     public void start() {}
 
+    public void editorUpdate(float dt) {}
+
     public void update(float dt) {}
 
     public void imgui() {

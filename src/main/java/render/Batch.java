@@ -1,5 +1,6 @@
 package render;
 
+import TCB_Field.GameObject;
 import TCB_Field.Window;
 import components.SpriteRender;
 import org.joml.Matrix4f;
@@ -159,6 +160,25 @@ public class Batch implements Comparable<Batch> {
         }
 
         shader.detach();
+    }
+
+    public boolean removeWhenExist(GameObject go) {
+        SpriteRender spriteRender = go.getComponent(SpriteRender.class);
+        for (int i = 0; i < countSprite; i++) {
+            if (sprites[i] == spriteRender) {
+
+                // [1, 2, 3, 4, 5, 6, ...]
+                // Remove object 3 -> override 3 with 4 and move all stack up
+                for (int j = 1; j < countSprite - 1; j++) {
+                    sprites[j] = sprites[j + 1];
+                    sprites[j].setDamage();
+                }
+                countSprite --;
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void loadVertexProp(int index) {

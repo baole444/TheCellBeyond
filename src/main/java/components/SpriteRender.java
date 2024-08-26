@@ -31,6 +31,15 @@ public class SpriteRender extends Component {
     }
 
     @Override
+    public void editorUpdate(float dt) {
+        if (!this.lastT.equals(this.gameObject.transform)) {
+            this.gameObject.transform.copy(this.lastT);
+            isDamage = true;
+
+        }
+    }
+
+    @Override
     public void update(float dt) {
         if (!this.lastT.equals(this.gameObject.transform)) {
             this.gameObject.transform.copy(this.lastT);
@@ -44,6 +53,10 @@ public class SpriteRender extends Component {
         if (ImEditorGui.colorCtrl("color", this.color)) {
             this.isDamage = true;
         }
+    }
+
+    public void setDamage() {
+        this.isDamage = true;
     }
 
     public Vector4f loadColor() {

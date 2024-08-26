@@ -1,39 +1,39 @@
 package scene;
 
 import TCB_Field.GameObject;
-import TCB_Field.Viewport;
 import components.*;
 import editor.ImEditorGui;
-import editor.WorkViewport;
+import editor.EditorViewport;
 import imgui.ImGui;
 import imgui.ImVec2;
-import org.joml.Vector2f;
 import utility.AssetsPool;
 
-public class LevelEditorScene extends Scene {
+public class LevelEditorSceneInit extends SceneInit {
     private SpriteSheet sprites, gizmo;
-    GameObject levelEditorObject = this.generateObject("Lvl Editor");
-    public LevelEditorScene() {
+    private GameObject levelEditorObject;
+    public LevelEditorSceneInit() {
 
     }
 
     @Override
-    public void init() {
-        loadRes(); //Don't touch
+    public void init(Scene scene) {
 
         sprites = AssetsPool.loadSpSheet("assets/texture/Main char.png");
         gizmo = AssetsPool.loadSpSheet("assets/texture/Gizmo.png");
 
-        this.viewport = new Viewport(new Vector2f(0, 0)); //View point position
+        levelEditorObject = scene.generateObject("Editor");
+        levelEditorObject.isNotSerialize();
 
         levelEditorObject.addComponent(new MouseCtrl());
         levelEditorObject.addComponent(new Grid());
-        levelEditorObject.addComponent(new WorkViewport(this.viewport));
+        levelEditorObject.addComponent(new EditorViewport(scene.viewport()));
         levelEditorObject.addComponent(new GizmoControl(gizmo));
-        levelEditorObject.start();
+
+        scene.addObjToScene(levelEditorObject);
     }
 
-    private void loadRes() {
+    @Override
+    public void loadResource(Scene scene) {
         AssetsPool.loadShader("assets/shaders/default.glsl");
 
         AssetsPool.addSpSheet("assets/texture/Main char.png",
@@ -51,7 +51,7 @@ public class LevelEditorScene extends Scene {
         );
 
         // Only generate if not existed
-        for (GameObject obj : gObjects) {
+        for (GameObject obj : scene.getGameObject()) {
             if (obj.getComponent(SpriteRender.class) != null) {
                 SpriteRender spr = obj.getComponent(SpriteRender.class);
                 if (spr.loadTexture() != null) {
@@ -59,21 +59,6 @@ public class LevelEditorScene extends Scene {
                 }
             }
         }
-    }
-
-    @Override
-    public void update(float dt) {
-        levelEditorObject.update(dt);
-        this.viewport.adjustProjection();
-
-        for (GameObject go : this.gObjects) {
-            go.update(dt);
-        }
-    }
-
-    @Override
-    public void render() {
-        this.renderer.render();
     }
 
 

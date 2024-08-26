@@ -8,7 +8,7 @@ import org.joml.Vector2f;
 
 import static org.lwjgl.glfw.GLFW.*;
 
-public class WorkViewport extends Component {
+public class EditorViewport extends Component {
     private boolean isBackTo0 = false;
     private boolean isResetZ = false;
     private float lerpT = 0.0f;
@@ -19,13 +19,13 @@ public class WorkViewport extends Component {
     private Vector2f clickOrigin;
     private float MAX_ZOOM = 4.0f;
     private float MIN_ZOOM = 0.5f;
-    public WorkViewport(Viewport workViewport) {
+    public EditorViewport(Viewport workViewport) {
         this.workViewport = workViewport;
         this.clickOrigin = new Vector2f();
     }
 
     @Override
-    public void update(float dt) {
+    public void editorUpdate(float dt) {
         if (MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_MIDDLE) && dragInit > 0) {
             this.clickOrigin = new Vector2f(MouseListener.getOrthoX(), MouseListener.getOrthoY());
             dragInit -= dt;

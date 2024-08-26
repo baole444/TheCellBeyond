@@ -13,7 +13,7 @@ public class HardObject extends Component {
     private ObjectClassification objectClassification = ObjectClassification.Dynamic;
     private boolean isRotatable = false;
     private boolean isNoneStopCollision = true;
-    private Body instObject = null;
+    private transient Body instObject = null; // Raw Object, a memory reference for physic and game engine update layer.
 
     @Override
     public void update(float dt) {

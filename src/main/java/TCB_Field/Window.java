@@ -1,6 +1,10 @@
 package TCB_Field;
 
 import editor.Properties;
+import eventviewer.EventSystem;
+import eventviewer.EventViewer;
+import eventviewer.event.Event;
+import eventviewer.event.EventType;
 import imgui.ImGui;
 import org.joml.Vector2i;
 import org.lwjgl.Version;
@@ -8,9 +12,9 @@ import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWImage;
 import org.lwjgl.opengl.GL;
 import render.*;
-import scene.LevelEditorScene;
-import scene.LevelScene;
+import scene.LevelEditorSceneInit;
 import scene.Scene;
+import scene.SceneInit;
 import utility.AssetsPool;
 
 import java.awt.*;
@@ -20,7 +24,7 @@ import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
-public class Window {
+public class Window implements EventViewer {
     private int width;
     private int height;
     private String title;
@@ -28,6 +32,7 @@ public class Window {
     public float r, g, b, a;
     private static Window window = null; // start with no window
     private static Scene currentScene;
+    private boolean runtimeMode = false; //Run without editor (release) or not
 
     private  String glslVer = null;
     private ImGuiLayer imGuiLayer;
@@ -41,24 +46,23 @@ public class Window {
         this.width = 640;
         this.height = 480;
         this.title = "The Cell Beyond";
+        EventSystem.addViewer(this);
+
         r = 0.027f;
         g = 0.122f;
         b = 0.067f;
         a = 1;
     }
 
-    public static void changeScene(int newScene) {
-        switch (newScene)  {
-            case 0:
-                currentScene = new LevelEditorScene();
-                break;
-            case 1:
-                currentScene = new LevelScene();
-                break;
-            default:
-                assert false: "Unknown scene '" + newScene + "'";
-                break;
+    public static void changeScene(SceneInit sceneInit) {
+        if (currentScene != null) {
+            // Destroy
+            currentScene.destroy();
         }
+
+        loadImGui().loadProperties().setActiveGameObj(null);
+
+        currentScene = new Scene(sceneInit);
         currentScene.loadLevel();
         currentScene.init();
         currentScene.start();
@@ -166,7 +170,7 @@ public class Window {
         glfwSetWindowIcon(glfwWindow, bufferIcon);
 
 
-        Window.changeScene(0);
+        Window.changeScene(new LevelEditorSceneInit());
     }
 
 
@@ -234,7 +238,12 @@ public class Window {
 
             if (dt >= 0) {
                 Renderer.setShader(defaultShader);
-                currentScene.update(dt);
+                if (runtimeMode) {
+                    currentScene.update(dt); // Using main update when not in editor
+                } else {
+                    currentScene.editorUpdate(dt); // Using editor update under edit mode
+                }
+
                 currentScene.render();
                 DebugDraw.draw();
             }
@@ -251,7 +260,6 @@ public class Window {
             dt = endTime - beginTime;
             beginTime = endTime;
 
-            currentScene.saveLevel();
         }
     }
 
@@ -267,4 +275,27 @@ public class Window {
         return get().imGuiLayer;
     }
 
+    @Override
+    public void whenNotice(GameObject object, Event event) {
+        switch (event.type) {
+            case EngineStart:
+                this.runtimeMode = true;
+                currentScene.saveLevel();
+                Window.changeScene(new LevelEditorSceneInit()); // Reset view to runtime mode.
+                System.out.println("Engine starting.");
+                break;
+            case EngineEnd:
+                this.runtimeMode = false;
+                Window.changeScene(new LevelEditorSceneInit()); // Reset to Editor runtime.
+                System.out.println("Engine stopping.");
+                break;
+            case LevelLoad:
+                Window.changeScene(new LevelEditorSceneInit());
+                break;
+            case LevelSave:
+                currentScene.saveLevel();
+        }
+
+
+    }
 }

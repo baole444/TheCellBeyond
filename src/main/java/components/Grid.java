@@ -10,7 +10,7 @@ import utility.Settings;
 public class Grid extends Component {
 
     @Override
-    public void update(float dt) {
+    public void editorUpdate(float dt) {
         Viewport viewport = Window.getScene().viewport();
         Vector2f viewPos = viewport.position;
         Vector2f projectSize = viewport.loadProjectSize();

@@ -21,7 +21,7 @@ public class MouseCtrl extends Component {
     }
 
     @Override
-    public void update(float dt) {
+    public void editorUpdate(float dt) {
         // Return coordinate base position from raw mouse input to place active object in standard position.
         if (holdObj != null) {
             holdObj.transform.position.x = MouseListener.getOrthoX() - 16;
