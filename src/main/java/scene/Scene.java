@@ -91,7 +91,10 @@ public abstract class Scene {
             writer.write(gson.toJson(serializeList));
             writer.close();
         } catch (IOException e) {
+            System.out.println("Failed to save level, please check following stack trace for more info.");
+            System.out.println("_______________________________________________________________________\n");
             e.printStackTrace();
+            System.out.println("\n_______________________________________________________________________\n");
         }
     }
 
@@ -106,7 +109,11 @@ public abstract class Scene {
         try {
             loadFile = new String(Files.readAllBytes(Paths.get("level.tcb")));
         } catch (IOException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
+            System.out.println("No level file found, generating new file...");
+            saveLevel();
+            System.out.println("File created.");
+            return;
         }
 
         if (!loadFile.equals("")) {

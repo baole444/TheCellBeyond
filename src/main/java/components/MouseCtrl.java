@@ -3,6 +3,7 @@ package components;
 import TCB_Field.GameObject;
 import TCB_Field.MouseListener;
 import TCB_Field.Window;
+import org.joml.Vector2f;
 import utility.Settings;
 
 import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT;
@@ -21,11 +22,12 @@ public class MouseCtrl extends Component {
 
     @Override
     public void update(float dt) {
+        // Return coordinate base position from raw mouse input to place active object in standard position.
         if (holdObj != null) {
             holdObj.transform.position.x = MouseListener.getOrthoX() - 16;
             holdObj.transform.position.y = MouseListener.getOrthoY() - 16;
-            holdObj.transform.position.x = (int)(holdObj.transform.position.x / Settings.GRID_WIDTH) * Settings.GRID_WIDTH;
-            holdObj.transform.position.y = (int)(holdObj.transform.position.y / Settings.GRID_HEIGHT) * Settings.GRID_HEIGHT;
+            holdObj.transform.position.x = Math.round(holdObj.transform.position.x / Settings.GRID_WIDTH) * Settings.GRID_WIDTH;
+            holdObj.transform.position.y = Math.round(holdObj.transform.position.y / Settings.GRID_HEIGHT) * Settings.GRID_HEIGHT;
             if (MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_LEFT)) {
                 placeObj();
             }

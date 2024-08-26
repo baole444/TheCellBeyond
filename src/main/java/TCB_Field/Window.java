@@ -5,6 +5,7 @@ import imgui.ImGui;
 import org.joml.Vector2i;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
+import org.lwjgl.glfw.GLFWImage;
 import org.lwjgl.opengl.GL;
 import render.*;
 import scene.LevelEditorScene;
@@ -33,6 +34,8 @@ public class Window {
     private FrameBuffer frameBuffer;
     private ObjectSelection objectSelection;
     private Properties properties;
+
+    private final IconLoader iconFile = IconLoader.loadIcon("assets/texture/TCB icon.png");
 
     public Window() {
         this.width = 640;
@@ -111,6 +114,7 @@ public class Window {
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 
         // Update width, height to current screen resolution
+        // Make it smaller a bit
         this.width = getScrSize().x;
         this.height = getScrSize().y;
 
@@ -119,6 +123,7 @@ public class Window {
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
         glfwWindowHint(GLFW_MAXIMIZED, GLFW_FALSE);
+        //glfwWindowHint(GLFW_DECORATED, 0);
 
         // Spawn window
         glfwWindow = glfwCreateWindow(this.width, this.height, this.title, NULL, NULL);
@@ -152,6 +157,14 @@ public class Window {
 
         this.imGuiLayer = new ImGuiLayer(glfwWindow, objectSelection);
         this.imGuiLayer.initImGui(glslVer);
+
+        //Set Icon
+        GLFWImage icon = GLFWImage.malloc();
+        GLFWImage.Buffer bufferIcon = GLFWImage.malloc(1);
+        icon.set(iconFile.loadIconW(), iconFile.loadIconH(), iconFile.getIcon());
+        bufferIcon.put(0, icon);
+        glfwSetWindowIcon(glfwWindow, bufferIcon);
+
 
         Window.changeScene(0);
     }

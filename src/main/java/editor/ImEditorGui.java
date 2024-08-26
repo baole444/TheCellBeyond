@@ -140,7 +140,17 @@ public class ImEditorGui {
         ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.75f, 0.31f, 0.0f, 1.0f);
         ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0.6f, 0.25f, 0.0f, 1.0f);
 
+        //A method to return object to the nearest standard coordinate position.
         if (ImGui.button("Nearest", 80.0f, labelSize.y) || KeyListener.isKeyPressed(GLFW_KEY_N)) {
+            if (val.x % 32.0f != 0.0f) {
+                val.x = Math.round(val.x / 32.0f) * 32.0f;
+            }
+
+            if (val.y % 32.0f != 0.0f) {
+                val.y = Math.round(val.y / 32.0f) * 32.0f;
+            }
+            //Bellow is a legacy method that is no longer in use
+            /*
             while (val.x % 32.0f != 0.0f || val.y % 32.0f != 0.0f) {
                 float offsetX = val.x % 32.0f;
                 float offsetY = val.y % 32.0f;
@@ -160,6 +170,7 @@ public class ImEditorGui {
                     val.y += 0;
                 }
             }
+             */
         }
         ImGui.popStyleColor(3);
 
