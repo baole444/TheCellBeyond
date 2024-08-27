@@ -243,18 +243,19 @@ public class Window implements EventViewer {
                 } else {
                     currentScene.editorUpdate(dt); // Using editor update under edit mode
                 }
-
-                currentScene.render();
                 DebugDraw.draw();
+                currentScene.render();
+
             }
             this.frameBuffer.detach();
 
             this.imGuiLayer.update(dt, currentScene);
 
-            glfwSwapBuffers(glfwWindow);
-
             MouseListener.endFrame();
 
+            KeyListener.endFrame();
+
+            glfwSwapBuffers(glfwWindow);
 
             endTime = (float)glfwGetTime();
             dt = endTime - beginTime;
@@ -295,7 +296,5 @@ public class Window implements EventViewer {
             case LevelSave:
                 currentScene.saveLevel();
         }
-
-
     }
 }

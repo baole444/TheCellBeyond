@@ -10,6 +10,7 @@ import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiStyleVar;
+import imgui.type.ImString;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import utility.AssetsPool;
@@ -85,7 +86,7 @@ public class ImEditorGui {
         ImGui.popID();
     }
 
-    public static void spriteKeyTransform(String label, Vector2f val, int step) {
+    public static void spriteKeyTransform(String label, Vector2f val, float step) {
         ImGui.pushID(label);
         ImGui.newLine();
         ImGui.columns(2);
@@ -142,12 +143,12 @@ public class ImEditorGui {
 
         //A method to return object to the nearest standard coordinate position.
         if (ImGui.button("Nearest", 80.0f, labelSize.y) || KeyListener.isKeyPressed(GLFW_KEY_N)) {
-            if (val.x % 32.0f != 0.0f) {
-                val.x = Math.round(val.x / 32.0f) * 32.0f;
+            if (val.x % 0.32f != 0.0f) {
+                val.x = Math.round(val.x / 0.32f) * 0.32f;
             }
 
-            if (val.y % 32.0f != 0.0f) {
-                val.y = Math.round(val.y / 32.0f) * 32.0f;
+            if (val.y % 0.32f != 0.0f) {
+                val.y = Math.round(val.y / 0.32f) * 0.32f;
             }
             //Bellow is a legacy method that is no longer in use
             /*
@@ -298,6 +299,29 @@ public class ImEditorGui {
         ImGui.popID();
 
         return result;
+    }
+
+    public static String inputText(String label, String txt) {
+        ImGui.pushID(label);
+
+        ImGui.columns(2);
+        ImGui.setColumnWidth(0, defaultWidth);
+        ImGui.text(label);
+        ImGui.nextColumn();
+
+        ImString outString = new ImString(txt, 256);
+        if (ImGui.inputText("##" + label, outString)) {
+            ImGui.columns(1);
+            ImGui.popID();
+
+            return outString.get();
+        }
+
+        // End and reset
+        ImGui.columns(1);
+        ImGui.popID();
+
+        return txt;
     }
 
     public static void drawSpriteList (SpriteSheet spriteSps, GameObject levelEditorObject, ImVec2 winPos, ImVec2 winSize) {

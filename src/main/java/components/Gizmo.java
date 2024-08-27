@@ -1,14 +1,11 @@
 package components;
 
-import TCB_Field.GameObject;
-import TCB_Field.MouseListener;
-import TCB_Field.Prefab;
-import TCB_Field.Window;
+import TCB_Field.*;
 import editor.Properties;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 
-import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_RIGHT;
+import static org.lwjgl.glfw.GLFW.*;
 
 public class Gizmo extends Component {
     private final Vector4f resetColor = new Vector4f(0, 0, 0 , 0);
@@ -16,10 +13,10 @@ public class Gizmo extends Component {
     private final Vector4f xHover = new Vector4f(0.85f, 0.35f, 0.35f, 1.0f);
     private final Vector4f yAxisColor = new Vector4f(0.2f, 0.7f, 0.2f, 1.0f);
     private final Vector4f yHover = new Vector4f(0.35f, 0.85f, 0.35f, 1.0f);
-    private final Vector2f xOffset = new Vector2f(63.0f, 8f);
-    private final Vector2f yOffset = new Vector2f(24.0f, 63.0f);
-    private int gizWidth = 16;
-    private int gizHeight = 48;
+    private final Vector2f xOffset = new Vector2f(34.0f / 100, 0f / 100);
+    private final Vector2f yOffset = new Vector2f(0.0f / 100, 34.0f / 100);
+    private float gizWidth = 0.16f;
+    private float gizHeight = 0.48f;
     protected boolean xActiveDrag = false;
     protected boolean yActiveDrag = false;
     private boolean isUsed = false;
@@ -36,8 +33,8 @@ public class Gizmo extends Component {
     // Mark Gizmo arrow is not a selectable object.
     // Push gizmo to the scene.
     public Gizmo(Sprite arrowSprite, Properties properties) {
-        this.xAxisObj = Prefab.genSpsObj(arrowSprite, 16, 48);
-        this.yAxisObj = Prefab.genSpsObj(arrowSprite, 16, 48);
+        this.xAxisObj = Prefab.genSpsObj(arrowSprite, gizWidth, gizHeight);
+        this.yAxisObj = Prefab.genSpsObj(arrowSprite, gizWidth, gizHeight);
         this.xAxisSpr = this.xAxisObj.getComponent(SpriteRender.class);
         this.yAxisSpr = this.yAxisObj.getComponent(SpriteRender.class);
         this.properties = properties;
@@ -80,6 +77,20 @@ public class Gizmo extends Component {
         this.activeGameObj = this.properties.loadActiveObj();
         if (this.activeGameObj != null) {
             this.setActiveObj();
+
+            if (KeyListener.isKeyPressed(GLFW_KEY_LEFT_CONTROL) &&
+            KeyListener.isKeyTapped(GLFW_KEY_D)) {
+                GameObject newObj = this.activeGameObj.copy();
+                Window.getScene().addObjToScene(newObj);
+                newObj.transform.position.add(0.16f, 0.16f);
+                return;
+            } else if (KeyListener.isKeyPressed(GLFW_KEY_DELETE)) {
+                activeGameObj.destroy();
+                this.setInactiveObj();
+                this.properties.setActiveGameObj(null);
+                return;
+            }
+
         } else {
             this.setInactiveObj();
             return;
@@ -121,10 +132,10 @@ public class Gizmo extends Component {
 
     private boolean isHoverX() {
         Vector2f cursorPos = new Vector2f(MouseListener.getOrthoX(), MouseListener.getOrthoY());
-        if (cursorPos.x <= xAxisObj.transform.position.x &&
-                cursorPos.x >= xAxisObj.transform.position.x - gizHeight &&
-                cursorPos.y >= xAxisObj.transform.position.y &&
-                cursorPos.y <= xAxisObj.transform.position.y + gizWidth
+        if (cursorPos.x <= xAxisObj.transform.position.x + (gizHeight / 2.0f) &&
+                cursorPos.x >= xAxisObj.transform.position.x - (gizWidth / 2.0f) &&
+                cursorPos.y >= xAxisObj.transform.position.y - (gizHeight / 2.0f) &&
+                cursorPos.y <= xAxisObj.transform.position.y + (gizWidth / 2.0f)
         ) {
             xAxisSpr.setColor(xHover);
             return true;
@@ -135,10 +146,10 @@ public class Gizmo extends Component {
 
     private boolean isHoverY() {
         Vector2f cursorPos = new Vector2f(MouseListener.getOrthoX(), MouseListener.getOrthoY());
-        if (cursorPos.x <= yAxisObj.transform.position.x &&
-                cursorPos.x >= yAxisObj.transform.position.x - gizWidth &&
-                cursorPos.y <= yAxisObj.transform.position.y &&
-                cursorPos.y >= yAxisObj.transform.position.y - gizHeight
+        if (cursorPos.x <= yAxisObj.transform.position.x + (gizWidth / 2.0f) &&
+                cursorPos.x >= yAxisObj.transform.position.x - (gizWidth / 2.0f) &&
+                cursorPos.y <= yAxisObj.transform.position.y + (gizHeight / 2.0f) &&
+                cursorPos.y >= yAxisObj.transform.position.y - (gizHeight / 2.0f)
         ) {
             yAxisSpr.setColor(yHover);
             return true;

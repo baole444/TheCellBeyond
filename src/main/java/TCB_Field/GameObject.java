@@ -1,7 +1,12 @@
 package TCB_Field;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import components.CompDeSerializer;
 import components.Component;
+import components.SpriteRender;
 import imgui.ImGui;
+import utility.AssetsPool;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,7 +14,7 @@ import java.util.List;
 public class GameObject {
     private static  int ID_COUNTER = 0;
     private int uID = -1;
-    private String name;
+    public String name;
     private List<Component> components;
     public transient Transform transform;
     private boolean isSerialize = true;
@@ -85,6 +90,30 @@ public class GameObject {
         }
     }
 
+    public GameObject copy() {
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(Component.class, new CompDeSerializer())
+                .registerTypeAdapter(GameObject.class, new GameObjDeSerializer())
+                .create();
+
+        String oJson = gson.toJson(this);
+        GameObject obj = gson.fromJson(oJson, GameObject.class);
+
+        obj.genUid();
+
+        for (Component c : obj.loadAllComp()) {
+            c.genId();
+        }
+
+        SpriteRender sprite = obj.getComponent(SpriteRender.class);
+
+        if (sprite != null && sprite.loadTexture() != null) {
+            sprite.setTex(AssetsPool.loadTexture(sprite.loadTexture().loadFilePath()));
+        }
+
+        return obj;
+    }
+
     public static void init(int maxID) {
         ID_COUNTER = maxID;
     }
@@ -95,6 +124,10 @@ public class GameObject {
 
     public int loadUid() {
         return this.uID;
+    }
+
+    public void genUid() {
+        this.uID = ID_COUNTER++;
     }
 
     public List<Component> loadAllComp() {

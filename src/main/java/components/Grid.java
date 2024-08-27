@@ -15,21 +15,21 @@ public class Grid extends Component {
         Vector2f viewPos = viewport.position;
         Vector2f projectSize = viewport.loadProjectSize();
 
-        int firstX = ((int)(viewPos.x / Settings.GRID_WIDTH) - 1) * Settings.GRID_WIDTH;
-        int firstY = ((int)(viewPos.y / Settings.GRID_HEIGHT) - 1) * Settings.GRID_HEIGHT;
+        float firstX = ((int)(viewPos.x / Settings.GRID_WIDTH)) * Settings.GRID_WIDTH;
+        float firstY = ((int)(viewPos.y / Settings.GRID_HEIGHT)) * Settings.GRID_HEIGHT;
 
         int countVertical = (int)(projectSize.x * viewport.loadZoom() / Settings.GRID_WIDTH) + 2;
-        int countHorizontal = (int)(projectSize.y *viewport.loadZoom() / Settings.GRID_HEIGHT) + 2;
+        int countHorizontal = (int)(projectSize.y * viewport.loadZoom() / Settings.GRID_HEIGHT) + 2;
 
-        int height = (int)(projectSize.y * viewport.loadZoom()) + Settings.GRID_HEIGHT * 2;
-        int width = (int)(projectSize.x * viewport.loadZoom()) + Settings.GRID_WIDTH * 2;
+        float height = (int)(projectSize.y * viewport.loadZoom()) + Settings.GRID_HEIGHT * 5;
+        float width = (int)(projectSize.x * viewport.loadZoom()) + Settings.GRID_WIDTH * 5;
 
         int maxLines = Math.max(countVertical, countHorizontal);
         Vector3f color = new Vector3f(0.4f, 0.4f, 0.0f);
 
         for (int i = 0; i < maxLines; i++) {
-            int x = firstX + (Settings.GRID_WIDTH * i);
-            int y = firstY + (Settings.GRID_HEIGHT * i);
+            float x = firstX + (Settings.GRID_WIDTH * i);
+            float y = firstY + (Settings.GRID_HEIGHT * i);
 
             if (i < countVertical) {
                 DebugDraw.addLine2(new Vector2f(x, firstY), new Vector2f(x, firstY + height), color);

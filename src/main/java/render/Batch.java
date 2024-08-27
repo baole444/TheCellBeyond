@@ -46,10 +46,12 @@ public class Batch implements Comparable<Batch> {
     private List<Texture> textures;
     private int vaoID, vboID;
     private int maxBatchSize;
+    private Renderer renderer;
 
     private  int zIndex;
 
-    public Batch(int maxBatchSize, int zIndex) {
+    public Batch(int maxBatchSize, int zIndex, Renderer renderer) {
+        this.renderer = renderer;
         this.zIndex = zIndex;
         this.sprites = new SpriteRender[maxBatchSize];
         this.maxBatchSize = maxBatchSize;
@@ -124,6 +126,12 @@ public class Batch implements Comparable<Batch> {
                 loadVertexProp(i);
                 spr.notDamage();
                 rebufferData = true;
+            }
+
+            if(spr.gameObject.transform.zIndex != this.zIndex) {
+                removeWhenExist(spr.gameObject);
+                renderer.add(spr.gameObject);
+                i--;
             }
         }
         if (rebufferData) {
@@ -214,15 +222,15 @@ public class Batch implements Comparable<Batch> {
         }
 
         // Load match vertex
-        float xAdd = 1.0f;
-        float yAdd = 1.0f;
+        float xAdd = 0.5f;
+        float yAdd = 0.5f;
         for (int i = 0; i < 4; i++) {
             if ( i == 1) {
-                yAdd = 0.0f;
+                yAdd = -0.5f;
             } else if (i == 2) {
-                xAdd = 0.0f;
+                xAdd = -0.5f;
             } else if (i == 3) {
-                yAdd = 1.0f;
+                yAdd = 0.5f;
             }
 
             Vector4f instPos = new Vector4f(spt.gameObject.transform.position.x + (xAdd * spt.gameObject.transform.scale.x),

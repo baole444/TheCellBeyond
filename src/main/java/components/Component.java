@@ -99,6 +99,12 @@ public abstract class Component {
     }
 
     private <T extends Enum<T>> String[] loadEnumVal(Class<T> enumType) {
+        /*
+            Type T is a type that extend enum.
+            This type need to be an enum.
+            We want to get a class that is type T.
+            This restricted the function to only be use only when type is enum.
+         */
         String[] enumVal = new String[enumType.getEnumConstants().length];
         int i = 0;
         for (T enumIntVal : enumType.getEnumConstants()) {
@@ -108,6 +114,7 @@ public abstract class Component {
         return enumVal;
     }
 
+    // Loop to find match string and return it's index.
     private int indexOf(String str, String[] a) {
         for (int i = 0; i <a.length; i++) {
             if (str.equals(a[i])) {
