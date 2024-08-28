@@ -12,9 +12,9 @@ public class GizmoMove extends Gizmo {
     public void editorUpdate(float dt) {
         if (activeGameObj != null) {
             if (xActiveDrag && !yActiveDrag) {
-                activeGameObj.transform.position.x -= MouseListener.getWorldDX();
+                activeGameObj.transform.position.x -= MouseListener.getWorldX();
             } else if (yActiveDrag) {
-                activeGameObj.transform.position.y -= MouseListener.getWorldDY();
+                activeGameObj.transform.position.y -= MouseListener.getWorldY();
             }
         }
 

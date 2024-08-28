@@ -20,7 +20,6 @@ public class ImGuiLayer {
     private final ImGuiImplGlfw imGuiGlfw = new ImGuiImplGlfw();
     private final ImGuiImplGl3 imGuiGl3 = new ImGuiImplGl3();
     private long glfwWindow;
-    private ImGuiIO io;
     private GameViewPort gameViewPort;
     private DebugGui debugGui;
     private Properties properties;
@@ -40,25 +39,13 @@ public class ImGuiLayer {
     public void initImGui(String glslVer) {
         ImGui.createContext();
         imGuiGlfw.init(glfwWindow, false);
-        this.io = ImGui.getIO();
+
+        final ImGuiIO io = ImGui.getIO();
         guiFont(io);
-        guiMouseCallback(glfwWindow, io);
-        io.setIniFilename("imgui.ini");
-        io.addConfigFlags(ImGuiConfigFlags.ViewportsEnable);
-        io.addConfigFlags(ImGuiConfigFlags.DockingEnable);
-        imGuiGl3.init(glslVer);
-        io.setBackendPlatformName("imgui_java_impl_glfw");
-    }
 
+        //io.setConfigFlags(ImGuiConfigFlags.NavEnableKeyboard);
+        io.setBackendFlags(ImGuiBackendFlags.HasMouseCursors);
 
-    //Temporary solution of defining mouse and key control for the ImGui window
-
-    public void guiMouseCallback(long glfwWindow, ImGuiIO io) {
-        io.setConfigFlags(ImGuiConfigFlags.NavEnableKeyboard); // Navigation with keyboard
-        io.setBackendFlags(ImGuiBackendFlags.HasMouseCursors); // Mouse cursors to display while resizing windows etc.
-
-        // ------------------------------------------------------------
-        // GLFW callbacks to handle user input
 
         glfwSetKeyCallback(glfwWindow, (w, key, scancode, action, mods) -> {
             if (action == GLFW_PRESS) {
@@ -126,9 +113,12 @@ public class ImGuiLayer {
                     return "";
                 }
             }
-        }
-        );
-
+        });
+        io.setIniFilename("imgui.ini");
+        io.addConfigFlags(ImGuiConfigFlags.ViewportsEnable);
+        io.addConfigFlags(ImGuiConfigFlags.DockingEnable);
+        imGuiGl3.init(glslVer);
+        io.setBackendPlatformName("imgui_java_impl_glfw");
     }
 
     public void guiFont(ImGuiIO io) {
@@ -136,7 +126,6 @@ public class ImGuiLayer {
 
         // Font config must be destroyed after call
         final ImFontConfig fontConfig = new ImFontConfig();
-
 
         // glyphs range
         fontConfig.setGlyphRanges(fontAtlas.getGlyphRangesDefault());
@@ -151,7 +140,6 @@ public class ImGuiLayer {
     }
 
     public void update(float dt, Scene currentScene) {
-
         // ImGui frame
         imGuiGlfw.newFrame();
 

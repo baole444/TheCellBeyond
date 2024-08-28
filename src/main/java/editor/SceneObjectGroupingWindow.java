@@ -12,7 +12,7 @@ public class SceneObjectGroupingWindow {
 
     public void imgui() {
         ImGui.begin("Object Grouping");
-
+        //ImGui.text("Phantom object might\nappear in this list.\nIt does not affect\nthe save file.");
         List<GameObject> gameObjects = Window.getScene().getGameObject();
         int index = 0;
         for (GameObject obj: gameObjects) {

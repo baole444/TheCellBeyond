@@ -24,7 +24,7 @@ public class Properties {
 
     public void update(float dt, Scene currentScene) {
         clickInit -= dt;
-        if (MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_RIGHT) && clickInit < 0) {
+        if (!MouseListener.isDragging() && MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_RIGHT) && clickInit < 0) {
             int x = (int)MouseListener.loadScrX();
             int y = (int)MouseListener.loadScrY();
             int gObjectId = objectSelection.pixelCheck(x, y);

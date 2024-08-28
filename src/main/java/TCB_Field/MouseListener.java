@@ -11,7 +11,7 @@ import static org.lwjgl.glfw.GLFW.GLFW_RELEASE;
 public class MouseListener {
     private  static MouseListener instance;
     private double scrollX, scrollY;
-    private double xPos, yPos, lastY, lastX, xWorld, yWorld, xWorldLast, yWorldLast;
+    private double xPos, yPos, xWorld, yWorld;
     private boolean mouseButtonPressed[] = new boolean[3];
     private boolean isDragging;
     private int mouseButtonDown = 0;
@@ -24,9 +24,6 @@ public class MouseListener {
         this.scrollY = 0.0;
         this.xPos = 0.0;
         this.yPos = 0.0;
-        this.lastX = 0.0;
-        this.lastY = 0.0;
-
     }
 
     public static MouseListener get() {
@@ -42,10 +39,6 @@ public class MouseListener {
             get().isDragging = true;
         }
 
-        get().lastX = get().xPos;
-        get().lastY = get().yPos;
-        get().xWorldLast = get().xWorld;
-        get().yWorldLast = get().yWorld;
         get().xPos  = xpos;
         get().yPos = ypos;
         getWorldX();
@@ -77,10 +70,6 @@ public class MouseListener {
     public static void endFrame() {
         get().scrollX = 0;
         get().scrollY = 0;
-        get().lastX = get().xPos;
-        get().lastY = get().yPos;
-        get().xWorldLast = get().xWorld;
-        get().yWorldLast = get().yWorld;
     }
 
     public static float getX() {
@@ -89,22 +78,6 @@ public class MouseListener {
 
     public static float getY() {
         return (float)get().yPos;
-    }
-
-    public static float getDX() {
-        return (float)(get().lastX - get().xPos);
-    }
-
-    public static float getWorldDX() {
-        return (float)(get().xWorldLast - get().xWorld);
-    }
-
-    public static float getDY() {
-        return (float) (get().lastY - get().yPos);
-    }
-
-    public static float getWorldDY() {
-        return (float)(get().yWorldLast - get().yWorld);
     }
 
     public static float getScrollX() {
@@ -128,17 +101,20 @@ public class MouseListener {
     }
 
     public static float loadScrX() {
+        return loadScr().x;
+    }
+    public static float loadScrY() {
+        return loadScr().y;
+    }
+
+    public static Vector2f loadScr() {
         float instX = getX() - get().workViewportPos.x;
         instX = (instX / get().workViewportSize.x) * 1920.0f;
 
-
-        return instX;
-    }
-    public static float loadScrY() {
         float instY = getY() - get().workViewportPos.y;
         instY = 1080.0f - ((instY / get().workViewportSize.y) * 1080.0f);
 
-        return instY;
+        return new Vector2f(instX, instY);
     }
 
     public static void setWorkViewportPos(Vector2f workViewportPos) {
@@ -150,43 +126,12 @@ public class MouseListener {
     }
 
     // Remove the need to recalculate mouse callback each time it is call in a same frame
-    public static float getOrthoX() {
-        return (float)get().xWorld;
+    public static float getWorldX() {
+        return getWorld().x;
     }
 
-    public static float getOrthoY() {
-        return (float)get().yWorld;
-    }
-    private static void getWorldX() {
-        float instX = getX() - get().workViewportPos.x;
-        instX = (instX / get().workViewportSize.x) * 2.0f - 1.0f;
-        Vector4f tmp = new Vector4f(instX, 0, 0, 1);
-
-        Viewport vp = Window.getScene().viewport();
-        Matrix4f viewProject = new Matrix4f();
-        vp.getInverseView().mul(vp.getInverseProject(), viewProject);
-
-        tmp.mul(viewProject);
-
-        instX = tmp.x;
-
-        get().xWorld = instX;
-    }
-
-    private static void getWorldY() {
-        float instY = getY() - get().workViewportPos.y;
-        instY = -((instY / get().workViewportSize.y) * 2.0f - 1.0f);
-        Vector4f tmp = new Vector4f(0, instY, 0, 1);
-
-        Viewport vp = Window.getScene().viewport();
-        Matrix4f viewProject = new Matrix4f();
-        vp.getInverseView().mul(vp.getInverseProject(), viewProject);
-
-        tmp.mul(viewProject);
-
-        instY = tmp.y;
-
-        get().yWorld = instY;
+    public static float getWorldY() {
+        return getWorld().y;
     }
 
     public static Vector2f getWorld() {
@@ -196,9 +141,12 @@ public class MouseListener {
         currentY = (2.0f * (1.0f - (currentY / get().workViewportSize.y))) - 1;
 
         Viewport camera = Window.getScene().viewport();
+
         Vector4f tmp = new Vector4f(currentX, currentY, 0, 1);
+
         Matrix4f inverseView = new Matrix4f(camera.getInverseView());
         Matrix4f inverseProjection = new Matrix4f(camera.getInverseProject());
+
         tmp.mul(inverseView.mul(inverseProjection));
         return new Vector2f(tmp.x, tmp.y);
     }

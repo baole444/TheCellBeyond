@@ -12,9 +12,9 @@ public class GizmoScale extends Gizmo{
     public void editorUpdate(float dt) {
         if (activeGameObj != null) {
             if (xActiveDrag && !yActiveDrag) {
-                activeGameObj.transform.scale.x -= MouseListener.getWorldDX();
+                activeGameObj.transform.scale.x -= MouseListener.getWorldX();
             } else if (yActiveDrag) {
-                activeGameObj.transform.scale.y -= MouseListener.getWorldDY();
+                activeGameObj.transform.scale.y -= MouseListener.getWorldY();
             }
         }
 

@@ -38,6 +38,8 @@ public class GameViewPort {
         ImGui.endMenuBar();
         // End menu bar
 
+        ImGui.setCursorPos(ImGui.getCursorPosX(), ImGui.getCursorPosY());
+
         ImVec2 winSize = loadMaxViewportSize();
         ImVec2 winPos = loadViewportToCentral(winSize);
 
@@ -79,8 +81,6 @@ public class GameViewPort {
     private ImVec2 loadMaxViewportSize() {
         ImVec2 winSize = new ImVec2();
         ImGui.getContentRegionAvail(winSize);
-        winSize.x -= ImGui.getScrollX();
-        winSize.y -= ImGui.getScrollY();
 
         float usableWidth = winSize.x;
         float usableHeight = usableWidth / Window.loadTargetAspectRatio();
@@ -96,8 +96,6 @@ public class GameViewPort {
     private ImVec2 loadViewportToCentral(ImVec2 usableSize) {
         ImVec2 winSize = new ImVec2();
         ImGui.getContentRegionAvail(winSize);
-        winSize.x -= ImGui.getScrollX();
-        winSize.y -= ImGui.getScrollY();
 
         float portX = (winSize.x / 2.0f) - (usableSize.x / 2.0f);
         float portY = (winSize.y / 2.0f) - (usableSize.y / 2.0f);
