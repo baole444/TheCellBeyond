@@ -105,6 +105,8 @@ public class DebugGui {
                 y = (int)MouseListener.loadScrY();
                 wX = MouseListener.getWorld().x;
                 wY = MouseListener.getWorld().y;
+                DebugDraw.addLine2(new Vector2f(wX-0.16f, wY),new Vector2f(wX+0.16f, wY));
+                DebugDraw.addLine2(new Vector2f(wX, wY-0.16f), new Vector2f(wX, wY+0.16f));
                 DebugDraw.addCircle(new Vector2f(wX, wY), 0.50f, new Vector3f(1, 1, 1), 1);
                 ImGui.text("    x " + x);
                 ImGui.text("    y " + y);
@@ -117,7 +119,7 @@ public class DebugGui {
                 } else {
                     ImGui.text("FALSE");
                 }
-
+                ImGui.text("    Traverse (x|y): " + "(" +MouseListener.getCursorTraverse().x +"|"+MouseListener.getCursorTraverse().y+")");
             }
 
 

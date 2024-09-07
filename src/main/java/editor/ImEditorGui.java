@@ -20,7 +20,7 @@ import static org.lwjgl.glfw.GLFW.*;
 public class ImEditorGui {
     private static float defaultWidth = 180.0f;
     public static void drawVec2Ctrl(String label, Vector2f val) {
-        drawVec2Ctrl(label, val, 0.0f, defaultWidth);
+        drawVec2Ctrl(label, val, 0.16f, defaultWidth);
     }
 
     public static void drawVec2Ctrl(String label, Vector2f val, float resetVal) {
@@ -144,11 +144,11 @@ public class ImEditorGui {
         //A method to return object to the nearest standard coordinate position.
         if (ImGui.button("Nearest", 80.0f, labelSize.y) || KeyListener.isKeyPressed(GLFW_KEY_N)) {
             if (val.x % 0.32f != 0.0f) {
-                val.x = Math.round(val.x / 0.32f) * 0.32f;
+                val.x = Math.round(val.x / 0.32f) * 0.32f + 0.16f;
             }
 
             if (val.y % 0.32f != 0.0f) {
-                val.y = Math.round(val.y / 0.32f) * 0.32f;
+                val.y = Math.round(val.y / 0.32f) * 0.32f + 0.16f;
             }
             //Bellow is a legacy method that is no longer in use
             /*

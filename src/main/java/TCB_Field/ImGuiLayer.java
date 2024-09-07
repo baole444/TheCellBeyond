@@ -154,7 +154,7 @@ public class ImGuiLayer {
         properties.update(dt, currentScene);
         properties.imgui();
         objectGroupingWindow.imgui();
-
+        //ImGui.showDemoWindow();
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glViewport(0,0, Window.loadWidth(), Window.loadHeight());
         glClearColor(0, 0,0,1);

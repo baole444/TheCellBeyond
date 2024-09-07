@@ -10,13 +10,17 @@ import org.joml.Vector2i;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWImage;
+import org.lwjgl.glfw.GLFWWindowCloseCallback;
 import org.lwjgl.opengl.GL;
 import render.*;
+import render.Renderer;
 import scene.LevelEditorSceneInit;
 import scene.Scene;
 import scene.SceneInit;
 import utility.AssetsPool;
+import utility.ExitConfirmDialog;
 
+import javax.swing.*;
 import java.awt.*;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
@@ -34,7 +38,7 @@ public class Window implements EventViewer {
     private static Scene currentScene;
     private boolean runtimeMode = false; //Run without editor (release) or not
 
-    private  String glslVer = null;
+    private String glslVer = null;
     private ImGuiLayer imGuiLayer;
     private FrameBuffer frameBuffer;
     private ObjectSelection objectSelection;
@@ -42,10 +46,14 @@ public class Window implements EventViewer {
 
     private final IconLoader iconFile = IconLoader.loadIcon("assets/texture/TCB icon.png");
 
+    private ExitConfirmDialog exitConfirmDialog;
+    private boolean shouldClose;
+
     public Window() {
         this.width = 640;
         this.height = 480;
         this.title = "The Cell Beyond";
+        this.exitConfirmDialog = new ExitConfirmDialog();
         EventSystem.addViewer(this);
 
         r = 0.027f;
@@ -141,6 +149,21 @@ public class Window implements EventViewer {
         glfwSetMouseButtonCallback(glfwWindow, MouseListener::mouseButtonCallback);
         glfwSetScrollCallback(glfwWindow, MouseListener::mouseScrollCallback);
         glfwSetKeyCallback(glfwWindow, KeyListener::keyCallback);
+
+        //exit callback setting
+        glfwSetWindowCloseCallback(glfwWindow, new GLFWWindowCloseCallback() {
+            @Override
+            public void invoke(long l) {
+                glfwSetWindowShouldClose(glfwWindow, false);
+                exitConfirmDialog.reloadDialog();
+
+                shouldClose = exitConfirmDialog.exitDialog();
+                if (shouldClose) {
+                    glfwSetWindowShouldClose(glfwWindow, true);
+                }
+            }
+        });
+
         // OpenGL context current
         glfwMakeContextCurrent(glfwWindow);
 
@@ -292,9 +315,11 @@ public class Window implements EventViewer {
                 break;
             case LevelLoad:
                 Window.changeScene(new LevelEditorSceneInit());
+                System.out.println("Loading current level...");
                 break;
             case LevelSave:
                 currentScene.saveLevel();
+                System.out.println("Saving current level...");
         }
     }
 }

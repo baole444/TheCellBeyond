@@ -11,7 +11,7 @@ import static org.lwjgl.glfw.GLFW.GLFW_RELEASE;
 public class MouseListener {
     private  static MouseListener instance;
     private double scrollX, scrollY;
-    private double xPos, yPos, xWorld, yWorld;
+    private double xPos, yPos, worldPastX, worldPastY, worldCurrentX, worldCurrentY;
     private boolean mouseButtonPressed[] = new boolean[3];
     private boolean isDragging;
     private int mouseButtonDown = 0;
@@ -41,6 +41,8 @@ public class MouseListener {
 
         get().xPos  = xpos;
         get().yPos = ypos;
+        get().worldPastX = get().worldCurrentX;
+        get().worldPastY = get().worldCurrentY;
         getWorldX();
         getWorldY();
     }
@@ -70,6 +72,12 @@ public class MouseListener {
     public static void endFrame() {
         get().scrollX = 0;
         get().scrollY = 0;
+        get().worldPastX = get().worldCurrentX;
+        get().worldPastY = get().worldCurrentY;
+    }
+
+    public static Vector2f getCursorTraverse() {
+        return new Vector2f((float)(get().worldPastX - get().getWorldX()), (float)(get().worldPastY - get().getWorldY()));
     }
 
     public static float getX() {
@@ -92,7 +100,7 @@ public class MouseListener {
         return get().isDragging;
     }
 
-    public static  boolean mouseButtonDown(int button) {
+    public static boolean mouseButtonDown(int button) {
         if(button < get().mouseButtonPressed.length) {
             return get().mouseButtonPressed[button];
         } else {
@@ -148,6 +156,8 @@ public class MouseListener {
         Matrix4f inverseProjection = new Matrix4f(camera.getInverseProject());
 
         tmp.mul(inverseView.mul(inverseProjection));
+        get().worldCurrentX = tmp.x;
+        get().worldCurrentY = tmp.y;
         return new Vector2f(tmp.x, tmp.y);
     }
     //--------------------------------------------------------------------

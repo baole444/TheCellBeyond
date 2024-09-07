@@ -14,7 +14,7 @@ public class MouseCtrl extends Component {
     GameObject holdObj = null;
     private float clickReleaseTime = 0.35f; // Use to signal the debounce time
     private float clickRelease = clickReleaseTime; // Reset value
-
+    private float currentX, currentY, pastX, pastY;
 
     public void pickObj(GameObject obj) {
         if (this.holdObj != null) {
@@ -42,16 +42,18 @@ public class MouseCtrl extends Component {
         clickRelease -= dt;
         // Return coordinate base position from raw mouse input to place active object in standard position.
         if (holdObj != null && clickRelease <= 0) {
-            holdObj.transform.position.x = MouseListener.getWorldX() - 0.16f; // Might not need to - 0.16f for both
-            holdObj.transform.position.y = MouseListener.getWorldY() - 0.16f;
+            holdObj.transform.position.x = MouseListener.getWorldX() - Settings.GRID_WIDTH / 2.0f; // Might not need to - 0.16f for both
+            holdObj.transform.position.y = MouseListener.getWorldY() - Settings.GRID_HEIGHT / 2.0f;
             holdObj.transform.position.x = Math.round(holdObj.transform.position.x / Settings.GRID_WIDTH) * Settings.GRID_WIDTH + Settings.GRID_WIDTH / 2.0f;
             holdObj.transform.position.y = Math.round(holdObj.transform.position.y / Settings.GRID_HEIGHT) * Settings.GRID_HEIGHT + Settings.GRID_HEIGHT / 2.0f;
+            currentX = holdObj.transform.position.x;
+            currentY = holdObj.transform.position.y;
             if (MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_LEFT)) {
                 placeObj();
                 clickRelease = clickReleaseTime;
             }
 
-            if (KeyListener.isKeyTapped(GLFW_KEY_ESCAPE)) {
+            if (KeyListener.isKeyPressed(GLFW_KEY_ESCAPE)) {
                 holdObj.destroy();
                 holdObj = null;
             }

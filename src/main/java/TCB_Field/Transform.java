@@ -40,7 +40,7 @@ public class Transform extends Component {
     @Override
     public void imgui() {
         gameObject.name = ImEditorGui.inputText("Name: ", gameObject.name);
-        ImEditorGui.drawVec2Ctrl("Position", this.position);
+        ImEditorGui.drawVec2Ctrl("Position", this.position, 0.16f);
         ImEditorGui.spriteKeyTransform("Sprite move", this.position, this.step);
         ImEditorGui.drawVec2Ctrl("Scale", this.scale, 0.32f);
         this.rotate = ImEditorGui.dragFloatCtrl("Rotation", this.rotate);
