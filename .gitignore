@@ -43,3 +43,8 @@ bin/
 .DS_Store
 /.idea/shelf/
 /imgui.ini
+.idea/kotlinc.xml
+.idea/uiDesigner.xml
+level.tcb
+Pref/closeConfirm.config
+*.log

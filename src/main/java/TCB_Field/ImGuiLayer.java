@@ -25,6 +25,7 @@ public class ImGuiLayer {
     private Properties properties;
     private MenuBar menuBar;
     private SceneObjectGroupingWindow objectGroupingWindow;
+    private ImGuiIO io;
 
 
     public ImGuiLayer(long glfwWindow, ObjectSelection objectSelection) {
@@ -38,37 +39,10 @@ public class ImGuiLayer {
 
     public void initImGui(String glslVer) {
         ImGui.createContext();
-        imGuiGlfw.init(glfwWindow, false);
-
-        final ImGuiIO io = ImGui.getIO();
+        this.io = ImGui.getIO();
         guiFont(io);
-
-        //io.setConfigFlags(ImGuiConfigFlags.NavEnableKeyboard);
         io.setBackendFlags(ImGuiBackendFlags.HasMouseCursors);
 
-
-        glfwSetKeyCallback(glfwWindow, (w, key, scancode, action, mods) -> {
-            if (action == GLFW_PRESS) {
-                io.setKeysDown(key, true);
-            } else if (action == GLFW_RELEASE) {
-                io.setKeysDown(key, false);
-            }
-
-            io.setKeyCtrl(io.getKeysDown(GLFW_KEY_LEFT_CONTROL) || io.getKeysDown(GLFW_KEY_RIGHT_CONTROL));
-            io.setKeyShift(io.getKeysDown(GLFW_KEY_LEFT_SHIFT) || io.getKeysDown(GLFW_KEY_RIGHT_SHIFT));
-            io.setKeyAlt(io.getKeysDown(GLFW_KEY_LEFT_ALT) || io.getKeysDown(GLFW_KEY_RIGHT_ALT));
-            io.setKeySuper(io.getKeysDown(GLFW_KEY_LEFT_SUPER) || io.getKeysDown(GLFW_KEY_RIGHT_SUPER));
-
-            if (!io.getWantCaptureKeyboard()) {
-                KeyListener.keyCallback(w, key, scancode, action, mods);
-            }
-        });
-
-        glfwSetCharCallback(glfwWindow, (w, c) -> {
-            if (c != GLFW_KEY_DELETE) {
-                io.addInputCharacter(c);
-            }
-        });
 
         glfwSetMouseButtonCallback(glfwWindow, (w, button, action, mods) -> {
             final boolean[] mouseDown = new boolean[5];
@@ -90,35 +64,30 @@ public class ImGuiLayer {
             }
         });
 
-        glfwSetScrollCallback(glfwWindow, (w, xOffset, yOffset) -> {
-            io.setMouseWheelH(io.getMouseWheelH() + (float) xOffset);
-            io.setMouseWheel(io.getMouseWheel() + (float) yOffset);
-            MouseListener.mouseScrollCallback(glfwWindow, xOffset, yOffset);
-        });
+       io.setSetClipboardTextFn(new ImStrConsumer() {
+           @Override
+           public void accept(final String s) {
+               glfwSetClipboardString(glfwWindow, s);
+           }
+       });
 
-        io.setSetClipboardTextFn(new ImStrConsumer() {
-            @Override
-            public void accept(final String s) {
-                glfwSetClipboardString(glfwWindow, s);
-            }
-        });
+       io.setGetClipboardTextFn(new ImStrSupplier() {
+           @Override
+           public String get() {
+               final String clipboardString = glfwGetClipboardString(glfwWindow);
+               if (clipboardString != null) {
+                   return clipboardString;
+               } else {
+                   return "";
+               }
+           }
+       });
 
-        io.setGetClipboardTextFn(new ImStrSupplier() {
-            @Override
-            public String get() {
-                final String clipboardString = glfwGetClipboardString(glfwWindow);
-                if (clipboardString != null) {
-                    return clipboardString;
-                } else {
-                    return "";
-                }
-            }
-        });
         io.setIniFilename("imgui.ini");
         io.addConfigFlags(ImGuiConfigFlags.ViewportsEnable);
-        io.addConfigFlags(ImGuiConfigFlags.DockingEnable);
+        io.setConfigFlags(ImGuiConfigFlags.DockingEnable);
+        imGuiGlfw.init(glfwWindow, true);
         imGuiGl3.init(glslVer);
-        io.setBackendPlatformName("imgui_java_impl_glfw");
     }
 
     public void guiFont(ImGuiIO io) {
@@ -128,37 +97,38 @@ public class ImGuiLayer {
         final ImFontConfig fontConfig = new ImFontConfig();
 
         // glyphs range
-        fontConfig.setGlyphRanges(fontAtlas.getGlyphRangesDefault());
 
         //Merge font
         //fontConfig.setMergeMode(true); //For multiple font, turn this back on
         fontConfig.setPixelSnapH(true);
 
         fontAtlas.addFontFromFileTTF("assets/fonts/Consola.ttf", 16, fontConfig);
-
+        fontAtlas.build();
         fontConfig.destroy();
     }
 
     public void update(float dt, Scene currentScene) {
         // ImGui frame
         imGuiGlfw.newFrame();
-
+        imGuiGl3.newFrame();
         ImGui.newFrame();
 
         imDocking();
 
         currentScene.imgui();
-
         gameViewPort.imgui();
         debugGui.imgui();
         properties.update(dt, currentScene);
         properties.imgui();
         objectGroupingWindow.imgui();
+
         //ImGui.showDemoWindow();
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
         glViewport(0,0, Window.loadWidth(), Window.loadHeight());
         glClearColor(0, 0,0,1);
         glClear(GL_COLOR_BUFFER_BIT);
+
         ImGui.render();
         imGuiGl3.renderDrawData(ImGui.getDrawData());
 
@@ -168,6 +138,7 @@ public class ImGuiLayer {
             ImGui.updatePlatformWindows();
             ImGui.renderPlatformWindowsDefault();
             org.lwjgl.glfw.GLFW.glfwMakeContextCurrent(backupWindowPtr);
+
         }
     }
 

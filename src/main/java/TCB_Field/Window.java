@@ -217,8 +217,8 @@ public class Window implements EventViewer {
     }
 
     public void endScr(){
-        imGuiLayer.getImGuiGl3().dispose();
-        imGuiLayer.getImGuiGlfw().dispose();
+        imGuiLayer.getImGuiGl3().shutdown();
+        imGuiLayer.getImGuiGlfw().shutdown();
         ImGui.destroyContext();
         glfwFreeCallbacks(window.glfwWindow);
         glfwDestroyWindow(window.glfwWindow);

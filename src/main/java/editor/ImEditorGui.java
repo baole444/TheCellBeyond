@@ -339,11 +339,12 @@ public class ImEditorGui {
 
             ImGui.pushID(i);
 
-            if (ImGui.imageButton(id, spriteWidth, spriteHeight,
+            ImGui.imageButton(id, spriteWidth, spriteHeight,
                     texCoord[2].x, texCoord[0].y,
                     texCoord[0].x, texCoord[2].y
-            )
-            ) {
+            );
+
+            if (ImGui.isItemClicked()) {
                 GameObject obj = Prefab.genSpsObj(sprites, 32, 32);
 
                 // Bind to mouse cursor
@@ -410,11 +411,12 @@ public class ImEditorGui {
 
             ImGui.pushID(i);
 
-            if (ImGui.imageButton(id, spriteWidth, spriteHeight,
+            ImGui.imageButton(id, spriteWidth, spriteHeight,
                     texCoord[2].x, texCoord[0].y,
                     texCoord[0].x, texCoord[2].y
-            )
-            ) {
+            );
+
+            if (ImGui.isItemClicked()) {
                 float rX = 32.0f / sprites.loadWidth();
                 float rY = 32.0f /  sprites.loadWidth();
                 if (rX >= 1.0f && rY >= 1.0f) {

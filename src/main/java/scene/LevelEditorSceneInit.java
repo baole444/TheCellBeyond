@@ -7,6 +7,7 @@ import editor.ImEditorGui;
 import editor.EditorViewport;
 import imgui.ImGui;
 import imgui.ImVec2;
+import imgui.flag.ImGuiButtonFlags;
 import org.joml.Vector2f;
 import utility.AssetsPool;
 
@@ -124,12 +125,13 @@ public class LevelEditorSceneInit extends SceneInit {
 
             ImGui.pushID(i);
 
-            if (ImGui.imageButton(id, spriteWidth, spriteHeight,
+
+            ImGui.imageButton(id, spriteWidth, spriteHeight,
                     texCoord[2].x, texCoord[0].y,
                     texCoord[0].x, texCoord[2].y
-                )
-            )
-            {
+            );
+
+            if (ImGui.isItemClicked()) {
                 //float rX = 32.0f / sprites.loadWidth();
                 //float rY = 32.0f /  sprites.loadWidth();
                 //if (rX >= 1.0f && rY >= 1.0f) {
