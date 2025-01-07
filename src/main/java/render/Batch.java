@@ -17,7 +17,7 @@ import static org.lwjgl.opengl.GL30.glGenVertexArrays;
 
 public class Batch implements Comparable<Batch> {
 
-    private final int MAX_TEX_BATCH = 7;
+    private final int MAX_TEX_BATCH = 8;
     //Vertices
 
     //Position      Color               Coordinate          TexID

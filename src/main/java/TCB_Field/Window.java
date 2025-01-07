@@ -60,7 +60,6 @@ public class Window implements EventViewer {
         g = 0.122f;
         b = 0.067f;
         a = 1;
-        EventSystem.addViewer(this);
     }
 
     public static void changeScene(SceneInit sceneInit) {
@@ -146,10 +145,6 @@ public class Window implements EventViewer {
         }
         System.out.println("Generating " + this.width + "x" + this.height + " Window: " + this.glfwWindow);
 
-        //Texture setIcon = new Texture(16,16);
-        //GLFWImage icons[1];
-        //    icons[0] = ;
-
         glfwSetCursorPosCallback(glfwWindow, MouseListener::mousePosCallback); // :: is java syntax lambda function
         glfwSetMouseButtonCallback(glfwWindow, MouseListener::mouseButtonCallback);
         glfwSetScrollCallback(glfwWindow, MouseListener::mouseScrollCallback);
@@ -179,7 +174,6 @@ public class Window implements EventViewer {
         glfwShowWindow(glfwWindow);
 
         GL.createCapabilities();
-
         glEnable(GL_BLEND);
         glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 

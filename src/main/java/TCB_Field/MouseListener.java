@@ -3,8 +3,7 @@ package TCB_Field;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
-
-import java.util.Arrays;
+import render.ObjectSelection;
 
 import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
 import static org.lwjgl.glfw.GLFW.GLFW_RELEASE;
@@ -18,6 +17,7 @@ public class MouseListener {
     private int mouseButtonDown = 0;
     private Vector2f workViewportPos = new Vector2f();
     private Vector2f workViewportSize = new Vector2f();
+    private ObjectSelection objectSelection;
 
     private MouseListener() {
         this.scrollX = 0.0;
@@ -28,17 +28,13 @@ public class MouseListener {
 
     public static MouseListener get() {
         if (MouseListener.instance == null) {
-            MouseListener.instance = new MouseListener();
+            instance = new MouseListener();
         }
 
         return MouseListener.instance;
     }
 
     public static void mousePosCallback(long window, double xpos, double ypos) {
-        if (!Window.loadImGui().loadGameViewPort().getWantCaptureMouse()) {
-            clear();
-        }
-
         if (get().mouseButtonDown > 0) {
             get().isDragging = true;
         }
@@ -100,14 +96,6 @@ public class MouseListener {
         return (float)get().scrollY;
     }
 
-    public static float getWorldDX() {
-        return (float)(get().xWorldLast - get().xWorld);
-    }
-
-    public static float getWorldDY() {
-        return (float)(get().yWorldLast - get().yWorld);
-    }
-
     public static boolean isDragging() {
         return get().isDragging;
     }
@@ -118,30 +106,6 @@ public class MouseListener {
         } else {
             return false;
         }
-    }
-
-    // Remove the need to recalculate mouse callback each time it is call in a same frame
-    public static float getWorldX() {
-        return getWorld().x;
-    }
-
-    public static float getWorldY() {
-        return getWorld().y;
-    }
-
-    public static Vector2f getWorld() {
-        float  instX = getX() - get().workViewportPos.x;
-        instX = (2.0f * (instX / get().workViewportSize.x)) - 1.0f;
-        float instY = (getY() - get().workViewportPos.y);
-        instY = (2.0f * (1.0f - (instY / get().workViewportSize.y))) - 1.0f;
-
-        Viewport viewport = Window.getScene().viewport();
-        Vector4f tmp = new Vector4f(instX, instY, 0, 1);
-        Matrix4f inverseView = new Matrix4f(viewport.getInverseView());
-        Matrix4f inverseProjection = new Matrix4f(viewport.getInverseProject());
-        tmp.mul(inverseView.mul(inverseProjection));
-
-        return new Vector2f(tmp.x, tmp.y);
     }
 
     public static float loadScrX() {
@@ -160,51 +124,6 @@ public class MouseListener {
 
         return new Vector2f(instX, instY);
     }
-
-    public static Vector2f loadScr() {
-        float instX = getX() - get().workViewportPos.x;
-        instX = (instX / get().workViewportSize.x) * Window.loadWidth();
-
-        float instY = getY() - get().workViewportPos.y;
-        instY = (1.0f - (instY / get().workViewportSize.y)) * Window.loadHeight();
-
-        return new Vector2f(instX, instY);
-    }
-
-    public static Vector2f scr2World(Vector2f scCoord) {
-        Vector2f normalizedScrCoords = new Vector2f(
-                scCoord.x / Window.loadWidth(),
-                scCoord.y / Window.loadHeight()
-        );
-        normalizedScrCoords.mul(2.0f).sub(new Vector2f(1.0f, 1.0f));
-
-        Viewport vp = Window.getScene().viewport();
-        Vector4f tmp = new Vector4f(normalizedScrCoords.x, normalizedScrCoords.y, 0, 1);
-
-        Matrix4f inverseView = new Matrix4f(vp.getInverseView());
-        Matrix4f inverseProject = new Matrix4f(vp.getInverseProject());
-        tmp.mul(inverseView.mul(inverseProject));
-
-        return new Vector2f(tmp.x, tmp.y);
-    }
-
-    public static Vector2f world2Scr(Vector2f worldCoords) {
-        Viewport vp = Window.getScene().viewport();
-
-        Vector4f iwSpacePos = new Vector4f(worldCoords.x, worldCoords.y, 0 , 1);
-        Matrix4f view = new Matrix4f(vp.getViewMatrix());
-        Matrix4f project = new Matrix4f(vp.getProjectMatrix());
-
-        iwSpacePos.mul(project.mul(view));
-
-        Vector2f winSpace = new Vector2f(iwSpacePos.x, iwSpacePos.y).mul(1.0f / iwSpacePos.w);
-
-        winSpace.add(new Vector2f(1.0f, 1.0f)).mul(0.5f);
-        winSpace.mul(new Vector2f(Window.loadWidth(), Window.loadHeight()));
-
-        return winSpace;
-    }
-    //--------------------------------------------------------------------
 
     public static void setWorkViewportPos(Vector2f workViewportPos) {
         get().workViewportPos.set(workViewportPos);

@@ -118,7 +118,7 @@ public class ImGuiLayer {
         currentScene.imgui();
         gameViewPort.imgui();
         debugGui.imgui();
-        //properties.update(dt, currentScene);
+        properties.update(dt, currentScene);
         properties.imgui();
         objectGroupingWindow.imgui();
 

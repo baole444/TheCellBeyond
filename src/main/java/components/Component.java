@@ -22,8 +22,6 @@ public abstract class Component {
 
     public void update(float dt) {}
 
-    public void updateEditor (float dt) {}
-
     public void imgui() {
         try {
             Field[] fields = this.getClass().getDeclaredFields();

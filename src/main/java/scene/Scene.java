@@ -170,7 +170,6 @@ public class Scene {
                 .setPrettyPrinting()
                 .registerTypeAdapter(Component.class, new CompDeSerializer())
                 .registerTypeAdapter(GameObject.class, new GameObjDeSerializer())
-                .enableComplexMapKeySerialization()
                 .create();
 
         String loadFile = "";

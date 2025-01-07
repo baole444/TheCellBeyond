@@ -51,23 +51,9 @@ public class GameViewPort {
 
         ImGui.setCursorPos(ImGui.getCursorPosX(), ImGui.getCursorPosY());
 
-        ImGui.beginMenuBar();
-
-        if (ImGui.menuItem("Play", "", isBegun, !isBegun)) {
-            isBegun = true;
-            EventSystem.notice(null, new Event(EventType.EngineStart));
-        }
-
-        if (ImGui.menuItem("Stop", "", !isBegun, isBegun)) {
-            isBegun = false;
-            EventSystem.notice(null, new Event(EventType.EngineEnd));
-        }
-
-        ImGui.endMenuBar();
-
-        ImGui.setCursorPos(ImGui.getCursorPosX(), ImGui.getCursorPosY());
         ImVec2 winSize = loadMaxViewportSize();
         ImVec2 winPos = loadViewportToCentral(winSize);
+
         ImGui.setCursorPos(winPos.x, winPos.y);
 
         ImVec2 topLeft = new ImVec2();

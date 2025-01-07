@@ -6,6 +6,9 @@ import org.joml.Vector2f;
 import org.joml.Vector3f;
 import render.DebugDraw;
 
+import static TCB_Field.MouseListener.mouseButtonDown;
+import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_RIGHT;
+
 public class DebugGui {
     private float[] printDebug;
     private int x, y;

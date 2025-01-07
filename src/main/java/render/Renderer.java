@@ -47,15 +47,6 @@ public class Renderer {
         }
     }
 
-    public void destroyGameObj(GameObject obj) {
-        if(obj.getComponent(SpriteRender.class) == null) return;
-        for (Batch batch : batches) {
-            if (batch.isExistToRemove(obj)) {
-                return;
-            }
-        }
-    }
-
     public static void setShader(Shader shader) {
         instShader = shader;
     }

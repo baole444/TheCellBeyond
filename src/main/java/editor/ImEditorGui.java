@@ -18,7 +18,7 @@ import utility.AssetsPool;
 import static org.lwjgl.glfw.GLFW.*;
 
 public class ImEditorGui {
-    private static float defaultWidth = 150.0f;
+    private static float defaultWidth = 180.0f;
     public static void drawVec2Ctrl(String label, Vector2f val) {
         drawVec2Ctrl(label, val, 0.16f, defaultWidth);
     }
@@ -51,7 +51,7 @@ public class ImEditorGui {
         ImGui.popStyleColor(3);
         ImGui.sameLine();
         float[] valX = {val.x};
-        ImGui.dragFloat("##x", valX, 0.01f);
+        ImGui.dragFloat("##x", valX, 1f);
         ImGui.popItemWidth();
         ImGui.sameLine();
         //================================================
@@ -67,7 +67,7 @@ public class ImEditorGui {
         ImGui.popStyleColor(3);
         ImGui.sameLine();
         float[] valY = {val.y};
-        ImGui.dragFloat("##y", valY, 0.01f);
+        ImGui.dragFloat("##y", valY, 1f);
         ImGui.popItemWidth();
         ImGui.sameLine();
         //================================================
@@ -90,7 +90,7 @@ public class ImEditorGui {
         ImGui.pushID(label);
         ImGui.newLine();
         ImGui.columns(2);
-        ImGui.setColumnWidth(0, defaultWidth - 40f);
+        ImGui.setColumnWidth(0, defaultWidth);
         ImGui.nextColumn();
 
         ImGui.pushStyleVar(ImGuiStyleVar.ItemSpacing, 0, 0);
@@ -108,7 +108,7 @@ public class ImEditorGui {
         ImGui.invisibleButton("empty", 90.0f, labelSize.y);
         ImGui.sameLine();
 
-        if (ImGui.button("  Up  ", 80.0f, labelSize.y) || KeyListener.isKeyTapped(GLFW_KEY_UP)) {
+        if (ImGui.button("  Up  ", 80.0f, labelSize.y) || KeyListener.isKeyPressed(GLFW_KEY_UP)) {
             val.y += step;
         }
 
@@ -128,7 +128,7 @@ public class ImEditorGui {
         ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.8f, 0.3f, 0.3f, 1.0f);
         ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0.7f, 0.2f, 0.2f, 1.0f);
 
-        if (ImGui.button(" Left ", 80.0f, labelSize.y) || KeyListener.isKeyTapped(GLFW_KEY_LEFT)) {
+        if (ImGui.button(" Left ", 80.0f, labelSize.y) || KeyListener.isKeyPressed(GLFW_KEY_LEFT)) {
             val.x -= step;
         }
         ImGui.popStyleColor(3);
@@ -157,10 +157,18 @@ public class ImEditorGui {
                 float offsetY = val.y % 32.0f;
                 if (offsetX != 0 && Math.abs(offsetX) >= 16.0f) {
                     val.x += offsetX;
-                } else if (offsetX != 0 && Math.abs(offsetX) < 0.16f) {
+                } else if (offsetX != 0 && Math.abs(offsetX) < 16.0f) {
                     val.x -= offsetX;
                 } else {
-                    break;
+                    val.x += 0;
+                }
+
+                if (offsetY != 0 && Math.abs(offsetY) >= 16.0f) {
+                    val.y += offsetY;
+                } else if (offsetY != 0 && Math.abs(offsetY) < 16.0f) {
+                    val.y -= offsetY;
+                } else {
+                    val.y += 0;
                 }
             }
              */
@@ -175,7 +183,7 @@ public class ImEditorGui {
         ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.8f, 0.3f, 0.3f, 1.0f);
         ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0.7f, 0.2f, 0.2f, 1.0f);
 
-        if (ImGui.button(" Right ", 80.0f, labelSize.y) || KeyListener.isKeyTapped(GLFW_KEY_RIGHT)) {
+        if (ImGui.button(" Right ", 80.0f, labelSize.y) || KeyListener.isKeyPressed(GLFW_KEY_RIGHT)) {
             val.x += step;
         }
 
@@ -193,7 +201,7 @@ public class ImEditorGui {
         ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0.2f, 0.7f, 0.2f, 1.0f);
         ImGui.invisibleButton("empty", 90.0f, labelSize.y);
         ImGui.sameLine();
-        if (ImGui.button(" Down ", 80.0f, labelSize.y) || KeyListener.isKeyTapped(GLFW_KEY_DOWN)) {
+        if (ImGui.button(" Down ", 80.0f, labelSize.y) || KeyListener.isKeyPressed(GLFW_KEY_DOWN)) {
             val.y -= step;
         }
 
@@ -232,14 +240,13 @@ public class ImEditorGui {
         ImGui.pushStyleColor(ImGuiCol.Button, 0.7f, 0.2f, 0.2f, 1.0f);
         ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.8f, 0.3f, 0.3f, 1.0f);
         ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0.7f, 0.2f, 0.2f, 1.0f);
-        float[] valA = {val};
-        float reset = 0.0f;
         if (ImGui.button("Reset", labelSize.x, labelSize.y)) {
-            valA[0] = 0.0f;
+            val = 0.0f;
         }
         ImGui.popStyleColor(3);
         ImGui.sameLine();
-        ImGui.dragFloat("##dragFloat", valA, 0.01f);
+        float[] valA = {val};
+        ImGui.dragFloat("##dragFloat", valA, 1.0f);
         ImGui.popItemWidth();
         ImGui.sameLine();
         //================================================
@@ -425,7 +432,7 @@ public class ImEditorGui {
                         rY = rX;
                     }
                 }
-                GameObject obj = Prefab.genSpsObj(sprites, (sprites.loadWidth() / 100.0f * rX) , (sprites.loadHeight() / 100.0f * rY));
+                GameObject obj = Prefab.genSpsObj(sprites, sprites.loadWidth() * rX, sprites.loadHeight() * rY);
 
                 // Bind to mouse cursor
                 levelEditorObject.getComponent(MouseCtrl.class).pickObj(obj);
@@ -463,28 +470,5 @@ public class ImEditorGui {
 
         ImGui.popStyleVar();
         ImGui.columns(1);
-    }
-
-    public static String nameCtrl(String label, String val) {
-        ImGui.pushID(label);
-
-        ImGui.columns(2);
-        ImGui.setColumnWidth(0, defaultWidth);
-        ImGui.text(label);
-        ImGui.nextColumn();
-
-        ImString string = new ImString(val, 256);
-        if (ImGui.inputText("##" + label, string)) {
-            ImGui.columns(1);
-            ImGui.popID();
-
-            return string.get();
-        }
-
-        // End and reset
-        ImGui.columns(1);
-        ImGui.popID();
-
-        return val;
     }
 }

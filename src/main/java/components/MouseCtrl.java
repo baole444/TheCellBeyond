@@ -27,7 +27,7 @@ public class MouseCtrl extends Component {
         this.holdObj.addComponent(new IsNotSelectable());
         Window.getScene().addObjToScene(obj);
     }
-    //TODO: update this
+
     public void placeObj() {
         GameObject newObj = this.holdObj.copy();
         this.holdObj.transform.zIndex = 0;
@@ -57,30 +57,6 @@ public class MouseCtrl extends Component {
                 holdObj.destroy();
                 holdObj = null;
             }
-
-            if (KeyListener.isKeyTapped(GLFW_KEY_ESCAPE)) {
-                holdObj.destroy();
-                holdObj = null;
-            }
-        } else if (!MouseListener.isDragging()
-                && MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_RIGHT)
-                && unHold < 0)
-        {
-            int x = (int)MouseListener.loadScrX();
-            int y = (int)MouseListener.loadScrY();
-            int gObjectId = objectSelection.pixelCheck(x, y);
-
-            System.out.println(gObjectId);
-
-            GameObject selectedObj = currentScene.loadGameObj(gObjectId);
-            // Excluding the gizmo
-            if (selectedObj != null && selectedObj.getComponent(IsNotSelectable.class) == null) {
-                Window.loadImGui().loadProperties().setActiveObj(selectedObj);
-                System.out.println("Clicked on '" + selectedObj + "' registered. Did you see the gizmo?");
-            } else if (selectedObj == null && !MouseListener.isDragging()) {
-                Window.loadImGui().loadProperties().clearSelectedObj();
-            }
-            this.unHold = 0.2f;
         }
     }
 

@@ -35,8 +35,8 @@ public class FlatPhysic {
             BodyDef objDef = new BodyDef();
             objDef.angle = (float)Math.toRadians(transform.rotate);
             objDef.position.set(transform.position.x, transform.position.y);
-            objDef.angularDamping = hardObject.loadRollResist();
-            objDef.linearDamping = hardObject.loadTranslateResist();
+            objDef.angularDamping = hardObject.loadRollResistance();
+            objDef.linearDamping = hardObject.loadTranslateResistance();
             objDef.fixedRotation = hardObject.isRotatable();
             objDef.bullet = hardObject.isNoneStopCollision();
 

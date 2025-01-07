@@ -5,7 +5,6 @@ import editor.ImEditorGui;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import render.Texture;
-import utility.AssetsPool;
 
 public class SpriteRender extends Component {
 
@@ -16,9 +15,6 @@ public class SpriteRender extends Component {
 
     @Override
     public void start() {
-        if (this.sprite.loadTex() != null) {
-            this.sprite.setTex(AssetsPool.loadTexture(this.sprite.loadTex().loadFilePath()));
-        }
         this.lastT = gameObject.transform.copy();
     }
 
@@ -33,15 +29,6 @@ public class SpriteRender extends Component {
 
     @Override
     public void update(float dt) {
-        if (!this.lastT.equals(this.gameObject.transform)) {
-            this.gameObject.transform.copy(this.lastT);
-            isDamage = true;
-
-        }
-    }
-
-    @Override
-    public void updateEditor(float dt) {
         if (!this.lastT.equals(this.gameObject.transform)) {
             this.gameObject.transform.copy(this.lastT);
             isDamage = true;

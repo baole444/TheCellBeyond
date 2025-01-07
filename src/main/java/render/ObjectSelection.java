@@ -1,7 +1,5 @@
 package render;
 
-import org.joml.Vector2i;
-
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL30.*;
 
@@ -73,7 +71,7 @@ public class ObjectSelection {
     public void detachWrite() {
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
     }
-    //TODO: need to check on glReadPixels
+
     public int pixelCheck(int x, int y) {
         glBindFramebuffer(GL_READ_FRAMEBUFFER, frameBufferObj);
         glReadBuffer(GL_COLOR_ATTACHMENT0);
@@ -81,23 +79,7 @@ public class ObjectSelection {
         float pixel[] = new float[3];
         glReadPixels(x, y, 1, 1, GL_RGB, GL_FLOAT, pixel);
 
-        return (int)(pixel[0]) - 1;
-    }
-
-    public float[] pixelChecks(Vector2i begin, Vector2i end) {
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, frameBufferObj);
-        glReadBuffer(GL_COLOR_ATTACHMENT0);
-
-        Vector2i size = new Vector2i(end).sub(begin).absolute();
-        int countPixel = size.x * size.y;
-        float pixel[] = new float[3 * countPixel];
-        glReadPixels(begin.x, begin.y, size.x, size.y, GL_RGB, GL_FLOAT, pixel);
-
-        for (int i = 0; i < pixel.length; i++) {
-            pixel[i] -= 1;
-        }
-
-        return pixel;
+        return (int)pixel[0] - 1;
     }
 
 }
