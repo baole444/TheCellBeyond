@@ -23,6 +23,15 @@ public class SpriteRender extends Component {
     }
 
     @Override
+    public void editorUpdate(float dt) {
+        if (!this.lastT.equals(this.gameObject.transform)) {
+            this.gameObject.transform.copy(this.lastT);
+            isDamage = true;
+
+        }
+    }
+
+    @Override
     public void update(float dt) {
         if (!this.lastT.equals(this.gameObject.transform)) {
             this.gameObject.transform.copy(this.lastT);

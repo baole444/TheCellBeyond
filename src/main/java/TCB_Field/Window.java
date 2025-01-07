@@ -4,15 +4,24 @@ import editor.Properties;
 import eventviewer.EventSystem;
 import eventviewer.EventViewer;
 import eventviewer.event.Event;
+import eventviewer.event.EventType;
 import imgui.ImGui;
+import org.joml.Vector2i;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
+import org.lwjgl.glfw.GLFWImage;
+import org.lwjgl.glfw.GLFWWindowCloseCallback;
 import org.lwjgl.opengl.GL;
 import render.*;
-import scene.LevelEditorScene;
+import render.Renderer;
+import scene.LevelEditorSceneInit;
 import scene.Scene;
 import scene.SceneInit;
 import utility.AssetsPool;
+import utility.ExitConfirmDialog;
+
+import javax.swing.*;
+import java.awt.*;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
@@ -27,18 +36,26 @@ public class Window implements EventViewer {
     public float r, g, b, a;
     private static Window window = null; // start with no window
     private static Scene currentScene;
-    private boolean runtimeStart = false;
+    private boolean runtimeMode = false; //Run without editor (release) or not
 
-    private  String glslVer = null;
+    private String glslVer = null;
     private ImGuiLayer imGuiLayer;
     private FrameBuffer frameBuffer;
     private ObjectSelection objectSelection;
     private Properties properties;
 
+    private final IconLoader iconFile = IconLoader.loadIcon("assets/texture/TCB icon.png");
+
+    private ExitConfirmDialog exitConfirmDialog;
+    private boolean shouldClose;
+
     public Window() {
         this.width = 640;
         this.height = 480;
         this.title = "The Cell Beyond";
+        this.exitConfirmDialog = new ExitConfirmDialog();
+        EventSystem.addViewer(this);
+
         r = 0.027f;
         g = 0.122f;
         b = 0.067f;
@@ -48,14 +65,13 @@ public class Window implements EventViewer {
 
     public static void changeScene(SceneInit sceneInit) {
         if (currentScene != null) {
-            // End scene
+            // Destroy
             currentScene.destroy();
-
         }
-        loadImGui().loadProperties().setActiveObj(null);
+
+        loadImGui().loadProperties().setActiveGameObj(null);
 
         currentScene = new Scene(sceneInit);
-
         currentScene.loadLevel();
         currentScene.init();
         currentScene.start();
@@ -110,18 +126,25 @@ public class Window implements EventViewer {
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 
+        // Update width, height to current screen resolution
+        // Make it smaller a bit
+        this.width = getScrSize().x;
+        this.height = getScrSize().y;
+
         //config GLFW
         glfwDefaultWindowHints();
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-        glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
+        glfwWindowHint(GLFW_MAXIMIZED, GLFW_FALSE);
+        //glfwWindowHint(GLFW_DECORATED, 0);
 
-        //spawn window
+        // Spawn window
         glfwWindow = glfwCreateWindow(this.width, this.height, this.title, NULL, NULL);
         if (glfwWindow == NULL) {
             System.out.println("Failed to spawn window.");
             System.exit(-1);
         }
+        System.out.println("Generating " + this.width + "x" + this.height + " Window: " + this.glfwWindow);
 
         //Texture setIcon = new Texture(16,16);
         //GLFWImage icons[1];
@@ -131,12 +154,20 @@ public class Window implements EventViewer {
         glfwSetMouseButtonCallback(glfwWindow, MouseListener::mouseButtonCallback);
         glfwSetScrollCallback(glfwWindow, MouseListener::mouseScrollCallback);
         glfwSetKeyCallback(glfwWindow, KeyListener::keyCallback);
-        glfwSetWindowSizeCallback(glfwWindow, (w, newWidth, newHeight) -> {
-            Window.setWidth(newWidth);
-            Window.setHeight(newHeight);
-        });
 
-        //glfwSetWindowIcon(glfwWindow, );
+        //exit callback setting
+        glfwSetWindowCloseCallback(glfwWindow, new GLFWWindowCloseCallback() {
+            @Override
+            public void invoke(long l) {
+                glfwSetWindowShouldClose(glfwWindow, false);
+                exitConfirmDialog.reloadDialog();
+
+                shouldClose = exitConfirmDialog.exitDialog();
+                if (shouldClose) {
+                    glfwSetWindowShouldClose(glfwWindow, true);
+                }
+            }
+        });
 
         // OpenGL context current
         glfwMakeContextCurrent(glfwWindow);
@@ -152,20 +183,48 @@ public class Window implements EventViewer {
         glEnable(GL_BLEND);
         glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
-        this.frameBuffer = new FrameBuffer(1920, 1080);
-        this.objectSelection = new ObjectSelection(1920, 1080);
+        this.frameBuffer = new FrameBuffer(this.width, this.height);
+        this.objectSelection = new ObjectSelection(this.width, this.height);
 
-        glViewport(0, 0, 1920, 1080);
+        glViewport(0, 0, this.width, this.height);
 
         this.imGuiLayer = new ImGuiLayer(glfwWindow, objectSelection);
         this.imGuiLayer.initImGui(glslVer);
 
-        Window.changeScene(new LevelEditorScene());
+        //Set Icon
+        GLFWImage icon = GLFWImage.malloc();
+        GLFWImage.Buffer bufferIcon = GLFWImage.malloc(1);
+        icon.set(iconFile.loadIconW(), iconFile.loadIconH(), iconFile.getIcon());
+        bufferIcon.put(0, icon);
+        glfwSetWindowIcon(glfwWindow, bufferIcon);
+
+
+        Window.changeScene(new LevelEditorSceneInit());
+    }
+
+
+    /**
+     * Return current active display size that the windows is on.
+     * <ul>
+     *      <li>Format: <code>Vector(width, height);</code></li>
+     *      <li>Type: <cite>integer</cite></li>
+     *      <li>Use: joml <code>Vector2i</code> class</li>
+     * </ul>
+     * Call:<br>
+     * <code>this.variable_one = getScrSize().x;<br>
+     * this.variable_two = getScrSize().y;</code>
+    */
+    public Vector2i getScrSize() {
+        GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+        int w = device.getDisplayMode().getWidth();
+        int h = device.getDisplayMode().getHeight();
+
+        return new Vector2i(w, h);
     }
 
     public void endScr(){
-        imGuiLayer.getImGuiGl3().dispose();
-        imGuiLayer.getImGuiGlfw().dispose();
+        imGuiLayer.getImGuiGl3().shutdown();
+        imGuiLayer.getImGuiGlfw().shutdown();
         ImGui.destroyContext();
         glfwFreeCallbacks(window.glfwWindow);
         glfwDestroyWindow(window.glfwWindow);
@@ -208,29 +267,29 @@ public class Window implements EventViewer {
 
             if (dt >= 0) {
                 Renderer.setShader(defaultShader);
-
-                if (runtimeStart) {
-                    currentScene.update(dt);
+                if (runtimeMode) {
+                    currentScene.update(dt); // Using main update when not in editor
                 } else {
-                    currentScene.updateEditor(dt);
+                    currentScene.editorUpdate(dt); // Using editor update under edit mode
                 }
-
-                currentScene.render();
                 DebugDraw.draw();
+                currentScene.render();
+
             }
             this.frameBuffer.detach();
 
             this.imGuiLayer.update(dt, currentScene);
 
-            KeyListener.endFrame();
-
             MouseListener.endFrame();
+
+            KeyListener.endFrame();
 
             glfwSwapBuffers(glfwWindow);
 
             endTime = (float)glfwGetTime();
             dt = endTime - beginTime;
             beginTime = endTime;
+
         }
     }
 
@@ -246,35 +305,27 @@ public class Window implements EventViewer {
         return get().imGuiLayer;
     }
 
-    public static void setWidth(int newWidth) {
-        get().width = newWidth;
-    }
-
-    public static void setHeight(int newHeight) {
-        get().height = newHeight;
-    }
-
     @Override
     public void whenNotice(GameObject object, Event event) {
         switch (event.type) {
             case EngineStart:
-                System.out.println("Start event passed!");
-                this.runtimeStart = true;
+                this.runtimeMode = true;
                 currentScene.saveLevel();
-                Window.changeScene(new LevelEditorScene());
+                Window.changeScene(new LevelEditorSceneInit()); // Reset view to runtime mode.
+                System.out.println("Engine starting.");
                 break;
             case EngineEnd:
-                System.out.println("End event passed!");
-                this.runtimeStart = false;
-                Window.changeScene(new LevelEditorScene());
+                this.runtimeMode = false;
+                Window.changeScene(new LevelEditorSceneInit()); // Reset to Editor runtime.
+                System.out.println("Engine stopping.");
                 break;
             case LevelLoad:
-                Window.changeScene(new LevelEditorScene());
+                Window.changeScene(new LevelEditorSceneInit());
+                System.out.println("Loading current level...");
                 break;
             case LevelSave:
                 currentScene.saveLevel();
-                break;
-
+                System.out.println("Saving current level...");
         }
     }
 }

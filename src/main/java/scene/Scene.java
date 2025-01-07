@@ -23,127 +23,102 @@ import java.util.Optional;
 public class Scene {
     private Renderer renderer;
     private Viewport viewport;
-    private boolean isOn;
-    private List<GameObject> gObjects;
-    private List<GameObject> queueObj;
-    private SceneInit sceneInit;
+    private boolean isSceneOn;
+    private List<GameObject> gameObjects;
     private FlatPhysic flatPhysic;
+    private boolean isFileLoaded = false;
+
+    private SceneInit sceneInit;
 
     public Scene(SceneInit sceneInit) {
         this.sceneInit = sceneInit;
         this.flatPhysic = new FlatPhysic();
         this.renderer = new Renderer();
-        this.gObjects = new ArrayList<>();
-        this.queueObj = new ArrayList<>();
-        this.isOn = false;
-    }
-
-    public FlatPhysic loadPhysic() {
-        return this.flatPhysic;
+        this.gameObjects = new ArrayList<>();
+        this.isSceneOn = false;
     }
 
     public void init() {
-        this.viewport = new Viewport(new Vector2f(0, 0)); //View point position
-        this.sceneInit.loadRes(this);
+        // View point position
+        this.viewport = new Viewport(new Vector2f(0, 0));
+
+        // Load resource, maintain init method
+        this.sceneInit.loadResource(this);
         this.sceneInit.init(this);
     }
 
     public void start() {
-        for (int i = 0; i < gObjects.size(); i++) {
-            GameObject go = gObjects.get(i);
-
+        for (int i = 0; i < gameObjects.size(); i++) {
+            GameObject go = gameObjects.get(i);
             go.start();
             this.renderer.add(go);
             this.flatPhysic.add(go);
         }
-        isOn = true;
+        isSceneOn = true;
     }
 
     public void addObjToScene(GameObject go) {
-        if (!isOn) {
-            gObjects.add(go);
+        if (!isSceneOn) {
+            gameObjects.add(go);
         } else {
-            queueObj.add(go);
+            gameObjects.add(go);
+            go.start();
+            this.renderer.add(go);
+            this.flatPhysic.add(go);
         }
     }
 
     public void destroy() {
-        for (GameObject go: gObjects) {
+        for (GameObject go : gameObjects) {
             go.destroy();
         }
     }
 
-    public <T extends Component> GameObject loadObjCombo(Class<T> clazz) {
-        for (GameObject obj : gObjects) {
-            if (obj.getComponent(clazz) != null) {
-                return obj;
-            }
-        }
-
-        return null;
-    }
-
-    public List<GameObject> loadGameObjects() {
-        return this.gObjects;
+    public List<GameObject> getGameObject() {
+        return this.gameObjects;
     }
 
     public GameObject loadGameObj(int gObjectID) {
-        Optional<GameObject> result = this.gObjects.stream().
+        Optional<GameObject> result = this.gameObjects.stream().
                 filter(gameObject -> gameObject.loadUid() == gObjectID).
                 findFirst();
 
         return result.orElse(null);
     }
 
-    public void updateEditor(float dt) {
+    public void editorUpdate(float dt) {
         this.viewport.adjustProjection();
 
-        for (int i = 0; i < gObjects.size(); i++) {
-            GameObject go = gObjects.get(i);
-            go.updateEditor(dt);
+        for (int i = 0; i < gameObjects.size(); i++) {
+            GameObject go = gameObjects.get(i);
+            go.editorUpdate(dt);
 
             if (go.isGone()) {
-                gObjects.remove(i);
-                this.renderer.destroyGameObj(go);
-                this.flatPhysic.destroyGameObj(go);
+                gameObjects.remove(i);
+                this.renderer.destroyObject(go);
+                this.flatPhysic.destroyObject(go);
 
-                i--; //step back if destroyed something
+                i --; // Step back if remove
             }
         }
-
-        for (GameObject go : queueObj) {
-            gObjects.add(go);
-            go.start();
-            this.renderer.add(go);
-            this.flatPhysic.add(go);
-        }
-        queueObj.clear();
     }
 
     public void update(float dt) {
         this.viewport.adjustProjection();
         this.flatPhysic.update(dt);
 
-        for (int i = 0; i < gObjects.size(); i++) {
-            GameObject go = gObjects.get(i);
+        for (int i = 0; i < gameObjects.size(); i++) {
+            GameObject go = gameObjects.get(i);
             go.update(dt);
 
             if (go.isGone()) {
-                gObjects.remove(i);
-                this.renderer.destroyGameObj(go);
-                this.flatPhysic.destroyGameObj(go);
+                gameObjects.remove(i);
+                this.renderer.destroyObject(go);
+                this.flatPhysic.destroyObject(go);
 
-                i--; //step back if destroyed something
+                i --; // Step back if remove
             }
         }
-
-        for (GameObject go : queueObj) {
-            gObjects.add(go);
-            go.start();
-            this.renderer.add(go);
-            this.flatPhysic.add(go);
-        }
-        queueObj.clear();
     }
     public void render() {
         this.renderer.render();
@@ -175,7 +150,7 @@ public class Scene {
         try {
             FileWriter writer = new FileWriter("level.tcb");
             List<GameObject> serializeList = new ArrayList<>();
-            for (GameObject obj : this.gObjects) {
+            for (GameObject obj : this.gameObjects) {
                 if (obj.isSerialize()) {
                     serializeList.add(obj);
                 }
@@ -183,7 +158,10 @@ public class Scene {
             writer.write(gson.toJson(serializeList));
             writer.close();
         } catch (IOException e) {
+            System.out.println("Failed to save level, please check following stack trace for more info.");
+            System.out.println("_______________________________________________________________________\n");
             e.printStackTrace();
+            System.out.println("\n_______________________________________________________________________\n");
         }
     }
 
@@ -199,7 +177,11 @@ public class Scene {
         try {
             loadFile = new String(Files.readAllBytes(Paths.get("level.tcb")));
         } catch (IOException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
+            System.out.println("No level file found, generating new file...");
+            saveLevel();
+            System.out.println("File created.");
+            return;
         }
 
         if (!loadFile.equals("")) {
@@ -226,6 +208,8 @@ public class Scene {
             maxCompID++;
             GameObject.init(maxObjID);
             Component.init(maxCompID);
+
+            this.isFileLoaded = true;
         }
     }
 }

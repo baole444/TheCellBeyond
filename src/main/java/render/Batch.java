@@ -47,6 +47,7 @@ public class Batch implements Comparable<Batch> {
     private int vaoID, vboID;
     private int maxBatchSize;
     private Renderer renderer;
+
     private  int zIndex;
 
     public Batch(int maxBatchSize, int zIndex, Renderer renderer) {
@@ -127,13 +128,11 @@ public class Batch implements Comparable<Batch> {
                 rebufferData = true;
             }
 
-            //TODO: temporary
             if(spr.gameObject.transform.zIndex != this.zIndex) {
-                isExistToRemove(spr.gameObject);
+                removeWhenExist(spr.gameObject);
                 renderer.add(spr.gameObject);
                 i--;
             }
-
         }
         if (rebufferData) {
             //Legacy: Re-buffer data/frame | New: Re-buffer data/change only
@@ -171,16 +170,18 @@ public class Batch implements Comparable<Batch> {
         shader.detach();
     }
 
-    public boolean isExistToRemove(GameObject obj) {
-        SpriteRender sprite = obj.getComponent(SpriteRender.class);
+    public boolean removeWhenExist(GameObject go) {
+        SpriteRender spriteRender = go.getComponent(SpriteRender.class);
         for (int i = 0; i < countSprite; i++) {
-            if (sprites[i] == sprite) {
-                for (int j = i; j < countSprite - 1; j++) {
+            if (sprites[i] == spriteRender) {
+
+                // [1, 2, 3, 4, 5, 6, ...]
+                // Remove object 3 -> override 3 with 4 and move all stack up
+                for (int j = 1; j < countSprite - 1; j++) {
                     sprites[j] = sprites[j + 1];
                     sprites[j].setDamage();
                 }
-                countSprite--;
-
+                countSprite --;
                 return true;
             }
         }

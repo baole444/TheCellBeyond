@@ -26,10 +26,12 @@ public class FlatPhysic {
 
     public void add(GameObject go) {
         HardObject hardObject = go.getComponent(HardObject.class);
+
         // Duplicate prevention
         if (hardObject != null && hardObject.loadInstObject() == null) {
             Transform transform = go.transform;
 
+            // Define rigid body
             BodyDef objDef = new BodyDef();
             objDef.angle = (float)Math.toRadians(transform.rotate);
             objDef.position.set(transform.position.x, transform.position.y);
@@ -54,7 +56,7 @@ public class FlatPhysic {
             if ((colliderCircle = go.getComponent(ColliderCircle.class)) != null ) {
                 shape.setRadius(colliderCircle.loadRadius());
             } else if ((collider2D = go.getComponent(Collider2D.class)) != null) {
-                Vector2f halfSize = new Vector2f(collider2D.loadHalfSize()).mul(0.5f);
+                Vector2f halfSize = new Vector2f(collider2D.loadHalfSize()).mul(0.5f); // Applying correct collider box size
                 Vector2f offset = collider2D.loadOffset();
                 Vector2f origin = new Vector2f(collider2D.loadOrigin());
                 shape.setAsBox(halfSize.x, halfSize.y, new Vec2(origin.x, origin.y), 0);
@@ -72,13 +74,12 @@ public class FlatPhysic {
         }
     }
 
-    public void destroyGameObj(GameObject obj) {
-        HardObject hObj = obj.getComponent(HardObject.class);
-
-        if (hObj != null) {
-            if (hObj.loadInstObject() != null) {
-                world.destroyBody(hObj.loadInstObject());
-                hObj.setInstObject(null);
+    public void destroyObject(GameObject go) {
+        HardObject hardObject = go.getComponent(HardObject.class);
+        if (hardObject != null) {
+            if (hardObject.loadInstObject() != null) {
+                world.destroyBody(hardObject.loadInstObject());
+                hardObject.setInstObject(null);
             }
         }
     }

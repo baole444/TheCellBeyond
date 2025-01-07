@@ -124,4 +124,8 @@ public class Properties {
     public ObjectSelection loadObjSelection() {
         return this.objectSelection;
     }
+
+    public void setActiveGameObj(GameObject go) {
+        this.activeGameObject = go;
+    }
 }

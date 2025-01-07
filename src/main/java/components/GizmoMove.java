@@ -9,15 +9,15 @@ public class GizmoMove extends Gizmo {
     }
 
     @Override
-    public void updateEditor(float dt) {
+    public void editorUpdate(float dt) {
         if (activeGameObj != null) {
             if (xActiveDrag && !yActiveDrag) {
-                activeGameObj.transform.position.x -= MouseListener.getWorldDX();
+                activeGameObj.transform.position.x -= MouseListener.getCursorTraverse().x;
             } else if (yActiveDrag) {
-                activeGameObj.transform.position.y -= MouseListener.getWorldDY();
+                activeGameObj.transform.position.y -= MouseListener.getCursorTraverse().y;
             }
         }
 
-        super.updateEditor(dt);
+        super.editorUpdate(dt);
     }
 }

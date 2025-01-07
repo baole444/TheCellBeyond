@@ -11,7 +11,6 @@ import imgui.ImVec2;
 import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiStyleVar;
 import imgui.type.ImString;
-import org.joml.Math;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import utility.AssetsPool;
@@ -21,7 +20,7 @@ import static org.lwjgl.glfw.GLFW.*;
 public class ImEditorGui {
     private static float defaultWidth = 150.0f;
     public static void drawVec2Ctrl(String label, Vector2f val) {
-        drawVec2Ctrl(label, val, 0.0f, defaultWidth);
+        drawVec2Ctrl(label, val, 0.16f, defaultWidth);
     }
 
     public static void drawVec2Ctrl(String label, Vector2f val, float resetVal) {
@@ -142,11 +141,21 @@ public class ImEditorGui {
         ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.75f, 0.31f, 0.0f, 1.0f);
         ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0.6f, 0.25f, 0.0f, 1.0f);
 
-        if (ImGui.button("Nearest", 80.0f, labelSize.y) || KeyListener.isKeyTapped(GLFW_KEY_N)) {
-            float epsilon = 0.0001f;
-            while (Math.abs(val.x % 0.32f) > epsilon) {
-                float offsetX = val.x % 0.32f;
-                if (offsetX != 0 && Math.abs(offsetX) >= 0.16f) {
+        //A method to return object to the nearest standard coordinate position.
+        if (ImGui.button("Nearest", 80.0f, labelSize.y) || KeyListener.isKeyPressed(GLFW_KEY_N)) {
+            if (val.x % 0.32f != 0.0f) {
+                val.x = Math.round(val.x / 0.32f) * 0.32f + 0.16f;
+            }
+
+            if (val.y % 0.32f != 0.0f) {
+                val.y = Math.round(val.y / 0.32f) * 0.32f + 0.16f;
+            }
+            //Bellow is a legacy method that is no longer in use
+            /*
+            while (val.x % 32.0f != 0.0f || val.y % 32.0f != 0.0f) {
+                float offsetX = val.x % 32.0f;
+                float offsetY = val.y % 32.0f;
+                if (offsetX != 0 && Math.abs(offsetX) >= 16.0f) {
                     val.x += offsetX;
                 } else if (offsetX != 0 && Math.abs(offsetX) < 0.16f) {
                     val.x -= offsetX;
@@ -154,18 +163,7 @@ public class ImEditorGui {
                     break;
                 }
             }
-
-            while (Math.abs(val.y % 0.32f) > epsilon) {
-                float offsetY = val.y % 0.32f;
-                if (offsetY != 0 && Math.abs(offsetY) >= 0.16f) {
-                    val.y += offsetY;
-                } else if (offsetY != 0 && Math.abs(offsetY) < 0.16f) {
-                    val.y -= offsetY;
-                } else {
-                    break;
-                }
-            }
-
+             */
         }
         ImGui.popStyleColor(3);
 
@@ -296,6 +294,29 @@ public class ImEditorGui {
         return result;
     }
 
+    public static String inputText(String label, String txt) {
+        ImGui.pushID(label);
+
+        ImGui.columns(2);
+        ImGui.setColumnWidth(0, defaultWidth);
+        ImGui.text(label);
+        ImGui.nextColumn();
+
+        ImString outString = new ImString(txt, 256);
+        if (ImGui.inputText("##" + label, outString)) {
+            ImGui.columns(1);
+            ImGui.popID();
+
+            return outString.get();
+        }
+
+        // End and reset
+        ImGui.columns(1);
+        ImGui.popID();
+
+        return txt;
+    }
+
     public static void drawSpriteList (SpriteSheet spriteSps, GameObject levelEditorObject, ImVec2 winPos, ImVec2 winSize) {
         ImVec2 objectSpace = new ImVec2();
         ImGui.getStyle().getItemSpacing(objectSpace);
@@ -311,12 +332,13 @@ public class ImEditorGui {
 
             ImGui.pushID(i);
 
-            if (ImGui.imageButton(id, spriteWidth, spriteHeight,
+            ImGui.imageButton(id, spriteWidth, spriteHeight,
                     texCoord[2].x, texCoord[0].y,
                     texCoord[0].x, texCoord[2].y
-            )
-            ) {
-                GameObject obj = Prefab.genSpsObj(sprites, 0.32f, 0.32f);
+            );
+
+            if (ImGui.isItemClicked()) {
+                GameObject obj = Prefab.genSpsObj(sprites, 32, 32);
 
                 // Bind to mouse cursor
                 levelEditorObject.getComponent(MouseCtrl.class).pickObj(obj);
@@ -382,11 +404,12 @@ public class ImEditorGui {
 
             ImGui.pushID(i);
 
-            if (ImGui.imageButton(id, spriteWidth, spriteHeight,
+            ImGui.imageButton(id, spriteWidth, spriteHeight,
                     texCoord[2].x, texCoord[0].y,
                     texCoord[0].x, texCoord[2].y
-            )
-            ) {
+            );
+
+            if (ImGui.isItemClicked()) {
                 float rX = 32.0f / sprites.loadWidth();
                 float rY = 32.0f /  sprites.loadWidth();
                 if (rX >= 1.0f && rY >= 1.0f) {

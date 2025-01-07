@@ -52,14 +52,14 @@ public class DebugGui {
             ImGui.text("    Circle:");
             ImGui.sameLine();
             if (ImGui.button("Central")) {
-                DebugDraw.addCircle(new Vector2f(3.2f, 2.4f), 1, new Vector3f(1, 1, 1), 300);
+                DebugDraw.addCircle(new Vector2f(3.2f, 2.4f), 50, new Vector3f(1, 1, 1), 300);
             }
 
             ImGui.text("    Lines:");
             ImGui.sameLine();
             if (ImGui.button("Screen crossing")) {
-                DebugDraw.addLine2(new Vector2f(0, 0), new Vector2f(6.4f, 4.8f), new Vector3f(1, 1, 1), 300);
-                DebugDraw.addLine2(new Vector2f(0, 4.8f), new Vector2f(6.4f, 0), new Vector3f(1, 1, 1), 300);
+                DebugDraw.addLine2(new Vector2f(0, 0), new Vector2f(640f, 480f), new Vector3f(1, 1, 1), 300);
+                DebugDraw.addLine2(new Vector2f(0, 4.8f), new Vector2f(640f, 0), new Vector3f(1, 1, 1), 300);
             }
 
             ImGui.newLine();
@@ -67,14 +67,14 @@ public class DebugGui {
             ImGui.text("    Corners:");
             ImGui.sameLine();
             if (ImGui.button("Screen corners")) {
-                DebugDraw.addCircle(new Vector2f(0, 0), 1, new Vector3f(1, 1, 1), 300);
-                DebugDraw.addCircle(new Vector2f(0, 4.8f), 1, new Vector3f(1, 1, 1), 300);
-                DebugDraw.addCircle(new Vector2f(6.4f, 4.8f), 1, new Vector3f(1, 1, 1), 300);
-                DebugDraw.addCircle(new Vector2f(6.4f, 0), 1, new Vector3f(1, 1, 1), 300);
-                DebugDraw.addLine2(new Vector2f(0, 0), new Vector2f(0, 4.8f), new Vector3f(1, 1, 1), 300);
-                DebugDraw.addLine2(new Vector2f(0, 0), new Vector2f(6.4f, 0), new Vector3f(1, 1, 1), 300);
-                DebugDraw.addLine2(new Vector2f(6.4f, 0), new Vector2f(6.4f, 4.8f), new Vector3f(1, 1, 1), 300);
-                DebugDraw.addLine2(new Vector2f(6.4f, 4.8f), new Vector2f(0, 4.8f), new Vector3f(1, 1, 1), 300);
+                DebugDraw.addCircle(new Vector2f(0, 0), 10, new Vector3f(1, 1, 1), 300);
+                DebugDraw.addCircle(new Vector2f(0, 4.80f), 10, new Vector3f(1, 1, 1), 300);
+                DebugDraw.addCircle(new Vector2f(6.40f, 4.80f), 10, new Vector3f(1, 1, 1), 300);
+                DebugDraw.addCircle(new Vector2f(6.40f, 0), 10, new Vector3f(1, 1, 1), 300);
+                DebugDraw.addLine2(new Vector2f(0, 0), new Vector2f(0, 480f), new Vector3f(1, 1, 1), 300);
+                DebugDraw.addLine2(new Vector2f(0, 0), new Vector2f(640f, 0), new Vector3f(1, 1, 1), 300);
+                DebugDraw.addLine2(new Vector2f(6.40f, 0), new Vector2f(6.40f, 4.80f), new Vector3f(1, 1, 1), 300);
+                DebugDraw.addLine2(new Vector2f(6.40f, 4.80f), new Vector2f(0, 4.80f), new Vector3f(1, 1, 1), 300);
             }
 
             ImGui.newLine();
@@ -100,9 +100,11 @@ public class DebugGui {
 
                 x = (int)MouseListener.loadScrX();
                 y = (int)MouseListener.loadScrY();
-                wX = MouseListener.getWorldX();
-                wY = MouseListener.getWorldY();
-                DebugDraw.addCircle(new Vector2f(wX, wY), 0.5f, new Vector3f(1, 1, 1), 1);
+                wX = MouseListener.getWorld().x;
+                wY = MouseListener.getWorld().y;
+                DebugDraw.addLine2(new Vector2f(wX-0.16f, wY),new Vector2f(wX+0.16f, wY));
+                DebugDraw.addLine2(new Vector2f(wX, wY-0.16f), new Vector2f(wX, wY+0.16f));
+                DebugDraw.addCircle(new Vector2f(wX, wY), 0.50f, new Vector3f(1, 1, 1), 1);
                 ImGui.text("    x " + x);
                 ImGui.text("    y " + y);
                 ImGui.text("    worldX " + wX);
@@ -114,7 +116,7 @@ public class DebugGui {
                 } else {
                     ImGui.text("FALSE");
                 }
-
+                ImGui.text("    Traverse (x|y): " + "(" +MouseListener.getCursorTraverse().x +"|"+MouseListener.getCursorTraverse().y+")");
             }
 
 

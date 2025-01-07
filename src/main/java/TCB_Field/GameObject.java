@@ -20,6 +20,7 @@ public class GameObject {
     private boolean isSerialize = true;
     private boolean isGone = false;
 
+
     public GameObject(String name) {
         this.name = name;
         this.components = new ArrayList<>();
@@ -57,6 +58,12 @@ public class GameObject {
         c.gameObject = this;
     }
 
+    public void editorUpdate(float dt) {
+        for (int i = 0; i < components.size(); i++) {
+            components.get(i).editorUpdate(dt);
+        }
+    }
+
     public void update(float dt) {
         for (int i = 0; i < components.size(); i++) {
             components.get(i).update(dt);
@@ -89,43 +96,43 @@ public class GameObject {
         }
     }
 
-    public GameObject duplicate() {
+    public GameObject copy() {
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(Component.class, new CompDeSerializer())
                 .registerTypeAdapter(GameObject.class, new GameObjDeSerializer())
-                .enableComplexMapKeySerialization()
                 .create();
 
         String oJson = gson.toJson(this);
         GameObject obj = gson.fromJson(oJson, GameObject.class);
 
-        obj.setUid();
+        obj.genUid();
 
-        for (Component c: obj.loadAllComp()) {
+        for (Component c : obj.loadAllComp()) {
             c.genId();
         }
 
-        SpriteRender spr = obj.getComponent(SpriteRender.class);
-        if (spr != null && spr.loadTexture() != null) {
-            spr.setTex(AssetsPool.loadTexture(spr.loadTexture().loadFilePath()));
+        SpriteRender sprite = obj.getComponent(SpriteRender.class);
+
+        if (sprite != null && sprite.loadTexture() != null) {
+            sprite.setTex(AssetsPool.loadTexture(sprite.loadTexture().loadFilePath()));
         }
 
         return obj;
-    }
-
-    public boolean isGone() {
-        return this.isGone;
     }
 
     public static void init(int maxID) {
         ID_COUNTER = maxID;
     }
 
+    public boolean isGone() {
+        return this.isGone;
+    }
+
     public int loadUid() {
         return this.uID;
     }
 
-    public void setUid() {
+    public void genUid() {
         this.uID = ID_COUNTER++;
     }
 

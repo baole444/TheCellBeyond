@@ -5,6 +5,8 @@ import physic_2d.components.Collider;
 import render.DebugDraw;
 
 public class Collider2D extends Collider {
+    // Standard box collider
+
     private Vector2f halfSize = new Vector2f(1);
     private Vector2f origin = new Vector2f();
 
@@ -21,7 +23,7 @@ public class Collider2D extends Collider {
     }
 
     @Override
-    public void updateEditor(float dt) {
+    public void editorUpdate(float dt) {
         Vector2f centre = new Vector2f(this.gameObject.transform.position).add(this.offset);
         DebugDraw.addBox2(centre, this.halfSize, this.gameObject.transform.rotate);
     }

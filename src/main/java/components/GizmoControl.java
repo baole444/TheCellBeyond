@@ -21,7 +21,7 @@ public class GizmoControl extends Component {
     }
 
     @Override
-    public void updateEditor(float dt) {
+    public void editorUpdate(float dt) {
         if (isGizUse == 0) {
             gameObject.getComponent(GizmoMove.class).setUse();
             gameObject.getComponent(GizmoScale.class).setUnUse();

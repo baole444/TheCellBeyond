@@ -27,16 +27,16 @@ public class KeyListener {
         }
     }
 
-    public static boolean isKeyPressed(int keyCode) {
-        return get().keyPressed[keyCode];
-    }
-
     public static boolean isKeyTapped(int keyCode) {
         boolean rs = get().keyTapped[keyCode];
         if (rs) {
             get().keyTapped[keyCode] = false;
         }
         return rs;
+    }
+
+    public static boolean isKeyPressed(int keyCode) {
+        return get().keyPressed[keyCode];
     }
 
     public static void endFrame() {

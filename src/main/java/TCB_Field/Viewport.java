@@ -8,8 +8,9 @@ public class Viewport {
     private Matrix4f projectMatrix, viewMatrix, inverseProject, inverseView;
     public Vector2f position;
 
+    private float sceneScale = 1.0f;
     private Vector2f aspectRatio = new Vector2f(4.0f, 3.0f);
-    private Vector2f projectSize = new Vector2f(aspectRatio.x, aspectRatio.y);
+    private Vector2f projectSize = new Vector2f(aspectRatio.x * sceneScale, aspectRatio.y * sceneScale);
     private float zoom = 1.0f;
 
     public Viewport(Vector2f position) {

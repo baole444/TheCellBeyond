@@ -20,13 +20,13 @@ public class ImGuiLayer {
     private final ImGuiImplGlfw imGuiGlfw = new ImGuiImplGlfw();
     private final ImGuiImplGl3 imGuiGl3 = new ImGuiImplGl3();
     private long glfwWindow;
-    private ImGuiIO io;
     private GameViewPort gameViewPort;
     private DebugGui debugGui;
-
     private Properties properties;
     private MenuBar menuBar;
-    private SceneGroup sceneGroup;
+    private SceneObjectGroupingWindow objectGroupingWindow;
+    private ImGuiIO io;
+
 
     public ImGuiLayer(long glfwWindow, ObjectSelection objectSelection) {
         this.gameViewPort = new GameViewPort();
@@ -34,52 +34,15 @@ public class ImGuiLayer {
         this.glfwWindow = glfwWindow;
         this.properties = new Properties(objectSelection);
         this.menuBar = new MenuBar();
-        this.sceneGroup = new SceneGroup();
+        this.objectGroupingWindow = new SceneObjectGroupingWindow();
     }
 
     public void initImGui(String glslVer) {
         ImGui.createContext();
         this.io = ImGui.getIO();
         guiFont(io);
-        guiMouseCallback(glfwWindow, io);
-        io.addConfigFlags(ImGuiConfigFlags.DockingEnable);
-        io.addConfigFlags(ImGuiConfigFlags.ViewportsEnable);
-        imGuiGlfw.init(glfwWindow, false);
-        imGuiGl3.init(glslVer);
-    }
+        io.setBackendFlags(ImGuiBackendFlags.HasMouseCursors);
 
-    public GameViewPort loadGameViewPort() {
-        return this.gameViewPort;
-    }
-    //Temporary solution of defining mouse and key control for the ImGui window
-
-    public void guiMouseCallback(long glfwWindow, ImGuiIO io) {
-        //io.setConfigFlags(ImGuiConfigFlags.NavEnableKeyboard); // Navigation with keyboard
-        //io.setBackendFlags(ImGuiBackendFlags.HasMouseCursors); // Mouse cursors to display while resizing windows etc.
-        io.setBackendPlatformName("imgui_java_impl_glfw");
-
-        glfwSetKeyCallback(glfwWindow, (w, key, scancode, action, mods) -> {
-            if (action == GLFW_PRESS) {
-                io.setKeysDown(key, true);
-            } else if (action == GLFW_RELEASE) {
-                io.setKeysDown(key, false);
-            }
-
-            io.setKeyCtrl(io.getKeysDown(GLFW_KEY_LEFT_CONTROL) || io.getKeysDown(GLFW_KEY_RIGHT_CONTROL));
-            io.setKeyShift(io.getKeysDown(GLFW_KEY_LEFT_SHIFT) || io.getKeysDown(GLFW_KEY_RIGHT_SHIFT));
-            io.setKeyAlt(io.getKeysDown(GLFW_KEY_LEFT_ALT) || io.getKeysDown(GLFW_KEY_RIGHT_ALT));
-            io.setKeySuper(io.getKeysDown(GLFW_KEY_LEFT_SUPER) || io.getKeysDown(GLFW_KEY_RIGHT_SUPER));
-
-            if (!io.getWantCaptureKeyboard()) {
-                KeyListener.keyCallback(w, key, scancode, action, mods);
-            }
-        });
-
-        glfwSetCharCallback(glfwWindow, (w, c) -> {
-            if (c != GLFW_KEY_DELETE) {
-                io.addInputCharacter(c);
-            }
-        });
 
         glfwSetMouseButtonCallback(glfwWindow, (w, button, action, mods) -> {
             final boolean[] mouseDown = new boolean[5];
@@ -101,32 +64,30 @@ public class ImGuiLayer {
             }
         });
 
-        glfwSetScrollCallback(glfwWindow, (w, xOffset, yOffset) -> {
-            io.setMouseWheelH(io.getMouseWheelH() + (float) xOffset);
-            io.setMouseWheel(io.getMouseWheel() + (float) yOffset);
-            MouseListener.mouseScrollCallback(glfwWindow, xOffset, yOffset);
-        });
+       io.setSetClipboardTextFn(new ImStrConsumer() {
+           @Override
+           public void accept(final String s) {
+               glfwSetClipboardString(glfwWindow, s);
+           }
+       });
 
-        io.setSetClipboardTextFn(new ImStrConsumer() {
-            @Override
-            public void accept(final String s) {
-                glfwSetClipboardString(glfwWindow, s);
-            }
-        });
+       io.setGetClipboardTextFn(new ImStrSupplier() {
+           @Override
+           public String get() {
+               final String clipboardString = glfwGetClipboardString(glfwWindow);
+               if (clipboardString != null) {
+                   return clipboardString;
+               } else {
+                   return "";
+               }
+           }
+       });
 
-        io.setGetClipboardTextFn(new ImStrSupplier() {
-            @Override
-            public String get() {
-                final String clipboardString = glfwGetClipboardString(glfwWindow);
-                if (clipboardString != null) {
-                    return clipboardString;
-                } else {
-                    return "";
-                }
-            }
-        }
-        );
-
+        io.setIniFilename("imgui.ini");
+        io.addConfigFlags(ImGuiConfigFlags.ViewportsEnable);
+        io.setConfigFlags(ImGuiConfigFlags.DockingEnable);
+        imGuiGlfw.init(glfwWindow, true);
+        imGuiGl3.init(glslVer);
     }
 
     public void guiFont(ImGuiIO io) {
@@ -135,39 +96,39 @@ public class ImGuiLayer {
         // Font config must be destroyed after call
         final ImFontConfig fontConfig = new ImFontConfig();
 
-
         // glyphs range
-        fontConfig.setGlyphRanges(fontAtlas.getGlyphRangesDefault());
 
         //Merge font
         //fontConfig.setMergeMode(true); //For multiple font, turn this back on
         fontConfig.setPixelSnapH(true);
 
         fontAtlas.addFontFromFileTTF("assets/fonts/Consola.ttf", 16, fontConfig);
-
+        fontAtlas.build();
         fontConfig.destroy();
     }
 
     public void update(float dt, Scene currentScene) {
         // ImGui frame
         imGuiGlfw.newFrame();
-
+        imGuiGl3.newFrame();
         ImGui.newFrame();
 
         imDocking();
 
         currentScene.imgui();
-
         gameViewPort.imgui();
         debugGui.imgui();
         //properties.update(dt, currentScene);
         properties.imgui();
-        sceneGroup.imgui();
+        objectGroupingWindow.imgui();
 
+        //ImGui.showDemoWindow();
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glViewport(0, 0, Window.loadWidth(), Window.loadHeight());
-        glClearColor(0, 0, 0 ,1);
+
+        glViewport(0,0, Window.loadWidth(), Window.loadHeight());
+        glClearColor(0, 0,0,1);
         glClear(GL_COLOR_BUFFER_BIT);
+
         ImGui.render();
         imGuiGl3.renderDrawData(ImGui.getDrawData());
 
@@ -177,19 +138,21 @@ public class ImGuiLayer {
             ImGui.updatePlatformWindows();
             ImGui.renderPlatformWindowsDefault();
             org.lwjgl.glfw.GLFW.glfwMakeContextCurrent(backupWindowPtr);
+
         }
     }
 
     private void imDocking() {
         int winFlag = ImGuiWindowFlags.MenuBar | ImGuiWindowFlags.NoDocking;
 
-        ImGuiViewport imGuiViewport = ImGui.getMainViewport();
-        ImGui.setNextWindowPos(imGuiViewport.getWorkPosX(), imGuiViewport.getWorkPosY());
-        ImGui.setNextWindowPos(imGuiViewport.getWorkSizeX(), imGuiViewport.getWorkSizeY());
-        ImGui.setNextWindowViewport(imGuiViewport.getID());
+        // Make view port the main windows
+        ImGuiViewport mainViewport = ImGui.getMainViewport();
+        ImGui.setNextWindowPos(mainViewport.getWorkPosX(), mainViewport.getWorkPosY());
+        ImGui.setNextWindowSize(mainViewport.getWorkSizeX(), mainViewport.getWorkSizeY());
+        ImGui.setNextWindowViewport(mainViewport.getID());
 
-        ImGui.setNextWindowPos(imGuiViewport.getWorkPosX(), imGuiViewport.getWorkPosY());
-        ImGui.setNextWindowSize(imGuiViewport.getWorkSizeX(), imGuiViewport.getWorkSizeY());
+        ImGui.setNextWindowPos(0.0f, 0.0f);
+        ImGui.setNextWindowSize(1920, 1080);
 
         ImGui.pushStyleVar(ImGuiStyleVar.WindowRounding, 0.0f);
         ImGui.pushStyleVar(ImGuiStyleVar.WindowBorderSize, 0.0f);

@@ -10,7 +10,7 @@ import utility.Settings;
 public class Grid extends Component {
 
     @Override
-    public void updateEditor(float dt) {
+    public void editorUpdate(float dt) {
         Viewport viewport = Window.getScene().viewport();
         Vector2f viewPos = viewport.position;
         Vector2f projectSize = viewport.loadProjectSize();
@@ -19,10 +19,10 @@ public class Grid extends Component {
         float firstY = ((int)Math.floor(viewPos.y / Settings.GRID_HEIGHT)) * Settings.GRID_HEIGHT;
 
         int countVertical = (int)(projectSize.x * viewport.loadZoom() / Settings.GRID_WIDTH) + 2;
-        int countHorizontal = (int)(projectSize.y *viewport.loadZoom() / Settings.GRID_HEIGHT) + 2;
+        int countHorizontal = (int)(projectSize.y * viewport.loadZoom() / Settings.GRID_HEIGHT) + 2;
 
-        float width = (int)(projectSize.x * viewport.loadZoom()) + (5 * Settings.GRID_WIDTH);
-        float height = (int)(projectSize.y * viewport.loadZoom()) + (5 * Settings.GRID_HEIGHT);
+        float height = (int)(projectSize.y * viewport.loadZoom()) + Settings.GRID_HEIGHT * 5;
+        float width = (int)(projectSize.x * viewport.loadZoom()) + Settings.GRID_WIDTH * 5;
 
         int maxLines = Math.max(countVertical, countHorizontal);
         Vector3f color = new Vector3f(0.4f, 0.4f, 0.0f);

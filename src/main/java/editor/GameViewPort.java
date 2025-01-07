@@ -1,5 +1,6 @@
 package editor;
 
+import TCB_Field.KeyListener;
 import TCB_Field.MouseListener;
 import TCB_Field.Window;
 import eventviewer.EventSystem;
@@ -10,13 +11,45 @@ import imgui.ImVec2;
 import imgui.flag.ImGuiWindowFlags;
 import org.joml.Vector2f;
 
+import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_O;
+
 public class GameViewPort {
     private float leftX, rightX, topY, bottomY;
     private static float[] printDebug;
-    private boolean isBegun = false;
+    private boolean isPlaying = false;
+
     public void imgui() {
 
-        ImGui.begin("Game Viewport", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.MenuBar);
+        ImGui.begin("Game Viewport", ImGuiWindowFlags.NoScrollbar
+                | ImGuiWindowFlags.NoScrollWithMouse
+                | ImGuiWindowFlags.MenuBar
+        );
+
+
+        // Create menu bar
+        ImGui.beginMenuBar();
+        if ((KeyListener.isKeyPressed(GLFW_KEY_LEFT_CONTROL) || KeyListener.isKeyPressed(GLFW_KEY_RIGHT_CONTROL)) && KeyListener.isKeyTapped(GLFW_KEY_S)) {
+            EventSystem.notice(null, new Event(EventType.LevelSave));
+        }
+
+        if ((KeyListener.isKeyPressed(GLFW_KEY_LEFT_CONTROL) || KeyListener.isKeyPressed(GLFW_KEY_RIGHT_CONTROL)) && KeyListener.isKeyTapped(GLFW_KEY_O)) {
+            EventSystem.notice(null, new Event(EventType.LevelLoad));
+        }
+        if (ImGui.menuItem("Play","", isPlaying, !isPlaying)) {
+            isPlaying = true;
+            EventSystem.notice(null, new Event(EventType.EngineStart));
+        }
+
+        if (ImGui.menuItem("Stop","", !isPlaying, isPlaying)) {
+            isPlaying = false;
+            EventSystem.notice(null, new Event(EventType.EngineEnd));
+        }
+
+        ImGui.endMenuBar();
+        // End menu bar
+
+        ImGui.setCursorPos(ImGui.getCursorPosX(), ImGui.getCursorPosY());
 
         ImGui.beginMenuBar();
 
@@ -37,6 +70,10 @@ public class GameViewPort {
         ImVec2 winPos = loadViewportToCentral(winSize);
         ImGui.setCursorPos(winPos.x, winPos.y);
 
+        ImVec2 topLeft = new ImVec2();
+        ImGui.getCursorScreenPos(topLeft);
+        topLeft.x -= ImGui.getScrollX();
+        topLeft.y -= ImGui.getScrollY();
         leftX = winPos.x + ImGui.getWindowPosX();
         rightX = winPos.x + winSize.x + ImGui.getWindowPosX();
         bottomY =  winPos.y + ImGui.getWindowPosY();
@@ -48,7 +85,7 @@ public class GameViewPort {
 
         ImGui.image(texID, winSize.x, winSize.y, 0, 1, 1, 0);
 
-        MouseListener.setWorkViewportPos(new Vector2f(winPos.x + ImGui.getWindowPosX(), winPos.y + ImGui.getWindowPosY()));
+        MouseListener.setWorkViewportPos(new Vector2f(leftX, bottomY));
         MouseListener.setWorkViewportSize(new Vector2f(winSize.x, winSize.y));
 
         ImGui.end();
