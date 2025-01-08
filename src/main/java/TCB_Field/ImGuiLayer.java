@@ -4,6 +4,7 @@ import editor.*;
 import imgui.*;
 import imgui.callback.ImStrConsumer;
 import imgui.callback.ImStrSupplier;
+import imgui.extension.imguifiledialog.ImGuiFileDialog;
 import imgui.flag.*;
 import imgui.gl3.ImGuiImplGl3;
 import imgui.glfw.ImGuiImplGlfw;
@@ -24,10 +25,26 @@ public class ImGuiLayer {
     private DebugGui debugGui;
     private Properties properties;
     private MenuBar menuBar;
+    private OpenProjectDialog openProjectDialog = new OpenProjectDialog();
     private SceneObjectGroupingWindow objectGroupingWindow;
     private ImGuiIO io;
 
+    // Boolean system for remote toggle additional editor windows from menuBar and such
+    private static ImBoolean _openFileDialog = new ImBoolean(false);
 
+
+
+    public static void set_openFileDialog(ImBoolean _openFileDialog) {
+        ImGuiLayer._openFileDialog = _openFileDialog;
+    }
+
+    public static ImBoolean get_openFileDialog() {
+        return _openFileDialog;
+    }
+
+    // End boolean section
+
+    // Constructor
     public ImGuiLayer(long glfwWindow, ObjectSelection objectSelection) {
         this.gameViewPort = new GameViewPort();
         this.debugGui = new DebugGui();
@@ -37,6 +54,7 @@ public class ImGuiLayer {
         this.objectGroupingWindow = new SceneObjectGroupingWindow();
     }
 
+    // Initialization im ImGui
     public void initImGui(String glslVer) {
         ImGui.createContext();
         this.io = ImGui.getIO();
@@ -61,6 +79,16 @@ public class ImGuiLayer {
 
             if (gameViewPort.getWantCaptureMouse()) {
                 MouseListener.mouseButtonCallback(w, button, action, mods);
+            }
+        });
+
+        glfwSetScrollCallback(glfwWindow, (w, x, y) -> {
+            if (!io.getWantCaptureMouse() && (Math.abs(x) > 0 || Math.abs(y) > 0)) {
+                ImGui.setWindowFocus(null);
+            }
+
+            if (gameViewPort.getWantCaptureMouse()) {
+                MouseListener.mouseScrollCallback(w, x, y);
             }
         });
 
@@ -121,6 +149,7 @@ public class ImGuiLayer {
         properties.update(dt, currentScene);
         properties.imgui();
         objectGroupingWindow.imgui();
+        openProjectDialog.imgui(_openFileDialog);
 
         //ImGui.showDemoWindow();
         glBindFramebuffer(GL_FRAMEBUFFER, 0);

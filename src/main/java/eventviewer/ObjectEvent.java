@@ -3,7 +3,6 @@ package eventviewer;
 import TCB_Field.GameObject;
 import eventviewer.event.Event;
 
-public interface EventViewer {
+public interface ObjectEvent {
     void whenNotice(GameObject object, Event event);
-
 }

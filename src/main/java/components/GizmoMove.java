@@ -13,8 +13,10 @@ public class GizmoMove extends Gizmo {
         if (activeGameObj != null) {
             if (xActiveDrag && !yActiveDrag) {
                 activeGameObj.transform.position.x -= MouseListener.getCursorTraverse().x;
+                //System.out.println("Requested move on X axis");
             } else if (yActiveDrag) {
                 activeGameObj.transform.position.y -= MouseListener.getCursorTraverse().y;
+                //System.out.println("Requested move on Y axis");
             }
         }
 

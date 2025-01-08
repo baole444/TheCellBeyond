@@ -1,0 +1,59 @@
+package editor;
+
+import TCB_Field.ImGuiLayer;
+import imgui.ImGui;
+import imgui.extension.imguifiledialog.ImGuiFileDialog;
+import imgui.extension.imguifiledialog.callback.ImGuiFileDialogPaneFun;
+import imgui.extension.imguifiledialog.flag.ImGuiFileDialogFlags;
+import imgui.type.ImBoolean;
+
+import java.util.Map;
+
+public class OpenProjectDialog {
+    private static final String _openProject = "open-project-key";
+    private static Map<String, String> selection = null;
+    private static long userData = 0;
+    private static ImGuiFileDialogPaneFun callback = new ImGuiFileDialogPaneFun() {
+        @Override
+        public void accept(String filter, long userData, boolean canContinue) {
+            ImGui.text("Filter: " + filter);
+        }
+    };
+
+    public void imgui(ImBoolean _openFileDialog) {
+        if (!_openFileDialog.get()) return;
+
+        ImGui.begin("Open a project");
+
+        ImGuiFileDialog.openDialog(_openProject,
+                "Choose Project file", ".tcb",
+                ".", callback,
+                250,
+                1,
+                42,
+                ImGuiFileDialogFlags.None);
+
+        if (ImGuiFileDialog.display(_openProject, ImGuiFileDialogFlags.None,
+                200, 400, 800, 600)) {
+            if (ImGuiFileDialog.isOk()) {
+                selection = ImGuiFileDialog.getSelection();
+                userData = ImGuiFileDialog.getUserDatas();
+            }
+
+            if (selection != null && !selection.isEmpty()) {
+                System.out.println("Selected: " + selection.values().stream().findFirst().get());
+                System.out.println("User data: " + userData);
+            }
+
+            ImGuiLayer.set_openFileDialog(new ImBoolean(false));
+            ImGuiFileDialog.close();
+        }
+
+        if (selection != null && !selection.isEmpty()) {
+            ImGui.text("Selected: " + selection.values().stream().findFirst().get());
+            ImGui.text("User data: " + userData);
+        }
+
+        ImGui.end();
+    }
+}

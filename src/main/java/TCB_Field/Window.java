@@ -2,9 +2,8 @@ package TCB_Field;
 
 import editor.Properties;
 import eventviewer.EventSystem;
-import eventviewer.EventViewer;
+import eventviewer.ObjectEvent;
 import eventviewer.event.Event;
-import eventviewer.event.EventType;
 import imgui.ImGui;
 import org.joml.Vector2i;
 import org.lwjgl.Version;
@@ -20,7 +19,6 @@ import scene.SceneInit;
 import utility.AssetsPool;
 import utility.ExitConfirmDialog;
 
-import javax.swing.*;
 import java.awt.*;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
@@ -28,7 +26,7 @@ import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
-public class Window implements EventViewer {
+public class Window implements ObjectEvent {
     private int width;
     private int height;
     private String title;

@@ -93,7 +93,7 @@ public class StateEngine extends Component{
     }
 
     @Override
-    public void updateEditor(float dt) {
+    public void editorUpdate(float dt) {
         if (instState != null) {
             instState.update(dt);
             SpriteRender spriteRender = gameObject.getComponent(SpriteRender.class);

@@ -1,17 +1,19 @@
 package editor;
 
+import TCB_Field.ImGuiLayer;
 import eventviewer.EventSystem;
 import eventviewer.event.Event;
 import eventviewer.event.EventType;
 import imgui.ImGui;
-import imgui.flag.ImGuiSelectableFlags;
 import imgui.internal.flag.ImGuiItemFlags;
 import imgui.type.ImBoolean;
 import utility.ExitConfirmDialog;
 
 public class MenuBar {
+    private OpenProjectDialog openProjectDialog = new OpenProjectDialog();
     private static boolean mode[] = new boolean[] {true, false, false};
     private ExitConfirmDialog exitConfirmDialog = new ExitConfirmDialog();
+
     public void imgui() {
 
         ImGui.beginMenuBar();
@@ -23,6 +25,10 @@ public class MenuBar {
 
             if (ImGui.menuItem("Open", "Ctrl+O")) {
                 EventSystem.notice(null, new Event(EventType.LevelLoad));
+            }
+
+            if (ImGui.menuItem("Open Project")) {
+                ImGuiLayer.set_openFileDialog(new ImBoolean(true));
             }
 
             ImGui.endMenu();

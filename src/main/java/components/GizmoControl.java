@@ -32,11 +32,19 @@ public class GizmoControl extends Component {
 
 
         // Make keybind of Shift + S = scale | Shift + T = translate
-        if ((KeyListener.isKeyPressed(GLFW_KEY_LEFT_SHIFT) || KeyListener.isKeyPressed(GLFW_KEY_RIGHT_SHIFT)) && KeyListener.isKeyPressed(GLFW_KEY_T)) {
+        if (KeyListener.isKeyPressed(GLFW_KEY_T, GLFW_MOD_SHIFT)) {
             isGizUse = 0;
-        } else if ((KeyListener.isKeyPressed(GLFW_KEY_LEFT_SHIFT) || KeyListener.isKeyPressed(GLFW_KEY_RIGHT_SHIFT)) && KeyListener.isKeyPressed(GLFW_KEY_S)) {
+            //System.out.println("Using move gizmo");
+        } else if (KeyListener.isKeyPressed(GLFW_KEY_S, GLFW_MOD_SHIFT)) {
             isGizUse = 1;
+            //System.out.println("using scale gizmo");
         }
+
+        //if (KeyListener.isKeyPressed(GLFW_KEY_T)) {
+        //    isGizUse = 0;
+        //} else if (KeyListener.isKeyPressed(GLFW_KEY_S)) {
+        //    isGizUse = 1;
+        //}
 
     }
 }
