@@ -1,9 +1,6 @@
 package scene;
 
-import TCB_Field.GameObjDeSerializer;
-import TCB_Field.GameObject;
-import TCB_Field.Transform;
-import TCB_Field.Viewport;
+import TCB_Field.*;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import components.CompDeSerializer;
@@ -16,9 +13,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_P;
+import static org.lwjgl.glfw.GLFW.GLFW_MOD_CONTROL;
 
 public class Scene {
     private Renderer renderer;
@@ -89,11 +87,20 @@ public class Scene {
     public void editorUpdate(float dt) {
         this.viewport.adjustProjection();
 
+        // log the list of game object
+        //if (KeyListener.isKeyPressed(GLFW_KEY_P, GLFW_MOD_CONTROL)) {
+        //    logGameObjects();
+        //}
+
         for (int i = 0; i < gameObjects.size(); i++) {
             GameObject go = gameObjects.get(i);
             go.editorUpdate(dt);
 
             if (go.isGone()) {
+                // Debug output
+                //System.out.println("Current size of Object list is " + gameObjects.size());
+                //System.out.println("A request to end an object's rendering is called at position: " + i + " This one is from updateEditor.\n > Object uid is " + go.loadUid());
+
                 gameObjects.remove(i);
                 this.renderer.destroyObject(go);
                 this.flatPhysic.destroyObject(go);
@@ -112,6 +119,7 @@ public class Scene {
             go.update(dt);
 
             if (go.isGone()) {
+                System.out.println("A request to end an object's rendering is called at position: " + i + " This one is from update");
                 gameObjects.remove(i);
                 this.renderer.destroyObject(go);
                 this.flatPhysic.destroyObject(go);
@@ -138,6 +146,15 @@ public class Scene {
         obj.transform = obj.getComponent(Transform.class);
 
         return obj;
+    }
+
+    public void logGameObjects() {
+        System.out.println("Logging all game objects");
+        List<GameObject> allObj = getGameObject();
+        Collections.sort(allObj, Comparator.comparingInt(GameObject::loadUid));
+
+        allObj.forEach(go -> System.out.println(go));
+        System.out.println("\n");
     }
 
     public void saveLevel() {

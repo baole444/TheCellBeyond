@@ -14,14 +14,16 @@ A Java-based game editor with project compile ability, code auto-generation, and
 
 
 ## Problems need attention:
-- [ ] When placing an object, there is ghosting left behind.
-- [ ] When deleting an object, the deleted object is not displayed correctly
+- [X] When placing an object, there is ghosting left behind.
+- [X] When deleting an object, the deleted object is not displayed correctly.
 
 Both mentioned problems require user to reload the file. Suspected to be caused by leftover object in memory.
 
+__Update:__ The incorrectly removed item is caused by render batch mark incorrect sprite for update call.
+
 ## Additional maintenance:
 - Update ImGui to [latest release](https://github.com/SpaiR/imgui-java/releases).
- 
+
 ## Current work:
 - [ ] Project system.
 - [ ] Dynamically loaded assets.

@@ -7,6 +7,10 @@ import org.joml.Vector4f;
 
 import static org.lwjgl.glfw.GLFW.*;
 
+/**
+ * A class dedicated to handle gizmo selection and activity, so as its position and appearance.
+ * For handling gizmo's type and movement, see {@link GizmoControl}.
+ */
 public class Gizmo extends Component {
     private final Vector4f resetColor = new Vector4f(0, 0, 0 , 0);
     private final Vector4f xAxisColor = new Vector4f(0.7f, 0.2f, 0.2f, 1.0f);
@@ -69,6 +73,7 @@ public class Gizmo extends Component {
         }
     }
 
+    // TODO: Move this to its own "keyCtrl" class similar to MouseCtrl
     @Override
     public void editorUpdate(float dt) {
         if (!isUsed) return;

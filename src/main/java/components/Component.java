@@ -11,6 +11,10 @@ import org.joml.Vector4f;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
+/**
+ * An abstraction of components for {@link GameObject} and some editor's components.
+ * Also handle Editor's properties related functions.
+ */
 public abstract class Component {
     private static int ID_COUNTER = 0;
     private int uID = -1;
@@ -100,10 +104,10 @@ public abstract class Component {
 
     private <T extends Enum<T>> String[] loadEnumVal(Class<T> enumType) {
         /*
-            Type T is a type that extend enum.
-            This type need to be an enum.
+            Type T is a type that extends enum.
+            This type needs to be an enum.
             We want to get a class that is type T.
-            This restricted the function to only be use only when type is enum.
+            This restricted the function to only be used only when type is enum.
          */
         String[] enumVal = new String[enumType.getEnumConstants().length];
         int i = 0;
@@ -114,7 +118,7 @@ public abstract class Component {
         return enumVal;
     }
 
-    // Loop to find match string and return it's index.
+    // Loop to find match string and return its index.
     private int indexOf(String str, String[] a) {
         for (int i = 0; i <a.length; i++) {
             if (str.equals(a[i])) {

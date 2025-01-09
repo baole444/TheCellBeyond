@@ -5,6 +5,10 @@ import TCB_Field.Window;
 
 import static org.lwjgl.glfw.GLFW.*;
 
+/**
+ * A class dedicated to handling Editor's gizmo system.
+ * Handle gizmo's type and keybindings.
+ */
 public class GizmoControl extends Component {
     private SpriteSheet gizmo;
     private int isGizUse = 0;
@@ -17,7 +21,6 @@ public class GizmoControl extends Component {
     public void start() {
         gameObject.addComponent(new GizmoMove(gizmo.spriteIndex(1), Window.loadImGui().loadProperties()));
         gameObject.addComponent(new GizmoScale(gizmo.spriteIndex(2), Window.loadImGui().loadProperties()));
-
     }
 
     @Override
@@ -29,7 +32,6 @@ public class GizmoControl extends Component {
             gameObject.getComponent(GizmoMove.class).setUnUse();
             gameObject.getComponent(GizmoScale.class).setUse();
         }
-
 
         // Make keybind of Shift + S = scale | Shift + T = translate
         if (KeyListener.isKeyPressed(GLFW_KEY_T, GLFW_MOD_SHIFT)) {

@@ -21,7 +21,7 @@ public class LevelEditorSceneInit extends SceneInit {
     @Override
     public void init(Scene scene) {
 
-        sprites = AssetsPool.loadSpSheet("assets/texture/Main char.png");
+        sprites = AssetsPool.loadSpSheet("assets/texture/test objects.png");
         gizmo = AssetsPool.loadSpSheet("assets/texture/Gizmo.png");
 
         levelEditorObject = scene.generateObject("Editor");
@@ -39,8 +39,8 @@ public class LevelEditorSceneInit extends SceneInit {
     public void loadResource(Scene scene) {
         AssetsPool.loadShader("assets/shaders/default.glsl");
 
-        AssetsPool.addSpSheet("assets/texture/Main char.png",
-                new SpriteSheet(AssetsPool.loadTexture("assets/texture/Main char.png"),
+        AssetsPool.addSpSheet("assets/texture/test objects.png",
+                new SpriteSheet(AssetsPool.loadTexture("assets/texture/test objects.png"),
                         16, 16, 13, 16)
         );
 

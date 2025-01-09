@@ -3,6 +3,9 @@ package components;
 import org.joml.Vector2f;
 import render.Texture;
 
+/**
+ * A class dedicated to processing a sprite's texture orientation and dimension.
+ */
 public class Sprite {
     private float width, height;
     private Texture texture = null;

@@ -6,6 +6,7 @@ import components.SpriteRender;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
+import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,10 +18,12 @@ import static org.lwjgl.opengl.GL30.glGenVertexArrays;
 
 public class Batch implements Comparable<Batch> {
 
-    private final int MAX_TEX_BATCH = 8;
+    // Define how much texture each batch can have.
+    // By default, is 8, will change on the limitation of the hardware.
+    private int MAX_TEX_BATCH = 8;
     //Vertices
 
-    //Position      Color               Coordinate          TexID
+    //Position       Color              Coordinate          TexID
     //f, f,          f, f, f, f,        f, f,               f
 
     private final int POS_SIZE = 2;
@@ -51,6 +54,12 @@ public class Batch implements Comparable<Batch> {
     private  int zIndex;
 
     public Batch(int maxBatchSize, int zIndex, Renderer renderer) {
+        int _trueLimit = GL11.glGetInteger(GL_MAX_TEXTURE_IMAGE_UNITS);
+        System.out.println("Possible texture limit per batch is " + _trueLimit + " (Using " + MAX_TEX_BATCH+ "/" + _trueLimit + ")");
+        if (MAX_TEX_BATCH > _trueLimit) {
+            System.out.println("Encounter texture limit! " + "(Asking " + MAX_TEX_BATCH + "/" + _trueLimit + ")\nSetting new limit...");
+            this.MAX_TEX_BATCH = _trueLimit;
+        }
         this.renderer = renderer;
         this.zIndex = zIndex;
         this.sprites = new SpriteRender[maxBatchSize];
@@ -176,11 +185,16 @@ public class Batch implements Comparable<Batch> {
             if (sprites[i] == spriteRender) {
 
                 // [1, 2, 3, 4, 5, 6, ...]
-                // Remove object 3 -> override 3 with 4 and move all stack up
-                for (int j = 1; j < countSprite - 1; j++) {
+                // Remove object 3 -> override 3 with 4 and move all stack up.
+                // Start moving the stack at position i, where the old sprite is supposed to be disposed
+                for (int j = i; j < countSprite - 1; j++) {
+                    // override the previous sprite with the next sprite in the stack
                     sprites[j] = sprites[j + 1];
+
+                    // Set damage to signal update on the moved up sprites.
                     sprites[j].setDamage();
                 }
+                // reduce stack size each time a sprite is removed
                 countSprite --;
                 return true;
             }
@@ -192,7 +206,7 @@ public class Batch implements Comparable<Batch> {
     private void loadVertexProp(int index) {
         SpriteRender spt = this.sprites[index];
 
-        // Set offset in array (4/spt)
+        // Set offset in the array (4/spt)
         int offset = index * 4 * VERTEX_SIZE;
 
         Vector4f color = spt.loadColor();

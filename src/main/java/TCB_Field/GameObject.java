@@ -141,4 +141,12 @@ public class GameObject {
     public boolean isSerialize() {
         return this.isSerialize;
     }
+
+    @Override
+    public String toString() {
+        return "Name: " + this.name +
+                "\n  uID: " + this.uID +
+                "\n  isSerialize: " + this.isSerialize +
+                "\n  isGone: " + this.isGone;
+    }
 }

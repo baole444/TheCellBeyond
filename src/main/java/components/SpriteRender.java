@@ -6,6 +6,9 @@ import org.joml.Vector2f;
 import org.joml.Vector4f;
 import render.Texture;
 
+/**
+ * A class dedicated to rendering a sprite and it's life cycle.
+ */
 public class SpriteRender extends Component {
 
     private Vector4f color = new Vector4f(1, 1, 1 , 1);

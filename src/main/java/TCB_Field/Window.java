@@ -281,7 +281,6 @@ public class Window implements IEvent {
             endTime = (float)glfwGetTime();
             dt = endTime - beginTime;
             beginTime = endTime;
-
         }
     }
 
@@ -318,6 +317,8 @@ public class Window implements IEvent {
             case LevelSave:
                 currentScene.saveLevel();
                 System.out.println("Saving current level...");
+            case LoadProject:
+                System.out.println(object);
         }
     }
 }

@@ -3,6 +3,9 @@ package components;
 import TCB_Field.MouseListener;
 import editor.Properties;
 
+/**
+ * Gizmo used for moving an object around in the editor.
+ */
 public class GizmoMove extends Gizmo {
     public GizmoMove(Sprite arrowSprite, Properties properties) {
         super(arrowSprite, properties);

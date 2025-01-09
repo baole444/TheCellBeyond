@@ -1,10 +1,14 @@
 package editor;
 
+import TCB_Field.GameObject;
 import TCB_Field.MouseListener;
 import imgui.ImGui;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 import render.DebugDraw;
+import scene.Scene;
+
+import java.util.List;
 
 import static TCB_Field.MouseListener.mouseButtonDown;
 import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_RIGHT;
@@ -17,7 +21,9 @@ public class DebugGui {
     private boolean[] showContent = new boolean[] {false, false, false, false, false, false};
     public void imgui(){
         printDebug = GameViewPort.debugOutput();
-        ImGui.begin("Debug Viewport stat");
+        ImGui.begin("Debug Tools set");
+
+        ImGui.text("= Viewport statistic =====");
 
         if (ImGui.button("Statistic")) {
             showContent[0] = true;
@@ -37,6 +43,7 @@ public class DebugGui {
 
         }
 
+        ImGui.text("==========================");
 
         if (ImGui.button("Debug tool")) {
             showContent[1] = true;
@@ -121,9 +128,10 @@ public class DebugGui {
                 }
                 ImGui.text("    Traverse (x|y): " + "(" +MouseListener.getCursorTraverse().x +"|"+MouseListener.getCursorTraverse().y+")");
             }
-
-
         }
+
+        ImGui.text("\n==========================");
+
         ImGui.end();
     }
 }

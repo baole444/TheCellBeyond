@@ -6,6 +6,10 @@ import render.Texture;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A class dedicated to handle sprite sheet details.
+ * Handle the separation of the sheet into individual sprites and indexing them.
+ */
 public class SpriteSheet {
     private Texture texture;
     private List<Sprite> sprites;

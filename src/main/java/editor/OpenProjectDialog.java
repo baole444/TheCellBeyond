@@ -34,9 +34,9 @@ public class OpenProjectDialog {
                 250,
                 1,
                 42,
-                ImGuiFileDialogFlags.None);
+                ImGuiFileDialogFlags.DisableCreateDirectoryButton);
 
-        if (ImGuiFileDialog.display(_openProject, ImGuiFileDialogFlags.None,
+        if (ImGuiFileDialog.display(_openProject, ImGuiFileDialogFlags.DisableCreateDirectoryButton,
                 200, 400, 800, 600)) {
             if (ImGuiFileDialog.isOk()) {
                 selection = ImGuiFileDialog.getSelection();
