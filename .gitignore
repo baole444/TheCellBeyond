@@ -45,6 +45,6 @@ bin/
 /imgui.ini
 .idea/kotlinc.xml
 .idea/uiDesigner.xml
-level.tcb
+*.tcb
 Pref/closeConfirm.config
 *.log

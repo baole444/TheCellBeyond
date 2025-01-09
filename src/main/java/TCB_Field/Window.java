@@ -2,7 +2,7 @@ package TCB_Field;
 
 import editor.Properties;
 import eventviewer.EventSystem;
-import eventviewer.ObjectEvent;
+import eventviewer.IEvent;
 import eventviewer.event.Event;
 import imgui.ImGui;
 import org.joml.Vector2i;
@@ -26,7 +26,7 @@ import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
-public class Window implements ObjectEvent {
+public class Window implements IEvent {
     private int width;
     private int height;
     private String title;
@@ -298,7 +298,7 @@ public class Window implements ObjectEvent {
     }
 
     @Override
-    public void whenNotice(GameObject object, Event event) {
+    public void whenNotice(Object object, Event event) {
         switch (event.type) {
             case EngineStart:
                 this.runtimeMode = true;

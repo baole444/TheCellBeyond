@@ -1,6 +1,9 @@
 package editor;
 
 import TCB_Field.ImGuiLayer;
+import eventviewer.EventSystem;
+import eventviewer.event.Event;
+import eventviewer.event.EventType;
 import imgui.ImGui;
 import imgui.extension.imguifiledialog.ImGuiFileDialog;
 import imgui.extension.imguifiledialog.callback.ImGuiFileDialogPaneFun;
@@ -41,17 +44,15 @@ public class OpenProjectDialog {
             }
 
             if (selection != null && !selection.isEmpty()) {
-                System.out.println("Selected: " + selection.values().stream().findFirst().get());
-                System.out.println("User data: " + userData);
+                //System.out.println("Selected: " + selection.values().stream().findFirst().get());
+                //System.out.println("User data: " + userData);
+                String path = selection.values().stream().findFirst().get();
+                EventSystem.notice(path, new Event(EventType.LoadProject));
+
             }
 
             ImGuiLayer.set_openFileDialog(new ImBoolean(false));
             ImGuiFileDialog.close();
-        }
-
-        if (selection != null && !selection.isEmpty()) {
-            ImGui.text("Selected: " + selection.values().stream().findFirst().get());
-            ImGui.text("User data: " + userData);
         }
 
         ImGui.end();

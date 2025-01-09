@@ -78,8 +78,7 @@ public class Gizmo extends Component {
         if (this.activeGameObj != null) {
             this.setActiveObj();
 
-            if (KeyListener.isKeyPressed(GLFW_KEY_LEFT_CONTROL) &&
-            KeyListener.isKeyTapped(GLFW_KEY_D)) {
+            if (KeyListener.isKeyPressed(GLFW_KEY_D, GLFW_MOD_CONTROL)) {
                 GameObject newObj = this.activeGameObj.copy();
                 Window.getScene().addObjToScene(newObj);
                 newObj.transform.position.add(0.16f, 0.16f);
@@ -96,7 +95,7 @@ public class Gizmo extends Component {
             return;
         }
 
-        // Update if gizmo is being hover.
+        // Update if gizmo is being hovered.
         boolean xAxisHover = isHoverX();
         boolean yAxisHover = isHoverY();
 
@@ -125,7 +124,6 @@ public class Gizmo extends Component {
     }
 
     private void setInactiveObj() {
-        this.activeGameObj = null;
         this.xAxisSpr.setColor(resetColor);
         this.yAxisSpr.setColor(resetColor);
     }
