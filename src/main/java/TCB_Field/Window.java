@@ -1,5 +1,6 @@
 package TCB_Field;
 
+import editor.Project;
 import editor.Properties;
 import eventviewer.EventSystem;
 import eventviewer.IEvent;
@@ -319,6 +320,8 @@ public class Window implements IEvent {
                 System.out.println("Saving current level...");
             case LoadProject:
                 System.out.println(object);
+                Project project = Project.loadFromYaml(object.toString());
+                System.out.println(project.toString());
         }
     }
 }

@@ -71,6 +71,7 @@ public class Gizmo extends Component {
         if (isUsed) {
             this.setInactiveObj();
         }
+        this.setInactiveObj();
     }
 
     // TODO: Move this to its own "keyCtrl" class similar to MouseCtrl

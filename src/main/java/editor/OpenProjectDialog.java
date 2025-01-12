@@ -29,7 +29,7 @@ public class OpenProjectDialog {
         ImGui.begin("Open a project");
 
         ImGuiFileDialog.openDialog(_openProject,
-                "Choose Project file", ".tcb",
+                "Choose Project file", ".yml",
                 ".", callback,
                 250,
                 1,
