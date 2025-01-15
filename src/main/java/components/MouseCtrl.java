@@ -38,7 +38,7 @@ public class MouseCtrl extends Component {
             this.holdObj.destroy();
         }
         this.holdObj = obj;
-        this.holdObj.getComponent(SpriteRender.class).setColor(new Vector4f(1f, 1f, 1f, 0.5f));
+        this.holdObj.getComponent(SpriteRender.class).setColor(new Vector4f(1f, 1f, 1f, 0.35f));
         this.holdObj.addComponent(new IsNotSelectable());
 
         // A fake object uses to illustrate targeted position (a preview).

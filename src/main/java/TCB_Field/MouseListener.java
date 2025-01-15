@@ -142,6 +142,7 @@ public class MouseListener {
         return getWorld().y;
     }
 
+    // raw mouse coordinate to world normalization coordinate
     public static Vector2f getWorld() {
         float currentX = getX() - get().workViewportPos.x;
         currentX = (2.0f * (currentX / get().workViewportSize.x)) - 1.0f;
@@ -156,8 +157,11 @@ public class MouseListener {
         Matrix4f inverseProjection = new Matrix4f(camera.getInverseProject());
 
         tmp.mul(inverseView.mul(inverseProjection));
+
+        // reserved for traverse calculation
         get().worldCurrentX = tmp.x;
         get().worldCurrentY = tmp.y;
+
         return new Vector2f(tmp.x, tmp.y);
     }
     //--------------------------------------------------------------------

@@ -5,9 +5,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import components.CompDeSerializer;
 import components.Component;
+import editor.Project;
 import org.joml.Vector2f;
 import physic_2d.FlatPhysic;
 import render.Renderer;
+import utility.PathResolver;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -15,6 +17,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 
+import static editor.Project.CurrentProject;
+import static editor.Project.ProjectRoot;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_P;
 import static org.lwjgl.glfw.GLFW.GLFW_MOD_CONTROL;
 
@@ -119,7 +123,7 @@ public class Scene {
             go.update(dt);
 
             if (go.isGone()) {
-                System.out.println("A request to end an object's rendering is called at position: " + i + " This one is from update");
+                //System.out.println("A request to end an object's rendering is called at position: " + i + " This one is from update");
                 gameObjects.remove(i);
                 this.renderer.destroyObject(go);
                 this.flatPhysic.destroyObject(go);
@@ -158,6 +162,14 @@ public class Scene {
     }
 
     public void saveLevel() {
+        String currentSceneName = Window.getCurrentSceneName();
+        String resolvedPath;
+        if (currentSceneName != null) {
+            resolvedPath = PathResolver.resolveRelative(ProjectRoot, CurrentProject.getScenes().get(currentSceneName).getPath());
+        } else {
+            resolvedPath = "untitled.cell";
+        }
+
         Gson gson = new GsonBuilder()
                 .setPrettyPrinting()
                 .registerTypeAdapter(Component.class, new CompDeSerializer())
@@ -165,7 +177,7 @@ public class Scene {
                 .create();
 
         try {
-            FileWriter writer = new FileWriter("level.tcb");
+            FileWriter writer = new FileWriter(resolvedPath);
             List<GameObject> serializeList = new ArrayList<>();
             for (GameObject obj : this.gameObjects) {
                 if (obj.isSerialize()) {
@@ -183,6 +195,14 @@ public class Scene {
     }
 
     public void loadLevel() {
+        String currentSceneName = Window.getCurrentSceneName();
+        String resolvedPath;
+        if (currentSceneName != null) {
+            resolvedPath = PathResolver.resolveRelative(ProjectRoot, CurrentProject.getScenes().get(currentSceneName).getPath());
+        } else {
+            resolvedPath = "untitled.cell";
+        }
+
         Gson gson = new GsonBuilder()
                 .setPrettyPrinting()
                 .registerTypeAdapter(Component.class, new CompDeSerializer())
@@ -191,7 +211,7 @@ public class Scene {
 
         String loadFile = "";
         try {
-            loadFile = new String(Files.readAllBytes(Paths.get("level.tcb")));
+            loadFile = new String(Files.readAllBytes(Paths.get(resolvedPath)));
         } catch (IOException e) {
             //e.printStackTrace();
             System.out.println("No level file found, generating new file...");

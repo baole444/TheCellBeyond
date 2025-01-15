@@ -9,7 +9,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
-public class StateEngine extends Component{
+public class StateEngine extends Component {
+    // Use for trigger a state
     private class StateCondition {
         public String state;
         public String condition;

@@ -24,6 +24,8 @@ import java.awt.*;
 import java.util.List;
 import java.util.Map;
 
+import static editor.Project.CurrentProject;
+import static editor.Project.ProjectRoot;
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
@@ -37,6 +39,7 @@ public class Window implements IEvent {
     public float r, g, b, a;
     private static Window window = null; // start with no window
     private static Scene currentScene;
+    private static String currentSceneName;
     private boolean runtimeMode = false; //Run without editor (release) or not
 
     private String glslVer = null;
@@ -304,6 +307,14 @@ public class Window implements IEvent {
         return get().imGuiLayer;
     }
 
+    public static String getCurrentSceneName() {
+        return currentSceneName;
+    }
+
+    public static void setCurrentSceneName(String currentSceneName) {
+        Window.currentSceneName = currentSceneName;
+    }
+
     @Override
     public void whenNotice(Object object, Event event) {
         switch (event.type) {
@@ -329,6 +340,13 @@ public class Window implements IEvent {
             case LoadProject:
                 System.out.println(object);
 
+                Project.loadFromYaml(object.toString());
+
+                String projectDetail = " - [" + CurrentProject.getProject().getName() + "] [" + ProjectRoot + "]";
+
+                glfwSetWindowTitle(glfwWindow, this.title + projectDetail);
+
+                /*
                 Project project = Project.loadFromYaml(object.toString());
                 System.out.println(project.toString());
 
@@ -365,6 +383,20 @@ public class Window implements IEvent {
                     }
                     System.out.println("\n");
                 }
+                */
+                break;
+            case LoadScene:
+                if (this.runtimeMode) {
+                    this.runtimeMode = false;
+                }
+                String sceneName = (String) object;
+
+                setCurrentSceneName(sceneName);
+
+                Window.changeScene(new LevelEditorSceneInit(sceneName));
+
+                System.out.println("Requested to load Scene: " + sceneName);
+
                 break;
         }
     }

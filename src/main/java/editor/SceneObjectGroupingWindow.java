@@ -22,20 +22,6 @@ public class SceneObjectGroupingWindow {
 
             boolean openTreeNode = executeTreeNode(obj, index);
 
-            if (ImGui.beginDragDropTarget()) {
-                Object payloadObj = ImGui.acceptDragDropPayload(GROUPING_PAYLOAD);
-
-                // Fallback check ensure.
-                if (payloadObj != null) {
-                    if (payloadObj.getClass().isAssignableFrom(GameObject.class)) {
-                        GameObject userGameObj = (GameObject)payloadObj;
-                        System.out.println("Drop successfully: " + userGameObj.name);
-                    }
-
-                }
-                ImGui.endDragDropTarget();
-            }
-
             if (openTreeNode) {
                 ImGui.treePop();
             }
@@ -72,10 +58,23 @@ public class SceneObjectGroupingWindow {
             ImGui.text(obj.name);
             // Can add more code to this
 
-
-
             //
             ImGui.endDragDropSource();
+        }
+
+        if (ImGui.beginDragDropTarget()) {
+            Object payloadObj = ImGui.acceptDragDropPayload(GROUPING_PAYLOAD);
+
+            if (payloadObj != null) {
+                if (payloadObj.getClass().isAssignableFrom(GameObject.class)) {
+                    GameObject go = (GameObject) payloadObj;
+                    System.out.println("Dropping uId " + go.loadUid() + " with name '" + go.name + "'");
+                    System.out.println("Accepting target uId " + obj.loadUid() + " with name '" + obj.name + "'");
+
+                }
+            }
+
+            ImGui.endDragDropTarget();
         }
 
         return openTreeNode;

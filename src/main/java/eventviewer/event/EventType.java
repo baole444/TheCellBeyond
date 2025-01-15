@@ -6,5 +6,6 @@ public enum EventType {
     LevelSave,
     LevelLoad,
     LoadProject,
+    LoadScene,
     UserEvent,
 }

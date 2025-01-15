@@ -9,6 +9,10 @@ import imgui.internal.flag.ImGuiItemFlags;
 import imgui.type.ImBoolean;
 import utility.ExitConfirmDialog;
 
+import java.util.List;
+
+import static editor.Project.CurrentProject;
+
 public class MenuBar {
     private OpenProjectDialog openProjectDialog = new OpenProjectDialog();
     private static boolean mode[] = new boolean[] {true, false, false};
@@ -35,7 +39,7 @@ public class MenuBar {
         }
         if (ImGui.beginMenu("Workspace")) {
             if (ImGui.beginMenu("Editor Theme")) {
-                ImGui.text("Waiting on next ImGui fork\nto update new function\nto expose ItemFlag\nto menuItem().");
+                //ImGui.text("Waiting on next ImGui fork\nto update new function\nto expose ItemFlag\nto menuItem().");
                 ImGui.newLine();
                 if (ImGui.menuItem(" Dark mode ", "   ", mode[1])) {
                     mode[1] = false;
@@ -59,6 +63,27 @@ public class MenuBar {
 
             ImGui.endMenu();
         }
+
+        if (CurrentProject != null && !CurrentProject.getSceneNames().isEmpty()) {
+            if (ImGui.beginMenu("Scenes")){
+
+                if (ImGui.beginMenu("Select scene")) {
+                    List<String> sceneNameList = CurrentProject.getSceneNames();
+
+                    for (String name : sceneNameList) {
+                        if (ImGui.menuItem(name)) {
+                            EventSystem.notice(name, new Event(EventType.LoadScene));
+                        }
+                    }
+
+                    ImGui.endMenu();
+                }
+
+                ImGui.endMenu();
+            }
+
+        }
+
         ImGui.popID();
         ImGui.endMenuBar();
     }

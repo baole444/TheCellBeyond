@@ -1,18 +1,28 @@
 package editor;
 
 import org.yaml.snakeyaml.Yaml;
+import utility.PathResolver;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+// TODO: find a way to combine the project's root with relative path in project file.
 public class Project {
     private String version;
     private ProjectInfo project;
     private Map<String, projectAssetMap> assets;
     private Map<String, projectSheetMap> sheets;
     private Map<String, projectSceneMap> scenes;
+    private List<String> sceneNames = new ArrayList<>();
+
+    public static Project CurrentProject;
+    public static String ProjectRoot;
+
 
     public String getVersion() {
         return version;
@@ -54,6 +64,14 @@ public class Project {
         this.scenes = scenes;
     }
 
+    public List<String> getSceneNames() {
+        return sceneNames;
+    }
+
+    public void setSceneNames(List<String> sceneNames) {
+        this.sceneNames = sceneNames;
+    }
+
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
@@ -85,6 +103,8 @@ public class Project {
 
     public static class projectAssetMap {
         private String path;
+        private int sizeX;
+        private int sizeY;
 
         public void setPath(String path) {
             this.path = path;
@@ -94,9 +114,29 @@ public class Project {
             return path;
         }
 
+        public int getSizeX() {
+            return sizeX;
+        }
+
+        public void setSizeX(int sizeX) {
+            this.sizeX = sizeX;
+        }
+
+        public int getSizeY() {
+            return sizeY;
+        }
+
+        public void setSizeY(int sizeY) {
+            this.sizeY = sizeY;
+        }
+
         @Override
         public String toString() {
-            return "Asset{path='" + path + "'}";
+            return "Asset{" +
+                    "path='" + path + '\'' +
+                    ", sizeX=" + sizeX +
+                    ", sizeY=" + sizeY +
+                    "}";
         }
     }
 
@@ -212,7 +252,17 @@ public class Project {
         try {
             InputStream inputStream = new FileInputStream(path);
             Yaml yaml = new Yaml();
-            return yaml.loadAs(inputStream, Project.class);
+            CurrentProject = yaml.loadAs(inputStream, Project.class);
+
+            ProjectRoot = PathResolver.toRoot(path);
+
+            if (CurrentProject.getScenes() != null) {
+                List<String> sN = new ArrayList<>(CurrentProject.getScenes().keySet());
+                CurrentProject.setSceneNames(sN);
+            }
+
+            //System.out.println("Root directory is " + ProjectRoot);
+            return CurrentProject;
         } catch (Exception e) {
             e.printStackTrace();
         }

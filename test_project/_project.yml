@@ -1,0 +1,45 @@
+---
+version: 0.0.1
+
+# Do not change version key!
+
+# Some project basic info.
+project:
+  name: Test Project
+
+# Standalone assets file.
+assets:
+  default:
+    path: ./assets/Just_a_placeholder.png
+    sizeX: 64
+    sizeY: 64
+  # more assets
+    
+# Sprite sheet file.
+sheets:
+  test:
+    category: Testing
+    path: ./sheets/test_objects.png
+    count: 13
+    sizeX: 16
+    sizeY: 16
+    padding: 16
+  wheel:
+    category: Annimation
+    path: ./sheets/animation_test.png
+    count: 8
+    sizeX: 32
+    sizeY: 32
+    padding: 16
+  # more sheets
+
+# Scenes
+scenes:
+  test:
+    path: ./scenes/test.cell
+    asset:
+      - 'default'
+    sheet:
+      - 'test'
+      - 'wheel'
+  # more scenes

@@ -14,6 +14,7 @@ import imgui.type.ImString;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import utility.AssetsPool;
+import utility.TextureScale;
 
 import static org.lwjgl.glfw.GLFW.*;
 
@@ -386,25 +387,26 @@ public class ImEditorGui {
 
                 Keep scaling to minimum for compact design and fast calculation
             */
-            float ratioX = 48.0f / sprites.loadWidth();
-            float ratioY = 48.0f /  sprites.loadWidth();
-            if (ratioX >= 1.0f && ratioY >= 1.0f) {
-                if (ratioX < ratioY) {
-                    ratioX = ratioY;
-                } else if (ratioX >= ratioY) {
-                    ratioY = ratioX;
-                }
-            } else if (ratioX < 1.0f && ratioY < 1.0f) {
-                if (ratioX >= ratioY) {
-                    ratioX = ratioY;
-                } else if (ratioX < ratioY) {
-                    ratioY = ratioX;
-                }
-            }
+            //float ratioX = 48.0f / sprites.loadWidth();
+            //float ratioY = 48.0f /  sprites.loadWidth();
+            //if (ratioX >= 1.0f && ratioY >= 1.0f) {
+            //    if (ratioX < ratioY) {
+            //        ratioX = ratioY;
+            //    } else if (ratioX >= ratioY) {
+            //        ratioY = ratioX;
+            //    }
+            //} else if (ratioX < 1.0f && ratioY < 1.0f) {
+            //    if (ratioX >= ratioY) {
+            //        ratioX = ratioY;
+            //    } else if (ratioX < ratioY) {
+            //        ratioY = ratioX;
+            //    }
+            //}
 
+            Vector2f scaledSprite = TextureScale.calculateFitDimension(sprites.loadWidth(), sprites.loadHeight());
 
-            float spriteWidth = sprites.loadWidth() * ratioX;
-            float spriteHeight = sprites.loadHeight() * ratioY;
+            float spriteWidth = scaledSprite.x;
+            float spriteHeight = scaledSprite.y;
             int id = sprites.loadTexId();
 
             Vector2f[] texCoord = sprites.loadTexCrd();
@@ -417,25 +419,38 @@ public class ImEditorGui {
             );
 
             if (ImGui.isItemClicked()) {
-                float rX = 32.0f / sprites.loadWidth();
-                float rY = 32.0f /  sprites.loadWidth();
-                if (rX >= 1.0f && rY >= 1.0f) {
-                    if (rX < rY) {
-                        rX = rY;
-                    } else if (rX >= rY) {
-                        rY = rX;
-                    }
-                } else if (rX < 1.0f && rY < 1.0f) {
-                    if (rX >= ratioY) {
-                        rX = rY;
-                    } else if (rX < rY) {
-                        rY = rX;
-                    }
-                }
-                GameObject obj = Prefab.genSpsObj(sprites, sprites.loadWidth() * rX, sprites.loadHeight() * rY);
+                //float rX = 32.0f / sprites.loadWidth();
+                //float rY = 32.0f /  sprites.loadWidth();
+                //if (rX >= 1.0f && rY >= 1.0f) {
+                //    if (rX < rY) {
+                //        rX = rY;
+                //    } else if (rX >= rY) {
+                //        rY = rX;
+                //    }
+                //} else if (rX < 1.0f && rY < 1.0f) {
+                //    if (rX >= ratioY) {
+                //        rX = rY;
+                //    } else if (rX < rY) {
+                //        rY = rX;
+                //    }
+                //}
+                GameObject obj = Prefab.genSpsObj(sprites, sprites.loadWidth() / 100f, sprites.loadHeight() / 100f);
 
                 // Bind to mouse cursor
                 levelEditorObject.getComponent(MouseCtrl.class).pickObj(obj);
+            }
+
+            if (ImGui.isItemHovered()) {
+                ImGui.beginTooltip();
+
+                ImGui.text("Preview");
+                ImGui.image(id, spriteWidth * 2, spriteHeight * 2,
+                        texCoord[2].x, texCoord[0].y,
+                        texCoord[0].x, texCoord[2].y);
+                ImGui.text("Width: " + sprites.loadWidth());
+                ImGui.text("Height: " + sprites.loadHeight());
+
+                ImGui.endTooltip();
             }
 
             ImGui.popID();
