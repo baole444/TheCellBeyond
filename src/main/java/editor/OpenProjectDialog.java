@@ -19,22 +19,19 @@ public class OpenProjectDialog {
     private static ImGuiFileDialogPaneFun callback = new ImGuiFileDialogPaneFun() {
         @Override
         public void accept(String filter, long userData, boolean canContinue) {
-            ImGui.text("Filter: " + filter);
+            //ImGui.text("Filter: " + filter);
         }
     };
 
     public void imgui(ImBoolean _openFileDialog) {
         if (!_openFileDialog.get()) return;
 
-        ImGui.begin("Open a project");
-
         ImGuiFileDialog.openDialog(_openProject,
                 "Choose Project file", ".yml",
                 ".", callback,
                 250,
                 1,
-                42,
-                ImGuiFileDialogFlags.DisableCreateDirectoryButton);
+                42, ImGuiFileDialogFlags.DisableCreateDirectoryButton);
 
         if (ImGuiFileDialog.display(_openProject, ImGuiFileDialogFlags.DisableCreateDirectoryButton,
                 200, 400, 800, 600)) {
@@ -54,7 +51,5 @@ public class OpenProjectDialog {
             ImGuiLayer.set_openFileDialog(new ImBoolean(false));
             ImGuiFileDialog.close();
         }
-
-        ImGui.end();
     }
 }

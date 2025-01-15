@@ -37,7 +37,17 @@ sheets:
 scenes:
   test1:
     path: ./scenes/test1.cell
+    asset:
+      - 'default'
+    sheet:
+      - 'test'
+      - 'test2'
   test2:
     path: ./scenes/test2.cell
+    asset:
+      - 'default'
+    sheet:
+      - 'test'
+      - 'test2'
   
   # more scenes

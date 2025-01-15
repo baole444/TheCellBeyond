@@ -25,15 +25,15 @@ public class DebugGui {
 
         ImGui.text("= Viewport statistic =====");
 
-        if (ImGui.button("Statistic")) {
-            showContent[0] = true;
+        if (ImGui.button("Toggle statistic")) {
+            if (showContent[0]) {
+                showContent[0] = false;
+            } else {
+                showContent[0] = true;
+            }
         }
 
         if (showContent[0]) {
-            ImGui.sameLine();
-            if (ImGui.button("Hide statistic")) {
-                showContent[0] = false;
-            }
             ImGui.newLine();
             ImGui.text("Viewport size (x | y) : " + printDebug[0] + " | " + printDebug[1]);
             ImGui.text("Viewport position:");
@@ -45,15 +45,15 @@ public class DebugGui {
 
         ImGui.text("==========================");
 
-        if (ImGui.button("Debug tool")) {
-            showContent[1] = true;
+        if (ImGui.button("Toggle Debug tool")) {
+            if (showContent[1]) {
+                showContent[1] = false;
+            } else {
+                showContent[1] = true;
+            }
         }
 
         if (showContent[1]) {
-            ImGui.sameLine();
-            if (ImGui.button("Hide tool")) {
-                showContent[1] = false;
-            }
             ImGui.newLine();
             ImGui.text("  Draw commands:");
             ImGui.newLine();
@@ -97,16 +97,17 @@ public class DebugGui {
             ImGui.text("    Cursor register:");
             ImGui.sameLine();
 
-            if (ImGui.button("Show")) {
-                showContent[2] = true;
-            }
-            ImGui.sameLine();
-            if (showContent[2]) {
-                if (ImGui.button("Hide")) {
+            if (ImGui.button("Toggle")) {
+                if (showContent[2]) {
+                    showContent[2] = false;
                     x = 0;
                     y = 0;
-                    showContent[2] = false;
+                } else {
+                    showContent[2] = true;
                 }
+            }
+
+            if (showContent[2]) {
 
                 x = (int)MouseListener.loadScrX();
                 y = (int)MouseListener.loadScrY();
@@ -130,7 +131,7 @@ public class DebugGui {
             }
         }
 
-        ImGui.text("\n==========================");
+        ImGui.text("==========================");
 
         ImGui.end();
     }

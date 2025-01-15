@@ -21,6 +21,8 @@ import utility.AssetsPool;
 import utility.ExitConfirmDialog;
 
 import java.awt.*;
+import java.util.List;
+import java.util.Map;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
@@ -100,6 +102,11 @@ public class Window implements IEvent {
 
         initWindow();
 
+        String renderer = glGetString(GL_RENDERER);
+        String version = glGetString(GL_VERSION);
+
+        System.out.println("Active GPU: " + renderer + " Driver version: " + version);
+
         loop();
 
         //free memories
@@ -142,7 +149,7 @@ public class Window implements IEvent {
             System.out.println("Failed to spawn window.");
             System.exit(-1);
         }
-        System.out.println("Generating " + this.width + "x" + this.height + " Window: " + this.glfwWindow);
+        System.out.println("Generating Window, dimension: " + this.width + " x " + this.height);
 
         glfwSetCursorPosCallback(glfwWindow, MouseListener::mousePosCallback); // :: is java syntax lambda function
         glfwSetMouseButtonCallback(glfwWindow, MouseListener::mouseButtonCallback);
@@ -318,10 +325,47 @@ public class Window implements IEvent {
             case LevelSave:
                 currentScene.saveLevel();
                 System.out.println("Saving current level...");
+                break;
             case LoadProject:
                 System.out.println(object);
+
                 Project project = Project.loadFromYaml(object.toString());
                 System.out.println(project.toString());
+
+                Map<String, Project.projectSceneMap> sceneMap = project.getScenes();
+                Map<String, Project.projectAssetMap> assetMap = project.getAssets();
+                Map<String, Project.projectSheetMap> sheetMap = project.getSheets();
+                for (Map.Entry<String, Project.projectSceneMap> entry: sceneMap.entrySet()) {
+                    String sceneName = entry.getKey();
+                    Project.projectSceneMap projectSceneMap = entry.getValue();
+
+                    List<String> assetList = projectSceneMap.getAsset();
+                    List<String> sheetList = projectSceneMap.getSheet();
+
+                    System.out.println("Scene name: " + sceneName);
+                    System.out.println("Path: " + projectSceneMap.getPath());
+
+                    System.out.println("Assets:");
+                    for (String asset : assetList) {
+                        Project.projectAssetMap aM = assetMap.get(asset);
+                        System.out.println("  Name: " + asset);
+                        System.out.println("  Path: " + aM.getPath());
+                    }
+
+                    System.out.println("Sheets:");
+                    for (String sheet : sheetList) {
+                        Project.projectSheetMap sM = sheetMap.get(sheet);
+                        System.out.println("  Name: " + sheet);
+                        System.out.println("    Category: "+ sM.getCategory());
+                        System.out.println("    Path: " + sM.getPath());
+                        System.out.println("    Sprite Count: " + sM.getCount());
+                        System.out.println("    sizeX: " + sM.getSizeX() + " pixel(s)");
+                        System.out.println("    sizeY: " + sM.getSizeY() + " pixel(s)");
+                        System.out.println("    Padding: " + sM.getPadding() + " pixel(s)");
+                    }
+                    System.out.println("\n");
+                }
+                break;
         }
     }
 }

@@ -4,14 +4,15 @@ import org.yaml.snakeyaml.Yaml;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Map;
 
 public class Project {
     private String version;
     private ProjectInfo project;
-    private Map<String, Asset> assets;
-    private Map<String, Sheet> sheets;
-    private Map<String, Scene> scenes;
+    private Map<String, projectAssetMap> assets;
+    private Map<String, projectSheetMap> sheets;
+    private Map<String, projectSceneMap> scenes;
 
     public String getVersion() {
         return version;
@@ -29,27 +30,27 @@ public class Project {
         this.project = project;
     }
 
-    public Map<String, Asset> getAssets() {
+    public Map<String, projectAssetMap> getAssets() {
         return assets;
     }
 
-    public void setAssets(Map<String, Asset> assets) {
+    public void setAssets(Map<String, projectAssetMap> assets) {
         this.assets = assets;
     }
 
-    public Map<String, Sheet> getSheets() {
+    public Map<String, projectSheetMap> getSheets() {
         return sheets;
     }
 
-    public void setSheets(Map<String, Sheet> sheets) {
+    public void setSheets(Map<String, projectSheetMap> sheets) {
         this.sheets = sheets;
     }
 
-    public Map<String, Scene> getScenes() {
+    public Map<String, projectSceneMap> getScenes() {
         return scenes;
     }
 
-    public void setScenes(Map<String, Scene> scenes) {
+    public void setScenes(Map<String, projectSceneMap> scenes) {
         this.scenes = scenes;
     }
 
@@ -82,7 +83,7 @@ public class Project {
         }
     }
 
-    public static class Asset {
+    public static class projectAssetMap {
         private String path;
 
         public void setPath(String path) {
@@ -99,7 +100,7 @@ public class Project {
         }
     }
 
-    public static class Sheet {
+    public static class projectSheetMap {
         private String category;
         private String path;
         private int count;
@@ -168,8 +169,10 @@ public class Project {
         }
     }
 
-    public static class Scene {
+    public static class projectSceneMap {
         private String path;
+        private List<String> asset;
+        private List<String> sheet;
 
         public void setPath(String path) {
             this.path = path;
@@ -179,14 +182,35 @@ public class Project {
             return path;
         }
 
+        public List<String> getAsset() {
+            return asset;
+        }
+
+        public void setAsset(List<String> asset) {
+            this.asset = asset;
+        }
+
+        public List<String> getSheet() {
+            return sheet;
+        }
+
+        public void setSheet(List<String> sheet) {
+            this.sheet = sheet;
+        }
+
         @Override
         public String toString() {
-            return "Scene{path='" + path + "'}";
+            return "Scene{" +
+                    "path='" + path + '\'' +
+                    ", asset=" + asset +
+                    ", sheet=" + sheet +
+                    '}';
         }
     }
 
     public static Project loadFromYaml(String path) {
-        try (InputStream inputStream = new FileInputStream(path)) {
+        try {
+            InputStream inputStream = new FileInputStream(path);
             Yaml yaml = new Yaml();
             return yaml.loadAs(inputStream, Project.class);
         } catch (Exception e) {
