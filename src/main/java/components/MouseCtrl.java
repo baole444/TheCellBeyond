@@ -50,6 +50,11 @@ public class MouseCtrl extends Component {
 
     public void placeObj() {
         GameObject newObj = this.holdObj.copy();
+
+        if (newObj.getComponent(StateEngine.class) != null) {
+            newObj.getComponent(StateEngine.class).reloadTexture();
+        }
+
         this.holdObj.transform.zIndex = 0;
         //this.holdObj.destroy();
         newObj.getComponent(SpriteRender.class).setColor(new Vector4f(1, 1, 1, 1));

@@ -124,6 +124,11 @@ public class LevelEditorSceneInit extends SceneInit {
                          16, 48, 3, 0)
         );
 
+        // Temporary
+        AssetsPool.addSpSheet("assets/texture/animation_test.png",
+                new SpriteSheet(AssetsPool.loadTexture("assets/texture/animation_test.png"),
+                        32, 32, 8, 16));
+
         // Only generate if not existed
         for (GameObject obj : scene.getGameObject()) {
             if (obj.getComponent(SpriteRender.class) != null) {
@@ -131,6 +136,11 @@ public class LevelEditorSceneInit extends SceneInit {
                 if (spr.loadTexture() != null) {
                     spr.setTex(AssetsPool.loadTexture(spr.loadTexture().loadFilePath()));
                 }
+            }
+
+            if (obj.getComponent(StateEngine.class) != null) {
+                StateEngine stateEngine = obj.getComponent(StateEngine.class);
+                stateEngine.reloadTexture();
             }
         }
     }
@@ -219,6 +229,38 @@ public class LevelEditorSceneInit extends SceneInit {
                     ImGui.endTabItem();
                 }
             }
+            if(ImGui.beginTabItem("Prefabrication")) {
+
+                SpriteSheet wheelSprites = AssetsPool.loadSpSheet("assets/texture/animation_test.png");
+
+                Sprite sps = wheelSprites.spriteIndex(0);
+
+                Vector2f scaledSprite = TextureScale.calculateFitDimension(sps.loadWidth(), sps.loadHeight());
+
+                float spriteWidth = scaledSprite.x;
+                float spriteHeight = scaledSprite.y;
+                int id = sps.loadTexId();
+
+                Vector2f[] texCoord = sps.loadTexCrd();
+
+
+                ImGui.imageButton(id, spriteWidth, spriteHeight,
+                        texCoord[2].x, texCoord[0].y,
+                        texCoord[0].x, texCoord[2].y
+                );
+
+                if (ImGui.isItemClicked()) {
+                    // Testing for now, generate a spinning wheel
+                    GameObject obj = Prefab.genWheelSpin();
+
+                    // Bind to mouse cursor
+                    levelEditorObject.getComponent(MouseCtrl.class).pickObj(obj);
+                }
+                ImGui.sameLine();
+
+                ImGui.endTabItem();
+            }
+
             ImGui.endTabBar();
         }
         ImGui.end();

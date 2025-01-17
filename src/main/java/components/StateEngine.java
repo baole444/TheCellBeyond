@@ -39,11 +39,17 @@ public class StateEngine extends Component {
     private transient AnimationState instState = null;
     private String defaultTitle = "";
 
+    public void reloadTexture() {
+        for (AnimationState state : states) {
+            state.reloadTexture();
+        }
+    }
+
     public void addStateCondition(String from, String to, String meetCondition) {
         this.shiftState.put(new StateCondition(from, meetCondition), to);
     }
 
-    private void addState(AnimationState state) {
+    public void addState(AnimationState state) {
         this.states.add(state);
     }
 
@@ -70,6 +76,21 @@ public class StateEngine extends Component {
         }
 
         System.out.println("Unknown condition " + condition + " !");
+    }
+
+    public void setDefaultState(String title) {
+        for (AnimationState state : states) {
+            if (state.title.equals(title)) {
+                defaultTitle = title;
+
+                if (instState == null) {
+                    instState = state;
+                    return;
+                }
+            }
+        }
+
+        System.out.println("Failed to find state " + title);
     }
 
     @Override

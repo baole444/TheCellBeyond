@@ -1,5 +1,7 @@
 package components;
 
+import utility.AssetsPool;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,5 +41,11 @@ public class AnimationState {
         }
 
         return defaultSprite;
+    }
+
+    public void reloadTexture() {
+        for (Frame frame : animateFrame) {
+            frame.sprite.setTex(AssetsPool.loadTexture(frame.sprite.loadTex().loadFilePath()));
+        }
     }
 }

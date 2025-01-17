@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-// TODO: find a way to combine the project's root with relative path in project file.
 public class Project {
     private String version;
     private ProjectInfo project;
@@ -20,8 +19,8 @@ public class Project {
     private Map<String, projectSceneMap> scenes;
     private List<String> sceneNames = new ArrayList<>();
 
-    public static Project CurrentProject;
-    public static String ProjectRoot;
+    public static Project CurrentProject = null;
+    public static String ProjectRoot = null;
 
 
     public String getVersion() {
@@ -248,6 +247,13 @@ public class Project {
         }
     }
 
+    /**
+     * Load a project definition file to memory.
+     * Can be accessible via {@link #CurrentProject}
+     * or assigned to a local variable
+     * @param path
+     * @return a {@link Project} reference.
+     */
     public static Project loadFromYaml(String path) {
         try {
             InputStream inputStream = new FileInputStream(path);

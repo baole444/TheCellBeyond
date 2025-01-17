@@ -321,16 +321,16 @@ public class Window implements IEvent {
             case EngineStart:
                 this.runtimeMode = true;
                 currentScene.saveLevel();
-                Window.changeScene(new LevelEditorSceneInit()); // Reset view to runtime mode.
+                Window.changeScene(new LevelEditorSceneInit(currentSceneName)); // Reset view to runtime mode.
                 System.out.println("Engine starting.");
                 break;
             case EngineEnd:
                 this.runtimeMode = false;
-                Window.changeScene(new LevelEditorSceneInit()); // Reset to Editor runtime.
+                Window.changeScene(new LevelEditorSceneInit(currentSceneName)); // Reset to Editor runtime.
                 System.out.println("Engine stopping.");
                 break;
             case LevelLoad:
-                Window.changeScene(new LevelEditorSceneInit());
+                Window.changeScene(new LevelEditorSceneInit(currentSceneName));
                 System.out.println("Loading current level...");
                 break;
             case LevelSave:
