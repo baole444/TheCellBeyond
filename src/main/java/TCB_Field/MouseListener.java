@@ -5,6 +5,8 @@ import org.joml.Vector2f;
 import org.joml.Vector4f;
 import render.ObjectSelection;
 
+import java.util.Arrays;
+
 import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
 import static org.lwjgl.glfw.GLFW.GLFW_RELEASE;
 
@@ -35,6 +37,10 @@ public class MouseListener {
     }
 
     public static void mousePosCallback(long window, double xpos, double ypos) {
+        if (!Window.loadImGui().getGameViewPort().getWantCaptureMouse()) {
+            clear();
+        }
+
         if (get().mouseButtonDown > 0) {
             get().isDragging = true;
         }
@@ -76,6 +82,16 @@ public class MouseListener {
         get().worldPastY = get().worldCurrentY;
     }
 
+    public static void clear() {
+        get().scrollX = 0.0;
+        get().scrollY = 0.0;
+        get().xPos = 0.0;
+        get().yPos = 0.0;
+        get().mouseButtonDown = 0;
+        get().isDragging = false;
+        Arrays.fill(get().mouseButtonPressed, false);
+    }
+
     public static Vector2f getCursorTraverse() {
         return new Vector2f((float)(get().worldPastX - get().getWorldX()), (float)(get().worldPastY - get().getWorldY()));
     }
@@ -108,14 +124,14 @@ public class MouseListener {
         }
     }
 
-    public static float loadScrX() {
-        return loadScr().x;
+    public static float getScreenX() {
+        return getScreen().x;
     }
-    public static float loadScrY() {
-        return loadScr().y;
+    public static float getScreenY() {
+        return getScreen().y;
     }
 
-    public static Vector2f loadScr() {
+    public static Vector2f getScreen() {
         float instX = getX() - get().workViewportPos.x;
         instX = (instX / get().workViewportSize.x) * 1920.0f;
 
@@ -165,4 +181,46 @@ public class MouseListener {
         return new Vector2f(tmp.x, tmp.y);
     }
     //--------------------------------------------------------------------
+    // Screen Coordinate = P * V * M
+    // World Coordinate = S * V^-1 * p^-1
+
+
+    public static Vector2f screen2WorldCoord(Vector2f scrCoord) {
+        Vector2f normalization = new Vector2f(
+                scrCoord.x / Window.loadWidth(),
+                scrCoord.y / Window.loadHeight()
+        );
+        // Shift coordinates range back to -1 > 1
+        normalization.mul(2f).sub(new Vector2f(1f, 1f));
+
+        Viewport viewport = Window.getScene().viewport();
+
+        Vector4f tmp = new Vector4f(normalization.x, normalization.y, 0 , 1);
+
+        Matrix4f inverseView = new Matrix4f(viewport.getInverseView());
+        Matrix4f inverseProjection = new Matrix4f(viewport.getInverseProject());
+
+        tmp.mul(inverseView.mul(inverseProjection));
+
+        return new Vector2f(tmp.x, tmp.y);
+    }
+
+    public static Vector2f world2ScreenCoord(Vector2f wCoord) {
+        Viewport viewport = Window.getScene().viewport();
+
+        Vector4f normalization = new Vector4f(wCoord.x, wCoord.y, 0, 1);
+
+        Matrix4f view = new Matrix4f(viewport.getViewMatrix());
+        Matrix4f projection = new Matrix4f(viewport.getProjectMatrix());
+
+        normalization.mul(projection.mul(view));
+
+        Vector2f windowSpace = new Vector2f(normalization.x, normalization.y).
+                mul(1f / normalization.w);
+
+        windowSpace.add(new Vector2f(1f, 1f)).mul(0.5f);
+        windowSpace.mul(new Vector2f(Window.loadWidth(), Window.loadHeight()));
+
+        return windowSpace;
+    }
 }

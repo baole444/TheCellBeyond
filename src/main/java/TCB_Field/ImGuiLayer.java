@@ -32,8 +32,6 @@ public class ImGuiLayer {
     // Boolean system for remote toggle additional editor windows from menuBar and such
     private static ImBoolean _openFileDialog = new ImBoolean(false);
 
-
-
     public static void set_openFileDialog(ImBoolean _openFileDialog) {
         ImGuiLayer._openFileDialog = _openFileDialog;
     }
@@ -77,7 +75,7 @@ public class ImGuiLayer {
                 ImGui.setWindowFocus(null);
             }
 
-            if (gameViewPort.getWantCaptureMouse()) {
+            if (!io.getWantCaptureMouse() || gameViewPort.getWantCaptureMouse()) {
                 MouseListener.mouseButtonCallback(w, button, action, mods);
             }
         });
@@ -87,8 +85,10 @@ public class ImGuiLayer {
                 ImGui.setWindowFocus(null);
             }
 
-            if (gameViewPort.getWantCaptureMouse()) {
+            if (!io.getWantCaptureMouse() || gameViewPort.getWantCaptureMouse()) {
                 MouseListener.mouseScrollCallback(w, x, y);
+            } else {
+                MouseListener.clear();
             }
         });
 
@@ -146,7 +146,6 @@ public class ImGuiLayer {
         currentScene.imgui();
         gameViewPort.imgui();
         debugGui.imgui();
-        properties.update(dt, currentScene);
         properties.imgui();
         objectGroupingWindow.imgui();
         openProjectDialog.imgui(_openFileDialog);
@@ -210,6 +209,10 @@ public class ImGuiLayer {
 
     public Properties loadProperties() {
         return this.properties;
+    }
+
+    public GameViewPort getGameViewPort() {
+        return this.gameViewPort;
     }
 
 }

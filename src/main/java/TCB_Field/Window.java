@@ -11,6 +11,10 @@ import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWImage;
 import org.lwjgl.glfw.GLFWWindowCloseCallback;
+import org.lwjgl.openal.AL;
+import org.lwjgl.openal.ALC;
+import org.lwjgl.openal.ALCCapabilities;
+import org.lwjgl.openal.ALCapabilities;
 import org.lwjgl.opengl.GL;
 import render.*;
 import render.Renderer;
@@ -28,6 +32,7 @@ import static editor.Project.CurrentProject;
 import static editor.Project.ProjectRoot;
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.openal.ALC10.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
@@ -52,6 +57,9 @@ public class Window implements IEvent {
 
     private ExitConfirmDialog exitConfirmDialog;
     private boolean shouldClose;
+
+    private long soundContext;
+    private long audioDevice;
 
     public Window() {
         this.width = 640;
@@ -182,6 +190,23 @@ public class Window implements IEvent {
         //Make window visible
         glfwShowWindow(glfwWindow);
 
+        // Init sound
+        String defaultAudioDevice = alcGetString(0, ALC_DEFAULT_DEVICE_SPECIFIER);
+        audioDevice = alcOpenDevice(defaultAudioDevice);
+
+        int[] attbs = {0};
+        soundContext = alcCreateContext(audioDevice, attbs);
+        alcMakeContextCurrent(soundContext);
+
+
+        ALCCapabilities alcCapabilities = ALC.createCapabilities(audioDevice);
+        ALCapabilities alCapabilities = AL.createCapabilities(alcCapabilities);
+
+        if (!alCapabilities.OpenAL10) {
+            System.out.println("OpenAL10 not supported on this device");
+            System.exit(-2);
+        }
+
         GL.createCapabilities();
         glEnable(GL_BLEND);
         glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
@@ -229,8 +254,13 @@ public class Window implements IEvent {
         imGuiLayer.getImGuiGl3().shutdown();
         imGuiLayer.getImGuiGlfw().shutdown();
         ImGui.destroyContext();
+
+        alcDestroyContext(soundContext);
+        alcCloseDevice(audioDevice);
+
         glfwFreeCallbacks(window.glfwWindow);
         glfwDestroyWindow(window.glfwWindow);
+
         glfwTerminate();
     }
 
@@ -275,8 +305,8 @@ public class Window implements IEvent {
                 } else {
                     currentScene.editorUpdate(dt); // Using editor update under edit mode
                 }
-                DebugDraw.draw();
                 currentScene.render();
+                DebugDraw.draw();
 
             }
             this.frameBuffer.detach();

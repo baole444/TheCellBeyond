@@ -29,11 +29,11 @@ public class GameViewPort {
 
         // Create menu bar
         ImGui.beginMenuBar();
-        if (KeyListener.isKeyPressed(GLFW_KEY_S, GLFW_MOD_CONTROL)) {
+        if (KeyListener.isKeyTapped(GLFW_KEY_S, GLFW_MOD_CONTROL)) {
             EventSystem.notice(null, new Event(EventType.LevelSave));
         }
 
-        if (KeyListener.isKeyPressed(GLFW_KEY_O, GLFW_MOD_CONTROL)) {
+        if (KeyListener.isKeyTapped(GLFW_KEY_O, GLFW_MOD_CONTROL)) {
             EventSystem.notice(null, new Event(EventType.LevelLoad));
         }
         if (ImGui.menuItem("Play","", isPlaying, !isPlaying)) {

@@ -1,5 +1,7 @@
 package render;
 
+import org.joml.Vector2i;
+
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL30.*;
 
@@ -81,5 +83,24 @@ public class ObjectSelection {
 
         return (int)pixel[0] - 1;
     }
+
+    public float[] pixelCheck (Vector2i begin, Vector2i end) {
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, frameBufferObj);
+        glReadBuffer(GL_COLOR_ATTACHMENT0);
+
+        Vector2i size = new Vector2i(end).sub(begin).absolute();
+        int pixelCount = size.x * size.y;
+        float pixels[] = new float[3 * pixelCount];
+
+        glReadPixels(begin.x, begin.y, size.x, size.y, GL_RGB, GL_FLOAT, pixels);
+
+        // subtract 1 from index of id of object selection to get valid game obj id
+        for (int i = 0; i < pixels.length; i++) {
+            pixels[i] -= 1;
+        }
+
+        return pixels;
+    }
+
 
 }

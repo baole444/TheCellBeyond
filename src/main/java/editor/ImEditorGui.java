@@ -109,7 +109,7 @@ public class ImEditorGui {
         ImGui.invisibleButton("empty", 90.0f, labelSize.y);
         ImGui.sameLine();
 
-        if (ImGui.button("  Up  ", 80.0f, labelSize.y) || KeyListener.isKeyPressed(GLFW_KEY_UP)) {
+        if (ImGui.button("  Up  ", 80.0f, labelSize.y) || KeyListener.isKeyTapped(GLFW_KEY_UP)) {
             val.y += step;
         }
 
@@ -129,7 +129,7 @@ public class ImEditorGui {
         ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.8f, 0.3f, 0.3f, 1.0f);
         ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0.7f, 0.2f, 0.2f, 1.0f);
 
-        if (ImGui.button(" Left ", 80.0f, labelSize.y) || KeyListener.isKeyPressed(GLFW_KEY_LEFT)) {
+        if (ImGui.button(" Left ", 80.0f, labelSize.y) || KeyListener.isKeyTapped(GLFW_KEY_LEFT)) {
             val.x -= step;
         }
         ImGui.popStyleColor(3);
@@ -143,7 +143,7 @@ public class ImEditorGui {
         ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0.6f, 0.25f, 0.0f, 1.0f);
 
         //A method to return object to the nearest standard coordinate position.
-        if (ImGui.button("Nearest", 80.0f, labelSize.y) || KeyListener.isKeyPressed(GLFW_KEY_N)) {
+        if (ImGui.button("Nearest", 80.0f, labelSize.y) || KeyListener.isKeyTapped(GLFW_KEY_N)) {
             if (val.x % 0.32f != 0.0f) {
                 val.x = Math.round(val.x / 0.32f) * 0.32f + 0.16f;
             }
@@ -184,7 +184,7 @@ public class ImEditorGui {
         ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.8f, 0.3f, 0.3f, 1.0f);
         ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0.7f, 0.2f, 0.2f, 1.0f);
 
-        if (ImGui.button(" Right ", 80.0f, labelSize.y) || KeyListener.isKeyPressed(GLFW_KEY_RIGHT)) {
+        if (ImGui.button(" Right ", 80.0f, labelSize.y) || KeyListener.isKeyTapped(GLFW_KEY_RIGHT)) {
             val.x += step;
         }
 
@@ -202,7 +202,7 @@ public class ImEditorGui {
         ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0.2f, 0.7f, 0.2f, 1.0f);
         ImGui.invisibleButton("empty", 90.0f, labelSize.y);
         ImGui.sameLine();
-        if (ImGui.button(" Down ", 80.0f, labelSize.y) || KeyListener.isKeyPressed(GLFW_KEY_DOWN)) {
+        if (ImGui.button(" Down ", 80.0f, labelSize.y) || KeyListener.isKeyTapped(GLFW_KEY_DOWN)) {
             val.y -= step;
         }
 

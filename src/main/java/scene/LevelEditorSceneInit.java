@@ -2,6 +2,7 @@ package scene;
 
 import TCB_Field.GameObject;
 import TCB_Field.Prefab;
+import TCB_Field.Sound;
 import components.*;
 import editor.EditorViewport;
 import editor.Project;
@@ -12,10 +13,8 @@ import utility.AssetsPool;
 import utility.PathResolver;
 import utility.TextureScale;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.File;
+import java.util.*;
 
 import static editor.Project.CurrentProject;
 import static editor.Project.ProjectRoot;
@@ -79,6 +78,7 @@ public class LevelEditorSceneInit extends SceneInit {
         levelEditorObject.isNotSerialize();
 
         levelEditorObject.addComponent(new MouseCtrl());
+        levelEditorObject.addComponent(new KeyCtrl());
         levelEditorObject.addComponent(new Grid());
         levelEditorObject.addComponent(new EditorViewport(scene.viewport()));
         levelEditorObject.addComponent(new GizmoControl(gizmo));
@@ -128,6 +128,8 @@ public class LevelEditorSceneInit extends SceneInit {
         AssetsPool.addSpSheet("assets/texture/animation_test.png",
                 new SpriteSheet(AssetsPool.loadTexture("assets/texture/animation_test.png"),
                         32, 32, 8, 16));
+
+        AssetsPool.addSound("assets/sound/test.ogg", false);
 
         // Only generate if not existed
         for (GameObject obj : scene.getGameObject()) {
@@ -257,6 +259,27 @@ public class LevelEditorSceneInit extends SceneInit {
                     levelEditorObject.getComponent(MouseCtrl.class).pickObj(obj);
                 }
                 ImGui.sameLine();
+
+                ImGui.endTabItem();
+            }
+
+            if (ImGui.beginTabItem("Sound collection")) {
+                Collection<Sound> sounds = AssetsPool.loadAllSound();
+
+                for (Sound sound : sounds) {
+                    File current = new File(sound.getFilepath());
+                    if (ImGui.button(current.getName())) {
+                        if (!sound.isPlaying()) {
+                            sound.play();
+                        } else {
+                            sound.stop();
+                        }
+                    }
+
+                    if (ImGui.getContentRegionAvailX() > 120) {
+                        ImGui.sameLine();
+                    }
+                }
 
                 ImGui.endTabItem();
             }

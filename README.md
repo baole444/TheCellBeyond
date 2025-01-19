@@ -8,7 +8,7 @@ A Java-based game editor with project compile ability, code auto-generation, and
 ## Tasks:
 - [X] Basic engine functions.
 - [X] ImGui implementation.
-- [ ] Editor features.
+- [ ] Editor features. (Currently being worked on.)
 - [ ] Code template.
 - [ ] Scripting system.
 
@@ -32,6 +32,7 @@ __Update:__ The incorrectly removed item is caused by render batch mark incorrec
 ## Current work:
 - [X] Project system.
 - [ ] Add a way to save a project.
+- [ ] Extend the Project system to cover animation and sound effects.
 - [ ] Dynamically loaded assets.
 
 

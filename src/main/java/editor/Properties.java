@@ -3,44 +3,37 @@ package editor;
 import TCB_Field.GameObject;
 import TCB_Field.MouseListener;
 import components.IsNotSelectable;
+import components.SpriteRender;
 import imgui.ImGui;
+import org.joml.Vector4f;
 import physic_2d.components.HardObject;
 import physic_2d.components.collider.Collider2D;
 import physic_2d.components.collider.ColliderCircle;
 import render.ObjectSelection;
 import scene.Scene;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_RIGHT;
 
 public class Properties {
     private GameObject activeGameObject = null;
+    private List<GameObject> activeGameObjects;
+    private List<Vector4f> activeObjTrueColor;
     private ObjectSelection objectSelection;
 
-    private float clickInit = 0.2f;
 
     public Properties(ObjectSelection objectSelection) {
+        this.activeGameObjects = new ArrayList<>();
         this.objectSelection = objectSelection;
-    }
-
-    public void update(float dt, Scene currentScene) {
-        clickInit -= dt;
-        if (!MouseListener.isDragging() && MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_RIGHT) && clickInit < 0) {
-            int x = (int)MouseListener.loadScrX();
-            int y = (int)MouseListener.loadScrY();
-            int gObjectId = objectSelection.pixelCheck(x, y);
-            GameObject selectedObj = currentScene.loadGameObj(gObjectId);
-            // Excluding the gizmo
-            if (selectedObj != null && selectedObj.getComponent(IsNotSelectable.class) == null) {
-                activeGameObject = selectedObj;
-            } else if (selectedObj == null && !MouseListener.isDragging()) {
-                activeGameObject = null;
-            }
-            this.clickInit = 0.2f;
-        }
+        this.activeObjTrueColor = new ArrayList<>();
     }
 
     public void imgui() {
-        if (activeGameObject != null) {
+        if (activeGameObjects.size() == 1 && activeGameObjects.getFirst() != null) {
+            activeGameObject = activeGameObjects.getFirst();
+
             ImGui.begin("Object properties");
 
             if (ImGui.beginPopupContextWindow("AddComponent")) {
@@ -73,11 +66,62 @@ public class Properties {
         }
     }
 
+    public void addActiveObj(GameObject go) {
+        SpriteRender spriteRender = go.getComponent(SpriteRender.class);
+        if (spriteRender != null) {
+            this.activeObjTrueColor.add(new Vector4f(spriteRender.loadColor()));
+            // I like this color, but more testing with user feedbacks will be more valuable.
+            // This is orange
+            //spriteRender.setColor(new Vector4f(1f, 0.8f, 0.6f, 0.5f));
+
+            // This is yellow
+            spriteRender.setColor(new Vector4f(1f, 1f, 0.6f, 0.5f));
+
+            // This is blue
+            //spriteRender.setColor(new Vector4f(0.6f, 1f, 1f, 0.5f));
+        } else {
+            this.activeObjTrueColor.add(new Vector4f());
+        }
+
+        this.activeGameObjects.add(go);
+
+    }
+
     public GameObject loadActiveObj() {
-        return this.activeGameObject;
+        if (activeGameObjects.size() == 1) {
+            return this.activeGameObjects.getFirst();
+        } else {
+            return null;
+        }
+    }
+
+    public List<GameObject> loadAllActiveObj() {
+        return this.activeGameObjects;
     }
 
     public void setActiveGameObj(GameObject go) {
-        this.activeGameObject = go;
+        if (go != null) {
+            clearSelection();
+            this.activeGameObjects.add(go);
+        }
+    }
+
+    public ObjectSelection loadObjSelection() {
+        return this.objectSelection;
+    }
+
+    public void clearSelection() {
+        if (activeObjTrueColor.size() > 0) {
+            int i = 0;
+            for (GameObject go : activeGameObjects) {
+                SpriteRender spriteRender = go.getComponent(SpriteRender.class);
+                if (spriteRender != null) {
+                    spriteRender.setColor(activeObjTrueColor.get(i));
+                }
+                i++;
+            }
+        }
+        this.activeGameObjects.clear();
+        this.activeObjTrueColor.clear();
     }
 }

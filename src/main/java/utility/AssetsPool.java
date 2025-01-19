@@ -1,10 +1,13 @@
 package utility;
 
+import TCB_Field.Sound;
 import components.SpriteSheet;
 import render.Shader;
 import render.Texture;
 
 import java.io.File;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,6 +15,8 @@ public class AssetsPool {
     private static Map<String, Shader> shader = new HashMap<>();
     private static Map<String, Texture> texture = new HashMap<>();
     private static Map<String, SpriteSheet> spritesheet = new HashMap<>();
+    private static Map<String, Sound> sounds = new HashMap<>();
+
 
     public static Shader loadShader(String rss) {
         File file = new File(rss);
@@ -47,8 +52,35 @@ public class AssetsPool {
     public static SpriteSheet loadSpSheet(String rss) {
         File file = new File(rss);
         if (!AssetsPool.spritesheet.containsKey(file.getAbsolutePath())) {
-            assert false : "Error: failed to '" + rss + " ' , no assets added.";
+            assert false : "Error: failed to load '" + rss + "' , no assets added.";
         }
         return AssetsPool.spritesheet.getOrDefault(file.getAbsolutePath(), null);
     }
+
+    public static Sound addSound(String audioFile, boolean isLoop) {
+        File file = new File(audioFile);
+        if (sounds.containsKey(file.getAbsolutePath())) {
+            return sounds.get(file.getAbsolutePath());
+        } else {
+            Sound sound = new Sound(file.getAbsolutePath(), isLoop);
+            AssetsPool.sounds.put(file.getAbsolutePath(), sound);
+            return sound;
+        }
+    }
+
+    public static Sound loadSound(String audioFile) {
+        File file = new File(audioFile);
+        if (sounds.containsKey(file.getAbsolutePath())) {
+            return sounds.get(file.getAbsolutePath());
+        } else {
+            assert false : "Error: failed to load '" + audioFile + "'";
+        }
+
+        return null;
+    }
+
+    public static Collection<Sound> loadAllSound() {
+        return sounds.values();
+    }
+
 }

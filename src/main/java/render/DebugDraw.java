@@ -16,7 +16,7 @@ import static org.lwjgl.opengl.GL30.glBindVertexArray;
 import static org.lwjgl.opengl.GL30.glGenVertexArrays;
 
 public class DebugDraw {
-    private static int MAX_LINE = 500;
+    private static int MAX_LINE = 1024;
     private static List<Line2D> Lines = new ArrayList<>();
 
     // 6 float vertex, 2 vertices/line
@@ -137,7 +137,7 @@ public class DebugDraw {
 
     public static void addBox2(Vector2f centre, Vector2f dimension, float rotate) {
 
-        addBox2(centre, dimension, rotate, new Vector3f(1, 1, 0), 1);
+        addBox2(centre, dimension, rotate, new Vector3f(1, 1, 1), 1);
     }
 
     public static void addBox2(Vector2f centre, Vector2f dimension, float rotate, Vector3f color) {
@@ -170,6 +170,10 @@ public class DebugDraw {
 
     public static void addCircle(Vector2f centre, float radius) {
         addCircle(centre, radius, new Vector3f(1, 1, 0), 1);
+    }
+
+    public static void addCircle(Vector2f centre, float radius, int alive) {
+        addCircle(centre, radius, new Vector3f(1, 1, 0), alive);
     }
 
     public static void addCircle(Vector2f centre, float radius, Vector3f color) {
