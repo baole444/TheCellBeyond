@@ -152,6 +152,10 @@ public class Scene {
         return obj;
     }
 
+    public FlatPhysic getFlatPhysic() {
+        return this.flatPhysic;
+    }
+
     public void logGameObjects() {
         System.out.println("Logging all game objects");
         List<GameObject> allObj = getGameObject();
@@ -174,6 +178,7 @@ public class Scene {
                 .setPrettyPrinting()
                 .registerTypeAdapter(Component.class, new CompDeSerializer())
                 .registerTypeAdapter(GameObject.class, new GameObjDeSerializer())
+                .enableComplexMapKeySerialization()
                 .create();
 
         try {
@@ -207,6 +212,7 @@ public class Scene {
                 .setPrettyPrinting()
                 .registerTypeAdapter(Component.class, new CompDeSerializer())
                 .registerTypeAdapter(GameObject.class, new GameObjDeSerializer())
+                .enableComplexMapKeySerialization()
                 .create();
 
         String loadFile = "";

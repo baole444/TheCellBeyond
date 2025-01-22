@@ -1,6 +1,9 @@
 package TCB_Field;
 
 import components.*;
+import physic_2d.components.FlatPhysicBody;
+import physic_2d.components.collider.PillBoxCollider;
+import physic_2d.enums.ObjectClassification;
 import utility.AssetsPool;
 
 public class Prefab {
@@ -15,7 +18,7 @@ public class Prefab {
 
         return block;
     }
-
+    // TODO: a universal animation generator, which read from a separated yml for the animation.
     public static GameObject genWheelSpin() {
         SpriteSheet wheelSprites = AssetsPool.loadSpSheet("assets/texture/animation_test.png");
         GameObject wheelSpin = genSpsObj(wheelSprites.spriteIndex(0), 0.32f, 0.32f);
@@ -40,6 +43,18 @@ public class Prefab {
         stateEngine.setDefaultState(spin.title);
 
         wheelSpin.addComponent(stateEngine);
+
+        PillBoxCollider pillBoxCollider = new PillBoxCollider();
+        pillBoxCollider.setWidth(0.32f);
+        pillBoxCollider.setHeight(0.32f);
+        FlatPhysicBody flatPhysicBody = new FlatPhysicBody();
+        flatPhysicBody.setObjectClassification(ObjectClassification.Dynamic);
+        flatPhysicBody.setNoneStopCollision(false);
+        flatPhysicBody.setMass(10.0f);
+
+        wheelSpin.addComponent(flatPhysicBody);
+        wheelSpin.addComponent(pillBoxCollider);
+        wheelSpin.addComponent(new CharacterControl());
 
         return wheelSpin;
     }

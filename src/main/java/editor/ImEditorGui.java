@@ -16,6 +16,8 @@ import org.joml.Vector4f;
 import utility.AssetsPool;
 import utility.TextureScale;
 
+import java.util.List;
+
 import static org.lwjgl.glfw.GLFW.*;
 
 public class ImEditorGui {
@@ -325,42 +327,63 @@ public class ImEditorGui {
         return txt;
     }
 
-    public static void drawSpriteList (SpriteSheet spriteSps, GameObject levelEditorObject, ImVec2 winPos, ImVec2 winSize) {
+    public static void drawSpriteList (List<SpriteSheet> sheets, GameObject levelEditorObject, ImVec2 winPos, ImVec2 winSize) {
         ImVec2 objectSpace = new ImVec2();
         ImGui.getStyle().getItemSpacing(objectSpace);
 
         float windowX2 = winPos.x + winSize.x;
-        for (int i = 0; i < spriteSps.size(); i++) {
-            Sprite sprites = spriteSps.spriteIndex(i);
-            float spriteWidth = sprites.loadWidth() * 3;
-            float spriteHeight = sprites.loadHeight() * 3;
-            int id = sprites.loadTexId();
 
-            Vector2f[] texCoord = sprites.loadTexCrd();
+        for (SpriteSheet sprites : sheets) {
+            for (int i = 0; i < sprites.size(); i++) {
+                Sprite sps = sprites.spriteIndex(i);
 
-            ImGui.pushID(i);
+                Vector2f scaledSprite = TextureScale.calculateFitDimension(sps.loadWidth(), sps.loadHeight());
 
-            ImGui.imageButton(id, spriteWidth, spriteHeight,
-                    texCoord[2].x, texCoord[0].y,
-                    texCoord[0].x, texCoord[2].y
-            );
+                float spriteWidth = scaledSprite.x;
+                float spriteHeight = scaledSprite.y;
+                int id = sps.loadTexId();
 
-            if (ImGui.isItemClicked()) {
-                GameObject obj = Prefab.genSpsObj(sprites, 32, 32);
+                Vector2f[] texCoord = sps.loadTexCrd();
 
-                // Bind to mouse cursor
-                levelEditorObject.getComponent(MouseCtrl.class).pickObj(obj);
-            }
+                ImGui.pushID(i);
 
-            ImGui.popID();
 
-            ImVec2 lastButtonPos = new ImVec2();
-            ImGui.getItemRectMax(lastButtonPos);
-            float lastButtonX2 = lastButtonPos.x;
-            float nextButtonX2 = lastButtonX2 + objectSpace.x + spriteWidth;
+                ImGui.imageButton(id, spriteWidth, spriteHeight,
+                        texCoord[2].x, texCoord[0].y,
+                        texCoord[0].x, texCoord[2].y
+                );
 
-            if (i + 1 < spriteSps.size() && nextButtonX2 < windowX2) {
-                ImGui.sameLine();
+                if (ImGui.isItemClicked()) {
+
+                    GameObject obj = Prefab.genSpsObj(sps, sps.loadWidth() / 100f, sps.loadHeight() / 100f);
+
+                    // Bind to mouse cursor
+                    levelEditorObject.getComponent(MouseCtrl.class).pickObj(obj);
+                }
+
+                if (ImGui.isItemHovered()) {
+                    ImGui.beginTooltip();
+
+                    ImGui.text("Preview");
+                    ImGui.image(id, spriteWidth * 2, spriteHeight * 2,
+                            texCoord[2].x, texCoord[0].y,
+                            texCoord[0].x, texCoord[2].y);
+                    ImGui.text("Width: " + sps.loadWidth());
+                    ImGui.text("Height: " + sps.loadHeight());
+
+                    ImGui.endTooltip();
+                }
+
+                ImGui.popID();
+
+                ImVec2 lastButtonPos = new ImVec2();
+                ImGui.getItemRectMax(lastButtonPos);
+                float lastButtonX2 = lastButtonPos.x;
+                float nextButtonX2 = lastButtonX2 + objectSpace.x + spriteWidth;
+
+                if (i + 1 < sprites.size() && nextButtonX2 < windowX2) {
+                    ImGui.sameLine();
+                }
             }
         }
     }
@@ -375,33 +398,6 @@ public class ImEditorGui {
         float windowX2 = winPos.x + (winSize.x / widthMod);
         for (int i = 0; i < spriteSps.size(); i++) {
             Sprite sprites = spriteSps.spriteIndex(i);
-
-            /*
-                Ratio in this context is how much smaller (for ratio >= 1) the image is compare to allowed space for object button
-                If width < height => height should be scale to match allowed space. (height is currently closer to target)
-                    width will use same ratio as height to maintain image aspect ratio.
-
-                Ratio in this context is how much bigger (for ratio < 1) the image is compare to allowed space for object button
-                If width < height => width should be scale to match allowed space (width is currently closer to target)
-                    height will use same ratio as height to maintain image aspect ratio.
-
-                Keep scaling to minimum for compact design and fast calculation
-            */
-            //float ratioX = 48.0f / sprites.loadWidth();
-            //float ratioY = 48.0f /  sprites.loadWidth();
-            //if (ratioX >= 1.0f && ratioY >= 1.0f) {
-            //    if (ratioX < ratioY) {
-            //        ratioX = ratioY;
-            //    } else if (ratioX >= ratioY) {
-            //        ratioY = ratioX;
-            //    }
-            //} else if (ratioX < 1.0f && ratioY < 1.0f) {
-            //    if (ratioX >= ratioY) {
-            //        ratioX = ratioY;
-            //    } else if (ratioX < ratioY) {
-            //        ratioY = ratioX;
-            //    }
-            //}
 
             Vector2f scaledSprite = TextureScale.calculateFitDimension(sprites.loadWidth(), sprites.loadHeight());
 
@@ -419,21 +415,6 @@ public class ImEditorGui {
             );
 
             if (ImGui.isItemClicked()) {
-                //float rX = 32.0f / sprites.loadWidth();
-                //float rY = 32.0f /  sprites.loadWidth();
-                //if (rX >= 1.0f && rY >= 1.0f) {
-                //    if (rX < rY) {
-                //        rX = rY;
-                //    } else if (rX >= rY) {
-                //        rY = rX;
-                //    }
-                //} else if (rX < 1.0f && rY < 1.0f) {
-                //    if (rX >= ratioY) {
-                //        rX = rY;
-                //    } else if (rX < rY) {
-                //        rY = rX;
-                //    }
-                //}
                 GameObject obj = Prefab.genSpsObj(sprites, sprites.loadWidth() / 100f, sprites.loadHeight() / 100f);
 
                 // Bind to mouse cursor

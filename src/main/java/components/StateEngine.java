@@ -57,16 +57,7 @@ public class StateEngine extends Component {
         for (StateCondition state : shiftState.keySet()) {
             if (state.state.equals(instState.title) && state.condition.equals(condition)) {
                 if (shiftState.get(state) != null) {
-                    int stateIndex = -1;
-                    int index = 0;
-                    for (AnimationState animationState : states) {
-                        if (animationState.title.equals(shiftState.get(state))) {
-                            stateIndex = index;
-                            break;
-                        }
-                        index++;
-                    }
-
+                    int stateIndex = getStateIndex(shiftState.get(state));
                     if (stateIndex > -1) {
                         instState = states.get(stateIndex);
                     }
@@ -76,6 +67,18 @@ public class StateEngine extends Component {
         }
 
         System.out.println("Unknown condition " + condition + " !");
+    }
+
+    private int getStateIndex(String title) {
+        int index = 0;
+        for (AnimationState animationState : states) {
+            if (animationState.title.equals(title)) {
+                return index;
+            }
+            index++;
+        }
+
+        return -1;
     }
 
     public void setDefaultState(String title) {

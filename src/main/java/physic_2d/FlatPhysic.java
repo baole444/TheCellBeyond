@@ -2,45 +2,57 @@ package physic_2d;
 
 import TCB_Field.GameObject;
 import TCB_Field.Transform;
+import org.jbox2d.collision.shapes.CircleShape;
 import org.jbox2d.collision.shapes.PolygonShape;
 import org.jbox2d.common.Vec2;
-import org.jbox2d.dynamics.Body;
-import org.jbox2d.dynamics.BodyDef;
-import org.jbox2d.dynamics.BodyType;
-import org.jbox2d.dynamics.World;
+import org.jbox2d.dynamics.*;
 import org.joml.Vector2f;
-import physic_2d.components.HardObject;
-import physic_2d.components.collider.Collider2D;
-import physic_2d.components.collider.ColliderCircle;
+import physic_2d.components.FlatPhysicBody;
+import physic_2d.components.collider.FlatBoxCollider;
+import physic_2d.components.collider.FlatCircleCollider;
+import physic_2d.components.collider.PillBoxCollider;
 
 public class FlatPhysic {
-    // https://box2d.org Check out this website for references code
+    // https://box2d.org Check out this website for reference codes
 
     private Vec2 gravity = new Vec2(0, -9.80665f);
     private World world = new World(gravity);
 
     private float physicDt = 0.0f;
-    private float physicDtRate = 1.0f / 60.0f; // detal of 60 fps
+    private float physicDtRate = 1.0f / 60.0f; // delta of 60 fps
     private int velocityPassCount = 9;
     private int positionPassCount = 3;
 
+    public FlatPhysic() {
+        world.setContactListener(new FlatPhysicContactListener());
+    }
+
     public void add(GameObject go) {
-        HardObject hardObject = go.getComponent(HardObject.class);
+        FlatPhysicBody flatPhysicBody = go.getComponent(FlatPhysicBody.class);
 
         // Duplicate prevention
-        if (hardObject != null && hardObject.loadInstObject() == null) {
+        if (flatPhysicBody != null && flatPhysicBody.loadInstObjectBody() == null) {
             Transform transform = go.transform;
 
             // Define rigid body
             BodyDef objDef = new BodyDef();
             objDef.angle = (float)Math.toRadians(transform.rotate);
             objDef.position.set(transform.position.x, transform.position.y);
-            objDef.angularDamping = hardObject.loadRollResistance();
-            objDef.linearDamping = hardObject.loadTranslateResistance();
-            objDef.fixedRotation = hardObject.isRotatable();
-            objDef.bullet = hardObject.isNoneStopCollision();
 
-            switch (hardObject.loadObjectClassification()) {
+            objDef.angularDamping = flatPhysicBody.loadRollResistance();
+            objDef.linearDamping = flatPhysicBody.loadTranslateResistance();
+
+            objDef.fixedRotation = flatPhysicBody.isRotatable();
+
+            objDef.userData = flatPhysicBody.gameObject;
+
+            objDef.bullet = flatPhysicBody.isNoneStopCollision();
+
+            objDef.gravityScale = flatPhysicBody.loadGravityScale();
+
+            objDef.angularVelocity = flatPhysicBody.loadAngularVelocity();
+
+            switch (flatPhysicBody.loadObjectClassification()) {
                 case Kinematic: objDef.type = BodyType.KINEMATIC;
                 break;
                 case Static: objDef.type = BodyType.STATIC;
@@ -48,38 +60,41 @@ public class FlatPhysic {
                 case Dynamic: objDef.type = BodyType.DYNAMIC;
                 break;
             }
-
-            PolygonShape shape = new PolygonShape();
-            ColliderCircle colliderCircle;
-            Collider2D collider2D;
-
-            if ((colliderCircle = go.getComponent(ColliderCircle.class)) != null ) {
-                shape.setRadius(colliderCircle.loadRadius());
-            } else if ((collider2D = go.getComponent(Collider2D.class)) != null) {
-                Vector2f halfSize = new Vector2f(collider2D.loadHalfSize()).mul(0.5f); // Applying correct collider box size
-                Vector2f offset = collider2D.loadOffset();
-                Vector2f origin = new Vector2f(collider2D.loadOrigin());
-                shape.setAsBox(halfSize.x, halfSize.y, new Vec2(origin.x, origin.y), 0);
-
-                Vec2 pos = objDef.position;
-                float xPos = pos.x + offset.x;
-                float yPos = pos.y + offset.y;
-                objDef.position.set(xPos, yPos);
-            }
             Body obj = this.world.createBody(objDef);
 
-            hardObject.setInstObject(obj);
+            obj.m_mass = flatPhysicBody.loadMass();
 
-            obj.createFixture(shape, hardObject.loadMass());
+            flatPhysicBody.setInstObjectBody(obj);
+
+            FlatCircleCollider flatCircleCollider;
+            FlatBoxCollider flatBoxCollider;
+            PillBoxCollider pillBoxCollider;
+
+            if ((flatCircleCollider =
+                    go.getComponent(FlatCircleCollider.class)) != null ) {
+
+                addFlatCircleCollider(flatPhysicBody, flatCircleCollider);
+            }
+
+            if ((flatBoxCollider =
+                    go.getComponent(FlatBoxCollider.class)) != null) {
+
+                addFlatBoxCollider(flatPhysicBody, flatBoxCollider);
+            }
+
+            if ((pillBoxCollider =
+                    go.getComponent(PillBoxCollider.class)) != null) {
+                addPillBoxCollider(flatPhysicBody, pillBoxCollider);
+            }
         }
     }
 
     public void destroyObject(GameObject go) {
-        HardObject hardObject = go.getComponent(HardObject.class);
-        if (hardObject != null) {
-            if (hardObject.loadInstObject() != null) {
-                world.destroyBody(hardObject.loadInstObject());
-                hardObject.setInstObject(null);
+        FlatPhysicBody flatPhysicBody = go.getComponent(FlatPhysicBody.class);
+        if (flatPhysicBody != null) {
+            if (flatPhysicBody.loadInstObjectBody() != null) {
+                world.destroyBody(flatPhysicBody.loadInstObjectBody());
+                flatPhysicBody.setInstObjectBody(null);
             }
         }
     }
@@ -92,7 +107,131 @@ public class FlatPhysic {
             physicDt -= physicDtRate;
             world.step(physicDtRate, velocityPassCount, positionPassCount);
         }
+    }
 
+    public void addFlatBoxCollider(FlatPhysicBody flatPhysicBody, FlatBoxCollider flatBoxCollider) {
+        Body body = flatPhysicBody.loadInstObjectBody();
+        assert body != null : "Instant physical body of Object found.";
 
+        PolygonShape shape = new PolygonShape();
+
+        Vector2f halfSize = new Vector2f(flatBoxCollider.loadHalfSize()).mul(0.5f); // Applying correct collider box size
+
+        Vector2f offset = flatBoxCollider.loadOffset();
+
+        shape.setAsBox(halfSize.x, halfSize.y, new Vec2(offset.x, offset.y), 0);
+
+        FixtureDef fixtureDef = new FixtureDef();
+
+        fixtureDef.shape = shape;
+        fixtureDef.density = 1.0f;
+
+        fixtureDef.friction = flatPhysicBody.loadFriction();
+
+        fixtureDef.userData = flatBoxCollider.gameObject;
+
+        fixtureDef.isSensor = flatPhysicBody.isSensor();
+
+        body.createFixture(fixtureDef);
+    }
+
+    public void addFlatCircleCollider(FlatPhysicBody flatPhysicBody, FlatCircleCollider flatCircleCollider) {
+        Body body = flatPhysicBody.loadInstObjectBody();
+        assert body != null : "Instant physical body of Object found.";
+
+        CircleShape shape = new CircleShape();
+
+        shape.setRadius(flatCircleCollider.loadRadius());
+
+        Vec2 offset = new Vec2(flatCircleCollider.loadOffset().x, flatCircleCollider.loadOffset().y);
+
+        shape.m_p.set(offset);
+
+        FixtureDef fixtureDef = new FixtureDef();
+
+        fixtureDef.shape = shape;
+        fixtureDef.density = 1.0f;
+
+        fixtureDef.friction = flatPhysicBody.loadFriction();
+
+        fixtureDef.userData = flatPhysicBody.gameObject;
+
+        fixtureDef.isSensor = flatPhysicBody.isSensor();
+
+        body.createFixture(fixtureDef);
+    }
+
+    public void addPillBoxCollider(FlatPhysicBody flatPhysicBody, PillBoxCollider pillBoxCollider) {
+        Body body = flatPhysicBody.loadInstObjectBody();
+        assert body != null : "Instant physical body of Object found.";
+
+        addFlatBoxCollider(flatPhysicBody, pillBoxCollider.getMidBox());
+        addFlatCircleCollider(flatPhysicBody, pillBoxCollider.getHeadCircle());
+        addFlatCircleCollider(flatPhysicBody, pillBoxCollider.getFootCircle());
+    }
+
+    public void resetCollider(FlatPhysicBody flatPhysicBody, Object colliderObject) {
+        Body body = flatPhysicBody.loadInstObjectBody();
+
+        if (body == null) return;
+
+        int size = fixtureListSize(body);
+
+        for (int i = 0; i < size; i++) {
+            body.destroyFixture(body.getFixtureList());
+        }
+
+        if (colliderObject.getClass().isAssignableFrom(FlatBoxCollider.class)) {
+            addFlatBoxCollider(flatPhysicBody, (FlatBoxCollider) colliderObject);
+        }
+        else if (colliderObject.getClass().isAssignableFrom(FlatCircleCollider.class)) {
+            addFlatCircleCollider(flatPhysicBody, (FlatCircleCollider) colliderObject);
+        }
+        else if (colliderObject.getClass().isAssignableFrom(PillBoxCollider.class)) {
+            addPillBoxCollider(flatPhysicBody, (PillBoxCollider) colliderObject);
+        }
+
+        body.resetMassData();
+    }
+
+    public RayCastInfo rayCastInfo(GameObject originObject, Vector2f origin, Vector2f target) {
+        RayCastInfo callback = new RayCastInfo(originObject);
+        world.raycast(callback,
+                new Vec2(origin.x, origin.y),
+                new Vec2(target.x, target.y));
+
+        return callback;
+    }
+
+    private int fixtureListSize(Body body) {
+        int size = 0;
+
+        Fixture fixture = body.getFixtureList();
+        while (fixture != null) {
+            size++;
+            fixture = fixture.m_next;
+        }
+
+        return size;
+    }
+
+    public void setIsSensor(FlatPhysicBody flatPhysicBody, boolean val) {
+        Body body = flatPhysicBody.loadInstObjectBody();
+        if (body != null) return;
+
+        Fixture fixture = body.getFixtureList();
+        while (fixture != null) {
+            fixture.m_isSensor = val;
+            fixture = fixture.m_next;
+        }
+    }
+
+    public boolean isLock() {
+        return world.isLocked();
+    }
+
+    public Vector2f loadGravity() {
+        Vec2 gravity = this.world.getGravity();
+        return new Vector2f(gravity.x, gravity.y);
     }
 }

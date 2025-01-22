@@ -1,21 +1,16 @@
 package editor;
 
 import TCB_Field.GameObject;
-import TCB_Field.MouseListener;
-import components.IsNotSelectable;
 import components.SpriteRender;
 import imgui.ImGui;
 import org.joml.Vector4f;
-import physic_2d.components.HardObject;
-import physic_2d.components.collider.Collider2D;
-import physic_2d.components.collider.ColliderCircle;
+import physic_2d.components.FlatPhysicBody;
+import physic_2d.components.collider.FlatBoxCollider;
+import physic_2d.components.collider.FlatCircleCollider;
 import render.ObjectSelection;
-import scene.Scene;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_RIGHT;
 
 public class Properties {
     private GameObject activeGameObject = null;
@@ -37,24 +32,23 @@ public class Properties {
             ImGui.begin("Object properties");
 
             if (ImGui.beginPopupContextWindow("AddComponent")) {
-                if (ImGui.menuItem("Generate Hard Object")) {
-                    // TODO: add support for multi component item
-                    if (activeGameObject.getComponent(HardObject.class) == null) {
-                        activeGameObject.addComponent(new HardObject());
+                if (ImGui.menuItem("Generate Physic body")) {
+                    if (activeGameObject.getComponent(FlatPhysicBody.class) == null) {
+                        activeGameObject.addComponent(new FlatPhysicBody());
                     }
                 }
 
                 if (ImGui.menuItem("Generate Box Collider")) {
-                    if ((activeGameObject.getComponent(Collider2D.class) == null) &&
-                            (activeGameObject.getComponent(ColliderCircle.class) == null)) {
-                        activeGameObject.addComponent(new Collider2D());
+                    if ((activeGameObject.getComponent(FlatBoxCollider.class) == null) &&
+                            (activeGameObject.getComponent(FlatCircleCollider.class) == null)) {
+                        activeGameObject.addComponent(new FlatBoxCollider());
                     }
                 }
 
                 if (ImGui.menuItem("Generate Circle Collider")) {
-                    if ((activeGameObject.getComponent(ColliderCircle.class) == null) &&
-                            (activeGameObject.getComponent(Collider2D.class) == null)) {
-                        activeGameObject.addComponent(new ColliderCircle());
+                    if ((activeGameObject.getComponent(FlatCircleCollider.class) == null) &&
+                            (activeGameObject.getComponent(FlatBoxCollider.class) == null)) {
+                        activeGameObject.addComponent(new FlatCircleCollider());
                     }
                 }
                 ImGui.endPopup();

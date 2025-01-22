@@ -16,6 +16,7 @@ import org.lwjgl.openal.ALC;
 import org.lwjgl.openal.ALCCapabilities;
 import org.lwjgl.openal.ALCapabilities;
 import org.lwjgl.opengl.GL;
+import physic_2d.FlatPhysic;
 import render.*;
 import render.Renderer;
 import scene.LevelEditorSceneInit;
@@ -343,6 +344,10 @@ public class Window implements IEvent {
 
     public static void setCurrentSceneName(String currentSceneName) {
         Window.currentSceneName = currentSceneName;
+    }
+
+    public static FlatPhysic getFlatPhysic() {
+        return currentScene.getFlatPhysic();
     }
 
     @Override

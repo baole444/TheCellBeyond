@@ -4,6 +4,7 @@ import TCB_Field.GameObject;
 import editor.ImEditorGui;
 import imgui.ImGui;
 import imgui.type.ImInt;
+import org.jbox2d.dynamics.contacts.Contact;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
@@ -25,6 +26,22 @@ public abstract class Component {
     public void editorUpdate(float dt) {}
 
     public void update(float dt) {}
+
+    public void startCollision(GameObject targetObj, Contact contact, Vector2f hitNormalization) {
+
+    }
+
+    public void endCollision(GameObject targetObj, Contact contact, Vector2f hitNormalization) {
+
+    }
+
+    public void preSolve(GameObject targetObj, Contact contact, Vector2f hitNormalization) {
+
+    }
+
+    public void postSolve(GameObject targetObj, Contact contact, Vector2f hitNormalization) {
+
+    }
 
     public void imgui() {
         try {

@@ -16,6 +16,7 @@ import utility.TextureScale;
 import java.io.File;
 import java.util.*;
 
+import static editor.ImEditorGui.drawSpriteList;
 import static editor.Project.CurrentProject;
 import static editor.Project.ProjectRoot;
 
@@ -153,84 +154,28 @@ public class LevelEditorSceneInit extends SceneInit {
         ImGui.begin("Level Editor Debug");
         levelEditorObject.imgui();
         ImGui.end();
-
-        if (thisScene == null || CurrentProject == null) return;
-
         ImGui.begin("Sprite list");
 
         if (ImGui.beginTabBar("SpriteList_TabBar")) {
-            for (Map.Entry<String, List<SpriteSheet>> entry : categorizedSpriteSheetList.entrySet()) {
-                String category = entry.getKey();
-                List<SpriteSheet> sheets = entry.getValue();
-                if (ImGui.beginTabItem(category)) {
 
-                    ImVec2 windowPos = new ImVec2();
-                    ImGui.getWindowPos(windowPos);
-                    ImVec2 windowSize = new ImVec2();
-                    ImGui.getWindowSize(windowSize);
+            if (thisScene != null && CurrentProject != null) {
+                for (Map.Entry<String, List<SpriteSheet>> entry : categorizedSpriteSheetList.entrySet()) {
+                    String category = entry.getKey();
+                    List<SpriteSheet> sheets = entry.getValue();
+                    if (ImGui.beginTabItem(category)) {
 
-                    ImVec2 objectSpace = new ImVec2();
-                    ImGui.getStyle().getItemSpacing(objectSpace);
+                        ImVec2 windowPos = new ImVec2();
+                        ImGui.getWindowPos(windowPos);
+                        ImVec2 windowSize = new ImVec2();
+                        ImGui.getWindowSize(windowSize);
 
-                    float windowX2 = windowPos.x + windowSize.x;
+                        drawSpriteList(sheets, levelEditorObject, windowPos, windowSize);
 
-                    for (SpriteSheet sprites : sheets) {
-                        for (int i = 0; i < sprites.size(); i++) {
-                            Sprite sps = sprites.spriteIndex(i);
-
-                            Vector2f scaledSprite = TextureScale.calculateFitDimension(sps.loadWidth(), sps.loadHeight());
-
-                            float spriteWidth = scaledSprite.x;
-                            float spriteHeight = scaledSprite.y;
-                            int id = sps.loadTexId();
-
-                            Vector2f[] texCoord = sps.loadTexCrd();
-
-                            ImGui.pushID(i);
-
-
-                            ImGui.imageButton(id, spriteWidth, spriteHeight,
-                                    texCoord[2].x, texCoord[0].y,
-                                    texCoord[0].x, texCoord[2].y
-                            );
-
-                            if (ImGui.isItemClicked()) {
-
-                                GameObject obj = Prefab.genSpsObj(sps, sps.loadWidth() / 100f, sps.loadHeight() / 100f);
-
-                                // Bind to mouse cursor
-                                levelEditorObject.getComponent(MouseCtrl.class).pickObj(obj);
-                            }
-
-                            if (ImGui.isItemHovered()) {
-                                ImGui.beginTooltip();
-
-                                ImGui.text("Preview");
-                                ImGui.image(id, spriteWidth * 2, spriteHeight * 2,
-                                        texCoord[2].x, texCoord[0].y,
-                                        texCoord[0].x, texCoord[2].y);
-                                ImGui.text("Width: " + sps.loadWidth());
-                                ImGui.text("Height: " + sps.loadHeight());
-
-                                ImGui.endTooltip();
-                            }
-
-                            ImGui.popID();
-
-                            ImVec2 lastButtonPos = new ImVec2();
-                            ImGui.getItemRectMax(lastButtonPos);
-                            float lastButtonX2 = lastButtonPos.x;
-                            float nextButtonX2 = lastButtonX2 + objectSpace.x + spriteWidth;
-
-                            if (i + 1 < sprites.size() && nextButtonX2 < windowX2) {
-                                ImGui.sameLine();
-                            }
-                        }
+                        ImGui.endTabItem();
                     }
-
-                    ImGui.endTabItem();
                 }
             }
+
             if(ImGui.beginTabItem("Prefabrication")) {
 
                 SpriteSheet wheelSprites = AssetsPool.loadSpSheet("assets/texture/animation_test.png");
