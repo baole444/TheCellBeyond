@@ -2,10 +2,14 @@ package physic_2d;
 
 import TCB_Field.GameObject;
 import TCB_Field.Transform;
+import components.Component;
 import org.jbox2d.collision.shapes.CircleShape;
 import org.jbox2d.collision.shapes.PolygonShape;
+import org.jbox2d.collision.shapes.Shape;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.*;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.joml.Vector2f;
 import physic_2d.components.FlatPhysicBody;
 import physic_2d.components.collider.FlatBoxCollider;
@@ -109,44 +113,7 @@ public class FlatPhysic {
         }
     }
 
-    public void addFlatBoxCollider(FlatPhysicBody flatPhysicBody, FlatBoxCollider flatBoxCollider) {
-        Body body = flatPhysicBody.loadInstObjectBody();
-        assert body != null : "Instant physical body of Object found.";
-
-        PolygonShape shape = new PolygonShape();
-
-        Vector2f halfSize = new Vector2f(flatBoxCollider.loadHalfSize()).mul(0.5f); // Applying correct collider box size
-
-        Vector2f offset = flatBoxCollider.loadOffset();
-
-        shape.setAsBox(halfSize.x, halfSize.y, new Vec2(offset.x, offset.y), 0);
-
-        FixtureDef fixtureDef = new FixtureDef();
-
-        fixtureDef.shape = shape;
-        fixtureDef.density = 1.0f;
-
-        fixtureDef.friction = flatPhysicBody.loadFriction();
-
-        fixtureDef.userData = flatBoxCollider.gameObject;
-
-        fixtureDef.isSensor = flatPhysicBody.isSensor();
-
-        body.createFixture(fixtureDef);
-    }
-
-    public void addFlatCircleCollider(FlatPhysicBody flatPhysicBody, FlatCircleCollider flatCircleCollider) {
-        Body body = flatPhysicBody.loadInstObjectBody();
-        assert body != null : "Instant physical body of Object found.";
-
-        CircleShape shape = new CircleShape();
-
-        shape.setRadius(flatCircleCollider.loadRadius());
-
-        Vec2 offset = new Vec2(flatCircleCollider.loadOffset().x, flatCircleCollider.loadOffset().y);
-
-        shape.m_p.set(offset);
-
+    private void createFixture(FlatPhysicBody flatPhysicBody, Body body, Shape shape) {
         FixtureDef fixtureDef = new FixtureDef();
 
         fixtureDef.shape = shape;
@@ -161,7 +128,40 @@ public class FlatPhysic {
         body.createFixture(fixtureDef);
     }
 
-    public void addPillBoxCollider(FlatPhysicBody flatPhysicBody, PillBoxCollider pillBoxCollider) {
+    public void addFlatBoxCollider(FlatPhysicBody flatPhysicBody, Component colliderComponent) {
+        FlatBoxCollider flatBoxCollider = (FlatBoxCollider) colliderComponent;
+        Body body = flatPhysicBody.loadInstObjectBody();
+        assert body != null : "Instant physical body of Object found.";
+
+        PolygonShape shape = new PolygonShape();
+
+        Vector2f halfSize = new Vector2f(flatBoxCollider.loadHalfSize()).mul(0.5f); // Applying correct collider box size
+
+        Vector2f offset = flatBoxCollider.loadOffset();
+
+        shape.setAsBox(halfSize.x, halfSize.y, new Vec2(offset.x, offset.y), 0);
+
+        createFixture(flatPhysicBody, body, shape);
+    }
+
+    public void addFlatCircleCollider(FlatPhysicBody flatPhysicBody, Component colliderComponent) {
+        FlatCircleCollider flatCircleCollider = (FlatCircleCollider) colliderComponent;
+        Body body = flatPhysicBody.loadInstObjectBody();
+        assert body != null : "Instant physical body of Object found.";
+
+        CircleShape shape = new CircleShape();
+
+        shape.setRadius(flatCircleCollider.loadRadius());
+
+        Vec2 offset = new Vec2(flatCircleCollider.loadOffset().x, flatCircleCollider.loadOffset().y);
+
+        shape.m_p.set(offset);
+
+        createFixture(flatPhysicBody, body, shape);
+    }
+
+    public void addPillBoxCollider(FlatPhysicBody flatPhysicBody, Component colliderComponent) {
+        PillBoxCollider pillBoxCollider = (PillBoxCollider) colliderComponent;
         Body body = flatPhysicBody.loadInstObjectBody();
         assert body != null : "Instant physical body of Object found.";
 
@@ -170,7 +170,7 @@ public class FlatPhysic {
         addFlatCircleCollider(flatPhysicBody, pillBoxCollider.getFootCircle());
     }
 
-    public void resetCollider(FlatPhysicBody flatPhysicBody, Object colliderObject) {
+    public void resetCollider(FlatPhysicBody flatPhysicBody, Component colliderObject) {
         Body body = flatPhysicBody.loadInstObjectBody();
 
         if (body == null) return;
@@ -181,14 +181,14 @@ public class FlatPhysic {
             body.destroyFixture(body.getFixtureList());
         }
 
-        if (colliderObject.getClass().isAssignableFrom(FlatBoxCollider.class)) {
-            addFlatBoxCollider(flatPhysicBody, (FlatBoxCollider) colliderObject);
+        if (colliderObject instanceof FlatBoxCollider) {
+            addFlatBoxCollider(flatPhysicBody, colliderObject);
         }
-        else if (colliderObject.getClass().isAssignableFrom(FlatCircleCollider.class)) {
-            addFlatCircleCollider(flatPhysicBody, (FlatCircleCollider) colliderObject);
+        else if (colliderObject instanceof  FlatCircleCollider) {
+            addFlatCircleCollider(flatPhysicBody, colliderObject);
         }
-        else if (colliderObject.getClass().isAssignableFrom(PillBoxCollider.class)) {
-            addPillBoxCollider(flatPhysicBody, (PillBoxCollider) colliderObject);
+        else if (colliderObject instanceof PillBoxCollider) {
+            addPillBoxCollider(flatPhysicBody, colliderObject);
         }
 
         body.resetMassData();
