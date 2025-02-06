@@ -5,7 +5,10 @@ import TCB_Field.Prefab;
 import TCB_Field.Sound;
 import components.*;
 import editor.EditorViewport;
-import editor.Project;
+import editor.project.Project;
+import editor.project.ProjectAssetMap;
+import editor.project.ProjectSceneMap;
+import editor.project.ProjectSheetMap;
 import imgui.ImGui;
 import imgui.ImVec2;
 import org.joml.Vector2f;
@@ -17,8 +20,8 @@ import java.io.File;
 import java.util.*;
 
 import static editor.ImEditorGui.drawSpriteList;
-import static editor.Project.CurrentProject;
-import static editor.Project.ProjectRoot;
+import static editor.project.Project.CurrentProject;
+import static editor.project.Project.ProjectRoot;
 
 public class LevelEditorSceneInit extends SceneInit {
     private SpriteSheet gizmo;
@@ -30,7 +33,7 @@ public class LevelEditorSceneInit extends SceneInit {
     private List<String> assetKeyList;
 
     private String sceneName = null;
-    private Project.projectSceneMap thisScene = null;
+    private ProjectSceneMap thisScene = null;
 
     public LevelEditorSceneInit() {}
 
@@ -53,10 +56,10 @@ public class LevelEditorSceneInit extends SceneInit {
             assetKeyList = thisScene.getAsset();
 
             for (String sheet : sheetKeyList) {
-                Project.projectSheetMap sM = CurrentProject.getSheets().get(sheet);
+                ProjectSheetMap sM = CurrentProject.getSheets().get(sheet);
 
                 String category = sM.getCategory();
-                String path = PathResolver.resolveRelative(ProjectRoot, sM.getPath());
+                String path = PathResolver.resolveAbsolute(ProjectRoot, sM.getPath());
 
                 SpriteSheet spriteSheet = AssetsPool.loadSpSheet(path);
 
@@ -66,8 +69,8 @@ public class LevelEditorSceneInit extends SceneInit {
             }
 
             for (String asset : assetKeyList) {
-                Project.projectAssetMap aM = CurrentProject.getAssets().get(asset);
-                String path = PathResolver.resolveRelative(ProjectRoot, aM.getPath());
+                ProjectAssetMap aM = CurrentProject.getAssets().get(asset);
+                String path = PathResolver.resolveAbsolute(ProjectRoot, aM.getPath());
 
                 assetList.add(AssetsPool.loadSpSheet(path));
             }
@@ -99,8 +102,8 @@ public class LevelEditorSceneInit extends SceneInit {
             assetKeyList = thisScene.getAsset();
 
             for (String sheet : sheetKeyList) {
-                Project.projectSheetMap sM = CurrentProject.getSheets().get(sheet);
-                String absPath = PathResolver.resolveRelative(ProjectRoot, sM.getPath());
+                ProjectSheetMap sM = CurrentProject.getSheets().get(sheet);
+                String absPath = PathResolver.resolveAbsolute(ProjectRoot, sM.getPath());
 
                 AssetsPool.addSpSheet(absPath,
                         new SpriteSheet(AssetsPool.loadTexture(absPath),
@@ -109,8 +112,8 @@ public class LevelEditorSceneInit extends SceneInit {
             }
 
             for (String asset : assetKeyList) {
-                Project.projectAssetMap aM = CurrentProject.getAssets().get(asset);
-                String absPath = PathResolver.resolveRelative(ProjectRoot, aM.getPath());
+                ProjectAssetMap aM = CurrentProject.getAssets().get(asset);
+                String absPath = PathResolver.resolveAbsolute(ProjectRoot, aM.getPath());
 
                 AssetsPool.addSpSheet(absPath,
                         new SpriteSheet(AssetsPool.loadTexture(absPath),
@@ -137,6 +140,14 @@ public class LevelEditorSceneInit extends SceneInit {
             if (obj.getComponent(SpriteRender.class) != null) {
                 SpriteRender spr = obj.getComponent(SpriteRender.class);
                 if (spr.loadTexture() != null) {
+                    //System.out.println("File path: " + spr.loadTexture().loadFilePath());
+
+                    //if (sceneName != null && CurrentProject != null && thisScene != null) {
+                    //    String texturePath = spr.loadTexture().loadFilePath();
+                    //    String absPath = PathResolver.resolveAbsolute(ProjectRoot, texturePath);
+                    //    spr.loadTexture().setFilePath(absPath);
+                    //}
+
                     spr.setTex(AssetsPool.loadTexture(spr.loadTexture().loadFilePath()));
                 }
             }

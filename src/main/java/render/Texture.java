@@ -109,6 +109,10 @@ public class Texture {
         return this.filepath;
     }
 
+    public void setFilePath(String path) {
+        this.filepath = path;
+    }
+
     @Override
 
     public boolean equals(Object obj) {

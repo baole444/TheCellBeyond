@@ -14,15 +14,10 @@ A Java-based game editor with project compile ability, code auto-generation, and
 
 
 ## Problems need attention:
-Currently, not detecting any unusual problem.
+Placing and duplicating an object to a "project-less" (No project loaded) scene will cause an error with filepath.
 
 ## Solved problems:
-- [X] When placing an object, there is ghosting left behind.
-- [X] When deleting an object, the deleted object is not displayed correctly.
-
-Both mentioned problems require user to reload the file. Suspected to be caused by leftover object in memory.
-
-__Update:__ The incorrectly removed item is caused by render batch mark incorrect sprite for update call.
+- No problem from previous commit was fixed or no problem was found.
 
 
 ## Additional maintenance:

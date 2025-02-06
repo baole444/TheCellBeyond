@@ -7,9 +7,12 @@ import components.Component;
 import components.SpriteRender;
 import imgui.ImGui;
 import utility.AssetsPool;
+import utility.PathResolver;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static editor.project.Project.ProjectRoot;
 
 public class GameObject {
     private static  int ID_COUNTER = 0;
@@ -109,7 +112,9 @@ public class GameObject {
         SpriteRender sprite = obj.getComponent(SpriteRender.class);
 
         if (sprite != null && sprite.loadTexture() != null) {
-            sprite.setTex(AssetsPool.loadTexture(sprite.loadTexture().loadFilePath()));
+            String texturePath = sprite.loadTexture().loadFilePath();
+            String absPath = PathResolver.resolveAbsolute(ProjectRoot, texturePath);
+            sprite.setTex(AssetsPool.loadTexture(absPath));
         }
 
         return obj;

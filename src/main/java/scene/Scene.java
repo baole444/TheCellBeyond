@@ -5,7 +5,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import components.CompDeSerializer;
 import components.Component;
-import editor.Project;
+import components.SpriteRender;
 import org.joml.Vector2f;
 import physic_2d.FlatPhysic;
 import render.Renderer;
@@ -17,10 +17,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 
-import static editor.Project.CurrentProject;
-import static editor.Project.ProjectRoot;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_P;
-import static org.lwjgl.glfw.GLFW.GLFW_MOD_CONTROL;
+import static editor.project.Project.CurrentProject;
+import static editor.project.Project.ProjectRoot;
 
 public class Scene {
     private Renderer renderer;
@@ -165,11 +163,12 @@ public class Scene {
         System.out.println("\n");
     }
 
+    // TODO: Remove project root from saveLevel function
     public void saveLevel() {
         String currentSceneName = Window.getCurrentSceneName();
         String resolvedPath;
         if (currentSceneName != null) {
-            resolvedPath = PathResolver.resolveRelative(ProjectRoot, CurrentProject.getScenes().get(currentSceneName).getPath());
+            resolvedPath = PathResolver.resolveAbsolute(ProjectRoot, CurrentProject.getScenes().get(currentSceneName).getPath());
         } else {
             resolvedPath = "untitled.cell";
         }
@@ -186,6 +185,14 @@ public class Scene {
             List<GameObject> serializeList = new ArrayList<>();
             for (GameObject obj : this.gameObjects) {
                 if (obj.isSerialize()) {
+                    if (CurrentProject != null && ProjectRoot != null && currentSceneName != null) {
+                        String texturePath = obj.getComponent(SpriteRender.class).loadTexture().loadFilePath();
+                        //System.out.println("Texture path at save: " + texturePath);
+                        String relativePath = PathResolver.resolveRelative(ProjectRoot, texturePath);
+                        obj.getComponent(SpriteRender.class).loadTexture().setFilePath(relativePath);
+                        //System.out.println("Path at save: " + relativePath);
+                    }
+
                     serializeList.add(obj);
                 }
             }
@@ -199,11 +206,12 @@ public class Scene {
         }
     }
 
+    // TODO: attach project root when loading level
     public void loadLevel() {
         String currentSceneName = Window.getCurrentSceneName();
         String resolvedPath;
         if (currentSceneName != null) {
-            resolvedPath = PathResolver.resolveRelative(ProjectRoot, CurrentProject.getScenes().get(currentSceneName).getPath());
+            resolvedPath = PathResolver.resolveAbsolute(ProjectRoot, CurrentProject.getScenes().get(currentSceneName).getPath());
         } else {
             resolvedPath = "untitled.cell";
         }
@@ -232,6 +240,14 @@ public class Scene {
 
             GameObject[] objs = gson.fromJson(loadFile, GameObject[].class);
             for (int i = 0; i < objs.length; i++) {
+                // adjust the object path here, probably
+
+                if (CurrentProject != null && ProjectRoot != null && currentSceneName != null) {
+                    String texturePath = objs[i].getComponent(SpriteRender.class).loadTexture().loadFilePath();
+                    String absPath = PathResolver.resolveAbsolute(ProjectRoot, texturePath);
+                    objs[i].getComponent(SpriteRender.class).loadTexture().setFilePath(absPath);
+                }
+
                 addObjToScene(objs[i]);
 
                 for (Component c : objs[i].loadAllComp()) {
@@ -243,7 +259,6 @@ public class Scene {
                 if (objs[i].loadUid() > maxObjID) {
                     maxObjID = objs[i].loadUid();
                 }
-
             }
 
             maxObjID++;

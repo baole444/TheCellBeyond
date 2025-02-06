@@ -15,7 +15,12 @@ import java.util.List;
 public class Properties {
     private GameObject activeGameObject = null;
     private List<GameObject> activeGameObjects;
+
+    /**
+     * Preserve sprite's original color for recovery after selection.
+     */
     private List<Vector4f> activeObjTrueColor;
+
     private ObjectSelection objectSelection;
 
 
@@ -54,15 +59,20 @@ public class Properties {
                 ImGui.endPopup();
             }
 
-
             activeGameObject.imgui();
             ImGui.end();
         }
     }
 
+    /**
+     * Add an active game object to {@link #activeGameObjects}.
+     * Also copy the object's sprite's color attribute to {@link #activeObjTrueColor}.
+     * @param go The desired {@link GameObject} that wanted to be set active.
+     */
     public void addActiveObj(GameObject go) {
         SpriteRender spriteRender = go.getComponent(SpriteRender.class);
         if (spriteRender != null) {
+            //TODO: Allow user to select their preferred highlighting color.
             this.activeObjTrueColor.add(new Vector4f(spriteRender.loadColor()));
             // I like this color, but more testing with user feedbacks will be more valuable.
             // This is orange
@@ -81,6 +91,11 @@ public class Properties {
 
     }
 
+    /**
+     * Get the first active game object.
+     * Used when there is currently only one active game object.
+     * @return first element of {@link #activeGameObjects}.
+     */
     public GameObject loadActiveObj() {
         if (activeGameObjects.size() == 1) {
             return this.activeGameObjects.getFirst();
@@ -89,6 +104,10 @@ public class Properties {
         }
     }
 
+    /**
+     * Get all active game objects.
+     * @return reference to {@link  #activeGameObjects}
+     */
     public List<GameObject> loadAllActiveObj() {
         return this.activeGameObjects;
     }
@@ -104,8 +123,21 @@ public class Properties {
         return this.objectSelection;
     }
 
+    /**
+     * Create a shallow copy of {@link #activeObjTrueColor}.
+     * @return a new ArrayList of active objects' true color.
+     */
+    public List<Vector4f> getActiveObjTrueColor() {
+        return new ArrayList<>(activeObjTrueColor);
+    }
+
+    /**
+     * Clear the active object list.
+     * The user's object selection will be cleared.
+     * Also clear true color list after resetting all sprites' original color.
+     */
     public void clearSelection() {
-        if (activeObjTrueColor.size() > 0) {
+        if (!activeObjTrueColor.isEmpty()) {
             int i = 0;
             for (GameObject go : activeGameObjects) {
                 SpriteRender spriteRender = go.getComponent(SpriteRender.class);

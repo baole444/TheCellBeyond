@@ -11,10 +11,9 @@ import utility.ExitConfirmDialog;
 
 import java.util.List;
 
-import static editor.Project.CurrentProject;
+import static editor.project.Project.CurrentProject;
 
 public class MenuBar {
-    private OpenProjectDialog openProjectDialog = new OpenProjectDialog();
     private static boolean mode[] = new boolean[] {true, false, false};
     private ExitConfirmDialog exitConfirmDialog = new ExitConfirmDialog();
 

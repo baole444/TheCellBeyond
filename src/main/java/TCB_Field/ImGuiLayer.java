@@ -33,6 +33,8 @@ public class ImGuiLayer {
     private static ImBoolean _openFileDialog = new ImBoolean(false);
 
     public static void set_openFileDialog(ImBoolean _openFileDialog) {
+        if (ImGuiLayer._openFileDialog.equals(_openFileDialog)) return;
+
         ImGuiLayer._openFileDialog = _openFileDialog;
     }
 

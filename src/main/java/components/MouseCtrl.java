@@ -82,7 +82,7 @@ public class MouseCtrl extends Component {
         this.lastPlaced = newObj;
         newObj.isSerialize();
 
-        System.out.println("Placing an object with uid: " + newObj.loadUid());
+        //System.out.println("Placing an object with uid: " + newObj.loadUid());
         Window.getScene().addObjToScene(newObj);
     }
 

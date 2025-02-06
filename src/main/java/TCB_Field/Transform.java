@@ -8,7 +8,7 @@ public class Transform extends Component {
     public Vector2f position;
     public Vector2f scale;
     public float rotate = 0.0f;
-    public float step = 0.32f;
+    public transient float step = 0.32f;
     public int zIndex;
 
     public Transform() {

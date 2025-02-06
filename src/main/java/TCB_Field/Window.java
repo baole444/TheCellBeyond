@@ -1,6 +1,6 @@
 package TCB_Field;
 
-import editor.Project;
+import editor.project.Project;
 import editor.Properties;
 import eventviewer.EventSystem;
 import eventviewer.IEvent;
@@ -26,11 +26,9 @@ import utility.AssetsPool;
 import utility.ExitConfirmDialog;
 
 import java.awt.*;
-import java.util.List;
-import java.util.Map;
 
-import static editor.Project.CurrentProject;
-import static editor.Project.ProjectRoot;
+import static editor.project.Project.CurrentProject;
+import static editor.project.Project.ProjectRoot;
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.openal.ALC10.*;
@@ -373,7 +371,7 @@ public class Window implements IEvent {
                 System.out.println("Saving current level...");
                 break;
             case LoadProject:
-                System.out.println(object);
+                System.out.println("Loading project file at "+ object.toString());
 
                 Project.loadFromYaml(object.toString());
 

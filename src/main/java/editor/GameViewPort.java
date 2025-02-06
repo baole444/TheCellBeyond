@@ -1,6 +1,5 @@
 package editor;
 
-import TCB_Field.KeyListener;
 import TCB_Field.MouseListener;
 import TCB_Field.Window;
 import eventviewer.EventSystem;
@@ -10,9 +9,6 @@ import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.ImGuiWindowFlags;
 import org.joml.Vector2f;
-
-import static org.lwjgl.glfw.GLFW.*;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_O;
 
 public class GameViewPort {
     private float leftX, rightX, topY, bottomY;
@@ -29,13 +25,6 @@ public class GameViewPort {
 
         // Create menu bar
         ImGui.beginMenuBar();
-        if (KeyListener.isKeyTapped(GLFW_KEY_S, GLFW_MOD_CONTROL)) {
-            EventSystem.notice(null, new Event(EventType.LevelSave));
-        }
-
-        if (KeyListener.isKeyTapped(GLFW_KEY_O, GLFW_MOD_CONTROL)) {
-            EventSystem.notice(null, new Event(EventType.LevelLoad));
-        }
         if (ImGui.menuItem("Play","", isPlaying, !isPlaying)) {
             isPlaying = true;
             EventSystem.notice(null, new Event(EventType.EngineStart));
