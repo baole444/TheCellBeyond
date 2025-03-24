@@ -236,8 +236,8 @@ public class MouseCtrl extends Component {
         Vector2i beginScr = new Vector2i((int)(beginScrFloat.x) + 2, (int)(beginScrFloat.y) + 2);
         Vector2i endScr = new Vector2i((int)(endScrFloat.x) - 2, (int)(endScrFloat.y) - 2);
 
-        DebugDraw.addCircle(begin, 0.05f);
-        DebugDraw.addCircle(end, 0.05f);
+        //DebugDraw.addCircle(begin, 0.05f);
+        //DebugDraw.addCircle(end, 0.05f);
 
         float[] gameObjIds = properties.loadObjSelection().pixelCheck(beginScr, endScr);
 

@@ -23,8 +23,8 @@ public class Batch implements Comparable<Batch> {
     private int MAX_TEX_BATCH = 8;
     //Vertices
 
-    //Position       Color              Coordinate          TexID
-    //f, f,          f, f, f, f,        f, f,               f
+    //|Position| |   Color  | |Coordinate| |TexID|
+    //|  f, f  | |f, f, f, f| |   f, f   | |  f  |
 
     private final int POS_SIZE = 2;
     private final int COLOR_SIZE = 4;
@@ -55,7 +55,7 @@ public class Batch implements Comparable<Batch> {
 
     public Batch(int maxBatchSize, int zIndex, Renderer renderer) {
         int _trueLimit = GL11.glGetInteger(GL_MAX_TEXTURE_IMAGE_UNITS);
-        System.out.println("Possible texture limit per batch is " + _trueLimit + " (Using " + MAX_TEX_BATCH+ "/" + _trueLimit + ")");
+        //System.out.println("Possible texture limit per batch is " + _trueLimit + " (Using " + MAX_TEX_BATCH+ "/" + _trueLimit + ")");
         if (MAX_TEX_BATCH > _trueLimit) {
             System.out.println("Encounter texture limit! " + "(Asking " + MAX_TEX_BATCH + "/" + _trueLimit + ")\nSetting new limit...");
             this.MAX_TEX_BATCH = _trueLimit;

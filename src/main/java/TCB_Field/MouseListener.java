@@ -11,14 +11,14 @@ import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
 import static org.lwjgl.glfw.GLFW.GLFW_RELEASE;
 
 public class MouseListener {
-    private  static MouseListener instance;
+    private static MouseListener instance;
     private double scrollX, scrollY;
     private double xPos, yPos, worldPastX, worldPastY, worldCurrentX, worldCurrentY;
-    private boolean mouseButtonPressed[] = new boolean[3];
+    private final boolean[] mouseButtonPressed = new boolean[3];
     private boolean isDragging;
     private int mouseButtonDown = 0;
-    private Vector2f workViewportPos = new Vector2f();
-    private Vector2f workViewportSize = new Vector2f();
+    private final Vector2f workViewportPos = new Vector2f();
+    private final Vector2f workViewportSize = new Vector2f();
     private ObjectSelection objectSelection;
 
     private MouseListener() {
@@ -93,7 +93,10 @@ public class MouseListener {
     }
 
     public static Vector2f getCursorTraverse() {
-        return new Vector2f((float)(get().worldPastX - get().getWorldX()), (float)(get().worldPastY - get().getWorldY()));
+        return new Vector2f(
+                (float)(get().worldPastX - MouseListener.getWorldX()),
+                (float)(get().worldPastY - MouseListener.getWorldY())
+        );
     }
 
     public static float getX() {

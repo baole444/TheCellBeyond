@@ -89,9 +89,10 @@ public class DebugDraw {
         }
 
         glBindBuffer(GL_ARRAY_BUFFER, vboID);
-        glBufferSubData(GL_ARRAY_BUFFER, 0,
-                Arrays.copyOfRange(vertexA, 0, Lines.size() * 6 * 2)
-        );
+        glBufferData(GL_ARRAY_BUFFER, vertexA, GL_DYNAMIC_DRAW);
+        //glBufferSubData(GL_ARRAY_BUFFER, 0,
+        //        Arrays.copyOfRange(vertexA, 0, Lines.size() * 6 * 2)
+        //);
 
         // Use shader
         shader.use();

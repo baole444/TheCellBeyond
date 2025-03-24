@@ -19,19 +19,19 @@ public class Gizmo extends Component {
     private final Vector4f yHover = new Vector4f(0.35f, 0.85f, 0.35f, 1.0f);
     private final Vector2f xOffset = new Vector2f(34.0f / 100, 0f / 100);
     private final Vector2f yOffset = new Vector2f(0.0f / 100, 34.0f / 100);
-    private float gizWidth = 0.16f;
-    private float gizHeight = 0.48f;
+    private final float gizWidth = 0.16f;
+    private final float gizHeight = 0.48f;
     protected boolean xActiveDrag = false;
     protected boolean yActiveDrag = false;
     private boolean isUsed = false;
     protected GameObject activeGameObj = null;
 
 
-    private GameObject xAxisObj;
-    private GameObject yAxisObj;
-    private SpriteRender xAxisSpr;
-    private SpriteRender yAxisSpr;
-    private Properties properties;
+    private final GameObject xAxisObj;
+    private final GameObject yAxisObj;
+    private final SpriteRender xAxisSpr;
+    private final SpriteRender yAxisSpr;
+    private final Properties properties;
 
     // Create Gizmo, give it size, position, and color.
     // Mark Gizmo arrow is not a selectable object.

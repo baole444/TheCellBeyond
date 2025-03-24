@@ -9,12 +9,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+//TODO: add packing project file support
+
 public class Project {
     private String version;
     private ProjectInfo project;
     private Map<String, ProjectAssetMap> assets;
     private Map<String, ProjectSheetMap> sheets;
     private Map<String, ProjectSceneMap> scenes;
+    private Map<String, ProjectPrefabricationMap> prefabs;
+
     private List<String> sceneNames = new ArrayList<>();
 
     public static Project CurrentProject = null;
@@ -60,6 +64,14 @@ public class Project {
         this.scenes = scenes;
     }
 
+    public Map<String, ProjectPrefabricationMap> getPrefabs() {
+        return prefabs;
+    }
+
+    public void setPrefabs(Map<String, ProjectPrefabricationMap> prefabs) {
+        this.prefabs = prefabs;
+    }
+
     public List<String> getSceneNames() {
         return sceneNames;
     }
@@ -76,6 +88,7 @@ public class Project {
         builder.append("Assets: ").append(assets).append("\n");
         builder.append("Sheets: ").append(sheets).append("\n");
         builder.append("Scenes: ").append(scenes).append("\n");
+        builder.append("Prefabs: ").append(prefabs).append("\n");
 
         return builder.toString();
     }
@@ -100,10 +113,21 @@ public class Project {
                 CurrentProject.setSceneNames(sN);
             }
 
+            if (CurrentProject.getPrefabs() != null && !CurrentProject.getPrefabs().isEmpty()) {
+                try {
+                    for (ProjectPrefabricationMap prefab : CurrentProject.getPrefabs().values()) {
+                        prefab.validate();
+                    }
+                } catch (IllegalArgumentException e) {
+                    System.err.println("Error in prefabs: " + e.getMessage());
+                    CurrentProject.setPrefabs(null);
+                }
+            }
+
             //System.out.println("Root directory is " + ProjectRoot);
             return CurrentProject;
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println();
         }
         return null;
     }

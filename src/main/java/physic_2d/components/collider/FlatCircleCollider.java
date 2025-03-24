@@ -6,7 +6,7 @@ import render.DebugDraw;
 
 public class FlatCircleCollider extends Component {
     // Use for adjusting asset origin and hit box origin
-    protected Vector2f offset = new Vector2f();
+    private Vector2f offset = new Vector2f();
 
     private float radius = 1.0f;
 

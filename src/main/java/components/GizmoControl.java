@@ -10,7 +10,7 @@ import static org.lwjgl.glfw.GLFW.*;
  * Handle gizmo's type and keybindings.
  */
 public class GizmoControl extends Component {
-    private SpriteSheet gizmo;
+    private final SpriteSheet gizmo;
     private static int isGizUse = 0;
 
     public GizmoControl(SpriteSheet gizmoSprite) {

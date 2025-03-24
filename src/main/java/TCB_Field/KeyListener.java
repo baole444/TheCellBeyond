@@ -6,8 +6,8 @@ import static org.lwjgl.glfw.GLFW.*;
 
 public class KeyListener {
     private static KeyListener instance;
-    private boolean keyTapped[] = new boolean[GLFW_KEY_LAST + 1];
-    private boolean keyPressed[] = new boolean[GLFW_KEY_LAST + 1];
+    private final boolean[] keyTapped = new boolean[GLFW_KEY_LAST + 1];
+    private final boolean[] keyPressed = new boolean[GLFW_KEY_LAST + 1];
     private int mods;
 
     private KeyListener() {}
@@ -53,7 +53,7 @@ public class KeyListener {
     }
 
     /**
-     * Check if the key and a modifier key are pressed.
+     * Check if a key and a modifier key are pressed.
      * The check returns true when both conditions met once.
      * @param keyCode GLFW assigned key code.
      * @param modCode GLFW assigned modifier key code.
@@ -65,7 +65,7 @@ public class KeyListener {
     }
 
     /**
-     * Check if the key and a modifier key are being pressed.
+     * Check if a key and a modifier key are being pressed.
      * The check returns true when both conditions met.
      * @param keyCode GLFW assigned key code.
      * @param modCode GLFW assigned modifier key code.

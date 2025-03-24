@@ -11,6 +11,7 @@ import org.joml.Vector4f;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
 
 /**
  * An abstraction of components for {@link GameObject} and some editor's components.
@@ -57,7 +58,7 @@ public abstract class Component {
                     field.setAccessible(true);
                 }
 
-                Class type = field.getType();
+                Class<?> type = field.getType();
                 Object value = field.get(this);
                 String name = field.getName();
 
@@ -96,7 +97,7 @@ public abstract class Component {
                     }
                 } else if (type.isEnum()) {
                     String[] enumVal = loadEnumVal(type);
-                    String enumType = ((Enum)value).name();
+                    String enumType = ((Enum<?>) value).name();
                     ImInt index = new ImInt(indexOf(enumType, enumVal));
 
                     if (ImGui.combo(field.getName(), index, enumVal, enumVal.length)) {
@@ -119,21 +120,34 @@ public abstract class Component {
         }
     }
 
-    private <T extends Enum<T>> String[] loadEnumVal(Class<T> enumType) {
-        /*
-            Type T is a type that extends enum.
-            This type needs to be an enum.
-            We want to get a class that is type T.
-            This restricted the function to only be used only when type is enum.
-         */
-        String[] enumVal = new String[enumType.getEnumConstants().length];
-        int i = 0;
-        for (T enumIntVal : enumType.getEnumConstants()) {
-            enumVal[i] = enumIntVal.name();
-            i++;
+    @SuppressWarnings("unchecked")
+    private String[] loadEnumVal(Class<?> enumType) {
+        if (!enumType.isEnum()) {
+            throw new IllegalArgumentException("Class '" + enumType.getName() + "' is not of enum type!");
+        } else {
+            Class<? extends Enum<?>> isEnum = (Class<? extends Enum<?>>) enumType;
+
+            return Arrays.stream(isEnum.getEnumConstants())
+                    .map(Enum::name)
+                    .toArray(String[]::new);
         }
-        return enumVal;
     }
+
+    //private <T extends Enum<T>> String[] loadEnumVal(Class<T> enumType) {
+    //    /*
+    //        Type T is a type that extends enum.
+    //        This type needs to be an enum.
+    //        We want to get a class that is type T.
+    //        This restricted the function to only be used only when type is enum.
+    //     */
+    //    String[] enumVal = new String[enumType.getEnumConstants().length];
+    //    int i = 0;
+    //    for (T enumIntVal : enumType.getEnumConstants()) {
+    //        enumVal[i] = enumIntVal.name();
+    //        i++;
+    //    }
+    //    return enumVal;
+    //}
 
     // Loop to find match string and return its index.
     private int indexOf(String str, String[] a) {
