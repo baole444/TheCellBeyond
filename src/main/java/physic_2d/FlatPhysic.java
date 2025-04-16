@@ -8,6 +8,7 @@ import org.jbox2d.collision.shapes.PolygonShape;
 import org.jbox2d.collision.shapes.Shape;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.*;
+import org.joml.Math;
 import org.joml.Vector2f;
 import physic_2d.components.FlatPhysicBody;
 import physic_2d.components.collider.FlatBoxCollider;
@@ -38,7 +39,7 @@ public class FlatPhysic {
 
             // Define rigid body
             BodyDef objDef = new BodyDef();
-            objDef.angle = (float)Math.toRadians(transform.rotate);
+            objDef.angle = Math.toRadians(transform.rotate);
             objDef.position.set(transform.position.x, transform.position.y);
 
             objDef.angularDamping = flatPhysicBody.loadRollResistance();

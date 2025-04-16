@@ -3,6 +3,7 @@ package render;
 import TCB_Field.GameObject;
 import TCB_Field.Window;
 import components.SpriteRender;
+import org.joml.Math;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
@@ -21,10 +22,10 @@ public class Batch implements Comparable<Batch> {
     // Define how much texture each batch can have.
     // By default, is 8, will change on the limitation of the hardware.
     private int MAX_TEX_BATCH = 8;
-    //Vertices
+    // Vertices
 
-    //|Position| |   Color  | |Coordinate| |TexID|
-    //|  f, f  | |f, f, f, f| |   f, f   | |  f  |
+    // |Position| |   Color  | |Coordinate| |TexID|
+    // |  f, f  | |f, f, f, f| |   f, f   | |  f  |
 
     private final int POS_SIZE = 2;
     private final int COLOR_SIZE = 4;
@@ -230,7 +231,7 @@ public class Batch implements Comparable<Batch> {
         if (isRotate) {
             transformMatrix.translate(spt.gameObject.transform.position.x, spt.gameObject.transform.position.y, 0);
 
-            transformMatrix.rotate((float)Math.toRadians(spt.gameObject.transform.rotate) , 0, 0, 1);
+            transformMatrix.rotate(Math.toRadians(spt.gameObject.transform.rotate), 0, 0, 1);
 
             transformMatrix.scale(spt.gameObject.transform.scale.x, spt.gameObject.transform.scale.y, 1);
         }

@@ -113,7 +113,7 @@ public class GameObject {
 
         if (sprite != null && sprite.loadTexture() != null) {
             String texturePath = sprite.loadTexture().loadFilePath();
-            String absPath = PathResolver.resolveAbsolute(ProjectRoot, texturePath);
+            String absPath = PathResolver.resolveToAbsolute(ProjectRoot, texturePath);
             sprite.setTex(AssetsPool.loadTexture(absPath));
         }
 

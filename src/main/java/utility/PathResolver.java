@@ -22,8 +22,8 @@ public class PathResolver {
      * @param relative A relative path pointing to directory or file within the project's children folder.
      * @return Absolute path of the relative path and its root.
      */
-    public static String resolveAbsolute(String root, String relative) {
-        if (root == null) return relative.toString();
+    public static String resolveToAbsolute(String root, String relative) {
+        if (root == null) return relative;
 
         Path rootPath = Paths.get(root);
         Path resolvedPath = rootPath.resolve(relative).normalize();
@@ -37,7 +37,7 @@ public class PathResolver {
      * @param absolute A full path pointing to directory or file within the project's children folder.
      * @return Relative path from its root.
      */
-    public static String resolveRelative (String root, String absolute) {
+    public static String resolveToRelative(String root, String absolute) {
         if (root == null) return absolute;
 
         Path inputPath = Paths.get(absolute).normalize();
@@ -45,8 +45,6 @@ public class PathResolver {
         if (!inputPath.isAbsolute()) {
             return inputPath.toString().replace("\\", "/");
         }
-
-
 
         Path rootPath = Paths.get(root).toAbsolutePath().normalize();
         Path fullPath = inputPath.toAbsolutePath().normalize();

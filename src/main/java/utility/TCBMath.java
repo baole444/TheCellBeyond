@@ -9,8 +9,8 @@ public class TCBMath {
         float x = vec.x - origin.x;
         float y = vec.y - origin.y;
 
-        float cos = (float)Math.cos(Math.toRadians(degAngle));
-        float sin = (float)Math.sin(Math.toRadians(degAngle));
+        float cos = Math.cos(Math.toRadians(degAngle));
+        float sin = Math.sin(Math.toRadians(degAngle));
 
         float pX = (x * cos) - (y * sin);
         float pY = (x * sin) + (y * cos);

@@ -7,7 +7,6 @@ import utility.AssetsPool;
 import utility.TCBMath;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static org.lwjgl.opengl.GL15.*;

@@ -168,7 +168,7 @@ public class Scene {
         String currentSceneName = Window.getCurrentSceneName();
         String resolvedPath;
         if (currentSceneName != null) {
-            resolvedPath = PathResolver.resolveAbsolute(ProjectRoot, CurrentProject.getScenes().get(currentSceneName).getPath());
+            resolvedPath = PathResolver.resolveToAbsolute(ProjectRoot, CurrentProject.getScenes().get(currentSceneName).getPath());
         } else {
             resolvedPath = "untitled.cell";
         }
@@ -188,7 +188,7 @@ public class Scene {
                     if (CurrentProject != null && ProjectRoot != null && currentSceneName != null) {
                         String texturePath = obj.getComponent(SpriteRender.class).loadTexture().loadFilePath();
                         //System.out.println("Texture path at save: " + texturePath);
-                        String relativePath = PathResolver.resolveRelative(ProjectRoot, texturePath);
+                        String relativePath = PathResolver.resolveToRelative(ProjectRoot, texturePath);
                         obj.getComponent(SpriteRender.class).loadTexture().setFilePath(relativePath);
                         //System.out.println("Path at save: " + relativePath);
                     }
@@ -211,7 +211,7 @@ public class Scene {
         String currentSceneName = Window.getCurrentSceneName();
         String resolvedPath;
         if (currentSceneName != null) {
-            resolvedPath = PathResolver.resolveAbsolute(ProjectRoot, CurrentProject.getScenes().get(currentSceneName).getPath());
+            resolvedPath = PathResolver.resolveToAbsolute(ProjectRoot, CurrentProject.getScenes().get(currentSceneName).getPath());
         } else {
             resolvedPath = "untitled.cell";
         }
@@ -244,7 +244,7 @@ public class Scene {
 
                 if (CurrentProject != null && ProjectRoot != null && currentSceneName != null) {
                     String texturePath = objs[i].getComponent(SpriteRender.class).loadTexture().loadFilePath();
-                    String absPath = PathResolver.resolveAbsolute(ProjectRoot, texturePath);
+                    String absPath = PathResolver.resolveToAbsolute(ProjectRoot, texturePath);
                     objs[i].getComponent(SpriteRender.class).loadTexture().setFilePath(absPath);
                 }
 

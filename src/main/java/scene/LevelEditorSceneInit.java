@@ -59,7 +59,7 @@ public class LevelEditorSceneInit extends SceneInit {
                 ProjectSheetMap sM = CurrentProject.getSheets().get(sheet);
 
                 String category = sM.getCategory();
-                String path = PathResolver.resolveAbsolute(ProjectRoot, sM.getPath());
+                String path = PathResolver.resolveToAbsolute(ProjectRoot, sM.getPath());
 
                 SpriteSheet spriteSheet = AssetsPool.loadSpSheet(path);
 
@@ -70,7 +70,7 @@ public class LevelEditorSceneInit extends SceneInit {
 
             for (String asset : assetKeyList) {
                 ProjectAssetMap aM = CurrentProject.getAssets().get(asset);
-                String path = PathResolver.resolveAbsolute(ProjectRoot, aM.getPath());
+                String path = PathResolver.resolveToAbsolute(ProjectRoot, aM.getPath());
 
                 assetList.add(AssetsPool.loadSpSheet(path));
             }
@@ -103,7 +103,7 @@ public class LevelEditorSceneInit extends SceneInit {
 
             for (String sheet : sheetKeyList) {
                 ProjectSheetMap sM = CurrentProject.getSheets().get(sheet);
-                String absPath = PathResolver.resolveAbsolute(ProjectRoot, sM.getPath());
+                String absPath = PathResolver.resolveToAbsolute(ProjectRoot, sM.getPath());
 
                 AssetsPool.addSpSheet(absPath,
                         new SpriteSheet(AssetsPool.loadTexture(absPath),
@@ -113,7 +113,7 @@ public class LevelEditorSceneInit extends SceneInit {
 
             for (String asset : assetKeyList) {
                 ProjectAssetMap aM = CurrentProject.getAssets().get(asset);
-                String absPath = PathResolver.resolveAbsolute(ProjectRoot, aM.getPath());
+                String absPath = PathResolver.resolveToAbsolute(ProjectRoot, aM.getPath());
 
                 AssetsPool.addSpSheet(absPath,
                         new SpriteSheet(AssetsPool.loadTexture(absPath),

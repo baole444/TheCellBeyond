@@ -1,6 +1,5 @@
 package components;
 
-import TCB_Field.KeyListener;
 import TCB_Field.Window;
 
 import static org.lwjgl.glfw.GLFW.*;

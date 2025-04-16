@@ -13,15 +13,16 @@ import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL20.glGetShaderInfoLog;
 
 public class Shader {
-
     private int shaderProgramID;
 
     private boolean inUse = false;
+
     private String vertexSrc;
 
     private String fragmentSrc;
 
-    private String filepath;
+    private final String filepath;
+
     public Shader(String filepath) {
         this.filepath = filepath;
         try {
@@ -63,16 +64,16 @@ public class Shader {
 
     public void compile() {
         int vertexID, fragmentID;
-        // compile and link shader
+        // Compile and link shader:
 
-        //First load and compile the vertex shader
+        // First load and compile the vertex shader.
         vertexID = glCreateShader(GL_VERTEX_SHADER);
 
-        //Pass shader to GPU
+        // Pass shader to GPU.
         glShaderSource(vertexID, vertexSrc);
         glCompileShader(vertexID);
 
-        //Catch errors
+        // Catch errors.
         int success = glGetShaderi(vertexID, GL_COMPILE_STATUS);
         if (success == GL_FALSE) {
             int len = glGetShaderi(vertexID, GL_INFO_LOG_LENGTH);
@@ -81,13 +82,14 @@ public class Shader {
             assert false: "";
         }
 
+        // First load and compile the fragment shader.
         fragmentID = glCreateShader(GL_FRAGMENT_SHADER);
 
-        //Pass shader to GPU
+        // Pass shader to GPU.
         glShaderSource(fragmentID, fragmentSrc);
         glCompileShader(fragmentID);
 
-        //Catch errors
+        // Catch errors.
         success = glGetShaderi(fragmentID, GL_COMPILE_STATUS);
         if (success == GL_FALSE) {
             int len = glGetShaderi(fragmentID, GL_INFO_LOG_LENGTH);
@@ -96,14 +98,13 @@ public class Shader {
             assert false: "";
         }
 
-        //Link shader
+        // Link shader.
         shaderProgramID = glCreateProgram();
         glAttachShader(shaderProgramID, vertexID);
         glAttachShader(shaderProgramID, fragmentID);
         glLinkProgram(shaderProgramID);
 
-        // linking error
-
+        // Catch linking errors.
         success = glGetProgrami(shaderProgramID, GL_LINK_STATUS);
         if (success == GL_FALSE) {
             int len = glGetProgrami(shaderProgramID, GL_INFO_LOG_LENGTH);

@@ -4,6 +4,7 @@ import TCB_Field.KeyListener;
 import TCB_Field.MouseListener;
 import TCB_Field.Viewport;
 import components.Component;
+import org.joml.Math;
 import org.joml.Vector2f;
 
 import static org.lwjgl.glfw.GLFW.*;
@@ -44,7 +45,7 @@ public class EditorViewport extends Component {
         }
 
         if (MouseListener.getScrollY() != 0.0f) {
-            float addVal = (float)Math.pow(Math.abs(MouseListener.getScrollY()) * scrollSensitivity,
+            float addVal = (float) java.lang.Math.pow(Math.abs(MouseListener.getScrollY()) * scrollSensitivity,
                     1 / workViewport.loadZoom()
             );
             addVal *= -Math.signum(MouseListener.getScrollY());

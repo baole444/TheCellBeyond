@@ -4,13 +4,13 @@ import editor.*;
 import imgui.*;
 import imgui.callback.ImStrConsumer;
 import imgui.callback.ImStrSupplier;
-import imgui.extension.imguifiledialog.ImGuiFileDialog;
 import imgui.flag.*;
 import imgui.gl3.ImGuiImplGl3;
 import imgui.glfw.ImGuiImplGlfw;
 import imgui.type.ImBoolean;
 import render.ObjectSelection;
 import scene.Scene;
+import org.joml.Math;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;

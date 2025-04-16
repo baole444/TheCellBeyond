@@ -5,6 +5,7 @@ import TCB_Field.KeyListener;
 import TCB_Field.MouseListener;
 import TCB_Field.Window;
 import editor.Properties;
+import org.joml.Math;
 import org.joml.Vector2f;
 import org.joml.Vector2i;
 import org.joml.Vector4f;
@@ -143,8 +144,8 @@ public class MouseCtrl extends Component {
                 this.holdObj = null;
             }
         } else if (!MouseListener.isDragging() && MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_LEFT) && clickInit < 0) {
-            int x = (int)MouseListener.getScreenX();
-            int y = (int)MouseListener.getScreenY();
+            int x = (int) MouseListener.getScreenX();
+            int y = (int) MouseListener.getScreenY();
 
             int gObjectId = objectSelection.pixelCheck(x, y);
             GameObject selectedObj = currentScene.loadGameObj(gObjectId);
@@ -241,9 +242,9 @@ public class MouseCtrl extends Component {
 
         float[] gameObjIds = properties.loadObjSelection().pixelCheck(beginScr, endScr);
 
-        for (int i = 0; i < gameObjIds.length; i++) {
-            if (gameObjIds[i] >= 0) {
-                GameObject selectedObj = Window.getScene().loadGameObj((int) gameObjIds[i]);
+        for (float gameObjId : gameObjIds) {
+            if (gameObjId >= 0) {
+                GameObject selectedObj = Window.getScene().loadGameObj((int) gameObjId);
                 if (selectedObj.getComponent(IsNotSelectable.class) == null) {
                     return true;
                 }

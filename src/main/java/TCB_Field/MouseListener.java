@@ -4,6 +4,7 @@ import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import render.ObjectSelection;
+import scene.Scene;
 
 import java.util.Arrays;
 
@@ -21,11 +22,17 @@ public class MouseListener {
     private final Vector2f workViewportSize = new Vector2f();
     private ObjectSelection objectSelection;
 
+    private static boolean startupMode = true;
+
     private MouseListener() {
         this.scrollX = 0.0;
         this.scrollY = 0.0;
         this.xPos = 0.0;
         this.yPos = 0.0;
+    }
+
+    public static void setStartupMode(boolean mode) {
+        startupMode = mode;
     }
 
     public static MouseListener get() {
@@ -37,6 +44,13 @@ public class MouseListener {
     }
 
     public static void mousePosCallback(long window, double xpos, double ypos) {
+        if (!startupMode && Window.loadImGui() != null
+                && Window.loadImGui().getGameViewPort() != null
+                && !Window.loadImGui().getGameViewPort().getWantCaptureMouse()) {
+            clear();
+        }
+
+
         if (!Window.loadImGui().getGameViewPort().getWantCaptureMouse()) {
             clear();
         }
@@ -47,10 +61,39 @@ public class MouseListener {
 
         get().xPos  = xpos;
         get().yPos = ypos;
+
         get().worldPastX = get().worldCurrentX;
         get().worldPastY = get().worldCurrentY;
-        getWorldX();
-        getWorldY();
+
+        if (!startupMode) {
+            getWorldX();
+            getWorldY();
+        }
+    }
+
+    private static void updateWorldCoordinates() {
+        Scene scene = Window.getScene();
+        if (scene == null) return;
+
+        float currentX = getX() - get().workViewportPos.x;
+        currentX = (2.0f * (currentX / get().workViewportSize.x)) - 1.0f;
+
+        float currentY = getY() - get().workViewportPos.y;
+        currentY = (2.0f * (currentX / get().workViewportSize.y)) - 1.0f;
+
+        Viewport camera = scene.viewport();
+
+        if (camera == null) return;
+
+        Vector4f tmp = new Vector4f(currentX, currentY, 0, 1);
+
+        Matrix4f inverseView = new Matrix4f(camera.getInverseView());
+        Matrix4f inverseProjection = new Matrix4f(camera.getInverseProject());
+
+        tmp.mul(inverseView.mul(inverseProjection));
+
+        get().worldCurrentX = tmp.x;
+        get().worldCurrentY = tmp.y;
     }
 
     public static void mouseButtonCallback(long window, int button, int action, int mods) {
@@ -78,8 +121,11 @@ public class MouseListener {
     public static void endFrame() {
         get().scrollX = 0;
         get().scrollY = 0;
-        get().worldPastX = get().worldCurrentX;
-        get().worldPastY = get().worldCurrentY;
+
+        if (!startupMode && Window.getScene() != null) {
+            get().worldPastX = get().worldCurrentX;
+            get().worldPastY = get().worldCurrentY;
+        }
     }
 
     public static void clear() {
@@ -93,6 +139,8 @@ public class MouseListener {
     }
 
     public static Vector2f getCursorTraverse() {
+        if (startupMode) return new Vector2f(0, 0);
+
         return new Vector2f(
                 (float)(get().worldPastX - MouseListener.getWorldX()),
                 (float)(get().worldPastY - MouseListener.getWorldY())
@@ -135,11 +183,13 @@ public class MouseListener {
     }
 
     public static Vector2f getScreen() {
+        if (startupMode) return new Vector2f(getX(), getY());
+
         float instX = getX() - get().workViewportPos.x;
-        instX = (instX / get().workViewportSize.x) * 1920.0f;
+        instX = (instX / get().workViewportSize.x) * Window.loadWidth();
 
         float instY = getY() - get().workViewportPos.y;
-        instY = 1080.0f - ((instY / get().workViewportSize.y) * 1080.0f);
+        instY = Window.loadHeight() - ((instY / get().workViewportSize.y) * Window.loadHeight());
 
         return new Vector2f(instX, instY);
     }
@@ -154,21 +204,29 @@ public class MouseListener {
 
     // Remove the need to recalculate mouse callback each time it is call in a same frame
     public static float getWorldX() {
+        if (startupMode) return 0.0f;
+
         return getWorld().x;
     }
 
     public static float getWorldY() {
+        if (startupMode) return 0.0f;
+
         return getWorld().y;
     }
 
     // raw mouse coordinate to world normalization coordinate
     public static Vector2f getWorld() {
+        if (startupMode || Window.getScene() == null) return new Vector2f(0.0f, 0.0f);
+
         float currentX = getX() - get().workViewportPos.x;
         currentX = (2.0f * (currentX / get().workViewportSize.x)) - 1.0f;
         float currentY = (getY() - get().workViewportPos.y);
         currentY = (2.0f * (1.0f - (currentY / get().workViewportSize.y))) - 1;
 
         Viewport camera = Window.getScene().viewport();
+
+        if (camera == null) return new Vector2f(0.0f, 0.0f);
 
         Vector4f tmp = new Vector4f(currentX, currentY, 0, 1);
 
@@ -189,6 +247,8 @@ public class MouseListener {
 
 
     public static Vector2f screen2WorldCoord(Vector2f scrCoord) {
+        if (startupMode || Window.getScene() == null) return new Vector2f(0.0f, 0.0f);
+
         Vector2f normalization = new Vector2f(
                 scrCoord.x / Window.loadWidth(),
                 scrCoord.y / Window.loadHeight()
@@ -197,6 +257,8 @@ public class MouseListener {
         normalization.mul(2f).sub(new Vector2f(1f, 1f));
 
         Viewport viewport = Window.getScene().viewport();
+
+        if (viewport == null) return new Vector2f(0.0f, 0.0f);
 
         Vector4f tmp = new Vector4f(normalization.x, normalization.y, 0 , 1);
 
@@ -209,7 +271,11 @@ public class MouseListener {
     }
 
     public static Vector2f world2ScreenCoord(Vector2f wCoord) {
+        if (startupMode || Window.getScene() == null) return new Vector2f(0.0f, 0.0f);
+
         Viewport viewport = Window.getScene().viewport();
+
+        if (viewport == null) return new Vector2f(0.0f, 0.0f);
 
         Vector4f normalization = new Vector4f(wCoord.x, wCoord.y, 0, 1);
 

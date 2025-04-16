@@ -4,7 +4,6 @@ import TCB_Field.ImGuiLayer;
 import eventviewer.EventSystem;
 import eventviewer.event.Event;
 import eventviewer.event.EventType;
-import imgui.ImGui;
 import imgui.extension.imguifiledialog.ImGuiFileDialog;
 import imgui.extension.imguifiledialog.callback.ImGuiFileDialogPaneFun;
 import imgui.extension.imguifiledialog.flag.ImGuiFileDialogFlags;

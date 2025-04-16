@@ -4,6 +4,7 @@ import TCB_Field.Window;
 import components.Component;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
+import org.joml.Math;
 import org.joml.Vector2f;
 import physic_2d.enums.ObjectClassification;
 
@@ -46,7 +47,7 @@ public class FlatPhysicBody extends Component {
                     instObjectBody.getPosition().x, instObjectBody.getPosition().y
             );
 
-            this.gameObject.transform.rotate = (float)Math.toDegrees(instObjectBody.getAngle());
+            this.gameObject.transform.rotate = Math.toDegrees(instObjectBody.getAngle());
         }
     }
     public float loadFriction() {

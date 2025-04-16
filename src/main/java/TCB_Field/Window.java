@@ -1,11 +1,16 @@
 package TCB_Field;
 
+import editor.OpenProjectDialog;
 import editor.project.Project;
 import editor.Properties;
 import eventviewer.EventSystem;
 import eventviewer.IEvent;
 import eventviewer.event.Event;
 import imgui.ImGui;
+import imgui.flag.ImGuiCond;
+import imgui.flag.ImGuiConfigFlags;
+import imgui.flag.ImGuiWindowFlags;
+import imgui.type.ImBoolean;
 import org.joml.Vector2i;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
@@ -38,7 +43,7 @@ import static org.lwjgl.system.MemoryUtil.NULL;
 public class Window implements IEvent {
     private int width;
     private int height;
-    private String title;
+    private final String title;
     private long glfwWindow; //windows pointer
     public float r, g, b, a;
     private static Window window = null; // start with no window
@@ -54,11 +59,13 @@ public class Window implements IEvent {
 
     private final IconLoader iconFile = IconLoader.loadIcon("assets/texture/TCB icon.png");
 
-    private ExitConfirmDialog exitConfirmDialog;
+    private final ExitConfirmDialog exitConfirmDialog;
     private boolean shouldClose;
 
     private long soundContext;
     private long audioDevice;
+
+    private boolean projectLoaded = false;
 
     public Window() {
         this.width = 640;
@@ -96,7 +103,7 @@ public class Window implements IEvent {
     }
 
     public static Scene getScene() {
-        return get().currentScene;
+        return currentScene;
     }
 
     public static int loadWidth() {
@@ -112,19 +119,89 @@ public class Window implements IEvent {
 
         initWindow();
 
+        if (!projectLoaded) {
+            showStartupScreen();
+
+            projectLoaded = (CurrentProject != null && ProjectRoot != null);
+
+            if (glfwWindowShouldClose(glfwWindow)) {
+                endScr();
+                return;
+            }
+        }
+
+        if (projectLoaded) {
+            String projectDetail = " - [" + CurrentProject.getProject().getName() + "] [" + ProjectRoot + "]";
+
+            glfwSetWindowTitle(glfwWindow, this.title + projectDetail);
+            loop();
+        }
+
         String renderer = glGetString(GL_RENDERER);
         String version = glGetString(GL_VERSION);
 
         System.out.println("Active GPU: " + renderer + " Driver version: " + version);
 
-        loop();
-
         //free memories
 
         endScr();
-        //end GLFW and error callback
 
+        //end GLFW and error callback
         glfwSetErrorCallback(null).free();
+    }
+
+    private void showStartupScreen() {
+        MouseListener.setStartupMode(true);
+
+        float beginTime = (float)glfwGetTime();
+        float endTime;
+        float dt = -1.0f;
+
+        while (!glfwWindowShouldClose(glfwWindow) && !projectLoaded) {
+            glfwPollEvents();
+
+            glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT);
+
+            imGuiLayer.getImGuiGlfw().newFrame();
+            imGuiLayer.getImGuiGl3().newFrame();
+            ImGui.newFrame();
+
+            ImGui.setNextWindowPos(width / 2.0f, height / 2.0f, ImGuiCond.Always, 0.5f, 0.5f);
+            ImGui.setNextWindowSize(400, 200);
+            ImGui.begin("Welcome to The Cell Beyond Editor", ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse);
+
+            ImGui.text("Please select a project to open:");
+
+            if (ImGui.button("Open Project", 150, 30)) {
+                ImGuiLayer.set_openFileDialog(new ImBoolean(true));
+            }
+
+            OpenProjectDialog openProjectDialog = new OpenProjectDialog();
+
+            openProjectDialog.imgui(ImGuiLayer.get_openFileDialog());
+
+            projectLoaded = (CurrentProject != null && ProjectRoot != null);
+
+            ImGui.end();
+
+            ImGui.render();
+            imGuiLayer.getImGuiGl3().renderDrawData(ImGui.getDrawData());
+
+            if (ImGui.getIO().hasConfigFlags(ImGuiConfigFlags.ViewportsEnable)) {
+                final long backupWindowPtr = glfwGetCurrentContext();
+                ImGui.updatePlatformWindows();
+                ImGui.renderPlatformWindowsDefault();
+                glfwMakeContextCurrent(backupWindowPtr);
+            }
+
+            glfwSwapBuffers(glfwWindow);
+
+            endTime = (float) glfwGetTime();
+
+            dt = endTime - beginTime;
+            beginTime = endTime;
+        }
     }
 
     private void initWindow() {
@@ -225,8 +302,11 @@ public class Window implements IEvent {
         bufferIcon.put(0, icon);
         glfwSetWindowIcon(glfwWindow, bufferIcon);
 
+        projectLoaded = (CurrentProject != null && ProjectRoot != null);
 
-        Window.changeScene(new LevelEditorSceneInit());
+        if (projectLoaded) {
+            Window.changeScene(new LevelEditorSceneInit());
+        }
     }
 
 
@@ -363,6 +443,8 @@ public class Window implements IEvent {
                 System.out.println("Engine stopping.");
                 break;
             case LevelLoad:
+                if (this.runtimeMode) this.runtimeMode = false;
+
                 Window.changeScene(new LevelEditorSceneInit(currentSceneName));
                 System.out.println("Loading current level...");
                 break;
@@ -375,9 +457,19 @@ public class Window implements IEvent {
 
                 Project.loadFromYaml(object.toString());
 
-                String projectDetail = " - [" + CurrentProject.getProject().getName() + "] [" + ProjectRoot + "]";
+                projectLoaded = (CurrentProject != null && ProjectRoot != null);
 
-                glfwSetWindowTitle(glfwWindow, this.title + projectDetail);
+                if (projectLoaded) {
+                    MouseListener.setStartupMode(false);
+
+                    String projectDetail = " - [" + CurrentProject.getProject().getName() + "] [" + ProjectRoot + "]";
+
+                    glfwSetWindowTitle(glfwWindow, this.title + projectDetail);
+
+                    if (currentScene == null) {
+                        Window.changeScene(new LevelEditorSceneInit());
+                    }
+                }
 
                 /*
                 Project project = Project.loadFromYaml(object.toString());
