@@ -15,15 +15,15 @@ public class CharInfo {
     }
 
     public void setTextureCoordinates(int fontWidth, int fontHeight) {
-        float instX = (float) sourceX / (float) fontWidth;
-        float firstX = (float) (sourceX + width) / (float) fontWidth;
+        float x0 = (float) sourceX / (float) fontWidth;
+        float x1 = (float) (sourceX + width) / (float) fontWidth;
 
         // Start from the bottom of the glyph.
-        float instY = (float) sourceY - height / (float) fontHeight;
-        float firstY = (float) (sourceY) / (float) fontHeight;
+        float y0 = (float) sourceY - height / (float) fontHeight;
+        float y1 = (float) (sourceY) / (float) fontHeight;
 
-        textureCoordinates[0] = new Vector2f(instX, firstY);
-        textureCoordinates[1] = new Vector2f(firstX, instY);
+        textureCoordinates[0] = new Vector2f(x0, y1);
+        textureCoordinates[1] = new Vector2f(x1, y0);
     }
 
     public int sourceX() {

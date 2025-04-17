@@ -1,6 +1,5 @@
 package render.fontRenderer;
 
-import org.joml.Math;
 import org.lwjgl.BufferUtils;
 import utility.PathResolver;
 
@@ -79,6 +78,11 @@ public class TCBFont {
 
     private void generateBitMap() {
         Font font = registerFont(filePath);
+
+        if (font == null) {
+            System.err.println("Cannot register font.");
+            return;
+        }
 
         font = new Font(font.getName(), Font.PLAIN, fontSize);
 

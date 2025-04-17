@@ -1,9 +1,8 @@
 package render.fontRenderer.example;
 
-import org.joml.Vector3f;
 import org.lwjgl.opengl.GL;
+import render.FrameBuffer;
 import render.Shader;
-import render.fontRenderer.CharInfo;
 import render.fontRenderer.FontBatch;
 import render.fontRenderer.TCBFont;
 
@@ -17,12 +16,13 @@ import static org.lwjgl.system.MemoryUtil.NULL;
 class WindowFont {
     private long windowPtr;
     private TCBFont font;
+    private FrameBuffer frameBuffer;
 
     WindowFont() {
         init();
 
         try {
-            font = new TCBFont("assets/fonts/Caudex.ttf", 32, false);
+            font = new TCBFont("assets/fonts/Consola.ttf", 64, false);
         } catch (IOException e) {
             System.err.println("Failed to generate font, ending test application...");
             e.printStackTrace();
@@ -31,8 +31,6 @@ class WindowFont {
 
     private void init() {
         glfwInit();
-        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-        glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -50,28 +48,37 @@ class WindowFont {
         glfwShowWindow(windowPtr);
 
         GL.createCapabilities();
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+
+        this.frameBuffer = new FrameBuffer(1410, 900);
+
     }
 
     void run() {
         Shader fontShader = new Shader("assets/shaders/defaultFont.glsl");
+        Shader sdfShader = new Shader("assets/shaders/defaultSDF.glsl");
 
-        FontBatch batch = new FontBatch().setShader(fontShader).setFont(font);
+        FontBatch batch = new FontBatch().setShader(fontShader).setSdfShader(sdfShader).setFont(font);
 
         batch.initFontRenderBatch();
 
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
         while (!glfwWindowShouldClose(windowPtr)) {
-            glClear(GL_COLOR_BUFFER_BIT);
-            glClearColor(0.1f, 0.1f, 0.1f, 1f);
+            //this.frameBuffer.use();
 
-            batch.addTextString("The Cell Beyond", 200, 200, 1f, new Vector3f(0.5f, 0.5f, 0.5f));
+            glClear(GL_COLOR_BUFFER_BIT);
+            glClearColor(0.1f, 0.1f, 0.1f, 1);
+
+            batch.addTextString("Hello world!", 0, 0, 1f, 0xFF00AB0);
 
             batch.flushBatch();
 
+            //this.frameBuffer.detach();
+
             glfwSwapBuffers(windowPtr);
+
             glfwPollEvents();
+
         }
 
     }

@@ -49,6 +49,8 @@ public class FontBatch {
 
     private Shader shader;
 
+    private Shader sdfShader;
+
     private TCBFont font;
 
     // Generate a buffer object large enough for BATCH_SIZE
@@ -76,7 +78,7 @@ public class FontBatch {
 
         vbo = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, (long) Float.BYTES * VERTEX_SIZE * BATCH_SIZE, GL_DYNAMIC_DRAW);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, (long) Float.BYTES * VERTEX_SIZE * BATCH_SIZE, GL_DYNAMIC_DRAW);
 
         generateElementBufferObject();
 
@@ -107,8 +109,8 @@ public class FontBatch {
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_BUFFER, font.textureId);
-        shader.loadTexture("uFontTex", 0);
-        shader.loadMat4f("uProject", projection);
+        sdfShader.loadTexture("uFontTex", 0);
+        sdfShader.loadMat4f("uProject", projection);
 
 
         glBindVertexArray(vao);
@@ -166,6 +168,26 @@ public class FontBatch {
      * @param rgb color vector.
      */
     public void addTextString(String text, int x, int y, float scale, Vector3f rgb) {
+        float currentX = x;
+
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+
+            CharInfo charInfo = font.getCharacter(c);
+            if (charInfo.width() == 0) {
+                System.err.println("Unknown character" + c);
+                continue;
+            }
+
+
+            addCharacter(currentX, y, scale, charInfo, ColorConverter.fromVectorToHexInt(rgb));
+
+            // Move to next char in string
+            currentX += charInfo.width() * scale;
+        }
+    }
+
+    public void addTextString(String text, int x, int y, float scale, int rgb) {
         for (int i = 0; i < text.length(); i++) {
             char c = text.charAt(i);
 
@@ -176,12 +198,11 @@ public class FontBatch {
             }
 
             float xPos = x;
-            float yPos = y;
 
-            addCharacter(xPos, yPos, scale, charInfo, ColorConverter.fromVectorToHexInt(rgb));
+            addCharacter(xPos, y, scale, charInfo, rgb);
 
             // Move to next char in string
-            x += charInfo.width() * scale;
+            x += (int) (charInfo.width() * scale);
         }
     }
 
@@ -191,6 +212,15 @@ public class FontBatch {
 
     public FontBatch setShader(Shader shader) {
         this.shader = shader;
+        return this;
+    }
+
+    public Shader sdfShader() {
+        return sdfShader;
+    }
+
+    public FontBatch setSdfShader(Shader shader) {
+        this.sdfShader = shader;
         return this;
     }
 
