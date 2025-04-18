@@ -2,7 +2,7 @@ package render.fontRenderer;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
-import render.Shader;
+import render.fontRenderer.cfont.Shader;
 import utility.ColorConverter;
 
 import static org.lwjgl.opengl.GL15.*;
@@ -108,9 +108,9 @@ public class FontBatch {
         shader.use();
 
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_BUFFER, font.textureId);
-        sdfShader.loadTexture("uFontTex", 0);
-        sdfShader.loadMat4f("uProject", projection);
+        glBindTexture(GL_TEXTURE_2D, font.textureId);
+        sdfShader.uploadTexture("uFontTexture", 0);
+        sdfShader.uploadMat4f("uProjection", projection);
 
 
         glBindVertexArray(vao);

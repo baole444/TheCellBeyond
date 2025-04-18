@@ -2,7 +2,7 @@ package render.fontRenderer.example;
 
 import org.lwjgl.opengl.GL;
 import render.FrameBuffer;
-import render.Shader;
+import render.fontRenderer.cfont.Shader;
 import render.fontRenderer.FontBatch;
 import render.fontRenderer.TCBFont;
 
@@ -35,7 +35,7 @@ class WindowFont {
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-        windowPtr = glfwCreateWindow(1410, 900, "Example Font Rendering", NULL, NULL);
+        windowPtr = glfwCreateWindow(1920, 1080, "Example Font Rendering", NULL, NULL);
 
         if (windowPtr == NULL) {
             System.err.println("Failed to create test window.");
@@ -48,28 +48,29 @@ class WindowFont {
         glfwShowWindow(windowPtr);
 
         GL.createCapabilities();
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
         this.frameBuffer = new FrameBuffer(1410, 900);
 
     }
 
     void run() {
-        Shader fontShader = new Shader("assets/shaders/defaultFont.glsl");
-        Shader sdfShader = new Shader("assets/shaders/defaultSDF.glsl");
+        Shader fontShader = new Shader("assets/fontShader.glsl");
+        Shader sdfShader = new Shader("assets/sdfShader.glsl");
 
         FontBatch batch = new FontBatch().setShader(fontShader).setSdfShader(sdfShader).setFont(font);
 
         batch.initFontRenderBatch();
 
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+
         while (!glfwWindowShouldClose(windowPtr)) {
             //this.frameBuffer.use();
 
             glClear(GL_COLOR_BUFFER_BIT);
-            glClearColor(0.1f, 0.1f, 0.1f, 1);
+            glClearColor(0.1f, 0.09f, 0.1f, 1);
 
-            batch.addTextString("Hello world!", 0, 0, 1f, 0xFF00AB0);
+            batch.addTextString("Hello world!", 200, 200, 1f, 0xFF00AB0);
 
             batch.flushBatch();
 
