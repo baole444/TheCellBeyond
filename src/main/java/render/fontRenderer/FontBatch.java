@@ -2,7 +2,7 @@ package render.fontRenderer;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
-import render.fontRenderer.cfont.Shader;
+import render.Shader;
 import utility.ColorConverter;
 
 import static org.lwjgl.opengl.GL15.*;
@@ -10,7 +10,6 @@ import static org.lwjgl.opengl.GL20.glEnableVertexAttribArray;
 import static org.lwjgl.opengl.GL20.glVertexAttribPointer;
 import static org.lwjgl.opengl.GL30.glBindVertexArray;
 import static org.lwjgl.opengl.GL30.glGenVertexArrays;
-import static org.lwjgl.opengl.GL31.GL_TEXTURE_BUFFER;
 
 public class FontBatch {
     /*
@@ -109,8 +108,8 @@ public class FontBatch {
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, font.textureId);
-        sdfShader.uploadTexture("uFontTexture", 0);
-        sdfShader.uploadMat4f("uProjection", projection);
+        shader.loadTexture("uFontText", 0);
+        shader.loadMat4f("uProject", projection);
 
 
         glBindVertexArray(vao);

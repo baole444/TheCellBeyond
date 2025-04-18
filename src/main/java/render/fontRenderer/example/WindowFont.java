@@ -2,7 +2,7 @@ package render.fontRenderer.example;
 
 import org.lwjgl.opengl.GL;
 import render.FrameBuffer;
-import render.fontRenderer.cfont.Shader;
+import render.Shader;
 import render.fontRenderer.FontBatch;
 import render.fontRenderer.TCBFont;
 
@@ -54,8 +54,8 @@ class WindowFont {
     }
 
     void run() {
-        Shader fontShader = new Shader("assets/fontShader.glsl");
-        Shader sdfShader = new Shader("assets/sdfShader.glsl");
+        Shader fontShader = new Shader("assets/shaders/defaultFont.glsl");
+        Shader sdfShader = new Shader("assets/shaders/defaultSDF.glsl");
 
         FontBatch batch = new FontBatch().setShader(fontShader).setSdfShader(sdfShader).setFont(font);
 

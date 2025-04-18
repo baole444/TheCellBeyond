@@ -1,21 +1,13 @@
 .gradle
 build/
-!gradle/wrapper/gradle-wrapper.jar
-!**/src/main/**/build/
-!**/src/test/**/build/
+gradle
 
 ### IntelliJ IDEA ###
-.idea/modules.xml
-.idea/jarRepositories.xml
-.idea/compiler.xml
-.idea/libraries/
-.idea/workspace.xml
+.idea
 *.iws
 *.iml
 *.ipr
 out/
-!**/src/main/**/out/
-!**/src/test/**/out/
 
 ### Eclipse ###
 .apt_generated
@@ -26,8 +18,6 @@ out/
 .springBeans
 .sts4-cache
 bin/
-!**/src/main/**/bin/
-!**/src/test/**/bin/
 
 ### NetBeans ###
 /nbproject/private/
@@ -41,10 +31,9 @@ bin/
 
 ### Mac OS ###
 .DS_Store
-/.idea/shelf/
+
+### Generated ###
 /imgui.ini
-.idea/kotlinc.xml
-.idea/uiDesigner.xml
 *.tcb
 Pref/closeConfirm.config
 *.log
