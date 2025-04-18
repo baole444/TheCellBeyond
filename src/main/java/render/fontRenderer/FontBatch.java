@@ -55,7 +55,7 @@ public class FontBatch {
 
     // Generate a buffer object large enough for BATCH_SIZE
     private void generateElementBufferObject() {
-        int elementSize = BATCH_SIZE * 3; // 3 tris per element.
+        int elementSize = BATCH_SIZE * 3; // 2 tris per element.
 
         int[] elementBuffer = new int[elementSize];
 
@@ -78,7 +78,7 @@ public class FontBatch {
 
         vbo = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, (long) Float.BYTES * VERTEX_SIZE * BATCH_SIZE, GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, (long) Float.BYTES * VERTEX_SIZE * BATCH_SIZE, GL_DYNAMIC_DRAW);
 
         generateElementBufferObject();
 

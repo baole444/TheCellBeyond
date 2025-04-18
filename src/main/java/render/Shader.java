@@ -31,12 +31,12 @@ public class Shader {
 
             //Find first pattern of #type
             int index = src.indexOf("#type") + 6;
-            int eol = src.indexOf("\r\n", index);
+            int eol = src.indexOf("\n", index);
             String firstPattern = src.substring(index, eol).trim();
 
             //Find second
             index = src.indexOf("#type", eol) + 6;
-            eol = src.indexOf("\r\n", index);
+            eol = src.indexOf("\n", index);
             String secondPattern = src.substring(index, eol).trim();
 
             if (firstPattern.equals("vertex")) {
@@ -47,10 +47,10 @@ public class Shader {
                 throw new IOException("Unexpected token '" + firstPattern + "'");
             }
 
-            if (secondPattern.equals("fragment")) {
-                fragmentSrc = splitString[2];
-            } else if (secondPattern.equals("vertex")) {
+            if (secondPattern.equals("vertex")) {
                 vertexSrc = splitString[2];
+            } else if (secondPattern.equals("fragment")) {
+                fragmentSrc = splitString[2];
             } else {
                 throw new IOException("Unexpected token '" + secondPattern + "'");
             }
@@ -77,7 +77,7 @@ public class Shader {
         int success = glGetShaderi(vertexID, GL_COMPILE_STATUS);
         if (success == GL_FALSE) {
             int len = glGetShaderi(vertexID, GL_INFO_LOG_LENGTH);
-            System.out.println("FATAL: 'default.glsl'\n\tVertex shader failed to compiled.");
+            System.out.println("FATAL: '" + filepath + "' \n\tVertex shader failed to compiled.");
             System.out.println(glGetShaderInfoLog(vertexID, len));
             assert false: "";
         }
@@ -93,7 +93,7 @@ public class Shader {
         success = glGetShaderi(fragmentID, GL_COMPILE_STATUS);
         if (success == GL_FALSE) {
             int len = glGetShaderi(fragmentID, GL_INFO_LOG_LENGTH);
-            System.out.println("FATAL: '" + filepath + " '\n\tFragment shader failed to compiled.");
+            System.out.println("FATAL: '" + filepath + "' \n\tFragment shader failed to compiled.");
             System.out.println(glGetShaderInfoLog(fragmentID, len));
             assert false: "";
         }
