@@ -245,7 +245,7 @@ public class TextBatch implements Comparable<TextBatch> {
                 vertices[vertexOffset++] = texY1;
 
                 // Second triangle
-                // Vertex 4 (bottom-left)
+                // Vertex 4 (top-left)
                 vertices[vertexOffset++] = charX;
                 vertices[vertexOffset++] = charY + height;
                 vertices[vertexOffset++] = color.x;
@@ -255,7 +255,7 @@ public class TextBatch implements Comparable<TextBatch> {
                 vertices[vertexOffset++] = texX0;
                 vertices[vertexOffset++] = texY0;
 
-                // Vertex 5 (top-left)
+                // Vertex 5 (top-right)
                 vertices[vertexOffset++] = charX + width;
                 vertices[vertexOffset++] = charY + height;
                 vertices[vertexOffset++] = color.x;
