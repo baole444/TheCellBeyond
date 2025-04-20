@@ -5,6 +5,8 @@ import org.lwjgl.stb.STBTTBakedChar;
 import org.lwjgl.system.MemoryStack;
 import utility.PathResolver;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -26,7 +28,7 @@ public class TCBFont {
     private int bitmapHeight;
     private Map<Character, CharInfo> characters = new HashMap<>();
 
-    public TCBFont(String filepath, int fontSize, boolean isProjectAsset) throws IOException{
+    public TCBFont(String filepath, int fontSize, boolean isProjectAsset) throws IOException {
         if (isProjectAsset && CurrentProject != null && ProjectRoot != null) {
             this.filepath = PathResolver.resolveToAbsolute(ProjectRoot, filepath);
         }
@@ -50,6 +52,7 @@ public class TCBFont {
 
         STBTTBakedChar.Buffer charData = STBTTBakedChar.malloc(96);
 
+        saveDebugImage(bitmap);
         // Gen OpenGL texture.
         textureId = glGenTextures();
         glBindTexture(GL_TEXTURE_2D, textureId);
@@ -81,6 +84,29 @@ public class TCBFont {
         File toVerify = new File(this.filepath);
 
         if (!toVerify.exists()) throw new IOException("Font file does not exist at: '" + this.filepath + "'");
+    }
+
+    private void saveDebugImage(ByteBuffer bitmap) {
+        try {
+            // Create a BufferedImage and write the bitmap data to it
+            BufferedImage image = new BufferedImage(bitmapWidth, bitmapHeight, BufferedImage.TYPE_INT_ARGB);
+
+            for (int y = 0; y < bitmapHeight; y++) {
+                for (int x = 0; x < bitmapWidth; x++) {
+                    int i = y * bitmapWidth + x;
+                    int value = bitmap.get(i) & 0xFF;
+                    int color = (value << 24) | (value << 16) | (value << 8) | value;
+                    image.setRGB(x, y, color);
+                }
+            }
+
+            // Save the image to a file
+            String fontName = new File(filepath).getName().replaceAll("\\.[^.]*$", "");
+            File outputFile = new File("tempFont_" + fontName + ".png");
+            ImageIO.write(image, "png", outputFile);
+        } catch (IOException e) {
+            System.err.println("Failed to save debug image: " + e.getMessage());
+        }
     }
 
     public int getFontSize() {

@@ -1,11 +1,16 @@
 package eventviewer.event;
 
 public enum EventType {
-    EngineStart,
-    EngineEnd,
-    LevelSave,
-    LevelLoad,
-    LoadProject,
-    LoadScene,
+    ENGINE_START,
+    ENGINE_END,
+
+    LEVEL_SAVE,
+    LEVEL_LOAD,
+
+    PROJECT_LOAD,
+
+    SCENE_NEW,
+    SCENE_LOAD,
+
     UserEvent,
 }

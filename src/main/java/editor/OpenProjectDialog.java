@@ -43,7 +43,7 @@ public class OpenProjectDialog {
                 //System.out.println("Selected: " + selection.values().stream().findFirst().get());
                 //System.out.println("User data: " + userData);
                 String path = selection.values().stream().findFirst().get();
-                EventSystem.notice(path, new Event(EventType.LoadProject));
+                EventSystem.notice(path, new Event(EventType.PROJECT_LOAD));
 
             }
 

@@ -1,12 +1,15 @@
 package editor;
 
 import TCB_Field.ImGuiLayer;
+import TCB_Field.Window;
 import eventviewer.EventSystem;
 import eventviewer.event.Event;
 import eventviewer.event.EventType;
 import imgui.ImGui;
 import imgui.internal.flag.ImGuiItemFlags;
 import imgui.type.ImBoolean;
+import scene.LevelEditorSceneInit;
+import scene.TextRenderingDemo;
 import utility.ExitConfirmDialog;
 
 import java.util.List;
@@ -23,11 +26,11 @@ public class MenuBar {
         ImGui.pushID(ImGuiItemFlags.SelectableDontClosePopup);
         if (ImGui.beginMenu("File")) {
             if (ImGui.menuItem("Save", "Ctrl+S")) {
-                EventSystem.notice(null, new Event(EventType.LevelSave));
+                EventSystem.notice(null, new Event(EventType.LEVEL_SAVE));
             }
 
             if (ImGui.menuItem("Open", "Ctrl+O")) {
-                EventSystem.notice(null, new Event(EventType.LevelLoad));
+                EventSystem.notice(null, new Event(EventType.LEVEL_LOAD));
             }
 
             if (ImGui.menuItem("Open Project")) {
@@ -65,13 +68,22 @@ public class MenuBar {
 
         if (CurrentProject != null && !CurrentProject.getSceneNames().isEmpty()) {
             if (ImGui.beginMenu("Scenes")){
+                if (ImGui.menuItem("New scene")) {
+                    // TODO: Confirm save current scene
+                    Window.changeScene(new LevelEditorSceneInit());
+                }
+
+                if (ImGui.menuItem("Show text demo")) {
+                    Window.changeScene(new TextRenderingDemo());
+                }
+
 
                 if (ImGui.beginMenu("Select scene")) {
                     List<String> sceneNameList = CurrentProject.getSceneNames();
 
                     for (String name : sceneNameList) {
                         if (ImGui.menuItem(name)) {
-                            EventSystem.notice(name, new Event(EventType.LoadScene));
+                            EventSystem.notice(name, new Event(EventType.SCENE_LOAD));
                         }
                     }
 

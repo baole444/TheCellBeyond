@@ -12,6 +12,7 @@ import editor.project.ProjectSheetMap;
 import imgui.ImGui;
 import imgui.ImVec2;
 import org.joml.Vector2f;
+import org.joml.Vector4f;
 import utility.AssetsPool;
 import utility.PathResolver;
 import utility.Settings;
@@ -49,6 +50,9 @@ public class LevelEditorSceneInit extends SceneInit {
 
     @Override
     public void init(Scene scene) {
+        GameObject testText = Prefab.genText("Test text rendering", Settings.PATH.CONSOLA, 24, new Vector4f(1, 1, 1, 1));
+        testText.transform.position.set(0.0f, 0.0f);
+        scene.addObjToScene(testText);
 
         if (sceneName != null && CurrentProject != null) {
             thisScene = CurrentProject.getScenes().get(sceneName);
@@ -95,6 +99,7 @@ public class LevelEditorSceneInit extends SceneInit {
     @Override
     public void loadResource(Scene scene) {
         AssetsPool.loadShader(Settings.PATH.DEFAULT_TEXTURE_SHADER);
+        AssetsPool.loadShader(Settings.PATH.DEFAULT_FONT_SHADER);
 
         if (sceneName != null && CurrentProject != null) {
             thisScene = CurrentProject.getScenes().get(sceneName);
@@ -188,6 +193,7 @@ public class LevelEditorSceneInit extends SceneInit {
                 }
             }
 
+            /*
             if(ImGui.beginTabItem("Prefabrication")) {
 
                 SpriteSheet wheelSprites = AssetsPool.loadSpSheet("assets/texture/animation_test.png");
@@ -219,6 +225,7 @@ public class LevelEditorSceneInit extends SceneInit {
 
                 ImGui.endTabItem();
             }
+             */
 
             if (ImGui.beginTabItem("Sound collection")) {
                 Collection<Sound> sounds = AssetsPool.loadAllSound();

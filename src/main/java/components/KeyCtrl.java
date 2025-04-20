@@ -82,11 +82,11 @@ public class KeyCtrl extends Component {
 
         // Make keybinding of Ctrl + S = Save file | Ctrl + O = open file
         if (KeyListener.isKeyTapped(GLFW_KEY_S, GLFW_MOD_CONTROL)) {
-            EventSystem.notice(null, new Event(EventType.LevelSave));
+            EventSystem.notice(null, new Event(EventType.LEVEL_SAVE));
         }
 
         if (KeyListener.isKeyTapped(GLFW_KEY_O, GLFW_MOD_CONTROL)) {
-            EventSystem.notice(null, new Event(EventType.LevelLoad));
+            EventSystem.notice(null, new Event(EventType.LEVEL_LOAD));
         }
 
         // Make keybinding of Ctrl + P = Open project dialog box | ESC while dialog box is active = close.

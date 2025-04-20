@@ -432,28 +432,28 @@ public class Window implements IEvent {
     @Override
     public void whenNotice(Object object, Event event) {
         switch (event.type) {
-            case EngineStart:
+            case ENGINE_START:
                 this.runtimeMode = true;
                 currentScene.saveLevel();
                 Window.changeScene(new LevelEditorSceneInit(currentSceneName)); // Reset view to runtime mode.
                 System.out.println("Engine starting.");
                 break;
-            case EngineEnd:
+            case ENGINE_END:
                 this.runtimeMode = false;
                 Window.changeScene(new LevelEditorSceneInit(currentSceneName)); // Reset to Editor runtime.
                 System.out.println("Engine stopping.");
                 break;
-            case LevelLoad:
+            case LEVEL_LOAD:
                 if (this.runtimeMode) this.runtimeMode = false;
 
                 Window.changeScene(new LevelEditorSceneInit(currentSceneName));
                 System.out.println("Loading current level...");
                 break;
-            case LevelSave:
+            case LEVEL_SAVE:
                 currentScene.saveLevel();
                 System.out.println("Saving current level...");
                 break;
-            case LoadProject:
+            case PROJECT_LOAD:
                 System.out.println("Loading project file at "+ object.toString());
 
                 Project.loadFromYaml(object.toString());
@@ -472,7 +472,7 @@ public class Window implements IEvent {
                     }
                 }
                 break;
-            case LoadScene:
+            case SCENE_LOAD:
                 if (this.runtimeMode) {
                     this.runtimeMode = false;
                 }

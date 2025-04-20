@@ -27,12 +27,12 @@ public class GameViewPort {
         ImGui.beginMenuBar();
         if (ImGui.menuItem("Play","", isPlaying, !isPlaying)) {
             isPlaying = true;
-            EventSystem.notice(null, new Event(EventType.EngineStart));
+            EventSystem.notice(null, new Event(EventType.ENGINE_START));
         }
 
         if (ImGui.menuItem("Stop","", !isPlaying, isPlaying)) {
             isPlaying = false;
-            EventSystem.notice(null, new Event(EventType.EngineEnd));
+            EventSystem.notice(null, new Event(EventType.ENGINE_END));
         }
 
         ImGui.endMenuBar();
