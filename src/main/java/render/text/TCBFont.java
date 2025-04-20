@@ -19,6 +19,7 @@ import static editor.project.Project.CurrentProject;
 import static editor.project.Project.ProjectRoot;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
+import static org.lwjgl.stb.STBTruetype.stbtt_BakeFontBitmap;
 
 public class TCBFont {
     private String filepath;
@@ -51,6 +52,8 @@ public class TCBFont {
         ByteBuffer bitmap = BufferUtils.createByteBuffer(bitmapWidth * bitmapHeight);
 
         STBTTBakedChar.Buffer charData = STBTTBakedChar.malloc(96);
+
+        stbtt_BakeFontBitmap(fontBuffer, fontSize, bitmap, bitmapWidth, bitmapHeight, 32, charData);
 
         saveDebugImage(bitmap);
         // Gen OpenGL texture.
