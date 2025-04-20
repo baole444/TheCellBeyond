@@ -4,6 +4,7 @@ import TCB_Field.Window;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 import utility.AssetsPool;
+import utility.Settings;
 import utility.TCBMath;
 
 import java.util.ArrayList;
@@ -21,7 +22,7 @@ public class DebugDraw {
     // 6 float vertex, 2 vertices/line
     private static float[] vertexA = new float[MAX_LINE * 6 * 2];
 
-    private static Shader shader = AssetsPool.loadShader("assets/shaders/DBLine2.glsl");
+    private static Shader shader = AssetsPool.loadShader(Settings.PATH.DEBUG_LINE2_SHADER);
 
     private static int vaoID;
     private static int vboID;

@@ -11,6 +11,7 @@ import imgui.type.ImBoolean;
 import render.ObjectSelection;
 import scene.Scene;
 import org.joml.Math;
+import utility.Settings;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
@@ -132,7 +133,7 @@ public class ImGuiLayer {
         //fontConfig.setMergeMode(true); //For multiple font, turn this back on
         fontConfig.setPixelSnapH(true);
 
-        fontAtlas.addFontFromFileTTF("assets/fonts/Consola.ttf", 16, fontConfig);
+        fontAtlas.addFontFromFileTTF(Settings.PATH.CONSOLA, 16, fontConfig);
         fontAtlas.build();
         fontConfig.destroy();
     }

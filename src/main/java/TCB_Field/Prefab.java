@@ -1,10 +1,12 @@
 package TCB_Field;
 
 import components.*;
+import org.joml.Vector4f;
 import physic_2d.components.FlatPhysicBody;
 import physic_2d.components.collider.PillBoxCollider;
 import physic_2d.enums.ObjectClassification;
 import utility.AssetsPool;
+import utility.Settings;
 
 public class Prefab {
     public static GameObject genSpsObj(Sprite sprite, float sizeX, float sizeY) {
@@ -18,6 +20,57 @@ public class Prefab {
 
         return block;
     }
+
+    /**
+     * Creates a new GameObject with text rendering capabilities.
+     *
+     * @param text The text to display
+     * @param fontPath Path to the TTF font file
+     * @param fontSize Size of the font in pixels
+     * @param color Color of the text (RGBA)
+     * @return A GameObject with a TextComponent
+     */
+    public static GameObject genText(String text, String fontPath, int fontSize, Vector4f color) {
+        GameObject textObj = Window.getScene().generateObject("Text_object_gen");
+
+        TextComponent textComponent = new TextComponent(text, fontPath, fontSize, color);
+        textObj.addComponent(textComponent);
+
+        return textObj;
+    }
+
+    /**
+     * Creates a new GameObject with text using default settings.
+     *
+     * @param text The text to display
+     * @return A GameObject with a TextComponent using default font and color
+     */
+    public static GameObject genText(String text) {
+        return genText(text, Settings.PATH.CONSOLA, 16, new Vector4f(1, 1, 1, 1));
+    }
+
+    /**
+     * Creates a new GameObject with text and specific alignment.
+     *
+     * @param text The text to display
+     * @param fontPath Path to the TTF font file
+     * @param fontSize Size of the font in pixels
+     * @param color Color of the text (RGBA)
+     * @param hAlign Horizontal alignment (LEFT, CENTER, RIGHT)
+     * @param vAlign Vertical alignment (TOP, MIDDLE, BOTTOM)
+     * @return A GameObject with an aligned TextComponent
+     */
+    public static GameObject genAlignedText(String text, String fontPath, int fontSize, Vector4f color, TextComponent.HorizontalAlignment hAlign, TextComponent.VerticalAlignment vAlign) {
+        GameObject textObj = genText(text, fontPath, fontSize, color);
+        TextComponent textComponent = textObj.getComponent(TextComponent.class);
+
+        textComponent.setHorizontalAlignment(hAlign);
+        textComponent.setVerticalAlignment(vAlign);
+
+        return textObj;
+    }
+
+    /*
     // TODO: a universal animation generator, which read from a separated yml for the animation.
     public static GameObject genWheelSpin() {
         SpriteSheet wheelSprites = AssetsPool.loadSpSheet("assets/texture/animation_test.png");
@@ -58,4 +111,5 @@ public class Prefab {
 
         return wheelSpin;
     }
+     */
 }

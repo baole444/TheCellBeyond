@@ -14,6 +14,7 @@ import imgui.ImVec2;
 import org.joml.Vector2f;
 import utility.AssetsPool;
 import utility.PathResolver;
+import utility.Settings;
 import utility.TextureScale;
 
 import java.io.File;
@@ -93,7 +94,7 @@ public class LevelEditorSceneInit extends SceneInit {
 
     @Override
     public void loadResource(Scene scene) {
-        AssetsPool.loadShader("assets/shaders/default.glsl");
+        AssetsPool.loadShader(Settings.PATH.DEFAULT_TEXTURE_SHADER);
 
         if (sceneName != null && CurrentProject != null) {
             thisScene = CurrentProject.getScenes().get(sceneName);

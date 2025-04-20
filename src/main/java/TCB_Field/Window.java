@@ -29,6 +29,7 @@ import scene.Scene;
 import scene.SceneInit;
 import utility.AssetsPool;
 import utility.ExitConfirmDialog;
+import utility.Settings;
 
 import java.awt.*;
 
@@ -349,8 +350,8 @@ public class Window implements IEvent {
         float endTime;
         float dt = -1.0f;
 
-        Shader defaultShader = AssetsPool.loadShader("assets/shaders/default.glsl");
-        Shader objectSelectShader = AssetsPool.loadShader("assets/shaders/objSelection.glsl");
+        Shader defaultShader = AssetsPool.loadShader(Settings.PATH.DEFAULT_TEXTURE_SHADER);
+        Shader objectSelectShader = AssetsPool.loadShader(Settings.PATH.OBJECT_SELECTION_SHADER);
 
         while (!glfwWindowShouldClose(glfwWindow)) {
             glfwPollEvents(); //poll events
