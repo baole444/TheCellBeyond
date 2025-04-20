@@ -19,11 +19,11 @@ public class CharInfo {
         float x1 = (float) (sourceX + width) / (float) fontWidth;
 
         // Start from the bottom of the glyph.
-        float y0 = (float) (sourceY - height) / (float) fontHeight;
-        float y1 = (float) (sourceY) / (float) fontHeight;
+        float y0 = (float) (sourceY) / (float) fontHeight;
+        float y1 = (float) (sourceY - height) / (float) fontHeight;
 
-        textureCoordinates[0] = new Vector2f(x0, y1);
-        textureCoordinates[1] = new Vector2f(x1, y0);
+        textureCoordinates[0] = new Vector2f(x0, y0);
+        textureCoordinates[1] = new Vector2f(x1, y1);
     }
 
     public int sourceX() {

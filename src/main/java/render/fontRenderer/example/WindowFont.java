@@ -1,16 +1,15 @@
 package render.fontRenderer.example;
 
+import org.joml.Vector4f;
 import org.lwjgl.opengl.GL;
 import render.FrameBuffer;
 import render.Shader;
 import render.fontRenderer.FontBatch;
+import render.fontRenderer.FontRenderer;
 import render.fontRenderer.TCBFont;
-
-import java.io.IOException;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL11.glClearColor;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 class WindowFont {
@@ -20,13 +19,6 @@ class WindowFont {
 
     WindowFont() {
         init();
-
-        try {
-            font = new TCBFont("assets/fonts/Consola.ttf", 64, false);
-        } catch (IOException e) {
-            System.err.println("Failed to generate font, ending test application...");
-            e.printStackTrace();
-        }
     }
 
     private void init() {
@@ -51,36 +43,98 @@ class WindowFont {
 
         this.frameBuffer = new FrameBuffer(1410, 900);
 
+        FontRenderer.initFontRenderer();
+
     }
 
     void run() {
-        Shader fontShader = new Shader("assets/shaders/defaultFont.glsl");
-        Shader sdfShader = new Shader("assets/shaders/defaultSDF.glsl");
+        try {
+            // Create and initialize font
+            font = new TCBFont("assets/fonts/Consola.ttf", 32, false);
+            System.out.println("Font initialized with texture ID: " + font.textureId);
 
-        FontBatch batch = new FontBatch().setShader(fontShader).setSdfShader(sdfShader).setFont(font);
+            // Create and compile shader for font rendering
+            Shader fontShader = new Shader("assets/shaders/defaultFont.glsl");
+            fontShader.compile();
 
-        batch.initFontRenderBatch();
+            // Create FontBatchRenderer
+            FontBatch textRenderer = new FontBatch("assets/fonts/Consola.ttf", 16, fontShader);
 
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+            // Set up ortho projection for 2D rendering
+            org.joml.Matrix4f projection = new org.joml.Matrix4f()
+                    .ortho(0, 1920, 0, 1080, -1, 10);
+            textRenderer.setProjection(projection);
 
-        while (!glfwWindowShouldClose(windowPtr)) {
-            //this.frameBuffer.use();
+            // Variables for animation and FPS calculation
+            float time = 0;
+            long lastTime = System.nanoTime();
+            double fps = 0;
 
-            glClear(GL_COLOR_BUFFER_BIT);
-            glClearColor(0.1f, 0.09f, 0.1f, 1);
+            // Main loop
+            while (!glfwWindowShouldClose(windowPtr)) {
+                // Calculate delta time and FPS
+                long currentTime = System.nanoTime();
+                float dt = (currentTime - lastTime) / 1_000_000_000.0f;
+                lastTime = currentTime;
+                time += dt;
 
-            batch.addTextString("Hello world!", 200, 200, 1f, 0xFF00AB0);
+                fps = 0.95 * fps + 0.05 * (1.0 / dt); // Smooth FPS counter
 
-            batch.flushBatch();
+                // Clear screen
+                glClear(GL_COLOR_BUFFER_BIT);
+                glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 
-            //this.frameBuffer.detach();
+                /*
+                // Add static text
+                textRenderer.addText("Font Rendering Demo", 100, 900, 2.0f, 0xFFFFFFFF);
 
-            glfwSwapBuffers(windowPtr);
+                // Different colors
+                textRenderer.addText("Red Text", 100, 800, 1.5f, 0xFF0000FF);
+                textRenderer.addText("Green Text", 100, 750, 1.5f, 0x00FF00FF);
+                textRenderer.addText("Blue Text", 100, 700, 1.5f, 0x0000FFFF);
 
-            glfwPollEvents();
+                // Dynamic text
+                textRenderer.addText(String.format("FPS: %.1f", fps), 100, 600, 1.0f, 0xFFFF00FF);
+                textRenderer.addText("Delta Time: " + String.format("%.5f", dt) + " seconds", 100, 550, 1.0f, 0xFFFF00FF);
 
+                // Animated/moving text
+                float bounce = (float) Math.sin(time * 2) * 50;
+                textRenderer.addText("Bouncing Text", 400, 400 + bounce, 1.5f, 0x00FFFFFF);
+
+                // Color animation
+                float r = (float) (Math.sin(time) * 0.5 + 0.5);
+                float g = (float) (Math.sin(time + 2) * 0.5 + 0.5);
+                float b = (float) (Math.sin(time + 4) * 0.5 + 0.5);
+                textRenderer.addText("Rainbow Text", 400, 300, 1.5f,
+                        new org.joml.Vector4f(r, g, b, 1.0f));
+
+                // Instructions
+                textRenderer.addText("Press ESC to exit", 100, 100, 1.0f, 0xFFFFFFFF);
+                 */
+
+
+                textRenderer.addText("Test", 100, 100, 1, new Vector4f(255, 255, 255, 255));
+
+
+                // Render all text at once
+                textRenderer.render();
+
+                // Handle window events and buffer swap
+                glfwSwapBuffers(windowPtr);
+                glfwPollEvents();
+
+                // Exit on ESC key
+                if (glfwGetKey(windowPtr, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+                    glfwSetWindowShouldClose(windowPtr, true);
+                }
+            }
+
+            // Clean up resources
+            textRenderer.dispose();
+
+        } catch (Exception e) {
+            System.err.println("Error in run method: " + e.getMessage());
+            e.printStackTrace();
         }
-
     }
 }

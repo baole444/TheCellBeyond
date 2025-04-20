@@ -15,6 +15,7 @@ import java.util.Map;
 import static editor.project.Project.CurrentProject;
 import static editor.project.Project.ProjectRoot;
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
 
 public class TCBFont {
     private final String filePath;
@@ -152,6 +153,7 @@ public class TCBFont {
         graphics2D.dispose();
 
         // Used in test, not important.
+        /*
         try {
             File file = new File("tempFont_" + fontName + ".png");
             ImageIO.write(image, "png", file);
@@ -159,6 +161,7 @@ public class TCBFont {
             System.err.println("Failed to generate bitmap: " + e.getMessage());
             e.printStackTrace();
         }
+         */
 
         uploadTexture(image);
     }
@@ -175,7 +178,10 @@ public class TCBFont {
                 int pixel = pixels[y * image.getWidth() + x];
                 byte alphaComponent = (byte) ((pixel >> 24) & 0xFF);
 
-                for (int i = 0; i < 4; i++) byteBuffer.put(alphaComponent);
+                byteBuffer.put((byte) 255);
+                byteBuffer.put((byte) 255);
+                byteBuffer.put((byte) 255);
+                byteBuffer.put(alphaComponent);
             }
         }
 
@@ -183,12 +189,15 @@ public class TCBFont {
 
         textureId = glGenTextures();
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, image.getWidth(), image.getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, byteBuffer);
+
+        this.width = image.getWidth();
+        this.height = image.getHeight();
 
         byteBuffer.clear();
     }

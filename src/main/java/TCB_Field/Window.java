@@ -470,45 +470,6 @@ public class Window implements IEvent {
                         Window.changeScene(new LevelEditorSceneInit());
                     }
                 }
-
-                /*
-                Project project = Project.loadFromYaml(object.toString());
-                System.out.println(project.toString());
-
-                Map<String, Project.projectSceneMap> sceneMap = project.getScenes();
-                Map<String, Project.projectAssetMap> assetMap = project.getAssets();
-                Map<String, Project.projectSheetMap> sheetMap = project.getSheets();
-                for (Map.Entry<String, Project.projectSceneMap> entry: sceneMap.entrySet()) {
-                    String sceneName = entry.getKey();
-                    Project.projectSceneMap projectSceneMap = entry.getValue();
-
-                    List<String> assetList = projectSceneMap.getAsset();
-                    List<String> sheetList = projectSceneMap.getSheet();
-
-                    System.out.println("Scene name: " + sceneName);
-                    System.out.println("Path: " + projectSceneMap.getPath());
-
-                    System.out.println("Assets:");
-                    for (String asset : assetList) {
-                        Project.projectAssetMap aM = assetMap.get(asset);
-                        System.out.println("  Name: " + asset);
-                        System.out.println("  Path: " + aM.getPath());
-                    }
-
-                    System.out.println("Sheets:");
-                    for (String sheet : sheetList) {
-                        Project.projectSheetMap sM = sheetMap.get(sheet);
-                        System.out.println("  Name: " + sheet);
-                        System.out.println("    Category: "+ sM.getCategory());
-                        System.out.println("    Path: " + sM.getPath());
-                        System.out.println("    Sprite Count: " + sM.getCount());
-                        System.out.println("    sizeX: " + sM.getSizeX() + " pixel(s)");
-                        System.out.println("    sizeY: " + sM.getSizeY() + " pixel(s)");
-                        System.out.println("    Padding: " + sM.getPadding() + " pixel(s)");
-                    }
-                    System.out.println("\n");
-                }
-                */
                 break;
             case LoadScene:
                 if (this.runtimeMode) {
