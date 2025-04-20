@@ -60,7 +60,7 @@ public class TextBatch implements Comparable<TextBatch> {
 
         // allocate vbo
         vboID = glGenBuffers();
-        glBindBuffer(GL_ARRAY_BUFFER, vaoID);
+        glBindBuffer(GL_ARRAY_BUFFER, vboID);
         glBufferData(GL_ARRAY_BUFFER, maxBatchSize * 6 * VERTEX_SIZE * Float.BYTES, GL_DYNAMIC_DRAW);
 
         // Enable vertex attributes
@@ -122,7 +122,9 @@ public class TextBatch implements Comparable<TextBatch> {
 
         // Set projection matrix
         Matrix4f projMatrix = Window.getScene().viewport().getProjectMatrix();
+        Matrix4f viewMatrix = Window.getScene().viewport().getViewMatrix();
         shader.loadMat4f("uProject", projMatrix);
+        shader.loadMat4f("uView", viewMatrix);
 
         glBindVertexArray(vaoID);
         glBindBuffer(GL_ARRAY_BUFFER, vboID);
@@ -193,7 +195,7 @@ public class TextBatch implements Comparable<TextBatch> {
 
                 // move to next line
                 if (c == '\n') {
-                    y -= font.getFontSize();
+                    y -= font.getFontSize() * Settings.WORLD_SCALE_FACTOR;
                     x = initialX;
                     continue;
                 }
@@ -201,11 +203,11 @@ public class TextBatch implements Comparable<TextBatch> {
                 CharInfo charInfo = font.getCharInfo(c);
                 if (charInfo == null) continue;
 
-                float charX = x + charInfo.xOffset();
-                float charY = y + charInfo.yOffset();
+                float charX = x + charInfo.xOffset() * Settings.WORLD_SCALE_FACTOR;
+                float charY = y + charInfo.yOffset() * Settings.WORLD_SCALE_FACTOR;
 
-                float width = charInfo.x1() - charInfo.x0();
-                float height = charInfo.y1() - charInfo.y0();
+                float width = (charInfo.x1() - charInfo.x0()) * Settings.WORLD_SCALE_FACTOR;
+                float height = (charInfo.y1() - charInfo.y0()) * Settings.WORLD_SCALE_FACTOR;
 
                 float texX0 = charInfo.x0() / (float) font.getBitmapWidth();
                 float texY0 = charInfo.y0() / (float) font.getBitmapHeight();
@@ -277,7 +279,7 @@ public class TextBatch implements Comparable<TextBatch> {
                 //</editor-fold>
 
                 // advance cursor position
-                x += charInfo.advance();
+                x += charInfo.advance() * Settings.WORLD_SCALE_FACTOR;
             }
         }
 

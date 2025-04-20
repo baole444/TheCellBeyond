@@ -16,8 +16,8 @@ public class TextRenderingDemo extends SceneInit{
 
     @Override
     public void init(Scene scene) {
-        GameObject testText = Prefab.genText("THIS IS A TEST STRING", Settings.PATH.CONSOLA, 32, new Vector4f(1, 1, 1, 1));
-        testText.transform.position.set(1f, 1f);
+        GameObject testText = Prefab.genText("A", Settings.PATH.CONSOLA, 2, new Vector4f(1, 1, 1, 1));
+        testText.transform.position.set(0.0f, 3f);
         scene.addObjToScene(testText);
     }
 

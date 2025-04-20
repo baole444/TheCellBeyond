@@ -63,17 +63,19 @@ public class TextComponent extends Component {
             return;
         }
 
+        float scaledFontSie = font.getFontSize() * Settings.WORLD_SCALE_FACTOR;
+
         float width = 0;
-        float height = font.getFontSize();
+        float height = scaledFontSie;
 
         for (int i = 0; i < text.length(); i++) {
             char c = text.charAt(i);
             if (c == '\n') {
-                height += font.getFontSize();
+                height += scaledFontSie;
                 continue;
             }
 
-            width += font.getCharInfo(c).advance();
+            width += font.getCharInfo(c).advance() * Settings.WORLD_SCALE_FACTOR;
         }
 
         textDimensions.set(width, height);

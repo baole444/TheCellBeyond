@@ -8,12 +8,13 @@ out vec4 fColor;
 out vec2 fTexCrd;
 
 uniform mat4 uProject;
+uniform mat4 uView;
 
 void main()
 {
     fColor = aColor;
     fTexCrd = aTexCrd;
-    gl_Position = uProject * vec4(aPos, 0.0, 1);
+    gl_Position = uProject * uView *vec4(aPos, 1, 1);
 }
 
 #type fragment
@@ -29,5 +30,5 @@ out vec4 color;
 void main()
 {
     float alpha = texture(uFontTex, fTexCrd).r;
-    color = vec4(1, 1, 1, fColor.a * alpha);
+    color = vec4(fColor.rgb, fColor.a * alpha);
 }
