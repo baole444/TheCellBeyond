@@ -204,10 +204,11 @@ public class TextBatch implements Comparable<TextBatch> {
                 if (charInfo == null) continue;
 
                 float charX = x + charInfo.xOffset() * Settings.WORLD_SCALE_FACTOR;
-                float charY = y + charInfo.yOffset() * Settings.WORLD_SCALE_FACTOR;
 
                 float width = (charInfo.x1() - charInfo.x0()) * Settings.WORLD_SCALE_FACTOR;
                 float height = (charInfo.y1() - charInfo.y0()) * Settings.WORLD_SCALE_FACTOR;
+
+                float charY = y - charInfo.yOffset() * Settings.WORLD_SCALE_FACTOR - height;
 
                 float texX0 = charInfo.x0() / (float) font.getBitmapWidth();
                 float texY0 = charInfo.y0() / (float) font.getBitmapHeight();

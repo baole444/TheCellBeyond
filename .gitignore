@@ -33,7 +33,9 @@ bin/
 .DS_Store
 
 ### Generated ###
-/imgui.ini
+imgui.ini
 *.tcb
-Pref/closeConfirm.config
+*.cell
+/Pref
 *.log
+**/tempFont_*.png
