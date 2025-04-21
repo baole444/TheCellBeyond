@@ -24,6 +24,7 @@ import org.lwjgl.opengl.GL;
 import physic_2d.FlatPhysic;
 import render.*;
 import render.Renderer;
+import render.text.DirectTextRenderer;
 import scene.LevelEditorSceneInit;
 import scene.Scene;
 import scene.SceneInit;
@@ -389,6 +390,7 @@ public class Window implements IEvent {
                 DebugDraw.draw();
 
             }
+
             this.frameBuffer.detach();
 
             this.imGuiLayer.update(dt, currentScene);

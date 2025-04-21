@@ -40,6 +40,17 @@ public class TextBatch implements Comparable<TextBatch> {
 
     private static Shader shader;
 
+    private Matrix4f projectionMatrix = null;
+    private Matrix4f viewMatrix = null;
+
+    public void setProjectionMatrix(Matrix4f projectionMatrix) {
+        this.projectionMatrix = projectionMatrix;
+    }
+
+    public void setViewMatrix(Matrix4f viewMatrix) {
+        this.viewMatrix = viewMatrix;
+    }
+
     public TextBatch(int maxBatchSize, int zIndex) {
         this.maxBatchSize = maxBatchSize;
         this.zIndex = zIndex;
@@ -120,11 +131,20 @@ public class TextBatch implements Comparable<TextBatch> {
 
         shader.use();
 
-        // Set projection matrix
-        Matrix4f projMatrix = Window.getScene().viewport().getProjectMatrix();
-        Matrix4f viewMatrix = Window.getScene().viewport().getViewMatrix();
+        // Set projection and view matrix
+        Matrix4f projMatrix;
+        Matrix4f vMatrix;
+
+        if (projectionMatrix != null) {
+            projMatrix = projectionMatrix;
+        } else projMatrix = Window.getScene().viewport().getProjectMatrix();
+
+        if (viewMatrix != null) {
+            vMatrix = viewMatrix;
+        } else vMatrix = Window.getScene().viewport().getViewMatrix();
+
         shader.loadMat4f("uProject", projMatrix);
-        shader.loadMat4f("uView", viewMatrix);
+        shader.loadMat4f("uView", vMatrix);
 
         glBindVertexArray(vaoID);
         glBindBuffer(GL_ARRAY_BUFFER, vboID);
@@ -169,7 +189,7 @@ public class TextBatch implements Comparable<TextBatch> {
             String text = textComponent.getText();
             if (text.isEmpty()) continue;
 
-            Vector2f positon = textComponent.gameObject.transform.position;
+            Vector2f positon = textComponent.getWorldPosition();
             Vector4f color = textComponent.getColor();
             Vector2f textDimensions = textComponent.getTextDimensions();
 
@@ -193,7 +213,7 @@ public class TextBatch implements Comparable<TextBatch> {
             for (int i = 0; i < text.length(); i++) {
                 char c = text.charAt(i);
 
-                // move to next line
+                // move to the next line
                 if (c == '\n') {
                     y -= font.getFontSize() * Settings.WORLD_SCALE_FACTOR;
                     x = initialX;

@@ -6,7 +6,6 @@ public class FrameBuffer {
     private int frameBufferObjID = 0;
     private Texture texture = null;
 
-
     public FrameBuffer(int width, int height) {
         // Make frame buffer
 

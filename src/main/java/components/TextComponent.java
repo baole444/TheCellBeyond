@@ -19,6 +19,7 @@ public class TextComponent extends Component {
     private transient TCBFont font;
     private boolean isDirty = true;
     private transient Vector2f textDimensions = new Vector2f();
+    private transient Vector2f worldPosition = null;
 
     public enum HorizontalAlignment {
         LEFT, CENTER, RIGHT
@@ -45,6 +46,36 @@ public class TextComponent extends Component {
         this.fontSize = fontSize;
         this.color = color;
         loadFont();
+    }
+
+    public TextComponent(String text, String fontPath, int fontSize, Vector4f color, Vector2f position) {
+        this.text = text;
+        this.fontPath = fontPath;
+        this.fontSize = fontSize;
+        this.color = color;
+        this.worldPosition = position;
+        loadFont();
+    }
+
+    public Vector2f getWorldPosition() {
+        if (worldPosition != null) {
+            return worldPosition;
+        }
+
+        if (gameObject != null) {
+            return gameObject.transform.position;
+        }
+
+        return new Vector2f(0.0f, 0.0f);
+    }
+
+    public void setWorldPosition(Vector2f position) {
+        this.worldPosition = position;
+        this.isDirty = true;
+    }
+
+    public boolean isDirectRendering() {
+        return worldPosition != null;
     }
 
     private void loadFont() {
