@@ -93,10 +93,9 @@ public class TestWindow {
         while (!glfwWindowShouldClose(glfwWindow)) {
             glfwPollEvents(); //poll events
 
-
             glEnable(GL_BLEND);
 
-            //this.frameBuffer.use();
+            this.frameBuffer.use();
 
             glClearColor(r, g, b, a);
             glClear(GL_COLOR_BUFFER_BIT);
@@ -120,7 +119,7 @@ public class TestWindow {
                 textRenderer.render();
             }
 
-            //this.frameBuffer.detach();
+            this.frameBuffer.detach();
 
             glfwSwapBuffers(glfwWindow);
 
@@ -149,7 +148,7 @@ public class TestWindow {
         //config GLFW
         glfwDefaultWindowHints();
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+        glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
         glfwWindowHint(GLFW_MAXIMIZED, GLFW_FALSE);
         //glfwWindowHint(GLFW_DECORATED, 0);
 
@@ -174,7 +173,7 @@ public class TestWindow {
         glEnable(GL_BLEND);
         glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
-        this.frameBuffer = new FrameBuffer(this.width, this.height);
+        this.frameBuffer = new FrameBuffer(1920, 1080);
 
         glViewport(0, 0, this.width, this.height);
 

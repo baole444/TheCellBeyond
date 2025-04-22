@@ -12,8 +12,8 @@ import java.util.List;
 public class Renderer {
 
     private final int MAX_BATCH_SIZE = 1000;
-    private List<Batch> batches;
-    private List<TextBatch> textBatches;
+    private final List<Batch> batches;
+    private final List<TextBatch> textBatches;
 
     private static Shader instShader;
 
