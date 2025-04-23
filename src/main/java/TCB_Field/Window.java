@@ -331,7 +331,7 @@ public class Window implements IEvent {
         return new Vector2i(w, h);
     }
 
-    public void endScr(){
+    private void endScr(){
         imGuiLayer.getImGuiGl3().shutdown();
         imGuiLayer.getImGuiGlfw().shutdown();
         ImGui.destroyContext();
@@ -339,6 +339,7 @@ public class Window implements IEvent {
         alcDestroyContext(soundContext);
         alcCloseDevice(audioDevice);
 
+        frameBuffer.dispose();
         glfwFreeCallbacks(window.glfwWindow);
         glfwDestroyWindow(window.glfwWindow);
 
@@ -392,6 +393,8 @@ public class Window implements IEvent {
             }
 
             this.frameBuffer.detach();
+
+            //this.frameBuffer.renderToScreen();
 
             this.imGuiLayer.update(dt, currentScene);
 

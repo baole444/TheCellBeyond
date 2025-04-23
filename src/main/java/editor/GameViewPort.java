@@ -56,7 +56,7 @@ public class GameViewPort {
 
         this.printDebug = new float[] {winSize.x, winSize.y,winPos.x, winPos.y, leftX, rightX, bottomY, topY};
 
-        int texID = Window.loadFrameBuffer().loadTexID();
+        int texID = Window.loadFrameBuffer().getTextureID();
 
         ImGui.image(texID, winSize.x, winSize.y, 0, 1, 1, 0);
 

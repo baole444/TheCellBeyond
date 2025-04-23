@@ -78,6 +78,7 @@ public class TestWindow {
     }
 
     private void endScr() {
+        frameBuffer.dispose();
         glfwFreeCallbacks(glfwWindow);
         glfwDestroyWindow(glfwWindow);
         glfwTerminate();
@@ -90,36 +91,31 @@ public class TestWindow {
 
         Shader defaultShader = AssetsPool.loadShader(Settings.PATH.DEFAULT_TEXTURE_SHADER);
 
+        DirectTextRenderer textRenderer = DirectTextRenderer.get();
+
+        textRenderer.setProjectionMatrix(viewport.getProjectMatrix());
+
+        textRenderer.setViewMatrix(viewport.getViewMatrix());
+
+        TextComponent test = textRenderer.drawText("Hello world ! TEST 1 2 3", 2f, 1.5f, 24, new Vector4f(0.5f, 1f, 0.7f, 1f));
+        test.setVerticalAlignment(TextComponent.VerticalAlignment.MIDDLE);
+        test.setHorizontalAlignment(TextComponent.HorizontalAlignment.CENTER);
+
         while (!glfwWindowShouldClose(glfwWindow)) {
             glfwPollEvents(); //poll events
-
-            glEnable(GL_BLEND);
-
-            this.frameBuffer.use();
-
-            glClearColor(r, g, b, a);
-            glClear(GL_COLOR_BUFFER_BIT);
-
 
             if (dt >= 0) {
                 Renderer.setShader(defaultShader);
 
-                viewport.adjustProjection();
+                frameBuffer.captureAndRender(() -> {
+                    glClearColor(r, g, b, a);
+                    glClear(GL_COLOR_BUFFER_BIT);
 
-                DirectTextRenderer textRenderer = DirectTextRenderer.get();
+                    viewport.adjustProjection();
 
-                textRenderer.setProjectionMatrix(viewport.getProjectMatrix());
-
-                textRenderer.setViewMatrix(viewport.getViewMatrix());
-
-                TextComponent test = textRenderer.drawText("Hello world ! TEST 1 2 3", 2f, 1.5f, 24, new Vector4f(0.5f, 1f, 0.7f, 1f));
-                test.setVerticalAlignment(TextComponent.VerticalAlignment.MIDDLE);
-                test.setHorizontalAlignment(TextComponent.HorizontalAlignment.CENTER);
-
-                textRenderer.render();
+                    textRenderer.render();
+                });
             }
-
-            this.frameBuffer.detach();
 
             glfwSwapBuffers(glfwWindow);
 
