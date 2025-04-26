@@ -110,13 +110,11 @@ public class TextBatch implements Comparable<TextBatch> {
         if (textComponents.isEmpty()) return;
 
         // Check for font changes and component changes.
-        boolean rebufferData = false;
         for (int i = 0; i < textComponents.size(); i++) {
             TextComponent textComponent = textComponents.get(i);
 
             // if dirty re-render
             if (textComponent.isDirty()) {
-                rebufferData = true;
 
                 // regroup if font changed
                 regroupComponents();
@@ -157,12 +155,12 @@ public class TextBatch implements Comparable<TextBatch> {
             // Skip if no components use this font
             if (components.isEmpty()) continue;
 
-            glActiveTexture(GL_TEXTURE0);
+            glActiveTexture(GL_TEXTURE0 + 1);
             glBindTexture(GL_TEXTURE_2D, font.getTextureId());
             shader.loadInt("uFontTex", 0);
 
             // Create vertex data for all text components of this group
-            float[] vertices = geneVertices(components, font);
+            float[] vertices = genVertices(components, font);
 
             // Upload to GPU
             glBufferSubData(GL_ARRAY_BUFFER, 0, vertices);
@@ -180,7 +178,7 @@ public class TextBatch implements Comparable<TextBatch> {
         shader.detach();
     }
 
-    private float[] geneVertices(List<TextComponent> components, TCBFont font) {
+    private float[] genVertices(List<TextComponent> components, TCBFont font) {
         int charCount = countChars(components);
         float[] vertices = new float[charCount * 6 * VERTEX_SIZE];
         int vertexOffset = 0;

@@ -10,7 +10,6 @@ import java.util.Collections;
 import java.util.List;
 
 public class Renderer {
-
     private final int MAX_BATCH_SIZE = 1000;
     private final List<Batch> batches;
     private final List<TextBatch> textBatches;
@@ -89,7 +88,9 @@ public class Renderer {
 
     public void render() {
         instShader.use();
-        for (Batch batch : batches) {
+
+        for (int i = 0; i < batches.size(); i++) {
+            Batch batch = batches.get(i);
             batch.render();
         }
 

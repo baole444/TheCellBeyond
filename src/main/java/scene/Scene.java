@@ -154,6 +154,10 @@ public class Scene {
         return this.flatPhysic;
     }
 
+    public Renderer getRenderer() {
+        return renderer;
+    }
+
     public void logGameObjects() {
         System.out.println("Logging all game objects");
         List<GameObject> allObj = getGameObject();
@@ -186,6 +190,8 @@ public class Scene {
             for (GameObject obj : this.gameObjects) {
                 if (obj.isSerialize()) {
                     if (CurrentProject != null && ProjectRoot != null && currentSceneName != null) {
+                        if (obj.getComponent(SpriteRender.class) == null) continue;
+
                         String texturePath = obj.getComponent(SpriteRender.class).loadTexture().loadFilePath();
                         //System.out.println("Texture path at save: " + texturePath);
                         String relativePath = PathResolver.resolveToRelative(ProjectRoot, texturePath);

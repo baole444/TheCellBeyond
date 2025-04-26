@@ -50,8 +50,8 @@ public class LevelEditorSceneInit extends SceneInit {
 
     @Override
     public void init(Scene scene) {
-        GameObject testText = Prefab.genText("A", Settings.PATH.CONSOLA, 16, new Vector4f(1, 1, 1, 1));
-        testText.transform.position.set(0.0f, 3f);
+        GameObject testText = Prefab.genText("A test sentence", Settings.PATH.CONSOLA, 16, new Vector4f(1, 1, 1, 1));
+        testText.transform.position.set(2f, 1.5f);
         scene.addObjToScene(testText);
 
         if (sceneName != null && CurrentProject != null) {

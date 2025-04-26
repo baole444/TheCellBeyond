@@ -24,7 +24,6 @@ import org.lwjgl.opengl.GL;
 import physic_2d.FlatPhysic;
 import render.*;
 import render.Renderer;
-import render.text.DirectTextRenderer;
 import scene.LevelEditorSceneInit;
 import scene.Scene;
 import scene.SceneInit;
@@ -347,7 +346,6 @@ public class Window implements IEvent {
     }
 
     public void loop () {
-
         float beginTime = (float)glfwGetTime();
         float endTime;
         float dt = -1.0f;
@@ -432,6 +430,10 @@ public class Window implements IEvent {
 
     public static FlatPhysic getFlatPhysic() {
         return currentScene.getFlatPhysic();
+    }
+
+    public boolean isRuntimeMode() {
+        return runtimeMode;
     }
 
     @Override

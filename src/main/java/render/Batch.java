@@ -156,7 +156,7 @@ public class Batch implements Comparable<Batch> {
         shader.use();
         shader.loadMat4f("uProject", Window.getScene().viewport().getProjectMatrix());
         shader.loadMat4f("uView", Window.getScene().viewport().getViewMatrix());
-        for (int i = 0; i <textures.size(); i++) {
+        for (int i = 0; i < textures.size(); i++) {
             glActiveTexture(GL_TEXTURE0 + i + 1);
             textures.get(i).bind();
         }
