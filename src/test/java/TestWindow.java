@@ -10,6 +10,7 @@ import render.FrameBuffer;
 import render.Renderer;
 import render.Shader;
 import render.text.DirectTextRenderer;
+import render.text.GlyphRange;
 import utility.AssetsPool;
 import utility.Settings;
 
@@ -97,9 +98,13 @@ public class TestWindow {
 
         textRenderer.setViewMatrix(viewport.getViewMatrix());
 
-        TextComponent test = textRenderer.drawText("Hello world ! TEST 1 2 3", 2f, 1.5f, 24, new Vector4f(0.5f, 1f, 0.7f, 1f));
+        TextComponent test = textRenderer.drawText("Hello world ! TEST 1 2 3", 2f, 2f, 24, new Vector4f(0.5f, 1f, 0.7f, 1f), "assets/fonts/Caudex.ttf", GlyphRange.ASCII_EXTENDED);
         test.setVerticalAlignment(TextComponent.VerticalAlignment.MIDDLE);
         test.setHorizontalAlignment(TextComponent.HorizontalAlignment.CENTER);
+
+        TextComponent test2 = textRenderer.drawText("Kiểm thử Tiếng Việt ", 2f, 1.2f, 32, new Vector4f(0.7f, 1f, 0.5f, 1f), "C:/Windows/Fonts/times.ttf", GlyphRange.VIETNAMESE);
+        test2.setVerticalAlignment(TextComponent.VerticalAlignment.MIDDLE);
+        test2.setHorizontalAlignment(TextComponent.HorizontalAlignment.CENTER);
 
         while (!glfwWindowShouldClose(glfwWindow)) {
             glfwPollEvents(); //poll events

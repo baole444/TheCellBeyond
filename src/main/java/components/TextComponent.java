@@ -6,6 +6,7 @@ import imgui.type.ImString;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import render.text.FontManager;
+import render.text.GlyphRange;
 import render.text.TCBFont;
 import utility.Settings;
 
@@ -48,6 +49,14 @@ public class TextComponent extends Component {
         loadFont();
     }
 
+    public TextComponent(String text, String fontPath, int fontSize, Vector4f color, GlyphRange glyphRange) {
+        this.text = text;
+        this.fontPath = fontPath;
+        this.fontSize = fontSize;
+        this.color = color;
+        loadFont(glyphRange);
+    }
+
     public TextComponent(String text, String fontPath, int fontSize, Vector4f color, Vector2f position) {
         this.text = text;
         this.fontPath = fontPath;
@@ -55,6 +64,15 @@ public class TextComponent extends Component {
         this.color = color;
         this.worldPosition = position;
         loadFont();
+    }
+
+    public TextComponent(String text, String fontPath, int fontSize, Vector4f color, Vector2f position, GlyphRange glyphRange) {
+        this.text = text;
+        this.fontPath = fontPath;
+        this.fontSize = fontSize;
+        this.color = color;
+        this.worldPosition = position;
+        loadFont(glyphRange);
     }
 
     public Vector2f getWorldPosition() {
@@ -79,11 +97,15 @@ public class TextComponent extends Component {
     }
 
     private void loadFont() {
+        loadFont(GlyphRange.ASCII);
+    }
+
+    private void loadFont(GlyphRange glyphRange) {
         try {
-            this.font = FontManager.get().loadFont(fontPath, fontSize, false);
+            this.font = FontManager.get().loadFont(fontPath, fontSize, false, glyphRange);
             this.isDirty = true;
             calculateTextDimensions();
-        } catch (IOException e) {
+        } catch (NullPointerException | IOException e) {
             System.err.println("Failed to load font: " + e.getMessage());
         }
     }

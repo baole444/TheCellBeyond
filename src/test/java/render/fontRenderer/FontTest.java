@@ -1,6 +1,7 @@
 package render.fontRenderer;
 
 import org.junit.jupiter.api.Test;
+import render.text.GlyphRange;
 import render.text.TCBFont;
 
 import java.io.File;
@@ -29,5 +30,14 @@ public class FontTest {
         } catch (IOException e) {
             assertNotNull(e);
         }
+    }
+
+    @Test
+    public void runSuccessASCII_EXTENDED() throws IOException {
+        String correctPath = "assets/fonts/Consola.ttf";
+        TCBFont font = new TCBFont(correctPath, 16, false, GlyphRange.ASCII_EXTENDED);
+        File file = new File("tempFont_Consola.png");
+
+        assertTrue(file.exists());
     }
 }
