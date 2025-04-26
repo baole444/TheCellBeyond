@@ -5,6 +5,7 @@ import components.TextComponent;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
+import render.RendererState;
 import render.Shader;
 import utility.AssetsPool;
 import utility.Settings;
@@ -25,7 +26,8 @@ public class TextBatch implements Comparable<TextBatch> {
     private static final int POS_SIZE = 2;
     private static final int COLOR_SIZE = 4;
     private static final int TEX_COORD_SIZE = 2;
-    private static final int VERTEX_SIZE = POS_SIZE + COLOR_SIZE + TEX_COORD_SIZE;
+    private static final int OBJECT_ID_SIZE = 1;
+    private static final int VERTEX_SIZE = POS_SIZE + COLOR_SIZE + TEX_COORD_SIZE + OBJECT_ID_SIZE;
 
     private final int zIndex;
     private final int maxBatchSize;
@@ -72,7 +74,7 @@ public class TextBatch implements Comparable<TextBatch> {
         // allocate vbo
         vboID = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, vboID);
-        glBufferData(GL_ARRAY_BUFFER, maxBatchSize * 6 * VERTEX_SIZE * Float.BYTES, GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, (long) maxBatchSize * 6 * VERTEX_SIZE * Float.BYTES, GL_DYNAMIC_DRAW);
 
         // Enable vertex attributes
         // Position
@@ -86,6 +88,10 @@ public class TextBatch implements Comparable<TextBatch> {
         // Texture coordinates
         glVertexAttribPointer(2, TEX_COORD_SIZE, GL_FLOAT, false, VERTEX_SIZE * Float.BYTES, (POS_SIZE + COLOR_SIZE) * Float.BYTES);
         glEnableVertexAttribArray(2);
+
+        // Object ID
+        glVertexAttribPointer(3, OBJECT_ID_SIZE, GL_FLOAT, false, VERTEX_SIZE * Float.BYTES, (POS_SIZE + COLOR_SIZE + TEX_COORD_SIZE) * Float.BYTES);
+        glEnableVertexAttribArray(3);
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
@@ -123,11 +129,18 @@ public class TextBatch implements Comparable<TextBatch> {
             }
         }
 
-        // Update OpenGL state
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        RendererState state = RendererState.get();
+        RendererState.RenderPass currentPass = state.getCurrentPass();
 
-        shader.use();
+        Shader instShader;
+        if (currentPass == RendererState.RenderPass.SELECTION) {
+            instShader = state.getCurrentShader();
+        } else {
+            instShader = shader;
+            instShader.use();
+
+            state.enableTextRendering();
+        }
 
         // Set projection and view matrix
         Matrix4f projMatrix;
@@ -155,9 +168,12 @@ public class TextBatch implements Comparable<TextBatch> {
             // Skip if no components use this font
             if (components.isEmpty()) continue;
 
-            glActiveTexture(GL_TEXTURE0 + 1);
-            glBindTexture(GL_TEXTURE_2D, font.getTextureId());
-            shader.loadInt("uFontTex", 0);
+            // Skip texture binding during selection pass
+            if (currentPass != RendererState.RenderPass.SELECTION) {
+                glActiveTexture(GL_TEXTURE0);
+                glBindTexture(GL_TEXTURE_2D, font.getTextureId());
+                shader.loadInt("uFontTex", 0);
+            }
 
             // Create vertex data for all text components of this group
             float[] vertices = genVertices(components, font);
@@ -173,9 +189,11 @@ public class TextBatch implements Comparable<TextBatch> {
         // Cleanup
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
-        glDisable(GL_BLEND);
 
-        shader.detach();
+        // Detach if font shader is used
+        if (currentPass != RendererState.RenderPass.SELECTION) {
+            shader.detach();
+        }
     }
 
     private float[] genVertices(List<TextComponent> components, TCBFont font) {
@@ -190,6 +208,11 @@ public class TextBatch implements Comparable<TextBatch> {
             Vector2f positon = textComponent.getWorldPosition();
             Vector4f color = textComponent.getColor();
             Vector2f textDimensions = textComponent.getTextDimensions();
+
+            float objectId = 0;
+            if (textComponent.gameObject != null) {
+                objectId = textComponent.gameObject.loadUid() + 1;
+            }
 
             // Alignment offsets
             float xOffset = 0;
@@ -244,6 +267,7 @@ public class TextBatch implements Comparable<TextBatch> {
                 vertices[vertexOffset++] = color.w;
                 vertices[vertexOffset++] = texX0;
                 vertices[vertexOffset++] = texY1;
+                vertices[vertexOffset++] = objectId;
 
                 // Vertex 2 (top-left)
                 vertices[vertexOffset++] = charX;
@@ -254,6 +278,7 @@ public class TextBatch implements Comparable<TextBatch> {
                 vertices[vertexOffset++] = color.w;
                 vertices[vertexOffset++] = texX0;
                 vertices[vertexOffset++] = texY0;
+                vertices[vertexOffset++] = objectId;
 
                 // Vertex 3 (bottom-right)
                 vertices[vertexOffset++] = charX + width;
@@ -264,6 +289,7 @@ public class TextBatch implements Comparable<TextBatch> {
                 vertices[vertexOffset++] = color.w;
                 vertices[vertexOffset++] = texX1;
                 vertices[vertexOffset++] = texY1;
+                vertices[vertexOffset++] = objectId;
 
                 // Second triangle
                 // Vertex 4 (top-left)
@@ -275,6 +301,7 @@ public class TextBatch implements Comparable<TextBatch> {
                 vertices[vertexOffset++] = color.w;
                 vertices[vertexOffset++] = texX0;
                 vertices[vertexOffset++] = texY0;
+                vertices[vertexOffset++] = objectId;
 
                 // Vertex 5 (top-right)
                 vertices[vertexOffset++] = charX + width;
@@ -285,6 +312,7 @@ public class TextBatch implements Comparable<TextBatch> {
                 vertices[vertexOffset++] = color.w;
                 vertices[vertexOffset++] = texX1;
                 vertices[vertexOffset++] = texY0;
+                vertices[vertexOffset++] = objectId;
 
                 // Vertex 6 (bottom-right)
                 vertices[vertexOffset++] = charX + width;
@@ -295,6 +323,7 @@ public class TextBatch implements Comparable<TextBatch> {
                 vertices[vertexOffset++] = color.w;
                 vertices[vertexOffset++] = texX1;
                 vertices[vertexOffset++] = texY1;
+                vertices[vertexOffset++] = objectId;
                 //</editor-fold>
 
                 // advance cursor position

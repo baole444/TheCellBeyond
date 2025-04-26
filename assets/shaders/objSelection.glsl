@@ -26,13 +26,13 @@ void main()
 #type fragment
 #version 330 core
 
-
 in vec4 fColor;
 in vec2 fTexCrd;
 in float fTexID;
 in float fObjID;
 
 uniform sampler2D uTex[8];
+uniform sampler2D uFontTex;
 
 out vec3 color;
 
@@ -43,6 +43,11 @@ void main()
         int id = int(fTexID);
 
         texColor = fColor * texture(uTex[id], fTexCrd);
+    }
+
+    else {
+        float alpha = texture(uFontTex, fTexCrd).r;
+        texColor = vec4(fColor.rgb, fColor.a * alpha);
     }
 
     if (texColor.a < 0.5) {

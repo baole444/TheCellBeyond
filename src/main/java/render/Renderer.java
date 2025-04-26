@@ -87,11 +87,20 @@ public class Renderer {
     }
 
     public void render() {
-        instShader.use();
+        RendererState state = RendererState.get();
 
+        if (state.getCurrentPass() == RendererState.RenderPass.NORMAL) {
+            state.enableSpriteRendering();
+        }
+
+        // TODO: Need to fix cocurrent exception when changing to enhanced for loop.
         for (int i = 0; i < batches.size(); i++) {
             Batch batch = batches.get(i);
             batch.render();
+        }
+
+        if (state.getCurrentPass() == RendererState.RenderPass.NORMAL) {
+            state.enableTextRendering();
         }
 
         for (TextBatch textBatch : textBatches) {

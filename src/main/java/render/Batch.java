@@ -151,7 +151,7 @@ public class Batch implements Comparable<Batch> {
         }
         // Shader
 
-        Shader shader = Renderer.loadShader();
+        Shader shader = RendererState.get().getCurrentShader();
 
         shader.use();
         shader.loadMat4f("uProject", Window.getScene().viewport().getProjectMatrix());

@@ -353,51 +353,54 @@ public class Window implements IEvent {
         Shader defaultShader = AssetsPool.loadShader(Settings.PATH.DEFAULT_TEXTURE_SHADER);
         Shader objectSelectShader = AssetsPool.loadShader(Settings.PATH.OBJECT_SELECTION_SHADER);
 
+        RendererState rendererState = RendererState.get();
+
         while (!glfwWindowShouldClose(glfwWindow)) {
             glfwPollEvents(); //poll events
-            // Pass 1: object selection layer (invisible)
-            glDisable(GL_BLEND);
-            objectSelection.useWrite();
-
-            glViewport(0, 0, 1920, 1080);
-            glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-            Renderer.setShader(objectSelectShader);
-            currentScene.render();
-
-            objectSelection.detachWrite();
-            glEnable(GL_BLEND);
-
-            // Pass 2: Visualized scene
-
-            DebugDraw.startFrame();
-
-            this.frameBuffer.use();
-
-            glClearColor(r, g, b, a);
-            glClear(GL_COLOR_BUFFER_BIT);
 
             if (dt >= 0) {
-                Renderer.setShader(defaultShader);
+                // Pass 1: object selection layer (invisible)
+
+                rendererState.setRenderPass(RendererState.RenderPass.SELECTION);
+                rendererState.setShader(objectSelectShader);
+
+                objectSelection.useWrite();
+
+                glViewport(0, 0, 1920, 1080);
+                glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+                currentScene.render();
+
+                objectSelection.detachWrite();
+
+                // Pass 2: Visualized scene
+                rendererState.setRenderPass(RendererState.RenderPass.NORMAL);
+                rendererState.setShader(defaultShader);
+
+                DebugDraw.startFrame();
+
+                this.frameBuffer.use();
+
+                glClearColor(r, g, b, a);
+                glClear(GL_COLOR_BUFFER_BIT);
+
                 if (runtimeMode) {
-                    currentScene.update(dt); // Using main update when not in editor
+                    currentScene.update(dt); // Using the main update when not in the editor
                 } else {
                     currentScene.editorUpdate(dt); // Using editor update under edit mode
                 }
                 currentScene.render();
                 DebugDraw.draw();
 
+                this.frameBuffer.detach();
+
+                //this.frameBuffer.renderToScreen();
+
+                this.imGuiLayer.update(dt, currentScene);
             }
 
-            this.frameBuffer.detach();
-
-            //this.frameBuffer.renderToScreen();
-
-            this.imGuiLayer.update(dt, currentScene);
-
             MouseListener.endFrame();
-
             KeyListener.endFrame();
 
             glfwSwapBuffers(glfwWindow);
