@@ -23,13 +23,13 @@ import static org.lwjgl.opengl.GL30.glGenerateMipmap;
 import static org.lwjgl.stb.STBTruetype.*;
 
 public class TCBFont {
-    private String filepath;
-    private int fontSize;
+    private final String filepath;
+    private final int fontSize;
     private int textureId;
     private int bitmapWidth;
     private int bitmapHeight;
-    private Map<Character, CharInfo> characters = new HashMap<>();
-    private GlyphRange glyphRange;
+    private final Map<Character, CharInfo> characters = new HashMap<>();
+    private final GlyphRange glyphRange;
     private int startChar;
     private int numGlyphs;
 
@@ -78,7 +78,7 @@ public class TCBFont {
         int defaultSize = 512;
 
         // Apply generous padding to the glyphs;
-        float additionalPadding = 1.2f;
+        float additionalPadding = 1.1f;
 
         float glyphBoundBox = fontSize * additionalPadding;
 

@@ -11,12 +11,10 @@ import editor.project.ProjectSceneMap;
 import editor.project.ProjectSheetMap;
 import imgui.ImGui;
 import imgui.ImVec2;
-import org.joml.Vector2f;
 import org.joml.Vector4f;
 import utility.AssetsPool;
 import utility.PathResolver;
 import utility.Settings;
-import utility.TextureScale;
 
 import java.io.File;
 import java.util.*;
@@ -50,9 +48,9 @@ public class LevelEditorSceneInit extends SceneInit {
 
     @Override
     public void init(Scene scene) {
-        GameObject testText = Prefab.genText("A test sentence", Settings.PATH.CONSOLA, 16, new Vector4f(1, 1, 1, 1));
-        testText.transform.position.set(2f, 1.5f);
-        scene.addObjToScene(testText);
+        //GameObject testText = Prefab.genText("A test sentence", Settings.PATH.CONSOLA, 16, new Vector4f(1, 1, 1, 1));
+        //testText.transform.position.set(2f, 1.5f);
+        //scene.addObjToScene(testText);
 
         if (sceneName != null && CurrentProject != null) {
             thisScene = CurrentProject.getScenes().get(sceneName);
@@ -145,14 +143,6 @@ public class LevelEditorSceneInit extends SceneInit {
             if (obj.getComponent(SpriteRender.class) != null) {
                 SpriteRender spr = obj.getComponent(SpriteRender.class);
                 if (spr.loadTexture() != null) {
-                    //System.out.println("File path: " + spr.loadTexture().loadFilePath());
-
-                    //if (sceneName != null && CurrentProject != null && thisScene != null) {
-                    //    String texturePath = spr.loadTexture().loadFilePath();
-                    //    String absPath = PathResolver.resolveAbsolute(ProjectRoot, texturePath);
-                    //    spr.loadTexture().setFilePath(absPath);
-                    //}
-
                     spr.setTex(AssetsPool.loadTexture(spr.loadTexture().loadFilePath()));
                 }
             }
@@ -160,6 +150,11 @@ public class LevelEditorSceneInit extends SceneInit {
             if (obj.getComponent(StateEngine.class) != null) {
                 StateEngine stateEngine = obj.getComponent(StateEngine.class);
                 stateEngine.reloadTexture();
+            }
+
+            if (obj.getComponent(TextComponent.class) != null) {
+                TextComponent textComponent = obj.getComponent(TextComponent.class);
+                textComponent.start();
             }
         }
     }

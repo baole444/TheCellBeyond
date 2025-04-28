@@ -6,6 +6,7 @@ import com.google.gson.GsonBuilder;
 import components.CompDeSerializer;
 import components.Component;
 import components.SpriteRender;
+import components.TextComponent;
 import org.joml.Vector2f;
 import physic_2d.FlatPhysic;
 import render.Renderer;
@@ -190,13 +191,11 @@ public class Scene {
             for (GameObject obj : this.gameObjects) {
                 if (obj.isSerialize()) {
                     if (CurrentProject != null && ProjectRoot != null && currentSceneName != null) {
-                        if (obj.getComponent(SpriteRender.class) == null) continue;
-
-                        String texturePath = obj.getComponent(SpriteRender.class).loadTexture().loadFilePath();
-                        //System.out.println("Texture path at save: " + texturePath);
-                        String relativePath = PathResolver.resolveToRelative(ProjectRoot, texturePath);
-                        obj.getComponent(SpriteRender.class).loadTexture().setFilePath(relativePath);
-                        //System.out.println("Path at save: " + relativePath);
+                        if (obj.getComponent(SpriteRender.class) != null) {
+                            String texturePath = obj.getComponent(SpriteRender.class).loadTexture().loadFilePath();
+                            String relativePath = PathResolver.resolveToRelative(ProjectRoot, texturePath);
+                            obj.getComponent(SpriteRender.class).loadTexture().setFilePath(relativePath);
+                        }
                     }
 
                     serializeList.add(obj);

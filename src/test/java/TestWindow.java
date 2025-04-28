@@ -98,7 +98,7 @@ public class TestWindow {
 
         textRenderer.setViewMatrix(viewport.getViewMatrix());
 
-        TextComponent test = textRenderer.drawText("Hello world ! TEST 1 2 3", 2f, 2f, 24, new Vector4f(0.5f, 1f, 0.7f, 1f), "assets/fonts/Caudex.ttf", GlyphRange.ASCII_EXTENDED);
+        TextComponent test = textRenderer.drawText("Hello world ! TEST 1 2 3", 2f, 2f, 24, new Vector4f(0.5f, 1f, 0.7f, 1f), "assets/fonts/Consola.ttf", GlyphRange.ASCII_EXTENDED);
         test.setVerticalAlignment(TextComponent.VerticalAlignment.MIDDLE);
         test.setHorizontalAlignment(TextComponent.HorizontalAlignment.CENTER);
 

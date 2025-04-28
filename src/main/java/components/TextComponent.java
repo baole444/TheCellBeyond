@@ -11,14 +11,18 @@ import render.text.TCBFont;
 import utility.Settings;
 
 import java.io.IOException;
+import java.util.Objects;
 
 public class TextComponent extends Component {
     private String text;
     private String fontPath;
     private int fontSize;
     private Vector4f color;
-    private transient TCBFont font;
     private boolean isDirty = true;
+    private String glyphRangeName = "ASCII";
+    private boolean isProjectAsset = false;
+
+    private transient TCBFont font;
     private transient Vector2f textDimensions = new Vector2f();
     private transient Vector2f worldPosition = null;
 
@@ -49,12 +53,32 @@ public class TextComponent extends Component {
         loadFont();
     }
 
+    public TextComponent(String text, String fontPath, int fontSize, Vector4f color, boolean isProjectAsset) {
+        this.text = text;
+        this.fontPath = fontPath;
+        this.fontSize = fontSize;
+        this.color = color;
+        this.isProjectAsset = isProjectAsset;
+        loadFont();
+    }
+
     public TextComponent(String text, String fontPath, int fontSize, Vector4f color, GlyphRange glyphRange) {
         this.text = text;
         this.fontPath = fontPath;
         this.fontSize = fontSize;
         this.color = color;
-        loadFont(glyphRange);
+        this.glyphRangeName = glyphRange.name();
+        loadFont();
+    }
+
+    public TextComponent(String text, String fontPath, int fontSize, Vector4f color, GlyphRange glyphRange, boolean isProjectAsset) {
+        this.text = text;
+        this.fontPath = fontPath;
+        this.fontSize = fontSize;
+        this.color = color;
+        this.glyphRangeName = glyphRange.name();
+        this.isProjectAsset = isProjectAsset;
+        loadFont();
     }
 
     public TextComponent(String text, String fontPath, int fontSize, Vector4f color, Vector2f position) {
@@ -71,8 +95,9 @@ public class TextComponent extends Component {
         this.fontPath = fontPath;
         this.fontSize = fontSize;
         this.color = color;
+        this.glyphRangeName = glyphRange.name();
         this.worldPosition = position;
-        loadFont(glyphRange);
+        loadFont();
     }
 
     public Vector2f getWorldPosition() {
@@ -97,16 +122,24 @@ public class TextComponent extends Component {
     }
 
     private void loadFont() {
-        loadFont(GlyphRange.ASCII);
-    }
-
-    private void loadFont(GlyphRange glyphRange) {
         try {
-            this.font = FontManager.get().loadFont(fontPath, fontSize, false, glyphRange);
+            GlyphRange range = GlyphRange.valueOf(glyphRangeName);
+            this.font = FontManager.get().loadFont(fontPath, fontSize, isProjectAsset, range);
             this.isDirty = true;
             calculateTextDimensions();
-        } catch (NullPointerException | IOException e) {
+        } catch (NullPointerException | IllegalArgumentException |IOException e) {
             System.err.println("Failed to load font: " + e.getMessage());
+
+            if (e instanceof IllegalArgumentException) {
+                try {
+                    this.glyphRangeName = "ASCII";
+                    this.font = FontManager.get().loadFont(fontPath, fontSize, isProjectAsset, GlyphRange.ASCII);
+                    this.isDirty = true;
+                    calculateTextDimensions();
+                } catch (IOException ioe) {
+                    System.err.println("Failed to load fallback font: " + ioe.getMessage());
+                }
+            }
         }
     }
 
@@ -135,6 +168,12 @@ public class TextComponent extends Component {
     }
 
     @Override
+    public void start() {
+        loadFont();
+        calculateTextDimensions();
+    }
+
+    @Override
     public void imgui() {
         ImString textInput = new ImString(text, 1024);
         if (ImGui.inputTextMultiline("Text", textInput)) {
@@ -153,6 +192,17 @@ public class TextComponent extends Component {
         if (fontSizeInput != fontSize) {
             this.fontSize = Math.abs(fontSizeInput);
             loadFont();
+        }
+
+        if (ImGui.beginCombo("Glyph Range", glyphRangeName)) {
+            for (GlyphRange range : GlyphRange.values()) {
+                if (ImGui.selectable(range.getDescription(), range.name().equals(glyphRangeName))) {
+                    glyphRangeName = range.name();
+                    this.isDirty = true;
+                }
+            }
+
+            ImGui.endCombo();
         }
 
         if (ImEditorGui.colorCtrl("Color", color)) {
@@ -209,6 +259,22 @@ public class TextComponent extends Component {
         }
     }
 
+    public boolean isProjectAsset() {
+        return isProjectAsset;
+    }
+
+    public void setProjectAsset(boolean isProjectAsset) {
+        this.isProjectAsset = isProjectAsset;
+    }
+
+    public String getFontPath() {
+        return fontPath;
+    }
+
+    public void setFontPath(String fontPath) {
+        this.fontPath = fontPath;
+    }
+
     public boolean isDirty() {
         return isDirty;
     }
@@ -239,6 +305,17 @@ public class TextComponent extends Component {
     public void setVerticalAlignment(VerticalAlignment vAlign) {
         if (this.vAlign != vAlign) {
             this.vAlign = vAlign;
+            this.isDirty = true;
+        }
+    }
+
+    public GlyphRange getGlyphRange() {
+        return GlyphRange.valueOf(this.glyphRangeName);
+    }
+
+    public void setGlyphRange(GlyphRange glyphRange) {
+        if (!Objects.equals(this.glyphRangeName, glyphRange.name())) {
+            this.glyphRangeName = glyphRange.name();
             this.isDirty = true;
         }
     }

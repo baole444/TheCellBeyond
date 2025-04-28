@@ -1,1 +1,46 @@
-[]
+[
+  {
+    "uID": 0,
+    "name": "Text_object_gen",
+    "components": [
+      {
+        "type": "TCB_Field.Transform",
+        "properties": {
+          "position": {
+            "x": 2.1591814,
+            "y": 1.681391
+          },
+          "scale": {
+            "x": 0.0,
+            "y": 0.0
+          },
+          "rotate": 0.0,
+          "zIndex": 0,
+          "uID": 0
+        }
+      },
+      {
+        "type": "components.TextComponent",
+        "properties": {
+          "text": "Xin Chào",
+          "fontPath": "assets/fonts/Caudex.ttf",
+          "fontSize": 64,
+          "color": {
+            "x": 0.3868363,
+            "y": 0.74261606,
+            "z": 0.02193387,
+            "w": 1.0
+          },
+          "isDirty": false,
+          "glyphRangeName": "VIETNAMESE",
+          "isProjectAsset": false,
+          "hAlign": "CENTER",
+          "vAlign": "MIDDLE",
+          "uID": 1
+        }
+      }
+    ],
+    "isSerialize": true,
+    "isGone": false
+  }
+]
