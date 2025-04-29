@@ -206,7 +206,12 @@ public class TextBatch implements Comparable<TextBatch> {
             if (text.isEmpty()) continue;
 
             Vector2f positon = textComponent.getWorldPosition();
-            Vector4f color = textComponent.getColor();
+            Vector4f color;
+            if (RendererState.get().getCurrentPass() == RendererState.RenderPass.SELECTION) {
+                color = new Vector4f(1.0f, 1.0f, 1.0f, 1.0f);
+            } else {
+                color = textComponent.getColor();
+            }
             Vector2f textDimensions = textComponent.getTextDimensions();
 
             float objectId = 0;

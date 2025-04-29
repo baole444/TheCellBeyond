@@ -38,23 +38,23 @@ out vec3 color;
 
 void main()
 {
-    vec4 texColor = vec4(1, 1, 1, 1);
     if (fTexID > 0) {
         int id = int(fTexID);
 
-        texColor = fColor * texture(uTex[id], fTexCrd);
+        vec4 texColor = texture(uTex[id], fTexCrd);
+
+        if (texColor.a * fColor.a < 0.1) {
+            discard;
+        }
     }
 
     else {
         float alpha = texture(uFontTex, fTexCrd).r;
-        texColor = vec4(fColor.rgb, fColor.a * alpha);
-    }
 
-    if (texColor.a < 0.5) {
-        discard;
+        if (alpha < 0.1) {
+            discard;
+        }
     }
 
     color = vec3(fObjID, fObjID, fObjID);
-
-
 }
