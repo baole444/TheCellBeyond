@@ -175,9 +175,9 @@ public class TextComponent extends Component {
 
     @Override
     public void imgui() {
-        ImString textInput = new ImString(text, 1024);
-        if (ImGui.inputTextMultiline("Text", textInput)) {
-            this.text = textInput.get();
+        String textInput = ImEditorGui.inputTextWithIME("Text", text, 1024);
+        if (!textInput.equals(text)) {
+            this.text = textInput;
             this.isDirty = true;
             calculateTextDimensions();
         }

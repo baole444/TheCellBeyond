@@ -9,6 +9,7 @@ import components.SpriteSheet;
 import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.ImGuiCol;
+import imgui.flag.ImGuiInputTextFlags;
 import imgui.flag.ImGuiStyleVar;
 import imgui.type.ImString;
 import org.joml.Math;
@@ -467,5 +468,34 @@ public class ImEditorGui {
 
         ImGui.popStyleVar();
         ImGui.columns(1);
+    }
+
+    public static String inputTextWithIME(String label, String txt, int bufferSize) {
+        ImString out = new ImString(txt, bufferSize);
+
+        int flags = ImGuiInputTextFlags.CallbackResize
+                | ImGuiInputTextFlags.CallbackHistory
+                | ImGuiInputTextFlags.CallbackCompletion
+                | ImGuiInputTextFlags.CallbackCharFilter;
+
+        ImGui.pushID(label);
+        ImGui.columns(2);
+        ImGui.setColumnWidth(0, 150);
+        ImGui.text(label);
+        ImGui.nextColumn();
+
+        if (KeyListener.hasTextInput()) {
+            String IMEInput = KeyListener.getTextInput();
+            if (!IMEInput.isEmpty()) {
+                out.set(out.get() + IMEInput);
+            }
+        }
+
+        boolean changed = ImGui.inputText("##" + label, out, flags);
+
+        ImGui.columns(1);
+        ImGui.popID();
+
+        return changed ? out.get() : txt;
     }
 }

@@ -243,6 +243,9 @@ public class Window implements IEvent {
         glfwSetMouseButtonCallback(glfwWindow, MouseListener::mouseButtonCallback);
         glfwSetScrollCallback(glfwWindow, MouseListener::mouseScrollCallback);
         glfwSetKeyCallback(glfwWindow, KeyListener::keyCallback);
+        glfwSetCharCallback(glfwWindow, KeyListener::charCallback);
+
+        glfwSetInputMode(glfwWindow, GLFW_IME, GLFW_TRUE);
 
         //exit callback setting
         glfwSetWindowCloseCallback(glfwWindow, new GLFWWindowCloseCallback() {
