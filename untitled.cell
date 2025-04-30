@@ -7,8 +7,8 @@
         "type": "TCB_Field.Transform",
         "properties": {
           "position": {
-            "x": 2.1591814,
-            "y": 1.681391
+            "x": 2.0,
+            "y": 1.5
           },
           "scale": {
             "x": 0.0,
@@ -22,20 +22,20 @@
       {
         "type": "components.TextComponent",
         "properties": {
-          "text": "Xin Chào",
-          "fontPath": "assets/fonts/Caudex.ttf",
-          "fontSize": 64,
+          "text": "A test sentence",
+          "fontPath": "assets/fonts/Consola.ttf",
+          "fontSize": 16,
           "color": {
-            "x": 0.3868363,
-            "y": 0.74261606,
-            "z": 0.02193387,
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0,
             "w": 1.0
           },
           "isDirty": false,
-          "glyphRangeName": "VIETNAMESE",
+          "glyphRangeName": "ASCII",
           "isProjectAsset": false,
-          "hAlign": "CENTER",
-          "vAlign": "MIDDLE",
+          "hAlign": "LEFT",
+          "vAlign": "TOP",
           "uID": 1
         }
       }

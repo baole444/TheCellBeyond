@@ -426,6 +426,10 @@ public class TCBFont {
         return filepath;
     }
 
+    public GlyphRange getGlyphRange() {
+        return glyphRange;
+    }
+
     public boolean isLoaded() {
         return isLoaded.get();
     }

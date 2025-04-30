@@ -113,7 +113,20 @@ public class TextBatch implements Comparable<TextBatch> {
     }
 
     public void render() {
+        boolean requireRegroup = false;
+
         if (textComponents.isEmpty()) return;
+
+        for (TextComponent component : textComponents) {
+            if (component.hasFontChanged()) {
+                requireRegroup = true;
+                break;
+            }
+        }
+
+        if (requireRegroup) {
+            regroupComponents();
+        }
 
         // Check for font changes and component changes.
         for (int i = 0; i < textComponents.size(); i++) {

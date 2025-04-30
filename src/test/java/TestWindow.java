@@ -52,8 +52,8 @@ public class TestWindow {
 
 
     private TestWindow() {
-        this.width = 1200;
-        this.height = 900;
+        this.width = 400;
+        this.height = 300;
 
         r = 0.027f;
         g = 0.122f;
@@ -111,9 +111,9 @@ public class TestWindow {
         while (!glfwWindowShouldClose(glfwWindow)) {
             glfwPollEvents(); //poll events
 
-            AsyncFontManager.get().updateFontTextures();
-
             if (dt >= 0) {
+                AsyncFontManager.get().updateFontTextures();
+
                 Renderer.setShader(defaultShader);
 
                 frameBuffer.captureAndRender(() -> {

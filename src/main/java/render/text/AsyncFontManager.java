@@ -72,9 +72,14 @@ public class AsyncFontManager {
 
         for (TCBFont font : toProcess) {
             if (font.waitingTexture()) {
-                System.out.println("Creating texture for font: " + font.getFilepath());
-                font.createTexture();
-                System.out.println("Texture created. hasTexture flag: " + !font.waitingTexture());
+                try {
+                    font.createTexture();
+                } catch (Exception e) {
+                    LOGGER.severe("Error creating font texture: " + e.getMessage());
+                    synchronized (waitingForTexture) {
+                        waitingForTexture.add(font);
+                    }
+                }
             }
         }
     }

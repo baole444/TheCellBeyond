@@ -29,6 +29,7 @@ public class TextComponent extends Component {
     private transient Vector2f worldPosition = null;
     private transient CompletableFuture<TCBFont> fontLoadingFuture = null;
     private transient boolean fontRequested = false;
+    private transient TCBFont previousFont = null;
 
     public enum HorizontalAlignment {
         LEFT, CENTER, RIGHT
@@ -152,16 +153,30 @@ public class TextComponent extends Component {
         float scaledFontSie = font.getFontSize() * Settings.WORLD_SCALE_FACTOR;
 
         float width = 0;
-        float height = scaledFontSie;
+        float height;
+        float lineWidth = 0;
+        float maxLineWidth = 0;
+        float lineCount = 1;
 
         for (int i = 0; i < text.length(); i++) {
             char c = text.charAt(i);
             if (c == '\n') {
-                height += scaledFontSie;
+                lineCount++;
+                maxLineWidth = Math.max(maxLineWidth, lineWidth);
+                lineWidth = 0;
                 continue;
             }
 
-            width += font.getCharInfo(c).advance() * Settings.WORLD_SCALE_FACTOR;
+            float advance = font.getCharInfo(c).advance() * Settings.WORLD_SCALE_FACTOR;
+            lineWidth += advance;
+            width += advance;
+        }
+
+        maxLineWidth = Math.max(maxLineWidth, lineWidth);
+        height = scaledFontSie * lineCount;
+
+        if (lineCount > 1) {
+            width = maxLineWidth;
         }
 
         textDimensions.set(width, height);
@@ -177,6 +192,20 @@ public class TextComponent extends Component {
     public void update(float dt) {
         if (!fontRequested) {
             requestLoadFont();
+            return;
+        }
+
+        if (font != null) {
+            previousFont = font;
+
+            GlyphRange range = GlyphRange.valueOf(glyphRangeName);
+            TCBFont current = FontManager.get().getFont(fontPath, fontSize, range);
+
+            if (current != font && current != null && current.isLoaded() && !current.waitingTexture()) {
+                font = current;
+                calculateTextDimensions();
+                isDirty = true;
+            }
         }
     }
 
@@ -239,6 +268,10 @@ public class TextComponent extends Component {
 
             ImGui.endCombo();
         }
+    }
+
+    public boolean hasFontChanged() {
+        return previousFont != font && previousFont != null && font != null;
     }
 
     public String getText() {

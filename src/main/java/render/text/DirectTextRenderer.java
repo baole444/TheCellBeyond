@@ -50,6 +50,7 @@ public class DirectTextRenderer {
         }
 
         TextComponent textComponent = new TextComponent(text, fontPath, fontSize, color, new Vector2f(x, y), glyphRange);
+        textComponent.start();
 
         String groupKey = zIndex + "_" + fontPath + "_" + fontSize;
         textGroups.computeIfAbsent(groupKey, k -> new ArrayList<>()).add(textComponent);
@@ -90,6 +91,13 @@ public class DirectTextRenderer {
     }
 
     public void render() {
+
+        updateAllTextComponents();
+
+        if (onFontChange()) {
+            textBatches.clear();
+        }
+
         for (Map.Entry<String, List<TextComponent>> entry : textGroups.entrySet()) {
             String[] parts = entry.getKey().split("_");
             int zIndex = Integer.parseInt(parts[0]);
@@ -128,8 +136,33 @@ public class DirectTextRenderer {
         for (TextBatch batch : textBatches) {
             batch.render();
         }
+    }
 
-        textGroups.clear();
+    private void updateAllTextComponents() {
+        for (List<TextComponent> components : textGroups.values()) {
+            for (TextComponent component : components) {
+                component.update(0.0f);
+            }
+        }
+    }
+
+    public void removeText(TextComponent component) {
+        for (List<TextComponent> components : textGroups.values()) {
+            components.remove(component);
+        }
+    }
+
+    private boolean onFontChange() {
+        for (List<TextComponent> components : textGroups.values()) {
+            for (TextComponent component : components) {
+                if (component.hasFontChanged()) {
+                    return true;
+
+                }
+            }
+        }
+
+        return false;
     }
 
     public void cleanup() {
