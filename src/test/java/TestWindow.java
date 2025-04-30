@@ -9,6 +9,7 @@ import render.FrameBuffer;
 
 import render.Renderer;
 import render.Shader;
+import render.text.AsyncFontManager;
 import render.text.DirectTextRenderer;
 import render.text.GlyphRange;
 import utility.AssetsPool;
@@ -51,8 +52,8 @@ public class TestWindow {
 
 
     private TestWindow() {
-        this.width = 400;
-        this.height = 300;
+        this.width = 1200;
+        this.height = 900;
 
         r = 0.027f;
         g = 0.122f;
@@ -79,6 +80,7 @@ public class TestWindow {
     }
 
     private void endScr() {
+        AsyncFontManager.get().cleanup();
         frameBuffer.dispose();
         glfwFreeCallbacks(glfwWindow);
         glfwDestroyWindow(glfwWindow);
@@ -109,6 +111,8 @@ public class TestWindow {
         while (!glfwWindowShouldClose(glfwWindow)) {
             glfwPollEvents(); //poll events
 
+            AsyncFontManager.get().updateFontTextures();
+
             if (dt >= 0) {
                 Renderer.setShader(defaultShader);
 
@@ -128,8 +132,6 @@ public class TestWindow {
             dt = endTime - beginTime;
             beginTime = endTime;
         }
-
-
     }
 
     private void initWindow() {

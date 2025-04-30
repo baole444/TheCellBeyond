@@ -3,12 +3,17 @@ package render.text;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 public class FontManager {
     private static FontManager instance;
-    private Map<String, TCBFont> loadedFonts = new HashMap<>();
 
-    private FontManager() {}
+    private final AsyncFontManager asyncFontManager;
+
+    private FontManager() {
+        asyncFontManager = AsyncFontManager.get();
+    }
 
     public static FontManager get() {
         if (instance == null) {
@@ -23,14 +28,21 @@ public class FontManager {
     }
 
     public TCBFont loadFont(String filepath, int fontSize, boolean isProjectAsset, GlyphRange glyphRange) throws IOException {
-        String key = filepath + "_" + fontSize + "_" + glyphRange.name();
-        if (loadedFonts.containsKey(key)) {
-            return loadedFonts.get(key);
-        }
+        try {
+            CompletableFuture<TCBFont> future = asyncFontManager.loadFontAsync(filepath, fontSize, isProjectAsset, glyphRange, null);
 
-        TCBFont font = new TCBFont(filepath, fontSize, isProjectAsset, glyphRange);
-        loadedFonts.put(key, font);
-        return font;
+            return future.get();
+        } catch (Exception e)  {
+            if (e.getCause() instanceof IOException) {
+                throw (IOException) e.getCause();
+            }
+
+            throw new IOException("Failed to load font: " + e.getMessage(), e);
+        }
+    }
+
+    public CompletableFuture<TCBFont> loadFontAsync(String filepath, int fontSize, boolean isProjectAsset, GlyphRange glyphRange, Consumer<TCBFont> onComplete) {
+        return asyncFontManager.loadFontAsync(filepath, fontSize, isProjectAsset, glyphRange, onComplete);
     }
 
     public TCBFont getFont(String filepath, int fontSize) {
@@ -38,13 +50,18 @@ public class FontManager {
     }
 
     public TCBFont getFont(String filepath, int fontSize, GlyphRange glyphRange) {
-        String key = filepath + "_" + fontSize + "_" + glyphRange.name();
-        return loadedFonts.getOrDefault(key, null);
+        return asyncFontManager.getFont(filepath, fontSize, glyphRange);
+    }
+
+    public boolean isFontLoaded(String filepath, int fontSize, GlyphRange glyphRange) {
+        return asyncFontManager.isFontLoaded(filepath, fontSize, glyphRange);
+    }
+
+    public boolean isFontLoading(String filepath, int fontSize, GlyphRange glyphRange) {
+        return asyncFontManager.isFontLoading(filepath, fontSize, glyphRange);
     }
 
     public void cleanup() {
-        for (TCBFont font : loadedFonts.values()) font.cleanup();;
-
-        loadedFonts.clear();
+        asyncFontManager.cleanup();
     }
 }

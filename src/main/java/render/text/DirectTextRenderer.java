@@ -49,19 +49,12 @@ public class DirectTextRenderer {
             fontPath = Settings.PATH.CONSOLA;
         }
 
-        try {
-            TCBFont font = FontManager.get().loadFont(fontPath, fontSize, false, glyphRange);
+        TextComponent textComponent = new TextComponent(text, fontPath, fontSize, color, new Vector2f(x, y), glyphRange);
 
-            TextComponent textComponent = new TextComponent(text, fontPath, fontSize, color, new Vector2f(x, y), glyphRange);
+        String groupKey = zIndex + "_" + fontPath + "_" + fontSize;
+        textGroups.computeIfAbsent(groupKey, k -> new ArrayList<>()).add(textComponent);
 
-            String groupKey = zIndex + "_" + fontPath + "_" + fontSize;
-            textGroups.computeIfAbsent(groupKey, k -> new ArrayList<>()).add(textComponent);
-
-            return textComponent;
-        } catch (IOException e) {
-            System.err.println("Failed to render text: " + e.getMessage());
-            return null;
-        }
+        return textComponent;
     }
 
     public TextComponent drawText(String text, float x, float y, int fontSize, Vector4f color, String fontPath) {

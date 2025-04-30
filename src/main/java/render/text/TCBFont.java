@@ -15,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static editor.project.Project.CurrentProject;
 import static editor.project.Project.ProjectRoot;
@@ -25,18 +26,60 @@ import static org.lwjgl.stb.STBTruetype.*;
 public class TCBFont {
     private final String filepath;
     private final int fontSize;
-    private int textureId;
-    private int bitmapWidth;
-    private int bitmapHeight;
-    private final Map<Character, CharInfo> characters = new HashMap<>();
     private final GlyphRange glyphRange;
     private int startChar;
     private int numGlyphs;
 
+    private int textureId;
+    private int bitmapWidth;
+    private int bitmapHeight;
+
+    private final Map<Character, CharInfo> characters = new HashMap<>();
+
+    private final AtomicBoolean isLoaded = new AtomicBoolean(false);
+    private final AtomicBoolean hasTexture = new AtomicBoolean(false);
+
+    private volatile ByteBuffer bitmap;
+
+    public TCBFont(ByteBuffer fontBuffer, String filepath, int fontSize, GlyphRange glyphRange) throws IOException {
+        this.filepath = filepath;
+        this.fontSize = fontSize;
+        this.glyphRange = glyphRange;
+
+        if (glyphRange.hasUnicodeRanges()) {
+            loadCombinedRangeFont(fontBuffer);
+        } else if (glyphRange == GlyphRange.ALL) {
+            this.startChar = 0;
+            this.numGlyphs = getFontAvailableGlyphs(fontBuffer);
+            loadSingleRangeFont(fontBuffer);
+        } else {
+            this.startChar = glyphRange.getStartChar();
+            this.numGlyphs = glyphRange.getNumGlyphs();
+            loadSingleRangeFont(fontBuffer);
+        }
+
+        isLoaded.set(true);
+    }
+
+    /**
+     * Create a font with ASCII glyph range.
+     * @param filepath path to the font file.
+     * @param fontSize size to render the text at.
+     * @param isProjectAsset is the file path relative to the project's root directory?
+     * @throws IOException File does not exist.
+     */
     public TCBFont(String filepath, int fontSize, boolean isProjectAsset) throws IOException {
         this(filepath, fontSize, isProjectAsset, GlyphRange.ASCII);
     }
 
+    /**
+     * Create a font.
+     * @param filepath path to the font file.
+     * @param fontSize size to render the text at.
+     * @param isProjectAsset is the file path relative to the project's root directory?
+     * @param glyphRange The Unicode range to support.
+     * @throws IOException File does not exist.
+     */
     public TCBFont(String filepath, int fontSize, boolean isProjectAsset, GlyphRange glyphRange) throws IOException {
         if (isProjectAsset && CurrentProject != null && ProjectRoot != null) {
             this.filepath = PathResolver.resolveToAbsolute(ProjectRoot, filepath);
@@ -66,6 +109,10 @@ public class TCBFont {
             this.numGlyphs = glyphRange.getNumGlyphs();
             loadSingleRangeFont(fontBuffer);
         }
+
+        isLoaded.set(true);
+
+        createTexture();
     }
 
     private void verifyFontFile() throws IOException {
@@ -220,7 +267,7 @@ public class TCBFont {
         // Create bitmap
         bitmapWidth = 512 * scaleFactor;
         bitmapHeight = 512 * scaleFactor;
-        ByteBuffer bitmap = BufferUtils.createByteBuffer(bitmapWidth * bitmapHeight);
+        bitmap = BufferUtils.createByteBuffer(bitmapWidth * bitmapHeight);
 
         // Create buffer for char data
         STBTTBakedChar.Buffer charData = STBTTBakedChar.malloc(numGlyphs);
@@ -228,9 +275,6 @@ public class TCBFont {
         // Bake the font to bitmap
         stbtt_BakeFontBitmap(fontBuffer, fontSize, bitmap, bitmapWidth, bitmapHeight, startChar, charData);
 
-        saveDebugImage(bitmap);
-
-        createTexture(bitmap);
 
         // Save char info of each glyph
         try (MemoryStack stack = MemoryStack.stackPush()) {
@@ -262,7 +306,7 @@ public class TCBFont {
 
         bitmapWidth = 512 * scaleFactor;
         bitmapHeight = 512 * scaleFactor;
-        ByteBuffer bitmap = BufferUtils.createByteBuffer(bitmapWidth * bitmapHeight);
+        bitmap = BufferUtils.createByteBuffer(bitmapWidth * bitmapHeight);
 
         // Prepare font for packing
         STBTTFontinfo fontInfo = STBTTFontinfo.calloc();
@@ -312,13 +356,12 @@ public class TCBFont {
         stbtt_PackEnd(packContext);
         packContext.free();
         fontInfo.free();
-
-        saveDebugImage(bitmap);
-
-        createTexture(bitmap);
     }
 
-    private void createTexture(ByteBuffer bitmap) {
+    public void createTexture() {
+        // Bitmap generated or has no bitmap to generate
+        if (hasTexture.get() || bitmap == null) return;
+
         // Gen OpenGL texture.
         textureId = glGenTextures();
         glBindTexture(GL_TEXTURE_2D, textureId);
@@ -328,6 +371,12 @@ public class TCBFont {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_NEAREST);
         glGenerateMipmap(GL_TEXTURE_2D);
+
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+        hasTexture.set(true);
+
+        bitmap = null;
     }
 
     private void saveDebugImage(ByteBuffer bitmap) {
@@ -373,7 +422,21 @@ public class TCBFont {
         return characters.getOrDefault(c, characters.get(' '));
     }
 
+    public String getFilepath() {
+        return filepath;
+    }
+
+    public boolean isLoaded() {
+        return isLoaded.get();
+    }
+
+    public boolean waitingTexture() {
+        return isLoaded.get() && !hasTexture.get();
+    }
+
     public void cleanup() {
-        glDeleteTextures(textureId);
+        if (hasTexture.get() && textureId != 0) glDeleteTextures(textureId);
+
+        bitmap = null;
     }
 }
