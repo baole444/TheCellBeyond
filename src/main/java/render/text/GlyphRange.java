@@ -29,7 +29,13 @@ public enum GlyphRange {
     /**
      * Latin and Greek chars.
      */
-    LATIN_GREEK(32, 352, "Latin and Greek"),
+    LATIN_GREEK(new int[][]{
+            {0x0020, 0x007F},  // Basic Latin
+            {0x00A0, 0x00FF},  // Latin-1 Supplement
+            {0x0100, 0x017F},  // Latin Extended-A
+            {0x0180, 0x024F},  // Latin Extended-B
+            {0x0370, 0x03FF}
+    }, "Latin and Greek"),
 
     /**
      * Vietnamese chars.
@@ -41,12 +47,7 @@ public enum GlyphRange {
             {0x0180, 0x024F},  // Latin Extended-B
             {0x0300, 0x036F},  // Combining Diacritical Marks
             {0x1EA0, 0x1EFF}   // Latin Extended Additional
-    }, "Vietnamese"),
-
-    /**
-     * This will attempt to dynamically calculate and get all glyphs supported by the font.
-     */
-    ALL(0, 0, "All Glyphs");
+    }, "Vietnamese");
 
     private final int startChar;
 

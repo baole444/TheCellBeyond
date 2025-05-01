@@ -34,7 +34,7 @@ public class TextBatch implements Comparable<TextBatch> {
     private final List<TextComponent> textComponents;
 
     // Map fonts to components
-    private final Map<TCBFont, List<TextComponent>> fontGroups;
+    private final Map<TCBFont, List<TextComponent>> fontGroups = new HashMap<>();
 
     private int vaoID, vboID;
 
@@ -57,7 +57,6 @@ public class TextBatch implements Comparable<TextBatch> {
         this.maxBatchSize = maxBatchSize;
         this.zIndex = zIndex;
         this.textComponents = new ArrayList<>();
-        this.fontGroups = new HashMap<>();
         this.hasRoom = true;
 
         if (shader == null) {
@@ -106,40 +105,35 @@ public class TextBatch implements Comparable<TextBatch> {
         textComponents.add(textComponent);
 
         // Group by font
-        TCBFont font = textComponent.getFont();
+        regroupComponent(textComponent);
+    }
+
+    private void regroupComponent(TextComponent component) {
+        TCBFont font = component.getFont();
         if (font != null) {
-            fontGroups.computeIfAbsent(font, k -> new ArrayList<>()).add(textComponent);
+            List<TextComponent> components = fontGroups.computeIfAbsent(font, k -> new ArrayList<>());
+            if (!components.contains(component)) {
+                components.add(component);
+            }
         }
     }
 
     public void render() {
-        boolean requireRegroup = false;
+
+        FontManager.get().updateFontTextures();
 
         if (textComponents.isEmpty()) return;
 
+        boolean requireRegroup = false;
         for (TextComponent component : textComponents) {
-            if (component.hasFontChanged()) {
+            if (component.isDirty()) {
+                component.clearDirty();
                 requireRegroup = true;
-                break;
             }
         }
 
         if (requireRegroup) {
             regroupComponents();
-        }
-
-        // Check for font changes and component changes.
-        for (int i = 0; i < textComponents.size(); i++) {
-            TextComponent textComponent = textComponents.get(i);
-
-            // if dirty re-render
-            if (textComponent.isDirty()) {
-
-                // regroup if font changed
-                regroupComponents();
-
-                textComponent.clearDirty();
-            }
         }
 
         RendererState state = RendererState.get();
@@ -151,7 +145,6 @@ public class TextBatch implements Comparable<TextBatch> {
         } else {
             instShader = shader;
             instShader.use();
-
             state.enableTextRendering();
         }
 
@@ -181,15 +174,25 @@ public class TextBatch implements Comparable<TextBatch> {
             // Skip if no components use this font
             if (components.isEmpty()) continue;
 
+            // If font is not available, is stilling loading
+            if (font == null || !font.isLoaded() || font.waitingTexture()) continue;
+
             // Skip texture binding during selection pass
             if (currentPass != RendererState.RenderPass.SELECTION) {
+                int textureId = font.getTextureId();
+                if (textureId < 0) continue;
+
+
                 glActiveTexture(GL_TEXTURE0);
-                glBindTexture(GL_TEXTURE_2D, font.getTextureId());
+                glBindTexture(GL_TEXTURE_2D, textureId);
                 instShader.loadInt("uFontTex", 0);
             }
 
             // Create vertex data for all text components of this group
             float[] vertices = genVertices(components, font);
+
+            // If no vertices to render
+            if (vertices.length == 0) continue;
 
             // Upload to GPU
             glBufferSubData(GL_ARRAY_BUFFER, 0, vertices);
@@ -207,21 +210,13 @@ public class TextBatch implements Comparable<TextBatch> {
         if (currentPass != RendererState.RenderPass.SELECTION) {
             instShader.detach();
         }
-
-        // After rendering, verify all components were rendered
-        int totalRenderedComponents = 0;
-        for (Map.Entry<TCBFont, List<TextComponent>> entry : fontGroups.entrySet()) {
-            totalRenderedComponents += entry.getValue().size();
-        }
-
-        if (totalRenderedComponents != textComponents.size()) {
-            System.err.println("WARNING: Component count mismatch! textComponents: " +
-                    textComponents.size() + ", rendered: " + totalRenderedComponents);
-        }
     }
 
     private float[] genVertices(List<TextComponent> components, TCBFont font) {
         int charCount = countChars(components);
+
+        if (charCount == 0) return new float[0];
+
         float[] vertices = new float[charCount * 6 * VERTEX_SIZE];
         int vertexOffset = 0;
 
@@ -378,29 +373,22 @@ public class TextBatch implements Comparable<TextBatch> {
     }
 
     private void regroupComponents() {
-        List<TextComponent> allComponents = new ArrayList<>(textComponents);
-
         fontGroups.clear();
-        for (TextComponent textComponent : allComponents) {
-            TCBFont font = textComponent.getFont();
 
-            if (font != null) {
-                List<TextComponent> components = fontGroups.computeIfAbsent(font, k -> new ArrayList<>());
-                if (!components.contains(textComponent)) {
-                    components.add(textComponent);
-                }
-            }
-        }
-        System.out.println("TextBatch regrouped - components: " + textComponents.size() + ", font groups: " + fontGroups.size());
-        for (Map.Entry<TCBFont, List<TextComponent>> entry : fontGroups.entrySet()) {
-            System.out.println("  Font " + entry.getKey().getFilepath() + " - components: " + entry.getValue().size());
+        for (TextComponent component : textComponents) {
+            regroupComponent(component);
         }
     }
 
     public boolean removeComponent(TextComponent textComponent) {
         boolean removed = textComponents.remove(textComponent);
         if (removed) {
-            regroupComponents();
+            for (List<TextComponent> components : fontGroups.values()) {
+                components.remove(textComponent);
+            }
+
+            fontGroups.entrySet().removeIf(entry -> entry.getValue().isEmpty());
+
             if (textComponents.size() < maxBatchSize) {
                 hasRoom = true;
             }

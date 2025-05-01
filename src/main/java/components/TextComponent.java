@@ -2,20 +2,19 @@ package components;
 
 import editor.ImEditorGui;
 import imgui.ImGui;
-import imgui.type.ImString;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
-import render.text.AsyncFontManager;
-import render.text.FontManager;
-import render.text.GlyphRange;
-import render.text.TCBFont;
+import render.text.*;
+import utility.PathResolver;
 import utility.Settings;
 
-import java.io.IOException;
+import java.io.File;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 
-public class TextComponent extends Component {
+import static editor.project.Project.CurrentProject;
+import static editor.project.Project.ProjectRoot;
+
+public class TextComponent extends Component implements FontLoadCallback {
     private String text;
     private String fontPath;
     private int fontSize;
@@ -27,9 +26,8 @@ public class TextComponent extends Component {
     private transient TCBFont font;
     private transient Vector2f textDimensions = new Vector2f();
     private transient Vector2f worldPosition = null;
-    private transient CompletableFuture<TCBFont> fontLoadingFuture = null;
-    private transient boolean fontRequested = false;
-    private transient TCBFont previousFont = null;
+    private transient FontRequest currentRequest = null;
+    private transient boolean pendingRequest = false;
 
     public enum HorizontalAlignment {
         LEFT, CENTER, RIGHT
@@ -120,27 +118,28 @@ public class TextComponent extends Component {
     }
 
     private void requestLoadFont() {
-        if (fontRequested) {
+        if (pendingRequest) {
             return;
         }
 
-        fontRequested = true;
+        GlyphRange range = GlyphRange.valueOf(glyphRangeName);
+        FontRequest request = new FontRequest(fontPath, fontSize, range, isProjectAsset);
 
-        try {
-            GlyphRange range = GlyphRange.valueOf(glyphRangeName);
+        if (currentRequest == null || !currentRequest.equals(request)) {
+            currentRequest = request;
+            pendingRequest = true;
 
-            font = FontManager.get().getFont(fontPath, fontSize, range);
+            FontManager.get().requestFont(request, this);
+        }
+    }
 
-            if (!FontManager.get().isFontLoaded(fontPath, fontSize, range) && !FontManager.get().isFontLoading(fontPath, fontSize, range)) {
-                fontLoadingFuture = FontManager.get().loadFontAsync(fontPath, fontSize, isProjectAsset, range, loadedFont -> {
-                    font = loadedFont;
-                    calculateTextDimensions();
-                    isDirty = true;
-                });
-            }
-        } catch (Exception e) {
-            AsyncFontManager.LOGGER.warning("Error requesting font: " + e.getMessage());
-            fontRequested = false;
+    @Override
+    public void onFontLoaded(TCBFont loadedFont, FontRequest request) {
+        if (currentRequest != null && currentRequest.equals(request)) {
+            this.font = loadedFont;
+            this.pendingRequest = false;
+            calculateTextDimensions();
+            this.isDirty = true;
         }
     }
 
@@ -185,58 +184,51 @@ public class TextComponent extends Component {
     @Override
     public void start() {
         requestLoadFont();
-        calculateTextDimensions();
     }
 
     @Override
     public void update(float dt) {
-        if (!fontRequested) {
+        if (font == null
+                || !Objects.equals(fontPath, currentRequest != null ? currentRequest.fontPath() : null)
+                || fontSize != (currentRequest != null ? currentRequest.fontSize() : 0)
+                || !glyphRangeName.equals(currentRequest != null ? currentRequest.glyphRange().name() : null)) {
             requestLoadFont();
-            return;
-        }
-
-        if (font != null) {
-            previousFont = font;
-
-            GlyphRange range = GlyphRange.valueOf(glyphRangeName);
-            TCBFont current = FontManager.get().getFont(fontPath, fontSize, range);
-
-            if (current != font && current != null && current.isLoaded() && !current.waitingTexture()) {
-                font = current;
-                calculateTextDimensions();
-                isDirty = true;
-            }
         }
     }
 
     @Override
     public void imgui() {
         String textInput = ImEditorGui.inputTextWithIME("Text", text, 1024);
-        if (!textInput.equals(text)) {
-            this.text = textInput;
-            this.isDirty = true;
-            calculateTextDimensions();
-        }
+        setText(textInput);
 
         String fontPathInput = ImEditorGui.inputText("Font Path", fontPath);
         if (!fontPathInput.equals(fontPath)) {
-            this.fontPath = fontPathInput;
-            requestLoadFont();
+
+            String resolvedPath;
+            if (isProjectAsset && CurrentProject != null && ProjectRoot != null) {
+                resolvedPath = PathResolver.resolveToAbsolute(ProjectRoot, fontPathInput);
+            } else {
+                resolvedPath = new File(fontPathInput).getAbsolutePath();
+            }
+
+            if (new File(resolvedPath).exists()) {
+                this.fontPath = fontPathInput;
+                this.pendingRequest = false;
+                requestLoadFont();
+            }
         }
 
         int fontSizeInput = ImEditorGui.dragIntCtrl("Font Size", fontSize);
         if (fontSizeInput != fontSize) {
             this.fontSize = Math.abs(fontSizeInput);
+            this.pendingRequest = false;
             requestLoadFont();
         }
 
         if (ImGui.beginCombo("Glyph Range", glyphRangeName)) {
             for (GlyphRange range : GlyphRange.values()) {
                 if (ImGui.selectable(range.getDescription(), range.name().equals(glyphRangeName))) {
-                    glyphRangeName = range.name();
-                    fontRequested = false;
-                    requestLoadFont();
-                    this.isDirty = true;
+                    setGlyphRange(range);
                 }
             }
 
@@ -270,10 +262,6 @@ public class TextComponent extends Component {
         }
     }
 
-    public boolean hasFontChanged() {
-        return previousFont != font && previousFont != null && font != null;
-    }
-
     public String getText() {
         return text;
     }
@@ -287,7 +275,7 @@ public class TextComponent extends Component {
     }
 
     public TCBFont getFont() {
-        if (font == null && !fontRequested) {
+        if (font == null) {
             requestLoadFont();
         }
 
@@ -317,8 +305,22 @@ public class TextComponent extends Component {
         return fontPath;
     }
 
-    public void setFontPath(String fontPath) {
-        this.fontPath = fontPath;
+    public void setFontPath(String fontPathInput) {
+        if (!fontPathInput.equals(fontPath)) {
+
+            String resolvedPath;
+            if (isProjectAsset && CurrentProject != null && ProjectRoot != null) {
+                resolvedPath = PathResolver.resolveToAbsolute(ProjectRoot, fontPathInput);
+            } else {
+                resolvedPath = new File(fontPathInput).getAbsolutePath();
+            }
+
+            if (new File(resolvedPath).exists()) {
+                this.fontPath = fontPathInput;
+                this.pendingRequest = false;
+                requestLoadFont();
+            }
+        }
     }
 
     public boolean isDirty() {
@@ -362,7 +364,7 @@ public class TextComponent extends Component {
     public void setGlyphRange(GlyphRange glyphRange) {
         if (!Objects.equals(this.glyphRangeName, glyphRange.name())) {
             this.glyphRangeName = glyphRange.name();
-            fontRequested = false;
+            this.pendingRequest = false;
             requestLoadFont();
             this.isDirty = true;
         }

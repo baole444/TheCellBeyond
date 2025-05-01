@@ -92,10 +92,12 @@ public class DirectTextRenderer {
 
     public void render() {
 
-        updateAllTextComponents();
+        FontManager.get().updateFontTextures();
 
-        if (onFontChange()) {
-            textBatches.clear();
+        for (List<TextComponent> components : textGroups.values()) {
+            for (TextComponent component : components) {
+                component.update(0.0f);
+            }
         }
 
         for (Map.Entry<String, List<TextComponent>> entry : textGroups.entrySet()) {
@@ -138,31 +140,14 @@ public class DirectTextRenderer {
         }
     }
 
-    private void updateAllTextComponents() {
-        for (List<TextComponent> components : textGroups.values()) {
-            for (TextComponent component : components) {
-                component.update(0.0f);
-            }
-        }
-    }
-
     public void removeText(TextComponent component) {
         for (List<TextComponent> components : textGroups.values()) {
             components.remove(component);
         }
-    }
 
-    private boolean onFontChange() {
-        for (List<TextComponent> components : textGroups.values()) {
-            for (TextComponent component : components) {
-                if (component.hasFontChanged()) {
-                    return true;
-
-                }
-            }
+        for (TextBatch batch : textBatches) {
+            batch.removeComponent(component);
         }
-
-        return false;
     }
 
     public void cleanup() {

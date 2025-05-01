@@ -1,18 +1,39 @@
 package render.text;
 
+import org.lwjgl.BufferUtils;
+import utility.PathResolver;
+
+import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
+import java.lang.ref.WeakReference;
+import java.nio.ByteBuffer;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.function.Consumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import static editor.project.Project.CurrentProject;
+import static editor.project.Project.ProjectRoot;
 
 public class FontManager {
+    private static final Logger LOGGER = Logger.getLogger(FontManager.class.getName());
+
     private static FontManager instance;
 
-    private final AsyncFontManager asyncFontManager;
+    private final ExecutorService executorService;
+
+    private final Map<FontRequest, TCBFont> fontCache = new ConcurrentHashMap<>();
+
+    private final Queue<FontRequestEntry> pendingRequests = new ConcurrentLinkedDeque<>();
+
+    private final Queue<TCBFont> fontsWaitingTexture = new ConcurrentLinkedDeque<>();
 
     private FontManager() {
-        asyncFontManager = AsyncFontManager.get();
+        this.executorService = Executors.newVirtualThreadPerTaskExecutor();
+        startProcessingThread();
     }
 
     public static FontManager get() {
@@ -23,45 +44,151 @@ public class FontManager {
         return instance;
     }
 
-    public TCBFont loadFont(String filepath, int fontSize, boolean isProjectAsset) throws IOException {
-        return loadFont(filepath, fontSize, isProjectAsset, GlyphRange.ASCII);
+    private void startProcessingThread() {
+        Thread processor = new Thread(() -> {
+            while (!Thread.currentThread().isInterrupted()) {
+                processFontRequest();
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            }
+        }, "FontProcessing");
+
+        processor.setDaemon(true);
+        processor.start();
     }
 
-    public TCBFont loadFont(String filepath, int fontSize, boolean isProjectAsset, GlyphRange glyphRange) throws IOException {
-        try {
-            CompletableFuture<TCBFont> future = asyncFontManager.loadFontAsync(filepath, fontSize, isProjectAsset, glyphRange, null);
+    private void processFontRequest() {
+        FontRequestEntry entry;
+        while ((entry = pendingRequests.poll()) != null) {
+            FontRequest request = entry.request;
 
-            return future.get();
-        } catch (Exception e)  {
-            if (e.getCause() instanceof IOException) {
-                throw (IOException) e.getCause();
+            TCBFont font = fontCache.get(request);
+            if (font != null) {
+                notifyCallbacks(font, request, entry.callbacks);
+                continue;
             }
 
-            throw new IOException("Failed to load font: " + e.getMessage(), e);
+            try {
+                String resolvedPath;
+                if (request.isProjectAsset() && CurrentProject != null && ProjectRoot != null) {
+                    resolvedPath = PathResolver.resolveToAbsolute(ProjectRoot, request.fontPath());
+                } else {
+                    resolvedPath = new File(request.fontPath()).getAbsolutePath();
+                }
+
+                byte[] fontData = Files.readAllBytes(Paths.get(resolvedPath));
+                ByteBuffer fontBuffer = BufferUtils.createByteBuffer(fontData.length);
+                fontBuffer.put(fontData);
+                fontBuffer.flip();
+
+                font = new TCBFont(fontBuffer, resolvedPath, request.fontSize(), request.glyphRange());
+
+                fontCache.put(request, font);
+
+                fontsWaitingTexture.add(font);
+
+                notifyCallbacks(font, request, entry.callbacks);
+            } catch (Exception e) {
+                LOGGER.log(Level.SEVERE, "Failed to load font: " + request, e);
+            }
         }
     }
 
-    public CompletableFuture<TCBFont> loadFontAsync(String filepath, int fontSize, boolean isProjectAsset, GlyphRange glyphRange, Consumer<TCBFont> onComplete) {
-        return asyncFontManager.loadFontAsync(filepath, fontSize, isProjectAsset, glyphRange, onComplete);
+    private void notifyCallbacks(TCBFont font, FontRequest request, List<WeakReference<FontLoadCallback>> callbacks) {
+        List<WeakReference<FontLoadCallback>> expiredCallbacks = new ArrayList<>();
+
+        for (WeakReference<FontLoadCallback> ref : callbacks) {
+            FontLoadCallback callback = ref.get();
+
+            if (callback != null) {
+                try {
+                    callback.onFontLoaded(font, request);
+                } catch (Exception e) {
+                    LOGGER.log(Level.WARNING, "Exception in font load callback", e);
+                }
+            } else {
+                expiredCallbacks.add(ref);
+            }
+        }
+
+        callbacks.removeAll(expiredCallbacks);
     }
 
-    public TCBFont getFont(String filepath, int fontSize) {
-        return getFont(filepath, fontSize, GlyphRange.ASCII);
+    public void requestFont(FontRequest request, FontLoadCallback callback) {
+        TCBFont existingFont = fontCache.get(request);
+
+        if (existingFont != null) {
+            if (callback != null) {
+                callback.onFontLoaded(existingFont, request);
+            }
+            return;
+        }
+
+        boolean alreadyExisting = false;
+        for (FontRequestEntry entry : pendingRequests) {
+            if (entry.request.equals(request)) {
+                entry.addCallback(callback);
+                alreadyExisting = true;
+                break;
+            }
+        }
+
+        if (!alreadyExisting) {
+            pendingRequests.add(new FontRequestEntry(request, callback));
+        }
     }
 
-    public TCBFont getFont(String filepath, int fontSize, GlyphRange glyphRange) {
-        return asyncFontManager.getFont(filepath, fontSize, glyphRange);
+    public void updateFontTextures() {
+        TCBFont font;
+        while ((font = fontsWaitingTexture.poll()) != null) {
+            if (font.waitingTexture()) {
+                try {
+                    font.createTexture();
+                } catch (Exception e) {
+                    LOGGER.log(Level.SEVERE, "Failed to create texture for font: " + font.getFilepath(), e);
+
+                    fontsWaitingTexture.add(font);
+                }
+            }
+        }
     }
 
-    public boolean isFontLoaded(String filepath, int fontSize, GlyphRange glyphRange) {
-        return asyncFontManager.isFontLoaded(filepath, fontSize, glyphRange);
+    public TCBFont getFont(FontRequest request) {
+        TCBFont font = fontCache.get(request);
+
+        if (font != null) {
+            if (font.waitingTexture()) {
+                fontsWaitingTexture.add(font);
+            }
+
+            return font;
+        }
+
+        requestFont(request, null);
+
+        return null;
     }
 
-    public boolean isFontLoading(String filepath, int fontSize, GlyphRange glyphRange) {
-        return asyncFontManager.isFontLoading(filepath, fontSize, glyphRange);
+    public boolean isFontLoaded(FontRequest request) {
+        TCBFont font = fontCache.get(request);
+        return font != null && font.isLoaded() && !font.waitingTexture();
     }
 
     public void cleanup() {
-        asyncFontManager.cleanup();
+        executorService.shutdown();
+
+        for (TCBFont font : fontCache.values()) {
+            font.cleanup();
+        }
+
+        fontCache.clear();
+
+        pendingRequests.clear();
+
+        fontsWaitingTexture.clear();
     }
 }

@@ -20,6 +20,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static editor.project.Project.CurrentProject;
 import static editor.project.Project.ProjectRoot;
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
 import static org.lwjgl.opengl.GL30.glGenerateMipmap;
 import static org.lwjgl.stb.STBTruetype.*;
 
@@ -48,10 +49,6 @@ public class TCBFont {
 
         if (glyphRange.hasUnicodeRanges()) {
             loadCombinedRangeFont(fontBuffer);
-        } else if (glyphRange == GlyphRange.ALL) {
-            this.startChar = 0;
-            this.numGlyphs = getFontAvailableGlyphs(fontBuffer);
-            loadSingleRangeFont(fontBuffer);
         } else {
             this.startChar = glyphRange.getStartChar();
             this.numGlyphs = glyphRange.getNumGlyphs();
@@ -100,10 +97,6 @@ public class TCBFont {
 
         if (glyphRange.hasUnicodeRanges()) {
             loadCombinedRangeFont(fontBuffer);
-        } else if (glyphRange == GlyphRange.ALL) {
-            this.startChar = 0;
-            this.numGlyphs = getFontAvailableGlyphs(fontBuffer);
-            loadSingleRangeFont(fontBuffer);
         } else {
             this.startChar = glyphRange.getStartChar();
             this.numGlyphs = glyphRange.getNumGlyphs();
@@ -111,8 +104,6 @@ public class TCBFont {
         }
 
         isLoaded.set(true);
-
-        createTexture();
     }
 
     private void verifyFontFile() throws IOException {
@@ -144,123 +135,6 @@ public class TCBFont {
         return (int) Math.ceil(scaleFactor);
     }
 
-    private int getFontAvailableGlyphs(ByteBuffer fontData) {
-        // create temporary font info
-        STBTTFontinfo fontInfo = STBTTFontinfo.calloc();
-        if (!stbtt_InitFont(fontInfo, fontData)) {
-            fontInfo.free();
-            return 1024; // return a generous number of glyphs when font init failed.
-        }
-
-        int glyphCount = 0;
-
-        try {
-            int[][] unicodeRanges = {
-                    {0x0020, 0x007F},   // Basic Latin
-                    {0x00A0, 0x00FF},   // Latin-1 Supplement
-                    {0x0100, 0x017F},   // Latin Extended-A
-                    {0x0180, 0x024F},   // Latin Extended-B
-                    {0x0250, 0x02AF},   // IPA Extensions
-                    {0x02B0, 0x02FF},   // Spacing Modifier Letters
-                    {0x0300, 0x036F},   // Combining Diacritical Marks
-                    {0x0370, 0x03FF},   // Greek and Coptic
-                    {0x0400, 0x04FF},   // Cyrillic
-                    {0x0500, 0x052F},   // Cyrillic Supplement
-                    {0x0530, 0x058F},   // Armenian
-                    {0x0590, 0x05FF},   // Hebrew
-                    {0x0600, 0x06FF},   // Arabic
-                    {0x0900, 0x097F},   // Devanagari
-                    {0x0980, 0x09FF},   // Bengali
-                    {0x0A00, 0x0A7F},   // Gurmukhi
-                    {0x0E00, 0x0E7F},   // Thai
-                    {0x1100, 0x11FF},   // Hangul Jamo
-                    {0x2000, 0x206F},   // General Punctuation
-                    {0x2070, 0x209F},   // Superscripts and Subscripts
-                    {0x20A0, 0x20CF},   // Currency Symbols
-                    {0x2100, 0x214F},   // Letterlike Symbols
-                    {0x2150, 0x218F},   // Number Forms
-                    {0x2200, 0x22FF},   // Mathematical Operators
-                    {0x2600, 0x26FF},   // Miscellaneous Symbols
-                    {0x3000, 0x303F},   // CJK Symbols and Punctuation
-                    {0x3040, 0x309F},   // Hiragana
-                    {0x30A0, 0x30FF},   // Katakana
-                    {0x3100, 0x312F},   // Bopomofo
-                    {0x4E00, 0x9FFF},   // CJK Unified Ideographs (sample only 1/16 for performance)
-                    {0xAC00, 0xD7AF}    // Hangul Syllables (sample only 1/16 for performance)
-            };
-
-            // Sampling Unicode points in the font
-            for (int[] range: unicodeRanges) {
-                int start = range[0];
-                int end = range[1];
-
-                int step = 1;
-
-                // Sample 1/16 on large ranges
-                if (end - start > 1000) {
-                    step = 16;
-                }
-
-                for (int codePoint = start; codePoint <= end; codePoint += step) {
-                    int glyphIndex = stbtt_FindGlyphIndex(fontInfo, codePoint);
-                    if (glyphIndex > 0) {
-                        glyphCount += step;
-                    }
-                }
-            }
-
-            // Find highest valid glyph index
-            int maxGlyphIndex = findMaxGlyphIndex(fontInfo);
-
-            // Check if count match max glyph index
-            glyphCount = Math.max(glyphCount, maxGlyphIndex);
-
-            // Min of 256 glyphs
-            glyphCount = Math.max(glyphCount, 256);
-
-            // Cap max glyph count in case it is excessively large.
-            glyphCount = Math.min(glyphCount, 10000);
-
-        } finally {
-            fontInfo.free();
-        }
-
-        return glyphCount;
-    }
-
-    private int findMaxGlyphIndex(STBTTFontinfo fontInfo) {
-        IntBuffer advanceWidth = BufferUtils.createIntBuffer(1);
-        IntBuffer leftSideBearing = BufferUtils.createIntBuffer(1);
-        IntBuffer x0 = BufferUtils.createIntBuffer(1);
-        IntBuffer y0 = BufferUtils.createIntBuffer(1);
-        IntBuffer x1 = BufferUtils.createIntBuffer(1);
-        IntBuffer y1 = BufferUtils.createIntBuffer(1);
-
-        int maxGlyphIndex = 0;
-        int low = 0;
-        int high = 65535;
-
-        while (low <= high) {
-            int mid = (low + high) /2;
-
-            int glyphIndex = mid;
-
-            stbtt_GetGlyphHMetrics(fontInfo, glyphIndex, advanceWidth, leftSideBearing);
-            boolean validBox = stbtt_GetGlyphBox(fontInfo, glyphIndex, x0, y0, x1, y1);
-
-            boolean isGlyphValid = advanceWidth.get(0) != 0 || validBox;
-
-            if (isGlyphValid) {
-                maxGlyphIndex = Math.max(maxGlyphIndex, glyphIndex);
-                low = mid + 1;
-            } else {
-                high = mid - 1;
-            }
-        }
-
-        return maxGlyphIndex;
-    }
-
     private void loadSingleRangeFont(ByteBuffer fontBuffer) {
         int scaleFactor = calculateBitmapScale(fontSize, numGlyphs);
 
@@ -274,7 +148,6 @@ public class TCBFont {
 
         // Bake the font to bitmap
         stbtt_BakeFontBitmap(fontBuffer, fontSize, bitmap, bitmapWidth, bitmapHeight, startChar, charData);
-
 
         // Save char info of each glyph
         try (MemoryStack stack = MemoryStack.stackPush()) {
@@ -362,52 +235,39 @@ public class TCBFont {
         // Bitmap generated or has no bitmap to generate
         if (hasTexture.get() || bitmap == null) return;
 
-        if (textureId != 0) glDeleteTextures(textureId);
+        int newTextureId = 0;
 
-        // Gen OpenGL texture.
-        textureId = glGenTextures();
-
-        System.out.println("Creating new font texture: " + textureId + " for font: " + filepath);
-
-        IntBuffer previousTexture = BufferUtils.createIntBuffer(1);
-        glGetIntegerv(GL_TEXTURE_BINDING_2D, previousTexture);
-
-        glBindTexture(GL_TEXTURE_2D, textureId);
-
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, bitmapWidth, bitmapHeight, 0, GL_RED, GL_UNSIGNED_BYTE, bitmap);
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_NEAREST);
-
-        glBindTexture(GL_TEXTURE_2D, previousTexture.get(0));
-
-        hasTexture.set(true);
-
-        bitmap = null;
-    }
-
-    private void saveDebugImage(ByteBuffer bitmap) {
         try {
-            // Create a BufferedImage and write the bitmap data to it
-            BufferedImage image = new BufferedImage(bitmapWidth, bitmapHeight, BufferedImage.TYPE_INT_ARGB);
+            newTextureId = glGenTextures();
 
-            for (int y = 0; y < bitmapHeight; y++) {
-                for (int x = 0; x < bitmapWidth; x++) {
-                    int i = y * bitmapWidth + x;
-                    int value = bitmap.get(i) & 0xFF;
-                    int color = (value << 24) | (value << 16) | (value << 8) | value;
-                    image.setRGB(x, y, color);
-                }
+            IntBuffer previousTexture = BufferUtils.createIntBuffer(1);
+
+            glGetIntegerv(GL_TEXTURE_BINDING_2D, previousTexture);
+
+            glBindTexture(GL_TEXTURE_2D, newTextureId);
+
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, bitmapWidth, bitmapHeight, 0, GL_RED, GL_UNSIGNED_BYTE, bitmap);
+
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            glGenerateMipmap(GL_TEXTURE_2D);
+
+            glBindTexture(GL_TEXTURE_2D, previousTexture.get(0));
+
+            if (textureId != 0) glDeleteTextures(textureId);
+
+            textureId = newTextureId;
+            hasTexture.set(true);
+
+            bitmap = null;
+        } catch (Exception e) {
+            if (newTextureId != 0) {
+                glDeleteTextures(newTextureId);
             }
 
-            // Save the image to a file
-            String fontName = new File(filepath).getName().replaceAll("\\.[^.]*$", "");
-            File outputFile = new File("tempFont_" + fontName + ".png");
-            ImageIO.write(image, "png", outputFile);
-        } catch (IOException e) {
-            System.err.println("Failed to save debug image: " + e.getMessage());
+            throw e;
         }
     }
 
@@ -448,7 +308,11 @@ public class TCBFont {
     }
 
     public void cleanup() {
-        if (hasTexture.get() && textureId != 0) glDeleteTextures(textureId);
+        if (hasTexture.get() && textureId != 0) {
+            glDeleteTextures(textureId);
+
+            textureId = 0;
+        }
 
         bitmap = null;
     }

@@ -9,7 +9,6 @@ import render.FrameBuffer;
 
 import render.Renderer;
 import render.Shader;
-import render.text.AsyncFontManager;
 import render.text.DirectTextRenderer;
 import render.text.GlyphRange;
 import utility.AssetsPool;
@@ -52,8 +51,8 @@ public class TestWindow {
 
 
     private TestWindow() {
-        this.width = 400;
-        this.height = 300;
+        this.width = 800;
+        this.height = 600;
 
         r = 0.027f;
         g = 0.122f;
@@ -80,7 +79,6 @@ public class TestWindow {
     }
 
     private void endScr() {
-        AsyncFontManager.get().cleanup();
         frameBuffer.dispose();
         glfwFreeCallbacks(glfwWindow);
         glfwDestroyWindow(glfwWindow);
@@ -100,19 +98,22 @@ public class TestWindow {
 
         textRenderer.setViewMatrix(viewport.getViewMatrix());
 
-        TextComponent test = textRenderer.drawText("Hello world ! TEST 1 2 3", 2f, 2f, 24, new Vector4f(0.5f, 1f, 0.7f, 1f), "assets/fonts/Consola.ttf", GlyphRange.ASCII_EXTENDED);
+        TextComponent test = textRenderer.drawText("Hello world ! TEST 1 2 3", 2f, 2.5f, 24, new Vector4f(0.5f, 1f, 0.7f, 1f), "assets/fonts/Consola.ttf", GlyphRange.ASCII_EXTENDED);
         test.setVerticalAlignment(TextComponent.VerticalAlignment.MIDDLE);
         test.setHorizontalAlignment(TextComponent.HorizontalAlignment.CENTER);
 
-        TextComponent test2 = textRenderer.drawText("Kiểm thử Tiếng Việt ", 2f, 1.2f, 32, new Vector4f(0.7f, 1f, 0.5f, 1f), "C:/Windows/Fonts/times.ttf", GlyphRange.VIETNAMESE);
+        TextComponent test2 = textRenderer.drawText("Kiểm thử Tiếng Việt", 2f, 2f, 32, new Vector4f(0.7f, 1f, 0.5f, 1f), "C:/Windows/Fonts/times.ttf", GlyphRange.VIETNAMESE);
         test2.setVerticalAlignment(TextComponent.VerticalAlignment.MIDDLE);
         test2.setHorizontalAlignment(TextComponent.HorizontalAlignment.CENTER);
+
+        TextComponent test3 = textRenderer.drawText("Γεια σου κόσμο, δοκιμές στα ελληνικά!", 2f, 1.5f, 20, new Vector4f(0.1f, 0.6f, 0.8f, 1f), "C:/Windows/Fonts/arial.ttf", GlyphRange.LATIN_GREEK);
+        test3.setVerticalAlignment(TextComponent.VerticalAlignment.MIDDLE);
+        test3.setHorizontalAlignment(TextComponent.HorizontalAlignment.CENTER);
 
         while (!glfwWindowShouldClose(glfwWindow)) {
             glfwPollEvents(); //poll events
 
             if (dt >= 0) {
-                AsyncFontManager.get().updateFontTextures();
 
                 Renderer.setShader(defaultShader);
 
