@@ -5,6 +5,7 @@ import org.joml.Vector4f;
 import physic_2d.components.FlatPhysicBody;
 import physic_2d.components.collider.PillBoxCollider;
 import physic_2d.enums.ObjectClassification;
+import render.text.GlyphRange;
 import utility.AssetsPool;
 import utility.Settings;
 
@@ -30,10 +31,10 @@ public class Prefab {
      * @param color Color of the text (RGBA)
      * @return A GameObject with a TextComponent
      */
-    public static GameObject genText(String text, String fontPath, int fontSize, Vector4f color) {
+    public static GameObject genText(String text, String fontPath, int fontSize, Vector4f color, GlyphRange glyphRange) {
         GameObject textObj = Window.getScene().generateObject("Text_object_gen");
 
-        TextComponent textComponent = new TextComponent(text, fontPath, fontSize, color);
+        TextComponent textComponent = new TextComponent(text, fontPath, fontSize, color, glyphRange);
         textObj.addComponent(textComponent);
 
         return textObj;
@@ -46,7 +47,7 @@ public class Prefab {
      * @return A GameObject with a TextComponent using default font and color
      */
     public static GameObject genText(String text) {
-        return genText(text, Settings.PATH.CONSOLA, 16, new Vector4f(1, 1, 1, 1));
+        return genText(text, Settings.PATH.CONSOLA, 16, new Vector4f(1, 1, 1, 1), GlyphRange.ASCII);
     }
 
     /**
@@ -60,8 +61,8 @@ public class Prefab {
      * @param vAlign Vertical alignment (TOP, MIDDLE, BOTTOM)
      * @return A GameObject with an aligned TextComponent
      */
-    public static GameObject genAlignedText(String text, String fontPath, int fontSize, Vector4f color, TextComponent.HorizontalAlignment hAlign, TextComponent.VerticalAlignment vAlign) {
-        GameObject textObj = genText(text, fontPath, fontSize, color);
+    public static GameObject genAlignedText(String text, String fontPath, int fontSize, Vector4f color, TextComponent.HorizontalAlignment hAlign, TextComponent.VerticalAlignment vAlign, GlyphRange glyphRange) {
+        GameObject textObj = genText(text, fontPath, fontSize, color, glyphRange);
         TextComponent textComponent = textObj.getComponent(TextComponent.class);
 
         textComponent.setHorizontalAlignment(hAlign);

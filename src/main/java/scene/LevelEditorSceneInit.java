@@ -12,6 +12,7 @@ import editor.project.ProjectSheetMap;
 import imgui.ImGui;
 import imgui.ImVec2;
 import org.joml.Vector4f;
+import render.text.GlyphRange;
 import utility.AssetsPool;
 import utility.PathResolver;
 import utility.Settings;
@@ -48,9 +49,9 @@ public class LevelEditorSceneInit extends SceneInit {
 
     @Override
     public void init(Scene scene) {
-        //GameObject testText = Prefab.genText("A test sentence", Settings.PATH.CONSOLA, 16, new Vector4f(1, 1, 1, 1));
-        //testText.transform.position.set(2f, 1.5f);
-        //scene.addObjToScene(testText);
+        GameObject testText = Prefab.genText("Dòng chữ tiếng Việt \nKiểm thử kiểm thử 1 2 3", Settings.PATH.CONSOLA, 24, new Vector4f(1, 0.5f, 1, 1), GlyphRange.VIETNAMESE);
+        testText.transform.position.set(2.5f, 1f);
+        scene.addObjToScene(testText);
 
         if (sceneName != null && CurrentProject != null) {
             thisScene = CurrentProject.getScenes().get(sceneName);

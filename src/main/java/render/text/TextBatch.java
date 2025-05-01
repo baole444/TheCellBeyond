@@ -167,8 +167,8 @@ public class TextBatch implements Comparable<TextBatch> {
             vMatrix = viewMatrix;
         } else vMatrix = Window.getScene().viewport().getViewMatrix();
 
-        shader.loadMat4f("uProject", projMatrix);
-        shader.loadMat4f("uView", vMatrix);
+        instShader.loadMat4f("uProject", projMatrix);
+        instShader.loadMat4f("uView", vMatrix);
 
         glBindVertexArray(vaoID);
         glBindBuffer(GL_ARRAY_BUFFER, vboID);
@@ -185,7 +185,7 @@ public class TextBatch implements Comparable<TextBatch> {
             if (currentPass != RendererState.RenderPass.SELECTION) {
                 glActiveTexture(GL_TEXTURE0);
                 glBindTexture(GL_TEXTURE_2D, font.getTextureId());
-                shader.loadInt("uFontTex", 0);
+                instShader.loadInt("uFontTex", 0);
             }
 
             // Create vertex data for all text components of this group
@@ -205,7 +205,18 @@ public class TextBatch implements Comparable<TextBatch> {
 
         // Detach if font shader is used
         if (currentPass != RendererState.RenderPass.SELECTION) {
-            shader.detach();
+            instShader.detach();
+        }
+
+        // After rendering, verify all components were rendered
+        int totalRenderedComponents = 0;
+        for (Map.Entry<TCBFont, List<TextComponent>> entry : fontGroups.entrySet()) {
+            totalRenderedComponents += entry.getValue().size();
+        }
+
+        if (totalRenderedComponents != textComponents.size()) {
+            System.err.println("WARNING: Component count mismatch! textComponents: " +
+                    textComponents.size() + ", rendered: " + totalRenderedComponents);
         }
     }
 
@@ -367,13 +378,22 @@ public class TextBatch implements Comparable<TextBatch> {
     }
 
     private void regroupComponents() {
+        List<TextComponent> allComponents = new ArrayList<>(textComponents);
+
         fontGroups.clear();
-        for (TextComponent textComponent : textComponents) {
+        for (TextComponent textComponent : allComponents) {
             TCBFont font = textComponent.getFont();
 
             if (font != null) {
-                fontGroups.computeIfAbsent(font, k -> new ArrayList<>()).add(textComponent);
+                List<TextComponent> components = fontGroups.computeIfAbsent(font, k -> new ArrayList<>());
+                if (!components.contains(textComponent)) {
+                    components.add(textComponent);
+                }
             }
+        }
+        System.out.println("TextBatch regrouped - components: " + textComponents.size() + ", font groups: " + fontGroups.size());
+        for (Map.Entry<TCBFont, List<TextComponent>> entry : fontGroups.entrySet()) {
+            System.out.println("  Font " + entry.getKey().getFilepath() + " - components: " + entry.getValue().size());
         }
     }
 

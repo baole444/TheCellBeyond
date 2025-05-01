@@ -362,17 +362,26 @@ public class TCBFont {
         // Bitmap generated or has no bitmap to generate
         if (hasTexture.get() || bitmap == null) return;
 
+        if (textureId != 0) glDeleteTextures(textureId);
+
         // Gen OpenGL texture.
         textureId = glGenTextures();
+
+        System.out.println("Creating new font texture: " + textureId + " for font: " + filepath);
+
+        IntBuffer previousTexture = BufferUtils.createIntBuffer(1);
+        glGetIntegerv(GL_TEXTURE_BINDING_2D, previousTexture);
+
         glBindTexture(GL_TEXTURE_2D, textureId);
+
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, bitmapWidth, bitmapHeight, 0, GL_RED, GL_UNSIGNED_BYTE, bitmap);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_NEAREST);
-        glGenerateMipmap(GL_TEXTURE_2D);
 
-        glBindTexture(GL_TEXTURE_2D, 0);
+        glBindTexture(GL_TEXTURE_2D, previousTexture.get(0));
 
         hasTexture.set(true);
 
