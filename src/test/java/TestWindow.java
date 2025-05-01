@@ -110,6 +110,10 @@ public class TestWindow {
         test3.setVerticalAlignment(TextComponent.VerticalAlignment.MIDDLE);
         test3.setHorizontalAlignment(TextComponent.HorizontalAlignment.CENTER);
 
+        TextComponent test4 = textRenderer.drawText("〄々〆〇ぁあぃいぅツヅテデＢＣＤ仲仳以", 2f, 1f, 24, new Vector4f(0.8f, 1f, 0.8f, 1f), "assets/fonts/NotoSansJP.ttf", GlyphRange.JAPANESE);
+        test4.setVerticalAlignment(TextComponent.VerticalAlignment.MIDDLE);
+        test4.setHorizontalAlignment(TextComponent.HorizontalAlignment.CENTER);
+
         while (!glfwWindowShouldClose(glfwWindow)) {
             glfwPollEvents(); //poll events
 

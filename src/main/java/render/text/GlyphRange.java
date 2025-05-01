@@ -12,9 +12,15 @@ public enum GlyphRange {
     ASCII_EXTENDED(32, 256, "ASCII and Symbols"),
 
     /**
-     * Japanese Hiragana and Katakana.
+     * Japanese common glyph range
      */
-    JAPANESE_BASIC(0x3400, 192, "Japanese Basic"),
+    JAPANESE(new int[][] {
+            {0x3000, 0x303F},  // CJK Symbols and Punctuation
+            {0x3040, 0x309F},  // Hiragana
+            {0x30A0, 0x30FF},  // Katakana
+            {0xFF00, 0xFFEF},  // Halfwidth and Fullwidth Forms
+            {0x4E00, 0x9FFF}   // CJK Unified Ideographs
+    }, "Japanese"),
 
     /**
      * Extended ASCII including basic Latin accented chars.
@@ -29,12 +35,12 @@ public enum GlyphRange {
     /**
      * Latin and Greek chars.
      */
-    LATIN_GREEK(new int[][]{
+    LATIN_GREEK(new int[][] {
             {0x0020, 0x007F},  // Basic Latin
             {0x00A0, 0x00FF},  // Latin-1 Supplement
             {0x0100, 0x017F},  // Latin Extended-A
             {0x0180, 0x024F},  // Latin Extended-B
-            {0x0370, 0x03FF}
+            {0x0370, 0x03FF}   // Greek
     }, "Latin and Greek"),
 
     /**

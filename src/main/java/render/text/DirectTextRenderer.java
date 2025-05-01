@@ -91,7 +91,6 @@ public class DirectTextRenderer {
     }
 
     public void render() {
-
         FontManager.get().updateFontTextures();
 
         for (List<TextComponent> components : textGroups.values()) {

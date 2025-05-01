@@ -10,10 +10,7 @@ import render.Shader;
 import utility.AssetsPool;
 import utility.Settings;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL15.*;
@@ -102,25 +99,16 @@ public class TextBatch implements Comparable<TextBatch> {
             return;
         }
 
-        textComponents.add(textComponent);
-
-        // Group by font
-        regroupComponent(textComponent);
-    }
-
-    private void regroupComponent(TextComponent component) {
-        TCBFont font = component.getFont();
-        if (font != null) {
-            List<TextComponent> components = fontGroups.computeIfAbsent(font, k -> new ArrayList<>());
-            if (!components.contains(component)) {
-                components.add(component);
-            }
+        if (!textComponents.contains(textComponent)) {
+            textComponents.add(textComponent);
+            // Group by font
+            regroupComponent(textComponent);
         }
     }
 
     public void render() {
-
-        FontManager.get().updateFontTextures();
+        // This line is commented because it will cause duplicate texture
+        //FontManager.get().updateFontTextures();
 
         if (textComponents.isEmpty()) return;
 
@@ -372,10 +360,22 @@ public class TextBatch implements Comparable<TextBatch> {
         return count;
     }
 
+    private void regroupComponent(TextComponent component) {
+        TCBFont font = component.getFont();
+        if (font != null) {
+            List<TextComponent> components = fontGroups.computeIfAbsent(font, k -> new ArrayList<>());
+            if (!components.contains(component)) {
+                components.add(component);
+            }
+        }
+    }
+
     private void regroupComponents() {
+        List<TextComponent> allComponents = new ArrayList<>(textComponents);
+
         fontGroups.clear();
 
-        for (TextComponent component : textComponents) {
+        for (TextComponent component : allComponents) {
             regroupComponent(component);
         }
     }
