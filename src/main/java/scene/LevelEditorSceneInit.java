@@ -49,8 +49,8 @@ public class LevelEditorSceneInit extends SceneInit {
 
     @Override
     public void init(Scene scene) {
-        GameObject testText = Prefab.genText("Dòng chữ tiếng Việt \nKiểm thử kiểm thử 1 2 3", Settings.PATH.CONSOLA, 24, new Vector4f(1, 0.5f, 1, 1), GlyphRange.VIETNAMESE);
-        testText.transform.position.set(2.5f, 1f);
+        GameObject testText = Prefab.genText("〄々〆〇ぁあぃいぅツヅテデＢＣＤ仲仳以", "assets/fonts/NotoSansJP.ttf", 24, new Vector4f(1, 1f, 1, 1), GlyphRange.JAPANESE);
+        testText.transform.position.set(1f, 1.5f);
         scene.addObjToScene(testText);
 
         if (sceneName != null && CurrentProject != null) {

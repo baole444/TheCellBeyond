@@ -145,8 +145,8 @@ public class TextBatch implements Comparable<TextBatch> {
             vMatrix = viewMatrix;
         } else vMatrix = Window.getScene().viewport().getViewMatrix();
 
-        instShader.loadMat4f("uProject", projMatrix);
-        instShader.loadMat4f("uView", vMatrix);
+        shader.loadMat4f("uProject", projMatrix);
+        shader.loadMat4f("uView", vMatrix);
 
         glBindVertexArray(vaoID);
         glBindBuffer(GL_ARRAY_BUFFER, vboID);
@@ -166,11 +166,9 @@ public class TextBatch implements Comparable<TextBatch> {
             if (currentPass != RendererState.RenderPass.SELECTION) {
                 int textureId = font.getTextureId();
                 if (textureId < 0) continue;
-
-
                 glActiveTexture(GL_TEXTURE0);
                 glBindTexture(GL_TEXTURE_2D, textureId);
-                instShader.loadInt("uFontTex", 0);
+                shader.loadInt("uFontTex", 0);
             }
 
             // Create vertex data for all text components of this group
@@ -193,7 +191,7 @@ public class TextBatch implements Comparable<TextBatch> {
 
         // Detach if font shader is used
         if (currentPass != RendererState.RenderPass.SELECTION) {
-            instShader.detach();
+            shader.detach();
         }
     }
 
