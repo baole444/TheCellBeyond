@@ -189,9 +189,21 @@ public class TextComponent extends Component implements FontLoadCallback {
     @Override
     public void update(float dt) {
         if (font == null
-                || !Objects.equals(fontPath, currentRequest != null ? currentRequest.fontPath() : null)
-                || fontSize != (currentRequest != null ? currentRequest.fontSize() : 0)
-                || !glyphRangeName.equals(currentRequest != null ? currentRequest.glyphRange().name() : null)) {
+                || !fontPath.equals(currentRequest.fontPath())
+                || fontSize != currentRequest.fontSize()
+                || !glyphRangeName.equals(currentRequest.glyphRange().name())
+        ) {
+            requestLoadFont();
+        }
+    }
+
+    @Override
+    public void editorUpdate(float dt) {
+        if (font == null
+                || !fontPath.equals(currentRequest.fontPath())
+                || fontSize != currentRequest.fontSize()
+                || !glyphRangeName.equals(currentRequest.glyphRange().name())
+        ) {
             requestLoadFont();
         }
     }

@@ -3,6 +3,7 @@ package render;
 import TCB_Field.GameObject;
 import components.SpriteRender;
 import components.TextComponent;
+import render.text.FontManager;
 import render.text.TextBatch;
 
 import java.util.ArrayList;
@@ -13,8 +14,6 @@ public class Renderer {
     private final int MAX_BATCH_SIZE = 1000;
     private final List<Batch> batches;
     private final List<TextBatch> textBatches;
-
-    private static Shader instShader;
 
     public Renderer() {
         this.batches = new ArrayList<>();
@@ -56,8 +55,6 @@ public class Renderer {
     }
 
     private void addText(TextComponent textComponent) {
-        if (textComponent.getFont() == null) return;
-
         boolean isAdd = false;
         int zIndex = textComponent.gameObject.transform.zIndex;
 
@@ -78,15 +75,9 @@ public class Renderer {
         }
     }
 
-    public static void setShader(Shader shader) {
-        instShader = shader;
-    }
-
-    public static Shader loadShader() {
-        return instShader;
-    }
-
     public void render() {
+        FontManager.get().updateFontTextures(); // Within a render loop for a GL context, this can only be call once.
+
         RendererState state = RendererState.get();
 
         if (state.getCurrentPass() == RendererState.RenderPass.NORMAL) {

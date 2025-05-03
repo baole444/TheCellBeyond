@@ -90,19 +90,11 @@ public class Scene {
     public void editorUpdate(float dt) {
         this.viewport.adjustProjection();
 
-        // log the list of game object
-        //if (KeyListener.isKeyPressed(GLFW_KEY_P, GLFW_MOD_CONTROL)) {
-        //    logGameObjects();
-        //}
-
         for (int i = 0; i < gameObjects.size(); i++) {
             GameObject go = gameObjects.get(i);
             go.editorUpdate(dt);
 
             if (go.isGone()) {
-                // Debug output
-                //System.out.println("Current size of Object list is " + gameObjects.size());
-                //System.out.println("A request to end an object's rendering is called at position: " + i + " This one is from updateEditor.\n > Object uid is " + go.loadUid());
 
                 gameObjects.remove(i);
                 this.renderer.destroyObject(go);

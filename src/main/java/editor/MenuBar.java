@@ -9,7 +9,6 @@ import imgui.ImGui;
 import imgui.internal.flag.ImGuiItemFlags;
 import imgui.type.ImBoolean;
 import scene.LevelEditorSceneInit;
-import scene.TextRenderingDemo;
 import utility.ExitConfirmDialog;
 
 import java.util.List;
@@ -72,11 +71,6 @@ public class MenuBar {
                     // TODO: Confirm save current scene
                     Window.changeScene(new LevelEditorSceneInit());
                 }
-
-                if (ImGui.menuItem("Show text demo")) {
-                    Window.changeScene(new TextRenderingDemo());
-                }
-
 
                 if (ImGui.beginMenu("Select scene")) {
                     List<String> sceneNameList = CurrentProject.getSceneNames();

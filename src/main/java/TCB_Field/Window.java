@@ -363,8 +363,6 @@ public class Window implements IEvent {
             glfwPollEvents(); //poll events
 
             if (dt >= 0) {
-                FontManager.get().updateFontTextures();
-
                 // Pass 1: object selection layer (invisible)
 
                 rendererState.setRenderPass(RendererState.RenderPass.SELECTION);

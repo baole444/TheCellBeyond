@@ -38,7 +38,6 @@ public class SceneObjectGroupingWindow {
     - Type name string limit is 32 character.
 
      */
-
     private boolean executeTreeNode(GameObject obj, int index) {
         ImGui.pushID(index);
 

@@ -90,8 +90,6 @@ public class TestWindow {
         float endTime;
         float dt = -1.0f;
 
-        Shader defaultShader = AssetsPool.loadShader(Settings.PATH.DEFAULT_TEXTURE_SHADER);
-
         DirectTextRenderer textRenderer = DirectTextRenderer.get();
 
         textRenderer.setProjectionMatrix(viewport.getProjectMatrix());
@@ -118,9 +116,6 @@ public class TestWindow {
             glfwPollEvents(); //poll events
 
             if (dt >= 0) {
-
-                Renderer.setShader(defaultShader);
-
                 frameBuffer.captureAndRender(() -> {
                     glClearColor(r, g, b, a);
                     glClear(GL_COLOR_BUFFER_BIT);

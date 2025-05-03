@@ -107,9 +107,6 @@ public class TextBatch implements Comparable<TextBatch> {
     }
 
     public void render() {
-        // This line is commented because it will cause duplicate texture
-        //FontManager.get().updateFontTextures();
-
         if (textComponents.isEmpty()) return;
 
         boolean requireRegroup = false;
