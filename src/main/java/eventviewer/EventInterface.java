@@ -2,6 +2,6 @@ package eventviewer;
 
 import eventviewer.event.Event;
 
-public interface IEvent {
+public interface EventInterface {
     void whenNotice(Object object, Event event);
 }

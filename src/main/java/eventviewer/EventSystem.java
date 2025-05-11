@@ -6,16 +6,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EventSystem {
-    private static List<IEvent> iEvents = new ArrayList<>();
+    private static List<EventInterface> eventInterfaces = new ArrayList<>();
 
 
-    public static void addViewer(IEvent iEvent) {
-        iEvents.add(iEvent);
+    public static void addViewer(EventInterface eventInterface) {
+        eventInterfaces.add(eventInterface);
     }
 
     public static void notice(Object object, Event event) {
-        for (IEvent iEvent : iEvents) {
-            iEvent.whenNotice(object, event);
+        for (EventInterface eventInterface : eventInterfaces) {
+            eventInterface.whenNotice(object, event);
         }
     }
 

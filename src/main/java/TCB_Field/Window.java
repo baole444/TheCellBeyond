@@ -1,10 +1,11 @@
 package TCB_Field;
 
+import com.sun.security.jgss.InquireType;
 import editor.OpenProjectDialog;
 import editor.project.Project;
 import editor.Properties;
 import eventviewer.EventSystem;
-import eventviewer.IEvent;
+import eventviewer.EventInterface;
 import eventviewer.event.Event;
 import imgui.ImGui;
 import imgui.flag.ImGuiCond;
@@ -23,11 +24,11 @@ import org.lwjgl.openal.ALCapabilities;
 import org.lwjgl.opengl.GL;
 import physic_2d.FlatPhysic;
 import render.*;
-import render.Renderer;
-import render.text.FontManager;
 import scene.LevelEditorSceneInit;
 import scene.Scene;
 import scene.SceneInit;
+import threading.ThreadEngine;
+import threading.TripleBufferManager;
 import utility.AssetsPool;
 import utility.ExitConfirmDialog;
 import utility.Settings;
@@ -42,10 +43,11 @@ import static org.lwjgl.openal.ALC10.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
-public class Window implements IEvent {
+public class Window implements EventInterface {
     private int width;
     private int height;
     private final String title;
+
     private long glfwWindow; //windows pointer
     public float r, g, b, a;
     private static Window window = null; // start with no window
@@ -56,6 +58,7 @@ public class Window implements IEvent {
     private String glslVer = null;
     private ImGuiLayer imGuiLayer;
     private FrameBuffer frameBuffer;
+
     private ObjectSelection objectSelection;
     private Properties properties;
 
@@ -66,6 +69,10 @@ public class Window implements IEvent {
 
     private long soundContext;
     private long audioDevice;
+
+    private ThreadEngine threadEngine;
+    private TripleBufferManager tripleBufferManager;
+    private boolean useThreadEngine = true;
 
     private boolean projectLoaded = false;
 
@@ -425,6 +432,10 @@ public class Window implements IEvent {
 
     public static ImGuiLayer loadImGui() {
         return get().imGuiLayer;
+    }
+
+    public ObjectSelection getObjectSelection() {
+        return objectSelection;
     }
 
     public static String getCurrentSceneName() {

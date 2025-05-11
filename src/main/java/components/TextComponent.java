@@ -286,6 +286,10 @@ public class TextComponent extends Component implements FontLoadCallback {
         }
     }
 
+    public int getFontSize() {
+        return fontSize;
+    }
+
     public TCBFont getFont() {
         if (font == null) {
             requestLoadFont();
@@ -371,6 +375,10 @@ public class TextComponent extends Component implements FontLoadCallback {
 
     public GlyphRange getGlyphRange() {
         return GlyphRange.valueOf(this.glyphRangeName);
+    }
+
+    public String getGlyphRangeName() {
+        return glyphRangeName;
     }
 
     public void setGlyphRange(GlyphRange glyphRange) {

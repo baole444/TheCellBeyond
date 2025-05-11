@@ -6,7 +6,6 @@ import com.google.gson.GsonBuilder;
 import components.CompDeSerializer;
 import components.Component;
 import components.SpriteRender;
-import components.TextComponent;
 import org.joml.Vector2f;
 import physic_2d.FlatPhysic;
 import render.Renderer;
@@ -231,7 +230,7 @@ public class Scene {
             return;
         }
 
-        if (!loadFile.equals("")) {
+        if (!loadFile.isEmpty()) {
             int maxObjID = -1;
             int maxCompID = -1;
 
