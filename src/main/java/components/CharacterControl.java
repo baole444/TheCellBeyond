@@ -1,7 +1,7 @@
 package components;
 
-import TCB_Field.KeyListener;
-import TCB_Field.Window;
+import TheCellBeyond.KeyListener;
+import TheCellBeyond.Window;
 import org.joml.Math;
 import org.joml.Vector2f;
 import physic_2d.components.FlatPhysicBody;

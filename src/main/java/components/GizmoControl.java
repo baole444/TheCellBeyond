@@ -1,8 +1,6 @@
 package components;
 
-import TCB_Field.Window;
-
-import static org.lwjgl.glfw.GLFW.*;
+import TheCellBeyond.Window;
 
 /**
  * A class dedicated to handling Editor's gizmo system.
@@ -18,8 +16,8 @@ public class GizmoControl extends Component {
 
     @Override
     public void start() {
-        gameObject.addComponent(new GizmoMove(gizmo.spriteIndex(1), Window.loadImGui().loadProperties()));
-        gameObject.addComponent(new GizmoScale(gizmo.spriteIndex(2), Window.loadImGui().loadProperties()));
+        gameObject.addComponent(new GizmoMove(gizmo.spriteIndex(1), Window.getImGuiLayer().loadProperties()));
+        gameObject.addComponent(new GizmoScale(gizmo.spriteIndex(2), Window.getImGuiLayer().loadProperties()));
     }
 
     public static int getIsGizUse() {

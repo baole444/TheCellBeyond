@@ -1,4 +1,4 @@
-import TCB_Field.*;
+import TheCellBeyond.*;
 import components.TextComponent;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
@@ -7,12 +7,8 @@ import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
 import render.FrameBuffer;
 
-import render.Renderer;
-import render.Shader;
 import render.text.DirectTextRenderer;
 import render.text.GlyphRange;
-import utility.AssetsPool;
-import utility.Settings;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
@@ -92,7 +88,7 @@ public class TestWindow {
 
         DirectTextRenderer textRenderer = DirectTextRenderer.get();
 
-        textRenderer.setProjectionMatrix(viewport.getProjectMatrix());
+        textRenderer.setProjectionMatrix(viewport.getProjectionMatrix());
 
         textRenderer.setViewMatrix(viewport.getViewMatrix());
 

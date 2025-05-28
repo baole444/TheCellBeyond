@@ -1,7 +1,7 @@
 package physic_2d;
 
-import TCB_Field.GameObject;
-import TCB_Field.Transform;
+import TheCellBeyond.GameObject;
+import TheCellBeyond.Transform;
 import components.Component;
 import org.jbox2d.collision.shapes.CircleShape;
 import org.jbox2d.collision.shapes.PolygonShape;

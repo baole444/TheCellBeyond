@@ -1,6 +1,6 @@
 package physic_2d.components;
 
-import TCB_Field.Window;
+import TheCellBeyond.Window;
 import components.Component;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;

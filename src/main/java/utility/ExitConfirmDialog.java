@@ -1,16 +1,8 @@
 package utility;
 
-import eventviewer.EventSystem;
-import eventviewer.event.Event;
-import eventviewer.event.EventType;
-import org.lwjgl.glfw.GLFWWindowCloseCallback;
-
 import javax.swing.*;
-
 import java.awt.*;
 import java.io.*;
-
-import static org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose;
 
 public class ExitConfirmDialog {
     private boolean dialogPref;

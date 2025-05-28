@@ -1,6 +1,6 @@
 package render;
 
-import TCB_Field.Window;
+import TheCellBeyond.Window;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 import utility.AssetsPool;
@@ -70,7 +70,7 @@ public class DebugDraw {
         int index = 0;
         for (Line2D line: Lines) {
             for (int i = 0; i < 2; i++) {
-                Vector2f pos = i == 0 ? line.loadStart() : line.loadEnd();
+                Vector2f pos = i == 0 ? line.getStart() : line.getEnd();
                 Vector3f color = line.loadColor();
 
                 // Position
@@ -96,7 +96,7 @@ public class DebugDraw {
 
         // Use shader
         shader.use();
-        shader.loadMat4f("uProject", Window.getScene().viewport().getProjectMatrix());
+        shader.loadMat4f("uProject", Window.getScene().viewport().getProjectionMatrix());
         shader.loadMat4f("uView", Window.getScene().viewport().getViewMatrix());
 
         // Bind VAO

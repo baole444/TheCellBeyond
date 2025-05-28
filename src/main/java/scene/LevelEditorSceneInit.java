@@ -1,8 +1,8 @@
 package scene;
 
-import TCB_Field.GameObject;
-import TCB_Field.Prefab;
-import TCB_Field.Sound;
+import TheCellBeyond.GameObject;
+import utility.Prefab;
+import TheCellBeyond.Sound;
 import components.*;
 import editor.EditorViewport;
 import editor.project.Project;
@@ -83,7 +83,7 @@ public class LevelEditorSceneInit extends SceneInit {
         gizmo = AssetsPool.loadSpSheet("assets/texture/Gizmo.png");
 
         levelEditorObject = scene.generateObject("Editor");
-        levelEditorObject.isNotSerialize();
+        levelEditorObject.setNotSerialize();
 
         levelEditorObject.addComponent(new MouseCtrl());
         levelEditorObject.addComponent(new KeyCtrl());
@@ -140,11 +140,11 @@ public class LevelEditorSceneInit extends SceneInit {
         AssetsPool.addSound("assets/sound/test.ogg", false);
 
         // Only generate if not existed
-        for (GameObject obj : scene.getGameObject()) {
+        for (GameObject obj : scene.getGameObjects()) {
             if (obj.getComponent(SpriteRender.class) != null) {
                 SpriteRender spr = obj.getComponent(SpriteRender.class);
-                if (spr.loadTexture() != null) {
-                    spr.setTex(AssetsPool.loadTexture(spr.loadTexture().loadFilePath()));
+                if (spr.getTexture() != null) {
+                    spr.setTexture(AssetsPool.loadTexture(spr.getTexture().getFilePath()));
                 }
             }
 

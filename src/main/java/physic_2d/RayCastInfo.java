@@ -1,6 +1,6 @@
 package physic_2d;
 
-import TCB_Field.GameObject;
+import TheCellBeyond.GameObject;
 import org.jbox2d.callbacks.RayCastCallback;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Fixture;

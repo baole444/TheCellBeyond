@@ -13,16 +13,15 @@ public class Texture {
     private transient int texID;
     private int width, height;
 
-
-    public  Texture() {
-        //Intended to fail
+    public Texture() {
+        // Intended to fail if parameter not set
         texID = -1;
         width = -1;
         height = -1;
     }
 
     public Texture(int width, int height) {
-        this.filepath = "Automated";
+        this.filepath = "";
 
         // Generate texture on GPU
         texID = glGenTextures();
@@ -95,17 +94,17 @@ public class Texture {
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 
-    public int loadWidth() {
+    public int getWidth() {
         return this.width;
     }
 
-    public int loadHeight() {
+    public int getHeight() {
         return this.height;
     }
 
-    public int loadID() {return texID;}
+    public int getID() {return texID;}
 
-    public String loadFilePath() {
+    public String getFilePath() {
         return this.filepath;
     }
 
@@ -114,15 +113,13 @@ public class Texture {
     }
 
     @Override
-
     public boolean equals(Object obj) {
         if (obj == null) return false;
-        if (!(obj instanceof Texture)) return false;
-        Texture objTex = (Texture)obj;
+        if (!(obj instanceof Texture objTex)) return false;
 
-        return objTex.loadWidth() == this.width &&
-                objTex.loadHeight() == this.height &&
-                objTex.loadID() == this.texID &&
-                objTex.loadFilePath().equals(this.filepath);
+        return objTex.getWidth() == this.width &&
+                objTex.getHeight() == this.height &&
+                objTex.getID() == this.texID &&
+                objTex.getFilePath().equals(this.filepath);
     }
 }

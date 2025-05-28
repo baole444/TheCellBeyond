@@ -1,31 +1,31 @@
-package TCB_Field;
+package TheCellBeyond;
 
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 
 public class Viewport {
-    private Matrix4f projectMatrix, viewMatrix, inverseProject, inverseView;
+    private Matrix4f projectionMatrix, viewMatrix, inversedProjectionMatrix, inversedViewMatrix;
     public Vector2f position;
 
     private float sceneScale = 1.0f;
     private Vector2f aspectRatio = new Vector2f(4.0f, 3.0f);
-    private Vector2f projectSize = new Vector2f(aspectRatio.x * sceneScale, aspectRatio.y * sceneScale);
+    private Vector2f projectionSize = new Vector2f(aspectRatio.x * sceneScale, aspectRatio.y * sceneScale);
     private float zoom = 1.0f;
 
     public Viewport(Vector2f position) {
         this.position = position;
-        this.projectMatrix = new Matrix4f();
+        this.projectionMatrix = new Matrix4f();
         this.viewMatrix = new Matrix4f();
-        this.inverseProject = new Matrix4f();
-        this.inverseView = new Matrix4f();
+        this.inversedProjectionMatrix = new Matrix4f();
+        this.inversedViewMatrix = new Matrix4f();
         adjustProjection();
     }
 
     public void adjustProjection() {
-        projectMatrix.identity();
-        projectMatrix.ortho(0.0f, projectSize.x * this.zoom, 0.0f, projectSize.y * this.zoom, -16.0f, 1024.0f);
-        projectMatrix.invert(inverseProject);
+        projectionMatrix.identity();
+        projectionMatrix.ortho(0.0f, projectionSize.x * this.zoom, 0.0f, projectionSize.y * this.zoom, -16.0f, 1024.0f);
+        projectionMatrix.invert(inversedProjectionMatrix);
     }
 
     public Matrix4f getViewMatrix() {
@@ -35,29 +35,29 @@ public class Viewport {
         viewMatrix.lookAt(new Vector3f(position.x, position.y, 20.0f),
                                             Front.add(position.x, position.y, 0.0f),Up);
 
-        this.viewMatrix.invert(inverseView);
+        this.viewMatrix.invert(inversedViewMatrix);
 
         return this.viewMatrix;
     }
 
-    public Matrix4f getProjectMatrix() {
+    public Matrix4f getProjectionMatrix() {
 
-        return this.projectMatrix;
+        return this.projectionMatrix;
     }
 
-    public Matrix4f getInverseProject() {
-        return this.inverseProject;
+    public Matrix4f getInversedProjectionMatrix() {
+        return this.inversedProjectionMatrix;
     }
 
-    public Matrix4f getInverseView() {
-        return this.inverseView;
+    public Matrix4f getInversedViewMatrix() {
+        return this.inversedViewMatrix;
     }
 
-    public Vector2f loadProjectSize() {
-        return this.projectSize;
+    public Vector2f getProjectionSize() {
+        return this.projectionSize;
     }
 
-    public float loadZoom() {
+    public float getZoom() {
         return zoom;
     }
 

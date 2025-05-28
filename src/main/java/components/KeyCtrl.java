@@ -1,9 +1,9 @@
 package components;
 
-import TCB_Field.GameObject;
-import TCB_Field.ImGuiLayer;
-import TCB_Field.KeyListener;
-import TCB_Field.Window;
+import TheCellBeyond.GameObject;
+import editor.ImGuiLayer;
+import TheCellBeyond.KeyListener;
+import TheCellBeyond.Window;
 import editor.Properties;
 import eventviewer.EventSystem;
 import eventviewer.event.Event;
@@ -25,9 +25,9 @@ import static org.lwjgl.glfw.GLFW.*;
 public class KeyCtrl extends Component {
     @Override
     public void editorUpdate(float dt) {
-        Properties properties = Window.loadImGui().loadProperties();
-        GameObject activeGameObj = properties.loadActiveObj();
-        List<GameObject> activeObjList = properties.loadAllActiveObj();
+        Properties properties = Window.getImGuiLayer().loadProperties();
+        GameObject activeGameObj = properties.getActiveGameObject();
+        List<GameObject> activeObjList = properties.getActiveGameObjects();
 
 
         if (KeyListener.isKeyTapped(GLFW_KEY_D, GLFW_MOD_CONTROL) && activeGameObj != null) {
@@ -35,7 +35,7 @@ public class KeyCtrl extends Component {
             Window.getScene().addObjToScene(newObj);
 
             newObj.transform.position.add(Settings.GRID_WIDTH, 0.0f);
-            properties.setActiveGameObj(newObj);
+            properties.setActiveGameObject(newObj);
         } else if (KeyListener.isKeyTapped(GLFW_KEY_D, GLFW_MOD_CONTROL) && activeObjList.size() > 1) {
             List<GameObject> gameObjects = new ArrayList<>(activeObjList);
 
@@ -60,7 +60,7 @@ public class KeyCtrl extends Component {
                 }
 
                 Window.getScene().addObjToScene(copy);
-                properties.addActiveObj(copy);
+                properties.addActiveGameObject(copy);
                 i++;
             }
         } else if (KeyListener.isKeyPressed(GLFW_KEY_DELETE)) {

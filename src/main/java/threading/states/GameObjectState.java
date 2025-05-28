@@ -1,35 +1,29 @@
 package threading.states;
 
-import TCB_Field.GameObject;
+import TheCellBeyond.GameObject;
+import TheCellBeyond.Transform;
 import components.SpriteRender;
 import components.TextComponent;
-import org.joml.Vector2f;
 
 public class GameObjectState {
-    private int objectId;
-    private String name;
+    private final int objectId;
+    private final String name;
 
     // Transform data
-    private Vector2f position;
-    private Vector2f scale;
-    private float rotation;
-    private int zIndex;
+    private final Transform transform;
 
     // Component states
     private SpriteRenderState spriteRenderState;
     private TextComponentState textComponentState;
-    private boolean isSerializable;
-    private boolean isGone;
+    private final boolean isSerializable;
+    private final boolean isRemoved;
 
     public GameObjectState(GameObject object) {
-        this.objectId = object.loadUid();
+        this.objectId = object.getUID();
         this.name = object.name;
 
         // Get transform state
-        this.position = new Vector2f(object.transform.position);
-        this.scale = new Vector2f(object.transform.scale);
-        this.rotation = object.transform.rotate;
-        this.zIndex = object.transform.zIndex;
+        this.transform = new Transform(object.transform);
 
         // Get component states
         SpriteRender spriteRender = object.getComponent(SpriteRender.class);
@@ -43,7 +37,7 @@ public class GameObjectState {
         }
 
         this.isSerializable = object.isSerialize();
-        this.isGone = object.isGone();
+        this.isRemoved = object.isRemoved();
     }
 
     public int getObjectId() {
@@ -54,20 +48,8 @@ public class GameObjectState {
         return name;
     }
 
-    public Vector2f getPosition() {
-        return position;
-    }
-
-    public Vector2f getScale() {
-        return scale;
-    }
-
-    public float getRotation() {
-        return rotation;
-    }
-
-    public int getzIndex() {
-        return zIndex;
+    public Transform getTransform() {
+        return transform;
     }
 
     public SpriteRenderState getSpriteRenderState() {
@@ -82,7 +64,7 @@ public class GameObjectState {
         return isSerializable;
     }
 
-    public boolean isGone() {
-        return isGone;
+    public boolean isRemoved() {
+        return isRemoved;
     }
 }

@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EventSystem {
-    private static List<EventInterface> eventInterfaces = new ArrayList<>();
+    private static final List<EventInterface> eventInterfaces = new ArrayList<>();
 
 
     public static void addViewer(EventInterface eventInterface) {

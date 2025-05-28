@@ -1,7 +1,7 @@
 package components;
 
-import TCB_Field.Viewport;
-import TCB_Field.Window;
+import TheCellBeyond.Viewport;
+import TheCellBeyond.Window;
 import org.joml.Math;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
@@ -15,16 +15,16 @@ public class Grid extends Component {
     public void editorUpdate(float dt) {
         Viewport viewport = Window.getScene().viewport();
         Vector2f viewPos = viewport.position;
-        Vector2f projectSize = viewport.loadProjectSize();
+        Vector2f projectSize = viewport.getProjectionSize();
 
         float firstX = ((int) Math.floor(viewPos.x / Settings.GRID_WIDTH)) * Settings.GRID_WIDTH;
         float firstY = ((int) Math.floor(viewPos.y / Settings.GRID_HEIGHT)) * Settings.GRID_HEIGHT;
 
-        int countVertical = (int)(projectSize.x * viewport.loadZoom() / Settings.GRID_WIDTH) + 2;
-        int countHorizontal = (int)(projectSize.y * viewport.loadZoom() / Settings.GRID_HEIGHT) + 2;
+        int countVertical = (int)(projectSize.x * viewport.getZoom() / Settings.GRID_WIDTH) + 2;
+        int countHorizontal = (int)(projectSize.y * viewport.getZoom() / Settings.GRID_HEIGHT) + 2;
 
-        float height = (int)(projectSize.y * viewport.loadZoom()) + Settings.GRID_HEIGHT * 5;
-        float width = (int)(projectSize.x * viewport.loadZoom()) + Settings.GRID_WIDTH * 5;
+        float height = (int)(projectSize.y * viewport.getZoom()) + Settings.GRID_HEIGHT * 5;
+        float width = (int)(projectSize.x * viewport.getZoom()) + Settings.GRID_WIDTH * 5;
 
         int maxLines = Math.max(countVertical, countHorizontal);
         Vector3f color = new Vector3f(0.4f, 0.4f, 0.0f);

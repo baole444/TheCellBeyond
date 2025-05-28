@@ -1,6 +1,6 @@
 package render;
 
-import TCB_Field.GameObject;
+import TheCellBeyond.GameObject;
 import components.SpriteRender;
 import components.TextComponent;
 import render.text.FontManager;
@@ -36,7 +36,7 @@ public class Renderer {
         boolean isAdd = false;
         for (Batch batch: batches) {
             if (batch.hasSpace() && batch.zIndex() == sprite.gameObject.transform.zIndex) {
-                Texture t = sprite.loadTexture();
+                Texture t = sprite.getTexture();
                 if (t == null || (batch.isTex(t) || batch.isTexCapValid())) {
                     batch.loadSprite(sprite);
                     isAdd = true;

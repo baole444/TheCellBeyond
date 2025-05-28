@@ -20,12 +20,12 @@ public class SpriteSheet {
         this.texture = texture;
 
         int instX = 0;
-        int instY = texture.loadHeight() - spsHeight;
+        int instY = texture.getHeight() - spsHeight;
         for (int i = 0; i < countSprite; i++) {
-            float topY = (instY + spsHeight) / (float)texture.loadHeight();
-            float rightX = (instX + spsWidth) / (float)texture.loadWidth();
-            float leftX = instX / (float)texture.loadWidth();
-            float bottomY = instY / (float)texture.loadHeight();
+            float topY = (instY + spsHeight) / (float)texture.getHeight();
+            float rightX = (instX + spsWidth) / (float)texture.getWidth();
+            float leftX = instX / (float)texture.getWidth();
+            float bottomY = instY / (float)texture.getHeight();
 
             Vector2f[] texCoord = {
                     new Vector2f(rightX, topY),
@@ -36,12 +36,12 @@ public class SpriteSheet {
 
             Sprite sprite = new Sprite();
             sprite.setTex(this.texture);
-            sprite.setTexCrd(texCoord);
+            sprite.setTextureCoordinates(texCoord);
             sprite.setWidth(spsWidth);
             sprite.setHeight(spsHeight);
             this.sprites.add(sprite);
             instX += spsWidth + spacing;
-            if (instX >= texture.loadWidth()) {
+            if (instX >= texture.getWidth()) {
                 instX = 0;
                 instY -= spsHeight + spacing;
             }

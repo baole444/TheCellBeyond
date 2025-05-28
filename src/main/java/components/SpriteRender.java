@@ -1,6 +1,6 @@
 package components;
 
-import TCB_Field.Transform;
+import TheCellBeyond.Transform;
 import editor.ImEditorGui;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
@@ -26,7 +26,6 @@ public class SpriteRender extends Component {
         if (!this.lastT.equals(this.gameObject.transform)) {
             this.gameObject.transform.copy(this.lastT);
             isDamage = true;
-
         }
     }
 
@@ -35,7 +34,6 @@ public class SpriteRender extends Component {
         if (!this.lastT.equals(this.gameObject.transform)) {
             this.gameObject.transform.copy(this.lastT);
             isDamage = true;
-
         }
     }
 
@@ -46,18 +44,18 @@ public class SpriteRender extends Component {
         }
     }
 
-    public void setDamage() {
-        this.isDamage = true;
+    public void setDamage(boolean isDamage) {
+        this.isDamage = isDamage;
     }
 
-    public Vector4f loadColor() {
+    public Vector4f getColor() {
         return this.color;
     }
-    public Texture loadTexture() {
-        return sprite.loadTex();
+    public Texture getTexture() {
+        return sprite.getTexture();
     }
-    public Vector2f[] loadTexCoord() {
-        return sprite.loadTexCrd();
+    public Vector2f[] getTextureCoordinates() {
+        return sprite.getTextureCoordinates();
     }
 
     public void setSprite(Sprite sprite) {
@@ -70,18 +68,13 @@ public class SpriteRender extends Component {
             this.isDamage = true;
             this.color.set(color);
         }
-
     }
 
     public boolean isDamage() {
         return this.isDamage;
     }
 
-    public void notDamage() {
-        this.isDamage = false;
-    }
-
-    public void setTex(Texture texture) {
+    public void setTexture(Texture texture) {
         this.sprite.setTex(texture);
     }
 

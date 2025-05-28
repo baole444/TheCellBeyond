@@ -1,7 +1,7 @@
 package render;
 
-import TCB_Field.GameObject;
-import TCB_Field.Window;
+import TheCellBeyond.GameObject;
+import TheCellBeyond.Window;
 import components.SpriteRender;
 import org.joml.Math;
 import org.joml.Matrix4f;
@@ -81,7 +81,7 @@ public class Batch implements Comparable<Batch> {
         // Vertex space alloc
         vboID = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, vboID);
-        glBufferData(GL_ARRAY_BUFFER, vertices.length * Float.BYTES, GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, (long) vertices.length * Float.BYTES, GL_DYNAMIC_DRAW);
 
         // Indices buffer gen
 
@@ -114,9 +114,9 @@ public class Batch implements Comparable<Batch> {
         this.sprites[index] = spt;
         this.countSprite++;
 
-        if (spt.loadTexture() != null) {
-            if (!textures.contains(spt.loadTexture())) {
-                textures.add(spt.loadTexture());
+        if (spt.getTexture() != null) {
+            if (!textures.contains(spt.getTexture())) {
+                textures.add(spt.getTexture());
             }
         }
 
@@ -134,7 +134,7 @@ public class Batch implements Comparable<Batch> {
             SpriteRender spr = sprites[i];
             if (spr.isDamage()) {
                 loadVertexProp(i);
-                spr.notDamage();
+                spr.setDamage(false);
                 rebufferData = true;
             }
 
@@ -154,7 +154,7 @@ public class Batch implements Comparable<Batch> {
         Shader shader = RendererState.get().getCurrentShader();
 
         shader.use();
-        shader.loadMat4f("uProject", Window.getScene().viewport().getProjectMatrix());
+        shader.loadMat4f("uProject", Window.getScene().viewport().getProjectionMatrix());
         shader.loadMat4f("uView", Window.getScene().viewport().getViewMatrix());
         for (int i = 0; i < textures.size(); i++) {
             glActiveTexture(GL_TEXTURE0 + i + 1);
@@ -193,7 +193,7 @@ public class Batch implements Comparable<Batch> {
                     sprites[j] = sprites[j + 1];
 
                     // Set damage to signal update on the moved up sprites.
-                    sprites[j].setDamage();
+                    sprites[j].setDamage(true);
                 }
                 // reduce stack size each time a sprite is removed
                 countSprite --;
@@ -210,15 +210,15 @@ public class Batch implements Comparable<Batch> {
         // Set offset in the array (4/spt)
         int offset = index * 4 * VERTEX_SIZE;
 
-        Vector4f color = spt.loadColor();
-        Vector2f[] tCoord = spt.loadTexCoord();
+        Vector4f color = spt.getColor();
+        Vector2f[] tCoord = spt.getTextureCoordinates();
 
         int ID = 0;
         //[0, tex, tex, tex, tex]
 
-        if (spt.loadTexture() != null) {
+        if (spt.getTexture() != null) {
             for (int i = 0; i < textures.size(); i++) {
-                if (textures.get(i).equals(spt.loadTexture())) {
+                if (textures.get(i).equals(spt.getTexture())) {
                     ID = i + 1;
                     break;
                 }
@@ -274,7 +274,7 @@ public class Batch implements Comparable<Batch> {
             vertices[offset + 8] = ID;
 
             // Load obj Id
-            vertices[offset + 9] = spt.gameObject.loadUid() + 1;
+            vertices[offset + 9] = spt.gameObject.getUID() + 1;
 
             offset += VERTEX_SIZE;
         }

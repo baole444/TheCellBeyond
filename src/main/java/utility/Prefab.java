@@ -1,13 +1,10 @@
-package TCB_Field;
+package utility;
 
+import TheCellBeyond.GameObject;
+import TheCellBeyond.Window;
 import components.*;
 import org.joml.Vector4f;
-import physic_2d.components.FlatPhysicBody;
-import physic_2d.components.collider.PillBoxCollider;
-import physic_2d.enums.ObjectClassification;
 import render.text.GlyphRange;
-import utility.AssetsPool;
-import utility.Settings;
 
 public class Prefab {
     public static GameObject genSpsObj(Sprite sprite, float sizeX, float sizeY) {

@@ -1,8 +1,8 @@
 package editor;
 
-import TCB_Field.GameObject;
-import TCB_Field.KeyListener;
-import TCB_Field.Prefab;
+import TheCellBeyond.GameObject;
+import TheCellBeyond.KeyListener;
+import utility.Prefab;
 import components.MouseCtrl;
 import components.Sprite;
 import components.SpriteSheet;
@@ -339,13 +339,13 @@ public class ImEditorGui {
             for (int i = 0; i < sprites.size(); i++) {
                 Sprite sps = sprites.spriteIndex(i);
 
-                Vector2f scaledSprite = TextureScale.calculateFitDimension(sps.loadWidth(), sps.loadHeight());
+                Vector2f scaledSprite = TextureScale.calculateFitDimension(sps.getWidth(), sps.getHeight());
 
                 float spriteWidth = scaledSprite.x;
                 float spriteHeight = scaledSprite.y;
-                int id = sps.loadTexId();
+                int id = sps.getTextureID();
 
-                Vector2f[] texCoord = sps.loadTexCrd();
+                Vector2f[] texCoord = sps.getTextureCoordinates();
 
                 ImGui.pushID(i);
 
@@ -357,7 +357,7 @@ public class ImEditorGui {
 
                 if (ImGui.isItemClicked()) {
 
-                    GameObject obj = Prefab.genSpsObj(sps, sps.loadWidth() / 100f, sps.loadHeight() / 100f);
+                    GameObject obj = Prefab.genSpsObj(sps, sps.getWidth() / 100f, sps.getHeight() / 100f);
 
                     // Bind to mouse cursor
                     levelEditorObject.getComponent(MouseCtrl.class).pickObj(obj);
@@ -370,8 +370,8 @@ public class ImEditorGui {
                     ImGui.image(id, spriteWidth * 2, spriteHeight * 2,
                             texCoord[2].x, texCoord[0].y,
                             texCoord[0].x, texCoord[2].y);
-                    ImGui.text("Width: " + sps.loadWidth());
-                    ImGui.text("Height: " + sps.loadHeight());
+                    ImGui.text("Width: " + sps.getWidth());
+                    ImGui.text("Height: " + sps.getHeight());
 
                     ImGui.endTooltip();
                 }
@@ -401,13 +401,13 @@ public class ImEditorGui {
         for (int i = 0; i < spriteSps.size(); i++) {
             Sprite sprites = spriteSps.spriteIndex(i);
 
-            Vector2f scaledSprite = TextureScale.calculateFitDimension(sprites.loadWidth(), sprites.loadHeight());
+            Vector2f scaledSprite = TextureScale.calculateFitDimension(sprites.getWidth(), sprites.getHeight());
 
             float spriteWidth = scaledSprite.x;
             float spriteHeight = scaledSprite.y;
-            int id = sprites.loadTexId();
+            int id = sprites.getTextureID();
 
-            Vector2f[] texCoord = sprites.loadTexCrd();
+            Vector2f[] texCoord = sprites.getTextureCoordinates();
 
             ImGui.pushID(i);
 
@@ -417,7 +417,7 @@ public class ImEditorGui {
             );
 
             if (ImGui.isItemClicked()) {
-                GameObject obj = Prefab.genSpsObj(sprites, sprites.loadWidth() / 100f, sprites.loadHeight() / 100f);
+                GameObject obj = Prefab.genSpsObj(sprites, sprites.getWidth() / 100f, sprites.getHeight() / 100f);
 
                 // Bind to mouse cursor
                 levelEditorObject.getComponent(MouseCtrl.class).pickObj(obj);
@@ -430,8 +430,8 @@ public class ImEditorGui {
                 ImGui.image(id, spriteWidth * 2, spriteHeight * 2,
                         texCoord[2].x, texCoord[0].y,
                         texCoord[0].x, texCoord[2].y);
-                ImGui.text("Width: " + sprites.loadWidth());
-                ImGui.text("Height: " + sprites.loadHeight());
+                ImGui.text("Width: " + sprites.getWidth());
+                ImGui.text("Height: " + sprites.getHeight());
 
                 ImGui.endTooltip();
             }

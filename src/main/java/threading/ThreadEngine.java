@@ -1,14 +1,19 @@
 package threading;
 
-import TCB_Field.GameObject;
-import TCB_Field.Viewport;
+import TheCellBeyond.GameObject;
+import TheCellBeyond.Viewport;
 import render.*;
 import render.text.FontManager;
+import render.text.TextBatch;
 import scene.Scene;
 import threading.states.GameObjectState;
 import threading.states.GameState;
+import threading.states.SpriteRenderState;
 import utility.AssetsPool;
 import utility.Settings;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.lwjgl.glfw.GLFW.glfwGetTime;
 import static org.lwjgl.glfw.GLFW.glfwMakeContextCurrent;
@@ -30,6 +35,9 @@ public class ThreadEngine {
     private volatile boolean logicThreadReady = false;
     private volatile boolean renderThreadReady = false;
 
+    private Shader defaultShader;
+    private Shader objectSelectionShader;
+
     /**
      * Create a new thread engine
      * @param scene the game scene.
@@ -50,6 +58,10 @@ public class ThreadEngine {
      * Initialize and start game logic and render thread.
      */
     public void initialize() {
+        // Setup shader in the main thread before creating the render thread
+        defaultShader = AssetsPool.loadShader(Settings.PATH.DEFAULT_TEXTURE_SHADER);
+        objectSelectionShader = AssetsPool.loadShader(Settings.PATH.OBJECT_SELECTION_SHADER);
+
         gameLogicThread = new Thread(this::gameLogicLoop, "LogicThread");
         renderThread = new Thread(this::renderLoop, "RenderThread");
 
@@ -127,25 +139,23 @@ public class ThreadEngine {
     private void updateGameLogic(GameState state, float dt) {
         gameScene.getFlatPhysic().update(dt);
 
-        for (int i = 0; i < gameScene.getGameObject().size(); i++) {
-            GameObject go = gameScene.getGameObject().get(i);
+        for (int i = 0; i < gameScene.getGameObjects().size(); i++) {
+            GameObject go = gameScene.getGameObjects().get(i);
             go.update(dt);
 
-            if (go.isGone()) {
-                gameScene.getGameObject().remove(i);
+            if (go.isRemoved()) {
+                gameScene.getGameObjects().remove(i);
                 gameRenderer.destroyObject(go);
                 gameScene.getFlatPhysic().destroyObject(go);
                 i--;
             }
         }
 
-        processInput();
+        // Additional logic update, or user's scripts in the future.
 
+        // Capture current scene state into write buffer
         state.captureFrom(gameScene);
     }
-
-    // Placeholder as keyboard and mouse input is handled by Mouse and Key listener
-    private void processInput() {}
 
     /**
      * Render the scene using the provided game state.
@@ -179,7 +189,7 @@ public class ThreadEngine {
         glClearColor(0f, 0f, 0f, 0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        renderStateOnly(state);
+        renderGameState(state);
 
         objectSelection.detachWrite();
     }
@@ -198,7 +208,7 @@ public class ThreadEngine {
         glClearColor(0.027f, 0.122f, 0.067f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        renderStateOnly(state);
+        renderGameState(state);
 
         DebugDraw.draw();
 
@@ -207,22 +217,31 @@ public class ThreadEngine {
 
     /**
      * Render only the state data and not modify scene's objects.
-     * @param state the game state to render
+     * @param state the game state to render from.
      */
-    private void renderStateOnly(GameState state) {
+    private void renderGameState(GameState state) {
         // Update font
         FontManager.get().updateFontTextures();
 
-        // This is a placeholder for rendering logic, full implementation on next state
+        Map<Integer, Batch> spriteBatches = new HashMap<>();
+        Map<Integer, TextBatch> textBatches = new HashMap<>();
 
         // Render each object based on its state.
         for (GameObjectState objectState : state.getGameObjectStates()) {
-            if (objectState.getSpriteRenderState() != null) {
-                // Render sprite based on state
+            if (objectState.isRemoved()) {
+                continue;
             }
 
-            if (objectState.getTextComponentState() != null) {
-                // Render text based on state
+            int zIndex = objectState.getzIndex();
+
+            SpriteRenderState spriteState = objectState.getSpriteRenderState();
+
+            if (spriteState != null && spriteState.getTexturePath() != null) {
+                Batch batch = spriteBatches.computeIfAbsent(zIndex, idx -> {
+                    Batch newBatch = new Batch(1000, idx, null);
+                    newBatch.start();
+                    return newBatch;
+                });
             }
         }
     }

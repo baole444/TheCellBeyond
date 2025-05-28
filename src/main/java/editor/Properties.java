@@ -1,6 +1,6 @@
 package editor;
 
-import TCB_Field.GameObject;
+import TheCellBeyond.GameObject;
 import components.SpriteRender;
 import imgui.ImGui;
 import org.joml.Vector4f;
@@ -14,14 +14,14 @@ import java.util.List;
 
 public class Properties {
     private GameObject activeGameObject = null;
-    private List<GameObject> activeGameObjects;
+    private final List<GameObject> activeGameObjects;
 
     /**
      * Preserve sprite's original color for recovery after selection.
      */
-    private List<Vector4f> activeObjTrueColor;
+    private final List<Vector4f> activeObjTrueColor;
 
-    private ObjectSelection objectSelection;
+    private final ObjectSelection objectSelection;
 
 
     public Properties(ObjectSelection objectSelection) {
@@ -69,11 +69,11 @@ public class Properties {
      * Also copy the object's sprite's color attribute to {@link #activeObjTrueColor}.
      * @param go The desired {@link GameObject} that wanted to be set active.
      */
-    public void addActiveObj(GameObject go) {
+    public void addActiveGameObject(GameObject go) {
         SpriteRender spriteRender = go.getComponent(SpriteRender.class);
         if (spriteRender != null) {
             //TODO: Allow user to select their preferred highlighting color.
-            this.activeObjTrueColor.add(new Vector4f(spriteRender.loadColor()));
+            this.activeObjTrueColor.add(new Vector4f(spriteRender.getColor()));
             // I like this color, but more testing with user feedbacks will be more valuable.
             // This is orange
             //spriteRender.setColor(new Vector4f(1f, 0.8f, 0.6f, 0.5f));
@@ -96,7 +96,7 @@ public class Properties {
      * Used when there is currently only one active game object.
      * @return first element of {@link #activeGameObjects}.
      */
-    public GameObject loadActiveObj() {
+    public GameObject getActiveGameObject() {
         if (activeGameObjects.size() == 1) {
             return this.activeGameObjects.getFirst();
         } else {
@@ -108,18 +108,18 @@ public class Properties {
      * Get all active game objects.
      * @return reference to {@link  #activeGameObjects}
      */
-    public List<GameObject> loadAllActiveObj() {
+    public List<GameObject> getActiveGameObjects() {
         return this.activeGameObjects;
     }
 
-    public void setActiveGameObj(GameObject go) {
+    public void setActiveGameObject(GameObject go) {
         if (go != null) {
             clearSelection();
             this.activeGameObjects.add(go);
         }
     }
 
-    public ObjectSelection loadObjSelection() {
+    public ObjectSelection getObjectSelection() {
         return this.objectSelection;
     }
 

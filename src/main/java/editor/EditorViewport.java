@@ -1,8 +1,8 @@
 package editor;
 
-import TCB_Field.KeyListener;
-import TCB_Field.MouseListener;
-import TCB_Field.Viewport;
+import TheCellBeyond.KeyListener;
+import TheCellBeyond.MouseListener;
+import TheCellBeyond.Viewport;
 import components.Component;
 import org.joml.Math;
 import org.joml.Vector2f;
@@ -46,10 +46,10 @@ public class EditorViewport extends Component {
 
         if (MouseListener.getScrollY() != 0.0f) {
             float addVal = (float) java.lang.Math.pow(Math.abs(MouseListener.getScrollY()) * scrollSensitivity,
-                    1 / workViewport.loadZoom()
+                    1 / workViewport.getZoom()
             );
             addVal *= -Math.signum(MouseListener.getScrollY());
-            if (workViewport.loadZoom() + addVal <= MAX_ZOOM && workViewport.loadZoom() + addVal >= MIN_ZOOM) {
+            if (workViewport.getZoom() + addVal <= MAX_ZOOM && workViewport.getZoom() + addVal >= MIN_ZOOM) {
                 workViewport.addZoom(addVal);
             }
         }
@@ -71,7 +71,7 @@ public class EditorViewport extends Component {
             workViewport.position.lerp(new Vector2f(0, 0), lerpT);
 
             // Lerp function for the zoom
-            workViewport.setZoom(this.workViewport.loadZoom() + (1.0f - workViewport.loadZoom()) * lerpT);
+            workViewport.setZoom(this.workViewport.getZoom() + (1.0f - workViewport.getZoom()) * lerpT);
 
             // Unity fix on lerp to origin
             this.lerpT += 0.1f + dt;

@@ -1,9 +1,10 @@
 package components;
 
-import TCB_Field.*;
+import TheCellBeyond.*;
 import editor.Properties;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
+import utility.Prefab;
 
 import static org.lwjgl.glfw.GLFW.*;
 
@@ -25,7 +26,6 @@ public class Gizmo extends Component {
     protected boolean yActiveDrag = false;
     private boolean isUsed = false;
     protected GameObject activeGameObj = null;
-
 
     private final GameObject xAxisObj;
     private final GameObject yAxisObj;
@@ -62,8 +62,8 @@ public class Gizmo extends Component {
         this.yAxisObj.transform.zIndex = 100;
 
         // Make gizmo not store to level save file.
-        this.xAxisObj.isNotSerialize();
-        this.yAxisObj.isNotSerialize();
+        this.xAxisObj.setNotSerialize();
+        this.yAxisObj.setNotSerialize();
     }
 
     @Override
@@ -80,7 +80,7 @@ public class Gizmo extends Component {
         if (!isUsed) return;
 
         // Update onscreen active object.
-        this.activeGameObj = this.properties.loadActiveObj();
+        this.activeGameObj = this.properties.getActiveGameObject();
         if (this.activeGameObj != null) {
             this.setActiveObj();
         } else {

@@ -1,6 +1,6 @@
 package components;
 
-import TCB_Field.GameObject;
+import TheCellBeyond.GameObject;
 import editor.ImEditorGui;
 import imgui.ImGui;
 import imgui.type.ImInt;
@@ -114,7 +114,7 @@ public abstract class Component {
         }
     }
 
-    public void genId() {
+    public void createUID() {
         if (this.uID == -1) {
             this.uID = ID_COUNTER++;
         }
@@ -163,7 +163,7 @@ public abstract class Component {
 
     }
 
-    public int loadUID() {
+    public int getUID() {
         return this.uID;
     }
 

@@ -1,7 +1,7 @@
 package threading.states;
 
-import TCB_Field.GameObject;
-import TCB_Field.Viewport;
+import TheCellBeyond.GameObject;
+import TheCellBeyond.Viewport;
 import org.joml.Vector2f;
 import scene.Scene;
 
@@ -59,8 +59,8 @@ public class GameState {
     public void captureFrom(Scene scene) {
         this.gameObjectStates.clear();
 
-        for (GameObject obj : scene.getGameObject()) {
-            if (!obj.isGone()) {
+        for (GameObject obj : scene.getGameObjects()) {
+            if (!obj.isRemoved()) {
                 this.gameObjectStates.add(new GameObjectState(obj));
             }
         }
@@ -69,7 +69,7 @@ public class GameState {
 
         Viewport viewport = scene.viewport();
         this.viewportPosition = new Vector2f(viewport.position);
-        this.viewportZoom = viewport.loadZoom();
+        this.viewportZoom = viewport.getZoom();
     }
 
     public List<GameObjectState> getGameObjectStates() {

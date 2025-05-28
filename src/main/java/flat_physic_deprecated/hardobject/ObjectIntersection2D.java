@@ -10,16 +10,16 @@ public class ObjectIntersection2D {
 
     // Check Point vs Primitive
     public static boolean ptOnLine(Vector2f point, Line2D line) {
-        float dy = line.loadEnd_physic2D().y - line.loadStart_physic2D().y;
-        float dx = line.loadEnd_physic2D().x - line.loadStart_physic2D().x;
+        float dy = line.getEnd().y - line.getStart().y;
+        float dx = line.getEnd().x - line.getStart().x;
 
         if (dx == 0) {
-            return TCBMath.compare(point.x, line.loadStart_physic2D().x);
+            return TCBMath.compare(point.x, line.getStart().x);
         }
 
         float m = dy / dx;
 
-        float b = line.loadEnd_physic2D().y -(m * line.loadEnd_physic2D().x);
+        float b = line.getEnd().y -(m * line.getEnd().x);
 
         // Check line
         return point.y == m * point.x + b;
@@ -60,19 +60,19 @@ public class ObjectIntersection2D {
     // Check Line vs Primitive
 
     public static boolean lnAndCircle(Line2D line, Circle circle) {
-        if (ptOnCircle(line.loadStart_physic2D(), circle) ||
-                ptOnCircle(line.loadEnd_physic2D(), circle)
+        if (ptOnCircle(line.getStart(), circle) ||
+                ptOnCircle(line.getEnd(), circle)
         )
         {
             return true;
         }
 
-        Vector2f segment = new Vector2f(line.loadEnd_physic2D()).sub(line.loadStart_physic2D());
+        Vector2f segment = new Vector2f(line.getEnd()).sub(line.getStart());
 
         // Project point to line segment
         // parameterized pos
         Vector2f centre = circle.loadCentre();
-        Vector2f centreToLnStart = new Vector2f(centre).sub(line.loadStart_physic2D());
+        Vector2f centreToLnStart = new Vector2f(centre).sub(line.getStart());
         float t = centreToLnStart.dot(segment) / segment.dot(segment);
 
         if (t < 0.0f || t > 1.0f) {
@@ -80,18 +80,18 @@ public class ObjectIntersection2D {
         }
 
         // Closet point to line segment
-        Vector2f closetPt = new Vector2f(line.loadStart_physic2D()).add(segment.mul(t));
+        Vector2f closetPt = new Vector2f(line.getStart()).add(segment.mul(t));
 
 
         return ptOnCircle(closetPt, circle);
     }
 
     public static boolean lnAndAABB(Line2D line,AABB box) {
-        if (ptInAABB(line.loadStart_physic2D(), box) || ptInAABB(line.loadEnd_physic2D(), box)) {
+        if (ptInAABB(line.getStart(), box) || ptInAABB(line.getEnd(), box)) {
             return true;
         }
 
-        Vector2f unitVec = new Vector2f(line.loadEnd_physic2D()).sub(line.loadStart_physic2D());
+        Vector2f unitVec = new Vector2f(line.getEnd()).sub(line.getStart());
         unitVec.normalize();
 
         //Handling infinity
@@ -99,9 +99,9 @@ public class ObjectIntersection2D {
         unitVec.y = (unitVec.y != 0) ? 1.0f / unitVec.y : 0f;
 
         Vector2f min = box.loadMin();
-        min.sub(line.loadStart_physic2D()).mul(unitVec);
+        min.sub(line.getStart()).mul(unitVec);
         Vector2f max = box.loadMax();
-        max.sub(line.loadStart_physic2D()).mul(unitVec);
+        max.sub(line.getStart()).mul(unitVec);
 
         float tmin = Math.max(Math.min(min.x, max.y), Math.min(min.y, max.y));
         float tmax = Math.min(Math.max(min.x, max.x), Math.max(min.y, max.y));
@@ -117,8 +117,8 @@ public class ObjectIntersection2D {
         float theta = -box.loadHardObject().loadRotate();
 
         Vector2f centre = box.loadHardObject().loadPos();
-        Vector2f lcStart = new Vector2f(line.loadStart_physic2D());
-        Vector2f lcEnd = new Vector2f(line.loadEnd_physic2D());
+        Vector2f lcStart = new Vector2f(line.getStart());
+        Vector2f lcEnd = new Vector2f(line.getEnd());
 
         TCBMath.rotate(lcStart, theta, centre);
         TCBMath.rotate(lcEnd, theta, centre);

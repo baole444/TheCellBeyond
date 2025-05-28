@@ -1,6 +1,6 @@
 package render.text;
 
-import TCB_Field.Window;
+import TheCellBeyond.Window;
 import components.TextComponent;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
@@ -139,7 +139,7 @@ public class TextBatch implements Comparable<TextBatch> {
 
         if (projectionMatrix != null) {
             projMatrix = projectionMatrix;
-        } else projMatrix = Window.getScene().viewport().getProjectMatrix();
+        } else projMatrix = Window.getScene().viewport().getProjectionMatrix();
 
         if (viewMatrix != null) {
             vMatrix = viewMatrix;
@@ -218,7 +218,7 @@ public class TextBatch implements Comparable<TextBatch> {
 
             float objectId = 0;
             if (textComponent.gameObject != null) {
-                objectId = textComponent.gameObject.loadUid() + 1;
+                objectId = textComponent.gameObject.getUID() + 1;
             }
 
             // Alignment offsets

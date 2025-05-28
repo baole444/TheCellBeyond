@@ -1,9 +1,9 @@
 package components;
 
-import TCB_Field.GameObject;
-import TCB_Field.KeyListener;
-import TCB_Field.MouseListener;
-import TCB_Field.Window;
+import TheCellBeyond.GameObject;
+import TheCellBeyond.KeyListener;
+import TheCellBeyond.MouseListener;
+import TheCellBeyond.Window;
 import editor.Properties;
 import org.joml.Math;
 import org.joml.Vector2f;
@@ -61,7 +61,7 @@ public class MouseCtrl extends Component {
 
         // A fake object uses to illustrate targeted position (a preview).
         // It should not be savable ore appeared on the object grouping scene.
-        this.holdObj.isNotSerialize();
+        this.holdObj.setNotSerialize();
 
         Window.getScene().addObjToScene(obj);
     }
@@ -90,8 +90,8 @@ public class MouseCtrl extends Component {
     @Override
     public void editorUpdate(float dt) {
         clickInit -= dt;
-        Properties properties = Window.loadImGui().loadProperties();
-        ObjectSelection objectSelection = properties.loadObjSelection();
+        Properties properties = Window.getImGuiLayer().loadProperties();
+        ObjectSelection objectSelection = properties.getObjectSelection();
         Scene currentScene = Window.getScene();
 
         // Return coordinate base position from raw mouse input to place an active object in standard position.
@@ -147,12 +147,12 @@ public class MouseCtrl extends Component {
             int x = (int) MouseListener.getScreenX();
             int y = (int) MouseListener.getScreenY();
 
-            int gObjectId = objectSelection.pixelCheck(x, y);
-            GameObject selectedObj = currentScene.loadGameObj(gObjectId);
+            int gObjectId = objectSelection.checkPixelAt(x, y);
+            GameObject selectedObj = currentScene.getGameObject(gObjectId);
 
             // Excluding the gizmo
             if (selectedObj != null && selectedObj.getComponent(IsNotSelectable.class) == null) {
-                properties.setActiveGameObj(selectedObj);
+                properties.setActiveGameObject(selectedObj);
             } else if (selectedObj == null && !MouseListener.isDragging()) {
                 properties.clearSelection();
             }
@@ -202,7 +202,7 @@ public class MouseCtrl extends Component {
                 screenEndY = tmp;
             }
 
-            float[] gameObjIds = objectSelection.pixelCheck(
+            float[] gameObjIds = objectSelection.checkPixelsIn(
                     new Vector2i(screenBeginX, screenBeginY),
                     new Vector2i(screenEndX, screenEndY)
             );
@@ -214,16 +214,16 @@ public class MouseCtrl extends Component {
             }
 
             for (Integer objId : uniqueGOIds) {
-                GameObject selectedObj = Window.getScene().loadGameObj(objId);
+                GameObject selectedObj = Window.getScene().getGameObject(objId);
                 if (selectedObj != null && selectedObj.getComponent(IsNotSelectable.class) == null) {
-                    properties.addActiveObj(selectedObj);
+                    properties.addActiveGameObject(selectedObj);
                 }
             }
         }
     }
 
     private boolean isGridSquareOccupied(float x, float y) {
-        Properties properties = Window.loadImGui().loadProperties();
+        Properties properties = Window.getImGuiLayer().loadProperties();
 
         Vector2f begin = new Vector2f(x, y);
         Vector2f end = new Vector2f(begin).add(
@@ -240,11 +240,11 @@ public class MouseCtrl extends Component {
         //DebugDraw.addCircle(begin, 0.05f);
         //DebugDraw.addCircle(end, 0.05f);
 
-        float[] gameObjIds = properties.loadObjSelection().pixelCheck(beginScr, endScr);
+        float[] gameObjIds = properties.getObjectSelection().checkPixelsIn(beginScr, endScr);
 
         for (float gameObjId : gameObjIds) {
             if (gameObjId >= 0) {
-                GameObject selectedObj = Window.getScene().loadGameObj((int) gameObjId);
+                GameObject selectedObj = Window.getScene().getGameObject((int) gameObjId);
                 if (selectedObj.getComponent(IsNotSelectable.class) == null) {
                     return true;
                 }

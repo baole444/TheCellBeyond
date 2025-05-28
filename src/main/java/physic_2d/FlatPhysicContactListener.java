@@ -1,6 +1,6 @@
 package physic_2d;
 
-import TCB_Field.GameObject;
+import TheCellBeyond.GameObject;
 import components.Component;
 import org.jbox2d.callbacks.ContactImpulse;
 import org.jbox2d.callbacks.ContactListener;
@@ -22,11 +22,11 @@ public class FlatPhysicContactListener implements ContactListener {
         Vector2f aNormal = new Vector2f(worldManifold.normal.x, worldManifold.normal.y);
         Vector2f bNormal = new Vector2f(aNormal).negate();
 
-        for (Component c : A.loadAllComp()) {
+        for (Component c : A.getComponents()) {
             c.startCollision(B, contact, aNormal);
         }
 
-        for (Component c : B.loadAllComp()) {
+        for (Component c : B.getComponents()) {
             c.startCollision(A, contact, bNormal);
         }
     }
@@ -43,11 +43,11 @@ public class FlatPhysicContactListener implements ContactListener {
         Vector2f aNormal = new Vector2f(worldManifold.normal.x, worldManifold.normal.y);
         Vector2f bNormal = new Vector2f(aNormal).negate();
 
-        for (Component c : A.loadAllComp()) {
+        for (Component c : A.getComponents()) {
             c.endCollision(B, contact, aNormal);
         }
 
-        for (Component c : B.loadAllComp()) {
+        for (Component c : B.getComponents()) {
             c.endCollision(A, contact, bNormal);
         }
     }
@@ -64,11 +64,11 @@ public class FlatPhysicContactListener implements ContactListener {
         Vector2f aNormal = new Vector2f(worldManifold.normal.x, worldManifold.normal.y);
         Vector2f bNormal = new Vector2f(aNormal).negate();
 
-        for (Component c : A.loadAllComp()) {
+        for (Component c : A.getComponents()) {
             c.preSolve(B, contact, aNormal);
         }
 
-        for (Component c : B.loadAllComp()) {
+        for (Component c : B.getComponents()) {
             c.preSolve(A, contact, bNormal);
         }
     }
@@ -85,11 +85,11 @@ public class FlatPhysicContactListener implements ContactListener {
         Vector2f aNormal = new Vector2f(worldManifold.normal.x, worldManifold.normal.y);
         Vector2f bNormal = new Vector2f(aNormal).negate();
 
-        for (Component c : A.loadAllComp()) {
+        for (Component c : A.getComponents()) {
             c.postSolve(B, contact, aNormal);
         }
 
-        for (Component c : B.loadAllComp()) {
+        for (Component c : B.getComponents()) {
             c.postSolve(A, contact, bNormal);
         }
     }

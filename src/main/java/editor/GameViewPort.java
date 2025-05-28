@@ -1,7 +1,7 @@
 package editor;
 
-import TCB_Field.MouseListener;
-import TCB_Field.Window;
+import TheCellBeyond.MouseListener;
+import TheCellBeyond.Window;
 import eventviewer.EventSystem;
 import eventviewer.event.Event;
 import eventviewer.event.EventType;
@@ -40,8 +40,8 @@ public class GameViewPort {
 
         ImGui.setCursorPos(ImGui.getCursorPosX(), ImGui.getCursorPosY());
 
-        ImVec2 winSize = loadMaxViewportSize();
-        ImVec2 winPos = loadViewportToCentral(winSize);
+        ImVec2 winSize = getMaxViewportSize();
+        ImVec2 winPos = getViewportToCentral(winSize);
 
         ImGui.setCursorPos(winPos.x, winPos.y);
 
@@ -56,7 +56,7 @@ public class GameViewPort {
 
         this.printDebug = new float[] {winSize.x, winSize.y,winPos.x, winPos.y, leftX, rightX, bottomY, topY};
 
-        int texID = Window.loadFrameBuffer().getTextureID();
+        int texID = Window.getFrameBuffer().getTextureID();
 
         ImGui.image(texID, winSize.x, winSize.y, 0, 1, 1, 0);
 
@@ -78,22 +78,22 @@ public class GameViewPort {
 
     }
 
-    private ImVec2 loadMaxViewportSize() {
+    private ImVec2 getMaxViewportSize() {
         ImVec2 winSize = new ImVec2();
         ImGui.getContentRegionAvail(winSize);
 
         float usableWidth = winSize.x;
-        float usableHeight = usableWidth / Window.loadTargetAspectRatio();
+        float usableHeight = usableWidth / Window.getTargetAspectRatio();
         if (usableHeight > winSize.y) {
             // Generate black region
             usableHeight = winSize.y;
-            usableWidth = usableHeight * Window.loadTargetAspectRatio();
+            usableWidth = usableHeight * Window.getTargetAspectRatio();
         }
 
         return new ImVec2(usableWidth, usableHeight);
     }
 
-    private ImVec2 loadViewportToCentral(ImVec2 usableSize) {
+    private ImVec2 getViewportToCentral(ImVec2 usableSize) {
         ImVec2 winSize = new ImVec2();
         ImGui.getContentRegionAvail(winSize);
 

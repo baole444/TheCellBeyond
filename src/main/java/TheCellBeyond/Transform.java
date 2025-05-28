@@ -1,4 +1,4 @@
-package TCB_Field;
+package TheCellBeyond;
 
 import components.Component;
 import editor.ImEditorGui;
@@ -20,6 +20,13 @@ public class Transform extends Component {
 
     public Transform(Vector2f position, Vector2f scale) {
         init(position, scale);
+    }
+
+    public Transform(Transform from) {
+        this.position = new Vector2f(from.position);
+        this.scale  = new Vector2f(from.scale);
+        this.rotate = from.rotate;
+        this.zIndex = from.zIndex;
     }
 
     public void init(Vector2f position, Vector2f scale) {

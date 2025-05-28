@@ -1,6 +1,6 @@
 package scene;
 
-import TCB_Field.*;
+import TheCellBeyond.*;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import components.CompDeSerializer;
@@ -74,13 +74,13 @@ public class Scene {
         }
     }
 
-    public List<GameObject> getGameObject() {
+    public List<GameObject> getGameObjects() {
         return this.gameObjects;
     }
 
-    public GameObject loadGameObj(int gObjectID) {
+    public GameObject getGameObject(int gObjectID) {
         Optional<GameObject> result = this.gameObjects.stream().
-                filter(gameObject -> gameObject.loadUid() == gObjectID).
+                filter(gameObject -> gameObject.getUID() == gObjectID).
                 findFirst();
 
         return result.orElse(null);
@@ -93,7 +93,7 @@ public class Scene {
             GameObject go = gameObjects.get(i);
             go.editorUpdate(dt);
 
-            if (go.isGone()) {
+            if (go.isRemoved()) {
 
                 gameObjects.remove(i);
                 this.renderer.destroyObject(go);
@@ -112,7 +112,7 @@ public class Scene {
             GameObject go = gameObjects.get(i);
             go.update(dt);
 
-            if (go.isGone()) {
+            if (go.isRemoved()) {
                 //System.out.println("A request to end an object's rendering is called at position: " + i + " This one is from update");
                 gameObjects.remove(i);
                 this.renderer.destroyObject(go);
@@ -152,8 +152,8 @@ public class Scene {
 
     public void logGameObjects() {
         System.out.println("Logging all game objects");
-        List<GameObject> allObj = getGameObject();
-        Collections.sort(allObj, Comparator.comparingInt(GameObject::loadUid));
+        List<GameObject> allObj = getGameObjects();
+        Collections.sort(allObj, Comparator.comparingInt(GameObject::getUID));
 
         allObj.forEach(go -> System.out.println(go));
         System.out.println("\n");
@@ -183,9 +183,9 @@ public class Scene {
                 if (obj.isSerialize()) {
                     if (CurrentProject != null && ProjectRoot != null && currentSceneName != null) {
                         if (obj.getComponent(SpriteRender.class) != null) {
-                            String texturePath = obj.getComponent(SpriteRender.class).loadTexture().loadFilePath();
+                            String texturePath = obj.getComponent(SpriteRender.class).getTexture().getFilePath();
                             String relativePath = PathResolver.resolveToRelative(ProjectRoot, texturePath);
-                            obj.getComponent(SpriteRender.class).loadTexture().setFilePath(relativePath);
+                            obj.getComponent(SpriteRender.class).getTexture().setFilePath(relativePath);
                         }
                     }
 
@@ -239,21 +239,21 @@ public class Scene {
                 // adjust the object path here, probably
 
                 if (CurrentProject != null && ProjectRoot != null && currentSceneName != null) {
-                    String texturePath = objs[i].getComponent(SpriteRender.class).loadTexture().loadFilePath();
+                    String texturePath = objs[i].getComponent(SpriteRender.class).getTexture().getFilePath();
                     String absPath = PathResolver.resolveToAbsolute(ProjectRoot, texturePath);
-                    objs[i].getComponent(SpriteRender.class).loadTexture().setFilePath(absPath);
+                    objs[i].getComponent(SpriteRender.class).getTexture().setFilePath(absPath);
                 }
 
                 addObjToScene(objs[i]);
 
-                for (Component c : objs[i].loadAllComp()) {
-                    if (c.loadUID() > maxCompID) {
-                        maxCompID = c.loadUID();
+                for (Component c : objs[i].getComponents()) {
+                    if (c.getUID() > maxCompID) {
+                        maxCompID = c.getUID();
                     }
                 }
 
-                if (objs[i].loadUid() > maxObjID) {
-                    maxObjID = objs[i].loadUid();
+                if (objs[i].getUID() > maxObjID) {
+                    maxObjID = objs[i].getUID();
                 }
             }
 

@@ -1,9 +1,9 @@
 package threading;
 
-import TCB_Field.ImGuiLayer;
-import TCB_Field.KeyListener;
-import TCB_Field.MouseListener;
-import TCB_Field.Window;
+import editor.ImGuiLayer;
+import TheCellBeyond.KeyListener;
+import TheCellBeyond.MouseListener;
+import TheCellBeyond.Window;
 import render.FrameBuffer;
 import render.ObjectSelection;
 import scene.Scene;
@@ -25,10 +25,10 @@ public class WindowThreadIntegration {
             throw new IllegalArgumentException("Cannot initialize without a scene.");
         }
 
-        FrameBuffer frameBuffer = Window.loadFrameBuffer();
+        FrameBuffer frameBuffer = Window.getFrameBuffer();
         ObjectSelection objectSelection = window.getObjectSelection();
 
-        threadEngine = new ThreadEngine(currentScene, currentScene.getRenderer(), objectSelection, frameBuffer, window.getGlfwWindow());
+        threadEngine = new ThreadEngine(currentScene, currentScene.getRenderer(), objectSelection, frameBuffer, window.getWindowPtr());
 
         threadEngine.initialize();
     }
@@ -41,9 +41,9 @@ public class WindowThreadIntegration {
             throw new IllegalStateException("Thread engine not initialized");
         }
 
-        ImGuiLayer imGuiLayer = Window.loadImGui();
+        ImGuiLayer imGuiLayer = Window.getImGuiLayer();
         Scene currentScene = Window.getScene();
-        long windowPtr = window.getGlfwWindow();
+        long windowPtr = window.getWindowPtr();
         
         while (threadEngine.isRunning() && !glfwWindowShouldClose(windowPtr)) {
             glfwPollEvents();

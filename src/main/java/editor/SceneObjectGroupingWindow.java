@@ -1,7 +1,7 @@
 package editor;
 
-import TCB_Field.GameObject;
-import TCB_Field.Window;
+import TheCellBeyond.GameObject;
+import TheCellBeyond.Window;
 import imgui.ImGui;
 import imgui.flag.ImGuiTreeNodeFlags;
 
@@ -13,7 +13,7 @@ public class SceneObjectGroupingWindow {
     public void imgui() {
         ImGui.begin("Object Grouping");
         //ImGui.text("Phantom object might\nappear in this list.\nIt does not affect\nthe save file.");
-        List<GameObject> gameObjects = Window.getScene().getGameObject();
+        List<GameObject> gameObjects = Window.getScene().getGameObjects();
         int index = 0;
         for (GameObject obj: gameObjects) {
             if (!obj.isSerialize()) {
@@ -67,8 +67,8 @@ public class SceneObjectGroupingWindow {
             if (payloadObj != null) {
                 if (payloadObj.getClass().isAssignableFrom(GameObject.class)) {
                     GameObject go = (GameObject) payloadObj;
-                    System.out.println("Dropping uId " + go.loadUid() + " with name '" + go.name + "'");
-                    System.out.println("Accepting target uId " + obj.loadUid() + " with name '" + obj.name + "'");
+                    System.out.println("Dropping uId " + go.getUID() + " with name '" + go.name + "'");
+                    System.out.println("Accepting target uId " + obj.getUID() + " with name '" + obj.name + "'");
 
                 }
             }

@@ -1,6 +1,5 @@
-package TCB_Field;
+package TheCellBeyond;
 
-import java.security.Key;
 import java.util.Arrays;
 
 import static org.lwjgl.glfw.GLFW.*;
@@ -11,7 +10,7 @@ public class KeyListener {
     private final boolean[] keyPressed = new boolean[GLFW_KEY_LAST + 1];
     private int mods;
 
-    private StringBuilder textInput = new StringBuilder();
+    private final StringBuilder textInput = new StringBuilder();
     private boolean hasTextInput = false;
 
     private KeyListener() {}

@@ -74,7 +74,7 @@ public class ObjectSelection {
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
     }
 
-    public int pixelCheck(int x, int y) {
+    public int checkPixelAt(int x, int y) {
         glBindFramebuffer(GL_READ_FRAMEBUFFER, frameBufferObj);
         glReadBuffer(GL_COLOR_ATTACHMENT0);
 
@@ -84,7 +84,13 @@ public class ObjectSelection {
         return (int)pixel[0] - 1;
     }
 
-    public float[] pixelCheck (Vector2i begin, Vector2i end) {
+    /**
+     * Check for various pixels within a rectangular selection box.
+     * @param begin the starting coordinate.
+     * @param end the ending coordinate.
+     * @return an array of pixels.
+     */
+    public float[] checkPixelsIn(Vector2i begin, Vector2i end) {
         glBindFramebuffer(GL_READ_FRAMEBUFFER, frameBufferObj);
         glReadBuffer(GL_COLOR_ATTACHMENT0);
 

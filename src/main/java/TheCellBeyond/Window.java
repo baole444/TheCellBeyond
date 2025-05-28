@@ -1,6 +1,6 @@
-package TCB_Field;
+package TheCellBeyond;
 
-import com.sun.security.jgss.InquireType;
+import editor.ImGuiLayer;
 import editor.OpenProjectDialog;
 import editor.project.Project;
 import editor.Properties;
@@ -48,7 +48,7 @@ public class Window implements EventInterface {
     private int height;
     private final String title;
 
-    private long glfwWindow; //windows pointer
+    private long windowPtr; //windows pointer
     public float r, g, b, a;
     private static Window window = null; // start with no window
     private static Scene currentScene;
@@ -95,7 +95,7 @@ public class Window implements EventInterface {
             currentScene.destroy();
         }
 
-        loadImGui().loadProperties().setActiveGameObj(null);
+        getImGuiLayer().loadProperties().setActiveGameObject(null);
 
         currentScene = new Scene(sceneInit);
         currentScene.loadLevel();
@@ -111,18 +111,6 @@ public class Window implements EventInterface {
         return Window.window;
     }
 
-    public static Scene getScene() {
-        return currentScene;
-    }
-
-    public static int loadWidth() {
-        return get().width;
-    }
-
-    public static int loadHeight() {
-        return get().height;
-    }
-
     public void run() {
         System.out.println("Starting LWJGL " + Version.getVersion());
 
@@ -133,7 +121,7 @@ public class Window implements EventInterface {
 
             projectLoaded = (CurrentProject != null && ProjectRoot != null);
 
-            if (glfwWindowShouldClose(glfwWindow)) {
+            if (glfwWindowShouldClose(windowPtr)) {
                 endScr();
                 return;
             }
@@ -142,7 +130,7 @@ public class Window implements EventInterface {
         if (projectLoaded) {
             String projectDetail = " - [" + CurrentProject.getProject().getName() + "] [" + ProjectRoot + "]";
 
-            glfwSetWindowTitle(glfwWindow, this.title + projectDetail);
+            glfwSetWindowTitle(windowPtr, this.title + projectDetail);
             loop();
         }
 
@@ -166,7 +154,7 @@ public class Window implements EventInterface {
         float endTime;
         float dt = -1.0f;
 
-        while (!glfwWindowShouldClose(glfwWindow) && !projectLoaded) {
+        while (!glfwWindowShouldClose(windowPtr) && !projectLoaded) {
             glfwPollEvents();
 
             glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -204,7 +192,7 @@ public class Window implements EventInterface {
                 glfwMakeContextCurrent(backupWindowPtr);
             }
 
-            glfwSwapBuffers(glfwWindow);
+            glfwSwapBuffers(windowPtr);
 
             endTime = (float) glfwGetTime();
 
@@ -240,43 +228,43 @@ public class Window implements EventInterface {
         //glfwWindowHint(GLFW_DECORATED, 0);
 
         // Spawn window
-        glfwWindow = glfwCreateWindow(this.width, this.height, this.title, NULL, NULL);
-        if (glfwWindow == NULL) {
+        windowPtr = glfwCreateWindow(this.width, this.height, this.title, NULL, NULL);
+        if (windowPtr == NULL) {
             System.out.println("Failed to spawn window.");
             System.exit(-1);
         }
         System.out.println("Generating Window, dimension: " + this.width + " x " + this.height);
 
-        glfwSetCursorPosCallback(glfwWindow, MouseListener::mousePosCallback); // :: is java syntax lambda function
-        glfwSetMouseButtonCallback(glfwWindow, MouseListener::mouseButtonCallback);
-        glfwSetScrollCallback(glfwWindow, MouseListener::mouseScrollCallback);
-        glfwSetKeyCallback(glfwWindow, KeyListener::keyCallback);
-        glfwSetCharCallback(glfwWindow, KeyListener::charCallback);
+        glfwSetCursorPosCallback(windowPtr, MouseListener::mousePosCallback); // :: is java syntax lambda function
+        glfwSetMouseButtonCallback(windowPtr, MouseListener::mouseButtonCallback);
+        glfwSetScrollCallback(windowPtr, MouseListener::mouseScrollCallback);
+        glfwSetKeyCallback(windowPtr, KeyListener::keyCallback);
+        glfwSetCharCallback(windowPtr, KeyListener::charCallback);
 
-        glfwSetInputMode(glfwWindow, GLFW_IME, GLFW_TRUE);
+        glfwSetInputMode(windowPtr, GLFW_IME, GLFW_TRUE);
 
         //exit callback setting
-        glfwSetWindowCloseCallback(glfwWindow, new GLFWWindowCloseCallback() {
+        glfwSetWindowCloseCallback(windowPtr, new GLFWWindowCloseCallback() {
             @Override
             public void invoke(long l) {
-                glfwSetWindowShouldClose(glfwWindow, false);
+                glfwSetWindowShouldClose(windowPtr, false);
                 exitConfirmDialog.reloadDialog();
 
                 shouldClose = exitConfirmDialog.exitDialog();
                 if (shouldClose) {
-                    glfwSetWindowShouldClose(glfwWindow, true);
+                    glfwSetWindowShouldClose(windowPtr, true);
                 }
             }
         });
 
         // OpenGL context current
-        glfwMakeContextCurrent(glfwWindow);
+        glfwMakeContextCurrent(windowPtr);
 
         //V-sync yes
         glfwSwapInterval(1);
 
         //Make window visible
-        glfwShowWindow(glfwWindow);
+        glfwShowWindow(windowPtr);
 
         // Init sound
         String defaultAudioDevice = alcGetString(0, ALC_DEFAULT_DEVICE_SPECIFIER);
@@ -304,7 +292,7 @@ public class Window implements EventInterface {
 
         glViewport(0, 0, this.width, this.height);
 
-        this.imGuiLayer = new ImGuiLayer(glfwWindow, objectSelection);
+        this.imGuiLayer = new ImGuiLayer(windowPtr, objectSelection);
         this.imGuiLayer.initImGui(glslVer);
 
         //Set Icon
@@ -312,7 +300,7 @@ public class Window implements EventInterface {
         GLFWImage.Buffer bufferIcon = GLFWImage.malloc(1);
         icon.set(iconFile.loadIconW(), iconFile.loadIconH(), iconFile.getIcon());
         bufferIcon.put(0, icon);
-        glfwSetWindowIcon(glfwWindow, bufferIcon);
+        glfwSetWindowIcon(windowPtr, bufferIcon);
 
         projectLoaded = (CurrentProject != null && ProjectRoot != null);
 
@@ -320,7 +308,6 @@ public class Window implements EventInterface {
             Window.changeScene(new LevelEditorSceneInit());
         }
     }
-
 
     /**
      * Return current active display size that the windows is on.
@@ -350,8 +337,8 @@ public class Window implements EventInterface {
         alcCloseDevice(audioDevice);
 
         frameBuffer.dispose();
-        glfwFreeCallbacks(window.glfwWindow);
-        glfwDestroyWindow(window.glfwWindow);
+        glfwFreeCallbacks(window.windowPtr);
+        glfwDestroyWindow(window.windowPtr);
 
         glfwTerminate();
     }
@@ -366,7 +353,7 @@ public class Window implements EventInterface {
 
         RendererState rendererState = RendererState.get();
 
-        while (!glfwWindowShouldClose(glfwWindow)) {
+        while (!glfwWindowShouldClose(windowPtr)) {
             glfwPollEvents(); //poll events
 
             if (dt >= 0) {
@@ -414,44 +401,12 @@ public class Window implements EventInterface {
             MouseListener.endFrame();
             KeyListener.endFrame();
 
-            glfwSwapBuffers(glfwWindow);
+            glfwSwapBuffers(windowPtr);
 
             endTime = (float)glfwGetTime();
             dt = endTime - beginTime;
             beginTime = endTime;
         }
-    }
-
-    public static FrameBuffer loadFrameBuffer() {
-        return get().frameBuffer;
-    }
-
-    public static float loadTargetAspectRatio() {
-        return 4.0f / 3.0f;
-    }
-
-    public static ImGuiLayer loadImGui() {
-        return get().imGuiLayer;
-    }
-
-    public ObjectSelection getObjectSelection() {
-        return objectSelection;
-    }
-
-    public static String getCurrentSceneName() {
-        return currentSceneName;
-    }
-
-    public static void setCurrentSceneName(String currentSceneName) {
-        Window.currentSceneName = currentSceneName;
-    }
-
-    public static FlatPhysic getFlatPhysic() {
-        return currentScene.getFlatPhysic();
-    }
-
-    public boolean isRuntimeMode() {
-        return runtimeMode;
     }
 
     @Override
@@ -490,7 +445,7 @@ public class Window implements EventInterface {
 
                     String projectDetail = " - [" + CurrentProject.getProject().getName() + "] [" + ProjectRoot + "]";
 
-                    glfwSetWindowTitle(glfwWindow, this.title + projectDetail);
+                    glfwSetWindowTitle(windowPtr, this.title + projectDetail);
 
                     if (currentScene == null) {
                         Window.changeScene(new LevelEditorSceneInit());
@@ -511,5 +466,53 @@ public class Window implements EventInterface {
 
                 break;
         }
+    }
+
+    public long getWindowPtr() {
+        return windowPtr;
+    }
+
+    public static Scene getScene() {
+        return currentScene;
+    }
+
+    public static int getWidth() {
+        return get().width;
+    }
+
+    public static int getHeight() {
+        return get().height;
+    }
+
+    public static FrameBuffer getFrameBuffer() {
+        return get().frameBuffer;
+    }
+
+    public static float getTargetAspectRatio() {
+        return 4.0f / 3.0f;
+    }
+
+    public static ImGuiLayer getImGuiLayer() {
+        return get().imGuiLayer;
+    }
+
+    public ObjectSelection getObjectSelection() {
+        return objectSelection;
+    }
+
+    public static String getCurrentSceneName() {
+        return currentSceneName;
+    }
+
+    public static void setCurrentSceneName(String currentSceneName) {
+        Window.currentSceneName = currentSceneName;
+    }
+
+    public static FlatPhysic getFlatPhysic() {
+        return currentScene.getFlatPhysic();
+    }
+
+    public boolean isRuntimeMode() {
+        return runtimeMode;
     }
 }

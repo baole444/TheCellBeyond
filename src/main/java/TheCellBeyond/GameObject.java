@@ -1,4 +1,4 @@
-package TCB_Field;
+package TheCellBeyond;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -21,7 +21,7 @@ public class GameObject {
     private List<Component> components;
     public transient Transform transform;
     private boolean isSerialize = true;
-    private boolean isGone = false;
+    private boolean isRemoved = false;
 
 
     public GameObject(String name) {
@@ -56,7 +56,7 @@ public class GameObject {
     }
 
     public void addComponent(Component c) {
-        c.genId();
+        c.createUID();
         this.components.add(c);
         c.gameObject = this;
     }
@@ -87,7 +87,7 @@ public class GameObject {
     }
 
     public void destroy() {
-        this.isGone = true;
+        this.isRemoved = true;
         for (int i = 0; i < components.size(); i++) {
             components.get(i).destroy();
         }
@@ -103,18 +103,18 @@ public class GameObject {
         String oJson = gson.toJson(this);
         GameObject obj = gson.fromJson(oJson, GameObject.class);
 
-        obj.genUid();
+        obj.createUID();
 
-        for (Component c : obj.loadAllComp()) {
-            c.genId();
+        for (Component c : obj.getComponents()) {
+            c.createUID();
         }
 
         SpriteRender sprite = obj.getComponent(SpriteRender.class);
 
-        if (sprite != null && sprite.loadTexture() != null) {
-            String texturePath = sprite.loadTexture().loadFilePath();
+        if (sprite != null && sprite.getTexture() != null) {
+            String texturePath = sprite.getTexture().getFilePath();
             String absPath = PathResolver.resolveToAbsolute(ProjectRoot, texturePath);
-            sprite.setTex(AssetsPool.loadTexture(absPath));
+            sprite.setTexture(AssetsPool.loadTexture(absPath));
         }
 
         return obj;
@@ -124,23 +124,23 @@ public class GameObject {
         ID_COUNTER = maxID;
     }
 
-    public boolean isGone() {
-        return this.isGone;
+    public boolean isRemoved() {
+        return this.isRemoved;
     }
 
-    public int loadUid() {
+    public int getUID() {
         return this.uID;
     }
 
-    public void genUid() {
+    public void createUID() {
         this.uID = ID_COUNTER++;
     }
 
-    public List<Component> loadAllComp() {
+    public List<Component> getComponents() {
         return this.components;
     }
 
-    public void isNotSerialize() {
+    public void setNotSerialize() {
         this.isSerialize = false;
     }
 
@@ -153,6 +153,6 @@ public class GameObject {
         return "Name: " + this.name +
                 "\n  uID: " + this.uID +
                 "\n  isSerialize: " + this.isSerialize +
-                "\n  isGone: " + this.isGone;
+                "\n  isGone: " + this.isRemoved;
     }
 }

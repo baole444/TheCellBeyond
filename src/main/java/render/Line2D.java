@@ -26,20 +26,12 @@ public class Line2D {
         return this.alive;
     }
 
-    public Vector2f loadStart() {
+    public Vector2f getStart() {
         return start;
     }
 
-    public Vector2f loadEnd() {
+    public Vector2f getEnd() {
         return end;
-    }
-
-    public Vector2f loadStart_physic2D() {
-        return this.start;
-    }
-
-    public Vector2f loadEnd_physic2D() {
-        return this.end;
     }
 
     public Vector3f loadColor() {

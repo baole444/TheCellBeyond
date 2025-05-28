@@ -4,7 +4,7 @@
     "name": "Sprite_object_gen",
     "components": [
       {
-        "type": "TCB_Field.Transform",
+        "type": "TheCellBeyond.Transform",
         "properties": {
           "position": {
             "x": 1.12,
@@ -67,7 +67,7 @@
     "name": "Sprite_object_gen",
     "components": [
       {
-        "type": "TCB_Field.Transform",
+        "type": "TheCellBeyond.Transform",
         "properties": {
           "position": {
             "x": 1.12,
@@ -130,7 +130,7 @@
     "name": "Sprite_object_gen",
     "components": [
       {
-        "type": "TCB_Field.Transform",
+        "type": "TheCellBeyond.Transform",
         "properties": {
           "position": {
             "x": 1.7599999,
@@ -193,7 +193,7 @@
     "name": "Sprite_object_gen",
     "components": [
       {
-        "type": "TCB_Field.Transform",
+        "type": "TheCellBeyond.Transform",
         "properties": {
           "position": {
             "x": 1.4399999,
@@ -256,7 +256,7 @@
     "name": "Sprite_object_gen",
     "components": [
       {
-        "type": "TCB_Field.Transform",
+        "type": "TheCellBeyond.Transform",
         "properties": {
           "position": {
             "x": 1.12,

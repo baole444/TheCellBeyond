@@ -9,30 +9,30 @@ import render.Texture;
 public class Sprite {
     private float width, height;
     private Texture texture = null;
-    private Vector2f[] texCoord = {
+    private Vector2f[] textureCoordinates = {
                 new Vector2f(1, 1),
                 new Vector2f(1, 0),
                 new Vector2f(0, 0),
                 new Vector2f(0, 1)
         };
 
-    public Texture loadTex() {
+    public Texture getTexture() {
         return this.texture;
     }
 
-    public Vector2f[] loadTexCrd() {
-        return this.texCoord;
+    public Vector2f[] getTextureCoordinates() {
+        return this.textureCoordinates;
     }
 
     public void setTex(Texture tex) {
         this.texture = tex;
     }
 
-    public void setTexCrd(Vector2f[] texCrd) {
-        this.texCoord = texCrd;
+    public void setTextureCoordinates(Vector2f[] texCrd) {
+        this.textureCoordinates = texCrd;
     }
 
-    public float loadWidth() {
+    public float getWidth() {
         return width;
     }
 
@@ -40,7 +40,7 @@ public class Sprite {
         this.width = width;
     }
 
-    public float loadHeight() {
+    public float getHeight() {
         return height;
     }
 
@@ -48,7 +48,7 @@ public class Sprite {
         this.height = height;
     }
 
-    public int loadTexId() {
-        return texture == null ? -1 : texture.loadID();
+    public int getTextureID() {
+        return texture == null ? -1 : texture.getID();
     }
 }

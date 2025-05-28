@@ -1,4 +1,4 @@
-package TCB_Field;
+package TheCellBeyond;
 
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
@@ -44,14 +44,14 @@ public class MouseListener {
     }
 
     public static void mousePosCallback(long window, double xpos, double ypos) {
-        if (!startupMode && Window.loadImGui() != null
-                && Window.loadImGui().getGameViewPort() != null
-                && !Window.loadImGui().getGameViewPort().getWantCaptureMouse()) {
+        if (!startupMode && Window.getImGuiLayer() != null
+                && Window.getImGuiLayer().getGameViewPort() != null
+                && !Window.getImGuiLayer().getGameViewPort().getWantCaptureMouse()) {
             clear();
         }
 
 
-        if (!Window.loadImGui().getGameViewPort().getWantCaptureMouse()) {
+        if (!Window.getImGuiLayer().getGameViewPort().getWantCaptureMouse()) {
             clear();
         }
 
@@ -87,8 +87,8 @@ public class MouseListener {
 
         Vector4f tmp = new Vector4f(currentX, currentY, 0, 1);
 
-        Matrix4f inverseView = new Matrix4f(camera.getInverseView());
-        Matrix4f inverseProjection = new Matrix4f(camera.getInverseProject());
+        Matrix4f inverseView = new Matrix4f(camera.getInversedViewMatrix());
+        Matrix4f inverseProjection = new Matrix4f(camera.getInversedProjectionMatrix());
 
         tmp.mul(inverseView.mul(inverseProjection));
 
@@ -186,10 +186,10 @@ public class MouseListener {
         if (startupMode) return new Vector2f(getX(), getY());
 
         float instX = getX() - get().workViewportPos.x;
-        instX = (instX / get().workViewportSize.x) * Window.loadWidth();
+        instX = (instX / get().workViewportSize.x) * Window.getWidth();
 
         float instY = getY() - get().workViewportPos.y;
-        instY = Window.loadHeight() - ((instY / get().workViewportSize.y) * Window.loadHeight());
+        instY = Window.getHeight() - ((instY / get().workViewportSize.y) * Window.getHeight());
 
         return new Vector2f(instX, instY);
     }
@@ -230,8 +230,8 @@ public class MouseListener {
 
         Vector4f tmp = new Vector4f(currentX, currentY, 0, 1);
 
-        Matrix4f inverseView = new Matrix4f(camera.getInverseView());
-        Matrix4f inverseProjection = new Matrix4f(camera.getInverseProject());
+        Matrix4f inverseView = new Matrix4f(camera.getInversedViewMatrix());
+        Matrix4f inverseProjection = new Matrix4f(camera.getInversedProjectionMatrix());
 
         tmp.mul(inverseView.mul(inverseProjection));
 
@@ -250,8 +250,8 @@ public class MouseListener {
         if (startupMode || Window.getScene() == null) return new Vector2f(0.0f, 0.0f);
 
         Vector2f normalization = new Vector2f(
-                scrCoord.x / Window.loadWidth(),
-                scrCoord.y / Window.loadHeight()
+                scrCoord.x / Window.getWidth(),
+                scrCoord.y / Window.getHeight()
         );
         // Shift coordinates range back to -1 > 1
         normalization.mul(2f).sub(new Vector2f(1f, 1f));
@@ -262,8 +262,8 @@ public class MouseListener {
 
         Vector4f tmp = new Vector4f(normalization.x, normalization.y, 0 , 1);
 
-        Matrix4f inverseView = new Matrix4f(viewport.getInverseView());
-        Matrix4f inverseProjection = new Matrix4f(viewport.getInverseProject());
+        Matrix4f inverseView = new Matrix4f(viewport.getInversedViewMatrix());
+        Matrix4f inverseProjection = new Matrix4f(viewport.getInversedProjectionMatrix());
 
         tmp.mul(inverseView.mul(inverseProjection));
 
@@ -280,7 +280,7 @@ public class MouseListener {
         Vector4f normalization = new Vector4f(wCoord.x, wCoord.y, 0, 1);
 
         Matrix4f view = new Matrix4f(viewport.getViewMatrix());
-        Matrix4f projection = new Matrix4f(viewport.getProjectMatrix());
+        Matrix4f projection = new Matrix4f(viewport.getProjectionMatrix());
 
         normalization.mul(projection.mul(view));
 
@@ -288,7 +288,7 @@ public class MouseListener {
                 mul(1f / normalization.w);
 
         windowSpace.add(new Vector2f(1f, 1f)).mul(0.5f);
-        windowSpace.mul(new Vector2f(Window.loadWidth(), Window.loadHeight()));
+        windowSpace.mul(new Vector2f(Window.getWidth(), Window.getHeight()));
 
         return windowSpace;
     }

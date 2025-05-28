@@ -1,6 +1,7 @@
-package TCB_Field;
+package editor;
 
-import editor.*;
+import TheCellBeyond.MouseListener;
+import TheCellBeyond.Window;
 import imgui.*;
 import imgui.callback.ImStrConsumer;
 import imgui.callback.ImStrSupplier;
@@ -21,7 +22,7 @@ import static org.lwjgl.opengl.GL30.glBindFramebuffer;
 public class ImGuiLayer {
     private final ImGuiImplGlfw imGuiGlfw = new ImGuiImplGlfw();
     private final ImGuiImplGl3 imGuiGl3 = new ImGuiImplGl3();
-    private long glfwWindow;
+    private long windowPtr;
     private GameViewPort gameViewPort;
     private DebugGui debugGui;
     private Properties properties;
@@ -46,10 +47,10 @@ public class ImGuiLayer {
     // End boolean section
 
     // Constructor
-    public ImGuiLayer(long glfwWindow, ObjectSelection objectSelection) {
+    public ImGuiLayer(long windowPtr, ObjectSelection objectSelection) {
         this.gameViewPort = new GameViewPort();
         this.debugGui = new DebugGui();
-        this.glfwWindow = glfwWindow;
+        this.windowPtr = windowPtr;
         this.properties = new Properties(objectSelection);
         this.menuBar = new MenuBar();
         this.objectGroupingWindow = new SceneObjectGroupingWindow();
@@ -63,7 +64,7 @@ public class ImGuiLayer {
         io.setBackendFlags(ImGuiBackendFlags.HasMouseCursors);
 
 
-        glfwSetMouseButtonCallback(glfwWindow, (w, button, action, mods) -> {
+        glfwSetMouseButtonCallback(windowPtr, (w, button, action, mods) -> {
             final boolean[] mouseDown = new boolean[5];
 
             mouseDown[0] = button == GLFW_MOUSE_BUTTON_1 && action != GLFW_RELEASE;
@@ -83,7 +84,7 @@ public class ImGuiLayer {
             }
         });
 
-        glfwSetScrollCallback(glfwWindow, (w, x, y) -> {
+        glfwSetScrollCallback(windowPtr, (w, x, y) -> {
             if (!io.getWantCaptureMouse() && (Math.abs(x) > 0 || Math.abs(y) > 0)) {
                 ImGui.setWindowFocus(null);
             }
@@ -98,14 +99,14 @@ public class ImGuiLayer {
        io.setSetClipboardTextFn(new ImStrConsumer() {
            @Override
            public void accept(final String s) {
-               glfwSetClipboardString(glfwWindow, s);
+               glfwSetClipboardString(windowPtr, s);
            }
        });
 
        io.setGetClipboardTextFn(new ImStrSupplier() {
            @Override
            public String get() {
-               final String clipboardString = glfwGetClipboardString(glfwWindow);
+               final String clipboardString = glfwGetClipboardString(windowPtr);
                if (clipboardString != null) {
                    return clipboardString;
                } else {
@@ -117,7 +118,7 @@ public class ImGuiLayer {
         io.setIniFilename("imgui.ini");
         io.addConfigFlags(ImGuiConfigFlags.ViewportsEnable);
         io.setConfigFlags(ImGuiConfigFlags.DockingEnable);
-        imGuiGlfw.init(glfwWindow, true);
+        imGuiGlfw.init(windowPtr, true);
         imGuiGl3.init(glslVer);
     }
 
@@ -156,7 +157,7 @@ public class ImGuiLayer {
         //ImGui.showDemoWindow();
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-        glViewport(0,0, Window.loadWidth(), Window.loadHeight());
+        glViewport(0,0, Window.getWidth(), Window.getHeight());
         glClearColor(0, 0,0,1);
         glClear(GL_COLOR_BUFFER_BIT);
 

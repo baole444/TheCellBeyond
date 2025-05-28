@@ -1,6 +1,6 @@
 package physic_2d.components.collider;
 
-import TCB_Field.Window;
+import TheCellBeyond.Window;
 import components.Component;
 import org.joml.Vector2f;
 import physic_2d.components.FlatPhysicBody;

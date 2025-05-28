@@ -39,7 +39,7 @@ public class FrameBuffer {
 
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
                 GL_TEXTURE_2D,
-                this.texture.loadID(),
+                this.texture.getID(),
                 0
         );
 
@@ -76,7 +76,7 @@ public class FrameBuffer {
     }
 
     public int getTextureID() {
-        return texture.loadID();
+        return texture.getID();
     }
 
     /**
