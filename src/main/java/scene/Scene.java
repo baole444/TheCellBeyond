@@ -51,7 +51,7 @@ public class Scene {
         for (int i = 0; i < gameObjects.size(); i++) {
             GameObject go = gameObjects.get(i);
             go.start();
-            this.renderer.addGameObject(go);
+            this.renderer.queueObjectForAddition(go);
             this.physic2D.add(go);
         }
         isSceneOn = true;
@@ -63,7 +63,7 @@ public class Scene {
         } else {
             gameObjects.add(go);
             go.start();
-            this.renderer.addGameObject(go);
+            this.renderer.queueObjectForAddition(go);
             this.physic2D.add(go);
         }
     }

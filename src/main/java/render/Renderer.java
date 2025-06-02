@@ -8,7 +8,6 @@ import render.text.TextBatch;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 
 public class Renderer {
@@ -24,18 +23,6 @@ public class Renderer {
         this.textBatches = new ArrayList<>();
         this.updatedGameObjects = new ArrayList<>();
         this.removedGameObjects = new ArrayList<>();
-    }
-
-    public void addGameObject(GameObject go) {
-        SpriteRender spr = go.getComponent(SpriteRender.class);
-        if (spr != null) {
-            addSprite(spr);
-        }
-
-        TextComponent text = go.getComponent(TextComponent.class);
-        if (text != null) {
-            addText(text);
-        }
     }
 
     private void addSprite(SpriteRender sprite) {
@@ -105,13 +92,31 @@ public class Renderer {
         updateBatches();
     }
 
+    public void queueObjectForAddition(GameObject go) {
+        queueObjectForUpdate(go);
+    }
+
     public void queueObjectForRemoval(GameObject go) {
+        updatedGameObjects.remove(go);
         if (!removedGameObjects.contains(go)) removedGameObjects.add(go);
     }
 
     public void queueObjectForUpdate(GameObject go) {
         if (!updatedGameObjects.contains(go)) updatedGameObjects.add(go);
     }
+
+    private void addGameObject(GameObject go) {
+        SpriteRender spr = go.getComponent(SpriteRender.class);
+        if (spr != null) {
+            addSprite(spr);
+        }
+
+        TextComponent text = go.getComponent(TextComponent.class);
+        if (text != null) {
+            addText(text);
+        }
+    }
+
 
     private void destroyObject(GameObject go) {
         if (go.getComponent(SpriteRender.class) != null) {
@@ -133,10 +138,6 @@ public class Renderer {
     }
 
     private void updateBatches() {
-        if (new HashSet<>(updatedGameObjects).containsAll(removedGameObjects)) {
-            updatedGameObjects.removeAll(removedGameObjects);
-        }
-
         for (GameObject go: removedGameObjects) {
             destroyObject(go);
         }
