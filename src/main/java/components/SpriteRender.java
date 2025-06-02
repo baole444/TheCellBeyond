@@ -14,7 +14,7 @@ public class SpriteRender extends Component {
     private final Vector4f color = new Vector4f(1, 1, 1 , 1);
     private Sprite sprite = new Sprite();
     private transient Transform lastT;
-    private transient boolean isDamage = true;
+    private transient boolean isDirty = true;
 
     @Override
     public void start() {
@@ -25,7 +25,7 @@ public class SpriteRender extends Component {
     public void editorUpdate(float dt) {
         if (!this.lastT.equals(this.gameObject.transform)) {
             this.gameObject.transform.copy(this.lastT);
-            isDamage = true;
+            isDirty = true;
         }
     }
 
@@ -33,19 +33,19 @@ public class SpriteRender extends Component {
     public void update(float dt) {
         if (!this.lastT.equals(this.gameObject.transform)) {
             this.gameObject.transform.copy(this.lastT);
-            isDamage = true;
+            isDirty = true;
         }
     }
 
     @Override
     public void imgui() {
         if (ImEditorGui.colorCtrl("Color", this.color)) {
-            this.isDamage = true;
+            this.isDirty = true;
         }
     }
 
-    public void setDamage(boolean isDamage) {
-        this.isDamage = isDamage;
+    public void setDirty(boolean isDamage) {
+        this.isDirty = isDamage;
     }
 
     public Vector4f getColor() {
@@ -60,18 +60,18 @@ public class SpriteRender extends Component {
 
     public void setSprite(Sprite sprite) {
         this.sprite = sprite;
-        this.isDamage = true;
+        this.isDirty = true;
     }
 
     public void setColor(Vector4f color) {
         if(!this.color.equals(color)) {
-            this.isDamage = true;
+            this.isDirty = true;
             this.color.set(color);
         }
     }
 
-    public boolean isDamage() {
-        return this.isDamage;
+    public boolean isDirty() {
+        return this.isDirty;
     }
 
     public void setTexture(Texture texture) {

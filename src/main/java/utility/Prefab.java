@@ -98,8 +98,8 @@ public class Prefab {
         PillBoxCollider pillBoxCollider = new PillBoxCollider();
         pillBoxCollider.setWidth(0.32f);
         pillBoxCollider.setHeight(0.32f);
-        FlatPhysicBody flatPhysicBody = new FlatPhysicBody();
-        flatPhysicBody.setObjectClassification(ObjectClassification.Dynamic);
+        PhysicBody2D flatPhysicBody = new PhysicBody2D();
+        flatPhysicBody.setObjectClassification(PhysicBodyType.Dynamic);
         flatPhysicBody.setNoneStopCollision(false);
         flatPhysicBody.setMass(10.0f);
 

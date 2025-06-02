@@ -1,4 +1,4 @@
-package physic_2d;
+package physic2d;
 
 import TheCellBeyond.GameObject;
 import components.Component;
@@ -9,7 +9,7 @@ import org.jbox2d.collision.WorldManifold;
 import org.jbox2d.dynamics.contacts.Contact;
 import org.joml.Vector2f;
 
-public class FlatPhysicContactListener implements ContactListener {
+public class Physic2DContactListener implements ContactListener {
     @Override
     public void beginContact(Contact contact) {
         GameObject A = (GameObject) contact.getFixtureA().getUserData();

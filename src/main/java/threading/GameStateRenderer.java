@@ -6,6 +6,7 @@ import TheCellBeyond.Viewport;
 import components.SpriteRender;
 import components.TextComponent;
 import render.Batch;
+import render.RendererState;
 import render.Shader;
 import render.Texture;
 import render.text.FontManager;
@@ -22,6 +23,9 @@ public class GameStateRenderer {
     private final Viewport viewport;
     private final Shader defaultShader;
     private final Shader selectionShader;
+    private boolean isSelectionPass = false;
+
+    private final Map<String, Texture> textureCache = new HashMap<>();
 
     public GameStateRenderer(Viewport viewport, Shader defaultShader, Shader selectionShader) {
         this.viewport = viewport;
@@ -30,7 +34,9 @@ public class GameStateRenderer {
     }
 
     public void render(GameState state) {
-        FontManager.get().updateFontTextures();
+        viewport.position.set(state.getViewportPosition());
+        viewport.setZoom(state.getViewportZoom());
+        viewport.adjustProjection();
 
         Map<Integer, Batch> spriteBatches = new HashMap<>();
         Map<Integer, TextBatch> textBatches = new HashMap<>();
@@ -50,7 +56,7 @@ public class GameStateRenderer {
                     return newBatch;
                 });
 
-                SpriteRender tmpSpr = createNewTempSpriteRender(objectState, spriteState);
+                SpriteRender tmpSpr = createTempSpriteRender(objectState, spriteState);
 
                 if (tmpSpr != null) {
                     batch.loadSprite(tmpSpr);
@@ -69,7 +75,7 @@ public class GameStateRenderer {
                     return newBatch;
                 });
 
-                TextComponent tmpTextCpt = createNewTempTextComponent(objectState, textState);
+                TextComponent tmpTextCpt = createTempTextComponent(objectState, textState);
 
                 if (tmpTextCpt != null) {
                     textBatch.add(tmpTextCpt);
@@ -83,12 +89,24 @@ public class GameStateRenderer {
         List<TextBatch> sortedTextBatches = new ArrayList<>(textBatches.values());
         Collections.sort(sortedTextBatches);
 
+        RendererState rendererState = RendererState.get();
+        isSelectionPass = rendererState.getCurrentPass() == RendererState.RenderPass.SELECTION;
+        Shader currentShader = isSelectionPass ? selectionShader : defaultShader;
+        rendererState.setShader(currentShader);
+
+        if (!isSelectionPass) rendererState.enableSpriteRendering();
+
+        // TODO: This will cause cocurrent exception problem, need to fix the batch class to use enchanted for loop.
         for (Batch batch : sortedSpriteBatches) {
             batch.render();
         }
+
+        if (!isSelectionPass) rendererState.enableTextRendering();
 
         for (TextBatch textBatch : sortedTextBatches) {
             textBatch.render();
         }
     }
+
+    private SpriteRender createTempSpriteRender(GameObjectState objectState, SpriteRenderState spriteRenderState)
 }

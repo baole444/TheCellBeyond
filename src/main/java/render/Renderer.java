@@ -20,10 +20,10 @@ public class Renderer {
         this.textBatches = new ArrayList<>();
     }
 
-    public void add(GameObject go) {
+    public void addGameObject(GameObject go) {
         SpriteRender spr = go.getComponent(SpriteRender.class);
         if (spr != null) {
-            add(spr);
+            addSprite(spr);
         }
 
         TextComponent text = go.getComponent(TextComponent.class);
@@ -32,20 +32,20 @@ public class Renderer {
         }
     }
 
-    private void add(SpriteRender sprite) {
-        boolean isAdd = false;
+    private void addSprite(SpriteRender sprite) {
+        boolean isAdded = false;
         for (Batch batch: batches) {
             if (batch.hasSpace() && batch.zIndex() == sprite.gameObject.transform.zIndex) {
                 Texture t = sprite.getTexture();
-                if (t == null || (batch.isTex(t) || batch.isTexCapValid())) {
+                if (t == null || (batch.hasTexture(t) || batch.isTextureCapacityValid())) {
                     batch.loadSprite(sprite);
-                    isAdd = true;
+                    isAdded = true;
                     break;
                 }
             }
         }
 
-        if (!isAdd) {
+        if (!isAdded) {
             Batch newBatch = new Batch(MAX_BATCH_SIZE, sprite.gameObject.transform.zIndex, this);
             newBatch.start();
             batches.add(newBatch);

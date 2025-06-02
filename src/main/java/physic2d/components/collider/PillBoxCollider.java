@@ -1,9 +1,9 @@
-package physic_2d.components.collider;
+package physic2d.components.collider;
 
 import TheCellBeyond.Window;
 import components.Component;
 import org.joml.Vector2f;
-import physic_2d.components.FlatPhysicBody;
+import physic2d.components.PhysicBody2D;
 
 /**
  * A combination of circle colliders forming the cap
@@ -14,13 +14,13 @@ import physic_2d.components.FlatPhysicBody;
  */
 public class PillBoxCollider extends Component {
     // The top section
-    private transient FlatCircleCollider headCircle = new FlatCircleCollider();
+    private transient CircleCollider2D headCircle = new CircleCollider2D();
 
     // The bottom section
-    private transient FlatCircleCollider footCircle = new FlatCircleCollider();
+    private transient CircleCollider2D footCircle = new CircleCollider2D();
 
     // The middle section.
-    private transient FlatBoxCollider midBox = new FlatBoxCollider();
+    private transient BoxCollider2D midBox = new BoxCollider2D();
 
     // Allow changing size of collision body during runtime.
     /**
@@ -82,7 +82,7 @@ public class PillBoxCollider extends Component {
         resetFixtures();
     }
 
-    public Vector2f loadOffset() {
+    public Vector2f getOffset() {
         return this.offset;
     }
 
@@ -121,23 +121,23 @@ public class PillBoxCollider extends Component {
         shouldFixtureReset = false;
 
         if (gameObject != null) {
-            FlatPhysicBody flatPhysicBody = gameObject.getComponent(FlatPhysicBody.class);
+            PhysicBody2D physicBody2D = gameObject.getComponent(PhysicBody2D.class);
 
-            if (flatPhysicBody != null) {
-                Window.getFlatPhysic().resetCollider(flatPhysicBody, this);
+            if (physicBody2D != null) {
+                Window.getFlatPhysic().resetCollider(physicBody2D, this);
             }
         }
     }
 
-    public FlatCircleCollider getHeadCircle() {
+    public CircleCollider2D getHeadCircle() {
         return headCircle;
     }
 
-    public FlatCircleCollider getFootCircle() {
+    public CircleCollider2D getFootCircle() {
         return footCircle;
     }
 
-    public FlatBoxCollider getMidBox() {
+    public BoxCollider2D getMidBox() {
         return midBox;
     }
 

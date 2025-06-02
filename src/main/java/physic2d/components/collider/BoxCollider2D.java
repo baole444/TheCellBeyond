@@ -1,10 +1,10 @@
-package physic_2d.components.collider;
+package physic2d.components.collider;
 
 import components.Component;
 import org.joml.Vector2f;
 import render.DebugDraw;
 
-public class FlatBoxCollider extends Component {
+public class BoxCollider2D extends Component {
     // Standard box collider
 
     private Vector2f halfSize = new Vector2f(1);
@@ -13,7 +13,7 @@ public class FlatBoxCollider extends Component {
     // Use for adjusting asset origin and hit box origin
     private Vector2f offset = new Vector2f();
 
-    public Vector2f loadHalfSize() {
+    public Vector2f getHalfSize() {
         return halfSize;
     }
 
@@ -21,11 +21,11 @@ public class FlatBoxCollider extends Component {
         this.halfSize = halfSize;
     }
 
-    public Vector2f loadOrigin() {
+    public Vector2f getOrigin() {
         return this.origin;
     }
 
-    public Vector2f loadOffset() {
+    public Vector2f getOffset() {
         return this.offset;
     }
 

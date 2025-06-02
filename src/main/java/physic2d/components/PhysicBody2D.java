@@ -1,4 +1,4 @@
-package physic_2d.components;
+package physic2d.components;
 
 import TheCellBeyond.Window;
 import components.Component;
@@ -6,9 +6,9 @@ import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
 import org.joml.Math;
 import org.joml.Vector2f;
-import physic_2d.enums.ObjectClassification;
+import physic2d.enums.PhysicBodyType;
 
-public class FlatPhysicBody extends Component {
+public class PhysicBody2D extends Component {
     private Vector2f velocity = new Vector2f();
 
     private float rollResistance = 0.8f;
@@ -28,7 +28,7 @@ public class FlatPhysicBody extends Component {
     private boolean isSensor = false;
 
     private float mass = 0;
-    private ObjectClassification objectClassification = ObjectClassification.Dynamic;
+    private PhysicBodyType physicBodyType = PhysicBodyType.Dynamic;
 
     private boolean isRotatable = false;
 
@@ -50,15 +50,15 @@ public class FlatPhysicBody extends Component {
             this.gameObject.transform.rotate = Math.toDegrees(instObjectBody.getAngle());
         }
     }
-    public float loadFriction() {
+    public float getFriction() {
         return this.friction;
     }
 
-    public float loadAngularVelocity() {
+    public float getAngularVelocity() {
         return this.angularVelocity;
     }
 
-    public float loadGravityScale() {
+    public float getGravityScale() {
         return this.gravityScale;
     }
 
@@ -91,7 +91,7 @@ public class FlatPhysicBody extends Component {
         }
     }
 
-    public Vector2f loadVelocity() {
+    public Vector2f getVelocity() {
         return velocity;
     }
 
@@ -114,7 +114,7 @@ public class FlatPhysicBody extends Component {
         }
     }
 
-    public float loadRollResistance() {
+    public float getRollResistance() {
         return rollResistance;
     }
 
@@ -122,7 +122,7 @@ public class FlatPhysicBody extends Component {
         this.rollResistance = rollResistance;
     }
 
-    public float loadTranslateResistance() {
+    public float getTranslateResistance() {
         return translateResistance;
     }
 
@@ -130,7 +130,7 @@ public class FlatPhysicBody extends Component {
         this.translateResistance = translateResistance;
     }
 
-    public float loadMass() {
+    public float getMass() {
         return mass;
     }
 
@@ -138,12 +138,12 @@ public class FlatPhysicBody extends Component {
         this.mass = mass;
     }
 
-    public ObjectClassification loadObjectClassification() {
-        return objectClassification;
+    public PhysicBodyType getPhysicBodyType() {
+        return physicBodyType;
     }
 
-    public void setObjectClassification(ObjectClassification objectClassification) {
-        this.objectClassification = objectClassification;
+    public void setPhysicBodyType(PhysicBodyType physicBodyType) {
+        this.physicBodyType = physicBodyType;
     }
 
     public boolean isRotatable() {
@@ -162,7 +162,7 @@ public class FlatPhysicBody extends Component {
         isNoneStopCollision = noneStopCollision;
     }
 
-    public Body loadInstObjectBody() {
+    public Body getInstObjectBody() {
         return instObjectBody;
     }
 

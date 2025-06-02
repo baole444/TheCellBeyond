@@ -7,7 +7,7 @@ import components.CompDeSerializer;
 import components.Component;
 import components.SpriteRender;
 import org.joml.Vector2f;
-import physic_2d.FlatPhysic;
+import physic2d.Physic2D;
 import render.Renderer;
 import utility.PathResolver;
 
@@ -25,14 +25,14 @@ public class Scene {
     private Viewport viewport;
     private boolean isSceneOn;
     private List<GameObject> gameObjects;
-    private FlatPhysic flatPhysic;
+    private Physic2D physic2D;
     private boolean isFileLoaded = false;
 
     private SceneInit sceneInit;
 
     public Scene(SceneInit sceneInit) {
         this.sceneInit = sceneInit;
-        this.flatPhysic = new FlatPhysic();
+        this.physic2D = new Physic2D();
         this.renderer = new Renderer();
         this.gameObjects = new ArrayList<>();
         this.isSceneOn = false;
@@ -51,8 +51,8 @@ public class Scene {
         for (int i = 0; i < gameObjects.size(); i++) {
             GameObject go = gameObjects.get(i);
             go.start();
-            this.renderer.add(go);
-            this.flatPhysic.add(go);
+            this.renderer.addGameObject(go);
+            this.physic2D.add(go);
         }
         isSceneOn = true;
     }
@@ -63,8 +63,8 @@ public class Scene {
         } else {
             gameObjects.add(go);
             go.start();
-            this.renderer.add(go);
-            this.flatPhysic.add(go);
+            this.renderer.addGameObject(go);
+            this.physic2D.add(go);
         }
     }
 
@@ -97,7 +97,7 @@ public class Scene {
 
                 gameObjects.remove(i);
                 this.renderer.destroyObject(go);
-                this.flatPhysic.destroyObject(go);
+                this.physic2D.destroyObject(go);
 
                 i --; // Step back if remove
             }
@@ -106,7 +106,7 @@ public class Scene {
 
     public void update(float dt) {
         this.viewport.adjustProjection();
-        this.flatPhysic.update(dt);
+        this.physic2D.update(dt);
 
         for (int i = 0; i < gameObjects.size(); i++) {
             GameObject go = gameObjects.get(i);
@@ -116,7 +116,7 @@ public class Scene {
                 //System.out.println("A request to end an object's rendering is called at position: " + i + " This one is from update");
                 gameObjects.remove(i);
                 this.renderer.destroyObject(go);
-                this.flatPhysic.destroyObject(go);
+                this.physic2D.destroyObject(go);
 
                 i --; // Step back if remove
             }
@@ -142,8 +142,8 @@ public class Scene {
         return obj;
     }
 
-    public FlatPhysic getFlatPhysic() {
-        return this.flatPhysic;
+    public Physic2D getFlatPhysic() {
+        return this.physic2D;
     }
 
     public Renderer getRenderer() {

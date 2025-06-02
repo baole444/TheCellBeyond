@@ -1,4 +1,4 @@
-package physic_2d;
+package physic2d;
 
 import TheCellBeyond.GameObject;
 import org.jbox2d.callbacks.RayCastCallback;

@@ -1,16 +1,16 @@
-package physic_2d.components.collider;
+package physic2d.components.collider;
 
 import components.Component;
 import org.joml.Vector2f;
 import render.DebugDraw;
 
-public class FlatCircleCollider extends Component {
+public class CircleCollider2D extends Component {
     // Use for adjusting asset origin and hit box origin
     private Vector2f offset = new Vector2f();
 
     private float radius = 1.0f;
 
-    public float loadRadius() {
+    public float getRadius() {
         return radius;
     }
 
@@ -18,7 +18,7 @@ public class FlatCircleCollider extends Component {
         this.radius = radius;
     }
 
-    public Vector2f loadOffset() {
+    public Vector2f getOffset() {
         return this.offset;
     }
 

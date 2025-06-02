@@ -4,7 +4,7 @@ import TheCellBeyond.KeyListener;
 import TheCellBeyond.Window;
 import org.joml.Math;
 import org.joml.Vector2f;
-import physic_2d.components.FlatPhysicBody;
+import physic2d.components.PhysicBody2D;
 
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT;
@@ -35,7 +35,7 @@ public class CharacterControl extends Component {
      */
     private transient float groundDebounceTIme = 0.0f;
 
-    private transient FlatPhysicBody flatPhysicBody;
+    private transient PhysicBody2D physicBody2D;
 
     private transient StateEngine stateEngine;
 
@@ -51,11 +51,11 @@ public class CharacterControl extends Component {
 
     @Override
     public void start() {
-        this.flatPhysicBody = gameObject.getComponent(FlatPhysicBody.class);
+        this.physicBody2D = gameObject.getComponent(PhysicBody2D.class);
         this.stateEngine = gameObject.getComponent(StateEngine.class);
 
         // Set gravity to 0 to manage custom physic
-        this.flatPhysicBody.setGravityScale(0.0f);
+        this.physicBody2D.setGravityScale(0.0f);
     }
 
     @Override
@@ -94,7 +94,7 @@ public class CharacterControl extends Component {
             }
         }
 
-        this.acceleration.y = Window.getFlatPhysic().loadGravity().y * 0.7f;
+        this.acceleration.y = Window.getFlatPhysic().getGravity().y * 0.7f;
 
         this.velocity.x += this.acceleration.x * dt;
         this.velocity.y += this.acceleration.y * dt;
@@ -110,8 +110,8 @@ public class CharacterControl extends Component {
                 -this.terminalVelocity.y
         );
 
-        this.flatPhysicBody.setVelocity(this.velocity);
-        this.flatPhysicBody.setAngularVelocity(0.0f);
+        this.physicBody2D.setVelocity(this.velocity);
+        this.physicBody2D.setAngularVelocity(0.0f);
     }
 
 

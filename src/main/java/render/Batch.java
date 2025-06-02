@@ -9,8 +9,7 @@ import org.joml.Vector2f;
 import org.joml.Vector4f;
 import org.lwjgl.opengl.GL11;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
@@ -41,18 +40,17 @@ public class Batch implements Comparable<Batch> {
     private final int OBJECT_ID_OFFSET = TEX_ID_OFFSET + TEX_ID_SIZE * Float.BYTES;
     private final int VERTEX_SIZE_BYTES = VERTEX_SIZE * Float.BYTES;
 
-    private SpriteRender[] sprites;
+    private final SpriteRender[] sprites;
     private int countSprite;
     private boolean hasSpace;
-    private float[] vertices;
-    private int[] texSlot = {0, 1, 2, 3, 4, 5, 6, 7};
+    private final float[] vertices;
+    private final int[] texSlot = {0, 1, 2, 3, 4, 5, 6, 7};
 
-    private List<Texture> textures;
+    private final List<Texture> textures;
     private int vaoID, vboID;
-    private int maxBatchSize;
-    private Renderer renderer;
-
-    private  int zIndex;
+    private final int maxBatchSize;
+    private final Renderer renderer;
+    private final int zIndex;
 
     public Batch(int maxBatchSize, int zIndex, Renderer renderer) {
         int _trueLimit = GL11.glGetInteger(GL_MAX_TEXTURE_IMAGE_UNITS);
@@ -61,13 +59,16 @@ public class Batch implements Comparable<Batch> {
             System.out.println("Encounter texture limit! " + "(Asking " + MAX_TEX_BATCH + "/" + _trueLimit + ")\nSetting new limit...");
             this.MAX_TEX_BATCH = _trueLimit;
         }
+
         this.renderer = renderer;
+
         this.zIndex = zIndex;
         this.sprites = new SpriteRender[maxBatchSize];
         this.maxBatchSize = maxBatchSize;
 
         // 4 vertices quads
         vertices = new float[maxBatchSize * 4 * VERTEX_SIZE];
+
         this.countSprite = 0;
         this.hasSpace = true;
         this.textures = new ArrayList<>();
@@ -120,8 +121,8 @@ public class Batch implements Comparable<Batch> {
             }
         }
 
-        // Add property to vertex array
-        loadVertexProp(index);
+        // Add property to the vertex array
+        genVertexProperties(index);
 
         if (countSprite >= this.maxBatchSize) {
             this.hasSpace = false;
@@ -132,15 +133,15 @@ public class Batch implements Comparable<Batch> {
         boolean rebufferData = false;
         for (int i = 0; i < countSprite; i++) {
             SpriteRender spr = sprites[i];
-            if (spr.isDamage()) {
-                loadVertexProp(i);
-                spr.setDamage(false);
+            if (spr.isDirty()) {
+                genVertexProperties(i);
+                spr.setDirty(false);
                 rebufferData = true;
             }
 
             if(spr.gameObject.transform.zIndex != this.zIndex) {
                 removeWhenExist(spr.gameObject);
-                renderer.add(spr.gameObject);
+                renderer.addGameObject(spr.gameObject);
                 i--;
             }
         }
@@ -173,45 +174,21 @@ public class Batch implements Comparable<Batch> {
         glDisableVertexAttribArray(1);
         glBindVertexArray(0);
 
-        for (int i = 0; i <textures.size(); i++) {
-            textures.get(i).unbind();
+        for (Texture texture : textures) {
+            texture.unbind();
         }
 
         shader.detach();
     }
 
-    public boolean removeWhenExist(GameObject go) {
-        SpriteRender spriteRender = go.getComponent(SpriteRender.class);
-        for (int i = 0; i < countSprite; i++) {
-            if (sprites[i] == spriteRender) {
-
-                // [1, 2, 3, 4, 5, 6, ...]
-                // Remove object 3 -> override 3 with 4 and move all stack up.
-                // Start moving the stack at position i, where the old sprite is supposed to be disposed
-                for (int j = i; j < countSprite - 1; j++) {
-                    // override the previous sprite with the next sprite in the stack
-                    sprites[j] = sprites[j + 1];
-
-                    // Set damage to signal update on the moved up sprites.
-                    sprites[j].setDamage(true);
-                }
-                // reduce stack size each time a sprite is removed
-                countSprite --;
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private void loadVertexProp(int index) {
-        SpriteRender spt = this.sprites[index];
+    private void genVertexProperties(int index) {
+        SpriteRender spt = sprites[index];
 
         // Set offset in the array (4/spt)
         int offset = index * 4 * VERTEX_SIZE;
 
         Vector4f color = spt.getColor();
-        Vector2f[] tCoord = spt.getTextureCoordinates();
+        Vector2f[] textureCoordinates = spt.getTextureCoordinates();
 
         int ID = 0;
         //[0, tex, tex, tex, tex]
@@ -222,7 +199,6 @@ public class Batch implements Comparable<Batch> {
                     ID = i + 1;
                     break;
                 }
-
             }
         }
 
@@ -240,15 +216,14 @@ public class Batch implements Comparable<Batch> {
         float xAdd = 0.5f;
         float yAdd = 0.5f;
         for (int i = 0; i < 4; i++) {
-            if ( i == 1) {
-                yAdd = -0.5f;
-            } else if (i == 2) {
-                xAdd = -0.5f;
-            } else if (i == 3) {
-                yAdd = 0.5f;
+            switch (i) {
+                case 1 -> yAdd = -0.5f;
+                case 2 -> xAdd = -0.5f;
+                case 3 -> yAdd = 0.5f;
             }
 
-            Vector4f instPos = new Vector4f(spt.gameObject.transform.position.x + (xAdd * spt.gameObject.transform.scale.x),
+            Vector4f instPos = new Vector4f(
+                    spt.gameObject.transform.position.x + (xAdd * spt.gameObject.transform.scale.x),
                     spt.gameObject.transform.position.y + (yAdd * spt.gameObject.transform.scale.y),
                     0, 1
             );
@@ -267,8 +242,8 @@ public class Batch implements Comparable<Batch> {
             vertices[offset + 5] = color.w;
 
             // Load coordinate
-            vertices[offset + 6] = tCoord[i].x;
-            vertices[offset + 7] = tCoord[i].y;
+            vertices[offset + 6] = textureCoordinates[i].x;
+            vertices[offset + 7] = textureCoordinates[i].y;
 
             // Load id
             vertices[offset + 8] = ID;
@@ -278,6 +253,29 @@ public class Batch implements Comparable<Batch> {
 
             offset += VERTEX_SIZE;
         }
+    }
+
+    public boolean removeWhenExist(GameObject go) {
+        SpriteRender spriteRender = go.getComponent(SpriteRender.class);
+
+        for (int i = 0; i < countSprite; i++) {
+            if (sprites[i] == spriteRender) {
+                // [1, 2, 3, 4, 5, 6, ...]
+                // Remove object 3 -> override 3 with 4 and move all stack up.
+                // Start moving the stack at position i, where the old sprite is supposed to be disposed
+                for (int j = i; j < countSprite - 1; j++) {
+                    // override the previous sprite with the next sprite in the stack
+                    sprites[j] = sprites[j + 1];
+
+                    // Set damage to signal update on the moved up sprites.
+                    sprites[j].setDirty(true);
+                }
+                // reduce stack size each time a sprite is removed
+                countSprite --;
+                return true;
+            }
+        }
+        return false;
     }
 
     private int[] genIndices() {
@@ -299,10 +297,10 @@ public class Batch implements Comparable<Batch> {
         // Tris 1
         elements[offsetArrayI] = offset + 3;
         elements[offsetArrayI + 1] = offset + 2;
-        elements[offsetArrayI + 2] = offset + 0;
+        elements[offsetArrayI + 2] = offset;
 
         //Tris 2
-        elements[offsetArrayI + 3] = offset + 0;
+        elements[offsetArrayI + 3] = offset;
         elements[offsetArrayI + 4] = offset + 2;
         elements[offsetArrayI + 5] = offset + 1;
     }
@@ -311,10 +309,10 @@ public class Batch implements Comparable<Batch> {
         return this.hasSpace;
     }
 
-    public boolean isTexCapValid () {
+    public boolean isTextureCapacityValid() {
         return this.textures.size() < MAX_TEX_BATCH;
     }
-     public boolean isTex(Texture t) {
+     public boolean hasTexture(Texture t) {
         return this.textures.contains(t);
      }
 

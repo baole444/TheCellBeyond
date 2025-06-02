@@ -4,9 +4,9 @@ import TheCellBeyond.GameObject;
 import components.SpriteRender;
 import imgui.ImGui;
 import org.joml.Vector4f;
-import physic_2d.components.FlatPhysicBody;
-import physic_2d.components.collider.FlatBoxCollider;
-import physic_2d.components.collider.FlatCircleCollider;
+import physic2d.components.PhysicBody2D;
+import physic2d.components.collider.BoxCollider2D;
+import physic2d.components.collider.CircleCollider2D;
 import render.ObjectSelection;
 
 import java.util.ArrayList;
@@ -38,22 +38,22 @@ public class Properties {
 
             if (ImGui.beginPopupContextWindow("AddComponent")) {
                 if (ImGui.menuItem("Generate Physic body")) {
-                    if (activeGameObject.getComponent(FlatPhysicBody.class) == null) {
-                        activeGameObject.addComponent(new FlatPhysicBody());
+                    if (activeGameObject.getComponent(PhysicBody2D.class) == null) {
+                        activeGameObject.addComponent(new PhysicBody2D());
                     }
                 }
 
                 if (ImGui.menuItem("Generate Box Collider")) {
-                    if ((activeGameObject.getComponent(FlatBoxCollider.class) == null) &&
-                            (activeGameObject.getComponent(FlatCircleCollider.class) == null)) {
-                        activeGameObject.addComponent(new FlatBoxCollider());
+                    if ((activeGameObject.getComponent(BoxCollider2D.class) == null) &&
+                            (activeGameObject.getComponent(CircleCollider2D.class) == null)) {
+                        activeGameObject.addComponent(new BoxCollider2D());
                     }
                 }
 
                 if (ImGui.menuItem("Generate Circle Collider")) {
-                    if ((activeGameObject.getComponent(FlatCircleCollider.class) == null) &&
-                            (activeGameObject.getComponent(FlatBoxCollider.class) == null)) {
-                        activeGameObject.addComponent(new FlatCircleCollider());
+                    if ((activeGameObject.getComponent(CircleCollider2D.class) == null) &&
+                            (activeGameObject.getComponent(BoxCollider2D.class) == null)) {
+                        activeGameObject.addComponent(new CircleCollider2D());
                     }
                 }
                 ImGui.endPopup();

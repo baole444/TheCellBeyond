@@ -22,7 +22,7 @@ import org.lwjgl.openal.ALC;
 import org.lwjgl.openal.ALCCapabilities;
 import org.lwjgl.openal.ALCapabilities;
 import org.lwjgl.opengl.GL;
-import physic_2d.FlatPhysic;
+import physic2d.Physic2D;
 import render.*;
 import scene.LevelEditorSceneInit;
 import scene.Scene;
@@ -508,7 +508,7 @@ public class Window implements EventInterface {
         Window.currentSceneName = currentSceneName;
     }
 
-    public static FlatPhysic getFlatPhysic() {
+    public static Physic2D getFlatPhysic() {
         return currentScene.getFlatPhysic();
     }
 
