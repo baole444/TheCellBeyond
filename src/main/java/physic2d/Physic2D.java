@@ -76,13 +76,13 @@ public class Physic2D {
             if ((circleCollider2D =
                     go.getComponent(CircleCollider2D.class)) != null ) {
 
-                addFlatCircleCollider(physicBody2D, circleCollider2D);
+                addCircleCollider2D(physicBody2D, circleCollider2D);
             }
 
             if ((boxCollider2D =
                     go.getComponent(BoxCollider2D.class)) != null) {
 
-                addFlatBoxCollider(physicBody2D, boxCollider2D);
+                addBoxCollider2D(physicBody2D, boxCollider2D);
             }
 
             if ((pillBoxCollider =
@@ -127,10 +127,10 @@ public class Physic2D {
         body.createFixture(fixtureDef);
     }
 
-    public void addFlatBoxCollider(PhysicBody2D physicBody2D, Component colliderComponent) {
+    public void addBoxCollider2D(PhysicBody2D physicBody2D, Component colliderComponent) {
         BoxCollider2D boxCollider2D = (BoxCollider2D) colliderComponent;
         Body body = physicBody2D.getInstObjectBody();
-        assert body != null : "Instant physical body of Object found.";
+        assert body != null : "Instant physical body of Object not found.";
 
         PolygonShape shape = new PolygonShape();
 
@@ -143,10 +143,10 @@ public class Physic2D {
         createFixture(physicBody2D, body, shape);
     }
 
-    public void addFlatCircleCollider(PhysicBody2D physicBody2D, Component colliderComponent) {
+    public void addCircleCollider2D(PhysicBody2D physicBody2D, Component colliderComponent) {
         CircleCollider2D circleCollider2D = (CircleCollider2D) colliderComponent;
         Body body = physicBody2D.getInstObjectBody();
-        assert body != null : "Instant physical body of Object found.";
+        assert body != null : "Instant physical body of Object not found.";
 
         CircleShape shape = new CircleShape();
 
@@ -162,11 +162,11 @@ public class Physic2D {
     public void addPillBoxCollider(PhysicBody2D physicBody2D, Component colliderComponent) {
         PillBoxCollider pillBoxCollider = (PillBoxCollider) colliderComponent;
         Body body = physicBody2D.getInstObjectBody();
-        assert body != null : "Instant physical body of Object found.";
+        assert body != null : "Instant physical body of Object not found.";
 
-        addFlatBoxCollider(physicBody2D, pillBoxCollider.getMidBox());
-        addFlatCircleCollider(physicBody2D, pillBoxCollider.getHeadCircle());
-        addFlatCircleCollider(physicBody2D, pillBoxCollider.getFootCircle());
+        addBoxCollider2D(physicBody2D, pillBoxCollider.getMidBox());
+        addCircleCollider2D(physicBody2D, pillBoxCollider.getHeadCircle());
+        addCircleCollider2D(physicBody2D, pillBoxCollider.getFootCircle());
     }
 
     public void resetCollider(PhysicBody2D physicBody2D, Component colliderObject) {
@@ -181,10 +181,10 @@ public class Physic2D {
         }
 
         if (colliderObject instanceof BoxCollider2D) {
-            addFlatBoxCollider(physicBody2D, colliderObject);
+            addBoxCollider2D(physicBody2D, colliderObject);
         }
         else if (colliderObject instanceof CircleCollider2D) {
-            addFlatCircleCollider(physicBody2D, colliderObject);
+            addCircleCollider2D(physicBody2D, colliderObject);
         }
         else if (colliderObject instanceof PillBoxCollider) {
             addPillBoxCollider(physicBody2D, colliderObject);

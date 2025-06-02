@@ -145,7 +145,7 @@ public class ThreadEngine {
 
             if (go.isRemoved()) {
                 gameScene.getGameObjects().remove(i);
-                gameRenderer.destroyObject(go);
+                gameRenderer.queueObjectForRemoval(go);
                 gameScene.getFlatPhysic().destroyObject(go);
                 i--;
             }

@@ -8,16 +8,22 @@ import render.text.TextBatch;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 
 public class Renderer {
     private final int MAX_BATCH_SIZE = 1000;
-    private final List<Batch> batches;
+    private final List<Batch> textureBatches;
     private final List<TextBatch> textBatches;
 
+    private final List<GameObject> updatedGameObjects;
+    private final List<GameObject> removedGameObjects;
+
     public Renderer() {
-        this.batches = new ArrayList<>();
+        this.textureBatches = new ArrayList<>();
         this.textBatches = new ArrayList<>();
+        this.updatedGameObjects = new ArrayList<>();
+        this.removedGameObjects = new ArrayList<>();
     }
 
     public void addGameObject(GameObject go) {
@@ -34,7 +40,7 @@ public class Renderer {
 
     private void addSprite(SpriteRender sprite) {
         boolean isAdded = false;
-        for (Batch batch: batches) {
+        for (Batch batch: textureBatches) {
             if (batch.hasSpace() && batch.zIndex() == sprite.gameObject.transform.zIndex) {
                 Texture t = sprite.getTexture();
                 if (t == null || (batch.hasTexture(t) || batch.isTextureCapacityValid())) {
@@ -48,25 +54,25 @@ public class Renderer {
         if (!isAdded) {
             Batch newBatch = new Batch(MAX_BATCH_SIZE, sprite.gameObject.transform.zIndex, this);
             newBatch.start();
-            batches.add(newBatch);
+            textureBatches.add(newBatch);
             newBatch.loadSprite(sprite);
-            Collections.sort(batches);
+            Collections.sort(textureBatches);
         }
     }
 
     private void addText(TextComponent textComponent) {
-        boolean isAdd = false;
+        boolean isAdded = false;
         int zIndex = textComponent.gameObject.transform.zIndex;
 
         for (TextBatch batch : textBatches) {
             if (batch.hasRoom() && batch.getzIndex() == zIndex) {
                 batch.add(textComponent);
-                isAdd = true;
+                isAdded = true;
                 break;
             }
         }
 
-        if (!isAdd) {
+        if (!isAdded) {
             TextBatch newBatch = new TextBatch(MAX_BATCH_SIZE, zIndex);
             newBatch.start();
             textBatches.add(newBatch);
@@ -84,9 +90,7 @@ public class Renderer {
             state.enableSpriteRendering();
         }
 
-        // TODO: Need to fix cocurrent exception when changing to enhanced for loop.
-        for (int i = 0; i < batches.size(); i++) {
-            Batch batch = batches.get(i);
+        for (Batch batch : textureBatches) {
             batch.render();
         }
 
@@ -97,12 +101,22 @@ public class Renderer {
         for (TextBatch textBatch : textBatches) {
             textBatch.render();
         }
+
+        updateBatches();
     }
 
-    public void destroyObject(GameObject go) {
+    public void queueObjectForRemoval(GameObject go) {
+        if (!removedGameObjects.contains(go)) removedGameObjects.add(go);
+    }
+
+    public void queueObjectForUpdate(GameObject go) {
+        if (!updatedGameObjects.contains(go)) updatedGameObjects.add(go);
+    }
+
+    private void destroyObject(GameObject go) {
         if (go.getComponent(SpriteRender.class) != null) {
-            for (Batch batch : batches) {
-                if (batch.removeWhenExist(go)) {
+            for (Batch batch : textureBatches) {
+                if (batch.removeIfExist(go)) {
                     return;
                 }
             }
@@ -116,5 +130,22 @@ public class Renderer {
                 }
             }
         }
+    }
+
+    private void updateBatches() {
+        if (new HashSet<>(updatedGameObjects).containsAll(removedGameObjects)) {
+            updatedGameObjects.removeAll(removedGameObjects);
+        }
+
+        for (GameObject go: removedGameObjects) {
+            destroyObject(go);
+        }
+
+        for (GameObject go : updatedGameObjects) {
+            addGameObject(go);
+        }
+
+        updatedGameObjects.clear();
+        removedGameObjects.clear();
     }
 }

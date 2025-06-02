@@ -96,7 +96,7 @@ public class Scene {
             if (go.isRemoved()) {
 
                 gameObjects.remove(i);
-                this.renderer.destroyObject(go);
+                this.renderer.queueObjectForRemoval(go);
                 this.physic2D.destroyObject(go);
 
                 i --; // Step back if remove
@@ -115,7 +115,7 @@ public class Scene {
             if (go.isRemoved()) {
                 //System.out.println("A request to end an object's rendering is called at position: " + i + " This one is from update");
                 gameObjects.remove(i);
-                this.renderer.destroyObject(go);
+                this.renderer.queueObjectForRemoval(go);
                 this.physic2D.destroyObject(go);
 
                 i --; // Step back if remove

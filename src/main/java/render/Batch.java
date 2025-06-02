@@ -131,6 +131,7 @@ public class Batch implements Comparable<Batch> {
 
     public void render() {
         boolean rebufferData = false;
+
         for (int i = 0; i < countSprite; i++) {
             SpriteRender spr = sprites[i];
             if (spr.isDirty()) {
@@ -140,8 +141,8 @@ public class Batch implements Comparable<Batch> {
             }
 
             if(spr.gameObject.transform.zIndex != this.zIndex) {
-                removeWhenExist(spr.gameObject);
-                renderer.addGameObject(spr.gameObject);
+                removeIfExist(spr.gameObject);
+                renderer.queueObjectForUpdate(spr.gameObject);
                 i--;
             }
         }
@@ -255,7 +256,7 @@ public class Batch implements Comparable<Batch> {
         }
     }
 
-    public boolean removeWhenExist(GameObject go) {
+    public boolean removeIfExist(GameObject go) {
         SpriteRender spriteRender = go.getComponent(SpriteRender.class);
 
         for (int i = 0; i < countSprite; i++) {
