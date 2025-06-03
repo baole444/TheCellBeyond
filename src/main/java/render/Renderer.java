@@ -92,6 +92,10 @@ public class Renderer {
         updateBatches();
     }
 
+    /**
+     * This is just an alias for {@link Renderer#queueObjectForUpdate(GameObject)}.
+     * @param go game object to add.
+     */
     public void queueObjectForAddition(GameObject go) {
         queueObjectForUpdate(go);
     }
@@ -102,7 +106,7 @@ public class Renderer {
     }
 
     public void queueObjectForUpdate(GameObject go) {
-        if (!updatedGameObjects.contains(go)) updatedGameObjects.add(go);
+        if (!updatedGameObjects.contains(go) && !removedGameObjects.contains(go)) updatedGameObjects.add(go);
     }
 
     private void addGameObject(GameObject go) {
@@ -143,7 +147,7 @@ public class Renderer {
         }
 
         for (GameObject go : updatedGameObjects) {
-            addGameObject(go);
+            if (!go.isRemoved()) addGameObject(go);
         }
 
         updatedGameObjects.clear();
