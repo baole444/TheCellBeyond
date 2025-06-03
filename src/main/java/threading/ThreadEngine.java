@@ -125,7 +125,7 @@ public class ThreadEngine {
             GameState renderBuffer = bufferManager.beginRendering();
 
             if (renderBuffer != null) {
-                renderScene(renderBuffer);
+                //renderScene(renderBuffer);
             }
 
             try {
@@ -155,95 +155,6 @@ public class ThreadEngine {
 
         // Capture current scene state into write buffer
         state.captureFrom(gameScene);
-    }
-
-    /**
-     * Render the scene using the provided game state.
-     * @param state the game state to render from
-     */
-    private void renderScene(GameState state) {
-        updateViewport(state);
-
-        renderSelectionPass(state);
-
-        renderNormalPass(state);
-    }
-
-    private void updateViewport(GameState state) {
-        Viewport viewport = gameScene.viewport();
-        viewport.position.set(state.getViewportPosition());
-        viewport.setZoom(state.getViewportZoom());
-        viewport.adjustProjection();
-    }
-
-    private void renderSelectionPass(GameState state) {
-        RendererState rendererState = RendererState.get();
-        rendererState.setRenderPass(RendererState.RenderPass.SELECTION);
-
-        Shader objectSelectionShader = AssetsPool.loadShader(Settings.PATH.OBJECT_SELECTION_SHADER);
-        rendererState.setShader(objectSelectionShader);
-
-        objectSelection.useWrite();
-
-        glViewport(0, 0, 1920, 1080);
-        glClearColor(0f, 0f, 0f, 0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        renderGameState(state);
-
-        objectSelection.detachWrite();
-    }
-
-    private void renderNormalPass(GameState state) {
-        RendererState rendererState = RendererState.get();
-        rendererState.setRenderPass(RendererState.RenderPass.NORMAL);
-
-        Shader defaultShader = AssetsPool.loadShader(Settings.PATH.DEFAULT_TEXTURE_SHADER);
-        rendererState.setShader(defaultShader);
-
-        DebugDraw.startFrame();
-
-        frameBuffer.use();
-
-        glClearColor(0.027f, 0.122f, 0.067f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        renderGameState(state);
-
-        DebugDraw.draw();
-
-        frameBuffer.detach();
-    }
-
-    /**
-     * Render only the state data and not modify scene's objects.
-     * @param state the game state to render from.
-     */
-    private void renderGameState(GameState state) {
-        // Update font
-        FontManager.get().updateFontTextures();
-
-        Map<Integer, Batch> spriteBatches = new HashMap<>();
-        Map<Integer, TextBatch> textBatches = new HashMap<>();
-
-        // Render each object based on its state.
-        for (GameObjectState objectState : state.getGameObjectStates()) {
-            if (objectState.isRemoved()) {
-                continue;
-            }
-
-            int zIndex = objectState.getzIndex();
-
-            SpriteRenderState spriteState = objectState.getSpriteRenderState();
-
-            if (spriteState != null && spriteState.getTexturePath() != null) {
-                Batch batch = spriteBatches.computeIfAbsent(zIndex, idx -> {
-                    Batch newBatch = new Batch(1000, idx, null);
-                    newBatch.start();
-                    return newBatch;
-                });
-            }
-        }
     }
 
     public boolean isRunning() {
