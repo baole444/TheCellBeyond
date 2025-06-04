@@ -502,8 +502,8 @@ public class Window implements EventInterface {
         Window.currentSceneName = currentSceneName;
     }
 
-    public static Physic2D getFlatPhysic() {
-        return currentScene.getFlatPhysic();
+    public static Physic2D getPhysic2D() {
+        return currentScene.getPhysic2D();
     }
 
     public boolean isRuntimeMode() {

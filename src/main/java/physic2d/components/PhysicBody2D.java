@@ -87,7 +87,7 @@ public class PhysicBody2D extends Component {
     public void setSensor(boolean sensor) {
         isSensor = sensor;
         if (instObjectBody != null) {
-            Window.getFlatPhysic().setIsSensor(this, sensor);
+            Window.getPhysic2D().setIsSensor(this, sensor);
         }
     }
 

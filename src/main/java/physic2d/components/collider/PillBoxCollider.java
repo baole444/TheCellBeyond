@@ -113,7 +113,7 @@ public class PillBoxCollider extends Component {
     }
 
     public void resetFixtures() {
-        if (Window.getFlatPhysic().isLock()) {
+        if (Window.getPhysic2D().isLock()) {
             shouldFixtureReset = true;
             return;
         }
@@ -124,7 +124,7 @@ public class PillBoxCollider extends Component {
             PhysicBody2D physicBody2D = gameObject.getComponent(PhysicBody2D.class);
 
             if (physicBody2D != null) {
-                Window.getFlatPhysic().resetCollider(physicBody2D, this);
+                Window.getPhysic2D().resetCollider(physicBody2D, this);
             }
         }
     }

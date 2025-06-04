@@ -21,14 +21,14 @@ import static editor.project.Project.CurrentProject;
 import static editor.project.Project.ProjectRoot;
 
 public class Scene {
-    private Renderer renderer;
+    private final Renderer renderer;
     private Viewport viewport;
     private boolean isSceneOn;
-    private List<GameObject> gameObjects;
-    private Physic2D physic2D;
+    private final List<GameObject> gameObjects;
+    private final Physic2D physic2D;
     private boolean isFileLoaded = false;
 
-    private SceneInit sceneInit;
+    private final SceneInit sceneInit;
 
     public Scene(SceneInit sceneInit) {
         this.sceneInit = sceneInit;
@@ -40,11 +40,11 @@ public class Scene {
 
     public void init() {
         // View point position
-        this.viewport = new Viewport(new Vector2f(0, 0));
+        viewport = new Viewport(new Vector2f(0, 0));
 
         // Load resource, maintain init method
-        this.sceneInit.loadResource(this);
-        this.sceneInit.init(this);
+        sceneInit.loadResource(this);
+        sceneInit.init(this);
     }
 
     public void start() {
@@ -87,7 +87,7 @@ public class Scene {
     }
 
     public void editorUpdate(float dt) {
-        this.viewport.adjustProjection();
+        viewport.adjustProjection();
 
         for (int i = 0; i < gameObjects.size(); i++) {
             GameObject go = gameObjects.get(i);
@@ -96,8 +96,8 @@ public class Scene {
             if (go.isRemoved()) {
 
                 gameObjects.remove(i);
-                this.renderer.queueObjectForRemoval(go);
-                this.physic2D.destroyObject(go);
+                renderer.queueObjectForRemoval(go);
+                physic2D.destroyObject(go);
 
                 i --; // Step back if remove
             }
@@ -105,8 +105,8 @@ public class Scene {
     }
 
     public void update(float dt) {
-        this.viewport.adjustProjection();
-        this.physic2D.update(dt);
+        viewport.adjustProjection();
+        physic2D.update(dt);
 
         for (int i = 0; i < gameObjects.size(); i++) {
             GameObject go = gameObjects.get(i);
@@ -115,8 +115,8 @@ public class Scene {
             if (go.isRemoved()) {
                 //System.out.println("A request to end an object's rendering is called at position: " + i + " This one is from update");
                 gameObjects.remove(i);
-                this.renderer.queueObjectForRemoval(go);
-                this.physic2D.destroyObject(go);
+                renderer.queueObjectForRemoval(go);
+                physic2D.destroyObject(go);
 
                 i --; // Step back if remove
             }
@@ -124,15 +124,15 @@ public class Scene {
     }
     public void render() {
         renderer.setMatrices(viewport.getProjectionMatrix(), viewport.getViewMatrix());
-        this.renderer.render();
+        renderer.render();
     }
 
     public Viewport viewport() {
-        return this.viewport;
+        return viewport;
     }
 
     public void imgui() {
-        this.sceneInit.imgui();
+        sceneInit.imgui();
     }
 
     public GameObject generateObject(String name) {
@@ -143,24 +143,14 @@ public class Scene {
         return obj;
     }
 
-    public Physic2D getFlatPhysic() {
-        return this.physic2D;
+    public Physic2D getPhysic2D() {
+        return physic2D;
     }
 
     public Renderer getRenderer() {
         return renderer;
     }
 
-    public void logGameObjects() {
-        System.out.println("Logging all game objects");
-        List<GameObject> allObj = getGameObjects();
-        Collections.sort(allObj, Comparator.comparingInt(GameObject::getUID));
-
-        allObj.forEach(go -> System.out.println(go));
-        System.out.println("\n");
-    }
-
-    // TODO: Remove project root from saveLevel function
     public void saveLevel() {
         String currentSceneName = Window.getCurrentSceneName();
         String resolvedPath;
@@ -181,13 +171,11 @@ public class Scene {
             FileWriter writer = new FileWriter(resolvedPath);
             List<GameObject> serializeList = new ArrayList<>();
             for (GameObject obj : this.gameObjects) {
-                if (obj.isSerialize()) {
-                    if (CurrentProject != null && ProjectRoot != null && currentSceneName != null) {
-                        if (obj.getComponent(SpriteRender.class) != null) {
-                            String texturePath = obj.getComponent(SpriteRender.class).getTexture().getFilePath();
-                            String relativePath = PathResolver.resolveToRelative(ProjectRoot, texturePath);
-                            obj.getComponent(SpriteRender.class).getTexture().setFilePath(relativePath);
-                        }
+                if (obj.isSerialize() && CurrentProject != null && ProjectRoot != null && currentSceneName != null) {
+                    if (obj.getComponent(SpriteRender.class) != null) {
+                        String texturePath = obj.getComponent(SpriteRender.class).getTexture().getFilePath();
+                        String relativePath = PathResolver.resolveToRelative(ProjectRoot, texturePath);
+                        obj.getComponent(SpriteRender.class).getTexture().setFilePath(relativePath);
                     }
 
                     serializeList.add(obj);
@@ -203,7 +191,6 @@ public class Scene {
         }
     }
 
-    // TODO: attach project root when loading level
     public void loadLevel() {
         String currentSceneName = Window.getCurrentSceneName();
         String resolvedPath;
@@ -220,7 +207,7 @@ public class Scene {
                 .enableComplexMapKeySerialization()
                 .create();
 
-        String loadFile = "";
+        String loadFile;
         try {
             loadFile = new String(Files.readAllBytes(Paths.get(resolvedPath)));
         } catch (IOException e) {
@@ -235,26 +222,24 @@ public class Scene {
             int maxObjID = -1;
             int maxCompID = -1;
 
-            GameObject[] objs = gson.fromJson(loadFile, GameObject[].class);
-            for (int i = 0; i < objs.length; i++) {
-                // adjust the object path here, probably
-
+            GameObject[] objects = gson.fromJson(loadFile, GameObject[].class);
+            for (GameObject go : objects) {
                 if (CurrentProject != null && ProjectRoot != null && currentSceneName != null) {
-                    String texturePath = objs[i].getComponent(SpriteRender.class).getTexture().getFilePath();
+                    String texturePath = go.getComponent(SpriteRender.class).getTexture().getFilePath();
                     String absPath = PathResolver.resolveToAbsolute(ProjectRoot, texturePath);
-                    objs[i].getComponent(SpriteRender.class).getTexture().setFilePath(absPath);
+                    go.getComponent(SpriteRender.class).getTexture().setFilePath(absPath);
                 }
 
-                addObjToScene(objs[i]);
+                addObjToScene(go);
 
-                for (Component c : objs[i].getComponents()) {
+                for (Component c : go.getComponents()) {
                     if (c.getUID() > maxCompID) {
                         maxCompID = c.getUID();
                     }
                 }
 
-                if (objs[i].getUID() > maxObjID) {
-                    maxObjID = objs[i].getUID();
+                if (go.getUID() > maxObjID) {
+                    maxObjID = go.getUID();
                 }
             }
 

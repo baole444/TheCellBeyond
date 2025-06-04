@@ -49,9 +49,9 @@ public class LevelEditorSceneInit extends SceneInit {
 
     @Override
     public void init(Scene scene) {
-        GameObject testText = Prefab.genText("〄々〆〇ぁあぃいぅツヅテデＢＣＤ仲仳以", "assets/fonts/NotoSansJP.ttf", 24, new Vector4f(1, 1f, 1, 1), GlyphRange.JAPANESE);
-        testText.transform.position.set(1f, 1.5f);
-        scene.addObjToScene(testText);
+        //GameObject testText = Prefab.genText("〄々〆〇ぁあぃいぅツヅテデＢＣＤ仲仳以", "assets/fonts/NotoSansJP.ttf", 24, new Vector4f(1, 1f, 1, 1), GlyphRange.JAPANESE);
+        //testText.transform.position.set(1f, 1.5f);
+        //scene.addObjToScene(testText);
 
         if (sceneName != null && CurrentProject != null) {
             thisScene = CurrentProject.getScenes().get(sceneName);

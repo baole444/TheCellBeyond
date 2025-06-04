@@ -64,6 +64,10 @@ public class Renderer {
         if (!isAdded) {
             Batch newBatch = new Batch(MAX_BATCH_SIZE, sprite.gameObject.transform.zIndex, this);
             newBatch.start();
+
+            if (projectionMatrix != null) newBatch.setProjectionMatrix(projectionMatrix);
+            if (viewMatrix != null) newBatch.setViewMatrix(viewMatrix);
+
             textureBatches.add(newBatch);
             newBatch.loadSprite(sprite);
             Collections.sort(textureBatches);
@@ -85,6 +89,10 @@ public class Renderer {
         if (!isAdded) {
             TextBatch newBatch = new TextBatch(MAX_BATCH_SIZE, zIndex);
             newBatch.start();
+
+            if (projectionMatrix != null) newBatch.setProjectionMatrix(projectionMatrix);
+            if (viewMatrix != null) newBatch.setViewMatrix(viewMatrix);
+
             textBatches.add(newBatch);
             newBatch.add(textComponent);
             Collections.sort(textBatches);

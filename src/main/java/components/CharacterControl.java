@@ -94,7 +94,7 @@ public class CharacterControl extends Component {
             }
         }
 
-        this.acceleration.y = Window.getFlatPhysic().getGravity().y * 0.7f;
+        this.acceleration.y = Window.getPhysic2D().getGravity().y * 0.7f;
 
         this.velocity.x += this.acceleration.x * dt;
         this.velocity.y += this.acceleration.y * dt;
