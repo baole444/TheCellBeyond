@@ -10,29 +10,28 @@ import render.Texture;
  * A class dedicated to rendering a sprite, and it's life cycle.
  */
 public class SpriteRender extends Component {
-
     private final Vector4f color = new Vector4f(1, 1, 1 , 1);
     private Sprite sprite = new Sprite();
-    private transient Transform lastT;
+    private transient Transform instTransform;
     private transient boolean isDirty = true;
 
     @Override
     public void start() {
-        this.lastT = gameObject.transform.copy();
+        instTransform = this.gameObject.transform.copy();
     }
 
     @Override
     public void editorUpdate(float dt) {
-        if (!this.lastT.equals(this.gameObject.transform)) {
-            this.gameObject.transform.copy(this.lastT);
+        if (!instTransform.equals(this.gameObject.transform)) {
+            instTransform.copyFrom(this.gameObject.transform);
             isDirty = true;
         }
     }
 
     @Override
     public void update(float dt) {
-        if (!this.lastT.equals(this.gameObject.transform)) {
-            this.gameObject.transform.copy(this.lastT);
+        if (!instTransform.equals(this.gameObject.transform)) {
+            instTransform.copyFrom(this.gameObject.transform);
             isDirty = true;
         }
     }
@@ -42,6 +41,22 @@ public class SpriteRender extends Component {
         if (ImEditorGui.colorCtrl("Color", this.color)) {
             this.isDirty = true;
         }
+    }
+
+    @Override
+    public void copyFrom(Component target) {
+        if (target instanceof SpriteRender targetSpriteRender) {
+            this.color.set(targetSpriteRender.color);
+            this.sprite = targetSpriteRender.sprite;
+            this.setDirty(true);
+        }
+    }
+
+    @Override
+    public SpriteRender copy() {
+        SpriteRender copy = new SpriteRender();
+        copy.copyFrom(this);
+        return copy;
     }
 
     public void setDirty(boolean isDamage) {

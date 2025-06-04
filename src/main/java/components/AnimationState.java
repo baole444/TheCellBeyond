@@ -48,4 +48,32 @@ public class AnimationState {
             frame.sprite.setTex(AssetsPool.loadTexture(frame.sprite.getTexture().getFilePath()));
         }
     }
+
+    public AnimationState copy() {
+        AnimationState copy = new AnimationState();
+
+        copy.title = this.title;
+        copy.isLoop = this.isLoop;
+
+        for (Frame frame : this.animateFrame) {
+            copy.animateFrame.add(frame.copy());
+        }
+
+        return copy;
+    }
+
+    public void copyFrom(AnimationState target) {
+        if (target == null) return;
+
+        this.title = target.title;
+        this.isLoop = target.isLoop;
+
+        this.animateFrame.clear();
+        for (Frame frame : target.animateFrame) {
+            this.animateFrame.add(frame.copy());
+        }
+
+        this.timeTrack = 0.0f;
+        this.instSprite = 0;
+    }
 }

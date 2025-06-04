@@ -11,7 +11,7 @@ import java.util.Objects;
 
 public class StateEngine extends Component {
     // Use for trigger a state
-    private class StateCondition {
+    private static class StateCondition {
         public String state;
         public String condition;
 
@@ -150,4 +150,19 @@ public class StateEngine extends Component {
         }
     }
 
+    @Override
+    public void copyFrom(Component target) {
+        if (target instanceof StateEngine targetStateEngine) {
+            this.shiftState.clear();
+            this.shiftState.putAll(targetStateEngine.shiftState);
+
+            this.states.clear();
+            for (AnimationState state : targetStateEngine.states) {
+                this.states.add(state.copy());
+            }
+
+            this.defaultTitle = targetStateEngine.defaultTitle;
+            this.instState = null;
+        }
+    }
 }

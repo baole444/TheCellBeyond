@@ -8,7 +8,11 @@ public class Transform extends Component {
     public Vector2f position;
     public Vector2f scale;
     public float rotate = 0.0f;
+
+    // TODO: Move this to ImGuiEditor, this step shouldn't be here.
+    //  Ideally I could use value of grid size from setting directly.
     public transient float step = 0.32f;
+
     public int zIndex;
 
     public Transform() {
@@ -35,11 +39,23 @@ public class Transform extends Component {
         this.zIndex = 0;
     }
 
-    public Transform copy() {
-        return new Transform(new Vector2f(this.position), new Vector2f(this.scale));
+    @Override
+    public void copyFrom(Component target) {
+        if (target instanceof Transform targetTransform) {
+            this.position.set(targetTransform.position);
+            this.scale.set(targetTransform.scale);
+            this.rotate = targetTransform.rotate;
+            this.zIndex = targetTransform.zIndex;
+            this.step = targetTransform.step;
+        }
     }
 
-    public void copy(Transform to) {
+    @Override
+    public Transform copy() {
+        return new Transform(this);
+    }
+
+    public void copyTo(Transform to) {
         to.position.set(this.position);
         to.scale.set(this.scale);
     }

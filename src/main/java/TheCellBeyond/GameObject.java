@@ -132,6 +132,10 @@ public class GameObject {
         return this.uID;
     }
 
+    public void setUID(int uid) {
+        this.uID = uid;
+    }
+
     public void createUID() {
         this.uID = ID_COUNTER++;
     }

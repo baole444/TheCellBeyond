@@ -2,6 +2,7 @@ package render;
 
 import TheCellBeyond.GameObject;
 import components.SpriteRender;
+import components.StateEngine;
 import components.TextComponent;
 import org.joml.Matrix4f;
 import render.text.FontManager;
@@ -10,14 +11,24 @@ import render.text.TextBatch;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Renderer {
     private final int MAX_BATCH_SIZE = 1000;
     private final List<Batch> textureBatches;
     private final List<TextBatch> textBatches;
 
-    private final List<GameObject> updatedGameObjects;
-    private final List<GameObject> removedGameObjects;
+    private final ConcurrentLinkedQueue<GameObject> updatedGameObjects;
+
+    // This track if we already queue a game object for update this frame.
+    private final ConcurrentHashMap<Integer, Boolean> queuedForUpdate;
+
+    private final ConcurrentLinkedQueue<Integer> removedGameObjectUIDs;
+
+    // This hash map is a deep copy of game objects from game logic thread.
+    // All batches methods will reference these objects instead of live game objects.
+    private final ConcurrentHashMap<Integer, GameObject> internalGameObjects;
 
     private Matrix4f projectionMatrix = null;
     private Matrix4f viewMatrix = null;
@@ -44,8 +55,13 @@ public class Renderer {
     public Renderer() {
         this.textureBatches = new ArrayList<>();
         this.textBatches = new ArrayList<>();
-        this.updatedGameObjects = new ArrayList<>();
-        this.removedGameObjects = new ArrayList<>();
+
+        this.updatedGameObjects = new ConcurrentLinkedQueue<>();
+        this.queuedForUpdate = new ConcurrentHashMap<>();
+
+        this.removedGameObjectUIDs = new ConcurrentLinkedQueue<>();
+
+        this.internalGameObjects = new ConcurrentHashMap<>();
     }
 
     private void addSprite(SpriteRender sprite) {
@@ -131,57 +147,140 @@ public class Renderer {
         queueObjectForUpdate(go);
     }
 
+    // Add a game object to the removal list and remove it from the update list.
     public void queueObjectForRemoval(GameObject go) {
-        updatedGameObjects.remove(go);
-        if (!removedGameObjects.contains(go)) removedGameObjects.add(go);
+        if (go == null) return;
+
+        int uid = go.getUID();
+
+        // Remove tracking data.
+        queuedForUpdate.remove(uid);
+
+        // Remove from update queue.
+        updatedGameObjects.removeIf(object -> object.getUID() == uid);
+
+        // Add this to the removal queue so it cannot be added again in the same frame.
+        removedGameObjectUIDs.offer(uid);
     }
 
+    // Add a game object to the update list so it can be updated with Renderer's internal list.
+    // If the object is queued for removal, it cannot be queued again.
     public void queueObjectForUpdate(GameObject go) {
-        if (!updatedGameObjects.contains(go) && !removedGameObjects.contains(go)) updatedGameObjects.add(go);
+        if (go == null) return;
+
+        int uid = go.getUID();
+
+        // Object is on its way to be removed, will not queue it again.
+        if (removedGameObjectUIDs.contains(uid)) return;
+
+        // If this object is not tracked already, queue it for update.
+        if (queuedForUpdate.putIfAbsent(uid, Boolean.TRUE) == null) updatedGameObjects.offer(go);
     }
 
     private void addGameObject(GameObject go) {
-        SpriteRender spr = go.getComponent(SpriteRender.class);
+        GameObject internalGO = getInternalGameObject(go);
+
+
+        SpriteRender spr = internalGO.getComponent(SpriteRender.class);
         if (spr != null) {
             addSprite(spr);
         }
 
-        TextComponent text = go.getComponent(TextComponent.class);
+        TextComponent text = internalGO.getComponent(TextComponent.class);
         if (text != null) {
             addText(text);
         }
     }
 
 
-    private void destroyObject(GameObject go) {
+    private void destroyObject(int uid) {
+        GameObject go = internalGameObjects.get(uid);
+
+        if (go == null) return;
+
         if (go.getComponent(SpriteRender.class) != null) {
             for (Batch batch : textureBatches) {
-                if (batch.removeIfExist(go)) {
-                    return;
-                }
+                if (batch.removeIfExist(go)) break;
             }
         }
 
         TextComponent textComponent = go.getComponent(TextComponent.class);
         if (textComponent != null) {
             for (TextBatch textBatch : textBatches) {
-                if (textBatch.removeComponent(textComponent)) {
-                    return;
-                }
+                if (textBatch.removeComponent(textComponent)) break;
             }
+        }
+
+        internalGameObjects.remove(uid);
+    }
+
+    private GameObject getInternalGameObject(GameObject og) {
+        int uid = og.getUID();
+
+        GameObject internal = internalGameObjects.get(uid);
+
+        if (internal == null) {
+            internal = og.copy();
+            internalGameObjects.put(uid, internal);
+        } else {
+            updateInternalGameObject(internal, og);
+        }
+
+        return internal;
+    }
+
+    private void updateInternalGameObject(GameObject internalObject, GameObject og) {
+        boolean needRebatch = internalObject.transform != null &&
+                og.transform != null &&
+                internalObject.transform.zIndex != og.transform.zIndex;
+
+        if (needRebatch) {
+            int uid = internalObject.getUID();
+            destroyObject(uid);
+            GameObject copy = og.copy();
+            copy.setUID(uid);
+            addGameObject(copy);
+            return;
+        }
+
+        // Update components
+        if (internalObject.transform != null && og.transform != null) {
+            internalObject.transform.copyFrom(og.transform);
+        }
+
+        SpriteRender internalSprite = internalObject.getComponent(SpriteRender.class);
+        SpriteRender ogSprite = og.getComponent(SpriteRender.class);
+        if (internalSprite != null && ogSprite != null) {
+            internalSprite.copyFrom(ogSprite);
+        }
+
+        TextComponent internalText = internalObject.getComponent(TextComponent.class);
+        TextComponent ogText = og.getComponent(TextComponent.class);
+        if (internalText != null && ogText != null) {
+            internalText.copyFrom(ogText);
+        }
+
+        StateEngine internalStateEngine = internalObject.getComponent(StateEngine.class);
+        StateEngine ogStateEngine = og.getComponent(StateEngine.class);
+        if (internalStateEngine != null && ogStateEngine != null) {
+            internalStateEngine.copyFrom(ogStateEngine);
         }
     }
 
     private void updateBatches() {
-        for (GameObject go: removedGameObjects) {
-            destroyObject(go);
+        Integer removedUID;
+
+        while ((removedUID = removedGameObjectUIDs.poll()) != null) {
+            destroyObject(removedUID);
+            queuedForUpdate.remove(removedUID);
         }
 
-        for (GameObject go : updatedGameObjects) {
-            if (!go.isRemoved()) addGameObject(go);
-        }
+        GameObject toUpdate;
+        while ((toUpdate = updatedGameObjects.poll()) != null) {
+            int uid = toUpdate.getUID();
+            if (!removedGameObjectUIDs.contains(uid)) addGameObject(toUpdate);
 
-        updatedGameObjects.clear();
-        removedGameObjects.clear();
+            queuedForUpdate.remove(uid);
+        }
     }
 }

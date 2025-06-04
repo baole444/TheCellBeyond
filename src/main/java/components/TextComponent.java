@@ -274,6 +274,32 @@ public class TextComponent extends Component implements FontLoadCallback {
         }
     }
 
+    @Override
+    public void copyFrom(Component target) {
+        if (target instanceof TextComponent targetTextComponent) {
+            this.text = targetTextComponent.text;
+            this.fontPath = targetTextComponent.fontPath;
+            this.fontSize = targetTextComponent.fontSize;
+            this.color.set(targetTextComponent.color);
+            this.glyphRangeName = targetTextComponent.glyphRangeName;
+            this.isProjectAsset = targetTextComponent.isProjectAsset;
+            this.hAlign = targetTextComponent.hAlign;
+            this.vAlign = targetTextComponent.vAlign;
+
+            this.font = null;
+            this.currentRequest = null;
+            this.pendingRequest = false;
+            this.isDirty = true;
+        }
+    }
+
+    @Override
+    public TextComponent copy() {
+        TextComponent copy = new TextComponent();
+        copy.copyFrom(this);
+        return copy;
+    }
+
     public String getText() {
         return text;
     }
