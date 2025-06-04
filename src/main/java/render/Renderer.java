@@ -3,6 +3,7 @@ package render;
 import TheCellBeyond.GameObject;
 import components.SpriteRender;
 import components.TextComponent;
+import org.joml.Matrix4f;
 import render.text.FontManager;
 import render.text.TextBatch;
 
@@ -17,6 +18,28 @@ public class Renderer {
 
     private final List<GameObject> updatedGameObjects;
     private final List<GameObject> removedGameObjects;
+
+    private Matrix4f projectionMatrix = null;
+    private Matrix4f viewMatrix = null;
+
+    public void setMatrices(Matrix4f projectionMatrix, Matrix4f viewMatrix) {
+        this.projectionMatrix = projectionMatrix;
+        this.viewMatrix = viewMatrix;
+
+        updateBatchesMatrices();
+    }
+
+    private void updateBatchesMatrices() {
+        for (Batch batch : textureBatches) {
+            batch.setProjectionMatrix(projectionMatrix);
+            batch.setViewMatrix(viewMatrix);
+        }
+
+        for (TextBatch textBatch : textBatches) {
+            textBatch.setProjectionMatrix(projectionMatrix);
+            textBatch.setViewMatrix(viewMatrix);
+        }
+    }
 
     public Renderer() {
         this.textureBatches = new ArrayList<>();

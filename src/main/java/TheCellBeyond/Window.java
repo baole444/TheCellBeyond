@@ -27,8 +27,6 @@ import render.*;
 import scene.LevelEditorSceneInit;
 import scene.Scene;
 import scene.SceneInit;
-import threading.ThreadEngine;
-import threading.TripleBufferManager;
 import utility.AssetsPool;
 import utility.ExitConfirmDialog;
 import utility.Settings;
@@ -69,10 +67,6 @@ public class Window implements EventInterface {
 
     private long soundContext;
     private long audioDevice;
-
-    private ThreadEngine threadEngine;
-    private TripleBufferManager tripleBufferManager;
-    private boolean useThreadEngine = true;
 
     private boolean projectLoaded = false;
 

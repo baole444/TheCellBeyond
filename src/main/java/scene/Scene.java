@@ -123,6 +123,7 @@ public class Scene {
         }
     }
     public void render() {
+        renderer.setMatrices(viewport.getProjectionMatrix(), viewport.getViewMatrix());
         this.renderer.render();
     }
 

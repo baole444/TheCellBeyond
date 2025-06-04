@@ -1,7 +1,6 @@
 package render;
 
 import TheCellBeyond.GameObject;
-import TheCellBeyond.Window;
 import components.SpriteRender;
 import org.joml.Math;
 import org.joml.Matrix4f;
@@ -51,6 +50,17 @@ public class Batch implements Comparable<Batch> {
     private final int maxBatchSize;
     private final Renderer renderer;
     private final int zIndex;
+
+    private Matrix4f projectionMatrix = null;
+    private Matrix4f viewMatrix = null;
+
+    public void setProjectionMatrix(Matrix4f projectionMatrix) {
+        this.projectionMatrix = projectionMatrix;
+    }
+
+    public void setViewMatrix(Matrix4f viewMatrix) {
+        this.viewMatrix = viewMatrix;
+    }
 
     public Batch(int maxBatchSize, int zIndex, Renderer renderer) {
         int _trueLimit = GL11.glGetInteger(GL_MAX_TEXTURE_IMAGE_UNITS);
@@ -156,8 +166,21 @@ public class Batch implements Comparable<Batch> {
         Shader shader = RendererState.get().getCurrentShader();
 
         shader.use();
-        shader.loadMat4f("uProject", Window.getScene().viewport().getProjectionMatrix());
-        shader.loadMat4f("uView", Window.getScene().viewport().getViewMatrix());
+
+        // Set projection and view matrix
+        Matrix4f projMatrix;
+        Matrix4f vMatrix;
+
+        if (projectionMatrix != null) {
+            projMatrix = projectionMatrix;
+        } else projMatrix = new Matrix4f().identity();
+
+        if (viewMatrix != null) {
+            vMatrix = viewMatrix;
+        } else vMatrix = new Matrix4f().identity();
+
+        shader.loadMat4f("uProject", projMatrix);
+        shader.loadMat4f("uView", vMatrix);
         for (int i = 0; i < textures.size(); i++) {
             glActiveTexture(GL_TEXTURE0 + i + 1);
             textures.get(i).bind();

@@ -1,6 +1,5 @@
 package render.text;
 
-import TheCellBeyond.Window;
 import components.TextComponent;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
@@ -139,11 +138,11 @@ public class TextBatch implements Comparable<TextBatch> {
 
         if (projectionMatrix != null) {
             projMatrix = projectionMatrix;
-        } else projMatrix = Window.getScene().viewport().getProjectionMatrix();
+        } else projMatrix = new Matrix4f().identity();
 
         if (viewMatrix != null) {
             vMatrix = viewMatrix;
-        } else vMatrix = Window.getScene().viewport().getViewMatrix();
+        } else vMatrix = new Matrix4f().identity();
 
         shader.loadMat4f("uProject", projMatrix);
         shader.loadMat4f("uView", vMatrix);
