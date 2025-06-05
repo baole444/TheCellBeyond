@@ -173,9 +173,12 @@ public class Scene {
             for (GameObject obj : this.gameObjects) {
                 if (obj.isSerialize() && CurrentProject != null && ProjectRoot != null && currentSceneName != null) {
                     if (obj.getComponent(SpriteRender.class) != null) {
+                        PathResolver resolver = PathResolver.get();
+
                         String texturePath = obj.getComponent(SpriteRender.class).getTexture().getFilePath();
-                        String relativePath = PathResolver.resolveToRelative(ProjectRoot, texturePath);
-                        obj.getComponent(SpriteRender.class).getTexture().setFilePath(relativePath);
+                        String canonicalPath = resolver.toCanonicalPath(texturePath);
+
+                        obj.getComponent(SpriteRender.class).getTexture().setFilePath(canonicalPath);
                     }
 
                     serializeList.add(obj);
@@ -225,9 +228,11 @@ public class Scene {
             GameObject[] objects = gson.fromJson(loadFile, GameObject[].class);
             for (GameObject go : objects) {
                 if (CurrentProject != null && ProjectRoot != null && currentSceneName != null) {
-                    String texturePath = go.getComponent(SpriteRender.class).getTexture().getFilePath();
-                    String absPath = PathResolver.resolveToAbsolute(ProjectRoot, texturePath);
-                    go.getComponent(SpriteRender.class).getTexture().setFilePath(absPath);
+                    if (go.getComponent(SpriteRender.class) != null) {
+                        String canonicalPath = go.getComponent(SpriteRender.class).getTexture().getFilePath();
+
+                        go.getComponent(SpriteRender.class).getTexture().setFilePath(canonicalPath);
+                    }
                 }
 
                 addObjToScene(go);

@@ -67,4 +67,11 @@ public class RendererState {
             glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
         }
     }
+
+    public static void cleanup() {
+        if (instance != null && instance.currentShader != null) {
+            instance.currentShader.detach();
+            instance.currentShader = null;
+        }
+    }
 }

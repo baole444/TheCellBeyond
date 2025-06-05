@@ -113,17 +113,22 @@ public class TextComponent extends Component implements FontLoadCallback {
         this.isDirty = true;
     }
 
-    public boolean isDirectRendering() {
-        return worldPosition != null;
-    }
-
     private void requestLoadFont() {
         if (pendingRequest) {
             return;
         }
 
         GlyphRange range = GlyphRange.valueOf(glyphRangeName);
-        FontRequest request = new FontRequest(fontPath, fontSize, range, isProjectAsset);
+
+        String resolvedFontPath = fontPath;
+
+        if (isProjectAsset) {
+            resolvedFontPath = "project://" + fontPath;
+        } else if (!fontPath.startsWith("engine://")) {
+            resolvedFontPath = "engine://" + fontPath;
+        }
+
+        FontRequest request = new FontRequest(resolvedFontPath, fontSize, range, isProjectAsset);
 
         if (currentRequest == null || !currentRequest.equals(request)) {
             currentRequest = request;

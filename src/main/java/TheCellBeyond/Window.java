@@ -323,6 +323,9 @@ public class Window implements EventInterface {
     }
 
     private void endScr(){
+        AssetsPool.clearCache();
+        RendererState.cleanup();
+
         imGuiLayer.getImGuiGl3().shutdown();
         imGuiLayer.getImGuiGlfw().shutdown();
         ImGui.destroyContext();

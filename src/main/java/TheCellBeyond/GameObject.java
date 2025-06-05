@@ -6,6 +6,7 @@ import components.CompDeSerializer;
 import components.Component;
 import components.SpriteRender;
 import imgui.ImGui;
+import render.Texture;
 import utility.AssetsPool;
 import utility.PathResolver;
 
@@ -112,9 +113,11 @@ public class GameObject {
         SpriteRender sprite = obj.getComponent(SpriteRender.class);
 
         if (sprite != null && sprite.getTexture() != null) {
-            String texturePath = sprite.getTexture().getFilePath();
-            String absPath = PathResolver.resolveToAbsolute(ProjectRoot, texturePath);
-            sprite.setTexture(AssetsPool.loadTexture(absPath));
+            Texture ogTexture = sprite.getTexture();
+
+            Texture copy = ogTexture.copy();
+
+            sprite.setTexture(copy);
         }
 
         return obj;

@@ -394,7 +394,7 @@ public class ImEditorGui {
         ImVec2 objectSpace = new ImVec2();
         ImGui.getStyle().getItemSpacing(objectSpace);
 
-        SpriteSheet spriteSps = AssetsPool.loadSpSheet(spritePath);
+        SpriteSheet spriteSps = AssetsPool.loadSpriteSheet(spritePath);
 
 
         float windowX2 = winPos.x + (winSize.x / widthMod);

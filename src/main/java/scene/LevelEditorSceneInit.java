@@ -1,7 +1,6 @@
 package scene;
 
 import TheCellBeyond.GameObject;
-import utility.Prefab;
 import TheCellBeyond.Sound;
 import components.*;
 import editor.EditorViewport;
@@ -11,8 +10,6 @@ import editor.project.ProjectSceneMap;
 import editor.project.ProjectSheetMap;
 import imgui.ImGui;
 import imgui.ImVec2;
-import org.joml.Vector4f;
-import render.text.GlyphRange;
 import utility.AssetsPool;
 import utility.PathResolver;
 import utility.Settings;
@@ -65,7 +62,7 @@ public class LevelEditorSceneInit extends SceneInit {
                 String category = sM.getCategory();
                 String path = PathResolver.resolveToAbsolute(ProjectRoot, sM.getPath());
 
-                SpriteSheet spriteSheet = AssetsPool.loadSpSheet(path);
+                SpriteSheet spriteSheet = AssetsPool.loadSpriteSheet(path);
 
                 categorizedSpriteSheetList.
                         computeIfAbsent(category, key -> new ArrayList<>()).
@@ -76,11 +73,11 @@ public class LevelEditorSceneInit extends SceneInit {
                 ProjectAssetMap aM = CurrentProject.getAssets().get(asset);
                 String path = PathResolver.resolveToAbsolute(ProjectRoot, aM.getPath());
 
-                assetList.add(AssetsPool.loadSpSheet(path));
+                assetList.add(AssetsPool.loadSpriteSheet(path));
             }
         }
 
-        gizmo = AssetsPool.loadSpSheet("assets/texture/Gizmo.png");
+        gizmo = AssetsPool.loadSpriteSheet("assets/texture/Gizmo.png");
 
         levelEditorObject = scene.generateObject("Editor");
         levelEditorObject.setNotSerialize();
@@ -107,34 +104,36 @@ public class LevelEditorSceneInit extends SceneInit {
 
             for (String sheet : sheetKeyList) {
                 ProjectSheetMap sM = CurrentProject.getSheets().get(sheet);
-                String absPath = PathResolver.resolveToAbsolute(ProjectRoot, sM.getPath());
 
-                AssetsPool.addSpSheet(absPath,
-                        new SpriteSheet(AssetsPool.loadTexture(absPath),
+                String projectPath = "project://" + sM.getPath();
+
+                AssetsPool.addSpriteSheet(projectPath,
+                        new SpriteSheet(AssetsPool.loadTexture(projectPath),
                                 sM.getSizeX(), sM.getSizeY(), sM.getCount(), sM.getPadding())
                 );
             }
 
             for (String asset : assetKeyList) {
                 ProjectAssetMap aM = CurrentProject.getAssets().get(asset);
-                String absPath = PathResolver.resolveToAbsolute(ProjectRoot, aM.getPath());
 
-                AssetsPool.addSpSheet(absPath,
-                        new SpriteSheet(AssetsPool.loadTexture(absPath),
+                String projectPath = "project://" + aM.getPath();
+
+                AssetsPool.addSpriteSheet(projectPath,
+                        new SpriteSheet(AssetsPool.loadTexture(projectPath),
                                 aM.getSizeX(), aM.getSizeY(), 1, 0)
                 );
             }
 
         }
 
-        AssetsPool.addSpSheet("assets/texture/Gizmo.png",
-                new SpriteSheet(AssetsPool.loadTexture("assets/texture/Gizmo.png"),
+        AssetsPool.addSpriteSheet("engine://assets/texture/Gizmo.png",
+                new SpriteSheet(AssetsPool.loadTexture("engine://assets/texture/Gizmo.png"),
                          16, 48, 3, 0)
         );
 
         // Temporary
-        AssetsPool.addSpSheet("assets/texture/animation_test.png",
-                new SpriteSheet(AssetsPool.loadTexture("assets/texture/animation_test.png"),
+        AssetsPool.addSpriteSheet("engine://assets/texture/animation_test.png",
+                new SpriteSheet(AssetsPool.loadTexture("engine://assets/texture/animation_test.png"),
                         32, 32, 8, 16));
 
         AssetsPool.addSound("assets/sound/test.ogg", false);

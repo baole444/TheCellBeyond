@@ -7,73 +7,117 @@ import render.Texture;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class AssetsPool {
-    private static Map<String, Shader> shader = new HashMap<>();
-    private static Map<String, Texture> texture = new HashMap<>();
-    private static Map<String, SpriteSheet> spritesheet = new HashMap<>();
-    private static Map<String, Sound> sounds = new HashMap<>();
+    private static final Map<String, Shader> shaders = new ConcurrentHashMap<>();
+    private static final Map<String, Texture> textures = new ConcurrentHashMap<>();
+    private static final Map<String, SpriteSheet> spritesheets = new ConcurrentHashMap<>();
+    private static final Map<String, Sound> sounds = new ConcurrentHashMap<>();
 
+    public static Shader loadShader(String path) {
+        PathResolver resolver = PathResolver.get();
+        String canonicalPath = resolver.toCanonicalPath(path);
 
-    public static Shader loadShader(String rss) {
-        File file = new File(rss);
-        if (shader.containsKey(file.getAbsolutePath())) {
-            return shader.get(file.getAbsolutePath());
+        if (shaders.containsKey(canonicalPath)) {
+            return shaders.get(canonicalPath);
         } else {
-            Shader shader = new Shader(rss);
+            Shader shader = new Shader(canonicalPath);
             shader.compile();
-            AssetsPool.shader.put(file.getAbsolutePath(), shader);
+            shaders.put(canonicalPath, shader);
+
             return shader;
         }
     }
 
-    public static Texture loadTexture(String rss) {
-        File file = new File(rss);
-        if (AssetsPool.texture.containsKey(file.getAbsolutePath())) {
-            return AssetsPool.texture.get(file.getAbsolutePath());
+    public static Shader getShader (String path) {
+        PathResolver resolver = PathResolver.get();
+        String canonicalPath = resolver.toCanonicalPath(path);
+
+        return shaders.get(canonicalPath);
+    }
+
+    public static boolean hasShader(String path) {
+        PathResolver resolver = PathResolver.get();
+        String canonicalPath = resolver.toCanonicalPath(path);
+
+        return shaders.containsKey(canonicalPath);
+    }
+
+    public static void reloadShader(String path) {
+        PathResolver resolver = PathResolver.get();
+        String canonicalPath = resolver.toCanonicalPath(path);
+
+        Shader shader = shaders.get(canonicalPath);
+
+        if (shader != null) shader.reload();
+    }
+
+    public static void reloadAllShader() {
+        for (Shader shader : shaders.values()) {
+            shader.reload();
+        }
+    }
+
+    public static Texture loadTexture(String path) {
+        PathResolver resolver = PathResolver.get();
+        String canonicalPath = resolver.toCanonicalPath(path);
+
+        if (textures.containsKey(canonicalPath)) {
+            return textures.get(canonicalPath);
         } else {
             Texture texture = new Texture();
+            texture.init(canonicalPath);
+            textures.put(canonicalPath, texture);
 
-            texture.init(rss);
-            AssetsPool.texture.put(file.getAbsolutePath(), texture);
             return texture;
         }
     }
 
-    public static void addSpSheet(String rss, SpriteSheet spritesheet) {
-        File file = new File(rss);
-        if (!AssetsPool.spritesheet.containsKey(file.getAbsolutePath())) {
-            AssetsPool.spritesheet.put(file.getAbsolutePath(), spritesheet);
+    public static void addSpriteSheet(String path, SpriteSheet spritesheet) {
+        PathResolver resolver = PathResolver.get();
+        String canonicalPath = resolver.toCanonicalPath(path);
+
+        if (!spritesheets.containsKey(canonicalPath)) {
+            spritesheets.put(canonicalPath, spritesheet);
         }
     }
 
-    public static SpriteSheet loadSpSheet(String rss) {
-        File file = new File(rss);
-        if (!AssetsPool.spritesheet.containsKey(file.getAbsolutePath())) {
-            assert false : "Error: failed to load '" + rss + "' , no assets added.";
+    public static SpriteSheet loadSpriteSheet(String path) {
+        PathResolver resolver = PathResolver.get();
+        String canonicalPath = resolver.toCanonicalPath(path);
+
+        if (!spritesheets.containsKey(canonicalPath)) {
+            System.err.println("Failed to load '" + canonicalPath + "', no asset added.");
         }
-        return AssetsPool.spritesheet.getOrDefault(file.getAbsolutePath(), null);
+
+        return spritesheets.getOrDefault(canonicalPath, null);
     }
 
-    public static Sound addSound(String audioFile, boolean isLoop) {
-        File file = new File(audioFile);
-        if (sounds.containsKey(file.getAbsolutePath())) {
-            return sounds.get(file.getAbsolutePath());
+    public static Sound addSound(String path, boolean isLoop) {
+        PathResolver resolver = PathResolver.get();
+        String canonicalPath = resolver.toCanonicalPath(path);
+
+        if (sounds.containsKey(canonicalPath)) {
+            return sounds.get(canonicalPath);
         } else {
-            Sound sound = new Sound(file.getAbsolutePath(), isLoop);
-            AssetsPool.sounds.put(file.getAbsolutePath(), sound);
+            PathResolver.AssetPath assetPath = resolver.resolvePath(path);
+
+            Sound sound = new Sound(assetPath.resolvedPath(), isLoop);
+            sounds.put(canonicalPath, sound);
             return sound;
         }
     }
 
-    public static Sound loadSound(String audioFile) {
-        File file = new File(audioFile);
-        if (sounds.containsKey(file.getAbsolutePath())) {
-            return sounds.get(file.getAbsolutePath());
+    public static Sound loadSound(String path) {
+        PathResolver resolver = PathResolver.get();
+        String canonicalPath = resolver.toCanonicalPath(path);
+
+        if (sounds.containsKey(canonicalPath)) {
+            return sounds.get(canonicalPath);
         } else {
-            assert false : "Error: failed to load '" + audioFile + "'";
+            System.err.println("Failed to load '" + canonicalPath + "'");
         }
 
         return null;
@@ -81,6 +125,17 @@ public class AssetsPool {
 
     public static Collection<Sound> loadAllSound() {
         return sounds.values();
+    }
+
+    public static void clearCache() {
+        for (Shader shader : shaders.values()) {
+            shader.dispose();
+        }
+
+        shaders.clear();
+        textures.clear();
+        spritesheets.clear();
+        sounds.clear();
     }
 
 }

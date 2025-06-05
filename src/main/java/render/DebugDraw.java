@@ -16,13 +16,13 @@ import static org.lwjgl.opengl.GL30.glBindVertexArray;
 import static org.lwjgl.opengl.GL30.glGenVertexArrays;
 
 public class DebugDraw {
-    private static int MAX_LINE = 1024;
-    private static List<Line2D> Lines = new ArrayList<>();
+    private static final int MAX_LINE = 1024;
+    private static final List<Line2D> Lines = new ArrayList<>();
 
     // 6 float vertex, 2 vertices/line
-    private static float[] vertexA = new float[MAX_LINE * 6 * 2];
+    private static final float[] vertexA = new float[MAX_LINE * 6 * 2];
 
-    private static Shader shader = AssetsPool.loadShader(Settings.PATH.DEBUG_LINE2_SHADER);
+    private static final Shader shader = AssetsPool.loadShader(Settings.PATH.DEBUG_LINE2_SHADER);
 
     private static int vaoID;
     private static int vboID;

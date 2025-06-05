@@ -97,7 +97,7 @@ public class Project {
      * Load a project definition file to memory.
      * Can be accessible via {@link #CurrentProject}
      * or assigned to a local variable
-     * @param path
+     * @param path location of the project's directory.
      * @return a {@link Project} reference.
      */
     public static Project loadFromYaml(String path) {
@@ -107,6 +107,8 @@ public class Project {
             CurrentProject = yaml.loadAs(inputStream, Project.class);
 
             ProjectRoot = PathResolver.toRoot(path);
+
+            PathResolver.initialize(ProjectRoot);
 
             if (CurrentProject.getScenes() != null) {
                 List<String> sN = new ArrayList<>(CurrentProject.getScenes().keySet());

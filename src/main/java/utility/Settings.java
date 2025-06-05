@@ -9,19 +9,13 @@ public class Settings {
     public static int BOX_H = (int) (GRID_HEIGHT * 200);
 
     public static class PATH {
-        private static final String assets = "assets/";
-        private static final String fonts = "fonts/";
-        private static final String shaders = "shaders/";
-        private static final String texture = "texture/";
+        public static final String CONSOLA = "engine://assets/fonts/Consola.ttf";
 
-        public static final String CONSOLA = assets + fonts + "Consola.ttf";
-
-        public static final String DEFAULT_TEXTURE_SHADER = assets + shaders + "defaultTexture.glsl";
-        public static final String DEFAULT_FONT_SHADER =  assets + shaders + "defaultFont.glsl";
-        public static final String OBJECT_SELECTION_SHADER = assets + shaders + "objSelection.glsl";
-        public static final String DEBUG_LINE2_SHADER = assets + shaders + "DBLine2.glsl";
+        public static final String DEFAULT_TEXTURE_SHADER = "engine://assets/shaders/defaultTexture.glsl";
+        public static final String DEFAULT_FONT_SHADER = "engine://assets/shaders/defaultFont.glsl";
+        public static final String OBJECT_SELECTION_SHADER = "engine://assets/shaders/objSelection.glsl";
+        public static final String DEBUG_LINE2_SHADER = "engine://assets/shaders/DBLine2.glsl";
     }
-
 
     public static final String _projectVersion = "0.0.1";
 }

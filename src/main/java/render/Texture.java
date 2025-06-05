@@ -1,31 +1,36 @@
 package render;
 
 import org.lwjgl.BufferUtils;
+import utility.AssetReference;
+import utility.PathResolver;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
+import java.util.Objects;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.stb.STBImage.*;
 
 public class Texture {
-    private String filepath;
-    private transient int texID;
+    private AssetReference assetReference;
+    private transient int textureID;
     private int width, height;
 
     public Texture() {
         // Intended to fail if parameter not set
-        texID = -1;
+        textureID = -1;
         width = -1;
         height = -1;
     }
 
     public Texture(int width, int height) {
-        this.filepath = "";
+        assetReference = null;
 
         // Generate texture on GPU
-        texID = glGenTextures();
-        glBindTexture(GL_TEXTURE_2D, texID);
+        textureID = glGenTextures();
+        glBindTexture(GL_TEXTURE_2D, textureID);
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -39,11 +44,31 @@ public class Texture {
     }
 
     public void init(String filepath) {
-        this.filepath = filepath;
+        assetReference = new AssetReference(filepath);
 
+        loadTextureDate();
+    }
+
+    private void loadTextureDate() {
+        PathResolver resolver = PathResolver.get();
+
+        try (InputStream stream = resolver.getAssetStream(assetReference.getResolvedPath())) {
+            byte[] data = stream.readAllBytes();
+            ByteBuffer buffer = BufferUtils.createByteBuffer(data.length);
+            buffer.put(data);
+            buffer.flip();
+
+            loadFromBuffer(buffer);
+        } catch (IOException e) {
+            System.err.println("Failed to load texture: " + assetReference.getCanonicalPath());
+            e.printStackTrace();
+        }
+    }
+
+    private void loadFromBuffer(ByteBuffer buffer) {
         // Generate texture on GPU
-        texID = glGenTextures();
-        glBindTexture(GL_TEXTURE_2D, texID);
+        textureID = glGenTextures();
+        glBindTexture(GL_TEXTURE_2D, textureID);
 
         // Texture parameters
 
@@ -64,7 +89,7 @@ public class Texture {
         IntBuffer height = BufferUtils.createIntBuffer(1);
         IntBuffer channels = BufferUtils.createIntBuffer(1);
 
-        ByteBuffer image = stbi_load(filepath, width, height, channels, 0);
+        ByteBuffer image = stbi_load_from_memory(buffer, width, height, channels, 0);
 
         if (image != null ) {
             this.width = width.get(0);
@@ -80,14 +105,14 @@ public class Texture {
             }
 
         } else {
-            assert false : "FATAL: Texture failed to load! '" + filepath + " '";
+            assert false : "FATAL: Texture failed to load! '" + getFilePath() + " '";
         }
 
         stbi_image_free(image); //Free memory and prevent memory leak
-
     }
+
     public void bind() {
-        glBindTexture(GL_TEXTURE_2D, texID);
+        glBindTexture(GL_TEXTURE_2D, textureID);
     }
 
     public void unbind() {
@@ -102,14 +127,29 @@ public class Texture {
         return this.height;
     }
 
-    public int getID() {return texID;}
+    public int getID() {
+        return textureID;
+    }
 
     public String getFilePath() {
-        return this.filepath;
+        return assetReference != null ? assetReference.getCanonicalPath() : null;
     }
 
     public void setFilePath(String path) {
-        this.filepath = path;
+        this.assetReference = new AssetReference(path);
+    }
+
+    public Texture copy() {
+        Texture copy = new Texture();
+
+        if (this.assetReference != null) {
+            copy.assetReference = this.assetReference.copy();
+        }
+
+        copy.width = this.width;
+        copy.height = this.height;
+
+        return copy;
     }
 
     @Override
@@ -119,7 +159,7 @@ public class Texture {
 
         return objTex.getWidth() == this.width &&
                 objTex.getHeight() == this.height &&
-                objTex.getID() == this.texID &&
-                objTex.getFilePath().equals(this.filepath);
+                objTex.getID() == this.textureID &&
+                Objects.equals(objTex.getFilePath(), this.getFilePath());
     }
 }
