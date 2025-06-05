@@ -1,16 +1,22 @@
 package utility;
 
-import java.nio.file.Path;
 import java.util.Objects;
 
 public class AssetReference {
     private final String canonicalPath;
-    private volatile PathResolver.AssetPath resolvedPath;
+    private transient volatile PathResolver.AssetPath resolvedPath;
 
     public AssetReference(String path) {
         PathResolver resolver = PathResolver.get();
-        this.resolvedPath = resolver.resolvePath(path);
         this.canonicalPath = resolver.toCanonicalPath(path);
+        initializeResolvedPath();
+    }
+
+    private void initializeResolvedPath() {
+        if (this.resolvedPath == null) {
+            PathResolver resolver = PathResolver.get();
+            this.resolvedPath = resolver.resolvePath(this.canonicalPath);
+        }
     }
 
     public String getCanonicalPath() {
@@ -18,11 +24,13 @@ public class AssetReference {
     }
 
     public PathResolver.AssetPath getResolvedPath() {
+        if (resolvedPath == null) initializeResolvedPath();
+
         return resolvedPath;
     }
 
     public String getAbsolutePath() {
-        return resolvedPath.resolvedPath();
+        return getResolvedPath().resolvedPath();
     }
 
     public AssetReference copy() {

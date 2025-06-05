@@ -7,8 +7,8 @@
         "type": "TheCellBeyond.Transform",
         "properties": {
           "position": {
-            "x": 3.04,
-            "y": 3.68
+            "x": 1.4399999,
+            "y": 1.7599999
           },
           "scale": {
             "x": 0.16,
@@ -33,32 +33,26 @@
             "height": 16.0,
             "texture": {
               "assetReference": {
-                "canonicalPath": "sheets/test_objects.png",
-                "resolvedPath": {
-                  "originalPath": "sheets/test_objects.png",
-                  "resolvedPath": "D:\\Code\\Java\\TheCellBeyond\\test_project\\sheets\\test_objects.png",
-                  "type": "PROJECT",
-                  "isAbsolute": false
-                }
+                "canonicalPath": "sheets/test_objects.png"
               },
               "width": 400,
               "height": 16
             },
             "textureCoordinates": [
               {
-                "x": 0.12,
+                "x": 0.2,
                 "y": 1.0
               },
               {
-                "x": 0.12,
+                "x": 0.2,
                 "y": 0.0
               },
               {
-                "x": 0.08,
+                "x": 0.16,
                 "y": 0.0
               },
               {
-                "x": 0.08,
+                "x": 0.16,
                 "y": 1.0
               }
             ]

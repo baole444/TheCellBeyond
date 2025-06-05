@@ -40,7 +40,6 @@ public class Texture {
                 width, height,
                 0, GL_RGB, GL_UNSIGNED_BYTE, 0
         );
-
     }
 
     public void init(String filepath) {
