@@ -1,1 +1,73 @@
-[]
+[
+  {
+    "uID": 23,
+    "name": "Sprite_object_gen",
+    "components": [
+      {
+        "type": "TheCellBeyond.Transform",
+        "properties": {
+          "position": {
+            "x": 3.04,
+            "y": 3.68
+          },
+          "scale": {
+            "x": 0.16,
+            "y": 0.16
+          },
+          "rotate": 0.0,
+          "zIndex": 0,
+          "uID": 20
+        }
+      },
+      {
+        "type": "components.SpriteRender",
+        "properties": {
+          "color": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0,
+            "w": 1.0
+          },
+          "sprite": {
+            "width": 16.0,
+            "height": 16.0,
+            "texture": {
+              "assetReference": {
+                "canonicalPath": "sheets/test_objects.png",
+                "resolvedPath": {
+                  "originalPath": "sheets/test_objects.png",
+                  "resolvedPath": "D:\\Code\\Java\\TheCellBeyond\\test_project\\sheets\\test_objects.png",
+                  "type": "PROJECT",
+                  "isAbsolute": false
+                }
+              },
+              "width": 400,
+              "height": 16
+            },
+            "textureCoordinates": [
+              {
+                "x": 0.12,
+                "y": 1.0
+              },
+              {
+                "x": 0.12,
+                "y": 0.0
+              },
+              {
+                "x": 0.08,
+                "y": 0.0
+              },
+              {
+                "x": 0.08,
+                "y": 1.0
+              }
+            ]
+          },
+          "uID": 21
+        }
+      }
+    ],
+    "isSerialize": true,
+    "isRemoved": false
+  }
+]

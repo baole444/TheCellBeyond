@@ -60,7 +60,7 @@ public class Window implements EventInterface {
     private ObjectSelection objectSelection;
     private Properties properties;
 
-    private final IconLoader iconFile = IconLoader.loadIcon("assets/texture/TCB icon.png");
+    private final IconLoader iconFile = IconLoader.loadIcon("assets/textures/TCB icon.png");
 
     private final ExitConfirmDialog exitConfirmDialog;
     private boolean shouldClose;

@@ -105,8 +105,8 @@ public class PathResolver {
     private boolean isKnownEngineAsset(String path) {
         return path.startsWith("assets/shaders/") ||
                 path.startsWith("assets/fonts/") ||
-                path.startsWith("assets/texture/Gizmo.png") ||
-                path.equals("assets/texture/TCB icon.png");
+                path.startsWith("assets/textures/Gizmo.png") ||
+                path.equals("assets/textures/TCB icon.png");
     }
 
     private String resolveProjectPathToAbsolute(String relativePath) {

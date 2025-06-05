@@ -60,7 +60,7 @@ public class ImGuiLayer {
     public void initImGui(String glslVer) {
         ImGui.createContext();
         this.io = ImGui.getIO();
-        guiFont(io);
+        //guiFont(io);
         io.setBackendFlags(ImGuiBackendFlags.HasMouseCursors);
 
 
@@ -134,7 +134,7 @@ public class ImGuiLayer {
         //fontConfig.setMergeMode(true); //For multiple font, turn this back on
         fontConfig.setPixelSnapH(true);
 
-        fontAtlas.addFontFromFileTTF("assets/fonts/Consola.ttf", 16, fontConfig);
+        //fontAtlas.addFontFromFileTTF("assets/fonts/Consola.ttf", 16, fontConfig);
         fontAtlas.build();
         fontConfig.destroy();
     }

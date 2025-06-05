@@ -1,7 +1,6 @@
 package scene;
 
 import TheCellBeyond.GameObject;
-import TheCellBeyond.Sound;
 import components.*;
 import editor.EditorViewport;
 import editor.project.Project;
@@ -22,11 +21,10 @@ import static editor.project.Project.CurrentProject;
 import static editor.project.Project.ProjectRoot;
 
 public class LevelEditorSceneInit extends SceneInit {
-    private SpriteSheet gizmo;
     private GameObject levelEditorObject;
 
-    private Map<String, List<SpriteSheet>> categorizedSpriteSheetList = new HashMap<>();
-    private List<SpriteSheet> assetList = new ArrayList<>();
+    private final Map<String, List<SpriteSheet>> categorizedSpriteSheetList = new HashMap<>();
+    private final List<SpriteSheet> assetList = new ArrayList<>();
     private List<String> sheetKeyList;
     private List<String> assetKeyList;
 
@@ -77,7 +75,7 @@ public class LevelEditorSceneInit extends SceneInit {
             }
         }
 
-        gizmo = AssetsPool.loadSpriteSheet("assets/texture/Gizmo.png");
+        SpriteSheet gizmo = AssetsPool.loadSpriteSheet("assets/textures/Gizmo.png");
 
         levelEditorObject = scene.generateObject("Editor");
         levelEditorObject.setNotSerialize();
@@ -126,17 +124,15 @@ public class LevelEditorSceneInit extends SceneInit {
 
         }
 
-        AssetsPool.addSpriteSheet("engine://assets/texture/Gizmo.png",
-                new SpriteSheet(AssetsPool.loadTexture("engine://assets/texture/Gizmo.png"),
+        AssetsPool.addSpriteSheet("engine://assets/textures/Gizmo.png",
+                new SpriteSheet(AssetsPool.loadTexture("engine://assets/textures/Gizmo.png"),
                          16, 48, 3, 0)
         );
 
         // Temporary
-        AssetsPool.addSpriteSheet("engine://assets/texture/animation_test.png",
-                new SpriteSheet(AssetsPool.loadTexture("engine://assets/texture/animation_test.png"),
+        AssetsPool.addSpriteSheet("engine://assets/textures/animation_test.png",
+                new SpriteSheet(AssetsPool.loadTexture("engine://assets/textures/animation_test.png"),
                         32, 32, 8, 16));
-
-        AssetsPool.addSound("assets/sound/test.ogg", false);
 
         // Only generate if not existed
         for (GameObject obj : scene.getGameObjects()) {
@@ -221,6 +217,7 @@ public class LevelEditorSceneInit extends SceneInit {
             }
              */
 
+            /*
             if (ImGui.beginTabItem("Sound collection")) {
                 Collection<Sound> sounds = AssetsPool.loadAllSound();
 
@@ -241,6 +238,7 @@ public class LevelEditorSceneInit extends SceneInit {
 
                 ImGui.endTabItem();
             }
+             */
 
             ImGui.endTabBar();
         }
