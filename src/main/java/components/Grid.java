@@ -8,9 +8,7 @@ import org.joml.Vector3f;
 import render.DebugDraw;
 import utility.Settings;
 
-
 public class Grid extends Component {
-
     @Override
     public void editorUpdate(float dt) {
         Viewport viewport = Window.getScene().viewport();
@@ -41,6 +39,5 @@ public class Grid extends Component {
                 DebugDraw.addLine2(new Vector2f(firstX, y), new Vector2f(firstX + width, y), color);
             }
         }
-
     }
 }

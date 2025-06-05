@@ -1,6 +1,7 @@
 package render;
 
 import TheCellBeyond.GameObject;
+import components.Component;
 import components.SpriteRender;
 import components.StateEngine;
 import components.TextComponent;
@@ -243,27 +244,16 @@ public class Renderer {
             return;
         }
 
-        // Update components
-        if (internalObject.transform != null && og.transform != null) {
-            internalObject.transform.copyFrom(og.transform);
-        }
+        updateObjectComponents(internalObject, og);
+    }
 
-        SpriteRender internalSprite = internalObject.getComponent(SpriteRender.class);
-        SpriteRender ogSprite = og.getComponent(SpriteRender.class);
-        if (internalSprite != null && ogSprite != null) {
-            internalSprite.copyFrom(ogSprite);
-        }
+    private void updateObjectComponents(GameObject internal, GameObject og) {
+        List<Component> ogComponents = og.getComponents();
 
-        TextComponent internalText = internalObject.getComponent(TextComponent.class);
-        TextComponent ogText = og.getComponent(TextComponent.class);
-        if (internalText != null && ogText != null) {
-            internalText.copyFrom(ogText);
-        }
+        for (Component ogC : ogComponents) {
+            Component internalC = internal.getComponent(ogC.getClass());
 
-        StateEngine internalStateEngine = internalObject.getComponent(StateEngine.class);
-        StateEngine ogStateEngine = og.getComponent(StateEngine.class);
-        if (internalStateEngine != null && ogStateEngine != null) {
-            internalStateEngine.copyFrom(ogStateEngine);
+            if (internalC != null) internalC.copyFrom(ogC);
         }
     }
 
