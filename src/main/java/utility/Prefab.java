@@ -12,7 +12,7 @@ public class Prefab {
         block.transform.scale.x = sizeX;
         block.transform.scale.y = sizeY;
 
-        SpriteRender render = new SpriteRender();
+        SpriteRenderer render = new SpriteRenderer();
         render.setSprite(sprite);
         block.addComponent(render);
 

@@ -10,10 +10,10 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Unified path resolver, separated engine's and project's assets.
  * <p>
- * Path formats:
- * - "engine://foo/bar/asset" - Engine assets (using classpath)
- * - "project://path/to/asset" - Project assets (loaded from project directory)
- * - "path/to/asset" - Legacy relative path, assume it as project's asset.
+ * <b>Path formats:</b>
+ * <li> <i><u>engine://path/to/asset</u></i> - Engine assets (using classpath's resource directory.)</li>
+ * <li> <i><u>project://path/to/asset</u></i> - Project assets (loaded from project directory.)</li>
+ * <li> <i><u>relative/path/to/asset</u></i> - Legacy relative path, assume it as project's asset.</li>
  */
 public class PathResolver {
     private static final String ENGINE_PREFIX = "engine://";
@@ -47,7 +47,7 @@ public class PathResolver {
         }
     }
 
-    public PathResolver(String projectRoot) {
+    private PathResolver(String projectRoot) {
         this.projectRoot = projectRoot;
     }
 
@@ -278,5 +278,13 @@ public class PathResolver {
         Path resolvedPath = rootPath.relativize(fullPath).normalize();
 
         return resolvedPath.toString().replace("\\", "/");
+    }
+
+    /**
+     * Check if PathResolver is initialized or not
+     * @return true if PathResolver is initialized.
+     */
+    public static boolean isInitialized () {
+        return instance != null;
     }
 }

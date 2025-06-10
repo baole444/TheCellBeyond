@@ -132,6 +132,8 @@ public class Shader {
             System.out.println(glGetProgramInfoLog(shaderProgramID, len));
             assert false: "";
         }
+
+        isCompiled = true;
     }
 
     public void use() {

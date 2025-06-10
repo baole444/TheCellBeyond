@@ -1,7 +1,7 @@
 package render;
 
 import TheCellBeyond.GameObject;
-import components.SpriteRender;
+import components.SpriteRenderer;
 import org.joml.Math;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
@@ -39,7 +39,7 @@ public class Batch implements Comparable<Batch> {
     private final int OBJECT_ID_OFFSET = TEX_ID_OFFSET + TEX_ID_SIZE * Float.BYTES;
     private final int VERTEX_SIZE_BYTES = VERTEX_SIZE * Float.BYTES;
 
-    private final SpriteRender[] sprites;
+    private final SpriteRenderer[] sprites;
     private int countSprite;
     private boolean hasSpace;
     private final float[] vertices;
@@ -73,7 +73,7 @@ public class Batch implements Comparable<Batch> {
         this.renderer = renderer;
 
         this.zIndex = zIndex;
-        this.sprites = new SpriteRender[maxBatchSize];
+        this.sprites = new SpriteRenderer[maxBatchSize];
         this.maxBatchSize = maxBatchSize;
 
         // 4 vertices quads
@@ -119,7 +119,7 @@ public class Batch implements Comparable<Batch> {
         glEnableVertexAttribArray(4);
     }
 
-    public void loadSprite(SpriteRender spt) {
+    public void loadSprite(SpriteRenderer spt) {
         // Indexing render object
         int index = this.countSprite;
         this.sprites[index] = spt;
@@ -143,7 +143,7 @@ public class Batch implements Comparable<Batch> {
         boolean rebufferData = false;
 
         for (int i = 0; i < countSprite; i++) {
-            SpriteRender spr = sprites[i];
+            SpriteRenderer spr = sprites[i];
             if (spr.isDirty()) {
                 genVertexProperties(i);
                 spr.setDirty(false);
@@ -206,7 +206,7 @@ public class Batch implements Comparable<Batch> {
     }
 
     private void genVertexProperties(int index) {
-        SpriteRender spt = sprites[index];
+        SpriteRenderer spt = sprites[index];
 
         // Set offset in the array (4/spt)
         int offset = index * 4 * VERTEX_SIZE;
@@ -280,10 +280,10 @@ public class Batch implements Comparable<Batch> {
     }
 
     public boolean removeIfExist(GameObject go) {
-        SpriteRender spriteRender = go.getComponent(SpriteRender.class);
+        SpriteRenderer spriteRenderer = go.getComponent(SpriteRenderer.class);
 
         for (int i = 0; i < countSprite; i++) {
-            if (sprites[i] == spriteRender) {
+            if (sprites[i] == spriteRenderer) {
                 // [1, 2, 3, 4, 5, 6, ...]
                 // Remove object 3 -> override 3 with 4 and move all stack up.
                 // Start moving the stack at position i, where the old sprite is supposed to be disposed

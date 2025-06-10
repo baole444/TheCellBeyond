@@ -49,9 +49,9 @@ public class KeyCtrl extends Component {
                 GameObject copy = go.copy();
 
                 // Update sprite's color to true color
-                SpriteRender spriteRender = copy.getComponent(SpriteRender.class);
-                if (spriteRender != null) {
-                    spriteRender.setColor(trueColor.get(i));
+                SpriteRenderer spriteRenderer = copy.getComponent(SpriteRenderer.class);
+                if (spriteRenderer != null) {
+                    spriteRenderer.setColor(trueColor.get(i));
                 }
 
                 // Refresh texture

@@ -409,29 +409,29 @@ public class Window implements EventInterface {
     @Override
     public void whenNotice(Object object, Event event) {
         switch (event.type) {
-            case ENGINE_START:
+            case ENGINE_START -> {
                 this.runtimeMode = true;
                 currentScene.saveLevel();
                 Window.changeScene(new LevelEditorSceneInit(currentSceneName)); // Reset view to runtime mode.
                 System.out.println("Engine starting.");
-                break;
-            case ENGINE_END:
+            }
+            case ENGINE_END -> {
                 this.runtimeMode = false;
                 Window.changeScene(new LevelEditorSceneInit(currentSceneName)); // Reset to Editor runtime.
                 System.out.println("Engine stopping.");
-                break;
-            case LEVEL_LOAD:
+            }
+            case LEVEL_LOAD -> {
                 if (this.runtimeMode) this.runtimeMode = false;
 
                 Window.changeScene(new LevelEditorSceneInit(currentSceneName));
                 System.out.println("Loading current level...");
-                break;
-            case LEVEL_SAVE:
+            }
+            case LEVEL_SAVE -> {
                 currentScene.saveLevel();
                 System.out.println("Saving current level...");
-                break;
-            case PROJECT_LOAD:
-                System.out.println("Loading project file at "+ object.toString());
+            }
+            case PROJECT_LOAD -> {
+                System.out.println("Loading project file at " + object.toString());
 
                 Project.loadFromYaml(object.toString());
 
@@ -448,8 +448,8 @@ public class Window implements EventInterface {
                         Window.changeScene(new LevelEditorSceneInit());
                     }
                 }
-                break;
-            case SCENE_LOAD:
+            }
+            case SCENE_LOAD -> {
                 if (this.runtimeMode) {
                     this.runtimeMode = false;
                 }
@@ -460,8 +460,7 @@ public class Window implements EventInterface {
                 Window.changeScene(new LevelEditorSceneInit(sceneName));
 
                 System.out.println("Requested to load Scene: " + sceneName);
-
-                break;
+            }
         }
     }
 

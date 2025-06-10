@@ -142,11 +142,8 @@ public class Texture {
         Texture copy = new Texture();
 
         if (this.assetReference != null) {
-            copy.assetReference = this.assetReference.copy();
+            copy.init(assetReference.getCanonicalPath());
         }
-
-        copy.width = this.width;
-        copy.height = this.height;
 
         return copy;
     }

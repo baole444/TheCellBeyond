@@ -4,16 +4,12 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import components.CompDeSerializer;
 import components.Component;
-import components.SpriteRender;
+import components.SpriteRenderer;
 import imgui.ImGui;
 import render.Texture;
-import utility.AssetsPool;
-import utility.PathResolver;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static editor.project.Project.ProjectRoot;
 
 public class GameObject {
     private static  int ID_COUNTER = 0;
@@ -89,8 +85,8 @@ public class GameObject {
 
     public void destroy() {
         this.isRemoved = true;
-        for (int i = 0; i < components.size(); i++) {
-            components.get(i).destroy();
+        for (Component component : components) {
+            component.destroy();
         }
     }
 
@@ -110,13 +106,11 @@ public class GameObject {
             c.createUID();
         }
 
-        SpriteRender sprite = obj.getComponent(SpriteRender.class);
+        SpriteRenderer sprite = obj.getComponent(SpriteRenderer.class);
 
         if (sprite != null && sprite.getTexture() != null) {
             Texture ogTexture = sprite.getTexture();
-
             Texture copy = ogTexture.copy();
-
             sprite.setTexture(copy);
         }
 
@@ -149,6 +143,10 @@ public class GameObject {
 
     public void setNotSerialize() {
         this.isSerialize = false;
+    }
+
+    public void setSerialize(boolean isSerialized) {
+        this.isSerialize = isSerialized;
     }
 
     public boolean isSerialize() {

@@ -110,9 +110,9 @@ public class StateEngine extends Component {
     public void update(float dt) {
         if (instState != null) {
             instState.update(dt);
-            SpriteRender spriteRender = gameObject.getComponent(SpriteRender.class);
-            if (spriteRender != null) {
-                spriteRender.setSprite(instState.loadInstSprite());
+            SpriteRenderer spriteRenderer = gameObject.getComponent(SpriteRenderer.class);
+            if (spriteRenderer != null) {
+                spriteRenderer.setSprite(instState.loadInstSprite());
             }
         }
     }
@@ -121,9 +121,9 @@ public class StateEngine extends Component {
     public void editorUpdate(float dt) {
         if (instState != null) {
             instState.update(dt);
-            SpriteRender spriteRender = gameObject.getComponent(SpriteRender.class);
-            if (spriteRender != null) {
-                spriteRender.setSprite(instState.loadInstSprite());
+            SpriteRenderer spriteRenderer = gameObject.getComponent(SpriteRenderer.class);
+            if (spriteRenderer != null) {
+                spriteRenderer.setSprite(instState.loadInstSprite());
             }
         }
     }
@@ -147,22 +147,6 @@ public class StateEngine extends Component {
                 frame.frameTime = tmp[0];
                 index++;
             }
-        }
-    }
-
-    @Override
-    public void copyFrom(Component target) {
-        if (target instanceof StateEngine targetStateEngine) {
-            this.shiftState.clear();
-            this.shiftState.putAll(targetStateEngine.shiftState);
-
-            this.states.clear();
-            for (AnimationState state : targetStateEngine.states) {
-                this.states.add(state.copy());
-            }
-
-            this.defaultTitle = targetStateEngine.defaultTitle;
-            this.instState = null;
         }
     }
 }

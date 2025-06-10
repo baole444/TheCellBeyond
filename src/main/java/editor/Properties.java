@@ -1,7 +1,7 @@
 package editor;
 
 import TheCellBeyond.GameObject;
-import components.SpriteRender;
+import components.SpriteRenderer;
 import imgui.ImGui;
 import org.joml.Vector4f;
 import physic2d.components.PhysicBody2D;
@@ -70,19 +70,19 @@ public class Properties {
      * @param go The desired {@link GameObject} that wanted to be set active.
      */
     public void addActiveGameObject(GameObject go) {
-        SpriteRender spriteRender = go.getComponent(SpriteRender.class);
-        if (spriteRender != null) {
+        SpriteRenderer spriteRenderer = go.getComponent(SpriteRenderer.class);
+        if (spriteRenderer != null) {
             //TODO: Allow user to select their preferred highlighting color.
-            this.activeObjTrueColor.add(new Vector4f(spriteRender.getColor()));
+            this.activeObjTrueColor.add(new Vector4f(spriteRenderer.getColor()));
             // I like this color, but more testing with user feedbacks will be more valuable.
             // This is orange
-            //spriteRender.setColor(new Vector4f(1f, 0.8f, 0.6f, 0.5f));
+            //spriteRenderer.setColor(new Vector4f(1f, 0.8f, 0.6f, 0.5f));
 
             // This is yellow
-            spriteRender.setColor(new Vector4f(1f, 1f, 0.6f, 0.5f));
+            spriteRenderer.setColor(new Vector4f(1f, 1f, 0.6f, 0.5f));
 
             // This is blue
-            //spriteRender.setColor(new Vector4f(0.6f, 1f, 1f, 0.5f));
+            //spriteRenderer.setColor(new Vector4f(0.6f, 1f, 1f, 0.5f));
         } else {
             this.activeObjTrueColor.add(new Vector4f());
         }
@@ -140,9 +140,9 @@ public class Properties {
         if (!activeObjTrueColor.isEmpty()) {
             int i = 0;
             for (GameObject go : activeGameObjects) {
-                SpriteRender spriteRender = go.getComponent(SpriteRender.class);
-                if (spriteRender != null) {
-                    spriteRender.setColor(activeObjTrueColor.get(i));
+                SpriteRenderer spriteRenderer = go.getComponent(SpriteRenderer.class);
+                if (spriteRenderer != null) {
+                    spriteRenderer.setColor(activeObjTrueColor.get(i));
                 }
                 i++;
             }

@@ -3,12 +3,14 @@ package render.text;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.stb.*;
 import org.lwjgl.system.MemoryStack;
+import utility.AssetReference;
 import utility.PathResolver;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.nio.file.Files;
@@ -25,13 +27,13 @@ import static org.lwjgl.opengl.GL30.glGenerateMipmap;
 import static org.lwjgl.stb.STBTruetype.*;
 
 public class TCBFont {
-    private final String filepath;
+    private AssetReference assetReference;
     private final int fontSize;
     private final GlyphRange glyphRange;
     private int startChar;
     private int numGlyphs;
 
-    private int textureId;
+    private transient int textureId;
     private int bitmapWidth;
     private int bitmapHeight;
 
@@ -43,7 +45,7 @@ public class TCBFont {
     private volatile ByteBuffer bitmap;
 
     public TCBFont(ByteBuffer fontBuffer, String filepath, int fontSize, GlyphRange glyphRange) throws IOException {
-        this.filepath = filepath;
+        assetReference = new AssetReference(filepath);
         this.fontSize = fontSize;
         this.glyphRange = glyphRange;
 
@@ -78,11 +80,14 @@ public class TCBFont {
      * @throws IOException File does not exist.
      */
     public TCBFont(String filepath, int fontSize, boolean isProjectAsset, GlyphRange glyphRange) throws IOException {
-        if (isProjectAsset && CurrentProject != null && ProjectRoot != null) {
-            this.filepath = PathResolver.resolveToAbsolute(ProjectRoot, filepath);
+        PathResolver resolver;
+
+        if (!PathResolver.isInitialized()) {
+            PathResolver.initialize(null);
         }
-        // Assumed that it is a default font that we have in our assets. Or user wants to use an absolute path.
-        else this.filepath = new File(filepath).getAbsolutePath();
+        resolver = PathResolver.get();
+
+        assetReference = new AssetReference(filepath);
 
         verifyFontFile();
 
@@ -90,26 +95,28 @@ public class TCBFont {
         this.glyphRange = glyphRange;
 
         // Load font file
-        byte[] fontData = Files.readAllBytes(Paths.get(filepath));
-        ByteBuffer fontBuffer = BufferUtils.createByteBuffer(fontData.length);
-        fontBuffer.put(fontData);
-        fontBuffer.flip();
+        try (InputStream stream = resolver.getAssetStream(assetReference.getResolvedPath())) {
+            byte[] fontData = stream.readAllBytes();
+            ByteBuffer fontBuffer = BufferUtils.createByteBuffer(fontData.length);
+            fontBuffer.put(fontData);
+            fontBuffer.flip();
 
-        if (glyphRange.hasUnicodeRanges()) {
-            loadCombinedRangeFont(fontBuffer);
-        } else {
-            this.startChar = glyphRange.getStartChar();
-            this.numGlyphs = glyphRange.getNumGlyphs();
-            loadSingleRangeFont(fontBuffer);
+            if (glyphRange.hasUnicodeRanges()) {
+                loadCombinedRangeFont(fontBuffer);
+            } else {
+                this.startChar = glyphRange.getStartChar();
+                this.numGlyphs = glyphRange.getNumGlyphs();
+                loadSingleRangeFont(fontBuffer);
+            }
+
+            isLoaded.set(true);
         }
-
-        isLoaded.set(true);
     }
 
     private void verifyFontFile() throws IOException {
-        File toVerify = new File(this.filepath);
+        File toVerify = new File(assetReference.getAbsolutePath());
 
-        if (!toVerify.exists()) throw new IOException("Font file does not exist at: '" + this.filepath + "'");
+        if (!toVerify.exists()) throw new IOException("Font file does not exist at: '" + assetReference.getCanonicalPath() + "'");
     }
 
     private int calculateBitmapScale(int fontSize, int numGlyphs) {
@@ -292,7 +299,7 @@ public class TCBFont {
     }
 
     public String getFilepath() {
-        return filepath;
+        return assetReference != null ? assetReference.getCanonicalPath() : null;
     }
 
     public GlyphRange getGlyphRange() {

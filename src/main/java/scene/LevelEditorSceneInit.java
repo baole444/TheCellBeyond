@@ -13,7 +13,6 @@ import utility.AssetsPool;
 import utility.PathResolver;
 import utility.Settings;
 
-import java.io.File;
 import java.util.*;
 
 import static editor.ImEditorGui.drawSpriteList;
@@ -136,8 +135,8 @@ public class LevelEditorSceneInit extends SceneInit {
 
         // Only generate if not existed
         for (GameObject obj : scene.getGameObjects()) {
-            if (obj.getComponent(SpriteRender.class) != null) {
-                SpriteRender spr = obj.getComponent(SpriteRender.class);
+            if (obj.getComponent(SpriteRenderer.class) != null) {
+                SpriteRenderer spr = obj.getComponent(SpriteRenderer.class);
                 if (spr.getTexture() != null) {
                     spr.setTexture(AssetsPool.loadTexture(spr.getTexture().getFilePath()));
                 }
@@ -158,9 +157,9 @@ public class LevelEditorSceneInit extends SceneInit {
 
     @Override
     public void imgui() {
-        ImGui.begin("Level Editor Debug");
-        levelEditorObject.imgui();
-        ImGui.end();
+        //ImGui.begin("Level Editor Debug");
+        //levelEditorObject.imgui();
+        //ImGui.end();
         ImGui.begin("Sprite list");
 
         if (ImGui.beginTabBar("SpriteList_TabBar")) {

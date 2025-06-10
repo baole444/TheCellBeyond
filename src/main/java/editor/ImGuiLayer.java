@@ -12,7 +12,12 @@ import imgui.type.ImBoolean;
 import render.ObjectSelection;
 import scene.Scene;
 import org.joml.Math;
+import utility.AssetReference;
+import utility.PathResolver;
 import utility.Settings;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
@@ -60,7 +65,7 @@ public class ImGuiLayer {
     public void initImGui(String glslVer) {
         ImGui.createContext();
         this.io = ImGui.getIO();
-        //guiFont(io);
+        guiFont(io);
         io.setBackendFlags(ImGuiBackendFlags.HasMouseCursors);
 
 
@@ -134,7 +139,23 @@ public class ImGuiLayer {
         //fontConfig.setMergeMode(true); //For multiple font, turn this back on
         fontConfig.setPixelSnapH(true);
 
-        //fontAtlas.addFontFromFileTTF("assets/fonts/Consola.ttf", 16, fontConfig);
+        // Get font data
+        AssetReference assetReference = new AssetReference(Settings.PATH.CONSOLA);
+        PathResolver resolver;
+
+        if (!PathResolver.isInitialized()) {
+            PathResolver.initialize(null);
+        }
+        resolver = PathResolver.get();
+
+        try (InputStream stream = resolver.getAssetStream(assetReference.getResolvedPath())) {
+            byte[] fontData = stream.readAllBytes();
+            fontAtlas.addFontFromMemoryTTF(fontData, 14, fontConfig);
+        } catch (IOException e) {
+            System.err.println("ImGui failed to read font from '" + assetReference.getCanonicalPath() + "'");
+            fontAtlas.addFontDefault();
+        }
+
         fontAtlas.build();
         fontConfig.destroy();
     }

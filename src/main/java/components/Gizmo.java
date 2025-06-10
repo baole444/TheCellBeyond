@@ -29,8 +29,8 @@ public class Gizmo extends Component {
 
     private final GameObject xAxisObj;
     private final GameObject yAxisObj;
-    private final SpriteRender xAxisSpr;
-    private final SpriteRender yAxisSpr;
+    private final SpriteRenderer xAxisSpr;
+    private final SpriteRenderer yAxisSpr;
     private final Properties properties;
 
     // Create Gizmo, give it size, position, and color.
@@ -39,8 +39,8 @@ public class Gizmo extends Component {
     public Gizmo(Sprite arrowSprite, Properties properties) {
         this.xAxisObj = Prefab.genSpsObj(arrowSprite, gizWidth, gizHeight);
         this.yAxisObj = Prefab.genSpsObj(arrowSprite, gizWidth, gizHeight);
-        this.xAxisSpr = this.xAxisObj.getComponent(SpriteRender.class);
-        this.yAxisSpr = this.yAxisObj.getComponent(SpriteRender.class);
+        this.xAxisSpr = this.xAxisObj.getComponent(SpriteRenderer.class);
+        this.yAxisSpr = this.yAxisObj.getComponent(SpriteRenderer.class);
         this.properties = properties;
 
         this.xAxisObj.addComponent(new IsNotSelectable());

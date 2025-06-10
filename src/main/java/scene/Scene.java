@@ -5,7 +5,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import components.CompDeSerializer;
 import components.Component;
-import components.SpriteRender;
+import components.SpriteRenderer;
 import org.joml.Vector2f;
 import physic2d.Physic2D;
 import render.Renderer;
@@ -54,6 +54,7 @@ public class Scene {
             this.renderer.queueObjectForAddition(go);
             this.physic2D.add(go);
         }
+
         isSceneOn = true;
     }
 
@@ -172,13 +173,13 @@ public class Scene {
             List<GameObject> serializeList = new ArrayList<>();
             for (GameObject obj : this.gameObjects) {
                 if (obj.isSerialize() && CurrentProject != null && ProjectRoot != null && currentSceneName != null) {
-                    if (obj.getComponent(SpriteRender.class) != null) {
+                    if (obj.getComponent(SpriteRenderer.class) != null) {
                         PathResolver resolver = PathResolver.get();
 
-                        String texturePath = obj.getComponent(SpriteRender.class).getTexture().getFilePath();
+                        String texturePath = obj.getComponent(SpriteRenderer.class).getTexture().getFilePath();
                         String canonicalPath = resolver.toCanonicalPath(texturePath);
 
-                        obj.getComponent(SpriteRender.class).getTexture().setFilePath(canonicalPath);
+                        obj.getComponent(SpriteRenderer.class).getTexture().setFilePath(canonicalPath);
                     }
 
                     serializeList.add(obj);
@@ -228,10 +229,10 @@ public class Scene {
             GameObject[] objects = gson.fromJson(loadFile, GameObject[].class);
             for (GameObject go : objects) {
                 if (CurrentProject != null && ProjectRoot != null && currentSceneName != null) {
-                    if (go.getComponent(SpriteRender.class) != null) {
-                        String canonicalPath = go.getComponent(SpriteRender.class).getTexture().getFilePath();
+                    if (go.getComponent(SpriteRenderer.class) != null) {
+                        String canonicalPath = go.getComponent(SpriteRenderer.class).getTexture().getFilePath();
 
-                        go.getComponent(SpriteRender.class).getTexture().setFilePath(canonicalPath);
+                        go.getComponent(SpriteRenderer.class).getTexture().setFilePath(canonicalPath);
                     }
                 }
 

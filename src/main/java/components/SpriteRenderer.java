@@ -9,7 +9,7 @@ import render.Texture;
 /**
  * A class dedicated to rendering a sprite, and it's life cycle.
  */
-public class SpriteRender extends Component {
+public class SpriteRenderer extends Component {
     private final Vector4f color = new Vector4f(1, 1, 1 , 1);
     private Sprite sprite = new Sprite();
     private transient Transform instTransform;
@@ -43,22 +43,6 @@ public class SpriteRender extends Component {
         }
     }
 
-    @Override
-    public void copyFrom(Component target) {
-        if (target instanceof SpriteRender targetSpriteRender) {
-            this.color.set(targetSpriteRender.color);
-            this.sprite = targetSpriteRender.sprite;
-            this.setDirty(true);
-        }
-    }
-
-    @Override
-    public SpriteRender copy() {
-        SpriteRender copy = new SpriteRender();
-        copy.copyFrom(this);
-        return copy;
-    }
-
     public void setDirty(boolean isDamage) {
         this.isDirty = isDamage;
     }
@@ -66,9 +50,11 @@ public class SpriteRender extends Component {
     public Vector4f getColor() {
         return this.color;
     }
+
     public Texture getTexture() {
         return sprite.getTexture();
     }
+
     public Vector2f[] getTextureCoordinates() {
         return sprite.getTextureCoordinates();
     }

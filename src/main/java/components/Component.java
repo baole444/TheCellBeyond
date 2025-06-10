@@ -170,19 +170,4 @@ public abstract class Component {
     public static void init(int maxID) {
         ID_COUNTER = maxID;
     }
-
-    public void copyFrom(Component target) {
-        if (target == null || !this.getClass().equals(target.getClass())) return;
-    }
-
-    public Component copy() {
-        try {
-            Component copy = this.getClass().getDeclaredConstructor().newInstance();
-            copyFrom(this);
-            copy.createUID();
-            return copy;
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to copy component: " + this.getClass().getSimpleName(), e);
-        }
-    }
 }

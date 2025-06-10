@@ -3,21 +3,18 @@ package TheCellBeyond;
 import components.Component;
 import editor.ImEditorGui;
 import org.joml.Vector2f;
+import utility.Settings;
 
 public class Transform extends Component {
     public Vector2f position;
     public Vector2f scale;
     public float rotate = 0.0f;
-
-    // TODO: Move this to ImGuiEditor, this step shouldn't be here.
-    //  Ideally I could use value of grid size from setting directly.
-    public transient float step = 0.32f;
-
     public int zIndex;
 
     public Transform() {
         init(new Vector2f(), new Vector2f());
     }
+
     public Transform(Vector2f position) {
         init(position, new Vector2f());
     }
@@ -39,18 +36,15 @@ public class Transform extends Component {
         this.zIndex = 0;
     }
 
-    @Override
     public void copyFrom(Component target) {
         if (target instanceof Transform targetTransform) {
             this.position.set(targetTransform.position);
             this.scale.set(targetTransform.scale);
             this.rotate = targetTransform.rotate;
             this.zIndex = targetTransform.zIndex;
-            this.step = targetTransform.step;
         }
     }
 
-    @Override
     public Transform copy() {
         return new Transform(this);
     }
@@ -64,7 +58,7 @@ public class Transform extends Component {
     public void imgui() {
         gameObject.name = ImEditorGui.inputText("Name: ", gameObject.name);
         ImEditorGui.drawVec2Ctrl("Position", this.position, 0.16f);
-        ImEditorGui.spriteKeyTransform("Sprite move", this.position, this.step);
+        ImEditorGui.spriteKeyTransform("Sprite move", this.position, Settings.GRID_WIDTH);
         ImEditorGui.drawVec2Ctrl("Scale", this.scale, 0.32f);
         this.rotate = ImEditorGui.dragFloatCtrl("Rotation", this.rotate);
         this.zIndex = ImEditorGui.dragIntCtrl("Z-Index", this.zIndex);
@@ -73,9 +67,8 @@ public class Transform extends Component {
     @Override
     public boolean equals(Object o) {
         if (o == null) return false;
-        if (!(o instanceof Transform)) return false;
+        if (!(o instanceof Transform t)) return false;
 
-        Transform t = (Transform)o;
         return t.position.equals(this.position) &&
                 t.scale.equals(this.scale) &&
                 t.rotate == this.rotate &&

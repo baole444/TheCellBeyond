@@ -56,7 +56,7 @@ public class MouseCtrl extends Component {
             this.holdObj.destroy();
         }
         this.holdObj = obj;
-        this.holdObj.getComponent(SpriteRender.class).setColor(new Vector4f(1f, 1f, 1f, 0.35f));
+        this.holdObj.getComponent(SpriteRenderer.class).setColor(new Vector4f(1f, 1f, 1f, 0.35f));
         this.holdObj.addComponent(new IsNotSelectable());
 
         // A fake object uses to illustrate targeted position (a preview).
@@ -75,13 +75,13 @@ public class MouseCtrl extends Component {
 
         this.holdObj.transform.zIndex = 0;
         //this.holdObj.destroy();
-        newObj.getComponent(SpriteRender.class).setColor(new Vector4f(1, 1, 1, 1));
+        newObj.getComponent(SpriteRenderer.class).setColor(new Vector4f(1, 1, 1, 1));
         newObj.removeComponent(IsNotSelectable.class);
 
         // Make a placed object savable as it is now a real object.
         // A real object should be added to the object grouping scene.
         this.lastPlaced = newObj;
-        newObj.isSerialize();
+        newObj.setSerialize(true);
 
         //System.out.println("Placing an object with uid: " + newObj.loadUid());
         Window.getScene().addObjToScene(newObj);
