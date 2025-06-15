@@ -27,6 +27,7 @@ public class SpriteSheet implements TextureStatusListener {
         this.spacing = spacing;
 
         if (!texture.isReady()) {
+            TextureStatusCallback.register(this);
             requireCompute = true;
             return;
         }
@@ -66,6 +67,12 @@ public class SpriteSheet implements TextureStatusListener {
         }
 
         requireCompute = false;
+
+        // SpriteSheet in most cases a long-live object, unregister might not be needed.
+        // Currently, there is no method that requires re-compute the SpriteSheet so leave it here for now.
+        // If in the future, there are mechanics that update the SpriteSheet during runtime,
+        // then move unregistering to clean up code or no unregister at all.
+        TextureStatusCallback.unRegister(this);
     }
 
     public Sprite spriteIndex(int index) {
@@ -80,7 +87,6 @@ public class SpriteSheet implements TextureStatusListener {
 
     @Override
     public void onTextureStatusChange(int handleId, TextureHandle.Status status) {
-
         if (texture.getHandleId() == handleId && status.equals(TextureHandle.Status.READY)) computeSprites();
     }
 }

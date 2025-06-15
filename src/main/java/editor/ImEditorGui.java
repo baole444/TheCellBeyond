@@ -16,6 +16,7 @@ import org.joml.Math;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import utility.AssetsPool;
+import utility.Settings;
 import utility.TextureScale;
 
 import java.util.List;
@@ -357,7 +358,7 @@ public class ImEditorGui {
 
                 if (ImGui.isItemClicked()) {
 
-                    GameObject obj = Prefab.genSpsObj(sps, sps.getWidth(), sps.getHeight());
+                    GameObject obj = Prefab.genSpsObj(sps, sps.getWidth() * Settings.WORLD_SCALE_FACTOR, sps.getHeight() * Settings.WORLD_SCALE_FACTOR);
 
                     // Bind to mouse cursor
                     levelEditorObject.getComponent(MouseCtrl.class).pickObj(obj);
