@@ -1,5 +1,7 @@
 package components;
 
+import render.texture.Sprite;
+
 public class Frame {
     public Sprite sprite;
     public float frameTime;

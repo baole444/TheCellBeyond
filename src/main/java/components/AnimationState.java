@@ -1,5 +1,6 @@
 package components;
 
+import render.texture.Sprite;
 import utility.AssetsPool;
 
 import java.util.ArrayList;

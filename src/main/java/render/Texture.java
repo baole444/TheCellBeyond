@@ -76,6 +76,8 @@ public class Texture {
 
     public int getWidth() {
         if (handle != null && handle.isReady()) {
+            if (this.width != handle.getWidth()) this.width = handle.getWidth();
+
             return handle.getWidth();
         }
 
@@ -84,6 +86,8 @@ public class Texture {
 
     public int getHeight() {
         if (handle != null && handle.isReady()) {
+            if (this.height != handle.getHeight()) this.height = handle.getHeight();
+
             return handle.getHeight();
         }
 
@@ -93,6 +97,14 @@ public class Texture {
     public int getID() {
         if (handle != null && handle.isReady()) {
             return handle.getTextureId();
+        }
+
+        return -1;
+    }
+
+    public int getHandleId() {
+        if (handle != null) {
+            return handle.getHandleId();
         }
 
         return -1;
@@ -172,8 +184,8 @@ public class Texture {
             return this.handle.getHandleId() == objTex.handle.getHandleId();
         }
 
-        return objTex.getWidth() == this.width &&
-                objTex.getHeight() == this.height &&
+        return objTex.getWidth() == this.getWidth() &&
+                objTex.getHeight() == this.getHeight() &&
                 Objects.equals(objTex.getFilePath(), this.getFilePath());
     }
 

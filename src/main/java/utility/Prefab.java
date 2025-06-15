@@ -5,6 +5,7 @@ import TheCellBeyond.Window;
 import components.*;
 import org.joml.Vector4f;
 import render.text.GlyphRange;
+import render.texture.Sprite;
 
 public class Prefab {
     public static GameObject genSpsObj(Sprite sprite, float sizeX, float sizeY) {

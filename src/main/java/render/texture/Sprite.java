@@ -1,4 +1,4 @@
-package components;
+package render.texture;
 
 import org.joml.Vector2f;
 import render.Texture;

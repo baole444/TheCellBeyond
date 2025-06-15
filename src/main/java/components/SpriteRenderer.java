@@ -5,6 +5,7 @@ import editor.ImEditorGui;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import render.Texture;
+import render.texture.Sprite;
 
 /**
  * A class dedicated to rendering a sprite, and it's life cycle.
@@ -43,8 +44,8 @@ public class SpriteRenderer extends Component {
         }
     }
 
-    public void setDirty(boolean isDamage) {
-        this.isDirty = isDamage;
+    public void setDirty(boolean needsUpdate) {
+        this.isDirty = needsUpdate;
     }
 
     public Vector4f getColor() {
@@ -52,11 +53,11 @@ public class SpriteRenderer extends Component {
     }
 
     public Texture getTexture() {
-        return sprite.getTexture();
+        return sprite != null ? sprite.getTexture() : null;
     }
 
     public Vector2f[] getTextureCoordinates() {
-        return sprite.getTextureCoordinates();
+        return sprite != null ? sprite.getTextureCoordinates() : null;
     }
 
     public void setSprite(Sprite sprite) {

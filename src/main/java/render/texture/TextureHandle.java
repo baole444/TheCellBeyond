@@ -67,6 +67,8 @@ public class TextureHandle {
 
     protected void setStatus(Status newStatus) {
         this.status.set(newStatus);
+
+        TextureStatusCallback.emit(getHandleId(), getStatus());
     }
 
     protected void setTextureId(int id) {

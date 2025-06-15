@@ -9,6 +9,7 @@ import editor.project.ProjectSceneMap;
 import editor.project.ProjectSheetMap;
 import imgui.ImGui;
 import imgui.ImVec2;
+import render.texture.SpriteSheet;
 import utility.AssetsPool;
 import utility.PathResolver;
 import utility.Settings;

@@ -1,7 +1,7 @@
 package utility;
 
 import TheCellBeyond.Sound;
-import components.SpriteSheet;
+import render.texture.SpriteSheet;
 import render.Shader;
 import render.Texture;
 import render.texture.TextureManager;

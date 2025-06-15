@@ -214,6 +214,9 @@ public class Batch implements Comparable<Batch> {
         Vector4f color = spt.getColor();
         Vector2f[] textureCoordinates = spt.getTextureCoordinates();
 
+        // No data availble yet
+        if (textureCoordinates == null) return;
+
         int ID = 0;
         //[0, tex, tex, tex, tex]
 

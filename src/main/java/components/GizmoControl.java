@@ -1,6 +1,7 @@
 package components;
 
 import TheCellBeyond.Window;
+import render.texture.SpriteSheet;
 
 /**
  * A class dedicated to handling Editor's gizmo system.

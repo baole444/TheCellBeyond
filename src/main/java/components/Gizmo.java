@@ -4,6 +4,7 @@ import TheCellBeyond.*;
 import editor.Properties;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
+import render.texture.Sprite;
 import utility.Prefab;
 
 import static org.lwjgl.glfw.GLFW.*;

@@ -2,6 +2,7 @@ package components;
 
 import TheCellBeyond.MouseListener;
 import editor.Properties;
+import render.texture.Sprite;
 
 /**
  * Gizmo used for moving an object around in the editor.
