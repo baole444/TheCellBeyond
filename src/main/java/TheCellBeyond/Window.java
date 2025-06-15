@@ -326,6 +326,10 @@ public class Window implements EventInterface {
         AssetsPool.clearCache();
         RendererState.cleanup();
 
+        if (currentScene != null && currentScene.getRenderer() != null) {
+            currentScene.getRenderer().cleanup();
+        }
+
         imGuiLayer.getImGuiGl3().shutdown();
         imGuiLayer.getImGuiGlfw().shutdown();
         ImGui.destroyContext();

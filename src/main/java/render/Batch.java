@@ -119,15 +119,15 @@ public class Batch implements Comparable<Batch> {
         glEnableVertexAttribArray(4);
     }
 
-    public void loadSprite(SpriteRenderer spt) {
+    public void loadSprite(SpriteRenderer spriteRenderer) {
         // Indexing render object
         int index = this.countSprite;
-        this.sprites[index] = spt;
+        this.sprites[index] = spriteRenderer;
         this.countSprite++;
 
-        if (spt.getTexture() != null) {
-            if (!textures.contains(spt.getTexture())) {
-                textures.add(spt.getTexture());
+        if (spriteRenderer.getTexture() != null) {
+            if (!textures.contains(spriteRenderer.getTexture())) {
+                textures.add(spriteRenderer.getTexture());
             }
         }
 

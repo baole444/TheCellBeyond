@@ -4,8 +4,8 @@ import TheCellBeyond.Sound;
 import components.SpriteSheet;
 import render.Shader;
 import render.Texture;
+import render.texture.TextureManager;
 
-import java.io.File;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -64,15 +64,18 @@ public class AssetsPool {
         PathResolver resolver = PathResolver.get();
         String canonicalPath = resolver.toCanonicalPath(path);
 
-        if (textures.containsKey(canonicalPath)) {
-            return textures.get(canonicalPath);
-        } else {
-            Texture texture = new Texture();
-            texture.init(canonicalPath);
-            textures.put(canonicalPath, texture);
+        Texture currentTexture = textures.get(canonicalPath);
 
-            return texture;
+        if (currentTexture != null) {
+            return currentTexture;
         }
+
+        Texture texture = new Texture();
+        texture.init(canonicalPath);
+        textures.put(canonicalPath, texture);
+
+        return texture;
+
     }
 
     public static void addSpriteSheet(String path, SpriteSheet spritesheet) {
@@ -136,6 +139,8 @@ public class AssetsPool {
         textures.clear();
         spritesheets.clear();
         sounds.clear();
+
+        TextureManager.get().clearPathCache();
     }
 
 }

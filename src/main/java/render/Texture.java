@@ -1,45 +1,44 @@
 package render;
 
 import org.lwjgl.BufferUtils;
+import render.texture.TextureHandle;
+import render.texture.TextureManager;
 import utility.AssetReference;
 import utility.PathResolver;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
 import java.util.Objects;
 
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.stb.STBImage.*;
 
 public class Texture {
     private AssetReference assetReference;
-    private transient int textureID;
+    private transient TextureHandle handle;
     private int width, height;
+
+    private transient boolean isSizeInitialized = false;
+    private transient boolean isFrameBufferTexture = false;
 
     public Texture() {
         // Intended to fail if parameter not set
-        textureID = -1;
         width = -1;
         height = -1;
     }
 
-    public Texture(int width, int height) {
-        assetReference = null;
+    // Used by FrameBuffer
+    static Texture createFrameBufferTexture(int width, int height) {
+        Texture texture = new Texture();
+        texture.assetReference = null;
+        texture.width = width;
+        texture.height = height;
+        texture.isSizeInitialized = true;
+        texture.isFrameBufferTexture = true;
 
-        // Generate texture on GPU
-        textureID = glGenTextures();
-        glBindTexture(GL_TEXTURE_2D, textureID);
+        texture.handle = TextureManager.get().createFrameBufferTexture(width, height);
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-        // Generate empty space
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,
-                width, height,
-                0, GL_RGB, GL_UNSIGNED_BYTE, 0
-        );
+        return texture;
     }
 
     public void init(String filepath) {
@@ -57,61 +56,18 @@ public class Texture {
             buffer.put(data);
             buffer.flip();
 
-            loadFromBuffer(buffer);
+            this.handle = TextureManager.get().getTextureHandle(buffer, assetReference);
         } catch (IOException e) {
             System.err.println("Failed to load texture: " + assetReference.getCanonicalPath());
             e.printStackTrace();
         }
     }
 
-    private void loadFromBuffer(ByteBuffer buffer) {
-        // Generate texture on GPU
-        textureID = glGenTextures();
-        glBindTexture(GL_TEXTURE_2D, textureID);
-
-        // Texture parameters
-
-        //  Image repeater
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-        // Image style
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
-        // Downsize
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-        stbi_set_flip_vertically_on_load(true);
-
-        IntBuffer width = BufferUtils.createIntBuffer(1);
-        IntBuffer height = BufferUtils.createIntBuffer(1);
-        IntBuffer channels = BufferUtils.createIntBuffer(1);
-
-        ByteBuffer image = stbi_load_from_memory(buffer, width, height, channels, 0);
-
-        if (image != null ) {
-            this.width = width.get(0);
-            this.height = height.get(0);
-            if (channels.get(0) == 3) {
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width.get(0), height.get(0),
-                        0, GL_RGB, GL_UNSIGNED_BYTE, image);
-            } else if (channels.get(0) == 4) {
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width.get(0), height.get(0),
-                        0, GL_RGBA, GL_UNSIGNED_BYTE, image);
-            } else {
-                assert false : "Error: Unknown texture channels '" + channels.get(0) + " '";
-            }
-
-        } else {
-            assert false : "FATAL: Texture failed to load! '" + getFilePath() + " '";
-        }
-
-        stbi_image_free(image); //Free memory and prevent memory leak
-    }
-
     public void bind() {
-        glBindTexture(GL_TEXTURE_2D, textureID);
+        int textureId = getID();
+        if (textureId > 0) {
+            glBindTexture(GL_TEXTURE_2D, textureId);
+        }
     }
 
     public void unbind() {
@@ -119,15 +75,47 @@ public class Texture {
     }
 
     public int getWidth() {
+        if (handle != null && handle.isReady()) {
+            return handle.getWidth();
+        }
+
         return this.width;
     }
 
     public int getHeight() {
+        if (handle != null && handle.isReady()) {
+            return handle.getHeight();
+        }
+
         return this.height;
     }
 
     public int getID() {
-        return textureID;
+        if (handle != null && handle.isReady()) {
+            return handle.getTextureId();
+        }
+
+        return -1;
+    }
+
+    public TextureHandle getHandle() {
+        return handle;
+    }
+
+    public boolean isReady() {
+        return handle != null && handle.isReady();
+    }
+
+    public boolean isFailed() {
+        return handle != null && handle.isFailed();
+    }
+
+    public TextureHandle.Status getStatus() {
+        return handle != null ? handle.getStatus() : TextureHandle.Status.WAITING;
+    }
+
+    public String getErrorMessage() {
+        return handle != null ? handle.getErrorMsg() : null;
     }
 
     public String getFilePath() {
@@ -138,11 +126,34 @@ public class Texture {
         this.assetReference = new AssetReference(path);
     }
 
+    public void dispose() {
+        if (handle != null) {
+            if (isFrameBufferTexture) {
+                TextureManager.get().forceDisposeTexture(handle);
+            } else {
+                String canonicalPath = getFilePath();
+                TextureManager.get().disposeTexture(handle, canonicalPath);
+            }
+
+            handle = null;
+        }
+    }
+
+    private void updateSizeFromHandle() {
+        if (handle != null && handle.isReady() && !isSizeInitialized) {
+            this.width = handle.getWidth();
+            this.height = handle.getHeight();
+            this.isSizeInitialized = true;
+        }
+    }
+
     public Texture copy() {
         Texture copy = new Texture();
 
         if (this.assetReference != null) {
             copy.init(assetReference.getCanonicalPath());
+        } else if (isSizeInitialized && isFrameBufferTexture) {
+            return createFrameBufferTexture(width, height);
         }
 
         return copy;
@@ -153,9 +164,50 @@ public class Texture {
         if (obj == null) return false;
         if (!(obj instanceof Texture objTex)) return false;
 
+        if (this.getFilePath() != null && objTex.getFilePath() != null) {
+            return Objects.equals(this.getFilePath(), objTex.getFilePath());
+        }
+
+        if (this.handle != null && objTex.handle != null) {
+            return this.handle.getHandleId() == objTex.handle.getHandleId();
+        }
+
         return objTex.getWidth() == this.width &&
                 objTex.getHeight() == this.height &&
-                objTex.getID() == this.textureID &&
                 Objects.equals(objTex.getFilePath(), this.getFilePath());
+    }
+
+    @Override
+    public int hashCode() {
+        if (getFilePath() != null) {
+            return Objects.hash(getFilePath());
+        }
+
+        if (handle != null) {
+            return Objects.hash(handle.getHandleId());
+        }
+
+        return Objects.hash(width, height);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder("Texture{");
+        if (assetReference != null) {
+            builder.append("path=").append(assetReference.getCanonicalPath()).append("', ");
+        }
+
+        builder.append("size=").append(getWidth()).append("x").append(getHeight());
+        if (handle != null) {
+            builder.append(", status=").append(handle.getStatus());
+            builder.append(", handleId=").append(handle.getHandleId());
+        }
+
+        if (isFrameBufferTexture) {
+            builder.append(", type=framebuffer");
+        }
+
+        builder.append("}");
+        return builder.toString();
     }
 }

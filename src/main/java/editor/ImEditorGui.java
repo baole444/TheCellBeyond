@@ -357,7 +357,7 @@ public class ImEditorGui {
 
                 if (ImGui.isItemClicked()) {
 
-                    GameObject obj = Prefab.genSpsObj(sps, sps.getWidth() / 100f, sps.getHeight() / 100f);
+                    GameObject obj = Prefab.genSpsObj(sps, sps.getWidth(), sps.getHeight());
 
                     // Bind to mouse cursor
                     levelEditorObject.getComponent(MouseCtrl.class).pickObj(obj);

@@ -6,6 +6,7 @@ import components.TextComponent;
 import org.joml.Matrix4f;
 import render.text.FontManager;
 import render.text.TextBatch;
+import render.texture.TextureManager;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -49,6 +50,8 @@ public class Renderer {
     }
 
     public void render() {
+        TextureManager.get().processCommands();
+
         FontManager.get().updateFontTextures(); // Within a render loop for a GL context, this can only be call once.
 
         RendererState state = RendererState.get();
@@ -183,5 +186,9 @@ public class Renderer {
 
         updatedGameObjects.clear();
         removedGameObjects.clear();
+    }
+
+    public void cleanup() {
+        TextureManager.get().cleanup();
     }
 }
