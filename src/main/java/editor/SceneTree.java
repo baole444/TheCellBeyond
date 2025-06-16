@@ -7,12 +7,11 @@ import imgui.flag.ImGuiTreeNodeFlags;
 
 import java.util.List;
 
-public class SceneObjectGroupingWindow {
+public class SceneTree {
     private static final String GROUPING_PAYLOAD = "ObjectGrouping";
 
     public void imgui() {
         ImGui.begin("Object Grouping");
-        //ImGui.text("Phantom object might\nappear in this list.\nIt does not affect\nthe save file.");
         List<GameObject> gameObjects = Window.getScene().getGameObjects();
         int index = 0;
         for (GameObject obj: gameObjects) {
@@ -69,7 +68,6 @@ public class SceneObjectGroupingWindow {
                     GameObject go = (GameObject) payloadObj;
                     System.out.println("Dropping uId " + go.getUID() + " with name '" + go.name + "'");
                     System.out.println("Accepting target uId " + obj.getUID() + " with name '" + obj.name + "'");
-
                 }
             }
 

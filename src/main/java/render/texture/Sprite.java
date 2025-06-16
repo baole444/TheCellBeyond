@@ -24,7 +24,7 @@ public class Sprite {
         return this.textureCoordinates;
     }
 
-    public void setTex(Texture tex) {
+    public void setTexture(Texture tex) {
         this.texture = tex;
     }
 

@@ -35,12 +35,7 @@ public class MouseCtrl extends Component {
      */
     private boolean mouseButtonHeld = false;
 
-    // Debug value, checking holdObj with the last placed Object.
-    // Investigating the issue where cancel placement (pressing escape)
-    // will cause last placed object to disappear from the current scene.
-    private GameObject lastPlaced = null;
-
-    private float clickResetTime = 0.2f;
+    private final float clickResetTime = 0.2f;
     private float clickInit = clickResetTime;
 
     // check if dragging is already started
@@ -74,16 +69,13 @@ public class MouseCtrl extends Component {
         }
 
         this.holdObj.transform.zIndex = 0;
-        //this.holdObj.destroy();
         newObj.getComponent(SpriteRenderer.class).setColor(new Vector4f(1, 1, 1, 1));
         newObj.removeComponent(IsNotSelectable.class);
 
         // Make a placed object savable as it is now a real object.
         // A real object should be added to the object grouping scene.
-        this.lastPlaced = newObj;
         newObj.setSerialize(true);
 
-        //System.out.println("Placing an object with uid: " + newObj.loadUid());
         Window.getScene().addObjToScene(newObj);
     }
 
@@ -138,8 +130,6 @@ public class MouseCtrl extends Component {
 
             // Remove the current selected object to be place from the scene.
             if (KeyListener.isKeyPressed(GLFW_KEY_ESCAPE)) {
-                //System.out.println("Holding obj: " + holdObj.loadUid());
-                //System.out.println("Last placed object: " + lastPlaced.loadUid());
                 this.holdObj.destroy();
                 this.holdObj = null;
             }
@@ -236,9 +226,6 @@ public class MouseCtrl extends Component {
         // +- 2 to offset the coordinate inside the square border.
         Vector2i beginScr = new Vector2i((int)(beginScrFloat.x) + 2, (int)(beginScrFloat.y) + 2);
         Vector2i endScr = new Vector2i((int)(endScrFloat.x) - 2, (int)(endScrFloat.y) - 2);
-
-        //DebugDraw.addCircle(begin, 0.05f);
-        //DebugDraw.addCircle(end, 0.05f);
 
         float[] gameObjIds = properties.getObjectSelection().checkPixelsIn(beginScr, endScr);
 

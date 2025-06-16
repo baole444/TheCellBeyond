@@ -41,23 +41,7 @@ public class SpriteSheet implements TextureStatusListener {
         int instX = 0;
         int instY = texture.getHeight() - spsHeight;
         for (int i = 0; i < countSprite; i++) {
-            float topY = (instY + spsHeight) / (float)texture.getHeight();
-            float rightX = (instX + spsWidth) / (float)texture.getWidth();
-            float leftX = instX / (float)texture.getWidth();
-            float bottomY = instY / (float)texture.getHeight();
-
-            Vector2f[] textureCoordinates = {
-                    new Vector2f(rightX, topY),
-                    new Vector2f(rightX, bottomY),
-                    new Vector2f(leftX, bottomY),
-                    new Vector2f(leftX, topY)
-            };
-
-            Sprite sprite = new Sprite();
-            sprite.setTex(this.texture);
-            sprite.setTextureCoordinates(textureCoordinates);
-            sprite.setWidth(spsWidth);
-            sprite.setHeight(spsHeight);
+            Sprite sprite = getSprite(instY, instX);
             this.sprites.add(sprite);
             instX += spsWidth + spacing;
             if (instX >= texture.getWidth()) {
@@ -73,6 +57,27 @@ public class SpriteSheet implements TextureStatusListener {
         // If in the future, there are mechanics that update the SpriteSheet during runtime,
         // then move unregistering to clean up code or no unregister at all.
         TextureStatusCallback.unRegister(this);
+    }
+
+    private Sprite getSprite(int instY, int instX) {
+        float topY = (instY + spsHeight) / (float)texture.getHeight();
+        float rightX = (instX + spsWidth) / (float)texture.getWidth();
+        float leftX = instX / (float)texture.getWidth();
+        float bottomY = instY / (float)texture.getHeight();
+
+        Vector2f[] textureCoordinates = {
+                new Vector2f(rightX, topY),
+                new Vector2f(rightX, bottomY),
+                new Vector2f(leftX, bottomY),
+                new Vector2f(leftX, topY)
+        };
+
+        Sprite sprite = new Sprite();
+        sprite.setTexture(this.texture);
+        sprite.setTextureCoordinates(textureCoordinates);
+        sprite.setWidth(spsWidth);
+        sprite.setHeight(spsHeight);
+        return sprite;
     }
 
     public Sprite spriteIndex(int index) {

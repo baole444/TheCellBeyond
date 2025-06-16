@@ -33,7 +33,7 @@ public class ImGuiLayer {
     private Properties properties;
     private MenuBar menuBar;
     private OpenProjectDialog openProjectDialog = new OpenProjectDialog();
-    private SceneObjectGroupingWindow objectGroupingWindow;
+    private SceneTree objectGroupingWindow;
     private ImGuiIO io;
 
     // Boolean system for remote toggle additional editor windows from menuBar and such
@@ -58,7 +58,7 @@ public class ImGuiLayer {
         this.windowPtr = windowPtr;
         this.properties = new Properties(objectSelection);
         this.menuBar = new MenuBar();
-        this.objectGroupingWindow = new SceneObjectGroupingWindow();
+        this.objectGroupingWindow = new SceneTree();
     }
 
     // Initialization im ImGui

@@ -46,7 +46,7 @@ public class AnimationState {
 
     public void reloadTexture() {
         for (Frame frame : animateFrame) {
-            frame.sprite.setTex(AssetsPool.loadTexture(frame.sprite.getTexture().getFilePath()));
+            frame.sprite.setTexture(AssetsPool.loadTexture(frame.sprite.getTexture().getFilePath()));
         }
     }
 

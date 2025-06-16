@@ -18,13 +18,13 @@ public class TextComponent extends Component implements FontLoadCallback {
     private String text;
     private String fontPath;
     private int fontSize;
-    private Vector4f color;
+    private final Vector4f color;
     private boolean isDirty = true;
     private String glyphRangeName = "ASCII";
     private boolean isProjectAsset = false;
 
     private transient TCBFont font;
-    private transient Vector2f textDimensions = new Vector2f();
+    private final transient Vector2f textDimensions = new Vector2f();
     private transient Vector2f worldPosition = null;
     private transient FontRequest currentRequest = null;
     private transient boolean pendingRequest = false;

@@ -15,8 +15,8 @@ import java.util.List;
 import static editor.project.Project.CurrentProject;
 
 public class MenuBar {
-    private static boolean mode[] = new boolean[] {true, false, false};
-    private ExitConfirmDialog exitConfirmDialog = new ExitConfirmDialog();
+    private static final boolean[] mode = new boolean[] {true, false, false};
+    private final ExitConfirmDialog exitConfirmDialog = new ExitConfirmDialog();
 
     public void imgui() {
 
