@@ -24,9 +24,14 @@ public class Scene {
     private final Renderer renderer;
     private Viewport viewport;
     private boolean isSceneOn;
+
+    @Deprecated
     private final List<GameObject> gameObjects;
+
+    // Will replace gameObjects list when an int-based game object phased out.
+    private final Map<String, GameObject> gameObjectByUUIDs;
+
     private final Physic2D physic2D;
-    private boolean isFileLoaded = false;
 
     private final SceneInit sceneInit;
 
@@ -35,6 +40,7 @@ public class Scene {
         this.physic2D = new Physic2D();
         this.renderer = new Renderer();
         this.gameObjects = new ArrayList<>();
+        this.gameObjectByUUIDs = new HashMap<>();
         this.isSceneOn = false;
     }
 
@@ -58,27 +64,87 @@ public class Scene {
         isSceneOn = true;
     }
 
-    public void addObjToScene(GameObject go) {
-        if (!isSceneOn) {
-            gameObjects.add(go);
-        } else {
-            gameObjects.add(go);
+    public void addObjToScene(GameObject go, GameObject parent) {
+        if (go == null) return;
+
+        if (!gameObjects.contains(go)) gameObjects.add(go);
+
+        gameObjectByUUIDs.put(go.getUUID(), go);
+
+        if (parent != null) {
+            parent.addChild(go);
+        }
+
+        if (isSceneOn) {
             go.start();
             this.renderer.queueObjectForAddition(go);
             this.physic2D.add(go);
         }
     }
 
+    public void addObjToScene(GameObject go) {
+        addObjToScene(go, null);
+    }
+
+    public void removeObjFromScene(GameObject go) {
+        if (go == null) return;
+
+        if (go.getParent() != null) {
+            go.getParent().removeChild(go);
+        }
+
+        List<GameObject> descendants = go.getAllDescendants();
+        for (GameObject descendant : descendants) {
+            gameObjectByUUIDs.remove(descendant.getUUID());
+            gameObjects.remove(descendant);
+            renderer.queueObjectForRemoval(descendant);
+            physic2D.destroyObject(descendant);
+        }
+
+        gameObjectByUUIDs.remove(go.getUUID());
+        gameObjects.remove(go);
+        renderer.queueObjectForRemoval(go);
+        physic2D.destroyObject(go);
+    }
+
+    public boolean reparentObject(GameObject child, GameObject newParent) {
+        if (child == null) return false;
+
+        // cannot reparent oneself to oneself
+        if (newParent != null && (child == newParent || child.isAncestor(newParent))) {
+            return false;
+        }
+
+        child.setParent(newParent);
+
+        return true;
+    }
+
     public void destroy() {
         for (GameObject go : gameObjects) {
             go.destroy();
         }
+
+        // When the game object list is removed,
+        // the mapping will do the method call instead.
+        gameObjectByUUIDs.clear();
     }
 
+    // In the future, this will return the new object map instead.
+    @Deprecated
     public List<GameObject> getGameObjects() {
         return this.gameObjects;
     }
 
+    public Map<String, GameObject> getGameObjectWithUUIDs() {
+        return this.gameObjectByUUIDs;
+    }
+
+    public List<GameObject> getSerializedObject() {
+        return gameObjects.stream().filter(GameObject::isSerialize).toList();
+    }
+
+    @Deprecated
     public GameObject getGameObject(int gObjectID) {
         Optional<GameObject> result = this.gameObjects.stream().
                 filter(gameObject -> gameObject.getUID() == gObjectID).
@@ -87,21 +153,23 @@ public class Scene {
         return result.orElse(null);
     }
 
+    public GameObject getGameObject(String objectUUID) {
+        return gameObjectByUUIDs.get(objectUUID);
+    }
+
     public void editorUpdate(float dt) {
         viewport.adjustProjection();
 
-        for (int i = 0; i < gameObjects.size(); i++) {
-            GameObject go = gameObjects.get(i);
+        List<GameObject> removedObjects = new ArrayList<>();
+
+        for (GameObject go : gameObjects) {
             go.editorUpdate(dt);
 
-            if (go.isRemoved()) {
+            if (go.isRemoved()) removedObjects.add(go);
+        }
 
-                gameObjects.remove(i);
-                renderer.queueObjectForRemoval(go);
-                physic2D.destroyObject(go);
-
-                i --; // Step back if remove
-            }
+        for (GameObject go : removedObjects) {
+            removeObjFromScene(go);
         }
     }
 
@@ -109,20 +177,19 @@ public class Scene {
         viewport.adjustProjection();
         physic2D.update(dt);
 
-        for (int i = 0; i < gameObjects.size(); i++) {
-            GameObject go = gameObjects.get(i);
+        List<GameObject> removedObjects = new ArrayList<>();
+
+        for (GameObject go : gameObjects) {
             go.update(dt);
 
-            if (go.isRemoved()) {
-                //System.out.println("A request to end an object's rendering is called at position: " + i + " This one is from update");
-                gameObjects.remove(i);
-                renderer.queueObjectForRemoval(go);
-                physic2D.destroyObject(go);
+            if (go.isRemoved()) removedObjects.add(go);
+        }
 
-                i --; // Step back if remove
-            }
+        for (GameObject go : removedObjects) {
+            removeObjFromScene(go);
         }
     }
+
     public void render() {
         renderer.setMatrices(viewport.getProjectionMatrix(), viewport.getViewMatrix());
         renderer.render();
@@ -173,6 +240,8 @@ public class Scene {
             List<GameObject> serializeList = new ArrayList<>();
             for (GameObject obj : this.gameObjects) {
                 if (obj.isSerialize() && CurrentProject != null && ProjectRoot != null && currentSceneName != null) {
+                    obj.prepareForSerialization();
+
                     if (obj.getComponent(SpriteRenderer.class) != null) {
                         PathResolver resolver = PathResolver.get();
 
@@ -188,10 +257,10 @@ public class Scene {
             writer.write(gson.toJson(serializeList));
             writer.close();
         } catch (IOException e) {
-            System.out.println("Failed to save level, please check following stack trace for more info.");
-            System.out.println("_______________________________________________________________________\n");
-            e.printStackTrace();
-            System.out.println("\n_______________________________________________________________________\n");
+            System.err.println("Failed to save level!");
+            System.err.println("_______________________________________________________________________\n");
+            System.err.println(e.getMessage());
+            System.err.println("\n_______________________________________________________________________\n");
         }
     }
 
@@ -249,12 +318,14 @@ public class Scene {
                 }
             }
 
+            for (GameObject go : objects) {
+                go.restoreHierarchy(this);
+            }
+
             maxObjID++;
             maxCompID++;
             GameObject.init(maxObjID);
             Component.init(maxCompID);
-
-            this.isFileLoaded = true;
         }
     }
 }

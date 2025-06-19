@@ -7,26 +7,140 @@ import components.Component;
 import components.SpriteRenderer;
 import imgui.ImGui;
 import render.Texture;
+import scene.Scene;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class GameObject {
     private static  int ID_COUNTER = 0;
+
+    // UUID will replace old int-based id
+    private String uuid;
+
+    @Deprecated
     private int uID = -1;
+
     public String name;
-    private List<Component> components;
+    private final List<Component> components;
     public transient Transform transform;
     private boolean isSerialize = true;
     private boolean isRemoved = false;
 
+    private transient GameObject parent;
+    private final transient List<GameObject> children;
+
+    private String parentUUID;
+    private List<String> childrenUUIDs;
 
     public GameObject(String name) {
         this.name = name;
         this.components = new ArrayList<>();
+        this.children = new ArrayList<>();
 
-        // TODO: May cause problem when deserializing.
+        this.uuid = UUID.randomUUID().toString();
+
+        // TODO: Will be remove in the future.
         this.uID = ID_COUNTER++;
+    }
+
+    public void addChild(GameObject child) {
+        if (child == null || child == this) return;
+
+        // Circular references check.
+        if (isAncestor(child)) {
+            System.err.println("Cannot add parent as child.");
+            return;
+        }
+
+        // Remove from previous parent.
+        if (child.parent != null) {
+            child.parent.removeChild(child);
+        }
+
+        if (!children.contains(child)) {
+            children.add(child);
+        }
+
+        child.parent = this;
+        child.parentUUID = this.uuid;
+
+        // Update serialization data
+        updateChildrenUUIDs();
+    }
+
+    public void removeChild(GameObject child) {
+        if (child == null) return;
+
+        children.remove(child);
+        if (child.parent == this) {
+            child.parent = null;
+            child.parentUUID = null;
+        }
+
+        updateChildrenUUIDs();
+    }
+
+    public void setParent(GameObject newParent) {
+        if (newParent != null) {
+            newParent.addChild(this);
+        } else {
+            if (parent != null) {
+                parent.removeChild(this);
+            }
+
+            this.parent = null;
+            this.parentUUID = null;
+        }
+    }
+
+    public boolean isAncestor(GameObject ancestorAble) {
+        GameObject current = this.parent;
+        while (current != null) {
+            if (current == ancestorAble) {
+                return true;
+            }
+
+            current = current.parent;
+        }
+
+        return false;
+    }
+
+    public boolean isRoot() {
+        return parent == null;
+    }
+
+    public GameObject getRoot() {
+        GameObject current = this;
+        while (current.parent != null) {
+            current = current.parent;
+        }
+
+        return current;
+    }
+
+    // Recursive list that gets all children and their children and so on.
+    public List<GameObject> getAllDescendants() {
+        List<GameObject> descendants = new ArrayList<>();
+        addDescendantsRecursive(descendants);
+
+        return descendants;
+    }
+
+    private void addDescendantsRecursive(List<GameObject> descendants) {
+        for (GameObject child : children) {
+            descendants.add(child);
+            child.addDescendantsRecursive(descendants);
+        }
+    }
+
+    private void updateChildrenUUIDs() {
+        childrenUUIDs = new ArrayList<>();
+        for (GameObject child : children) {
+            childrenUUIDs.add(child.uuid);
+        }
     }
 
     public <Obj extends Component> Obj getComponent(Class<Obj> componentClass) {
@@ -35,7 +149,7 @@ public class GameObject {
                 try {
                     return componentClass.cast(c);
                 } catch (ClassCastException e) {
-                    assert false : "FATAL: Casting component.";
+                    assert false : "FATAL: Casting component failed.";
                 }
             }
         }
@@ -84,8 +198,24 @@ public class GameObject {
     }
 
     public void destroy() {
+        // This object is already destroyed, safety check
+        //
+        if (this.isRemoved()) return;
+
         this.isRemoved = true;
+
+        if (parent != null) {
+            parent.removeChild(this);
+        }
+
+        List<GameObject> childrenCopy = new ArrayList<>(children);
+
+        for (GameObject child : childrenCopy) {
+            child.destroy();
+        }
+
         for (Component component : components) {
+            if (component == null) continue;
             component.destroy();
         }
     }
@@ -100,6 +230,7 @@ public class GameObject {
         String oJson = gson.toJson(this);
         GameObject obj = gson.fromJson(oJson, GameObject.class);
 
+        obj.uuid = UUID.randomUUID().toString();
         obj.createUID();
 
         for (Component c : obj.getComponents()) {
@@ -125,14 +256,25 @@ public class GameObject {
         return this.isRemoved;
     }
 
+    @Deprecated
     public int getUID() {
         return this.uID;
     }
 
+    public String getUUID() {
+        return this.uuid;
+    }
+
+    @Deprecated
     public void setUID(int uid) {
         this.uID = uid;
     }
 
+    public void setUUID(String uuid) {
+        this.uuid = uuid;
+    }
+
+    @Deprecated
     public void createUID() {
         this.uID = ID_COUNTER++;
     }
@@ -153,10 +295,68 @@ public class GameObject {
         return this.isSerialize;
     }
 
+    public GameObject getParent() {
+        return this.parent;
+    }
+
+    public String getParentUUID() {
+        return this.parentUUID;
+    }
+
+    public void setParentUUID(String uuid) {
+        this.parentUUID = uuid;
+    }
+
+    public List<GameObject> getChildren() {
+        return this.children;
+    }
+
+    public List<String> getChildrenUUIDs() {
+        return this.childrenUUIDs;
+    }
+
+    public void setChildrenUUIDs(List<String> childrenUUIDs) {
+        this.childrenUUIDs = childrenUUIDs;
+    }
+
+
+    public void prepareForSerialization() {
+        if (parent != null) {
+            parentUUID = parent.uuid;
+        }
+
+        updateChildrenUUIDs();
+    }
+
+    public void restoreHierarchy(Scene scene) {
+        // Parent relationship
+        if (parentUUID != null) {
+            GameObject parentGO = scene.getGameObject(parentUUID);
+            if (parentGO != null) {
+                this.parent = parentGO;
+                if (!parentGO.children.contains(this)) {
+                    parentGO.children.add(this);
+                }
+            }
+        }
+
+        // Children relationships
+        if (childrenUUIDs != null) {
+            children.clear();
+            for (String childUUID : childrenUUIDs) {
+                GameObject childGO = scene.getGameObject(childUUID);
+                if (childGO != null) {
+                    children.add(childGO);
+                    childGO.parent = this;
+                }
+            }
+        }
+    }
+
     @Override
     public String toString() {
         return "Name: " + this.name +
-                "\n  uID: " + this.uID +
+                "\n  UUID: " + this.uuid +
                 "\n  isSerialize: " + this.isSerialize +
                 "\n  isGone: " + this.isRemoved;
     }
