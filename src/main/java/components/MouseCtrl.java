@@ -58,7 +58,7 @@ public class MouseCtrl extends Component {
         // It should not be savable ore appeared on the object grouping scene.
         this.holdObj.setNotSerialize();
 
-        Window.getScene().addObjToScene(obj);
+        Window.getScene().queueForObjectAddition(obj);
     }
 
     public void placeObj() {
@@ -76,7 +76,7 @@ public class MouseCtrl extends Component {
         // A real object should be added to the object grouping scene.
         newObj.setSerialize(true);
 
-        Window.getScene().addObjToScene(newObj);
+        Window.getScene().queueForObjectAddition(newObj);
     }
 
     @Override

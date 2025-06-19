@@ -47,8 +47,8 @@ public class Gizmo extends Component {
         this.xAxisObj.addComponent(new IsNotSelectable());
         this.yAxisObj.addComponent(new IsNotSelectable());
 
-        Window.getScene().addObjToScene(this.xAxisObj);
-        Window.getScene().addObjToScene(this.yAxisObj);
+        Window.getScene().queueForObjectAddition(this.xAxisObj);
+        Window.getScene().queueForObjectAddition(this.yAxisObj);
 
     }
 

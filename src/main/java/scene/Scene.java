@@ -28,8 +28,12 @@ public class Scene {
     @Deprecated
     private final List<GameObject> gameObjects;
 
-    // Will replace gameObjects list when an int-based game object phased out.
+    // TODO: rename to gameObjects when int-based index fully removed.
     private final Map<String, GameObject> gameObjectByUUIDs;
+
+    private final List<GameObject> addedGameObjects;
+    private final List<GameObject> removedGameObjects;
+    private final HashMap<GameObject, GameObject> addedGameObjectWithParents;
 
     private final Physic2D physic2D;
 
@@ -37,14 +41,26 @@ public class Scene {
 
     public Scene(SceneInit sceneInit) {
         this.sceneInit = sceneInit;
+
         this.physic2D = new Physic2D();
         this.renderer = new Renderer();
+
         this.gameObjects = new ArrayList<>();
+
         this.gameObjectByUUIDs = new HashMap<>();
+
+        this.addedGameObjects  = new ArrayList<>();
+        this.removedGameObjects = new ArrayList<>();
+        this.addedGameObjectWithParents = new HashMap<>();
+
         this.isSceneOn = false;
     }
 
     public void init() {
+        // Initial update if we load this scene from a file
+        // and queue for object addition instead of directly add them.
+        updateGameObjectQueues();
+
         // View point position
         viewport = new Viewport(new Vector2f(0, 0));
 
@@ -64,8 +80,21 @@ public class Scene {
         isSceneOn = true;
     }
 
-    public void addObjToScene(GameObject go, GameObject parent) {
+    public void queueForObjectAddition(GameObject go, GameObject parent) {
         if (go == null) return;
+
+        if (!addedGameObjects.contains(go) && !gameObjectByUUIDs.containsKey(go.getUUID())) {
+            addedGameObjects.add(go);
+            if (parent != null) {
+                addedGameObjectWithParents.put(go, parent);
+            }
+        }
+    }
+
+    private void addObjToScene(GameObject go, GameObject parent) {
+        if (go == null) return;
+
+        if (gameObjectByUUIDs.containsKey(go.getUUID())) return;
 
         if (!gameObjects.contains(go)) gameObjects.add(go);
 
@@ -82,11 +111,21 @@ public class Scene {
         }
     }
 
-    public void addObjToScene(GameObject go) {
-        addObjToScene(go, null);
+    public void queueForObjectAddition(GameObject go) {
+        queueForObjectAddition(go, null);
     }
 
-    public void removeObjFromScene(GameObject go) {
+    public void queueObjectForRemoval(GameObject go) {
+        if (go == null) return;
+
+        if (!removedGameObjects.contains(go) && gameObjectByUUIDs.containsKey(go.getUUID())) {
+            removedGameObjects.add(go);
+            addedGameObjects.remove(go);
+            addedGameObjectWithParents.remove(go);
+        }
+    }
+
+    private void removeObjFromScene(GameObject go) {
         if (go == null) return;
 
         if (go.getParent() != null) {
@@ -128,6 +167,25 @@ public class Scene {
         // When the game object list is removed,
         // the mapping will do the method call instead.
         gameObjectByUUIDs.clear();
+
+        removedGameObjects.clear();
+        addedGameObjects.clear();
+        addedGameObjectWithParents.clear();
+    }
+
+    private void updateGameObjectQueues() {
+        for (GameObject go : removedGameObjects) {
+            removeObjFromScene(go);
+        }
+
+        for (GameObject go : addedGameObjects) {
+            GameObject parent = addedGameObjectWithParents.get(go);
+            addObjToScene(go, parent);
+        }
+
+        removedGameObjects.clear();
+        addedGameObjects.clear();
+        addedGameObjectWithParents.clear();
     }
 
     // In the future, this will return the new object map instead.
@@ -160,34 +218,26 @@ public class Scene {
     public void editorUpdate(float dt) {
         viewport.adjustProjection();
 
-        List<GameObject> removedObjects = new ArrayList<>();
-
         for (GameObject go : gameObjects) {
             go.editorUpdate(dt);
 
-            if (go.isRemoved()) removedObjects.add(go);
+            if (go.isRemoved()) queueObjectForRemoval(go);
         }
 
-        for (GameObject go : removedObjects) {
-            removeObjFromScene(go);
-        }
+        updateGameObjectQueues();
     }
 
     public void update(float dt) {
         viewport.adjustProjection();
         physic2D.update(dt);
 
-        List<GameObject> removedObjects = new ArrayList<>();
-
         for (GameObject go : gameObjects) {
             go.update(dt);
 
-            if (go.isRemoved()) removedObjects.add(go);
+            if (go.isRemoved()) queueObjectForRemoval(go);
         }
 
-        for (GameObject go : removedObjects) {
-            removeObjFromScene(go);
-        }
+        updateGameObjectQueues();
     }
 
     public void render() {
@@ -305,7 +355,7 @@ public class Scene {
                     }
                 }
 
-                addObjToScene(go);
+                addObjToScene(go, null);
 
                 for (Component c : go.getComponents()) {
                     if (c.getUID() > maxCompID) {

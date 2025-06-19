@@ -86,7 +86,7 @@ public class LevelEditorSceneInit extends SceneInit {
         levelEditorObject.addComponent(new EditorViewport(scene.viewport()));
         levelEditorObject.addComponent(new GizmoControl(gizmo));
 
-        scene.addObjToScene(levelEditorObject);
+        scene.queueForObjectAddition(levelEditorObject);
     }
 
 

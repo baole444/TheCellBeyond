@@ -32,7 +32,7 @@ public class KeyCtrl extends Component {
 
         if (KeyListener.isKeyTapped(GLFW_KEY_D, GLFW_MOD_CONTROL) && activeGameObj != null) {
             GameObject newObj = activeGameObj.copy();
-            Window.getScene().addObjToScene(newObj);
+            Window.getScene().queueForObjectAddition(newObj);
 
             newObj.transform.position.add(Settings.GRID_WIDTH, 0.0f);
             properties.setActiveGameObject(newObj);
@@ -59,7 +59,7 @@ public class KeyCtrl extends Component {
                     copy.getComponent(StateEngine.class).reloadTexture();
                 }
 
-                Window.getScene().addObjToScene(copy);
+                Window.getScene().queueForObjectAddition(copy);
                 properties.addActiveGameObject(copy);
                 i++;
             }
