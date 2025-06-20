@@ -57,10 +57,6 @@ public class Scene {
     }
 
     public void init() {
-        // Initial update if we load this scene from a file
-        // and queue for object addition instead of directly add them.
-        updateGameObjectQueues();
-
         // View point position
         viewport = new Viewport(new Vector2f(0, 0));
 
@@ -70,8 +66,9 @@ public class Scene {
     }
 
     public void start() {
-        for (int i = 0; i < gameObjects.size(); i++) {
-            GameObject go = gameObjects.get(i);
+        updateGameObjectQueues();
+
+        for (GameObject go : gameObjects) {
             go.start();
             this.renderer.queueObjectForAddition(go);
             this.physic2D.add(go);

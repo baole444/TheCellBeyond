@@ -9,9 +9,7 @@ import imgui.ImGui;
 import render.Texture;
 import scene.Scene;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class GameObject {
     private static  int ID_COUNTER = 0;
@@ -29,7 +27,7 @@ public class GameObject {
     private boolean isRemoved = false;
 
     private transient GameObject parent;
-    private final transient List<GameObject> children;
+    private final transient LinkedHashSet<GameObject> children;
 
     private String parentUUID;
     private List<String> childrenUUIDs;
@@ -37,7 +35,7 @@ public class GameObject {
     public GameObject(String name) {
         this.name = name;
         this.components = new ArrayList<>();
-        this.children = new ArrayList<>();
+        this.children = new LinkedHashSet<>();
 
         this.uuid = UUID.randomUUID().toString();
 
@@ -59,9 +57,7 @@ public class GameObject {
             child.parent.removeChild(child);
         }
 
-        if (!children.contains(child)) {
-            children.add(child);
-        }
+        children.add(child);
 
         child.parent = this;
         child.parentUUID = this.uuid;
@@ -248,6 +244,7 @@ public class GameObject {
         return obj;
     }
 
+    @Deprecated
     public static void init(int maxID) {
         ID_COUNTER = maxID;
     }
@@ -307,7 +304,7 @@ public class GameObject {
         this.parentUUID = uuid;
     }
 
-    public List<GameObject> getChildren() {
+    public Set<GameObject> getChildren() {
         return this.children;
     }
 
@@ -330,13 +327,11 @@ public class GameObject {
 
     public void restoreHierarchy(Scene scene) {
         // Parent relationship
-        if (parentUUID != null) {
+        if (parentUUID != null && isParentNotValid()) {
             GameObject parentGO = scene.getGameObject(parentUUID);
             if (parentGO != null) {
                 this.parent = parentGO;
-                if (!parentGO.children.contains(this)) {
-                    parentGO.children.add(this);
-                }
+                parentGO.children.add(this);
             }
         }
 
@@ -347,10 +342,18 @@ public class GameObject {
                 GameObject childGO = scene.getGameObject(childUUID);
                 if (childGO != null) {
                     children.add(childGO);
-                    childGO.parent = this;
+                    if (childGO.isParentNotValid()) childGO.parent = this;
                 }
             }
         }
+    }
+
+    private boolean isParentNotValid() {
+        // Parent object not yet assigned
+        if (parent == null) return true;
+
+        // Parent uuid still match with the object reference
+        return !this.parentUUID.equals(parent.uuid);
     }
 
     @Override
