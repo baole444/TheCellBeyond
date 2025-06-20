@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static editor.project.Project.CurrentProject;
 import static editor.project.Project.ProjectRoot;
@@ -24,13 +25,7 @@ public class Scene {
     private final Renderer renderer;
     private Viewport viewport;
     private boolean isSceneOn;
-
-    @Deprecated
-    private final List<GameObject> gameObjects;
-
-    // TODO: rename to gameObjects when int-based index fully removed.
     private final Map<String, GameObject> gameObjectByUUIDs;
-
     private final List<GameObject> addedGameObjects;
     private final List<GameObject> removedGameObjects;
     private final HashMap<GameObject, GameObject> addedGameObjectWithParents;
@@ -44,8 +39,6 @@ public class Scene {
 
         this.physic2D = new Physic2D();
         this.renderer = new Renderer();
-
-        this.gameObjects = new ArrayList<>();
 
         this.gameObjectByUUIDs = new HashMap<>();
 
@@ -68,7 +61,7 @@ public class Scene {
     public void start() {
         updateGameObjectQueues();
 
-        for (GameObject go : gameObjects) {
+        for (GameObject go : gameObjectByUUIDs.values()) {
             go.start();
             this.renderer.queueObjectForAddition(go);
             this.physic2D.add(go);
@@ -92,8 +85,6 @@ public class Scene {
         if (go == null) return;
 
         if (gameObjectByUUIDs.containsKey(go.getUUID())) return;
-
-        if (!gameObjects.contains(go)) gameObjects.add(go);
 
         gameObjectByUUIDs.put(go.getUUID(), go);
 
@@ -132,13 +123,11 @@ public class Scene {
         List<GameObject> descendants = go.getAllDescendants();
         for (GameObject descendant : descendants) {
             gameObjectByUUIDs.remove(descendant.getUUID());
-            gameObjects.remove(descendant);
             renderer.queueObjectForRemoval(descendant);
             physic2D.destroyObject(descendant);
         }
 
         gameObjectByUUIDs.remove(go.getUUID());
-        gameObjects.remove(go);
         renderer.queueObjectForRemoval(go);
         physic2D.destroyObject(go);
     }
@@ -157,14 +146,11 @@ public class Scene {
     }
 
     public void destroy() {
-        for (GameObject go : gameObjects) {
+        for (GameObject go : gameObjectByUUIDs.values()) {
             go.destroy();
         }
 
-        // When the game object list is removed,
-        // the mapping will do the method call instead.
         gameObjectByUUIDs.clear();
-
         removedGameObjects.clear();
         addedGameObjects.clear();
         addedGameObjectWithParents.clear();
@@ -185,27 +171,12 @@ public class Scene {
         addedGameObjectWithParents.clear();
     }
 
-    // In the future, this will return the new object map instead.
-    @Deprecated
-    public List<GameObject> getGameObjects() {
-        return this.gameObjects;
-    }
-
-    public Map<String, GameObject> getGameObjectWithUUIDs() {
+    public Map<String, GameObject> getGameObjects() {
         return this.gameObjectByUUIDs;
     }
 
     public List<GameObject> getSerializedObject() {
-        return gameObjects.stream().filter(GameObject::isSerialize).toList();
-    }
-
-    @Deprecated
-    public GameObject getGameObject(int gObjectID) {
-        Optional<GameObject> result = this.gameObjects.stream().
-                filter(gameObject -> gameObject.getUID() == gObjectID).
-                findFirst();
-
-        return result.orElse(null);
+        return gameObjectByUUIDs.values().stream().filter(GameObject::isSerialize).collect(Collectors.toCollection(ArrayList::new));
     }
 
     public GameObject getGameObject(String objectUUID) {
@@ -215,7 +186,7 @@ public class Scene {
     public void editorUpdate(float dt) {
         viewport.adjustProjection();
 
-        for (GameObject go : gameObjects) {
+        for (GameObject go : gameObjectByUUIDs.values()) {
             go.editorUpdate(dt);
 
             if (go.isRemoved()) queueObjectForRemoval(go);
@@ -228,7 +199,7 @@ public class Scene {
         viewport.adjustProjection();
         physic2D.update(dt);
 
-        for (GameObject go : gameObjects) {
+        for (GameObject go : gameObjectByUUIDs.values()) {
             go.update(dt);
 
             if (go.isRemoved()) queueObjectForRemoval(go);
@@ -285,7 +256,7 @@ public class Scene {
         try {
             FileWriter writer = new FileWriter(resolvedPath);
             List<GameObject> serializeList = new ArrayList<>();
-            for (GameObject obj : this.gameObjects) {
+            for (GameObject obj : this.gameObjectByUUIDs.values()) {
                 if (obj.isSerialize() && CurrentProject != null && ProjectRoot != null && currentSceneName != null) {
                     obj.prepareForSerialization();
 
@@ -339,7 +310,6 @@ public class Scene {
         }
 
         if (!loadFile.isEmpty()) {
-            int maxObjID = -1;
             int maxCompID = -1;
 
             GameObject[] objects = gson.fromJson(loadFile, GameObject[].class);
@@ -359,19 +329,13 @@ public class Scene {
                         maxCompID = c.getUID();
                     }
                 }
-
-                if (go.getUID() > maxObjID) {
-                    maxObjID = go.getUID();
-                }
             }
 
             for (GameObject go : objects) {
                 go.restoreHierarchy(this);
             }
 
-            maxObjID++;
             maxCompID++;
-            GameObject.init(maxObjID);
             Component.init(maxCompID);
         }
     }

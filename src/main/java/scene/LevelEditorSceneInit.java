@@ -135,7 +135,7 @@ public class LevelEditorSceneInit extends SceneInit {
                         32, 32, 8, 16));
 
         // Only generate if not existed
-        for (GameObject obj : scene.getGameObjects()) {
+        for (GameObject obj : scene.getGameObjects().values()) {
             if (obj.getComponent(SpriteRenderer.class) != null) {
                 SpriteRenderer spr = obj.getComponent(SpriteRenderer.class);
                 if (spr.getTexture() != null) {

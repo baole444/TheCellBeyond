@@ -12,7 +12,7 @@ public class SceneTree {
 
     public void imgui() {
         ImGui.begin("Object Grouping");
-        List<GameObject> gameObjects = Window.getScene().getGameObjects();
+        List<GameObject> gameObjects = Window.getScene().getSerializedObject();
         int index = 0;
         for (GameObject obj: gameObjects) {
             if (!obj.isSerialize()) {
@@ -66,8 +66,6 @@ public class SceneTree {
             if (payloadObj != null) {
                 if (payloadObj.getClass().isAssignableFrom(GameObject.class)) {
                     GameObject go = (GameObject) payloadObj;
-                    System.out.println("Dropping uId " + go.getUID() + " with name '" + go.name + "'");
-                    System.out.println("Accepting target uId " + obj.getUID() + " with name '" + obj.name + "'");
                 }
             }
 

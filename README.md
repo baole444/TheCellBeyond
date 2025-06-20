@@ -1,23 +1,27 @@
 # The Cell Beyond Engine
 
-A simple 2D (and maybe 3D) graphic engine for Java application.
+A 2D game engine for Java application.
 
 ## Target goal:
-A Java-based game editor with project compile ability, code auto-generation, and scripting support.
+A Java-based game editor with project compile ability, code auto-generation, and scripting support.<br>
+
+*Note: code auto-generation is not AI code suggestion, this is referring to User's project auto build system.*
 
 ## Tasks:
 - [X] Basic engine functions.
 - [X] ImGui implementation.
+- [ ] Improve internal API and resolve conflicts.
 - [ ] Editor features. (Currently being worked on.)
 - [ ] Code template.
 - [ ] Scripting system.
 
 
 ## Problems need attention:
-Placing and duplicating an object to a "project-less" (No project loaded) scene will cause an error with filepath.
+- Rendering and Object selection system still relied on old integer-based GameObject indexing.
+- Potential concurrent exception with GameObject operation in Scene's queueing lists.
 
 ## Solved problems:
-- No problem from previous commit was fixed or no problem was found.
+- Unified Path system solved path resolution related problems.
 
 
 ## Additional maintenance:
@@ -26,9 +30,13 @@ Placing and duplicating an object to a "project-less" (No project loaded) scene 
 
 ## Current work:
 - [X] Project system.
+- [X] Unified Path System.
+- [X] GameObject hierarchy structure.
+- [X] Reimplementation of Scene Tree.
+- [X] Investigating Scripting Engine support.
+- [ ] Migration to the new object UUID system.
 - [ ] Add a way to save a project.
 - [ ] Extend the Project system to cover animation and sound effects.
 - [ ] Dynamically loaded assets.
-
 
 *To be continued*

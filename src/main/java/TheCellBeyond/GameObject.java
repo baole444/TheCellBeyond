@@ -12,14 +12,7 @@ import scene.Scene;
 import java.util.*;
 
 public class GameObject {
-    private static  int ID_COUNTER = 0;
-
-    // UUID will replace old int-based id
     private String uuid;
-
-    @Deprecated
-    private int uID = -1;
-
     public String name;
     private final List<Component> components;
     public transient Transform transform;
@@ -36,11 +29,7 @@ public class GameObject {
         this.name = name;
         this.components = new ArrayList<>();
         this.children = new LinkedHashSet<>();
-
         this.uuid = UUID.randomUUID().toString();
-
-        // TODO: Will be remove in the future.
-        this.uID = ID_COUNTER++;
     }
 
     public void addChild(GameObject child) {
@@ -227,7 +216,6 @@ public class GameObject {
         GameObject obj = gson.fromJson(oJson, GameObject.class);
 
         obj.uuid = UUID.randomUUID().toString();
-        obj.createUID();
 
         for (Component c : obj.getComponents()) {
             c.createUID();
@@ -244,36 +232,16 @@ public class GameObject {
         return obj;
     }
 
-    @Deprecated
-    public static void init(int maxID) {
-        ID_COUNTER = maxID;
-    }
-
     public boolean isRemoved() {
         return this.isRemoved;
-    }
-
-    @Deprecated
-    public int getUID() {
-        return this.uID;
     }
 
     public String getUUID() {
         return this.uuid;
     }
 
-    @Deprecated
-    public void setUID(int uid) {
-        this.uID = uid;
-    }
-
     public void setUUID(String uuid) {
         this.uuid = uuid;
-    }
-
-    @Deprecated
-    public void createUID() {
-        this.uID = ID_COUNTER++;
     }
 
     public List<Component> getComponents() {
