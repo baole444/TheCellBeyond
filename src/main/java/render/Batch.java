@@ -276,7 +276,7 @@ public class Batch implements Comparable<Batch> {
             vertices[offset + 8] = ID;
 
             // Load obj Id
-            vertices[offset + 9] = spt.gameObject.getUID() + 1;
+            vertices[offset + 9] = spt.gameObject.getUID();
 
             offset += VERTEX_SIZE;
         }

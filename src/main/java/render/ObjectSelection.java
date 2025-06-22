@@ -78,10 +78,10 @@ public class ObjectSelection {
         glBindFramebuffer(GL_READ_FRAMEBUFFER, frameBufferObj);
         glReadBuffer(GL_COLOR_ATTACHMENT0);
 
-        float pixel[] = new float[3];
+        float[] pixel = new float[3];
         glReadPixels(x, y, 1, 1, GL_RGB, GL_FLOAT, pixel);
 
-        return (int)pixel[0] - 1;
+        return (int)pixel[0];
     }
 
     /**
@@ -96,14 +96,9 @@ public class ObjectSelection {
 
         Vector2i size = new Vector2i(end).sub(begin).absolute();
         int pixelCount = size.x * size.y;
-        float pixels[] = new float[3 * pixelCount];
+        float[] pixels = new float[3 * pixelCount];
 
         glReadPixels(begin.x, begin.y, size.x, size.y, GL_RGB, GL_FLOAT, pixels);
-
-        // subtract 1 from index of id of object selection to get valid game obj id
-        for (int i = 0; i < pixels.length; i++) {
-            pixels[i] -= 1;
-        }
 
         return pixels;
     }

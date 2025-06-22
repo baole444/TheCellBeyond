@@ -11,7 +11,11 @@ import scene.Scene;
 
 import java.util.*;
 
+import static utility.Conversion.uuidToInt;
+
 public class GameObject {
+    private transient int cachedID = -1;
+
     private String uuid;
     public String name;
     private final List<Component> components;
@@ -30,6 +34,7 @@ public class GameObject {
         this.components = new ArrayList<>();
         this.children = new LinkedHashSet<>();
         this.uuid = UUID.randomUUID().toString();
+        this.cachedID = uuidToInt(this.uuid);
     }
 
     public void addChild(GameObject child) {
@@ -215,7 +220,7 @@ public class GameObject {
         String oJson = gson.toJson(this);
         GameObject obj = gson.fromJson(oJson, GameObject.class);
 
-        obj.uuid = UUID.randomUUID().toString();
+        obj.setUUID(UUID.randomUUID().toString());
 
         for (Component c : obj.getComponents()) {
             c.createUID();
@@ -236,12 +241,19 @@ public class GameObject {
         return this.isRemoved;
     }
 
+    public int getUID() {
+        if (cachedID == -1) cachedID = uuidToInt(uuid);
+
+        return cachedID;
+    }
+
     public String getUUID() {
         return this.uuid;
     }
 
     public void setUUID(String uuid) {
         this.uuid = uuid;
+        this.cachedID = uuidToInt(uuid);
     }
 
     public List<Component> getComponents() {

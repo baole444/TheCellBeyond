@@ -25,6 +25,7 @@ public class Scene {
     private final Renderer renderer;
     private Viewport viewport;
     private boolean isSceneOn;
+    private final Map<Integer, String> cachedIDs;
     private final Map<String, GameObject> gameObjectByUUIDs;
     private final List<GameObject> addedGameObjects;
     private final List<GameObject> removedGameObjects;
@@ -40,6 +41,7 @@ public class Scene {
         this.physic2D = new Physic2D();
         this.renderer = new Renderer();
 
+        this.cachedIDs = new HashMap<>();
         this.gameObjectByUUIDs = new HashMap<>();
 
         this.addedGameObjects  = new ArrayList<>();
@@ -86,6 +88,7 @@ public class Scene {
 
         if (gameObjectByUUIDs.containsKey(go.getUUID())) return;
 
+        cachedIDs.put(go.getUID(), go.getUUID());
         gameObjectByUUIDs.put(go.getUUID(), go);
 
         if (parent != null) {
@@ -122,11 +125,13 @@ public class Scene {
 
         List<GameObject> descendants = go.getAllDescendants();
         for (GameObject descendant : descendants) {
+            cachedIDs.remove(descendant.getUID());
             gameObjectByUUIDs.remove(descendant.getUUID());
             renderer.queueObjectForRemoval(descendant);
             physic2D.destroyObject(descendant);
         }
 
+        cachedIDs.remove(go.getUID());
         gameObjectByUUIDs.remove(go.getUUID());
         renderer.queueObjectForRemoval(go);
         physic2D.destroyObject(go);
@@ -177,6 +182,14 @@ public class Scene {
 
     public List<GameObject> getSerializedObject() {
         return gameObjectByUUIDs.values().stream().filter(GameObject::isSerialize).collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    public GameObject getGameObject(int id) {
+        String uuid = cachedIDs.get(id);
+
+        if (uuid != null) return gameObjectByUUIDs.get(uuid);
+
+        return null;
     }
 
     public GameObject getGameObject(String objectUUID) {

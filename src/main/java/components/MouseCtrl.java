@@ -230,11 +230,9 @@ public class MouseCtrl extends Component {
         float[] gameObjIds = properties.getObjectSelection().checkPixelsIn(beginScr, endScr);
 
         for (float gameObjId : gameObjIds) {
-            if (gameObjId >= 0) {
-                GameObject selectedObj = Window.getScene().getGameObject((int) gameObjId);
-                if (selectedObj.getComponent(IsNotSelectable.class) == null) {
-                    return true;
-                }
+            GameObject selectedObj = Window.getScene().getGameObject((int) gameObjId);
+            if (selectedObj.getComponent(IsNotSelectable.class) == null) {
+                return true;
             }
         }
 

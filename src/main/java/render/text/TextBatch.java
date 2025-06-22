@@ -216,7 +216,7 @@ public class TextBatch implements Comparable<TextBatch> {
 
             float objectId = 0;
             if (textComponent.gameObject != null) {
-                objectId = textComponent.gameObject.getUID() + 1;
+                objectId = textComponent.gameObject.getUID();
             }
 
             // Alignment offsets
