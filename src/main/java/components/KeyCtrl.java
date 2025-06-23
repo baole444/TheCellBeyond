@@ -4,6 +4,7 @@ import TheCellBeyond.GameObject;
 import editor.ImGuiLayer;
 import TheCellBeyond.KeyListener;
 import TheCellBeyond.Window;
+import editor.OpenProjectDialog;
 import editor.Properties;
 import eventviewer.EventSystem;
 import eventviewer.event.Event;
@@ -19,7 +20,7 @@ import static org.lwjgl.glfw.GLFW.*;
 
 /**
  * A class dedicated to processing key's events for the editor.
- * Handle active objects, duplication and deletion of objects.
+ * Handle active objects, duplication, and deletion of objects.
  * Handle Project, Save and Load keybinding
  */
 public class KeyCtrl extends Component {
@@ -91,9 +92,7 @@ public class KeyCtrl extends Component {
 
         // Make keybinding of Ctrl + P = Open project dialog box | ESC while dialog box is active = close.
         if (KeyListener.isKeyTapped(GLFW_KEY_P, GLFW_MOD_CONTROL)) {
-            ImGuiLayer.set_openFileDialog(new ImBoolean(true));
-        } else if (KeyListener.isKeyTapped(GLFW_KEY_ESCAPE) && ImGuiLayer.get_openFileDialog().get()) {
-            ImGuiLayer.set_openFileDialog(new ImBoolean(false));
+            OpenProjectDialog.openProjectDialog();
         }
     }
 }

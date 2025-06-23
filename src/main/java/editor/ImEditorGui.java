@@ -350,8 +350,8 @@ public class ImEditorGui {
 
                 ImGui.pushID(i);
 
-
-                ImGui.imageButton(id, spriteWidth, spriteHeight,
+                String strId = Integer.toString(id);
+                ImGui.imageButton(strId, id, spriteWidth, spriteHeight,
                         texCoord[2].x, texCoord[0].y,
                         texCoord[0].x, texCoord[2].y
                 );
@@ -411,8 +411,8 @@ public class ImEditorGui {
             Vector2f[] texCoord = sprites.getTextureCoordinates();
 
             ImGui.pushID(i);
-
-            ImGui.imageButton(id, spriteWidth, spriteHeight,
+            String strId = Integer.toString(id);
+            ImGui.imageButton(strId, id, spriteWidth, spriteHeight,
                     texCoord[2].x, texCoord[0].y,
                     texCoord[0].x, texCoord[2].y
             );

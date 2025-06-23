@@ -32,14 +32,14 @@ public class MenuBar {
             }
 
             if (ImGui.menuItem("Open Project")) {
-                ImGuiLayer.set_openFileDialog(new ImBoolean(true));
+                OpenProjectDialog.openProjectDialog();
             }
 
             ImGui.endMenu();
         }
         if (ImGui.beginMenu("Workspace")) {
+            /*
             if (ImGui.beginMenu("Editor Theme")) {
-                //ImGui.text("Waiting on next ImGui fork\nto update new function\nto expose ItemFlag\nto menuItem().");
                 ImGui.newLine();
                 if (ImGui.menuItem(" Dark mode ", "   ", mode[1])) {
                     mode[1] = false;
@@ -49,6 +49,7 @@ public class MenuBar {
                 }
                 ImGui.endMenu();
             }
+             */
 
             if (ImGui.menuItem("Show exit confirm", exitConfirmDialog.getDialogPref())) {
                 if (exitConfirmDialog.getDialogPref().equals("true")){

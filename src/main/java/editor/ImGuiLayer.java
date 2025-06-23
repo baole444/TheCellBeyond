@@ -27,27 +27,13 @@ import static org.lwjgl.opengl.GL30.glBindFramebuffer;
 public class ImGuiLayer {
     private final ImGuiImplGlfw imGuiGlfw = new ImGuiImplGlfw();
     private final ImGuiImplGl3 imGuiGl3 = new ImGuiImplGl3();
-    private long windowPtr;
-    private GameViewPort gameViewPort;
-    private DebugGui debugGui;
-    private Properties properties;
-    private MenuBar menuBar;
-    private OpenProjectDialog openProjectDialog = new OpenProjectDialog();
-    private SceneTree objectGroupingWindow;
+    private final long windowPtr;
+    private final GameViewPort gameViewPort;
+    private final DebugGui debugGui;
+    private final Properties properties;
+    private final MenuBar menuBar;
+    private final SceneTree objectGroupingWindow;
     private ImGuiIO io;
-
-    // Boolean system for remote toggle additional editor windows from menuBar and such
-    private static ImBoolean _openFileDialog = new ImBoolean(false);
-
-    public static void set_openFileDialog(ImBoolean _openFileDialog) {
-        if (ImGuiLayer._openFileDialog.equals(_openFileDialog)) return;
-
-        ImGuiLayer._openFileDialog = _openFileDialog;
-    }
-
-    public static ImBoolean get_openFileDialog() {
-        return _openFileDialog;
-    }
 
     // End boolean section
 
@@ -173,7 +159,6 @@ public class ImGuiLayer {
         debugGui.imgui();
         properties.imgui();
         objectGroupingWindow.imgui();
-        openProjectDialog.imgui(_openFileDialog);
 
         //ImGui.showDemoWindow();
         glBindFramebuffer(GL_FRAMEBUFFER, 0);

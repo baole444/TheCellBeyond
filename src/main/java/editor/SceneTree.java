@@ -32,9 +32,8 @@ public class SceneTree {
     /*
     Pay load
     - ImGui have a global payload method (begin/end).
-    - Drop is accept when have matching type.
-    - Type is string set by player.
-    - Type name string limit is 32 character.
+    - Drop is accepted when have matching type.
+    - Type's name has a length limit of 32 chars.
 
      */
     private boolean executeTreeNode(GameObject obj, int index) {

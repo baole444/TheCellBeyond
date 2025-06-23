@@ -144,10 +144,6 @@ public class Window implements EventInterface {
     private void showStartupScreen() {
         MouseListener.setStartupMode(true);
 
-        float beginTime = (float)glfwGetTime();
-        float endTime;
-        float dt = -1.0f;
-
         while (!glfwWindowShouldClose(windowPtr) && !projectLoaded) {
             glfwPollEvents();
 
@@ -165,12 +161,8 @@ public class Window implements EventInterface {
             ImGui.text("Please select a project to open:");
 
             if (ImGui.button("Open Project", 150, 30)) {
-                ImGuiLayer.set_openFileDialog(new ImBoolean(true));
+                OpenProjectDialog.openProjectDialog();
             }
-
-            OpenProjectDialog openProjectDialog = new OpenProjectDialog();
-
-            openProjectDialog.imgui(ImGuiLayer.get_openFileDialog());
 
             projectLoaded = (CurrentProject != null && ProjectRoot != null);
 
@@ -187,11 +179,6 @@ public class Window implements EventInterface {
             }
 
             glfwSwapBuffers(windowPtr);
-
-            endTime = (float) glfwGetTime();
-
-            dt = endTime - beginTime;
-            beginTime = endTime;
         }
     }
 
