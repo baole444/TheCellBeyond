@@ -17,12 +17,12 @@ A Java-based game editor with project compile ability, code auto-generation, and
 
 
 ## Problems need attention:
+- ImFileDialog is disabled in this [pull request](https://github.com/SpaiR/imgui-java/pull/316), will need to replace it with LWJGL-NFD binding.
 - Potential concurrent exception with GameObject operation in Scene's queueing lists.
 
 ## Solved problems:
 - Internal id management for GameObject to remain compatible with rendering.
 - Unified Path system solved path resolution related problems.
-
 
 ## Additional maintenance:
 - Update ImGui to [latest release](https://github.com/SpaiR/imgui-java/releases).
@@ -32,9 +32,10 @@ A Java-based game editor with project compile ability, code auto-generation, and
 - [X] Project system.
 - [X] Unified Path System.
 - [X] GameObject hierarchy structure.
-- [X] Reimplementation of Scene Tree.
+- [ ] Reimplementation of Scene Tree.
 - [X] Investigating Scripting Engine support.
 - [X] Migration to the new object UUID system.
+- [ ] Native Filed Dialog implementation.
 - [ ] Add a way to save a project.
 - [ ] Extend the Project system to cover animation and sound effects.
 - [ ] Dynamically loaded assets.
