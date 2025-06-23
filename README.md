@@ -17,10 +17,10 @@ A Java-based game editor with project compile ability, code auto-generation, and
 
 
 ## Problems need attention:
-- Rendering and Object selection system still relied on old integer-based GameObject indexing.
 - Potential concurrent exception with GameObject operation in Scene's queueing lists.
 
 ## Solved problems:
+- Internal id management for GameObject to remain compatible with rendering.
 - Unified Path system solved path resolution related problems.
 
 
@@ -34,7 +34,7 @@ A Java-based game editor with project compile ability, code auto-generation, and
 - [X] GameObject hierarchy structure.
 - [X] Reimplementation of Scene Tree.
 - [X] Investigating Scripting Engine support.
-- [ ] Migration to the new object UUID system.
+- [X] Migration to the new object UUID system.
 - [ ] Add a way to save a project.
 - [ ] Extend the Project system to cover animation and sound effects.
 - [ ] Dynamically loaded assets.

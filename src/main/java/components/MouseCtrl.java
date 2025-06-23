@@ -204,6 +204,8 @@ public class MouseCtrl extends Component {
             }
 
             for (Integer objId : uniqueGOIds) {
+                if (objId < 0) continue;
+
                 GameObject selectedObj = Window.getScene().getGameObject(objId);
                 if (selectedObj != null && selectedObj.getComponent(IsNotSelectable.class) == null) {
                     properties.addActiveGameObject(selectedObj);
@@ -230,6 +232,8 @@ public class MouseCtrl extends Component {
         float[] gameObjIds = properties.getObjectSelection().checkPixelsIn(beginScr, endScr);
 
         for (float gameObjId : gameObjIds) {
+            if (gameObjId <= 0) continue;
+
             GameObject selectedObj = Window.getScene().getGameObject((int) gameObjId);
             if (selectedObj.getComponent(IsNotSelectable.class) == null) {
                 return true;

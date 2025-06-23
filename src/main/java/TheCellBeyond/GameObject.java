@@ -8,12 +8,14 @@ import components.SpriteRenderer;
 import imgui.ImGui;
 import render.Texture;
 import scene.Scene;
+import utility.IdPool;
 
 import java.util.*;
 
-import static utility.Conversion.uuidToInt;
-
 public class GameObject {
+    private static final IdPool idCounter = new IdPool(1, true);
+
+    // This is auto managed for shader compatibility, not serialized
     private transient int cachedID = -1;
 
     private String uuid;
@@ -34,7 +36,7 @@ public class GameObject {
         this.components = new ArrayList<>();
         this.children = new LinkedHashSet<>();
         this.uuid = UUID.randomUUID().toString();
-        this.cachedID = uuidToInt(this.uuid);
+        this.cachedID = idCounter.newId();
     }
 
     public void addChild(GameObject child) {
@@ -188,10 +190,6 @@ public class GameObject {
     }
 
     public void destroy() {
-        // This object is already destroyed, safety check
-        //
-        if (this.isRemoved()) return;
-
         this.isRemoved = true;
 
         if (parent != null) {
@@ -208,6 +206,11 @@ public class GameObject {
             if (component == null) continue;
             component.destroy();
         }
+
+        if (cachedID > 0) {
+            idCounter.releaseId(cachedID);
+            cachedID = -1;
+        }
     }
 
     public GameObject copy() {
@@ -220,7 +223,8 @@ public class GameObject {
         String oJson = gson.toJson(this);
         GameObject obj = gson.fromJson(oJson, GameObject.class);
 
-        obj.setUUID(UUID.randomUUID().toString());
+        obj.uuid = UUID.randomUUID().toString();
+        obj.cachedID = idCounter.newId();
 
         for (Component c : obj.getComponents()) {
             c.createUID();
@@ -242,8 +246,6 @@ public class GameObject {
     }
 
     public int getUID() {
-        if (cachedID == -1) cachedID = uuidToInt(uuid);
-
         return cachedID;
     }
 
@@ -253,7 +255,6 @@ public class GameObject {
 
     public void setUUID(String uuid) {
         this.uuid = uuid;
-        this.cachedID = uuidToInt(uuid);
     }
 
     public List<Component> getComponents() {

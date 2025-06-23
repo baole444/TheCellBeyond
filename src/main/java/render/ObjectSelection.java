@@ -11,14 +11,11 @@ public class ObjectSelection {
     private int textureDepth;
 
     public ObjectSelection(int width, int height) {
-        if (!init(width, height)) {
-            assert false : "Failed to initialize object selection within working space";
-        }
+        init(width, height);
     }
 
-    public boolean init(int width, int height) {
+    private void init(int width, int height) {
         // Make frame buffer
-
         frameBufferObj = glGenFramebuffers();
         glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObj);
 
@@ -56,14 +53,11 @@ public class ObjectSelection {
         glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-            assert false : "WARNING: FrameBuffer did not finished";
-            return false;
+            System.err.println("Failed to initialized object selection frame buffer.");
         }
         // Send frame back to window
         glBindTexture(GL_TEXTURE_2D, 0);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-        return true;
     }
 
     public void useWrite() {

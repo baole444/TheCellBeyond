@@ -16,10 +16,6 @@ public class GameObjDeSerializer implements JsonDeserializer<GameObject> {
 
         GameObject go = new GameObject(name);
 
-        // Note: since int-based uID is deprecated, there no need to restore them.
-        // Parent-child relationships that used uuid will need to be restored.
-        // UID of an object was always renewed when loaded from a file in the first place.
-
         if (jsonObject.has("uuid")) {
             go.setUUID(jsonObject.get("uuid").getAsString());
         }
