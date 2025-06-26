@@ -32,7 +32,7 @@ public class ImGuiLayer {
     private final DebugGui debugGui;
     private final Properties properties;
     private final MenuBar menuBar;
-    private final SceneTree objectGroupingWindow;
+    private final SceneTree sceneTree;
     private ImGuiIO io;
 
     // End boolean section
@@ -44,7 +44,7 @@ public class ImGuiLayer {
         this.windowPtr = windowPtr;
         this.properties = new Properties(objectSelection);
         this.menuBar = new MenuBar();
-        this.objectGroupingWindow = new SceneTree();
+        this.sceneTree = new SceneTree();
     }
 
     // Initialization im ImGui
@@ -158,7 +158,7 @@ public class ImGuiLayer {
         gameViewPort.imgui();
         debugGui.imgui();
         properties.imgui();
-        objectGroupingWindow.imgui();
+        sceneTree.imgui();
 
         //ImGui.showDemoWindow();
         glBindFramebuffer(GL_FRAMEBUFFER, 0);

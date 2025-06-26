@@ -1,1 +1,952 @@
-[]
+[
+  {
+    "uuid": "715eb8f8-bc04-4333-a515-06fd8841735f",
+    "name": "Sprite_object_gen",
+    "components": [
+      {
+        "type": "TheCellBeyond.Transform",
+        "properties": {
+          "position": {
+            "x": 0.79999995,
+            "y": 2.4
+          },
+          "scale": {
+            "x": 0.16,
+            "y": 0.16
+          },
+          "rotate": 0.0,
+          "zIndex": 0,
+          "uID": 35
+        }
+      },
+      {
+        "type": "components.SpriteRenderer",
+        "properties": {
+          "color": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0,
+            "w": 1.0
+          },
+          "sprite": {
+            "width": 16.0,
+            "height": 16.0,
+            "texture": {
+              "assetReference": {
+                "canonicalPath": "sheets/test_objects.png"
+              },
+              "width": -1,
+              "height": -1
+            },
+            "textureCoordinates": [
+              {
+                "x": 0.12,
+                "y": 1.0
+              },
+              {
+                "x": 0.12,
+                "y": 0.0
+              },
+              {
+                "x": 0.08,
+                "y": 0.0
+              },
+              {
+                "x": 0.08,
+                "y": 1.0
+              }
+            ]
+          },
+          "uID": 36
+        }
+      }
+    ],
+    "isSerialize": true,
+    "isRemoved": false,
+    "childrenUUIDs": []
+  },
+  {
+    "uuid": "b12d074d-8730-40c6-a64f-73755419fb8c",
+    "name": "Sprite_object_gen",
+    "components": [
+      {
+        "type": "TheCellBeyond.Transform",
+        "properties": {
+          "position": {
+            "x": 0.79999995,
+            "y": 3.04
+          },
+          "scale": {
+            "x": 0.16,
+            "y": 0.16
+          },
+          "rotate": 0.0,
+          "zIndex": 0,
+          "uID": 20
+        }
+      },
+      {
+        "type": "components.SpriteRenderer",
+        "properties": {
+          "color": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0,
+            "w": 1.0
+          },
+          "sprite": {
+            "width": 16.0,
+            "height": 16.0,
+            "texture": {
+              "assetReference": {
+                "canonicalPath": "sheets/test_objects.png"
+              },
+              "width": -1,
+              "height": -1
+            },
+            "textureCoordinates": [
+              {
+                "x": 0.44,
+                "y": 1.0
+              },
+              {
+                "x": 0.44,
+                "y": 0.0
+              },
+              {
+                "x": 0.4,
+                "y": 0.0
+              },
+              {
+                "x": 0.4,
+                "y": 1.0
+              }
+            ]
+          },
+          "uID": 21
+        }
+      }
+    ],
+    "isSerialize": true,
+    "isRemoved": false,
+    "childrenUUIDs": [
+      "aa0fd6e4-2e9d-4ace-ba5e-47f7a64adb27",
+      "eb852d3a-0063-4b67-af97-972bcb86e57f"
+    ]
+  },
+  {
+    "uuid": "aac80f7e-e829-43a5-9a95-b975212091bc",
+    "name": "Sprite_object_gen",
+    "components": [
+      {
+        "type": "TheCellBeyond.Transform",
+        "properties": {
+          "position": {
+            "x": 1.4399999,
+            "y": 1.7599999
+          },
+          "scale": {
+            "x": 0.16,
+            "y": 0.16
+          },
+          "rotate": 0.0,
+          "zIndex": 0,
+          "uID": 20
+        }
+      },
+      {
+        "type": "components.SpriteRenderer",
+        "properties": {
+          "color": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0,
+            "w": 1.0
+          },
+          "sprite": {
+            "width": 16.0,
+            "height": 16.0,
+            "texture": {
+              "assetReference": {
+                "canonicalPath": "sheets/test_objects.png"
+              },
+              "width": -1,
+              "height": -1
+            },
+            "textureCoordinates": [
+              {
+                "x": 0.44,
+                "y": 1.0
+              },
+              {
+                "x": 0.44,
+                "y": 0.0
+              },
+              {
+                "x": 0.4,
+                "y": 0.0
+              },
+              {
+                "x": 0.4,
+                "y": 1.0
+              }
+            ]
+          },
+          "uID": 21
+        }
+      }
+    ],
+    "isSerialize": true,
+    "isRemoved": false,
+    "parentUUID": "44cf3332-6501-4734-92be-427a5939da55",
+    "childrenUUIDs": []
+  },
+  {
+    "uuid": "36f3714d-e7d5-45d8-a6b9-72254a32f70d",
+    "name": "Sprite_object_gen",
+    "components": [
+      {
+        "type": "TheCellBeyond.Transform",
+        "properties": {
+          "position": {
+            "x": 4.64,
+            "y": 0.79999995
+          },
+          "scale": {
+            "x": 0.16,
+            "y": 0.16
+          },
+          "rotate": 0.0,
+          "zIndex": 0,
+          "uID": 32
+        }
+      },
+      {
+        "type": "components.SpriteRenderer",
+        "properties": {
+          "color": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0,
+            "w": 1.0
+          },
+          "sprite": {
+            "width": 16.0,
+            "height": 16.0,
+            "texture": {
+              "assetReference": {
+                "canonicalPath": "sheets/test_objects.png"
+              },
+              "width": -1,
+              "height": -1
+            },
+            "textureCoordinates": [
+              {
+                "x": 0.04,
+                "y": 1.0
+              },
+              {
+                "x": 0.04,
+                "y": 0.0
+              },
+              {
+                "x": 0.0,
+                "y": 0.0
+              },
+              {
+                "x": 0.0,
+                "y": 1.0
+              }
+            ]
+          },
+          "uID": 33
+        }
+      }
+    ],
+    "isSerialize": true,
+    "isRemoved": false,
+    "parentUUID": "c88c19ef-6029-4f0c-9887-291adcefbcea",
+    "childrenUUIDs": []
+  },
+  {
+    "uuid": "e3d66563-102a-48b0-9e1a-e7cef1f4dd27",
+    "name": "Sprite_object_gen",
+    "components": [
+      {
+        "type": "TheCellBeyond.Transform",
+        "properties": {
+          "position": {
+            "x": 3.68,
+            "y": 1.7599999
+          },
+          "scale": {
+            "x": 0.16,
+            "y": 0.16
+          },
+          "rotate": 0.0,
+          "zIndex": 0,
+          "uID": 35
+        }
+      },
+      {
+        "type": "components.SpriteRenderer",
+        "properties": {
+          "color": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0,
+            "w": 1.0
+          },
+          "sprite": {
+            "width": 16.0,
+            "height": 16.0,
+            "texture": {
+              "assetReference": {
+                "canonicalPath": "sheets/test_objects.png"
+              },
+              "width": -1,
+              "height": -1
+            },
+            "textureCoordinates": [
+              {
+                "x": 0.12,
+                "y": 1.0
+              },
+              {
+                "x": 0.12,
+                "y": 0.0
+              },
+              {
+                "x": 0.08,
+                "y": 0.0
+              },
+              {
+                "x": 0.08,
+                "y": 1.0
+              }
+            ]
+          },
+          "uID": 36
+        }
+      }
+    ],
+    "isSerialize": true,
+    "isRemoved": false,
+    "parentUUID": "eb852d3a-0063-4b67-af97-972bcb86e57f",
+    "childrenUUIDs": []
+  },
+  {
+    "uuid": "aa0fd6e4-2e9d-4ace-ba5e-47f7a64adb27",
+    "name": "Sprite_object_gen",
+    "components": [
+      {
+        "type": "TheCellBeyond.Transform",
+        "properties": {
+          "position": {
+            "x": 2.72,
+            "y": 3.04
+          },
+          "scale": {
+            "x": 0.16,
+            "y": 0.16
+          },
+          "rotate": 0.0,
+          "zIndex": 0,
+          "uID": 20
+        }
+      },
+      {
+        "type": "components.SpriteRenderer",
+        "properties": {
+          "color": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0,
+            "w": 1.0
+          },
+          "sprite": {
+            "width": 16.0,
+            "height": 16.0,
+            "texture": {
+              "assetReference": {
+                "canonicalPath": "sheets/test_objects.png"
+              },
+              "width": -1,
+              "height": -1
+            },
+            "textureCoordinates": [
+              {
+                "x": 0.44,
+                "y": 1.0
+              },
+              {
+                "x": 0.44,
+                "y": 0.0
+              },
+              {
+                "x": 0.4,
+                "y": 0.0
+              },
+              {
+                "x": 0.4,
+                "y": 1.0
+              }
+            ]
+          },
+          "uID": 21
+        }
+      }
+    ],
+    "isSerialize": true,
+    "isRemoved": false,
+    "parentUUID": "b12d074d-8730-40c6-a64f-73755419fb8c",
+    "childrenUUIDs": [
+      "44cf3332-6501-4734-92be-427a5939da55",
+      "4021a5a2-bc16-4cb6-839e-ec7c5d706fe0"
+    ]
+  },
+  {
+    "uuid": "eb852d3a-0063-4b67-af97-972bcb86e57f",
+    "name": "Sprite_object_gen",
+    "components": [
+      {
+        "type": "TheCellBeyond.Transform",
+        "properties": {
+          "position": {
+            "x": 4.9599996,
+            "y": 1.4399999
+          },
+          "scale": {
+            "x": 0.16,
+            "y": 0.16
+          },
+          "rotate": 0.0,
+          "zIndex": 0,
+          "uID": 35
+        }
+      },
+      {
+        "type": "components.SpriteRenderer",
+        "properties": {
+          "color": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0,
+            "w": 1.0
+          },
+          "sprite": {
+            "width": 16.0,
+            "height": 16.0,
+            "texture": {
+              "assetReference": {
+                "canonicalPath": "sheets/test_objects.png"
+              },
+              "width": -1,
+              "height": -1
+            },
+            "textureCoordinates": [
+              {
+                "x": 0.12,
+                "y": 1.0
+              },
+              {
+                "x": 0.12,
+                "y": 0.0
+              },
+              {
+                "x": 0.08,
+                "y": 0.0
+              },
+              {
+                "x": 0.08,
+                "y": 1.0
+              }
+            ]
+          },
+          "uID": 36
+        }
+      }
+    ],
+    "isSerialize": true,
+    "isRemoved": false,
+    "parentUUID": "b12d074d-8730-40c6-a64f-73755419fb8c",
+    "childrenUUIDs": [
+      "e3d66563-102a-48b0-9e1a-e7cef1f4dd27"
+    ]
+  },
+  {
+    "uuid": "10bc432b-44f3-45e6-852f-d317a7ecf611",
+    "name": "Sprite_object_gen",
+    "components": [
+      {
+        "type": "TheCellBeyond.Transform",
+        "properties": {
+          "position": {
+            "x": 2.08,
+            "y": 1.12
+          },
+          "scale": {
+            "x": 0.16,
+            "y": 0.16
+          },
+          "rotate": 0.0,
+          "zIndex": 0,
+          "uID": 26
+        }
+      },
+      {
+        "type": "components.SpriteRenderer",
+        "properties": {
+          "color": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0,
+            "w": 1.0
+          },
+          "sprite": {
+            "width": 16.0,
+            "height": 16.0,
+            "texture": {
+              "assetReference": {
+                "canonicalPath": "sheets/test_objects.png"
+              },
+              "width": -1,
+              "height": -1
+            },
+            "textureCoordinates": [
+              {
+                "x": 0.36,
+                "y": 1.0
+              },
+              {
+                "x": 0.36,
+                "y": 0.0
+              },
+              {
+                "x": 0.32,
+                "y": 0.0
+              },
+              {
+                "x": 0.32,
+                "y": 1.0
+              }
+            ]
+          },
+          "uID": 27
+        }
+      }
+    ],
+    "isSerialize": true,
+    "isRemoved": false,
+    "parentUUID": "c88c19ef-6029-4f0c-9887-291adcefbcea",
+    "childrenUUIDs": []
+  },
+  {
+    "uuid": "5f7a63b9-c6a8-432d-b8df-d48c4b5f084d",
+    "name": "Sprite_object_gen",
+    "components": [
+      {
+        "type": "TheCellBeyond.Transform",
+        "properties": {
+          "position": {
+            "x": 1.7599999,
+            "y": 0.48
+          },
+          "scale": {
+            "x": 0.16,
+            "y": 0.16
+          },
+          "rotate": 0.0,
+          "zIndex": 0,
+          "uID": 23
+        }
+      },
+      {
+        "type": "components.SpriteRenderer",
+        "properties": {
+          "color": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0,
+            "w": 1.0
+          },
+          "sprite": {
+            "width": 16.0,
+            "height": 16.0,
+            "texture": {
+              "assetReference": {
+                "canonicalPath": "sheets/test_objects.png"
+              },
+              "width": -1,
+              "height": -1
+            },
+            "textureCoordinates": [
+              {
+                "x": 0.68,
+                "y": 1.0
+              },
+              {
+                "x": 0.68,
+                "y": 0.0
+              },
+              {
+                "x": 0.64,
+                "y": 0.0
+              },
+              {
+                "x": 0.64,
+                "y": 1.0
+              }
+            ]
+          },
+          "uID": 24
+        }
+      }
+    ],
+    "isSerialize": true,
+    "isRemoved": false,
+    "parentUUID": "7e56f415-3ff0-48d0-a5f6-f9ff197debaa",
+    "childrenUUIDs": []
+  },
+  {
+    "uuid": "4d8e02cf-a362-46e3-8be2-1737c93c4608",
+    "name": "Sprite_object_gen",
+    "components": [
+      {
+        "type": "TheCellBeyond.Transform",
+        "properties": {
+          "position": {
+            "x": 4.3199997,
+            "y": 2.08
+          },
+          "scale": {
+            "x": 0.16,
+            "y": 0.16
+          },
+          "rotate": 0.0,
+          "zIndex": 0,
+          "uID": 32
+        }
+      },
+      {
+        "type": "components.SpriteRenderer",
+        "properties": {
+          "color": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0,
+            "w": 1.0
+          },
+          "sprite": {
+            "width": 16.0,
+            "height": 16.0,
+            "texture": {
+              "assetReference": {
+                "canonicalPath": "sheets/test_objects.png"
+              },
+              "width": -1,
+              "height": -1
+            },
+            "textureCoordinates": [
+              {
+                "x": 0.04,
+                "y": 1.0
+              },
+              {
+                "x": 0.04,
+                "y": 0.0
+              },
+              {
+                "x": 0.0,
+                "y": 0.0
+              },
+              {
+                "x": 0.0,
+                "y": 1.0
+              }
+            ]
+          },
+          "uID": 33
+        }
+      }
+    ],
+    "isSerialize": true,
+    "isRemoved": false,
+    "parentUUID": "c88c19ef-6029-4f0c-9887-291adcefbcea",
+    "childrenUUIDs": []
+  },
+  {
+    "uuid": "44cf3332-6501-4734-92be-427a5939da55",
+    "name": "Sprite_object_gen",
+    "components": [
+      {
+        "type": "TheCellBeyond.Transform",
+        "properties": {
+          "position": {
+            "x": 2.4,
+            "y": 2.4
+          },
+          "scale": {
+            "x": 0.16,
+            "y": 0.16
+          },
+          "rotate": 0.0,
+          "zIndex": 0,
+          "uID": 20
+        }
+      },
+      {
+        "type": "components.SpriteRenderer",
+        "properties": {
+          "color": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0,
+            "w": 1.0
+          },
+          "sprite": {
+            "width": 16.0,
+            "height": 16.0,
+            "texture": {
+              "assetReference": {
+                "canonicalPath": "sheets/test_objects.png"
+              },
+              "width": -1,
+              "height": -1
+            },
+            "textureCoordinates": [
+              {
+                "x": 0.44,
+                "y": 1.0
+              },
+              {
+                "x": 0.44,
+                "y": 0.0
+              },
+              {
+                "x": 0.4,
+                "y": 0.0
+              },
+              {
+                "x": 0.4,
+                "y": 1.0
+              }
+            ]
+          },
+          "uID": 21
+        }
+      }
+    ],
+    "isSerialize": true,
+    "isRemoved": false,
+    "parentUUID": "aa0fd6e4-2e9d-4ace-ba5e-47f7a64adb27",
+    "childrenUUIDs": [
+      "aac80f7e-e829-43a5-9a95-b975212091bc"
+    ]
+  },
+  {
+    "uuid": "7e56f415-3ff0-48d0-a5f6-f9ff197debaa",
+    "name": "Sprite_object_gen",
+    "components": [
+      {
+        "type": "TheCellBeyond.Transform",
+        "properties": {
+          "position": {
+            "x": 3.04,
+            "y": 0.79999995
+          },
+          "scale": {
+            "x": 0.16,
+            "y": 0.16
+          },
+          "rotate": 0.0,
+          "zIndex": 0,
+          "uID": 29
+        }
+      },
+      {
+        "type": "components.SpriteRenderer",
+        "properties": {
+          "color": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0,
+            "w": 1.0
+          },
+          "sprite": {
+            "width": 16.0,
+            "height": 16.0,
+            "texture": {
+              "assetReference": {
+                "canonicalPath": "sheets/test_objects.png"
+              },
+              "width": -1,
+              "height": -1
+            },
+            "textureCoordinates": [
+              {
+                "x": 0.12,
+                "y": 1.0
+              },
+              {
+                "x": 0.12,
+                "y": 0.0
+              },
+              {
+                "x": 0.08,
+                "y": 0.0
+              },
+              {
+                "x": 0.08,
+                "y": 1.0
+              }
+            ]
+          },
+          "uID": 30
+        }
+      }
+    ],
+    "isSerialize": true,
+    "isRemoved": false,
+    "childrenUUIDs": [
+      "5f7a63b9-c6a8-432d-b8df-d48c4b5f084d"
+    ]
+  },
+  {
+    "uuid": "4021a5a2-bc16-4cb6-839e-ec7c5d706fe0",
+    "name": "Sprite_object_gen",
+    "components": [
+      {
+        "type": "TheCellBeyond.Transform",
+        "properties": {
+          "position": {
+            "x": 5.9199996,
+            "y": 2.08
+          },
+          "scale": {
+            "x": 0.16,
+            "y": 0.16
+          },
+          "rotate": 0.0,
+          "zIndex": 0,
+          "uID": 32
+        }
+      },
+      {
+        "type": "components.SpriteRenderer",
+        "properties": {
+          "color": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0,
+            "w": 1.0
+          },
+          "sprite": {
+            "width": 16.0,
+            "height": 16.0,
+            "texture": {
+              "assetReference": {
+                "canonicalPath": "sheets/test_objects.png"
+              },
+              "width": -1,
+              "height": -1
+            },
+            "textureCoordinates": [
+              {
+                "x": 0.04,
+                "y": 1.0
+              },
+              {
+                "x": 0.04,
+                "y": 0.0
+              },
+              {
+                "x": 0.0,
+                "y": 0.0
+              },
+              {
+                "x": 0.0,
+                "y": 1.0
+              }
+            ]
+          },
+          "uID": 33
+        }
+      }
+    ],
+    "isSerialize": true,
+    "isRemoved": false,
+    "parentUUID": "aa0fd6e4-2e9d-4ace-ba5e-47f7a64adb27",
+    "childrenUUIDs": []
+  },
+  {
+    "uuid": "c88c19ef-6029-4f0c-9887-291adcefbcea",
+    "name": "Sprite_object_gen",
+    "components": [
+      {
+        "type": "TheCellBeyond.Transform",
+        "properties": {
+          "position": {
+            "x": 3.68,
+            "y": 1.12
+          },
+          "scale": {
+            "x": 0.16,
+            "y": 0.16
+          },
+          "rotate": 0.0,
+          "zIndex": 0,
+          "uID": 23
+        }
+      },
+      {
+        "type": "components.SpriteRenderer",
+        "properties": {
+          "color": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0,
+            "w": 1.0
+          },
+          "sprite": {
+            "width": 16.0,
+            "height": 16.0,
+            "texture": {
+              "assetReference": {
+                "canonicalPath": "sheets/test_objects.png"
+              },
+              "width": -1,
+              "height": -1
+            },
+            "textureCoordinates": [
+              {
+                "x": 0.68,
+                "y": 1.0
+              },
+              {
+                "x": 0.68,
+                "y": 0.0
+              },
+              {
+                "x": 0.64,
+                "y": 0.0
+              },
+              {
+                "x": 0.64,
+                "y": 1.0
+              }
+            ]
+          },
+          "uID": 24
+        }
+      }
+    ],
+    "isSerialize": true,
+    "isRemoved": false,
+    "childrenUUIDs": [
+      "10bc432b-44f3-45e6-852f-d317a7ecf611",
+      "4d8e02cf-a362-46e3-8be2-1737c93c4608",
+      "36f3714d-e7d5-45d8-a6b9-72254a32f70d"
+    ]
+  }
+]

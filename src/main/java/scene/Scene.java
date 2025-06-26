@@ -27,6 +27,7 @@ public class Scene {
     private boolean isSceneOn;
     private final Map<Integer, String> cachedIDs;
     private final Map<String, GameObject> gameObjectByUUIDs;
+    private final List<GameObject> rootGameObjects;
     private final List<GameObject> addedGameObjects;
     private final List<GameObject> removedGameObjects;
     private final HashMap<GameObject, GameObject> addedGameObjectWithParents;
@@ -43,6 +44,7 @@ public class Scene {
 
         this.cachedIDs = new HashMap<>();
         this.gameObjectByUUIDs = new HashMap<>();
+        this.rootGameObjects = new ArrayList<>();
 
         this.addedGameObjects  = new ArrayList<>();
         this.removedGameObjects = new ArrayList<>();
@@ -95,6 +97,8 @@ public class Scene {
             parent.addChild(go);
         }
 
+        if (go.getParentUUID() == null && !rootGameObjects.contains(go)) rootGameObjects.add(go);
+
         if (isSceneOn) {
             go.start();
             this.renderer.queueObjectForAddition(go);
@@ -121,6 +125,8 @@ public class Scene {
 
         if (go.getParent() != null) {
             go.getParent().removeChild(go);
+        } else {
+            rootGameObjects.remove(go);
         }
 
         List<GameObject> descendants = go.getAllDescendants();
@@ -145,7 +151,13 @@ public class Scene {
             return false;
         }
 
+        if (child.getParent() == null) rootGameObjects.remove(child);
+
         child.setParent(newParent);
+
+        if (newParent == null && !rootGameObjects.contains(child)) {
+            rootGameObjects.add(child);
+        }
 
         return true;
     }
@@ -156,6 +168,7 @@ public class Scene {
         }
 
         gameObjectByUUIDs.clear();
+        rootGameObjects.clear();
         removedGameObjects.clear();
         addedGameObjects.clear();
         addedGameObjectWithParents.clear();
@@ -182,6 +195,10 @@ public class Scene {
 
     public List<GameObject> getSerializedObject() {
         return gameObjectByUUIDs.values().stream().filter(GameObject::isSerialize).collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    public List<GameObject> getRootGameObjects() {
+        return new ArrayList<>(rootGameObjects);
     }
 
     public GameObject getGameObject(int id) {
@@ -315,7 +332,6 @@ public class Scene {
         try {
             loadFile = new String(Files.readAllBytes(Paths.get(resolvedPath)));
         } catch (IOException e) {
-            //e.printStackTrace();
             System.out.println("No level file found, generating new file...");
             saveLevel();
             System.out.println("File created.");
@@ -346,6 +362,8 @@ public class Scene {
 
             for (GameObject go : objects) {
                 go.restoreHierarchy(this);
+
+                if (go.getParent() == null) rootGameObjects.add(go);
             }
 
             maxCompID++;
