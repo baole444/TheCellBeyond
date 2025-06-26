@@ -17,11 +17,11 @@ A Java-based game editor with project compile ability, code auto-generation, and
 
 
 ## Problems need attention:
-- The Scene tree adds two entries per game object, which need to be de-duplicated.
 - Potential concurrent exception with GameObject operation in Scene's queueing lists.
 
 ## Solved problems:
-- Native File Dialog implemented successfully.
+- The Scene tree adds two entries per game object, 
+which was caused by an unchecked addition after loading scene.
 
 ## Additional maintenance:
 - Update ImGui to [latest release](https://github.com/SpaiR/imgui-java/releases).

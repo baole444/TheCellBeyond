@@ -362,8 +362,6 @@ public class Scene {
 
             for (GameObject go : objects) {
                 go.restoreHierarchy(this);
-
-                if (go.getParent() == null) rootGameObjects.add(go);
             }
 
             maxCompID++;
