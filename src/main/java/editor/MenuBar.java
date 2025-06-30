@@ -6,7 +6,6 @@ import eventviewer.event.Event;
 import eventviewer.event.EventType;
 import imgui.ImGui;
 import imgui.internal.flag.ImGuiItemFlags;
-import imgui.type.ImBoolean;
 import scene.LevelEditorSceneInit;
 import utility.ExitConfirmDialog;
 
@@ -24,11 +23,11 @@ public class MenuBar {
         ImGui.pushID(ImGuiItemFlags.SelectableDontClosePopup);
         if (ImGui.beginMenu("File")) {
             if (ImGui.menuItem("Save", "Ctrl+S")) {
-                EventSystem.notice(null, new Event(EventType.LEVEL_SAVE));
+                EventSystem.emit(null, new Event(EventType.LEVEL_SAVE));
             }
 
             if (ImGui.menuItem("Open", "Ctrl+O")) {
-                EventSystem.notice(null, new Event(EventType.LEVEL_LOAD));
+                EventSystem.emit(null, new Event(EventType.LEVEL_LOAD));
             }
 
             if (ImGui.menuItem("Open Project")) {
@@ -77,7 +76,7 @@ public class MenuBar {
 
                     for (String name : sceneNameList) {
                         if (ImGui.menuItem(name)) {
-                            EventSystem.notice(name, new Event(EventType.SCENE_LOAD));
+                            EventSystem.emit(name, new Event(EventType.SCENE_LOAD));
                         }
                     }
 

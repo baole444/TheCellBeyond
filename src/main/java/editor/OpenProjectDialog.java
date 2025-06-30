@@ -85,7 +85,7 @@ public class OpenProjectDialog {
                 String selectedPath = memUTF8(pathPtr);
 
                 if (isFileValid(selectedPath)){
-                    EventSystem.notice(selectedPath, new Event(EventType.PROJECT_LOAD));
+                    EventSystem.emit(selectedPath, new Event(EventType.PROJECT_LOAD));
 
                     NFD_FreePath(pathPtr);
                 } else {

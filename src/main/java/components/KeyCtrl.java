@@ -1,7 +1,6 @@
 package components;
 
 import TheCellBeyond.GameObject;
-import editor.ImGuiLayer;
 import TheCellBeyond.KeyListener;
 import TheCellBeyond.Window;
 import editor.OpenProjectDialog;
@@ -9,7 +8,6 @@ import editor.Properties;
 import eventviewer.EventSystem;
 import eventviewer.event.Event;
 import eventviewer.event.EventType;
-import imgui.type.ImBoolean;
 import org.joml.Vector4f;
 import utility.Settings;
 
@@ -83,11 +81,11 @@ public class KeyCtrl extends Component {
 
         // Make keybinding of Ctrl + S = Save file | Ctrl + O = open file
         if (KeyListener.isKeyTapped(GLFW_KEY_S, GLFW_MOD_CONTROL)) {
-            EventSystem.notice(null, new Event(EventType.LEVEL_SAVE));
+            EventSystem.emit(null, new Event(EventType.LEVEL_SAVE));
         }
 
         if (KeyListener.isKeyTapped(GLFW_KEY_O, GLFW_MOD_CONTROL)) {
-            EventSystem.notice(null, new Event(EventType.LEVEL_LOAD));
+            EventSystem.emit(null, new Event(EventType.LEVEL_LOAD));
         }
 
         // Make keybinding of Ctrl + P = Open project dialog box | ESC while dialog box is active = close.

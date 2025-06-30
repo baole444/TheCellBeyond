@@ -1,5 +1,9 @@
 package utility;
 
+import eventviewer.EventSystem;
+import eventviewer.event.Event;
+import eventviewer.event.EventType;
+
 import javax.swing.*;
 import java.awt.*;
 import java.io.*;
@@ -80,11 +84,8 @@ public class ExitConfirmDialog {
             saveDialogPref(false);
         }
         if (confirm == 0) {
+            EventSystem.emit(null, new Event(EventType.LEVEL_SAVE));
             return true;
-        } else if (confirm == 1) {
-            return true;
-        } else {
-            return false;
-        }
+        } else return confirm == 1;
     }
 }

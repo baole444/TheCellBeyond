@@ -12,7 +12,7 @@ public class EventSystem {
         eventInterfaces.add(eventInterface);
     }
 
-    public static void notice(Object object, Event event) {
+    public static void emit(Object object, Event event) {
         for (EventInterface eventInterface : eventInterfaces) {
             eventInterface.whenNotice(object, event);
         }

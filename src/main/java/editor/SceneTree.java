@@ -57,6 +57,7 @@ public class SceneTree {
         }
 
         boolean nodeOpen = ImGui.treeNodeEx(go.name, flags);
+        renderContextMenu(go, scene);
 
         if (ImGui.isItemClicked() && !ImGui.isItemToggledOpen()) {
             selectedObject = go;
@@ -108,6 +109,8 @@ public class SceneTree {
 
     private void renderContextMenu(GameObject go, Scene scene) {
         if (ImGui.beginPopupContextItem()) {
+            if (go == null || scene == null) return;
+
             if (ImGui.menuItem("Delete")) {
                 go.destroy();
             }
