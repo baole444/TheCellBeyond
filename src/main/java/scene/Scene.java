@@ -5,7 +5,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import components.CompDeSerializer;
 import components.Component;
+import components.IsNotSelectable;
 import components.SpriteRenderer;
+import editor.Indicator;
 import org.joml.Vector2f;
 import physic2d.Physic2D;
 import render.Renderer;
@@ -98,6 +100,14 @@ public class Scene {
         }
 
         if (go.getParentUUID() == null && !rootGameObjects.contains(go)) rootGameObjects.add(go);
+
+        if (go.isSerialize() &&
+                go.getComponent(IsNotSelectable.class) == null &&
+                go.getComponent(Indicator.class) == null
+        ) {
+            Indicator indicator = new Indicator();
+            go.addComponent(indicator);
+        }
 
         if (isSceneOn) {
             go.start();

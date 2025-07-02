@@ -78,6 +78,12 @@ public class AssetsPool {
 
     }
 
+    public static boolean hasSpriteSheet(String path) {
+        PathResolver resolver = PathResolver.get();
+        String canonicalPath = resolver.toCanonicalPath(path);
+        return  spritesheets.containsKey(canonicalPath);
+    }
+
     public static void addSpriteSheet(String path, SpriteSheet spritesheet) {
         PathResolver resolver = PathResolver.get();
         String canonicalPath = resolver.toCanonicalPath(path);

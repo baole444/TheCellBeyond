@@ -20,6 +20,8 @@ import java.util.Arrays;
 public abstract class Component {
     private static int ID_COUNTER = 0;
     private int uID = -1;
+
+    // TODO: change this to uuid reference
     public transient GameObject gameObject;
 
     public void start() {}
@@ -49,7 +51,8 @@ public abstract class Component {
             Field[] fields = this.getClass().getDeclaredFields();
             for (Field field : fields) {
                 boolean isTransient = Modifier.isTransient(field.getModifiers());
-                if (isTransient) {
+                boolean isStatic = Modifier.isStatic(field.getModifiers());
+                if (isTransient || isStatic) {
                     continue;
                 }
 
