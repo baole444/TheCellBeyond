@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import components.CompDeSerializer;
 import components.Component;
+import components.IsNotSerialized;
 import components.SpriteRenderer;
 import imgui.ImGui;
 import render.Texture;
@@ -159,6 +160,7 @@ public class GameObject {
     }
 
     public void addComponent(Component c) {
+        if (c == null) return;
         c.createUID();
         this.components.add(c);
         c.gameObject = this;
@@ -184,6 +186,8 @@ public class GameObject {
 
     public void imgui() {
         for (Component c: components) {
+            if (c instanceof IsNotSerialized) continue;
+
             if (ImGui.collapsingHeader(c.getClass().getSimpleName()))
                 c.imgui();
         }
@@ -216,7 +220,7 @@ public class GameObject {
     public GameObject copy() {
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(Component.class, new CompDeSerializer())
-                .registerTypeAdapter(GameObject.class, new GameObjDeSerializer())
+                .registerTypeAdapter(GameObject.class, new GameObjectSerializer())
                 .enableComplexMapKeySerialization()
                 .create();
 

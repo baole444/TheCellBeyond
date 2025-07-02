@@ -1,6 +1,7 @@
 package editor;
 
 import components.Component;
+import components.IsNotSerialized;
 import components.SpriteRenderer;
 import org.joml.Vector4f;
 import render.texture.Sprite;
@@ -8,7 +9,7 @@ import render.texture.SpriteSheet;
 import utility.AssetsPool;
 import utility.Settings;
 
-public class Indicator extends Component {
+public class Indicator extends Component implements IsNotSerialized {
     private static final String PATH = "engine://assets/textures/indicator.png";
     private static final float SIZE = 12 * Settings.WORLD_SCALE_FACTOR;
 

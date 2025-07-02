@@ -289,7 +289,7 @@ public class Scene {
         Gson gson = new GsonBuilder()
                 .setPrettyPrinting()
                 .registerTypeAdapter(Component.class, new CompDeSerializer())
-                .registerTypeAdapter(GameObject.class, new GameObjDeSerializer())
+                .registerTypeAdapter(GameObject.class, new GameObjectSerializer())
                 .enableComplexMapKeySerialization()
                 .create();
 
@@ -334,7 +334,7 @@ public class Scene {
         Gson gson = new GsonBuilder()
                 .setPrettyPrinting()
                 .registerTypeAdapter(Component.class, new CompDeSerializer())
-                .registerTypeAdapter(GameObject.class, new GameObjDeSerializer())
+                .registerTypeAdapter(GameObject.class, new GameObjectSerializer())
                 .enableComplexMapKeySerialization()
                 .create();
 

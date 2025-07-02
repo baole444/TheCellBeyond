@@ -16,7 +16,7 @@ import static org.lwjgl.opengl.GL11.*;
 public class Texture {
     private AssetReference assetReference;
     private transient TextureHandle handle;
-    private int width, height;
+    private transient int width, height;
 
     private transient boolean isSizeInitialized = false;
     private transient boolean isFrameBufferTexture = false;
