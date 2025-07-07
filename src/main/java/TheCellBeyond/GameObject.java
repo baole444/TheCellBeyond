@@ -23,7 +23,7 @@ public class GameObject {
     public String name;
     private final List<Component> components;
 
-    @Deprecated
+    @Deprecated(since = "0.1", forRemoval = true)
     public transient Transform transform;
 
     private boolean isSerialize = true;
