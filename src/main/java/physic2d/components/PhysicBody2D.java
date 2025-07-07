@@ -47,7 +47,7 @@ public class PhysicBody2D extends Component {
                     instObjectBody.getPosition().x, instObjectBody.getPosition().y
             );
 
-            this.gameObject.transform.rotate = Math.toDegrees(instObjectBody.getAngle());
+            this.gameObject.transform.rotation = Math.toDegrees(instObjectBody.getAngle());
         }
     }
     public float getFriction() {

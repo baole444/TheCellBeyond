@@ -36,6 +36,6 @@ public class BoxCollider2D extends Component {
     @Override
     public void editorUpdate(float dt) {
         Vector2f centre = new Vector2f(this.gameObject.transform.position).add(this.offset);
-        DebugDraw.addBox2(centre, this.halfSize, this.gameObject.transform.rotate);
+        DebugDraw.addBox2(centre, this.halfSize, this.gameObject.transform.rotation);
     }
 }

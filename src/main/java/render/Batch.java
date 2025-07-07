@@ -229,12 +229,12 @@ public class Batch implements Comparable<Batch> {
             }
         }
 
-        boolean isRotate = spt.gameObject.transform.rotate != 0.0f;
+        boolean isRotate = spt.gameObject.transform.rotation != 0.0f;
         Matrix4f transformMatrix = new Matrix4f().identity();
         if (isRotate) {
             transformMatrix.translate(spt.gameObject.transform.position.x, spt.gameObject.transform.position.y, 0);
 
-            transformMatrix.rotate(Math.toRadians(spt.gameObject.transform.rotate), 0, 0, 1);
+            transformMatrix.rotate(Math.toRadians(spt.gameObject.transform.rotation), 0, 0, 1);
 
             transformMatrix.scale(spt.gameObject.transform.scale.x, spt.gameObject.transform.scale.y, 1);
         }

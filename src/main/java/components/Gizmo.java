@@ -55,8 +55,8 @@ public class Gizmo extends Component {
     @Override
     public void start() {
         // Give gizmo correct rotation direction.
-        this.xAxisObj.transform.rotate = 90;
-        this.yAxisObj.transform.rotate = 180;
+        this.xAxisObj.transform.rotation = 90;
+        this.yAxisObj.transform.rotation = 180;
 
         // Push gizmo index to high value in order for the texture to be above the item.
         this.xAxisObj.transform.zIndex = 100;

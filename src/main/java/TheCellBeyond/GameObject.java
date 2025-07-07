@@ -22,7 +22,10 @@ public class GameObject {
     private String uuid;
     public String name;
     private final List<Component> components;
+
+    @Deprecated
     public transient Transform transform;
+
     private boolean isSerialize = true;
     private boolean isRemoved = false;
 

@@ -8,7 +8,7 @@ import utility.Settings;
 public class Transform extends Component {
     public Vector2f position;
     public Vector2f scale;
-    public float rotate = 0.0f;
+    public float rotation = 0.0f;
     public int zIndex;
 
     public Transform() {
@@ -25,8 +25,8 @@ public class Transform extends Component {
 
     public Transform(Transform from) {
         this.position = new Vector2f(from.position);
-        this.scale  = new Vector2f(from.scale);
-        this.rotate = from.rotate;
+        this.scale = new Vector2f(from.scale);
+        this.rotation = from.rotation;
         this.zIndex = from.zIndex;
     }
 
@@ -40,7 +40,7 @@ public class Transform extends Component {
         if (target instanceof Transform targetTransform) {
             this.position.set(targetTransform.position);
             this.scale.set(targetTransform.scale);
-            this.rotate = targetTransform.rotate;
+            this.rotation = targetTransform.rotation;
             this.zIndex = targetTransform.zIndex;
         }
     }
@@ -60,7 +60,7 @@ public class Transform extends Component {
         ImEditorGui.drawVec2Ctrl("Position", this.position, 0.16f);
         ImEditorGui.spriteKeyTransform("Sprite move", this.position, Settings.GRID_WIDTH);
         ImEditorGui.drawVec2Ctrl("Scale", this.scale, 0.32f);
-        this.rotate = ImEditorGui.dragFloatCtrl("Rotation", this.rotate);
+        this.rotation = ImEditorGui.dragFloatCtrl("Rotation", this.rotation);
         this.zIndex = ImEditorGui.dragIntCtrl("Z-Index", this.zIndex);
     }
 
@@ -71,7 +71,7 @@ public class Transform extends Component {
 
         return t.position.equals(this.position) &&
                 t.scale.equals(this.scale) &&
-                t.rotate == this.rotate &&
+                t.rotation == this.rotation &&
                 t.zIndex == this.zIndex;
     }
 }

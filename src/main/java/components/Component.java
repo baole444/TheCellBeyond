@@ -113,7 +113,7 @@ public abstract class Component {
                 }
             }
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            System.err.println("Failed to access component with error: " + e.getMessage());
         }
     }
 
@@ -135,22 +135,6 @@ public abstract class Component {
                     .toArray(String[]::new);
         }
     }
-
-    //private <T extends Enum<T>> String[] loadEnumVal(Class<T> enumType) {
-    //    /*
-    //        Type T is a type that extends enum.
-    //        This type needs to be an enum.
-    //        We want to get a class that is type T.
-    //        This restricted the function to only be used only when type is enum.
-    //     */
-    //    String[] enumVal = new String[enumType.getEnumConstants().length];
-    //    int i = 0;
-    //    for (T enumIntVal : enumType.getEnumConstants()) {
-    //        enumVal[i] = enumIntVal.name();
-    //        i++;
-    //    }
-    //    return enumVal;
-    //}
 
     // Loop to find match string and return its index.
     private int indexOf(String str, String[] a) {

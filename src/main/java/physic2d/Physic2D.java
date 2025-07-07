@@ -39,7 +39,7 @@ public class Physic2D {
 
             // Define rigid body
             BodyDef objDef = new BodyDef();
-            objDef.angle = Math.toRadians(transform.rotate);
+            objDef.angle = Math.toRadians(transform.rotation);
             objDef.position.set(transform.position.x, transform.position.y);
 
             objDef.angularDamping = physicBody2D.getRollResistance();
