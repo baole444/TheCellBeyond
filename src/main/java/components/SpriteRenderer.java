@@ -2,6 +2,7 @@ package components;
 
 import TheCellBeyond.Transform;
 import editor.ImEditorGui;
+import imgui.ImGui;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import render.Texture;
@@ -10,31 +11,30 @@ import render.texture.Sprite;
 /**
  * A class dedicated to rendering a sprite, and it's life cycle.
  */
-public class SpriteRenderer extends Component {
+public class SpriteRenderer extends SpatialComponent {
     private final Vector4f color = new Vector4f(1, 1, 1 , 1);
     private Sprite sprite = new Sprite();
+
+    // Caching of effective transform
     private transient Transform instTransform;
     private transient boolean isDirty = true;
 
     @Override
     public void start() {
-        instTransform = this.gameObject.transform.copy();
+        super.start();
+        instTransform = new Transform(getEffectiveTransform());
     }
 
     @Override
     public void editorUpdate(float dt) {
-        if (!instTransform.equals(this.gameObject.transform)) {
-            instTransform.copyFrom(this.gameObject.transform);
-            isDirty = true;
-        }
+        super.editorUpdate(dt);
+        updateInstTransform();
     }
 
     @Override
     public void update(float dt) {
-        if (!instTransform.equals(this.gameObject.transform)) {
-            instTransform.copyFrom(this.gameObject.transform);
-            isDirty = true;
-        }
+        super.update(dt);
+        updateInstTransform();
     }
 
     @Override
@@ -42,6 +42,13 @@ public class SpriteRenderer extends Component {
         if (ImEditorGui.colorCtrl("Color", this.color)) {
             this.isDirty = true;
         }
+
+        ImGui.text("Transform offset");
+        ImEditorGui.drawVec2Ctrl("Position", localTransform.position, 0.0f);
+        ImEditorGui.drawVec2Ctrl("Scale", localTransform.scale, 1.0f);
+        localTransform.rotation = ImEditorGui.dragFloatCtrl("Rotation", localTransform.rotation);
+        localTransform.zIndex = ImEditorGui.dragIntCtrl("Z-Index", localTransform.zIndex);
+        setTransformDirty();
     }
 
     public void setDirty(boolean needsUpdate) {
@@ -80,4 +87,12 @@ public class SpriteRenderer extends Component {
         this.sprite.setTexture(texture);
     }
 
+    private void updateInstTransform() {
+        Transform current = getEffectiveTransform();
+
+        if (!current.equals(instTransform)) {
+            instTransform.copyFrom(current);
+            isDirty = true;
+        }
+    }
 }

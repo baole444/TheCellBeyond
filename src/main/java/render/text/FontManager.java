@@ -4,14 +4,12 @@ import org.lwjgl.BufferUtils;
 import utility.PathResolver;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -98,15 +96,15 @@ public class FontManager {
         }
     }
 
-    private void notifyCallbacks(TCBFont font, FontRequest request, List<WeakReference<FontLoadCallback>> callbacks) {
-        List<WeakReference<FontLoadCallback>> expiredCallbacks = new ArrayList<>();
+    private void notifyCallbacks(TCBFont font, FontRequest request, List<WeakReference<FontStatusCallback>> callbacks) {
+        List<WeakReference<FontStatusCallback>> expiredCallbacks = new ArrayList<>();
 
-        for (WeakReference<FontLoadCallback> ref : callbacks) {
-            FontLoadCallback callback = ref.get();
+        for (WeakReference<FontStatusCallback> ref : callbacks) {
+            FontStatusCallback callback = ref.get();
 
             if (callback != null) {
                 try {
-                    callback.onFontLoaded(font, request);
+                    callback.onFontReady(font, request);
                 } catch (Exception e) {
                     LOGGER.log(Level.WARNING, "Exception in font load callback", e);
                 }
@@ -118,12 +116,12 @@ public class FontManager {
         callbacks.removeAll(expiredCallbacks);
     }
 
-    public void requestFont(FontRequest request, FontLoadCallback callback) {
+    public void requestFont(FontRequest request, FontStatusCallback callback) {
         TCBFont existingFont = fontCache.get(request);
 
         if (existingFont != null) {
             if (callback != null) {
-                callback.onFontLoaded(existingFont, request);
+                callback.onFontReady(existingFont, request);
             }
             return;
         }
