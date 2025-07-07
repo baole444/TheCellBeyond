@@ -1,7 +1,8 @@
 package editor;
 
-import components.Component;
+import TheCellBeyond.GameObject2D;
 import components.IsNotSerialized;
+import components.SpatialComponent;
 import components.SpriteRenderer;
 import org.joml.Vector4f;
 import render.texture.Sprite;
@@ -9,7 +10,7 @@ import render.texture.SpriteSheet;
 import utility.AssetsPool;
 import utility.Settings;
 
-public class Indicator extends Component implements IsNotSerialized {
+public class Indicator extends SpatialComponent implements IsNotSerialized {
     private static final String PATH = "engine://assets/textures/indicator.png";
     private static final float SIZE = 12 * Settings.WORLD_SCALE_FACTOR;
 
@@ -23,7 +24,7 @@ public class Indicator extends Component implements IsNotSerialized {
     }
 
     private void initIndicator() {
-        if (isInitialized || gameObject == null || !gameObject.isSerialize()) return;
+        if (isInitialized || gameObject == null || !gameObject.isSerialize() || !(gameObject instanceof GameObject2D)) return;
 
         try {
             if (!AssetsPool.hasSpriteSheet(PATH)) {
@@ -79,7 +80,9 @@ public class Indicator extends Component implements IsNotSerialized {
     // Object's indicator will not be show in runtime mode (update).
     // Don't override update method.
     // It shouldn't also be edited in the properties windows too.
-    // Don't override imgui method.
+    // Override imgui to do nothing to prevent this
+    @Override
+    public void imgui() {}
 
     public SpriteRenderer getIndicatorRenderer() {
         return indicatorRenderer;

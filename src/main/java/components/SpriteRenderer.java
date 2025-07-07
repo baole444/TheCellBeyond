@@ -39,16 +39,11 @@ public class SpriteRenderer extends SpatialComponent {
 
     @Override
     public void imgui() {
+        super.imgui();
+
         if (ImEditorGui.colorCtrl("Color", this.color)) {
             this.isDirty = true;
         }
-
-        ImGui.text("Transform offset");
-        ImEditorGui.drawVec2Ctrl("Position", localTransform.position, 0.0f);
-        ImEditorGui.drawVec2Ctrl("Scale", localTransform.scale, 1.0f);
-        localTransform.rotation = ImEditorGui.dragFloatCtrl("Rotation", localTransform.rotation);
-        localTransform.zIndex = ImEditorGui.dragIntCtrl("Z-Index", localTransform.zIndex);
-        setTransformDirty();
     }
 
     public void setDirty(boolean needsUpdate) {

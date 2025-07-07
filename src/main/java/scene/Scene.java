@@ -103,7 +103,8 @@ public class Scene {
 
         if (go.isSerialize() &&
                 go.getComponent(IsNotSelectable.class) == null &&
-                go.getComponent(Indicator.class) == null
+                go.getComponent(Indicator.class) == null &&
+                go instanceof GameObject2D
         ) {
             Indicator indicator = new Indicator();
             go.addComponent(indicator);

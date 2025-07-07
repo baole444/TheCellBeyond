@@ -14,7 +14,7 @@ import java.util.Objects;
 import static editor.project.Project.CurrentProject;
 import static editor.project.Project.ProjectRoot;
 
-public class TextComponent extends Component implements FontLoadCallback {
+public class TextComponent extends SpatialComponent implements FontStatusCallback {
     private String text;
     private String fontPath;
     private int fontSize;
@@ -25,7 +25,6 @@ public class TextComponent extends Component implements FontLoadCallback {
 
     private transient TCBFont font;
     private final transient Vector2f textDimensions = new Vector2f();
-    private transient Vector2f worldPosition = null;
     private transient FontRequest currentRequest = null;
     private transient boolean pendingRequest = false;
 
@@ -40,26 +39,11 @@ public class TextComponent extends Component implements FontLoadCallback {
     private HorizontalAlignment hAlign = HorizontalAlignment.LEFT;
     private VerticalAlignment vAlign = VerticalAlignment.TOP;
 
-    public TextComponent() {
-        this.text = "";
-        this.fontPath = Settings.PATH.CONSOLA;
-        this.fontSize = 16;
-        this.color = new Vector4f(1, 1, 1, 1);
-    }
-
     public TextComponent(String text, String fontPath, int fontSize, Vector4f color) {
         this.text = text;
         this.fontPath = fontPath;
         this.fontSize = fontSize;
         this.color = color;
-    }
-
-    public TextComponent(String text, String fontPath, int fontSize, Vector4f color, boolean isProjectAsset) {
-        this.text = text;
-        this.fontPath = fontPath;
-        this.fontSize = fontSize;
-        this.color = color;
-        this.isProjectAsset = isProjectAsset;
     }
 
     public TextComponent(String text, String fontPath, int fontSize, Vector4f color, GlyphRange glyphRange) {
@@ -79,38 +63,13 @@ public class TextComponent extends Component implements FontLoadCallback {
         this.isProjectAsset = isProjectAsset;
     }
 
-    public TextComponent(String text, String fontPath, int fontSize, Vector4f color, Vector2f position) {
-        this.text = text;
-        this.fontPath = fontPath;
-        this.fontSize = fontSize;
-        this.color = color;
-        this.worldPosition = position;
-    }
-
     public TextComponent(String text, String fontPath, int fontSize, Vector4f color, Vector2f position, GlyphRange glyphRange) {
         this.text = text;
         this.fontPath = fontPath;
         this.fontSize = fontSize;
         this.color = color;
         this.glyphRangeName = glyphRange.name();
-        this.worldPosition = position;
-    }
-
-    public Vector2f getWorldPosition() {
-        if (worldPosition != null) {
-            return worldPosition;
-        }
-
-        if (gameObject != null) {
-            return gameObject.transform.position;
-        }
-
-        return new Vector2f(0.0f, 0.0f);
-    }
-
-    public void setWorldPosition(Vector2f position) {
-        this.worldPosition = position;
-        this.isDirty = true;
+        setWorldPosition(position);
     }
 
     private void requestLoadFont() {
@@ -139,7 +98,7 @@ public class TextComponent extends Component implements FontLoadCallback {
     }
 
     @Override
-    public void onFontLoaded(TCBFont loadedFont, FontRequest request) {
+    public void onFontReady(TCBFont loadedFont, FontRequest request) {
         if (currentRequest != null && currentRequest.equals(request)) {
             this.font = loadedFont;
             this.pendingRequest = false;
@@ -188,6 +147,7 @@ public class TextComponent extends Component implements FontLoadCallback {
 
     @Override
     public void start() {
+        super.start();
         requestLoadFont();
     }
 
@@ -277,6 +237,8 @@ public class TextComponent extends Component implements FontLoadCallback {
 
             ImGui.endCombo();
         }
+
+        super.imgui();
     }
 
     public String getText() {

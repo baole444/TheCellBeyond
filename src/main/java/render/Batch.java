@@ -150,7 +150,7 @@ public class Batch implements Comparable<Batch> {
                 rebufferData = true;
             }
 
-            if(spr.gameObject.transform.zIndex != this.zIndex) {
+            if(spr.getzIndex() != this.zIndex) {
                 removeIfExist(spr.gameObject);
                 renderer.queueObjectForUpdate(spr.gameObject);
                 i--;
@@ -206,37 +206,41 @@ public class Batch implements Comparable<Batch> {
     }
 
     private void genVertexProperties(int index) {
-        SpriteRenderer spt = sprites[index];
+        SpriteRenderer spriteRenderer = sprites[index];
 
         // Set offset in the array (4/spt)
         int offset = index * 4 * VERTEX_SIZE;
 
-        Vector4f color = spt.getColor();
-        Vector2f[] textureCoordinates = spt.getTextureCoordinates();
+        Vector4f color = spriteRenderer.getColor();
+        Vector2f[] textureCoordinates = spriteRenderer.getTextureCoordinates();
 
-        // No data availble yet
+        // No data available yet
         if (textureCoordinates == null) return;
 
         int ID = 0;
         //[0, tex, tex, tex, tex]
 
-        if (spt.getTexture() != null) {
+        if (spriteRenderer.getTexture() != null) {
             for (int i = 0; i < textures.size(); i++) {
-                if (textures.get(i).equals(spt.getTexture())) {
+                if (textures.get(i).equals(spriteRenderer.getTexture())) {
                     ID = i + 1;
                     break;
                 }
             }
         }
 
-        boolean isRotate = spt.gameObject.transform.rotation != 0.0f;
+        Vector2f pos = spriteRenderer.getPosition();
+        Vector2f scale = spriteRenderer.getScale();
+        float rotation = spriteRenderer.getRotation();
+
+        boolean isRotate = rotation != 0.0f;
         Matrix4f transformMatrix = new Matrix4f().identity();
         if (isRotate) {
-            transformMatrix.translate(spt.gameObject.transform.position.x, spt.gameObject.transform.position.y, 0);
+            transformMatrix.translate(pos.x, pos.y, 0);
 
-            transformMatrix.rotate(Math.toRadians(spt.gameObject.transform.rotation), 0, 0, 1);
+            transformMatrix.rotate(Math.toRadians(rotation), 0, 0, 1);
 
-            transformMatrix.scale(spt.gameObject.transform.scale.x, spt.gameObject.transform.scale.y, 1);
+            transformMatrix.scale(scale.x, scale.y, 1);
         }
 
         // Load match vertex
@@ -250,8 +254,8 @@ public class Batch implements Comparable<Batch> {
             }
 
             Vector4f instPos = new Vector4f(
-                    spt.gameObject.transform.position.x + (xAdd * spt.gameObject.transform.scale.x),
-                    spt.gameObject.transform.position.y + (yAdd * spt.gameObject.transform.scale.y),
+                    pos.x + (xAdd * scale.x),
+                    pos.y + (yAdd * scale.y),
                     0, 1
             );
             if (isRotate) {
@@ -276,7 +280,7 @@ public class Batch implements Comparable<Batch> {
             vertices[offset + 8] = ID;
 
             // Load obj Id
-            vertices[offset + 9] = spt.gameObject.getUID();
+            vertices[offset + 9] = spriteRenderer.gameObject.getUID();
 
             offset += VERTEX_SIZE;
         }
