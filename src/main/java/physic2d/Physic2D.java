@@ -22,7 +22,7 @@ public class Physic2D {
     private World world = new World(gravity);
 
     private float physicDt = 0.0f;
-    private float physicDtRate = 1.0f / 60.0f; // delta of 60 fps
+    private final float physicDtRate = 1.0f / 60.0f; // delta of 60 fps
     private int velocityPassCount = 9;
     private int positionPassCount = 3;
 
@@ -34,40 +34,39 @@ public class Physic2D {
         PhysicBody2D physicBody2D = go.getComponent(PhysicBody2D.class);
 
         // Duplicate prevention
-        if (physicBody2D != null && physicBody2D.getInstObjectBody() == null) {
-            Transform transform = go.transform;
+        if (physicBody2D != null && physicBody2D.getPhysicBodyRef() == null) {
+            Vector2f initialPos = physicBody2D.getWorldPosition();
+            float initialRot = physicBody2D.getRotation();
 
             // Define rigid body
-            BodyDef objDef = new BodyDef();
-            objDef.angle = Math.toRadians(transform.rotation);
-            objDef.position.set(transform.position.x, transform.position.y);
+            BodyDef bodyDef = new BodyDef();
+            bodyDef.angle = Math.toRadians(initialRot);
+            bodyDef.position.set(initialPos.x, initialPos.y);
 
-            objDef.angularDamping = physicBody2D.getRollResistance();
-            objDef.linearDamping = physicBody2D.getTranslateResistance();
+            bodyDef.angularDamping = physicBody2D.getRollResistance();
+            bodyDef.linearDamping = physicBody2D.getTranslateResistance();
 
-            objDef.fixedRotation = physicBody2D.isRotatable();
+            bodyDef.fixedRotation = physicBody2D.isAllowRotation();
 
-            objDef.userData = physicBody2D.gameObject;
+            bodyDef.userData = physicBody2D.gameObject;
 
-            objDef.bullet = physicBody2D.isNoneStopCollision();
+            bodyDef.bullet = physicBody2D.isNoneStopCollision();
 
-            objDef.gravityScale = physicBody2D.getGravityScale();
+            bodyDef.gravityScale = physicBody2D.getGravityScale();
 
-            objDef.angularVelocity = physicBody2D.getAngularVelocity();
+            bodyDef.angularVelocity = physicBody2D.getAngularVelocity();
 
             switch (physicBody2D.getPhysicBodyType()) {
-                case Kinematic: objDef.type = BodyType.KINEMATIC;
-                break;
-                case Static: objDef.type = BodyType.STATIC;
-                break;
-                case Dynamic: objDef.type = BodyType.DYNAMIC;
-                break;
+                case Kinematic -> bodyDef.type = BodyType.KINEMATIC;
+                case Static -> bodyDef.type = BodyType.STATIC;
+                case Dynamic -> bodyDef.type = BodyType.DYNAMIC;
             }
-            Body obj = this.world.createBody(objDef);
+
+            Body obj = this.world.createBody(bodyDef);
 
             obj.m_mass = physicBody2D.getMass();
 
-            physicBody2D.setInstObjectBody(obj);
+            physicBody2D.setPhysicBodyRef(obj);
 
             CircleCollider2D circleCollider2D;
             BoxCollider2D boxCollider2D;
@@ -95,9 +94,9 @@ public class Physic2D {
     public void destroyObject(GameObject go) {
         PhysicBody2D physicBody2D = go.getComponent(PhysicBody2D.class);
         if (physicBody2D != null) {
-            if (physicBody2D.getInstObjectBody() != null) {
-                world.destroyBody(physicBody2D.getInstObjectBody());
-                physicBody2D.setInstObjectBody(null);
+            if (physicBody2D.getPhysicBodyRef() != null) {
+                world.destroyBody(physicBody2D.getPhysicBodyRef());
+                physicBody2D.setPhysicBodyRef(null);
             }
         }
     }
@@ -128,49 +127,62 @@ public class Physic2D {
     }
 
     public void addBoxCollider2D(PhysicBody2D physicBody2D, Component colliderComponent) {
-        BoxCollider2D boxCollider2D = (BoxCollider2D) colliderComponent;
-        Body body = physicBody2D.getInstObjectBody();
-        assert body != null : "Instant physical body of Object not found.";
+        if (colliderComponent instanceof BoxCollider2D boxCollider2D) {
+            Body body = physicBody2D.getPhysicBodyRef();
 
-        PolygonShape shape = new PolygonShape();
+            if (body == null) return;
 
-        Vector2f halfSize = new Vector2f(boxCollider2D.getHalfSize()).mul(0.5f); // Applying correct collider box size
+            PolygonShape shape = new PolygonShape();
+            Vector2f scale = boxCollider2D.getLocalScale();
 
-        Vector2f offset = boxCollider2D.getOffset();
+            Vector2f halfSize = new Vector2f(boxCollider2D.getHalfSize()).mul(0.5f).mul(scale); // Applying correct collider box size
 
-        shape.setAsBox(halfSize.x, halfSize.y, new Vec2(offset.x, offset.y), 0);
+            Vector2f offset = boxCollider2D.getLocalPosition();
+            float rotation = boxCollider2D.getLocalRotation();
 
-        createFixture(physicBody2D, body, shape);
+            shape.setAsBox(halfSize.x, halfSize.y, new Vec2(offset.x, offset.y), Math.toRadians(rotation));
+
+            createFixture(physicBody2D, body, shape);
+        }
     }
 
     public void addCircleCollider2D(PhysicBody2D physicBody2D, Component colliderComponent) {
-        CircleCollider2D circleCollider2D = (CircleCollider2D) colliderComponent;
-        Body body = physicBody2D.getInstObjectBody();
-        assert body != null : "Instant physical body of Object not found.";
+        if (colliderComponent instanceof CircleCollider2D circleCollider2D) {
+            Body body = physicBody2D.getPhysicBodyRef();
 
-        CircleShape shape = new CircleShape();
+            if (body == null) return;
 
-        shape.setRadius(circleCollider2D.getRadius());
+            CircleShape shape = new CircleShape();
 
-        Vec2 offset = new Vec2(circleCollider2D.getOffset().x, circleCollider2D.getOffset().y);
+            Vector2f scale = circleCollider2D.getLocalScale();
+            float scaledRadius = circleCollider2D.getRadius() * ((scale.x + scale.y) / 2.0f);
 
-        shape.m_p.set(offset);
+            shape.setRadius(scaledRadius);
 
-        createFixture(physicBody2D, body, shape);
+            Vector2f offset = circleCollider2D.getLocalPosition();
+
+            shape.m_p.set(new Vec2(offset.x, offset.y));
+
+            createFixture(physicBody2D, body, shape);
+        }
     }
 
     public void addPillBoxCollider(PhysicBody2D physicBody2D, Component colliderComponent) {
-        PillBoxCollider pillBoxCollider = (PillBoxCollider) colliderComponent;
-        Body body = physicBody2D.getInstObjectBody();
-        assert body != null : "Instant physical body of Object not found.";
+        if (colliderComponent instanceof PillBoxCollider pillBoxCollider) {
+            Body body = physicBody2D.getPhysicBodyRef();
 
-        addBoxCollider2D(physicBody2D, pillBoxCollider.getMidBox());
-        addCircleCollider2D(physicBody2D, pillBoxCollider.getHeadCircle());
-        addCircleCollider2D(physicBody2D, pillBoxCollider.getFootCircle());
+            if (body == null) return;
+
+            addBoxCollider2D(physicBody2D, pillBoxCollider.getMidBox());
+            addCircleCollider2D(physicBody2D, pillBoxCollider.getHeadCircle());
+            addCircleCollider2D(physicBody2D, pillBoxCollider.getFootCircle());
+        }
+
+
     }
 
     public void resetCollider(PhysicBody2D physicBody2D, Component colliderObject) {
-        Body body = physicBody2D.getInstObjectBody();
+        Body body = physicBody2D.getPhysicBodyRef();
 
         if (body == null) return;
 
@@ -215,8 +227,9 @@ public class Physic2D {
     }
 
     public void setIsSensor(PhysicBody2D physicBody2D, boolean val) {
-        Body body = physicBody2D.getInstObjectBody();
-        if (body != null) return;
+        Body body = physicBody2D.getPhysicBodyRef();
+
+        if (body == null) return;
 
         Fixture fixture = body.getFixtureList();
         while (fixture != null) {

@@ -262,10 +262,11 @@ public class Scene {
         sceneInit.imgui();
     }
 
+    // TODO: rework on this method to handle different object type
     public GameObject generateObject(String name) {
         GameObject obj = new GameObject(name);
         obj.addComponent(new Transform());
-        obj.transform = obj.getComponent(Transform.class);
+        //obj.transform = obj.getComponent(Transform.class);
 
         return obj;
     }

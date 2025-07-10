@@ -108,7 +108,7 @@ public class Renderer {
     private void addSprite(SpriteRenderer sprite) {
         boolean isAdded = false;
         for (Batch batch: textureBatches) {
-            if (batch.hasSpace() && batch.zIndex() == sprite.gameObject.transform.zIndex) {
+            if (batch.hasSpace() && batch.zIndex() == sprite.getzIndex()) {
                 Texture t = sprite.getTexture();
                 if (t == null || (batch.hasTexture(t) || batch.isTextureCapacityValid())) {
                     batch.loadSprite(sprite);
@@ -119,7 +119,7 @@ public class Renderer {
         }
 
         if (!isAdded) {
-            Batch newBatch = new Batch(MAX_BATCH_SIZE, sprite.gameObject.transform.zIndex, this);
+            Batch newBatch = new Batch(MAX_BATCH_SIZE, sprite.getzIndex(), this);
             newBatch.start();
 
             if (projectionMatrix != null) newBatch.setProjectionMatrix(projectionMatrix);
@@ -133,7 +133,7 @@ public class Renderer {
 
     private void addText(TextComponent textComponent) {
         boolean isAdded = false;
-        int zIndex = textComponent.gameObject.transform.zIndex;
+        int zIndex = textComponent.getzIndex();
 
         for (TextBatch batch : textBatches) {
             if (batch.hasRoom() && batch.getzIndex() == zIndex) {
