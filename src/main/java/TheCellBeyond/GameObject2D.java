@@ -1,7 +1,15 @@
 package TheCellBeyond;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import components.CompDeSerializer;
+import components.Component;
+import components.SpriteRenderer;
 import org.joml.Matrix3x2f;
 import org.joml.Vector2f;
+import render.Texture;
+
+import java.util.UUID;
 
 public class GameObject2D extends GameObject {
     private final Transform localTransform;
@@ -80,6 +88,15 @@ public class GameObject2D extends GameObject {
 
     public void setScale(Vector2f scale) {
         localTransform.scale.set(scale);
+        setDirty();
+    }
+
+    public int getzIndex() {
+        return localTransform.zIndex;
+    }
+
+    public void setzIndex(int zIndex) {
+        localTransform.zIndex = zIndex;
         setDirty();
     }
 
@@ -178,5 +195,35 @@ public class GameObject2D extends GameObject {
                 child2D.setDirty();
             }
         }
+    }
+
+    @Override
+    public GameObject2D copy() {
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(Component.class, new CompDeSerializer())
+                .registerTypeAdapter(GameObject2D.class, new GameObject2DSerializer())
+                .registerTypeAdapter(GameObject.class, new GameObjectSerializer())
+                .enableComplexMapKeySerialization()
+                .create();
+
+        String oJson = gson.toJson(this, GameObject2D.class);
+
+        GameObject2D copy = gson.fromJson(oJson, GameObject2D.class);
+
+        copy.setUUID(UUID.randomUUID().toString());
+        copy.regenerateUID();
+
+        for (Component component : copy.getComponents()) {
+            component.createUID();
+        }
+
+        SpriteRenderer sprite = copy.getComponent(SpriteRenderer.class);
+        if (sprite != null && sprite.getTexture() != null) {
+            Texture ogTexture = sprite.getTexture();
+            Texture textureCopy = ogTexture.copy();
+            sprite.setTexture(textureCopy);
+        }
+
+        return copy;
     }
 }

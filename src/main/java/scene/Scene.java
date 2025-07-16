@@ -265,6 +265,8 @@ public class Scene {
     // TODO: rework on this method to handle different object type
     public GameObject generateObject(String name) {
         GameObject obj = new GameObject(name);
+
+        // TODO: remove adding this since as there is new GameObject2D class
         obj.addComponent(new Transform());
         //obj.transform = obj.getComponent(Transform.class);
 
@@ -292,6 +294,7 @@ public class Scene {
                 .setPrettyPrinting()
                 .registerTypeAdapter(Component.class, new CompDeSerializer())
                 .registerTypeAdapter(GameObject.class, new GameObjectSerializer())
+                .registerTypeAdapter(GameObject2D.class, new GameObject2DSerializer())
                 .enableComplexMapKeySerialization()
                 .create();
 
@@ -337,6 +340,7 @@ public class Scene {
                 .setPrettyPrinting()
                 .registerTypeAdapter(Component.class, new CompDeSerializer())
                 .registerTypeAdapter(GameObject.class, new GameObjectSerializer())
+                .registerTypeAdapter(GameObject2D.class, new GameObject2DSerializer())
                 .enableComplexMapKeySerialization()
                 .create();
 

@@ -229,18 +229,20 @@ public class Batch implements Comparable<Batch> {
             }
         }
 
+        // Sprite's size in world unit.
+        Vector2f worldSize = spriteRenderer.getSpriteSizeAsWorldUnit();
+
         Vector2f pos = spriteRenderer.getPosition();
-        Vector2f scale = spriteRenderer.getScale();
         float rotation = spriteRenderer.getRotation();
 
-        boolean isRotate = rotation != 0.0f;
+        boolean isRotated = rotation != 0.0f;
         Matrix4f transformMatrix = new Matrix4f().identity();
-        if (isRotate) {
+        if (isRotated) {
             transformMatrix.translate(pos.x, pos.y, 0);
 
             transformMatrix.rotate(Math.toRadians(rotation), 0, 0, 1);
 
-            transformMatrix.scale(scale.x, scale.y, 1);
+            transformMatrix.scale(worldSize.x, worldSize.y, 1);
         }
 
         // Load match vertex
@@ -254,11 +256,11 @@ public class Batch implements Comparable<Batch> {
             }
 
             Vector4f instPos = new Vector4f(
-                    pos.x + (xAdd * scale.x),
-                    pos.y + (yAdd * scale.y),
+                    pos.x + (xAdd * worldSize.x),
+                    pos.y + (yAdd * worldSize.y),
                     0, 1
             );
-            if (isRotate) {
+            if (isRotated) {
                 instPos = new Vector4f(xAdd, yAdd, 0, 1).mul(transformMatrix);
             }
 

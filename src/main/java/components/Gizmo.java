@@ -13,58 +13,76 @@ import static org.lwjgl.glfw.GLFW.*;
  * A class dedicated to handle gizmo selection and activity, so as its position and appearance.
  * For handling gizmo's type and movement, see {@link GizmoControl}.
  */
-public class Gizmo extends Component {
+public class Gizmo extends SpatialComponent implements IsNotSerialized {
+    // Gizmo Color
     private final Vector4f resetColor = new Vector4f(0, 0, 0 , 0);
     private final Vector4f xAxisColor = new Vector4f(0.7f, 0.2f, 0.2f, 1.0f);
     private final Vector4f xHover = new Vector4f(0.85f, 0.35f, 0.35f, 1.0f);
     private final Vector4f yAxisColor = new Vector4f(0.2f, 0.7f, 0.2f, 1.0f);
     private final Vector4f yHover = new Vector4f(0.35f, 0.85f, 0.35f, 1.0f);
-    private final Vector2f xOffset = new Vector2f(34.0f / 100, 0f / 100);
-    private final Vector2f yOffset = new Vector2f(0.0f / 100, 34.0f / 100);
+
+    private final Vector2f xOffset = new Vector2f(34.0f / 100, 0f);
+    private final Vector2f yOffset = new Vector2f(0.0f, 34.0f / 100);
+
     private final float gizWidth = 0.16f;
     private final float gizHeight = 0.48f;
+
     protected boolean xActiveDrag = false;
     protected boolean yActiveDrag = false;
     private boolean isUsed = false;
     protected GameObject activeGameObj = null;
 
-    private final GameObject xAxisObj;
-    private final GameObject yAxisObj;
+    private final GameObject2D xAxisObj;
+    private final GameObject2D yAxisObj;
     private final SpriteRenderer xAxisSpr;
     private final SpriteRenderer yAxisSpr;
     private final Properties properties;
 
-    // Create Gizmo, give it size, position, and color.
+    // Caching
+    private transient final Vector2f tmpPos = new Vector2f();
+    private transient final Vector2f gizmoWorldPos = new Vector2f();
+
+    // Create Gizmo, position, and color.
     // Mark Gizmo arrow is not a selectable object.
     // Push gizmo to the scene.
     public Gizmo(Sprite arrowSprite, Properties properties) {
-        this.xAxisObj = Prefab.genSpsObj(arrowSprite, gizWidth, gizHeight);
-        this.yAxisObj = Prefab.genSpsObj(arrowSprite, gizWidth, gizHeight);
-        this.xAxisSpr = this.xAxisObj.getComponent(SpriteRenderer.class);
-        this.yAxisSpr = this.yAxisObj.getComponent(SpriteRenderer.class);
+        this.xAxisObj = createGizmoObject("gizmoX", arrowSprite);
+        this.yAxisObj = createGizmoObject("gizmoY", arrowSprite);
+        this.xAxisSpr = xAxisObj.getComponent(SpriteRenderer.class);
+        this.yAxisSpr = yAxisObj.getComponent(SpriteRenderer.class);
         this.properties = properties;
-
-        this.xAxisObj.addComponent(new IsNotSelectable());
-        this.yAxisObj.addComponent(new IsNotSelectable());
 
         Window.getScene().queueForObjectAddition(this.xAxisObj);
         Window.getScene().queueForObjectAddition(this.yAxisObj);
+    }
 
+    private GameObject2D createGizmoObject(String name, Sprite sprite) {
+        GameObject2D go2D = new GameObject2D(name);
+
+        SpriteRenderer renderer = new SpriteRenderer();
+        renderer.setSprite(sprite);
+
+        go2D.addComponent(renderer);
+        go2D.addComponent(new IsNotSelectable());
+
+        return go2D;
     }
 
     @Override
     public void start() {
-        // Give gizmo correct rotation direction.
-        this.xAxisObj.transform.rotation = 90;
-        this.yAxisObj.transform.rotation = 180;
-
-        // Push gizmo index to high value in order for the texture to be above the item.
-        this.xAxisObj.transform.zIndex = 100;
-        this.yAxisObj.transform.zIndex = 100;
-
+        super.start();
         // Make gizmo not store to level save file.
         this.xAxisObj.setNotSerialize();
         this.yAxisObj.setNotSerialize();
+
+        // Give gizmo correct rotation direction.
+        this.xAxisObj.setRotation(90);
+        this.yAxisObj.setRotation(180);
+
+        // TODO: if this doesn't work, set sprite renderer's index instead
+        // Push gizmo index to high value in order for the texture to be above the item.
+        this.xAxisObj.setzIndex(100);
+        this.yAxisObj.setzIndex(100);
     }
 
     @Override
@@ -89,6 +107,28 @@ public class Gizmo extends Component {
             return;
         }
 
+        updatePosition();
+
+    }
+
+    private void updatePosition() {
+        if (this.activeGameObj == null) return;
+
+        if (!(activeGameObj instanceof GameObject2D go2D)) {
+            setInactiveObj();
+            return;
+        }
+
+        Vector2f targetPos = go2D.getGlobalPosition();
+        setWorldPosition(targetPos);
+
+        gizmoWorldPos.set(getWorldPosition());
+
+        this.xAxisObj.setGlobalPosition(new Vector2f(gizmoWorldPos).add(xOffset));
+        this.yAxisObj.setGlobalPosition(new Vector2f(gizmoWorldPos).add(yOffset));
+    }
+
+    private void handleInteraction() {
         // Update if gizmo is being hovered.
         boolean xAxisHover = isHoverX();
         boolean yAxisHover = isHoverY();
@@ -102,13 +142,6 @@ public class Gizmo extends Component {
         } else {
             xActiveDrag = false;
             yActiveDrag = false;
-        }
-
-        if (this.activeGameObj != null) {
-            this.xAxisObj.transform.position.set(this.activeGameObj.transform.position);
-            this.yAxisObj.transform.position.set(this.activeGameObj.transform.position);
-            this.xAxisObj.transform.position.add(this.xOffset);
-            this.yAxisObj.transform.position.add(this.yOffset);
         }
     }
 
@@ -124,10 +157,11 @@ public class Gizmo extends Component {
 
     private boolean isHoverX() {
         Vector2f cursorPos = MouseListener.getWorld();
-        if (cursorPos.x <= xAxisObj.transform.position.x + (gizHeight / 2.0f) &&
-                cursorPos.x >= xAxisObj.transform.position.x - (gizWidth / 2.0f) &&
-                cursorPos.y >= xAxisObj.transform.position.y - (gizHeight / 2.0f) &&
-                cursorPos.y <= xAxisObj.transform.position.y + (gizWidth / 2.0f)
+        Vector2f xAxisPos = this.xAxisObj.getGlobalPosition();
+        if (cursorPos.x <= xAxisPos.x + (gizHeight / 2.0f) &&
+                cursorPos.x >= xAxisPos.x - (gizWidth / 2.0f) &&
+                cursorPos.y >= xAxisPos.y - (gizHeight / 2.0f) &&
+                cursorPos.y <= xAxisPos.y + (gizWidth / 2.0f)
         ) {
             xAxisSpr.setColor(xHover);
             return true;
@@ -138,10 +172,11 @@ public class Gizmo extends Component {
 
     private boolean isHoverY() {
         Vector2f cursorPos = MouseListener.getWorld();
-        if (cursorPos.x <= yAxisObj.transform.position.x + (gizWidth / 2.0f) &&
-                cursorPos.x >= yAxisObj.transform.position.x - (gizWidth / 2.0f) &&
-                cursorPos.y <= yAxisObj.transform.position.y + (gizHeight / 2.0f) &&
-                cursorPos.y >= yAxisObj.transform.position.y - (gizHeight / 2.0f)
+        Vector2f yAxisPos = this.yAxisObj.getGlobalPosition();
+        if (cursorPos.x <= yAxisPos.x + (gizWidth / 2.0f) &&
+                cursorPos.x >= yAxisPos.x - (gizWidth / 2.0f) &&
+                cursorPos.y <= yAxisPos.y + (gizHeight / 2.0f) &&
+                cursorPos.y >= yAxisPos.y - (gizHeight / 2.0f)
         ) {
             yAxisSpr.setColor(yHover);
             return true;

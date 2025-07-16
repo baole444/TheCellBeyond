@@ -76,8 +76,6 @@ public class GameObjectSerializer implements JsonSerializer<GameObject>, JsonDes
             go.addComponent(c);
         }
 
-        go.transform = go.getComponent(Transform.class);
-
         return go;
     }
 }

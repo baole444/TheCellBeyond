@@ -2,11 +2,11 @@ package components;
 
 import TheCellBeyond.Transform;
 import editor.ImEditorGui;
-import imgui.ImGui;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import render.Texture;
 import render.texture.Sprite;
+import utility.Settings;
 
 /**
  * A class dedicated to rendering a sprite, and it's life cycle.
@@ -52,6 +52,16 @@ public class SpriteRenderer extends SpatialComponent {
 
     public Vector4f getColor() {
         return this.color;
+    }
+
+    public Vector2f getSpriteSize() {
+        if (sprite == null) return new Vector2f(1, 1);
+
+        return new Vector2f(sprite.getWidth(), sprite.getHeight());
+    }
+
+    public Vector2f getSpriteSizeAsWorldUnit() {
+        return getSpriteSize().mul(Settings.WORLD_SCALE_FACTOR);
     }
 
     public Texture getTexture() {

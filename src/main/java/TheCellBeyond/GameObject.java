@@ -139,6 +139,7 @@ public class GameObject {
         }
     }
 
+    // TODO: support multiple component by return a list
     public <Obj extends Component> Obj getComponent(Class<Obj> componentClass) {
         for (Component c : components) {
             if (componentClass.isAssignableFrom(c.getClass())) {
@@ -254,6 +255,10 @@ public class GameObject {
 
     public int getUID() {
         return cachedID;
+    }
+
+    protected void regenerateUID() {
+        cachedID = idCounter.newId();
     }
 
     public String getUUID() {

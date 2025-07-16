@@ -12,11 +12,11 @@ public class Transform extends Component {
     public int zIndex;
 
     public Transform() {
-        init(new Vector2f(), new Vector2f());
+        init(new Vector2f(), new Vector2f(1.0f, 1.0f));
     }
 
     public Transform(Vector2f position) {
-        init(position, new Vector2f());
+        init(position, new Vector2f(1.0f, 1.0f));
     }
 
     public Transform(Vector2f position, Vector2f scale) {
@@ -59,7 +59,7 @@ public class Transform extends Component {
         gameObject.name = ImEditorGui.inputText("Name: ", gameObject.name);
         ImEditorGui.drawVec2Ctrl("Position", this.position, 0.16f);
         ImEditorGui.spriteKeyTransform("Sprite move", this.position, Settings.GRID_WIDTH);
-        ImEditorGui.drawVec2Ctrl("Scale", this.scale, 0.32f);
+        ImEditorGui.drawVec2Ctrl("Scale", this.scale, 1f);
         this.rotation = ImEditorGui.dragFloatCtrl("Rotation", this.rotation);
         this.zIndex = ImEditorGui.dragIntCtrl("Z-Index", this.zIndex);
     }

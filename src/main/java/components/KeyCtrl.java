@@ -1,6 +1,7 @@
 package components;
 
 import TheCellBeyond.GameObject;
+import TheCellBeyond.GameObject2D;
 import TheCellBeyond.KeyListener;
 import TheCellBeyond.Window;
 import editor.OpenProjectDialog;
@@ -8,6 +9,7 @@ import editor.Properties;
 import eventviewer.EventSystem;
 import eventviewer.event.Event;
 import eventviewer.event.EventType;
+import org.joml.Vector2f;
 import org.joml.Vector4f;
 import utility.Settings;
 
@@ -33,7 +35,11 @@ public class KeyCtrl extends Component {
             GameObject newObj = activeGameObj.copy();
             Window.getScene().queueForObjectAddition(newObj);
 
-            newObj.transform.position.add(Settings.GRID_WIDTH, 0.0f);
+            if (newObj instanceof GameObject2D go2D) {
+                Vector2f currentPos = go2D.getPosition();
+                currentPos.add(Settings.GRID_WIDTH / 2.0f, Settings.GRID_HEIGHT / 2.0f);
+            }
+
             properties.setActiveGameObject(newObj);
         } else if (KeyListener.isKeyTapped(GLFW_KEY_D, GLFW_MOD_CONTROL) && activeObjList.size() > 1) {
             List<GameObject> gameObjects = new ArrayList<>(activeObjList);

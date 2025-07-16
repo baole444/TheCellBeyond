@@ -38,7 +38,7 @@ public class PhysicBody2D extends SpatialComponent {
      * Physical body of the Object.
      */
     private transient Body physicBodyRef = null; // Raw Object, a memory reference for physic and game engine update layer.
-    
+
 
     @Override
     public void update(float dt) {

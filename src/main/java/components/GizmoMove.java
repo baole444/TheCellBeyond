@@ -1,7 +1,9 @@
 package components;
 
+import TheCellBeyond.GameObject2D;
 import TheCellBeyond.MouseListener;
 import editor.Properties;
+import org.joml.Vector2f;
 import render.texture.Sprite;
 
 /**
@@ -14,13 +16,15 @@ public class GizmoMove extends Gizmo {
 
     @Override
     public void editorUpdate(float dt) {
-        if (activeGameObj != null) {
+        if (activeGameObj != null && activeGameObj instanceof GameObject2D go2D) {
+            Vector2f cursorT = MouseListener.getCursorTraverse();
+
             if (xActiveDrag && !yActiveDrag) {
-                activeGameObj.transform.position.x -= MouseListener.getCursorTraverse().x;
-                //System.out.println("Requested move on X axis");
+                Vector2f current = go2D.getGlobalPosition();
+                go2D.setGlobalPosition(new Vector2f(current.x - cursorT.x, current.y));
             } else if (yActiveDrag) {
-                activeGameObj.transform.position.y -= MouseListener.getCursorTraverse().y;
-                //System.out.println("Requested move on Y axis");
+                Vector2f current = go2D.getGlobalPosition();
+                go2D.setGlobalPosition(new Vector2f(current.x, current.y  - cursorT.y));
             }
         }
 
