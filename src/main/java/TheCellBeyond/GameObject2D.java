@@ -4,11 +4,13 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import components.CompDeSerializer;
 import components.Component;
+import components.SpatialComponent;
 import components.SpriteRenderer;
 import org.joml.Matrix3x2f;
 import org.joml.Vector2f;
 import render.Texture;
 
+import java.util.List;
 import java.util.UUID;
 
 public class GameObject2D extends GameObject {
@@ -175,7 +177,21 @@ public class GameObject2D extends GameObject {
 
         globalTransform.scale.set(scaleX, scaleY);
 
+        updateSpatialComponents();
+
         isTransformDirty = false;
+    }
+
+    // Update all the spatial component attached to this object
+    private void updateSpatialComponents() {
+        List<Component> components = getComponents();
+
+        for (Component c : components) {
+            if (c instanceof SpatialComponent sC) {
+                sC.setTransformDirty();
+                sC.getEffectiveTransform();
+            }
+        }
     }
 
     public Matrix3x2f getLocalMatrix() {
@@ -185,6 +201,11 @@ public class GameObject2D extends GameObject {
     
     public Transform getTransForm() {
         return new Transform(localTransform);
+    }
+
+    public Transform getGlobalTransform() {
+        updateGlobalTransform();
+        return new Transform(globalTransform);
     }
 
     private void setDirty() {

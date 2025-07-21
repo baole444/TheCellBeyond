@@ -1,9 +1,6 @@
 package components;
 
-import TheCellBeyond.GameObject;
-import TheCellBeyond.KeyListener;
-import TheCellBeyond.MouseListener;
-import TheCellBeyond.Window;
+import TheCellBeyond.*;
 import editor.Properties;
 import org.joml.Math;
 import org.joml.Vector2f;
@@ -68,7 +65,6 @@ public class MouseCtrl extends Component {
             newObj.getComponent(StateEngine.class).reloadTexture();
         }
 
-        this.holdObj.transform.zIndex = 0;
         newObj.getComponent(SpriteRenderer.class).setColor(new Vector4f(1, 1, 1, 1));
         newObj.removeComponent(IsNotSelectable.class);
 
@@ -88,11 +84,23 @@ public class MouseCtrl extends Component {
 
         // Return coordinate base position from raw mouse input to place an active object in standard position.
         if (holdObj != null) {
-            holdObj.transform.position.x = MouseListener.getWorldX() - Settings.GRID_WIDTH / 2.0f; // Might not need to - 0.16f for both
-            holdObj.transform.position.y = MouseListener.getWorldY() - Settings.GRID_HEIGHT / 2.0f;
+            float targetX = MouseListener.getWorldX() - Settings.GRID_WIDTH / 2.0f; // Might not need to - 0.16f for both
+            float targetY = MouseListener.getWorldY() - Settings.GRID_HEIGHT / 2.0f;
 
-            holdObj.transform.position.x = Math.round(holdObj.transform.position.x / Settings.GRID_WIDTH) * Settings.GRID_WIDTH + Settings.GRID_WIDTH / 2.0f;
-            holdObj.transform.position.y = Math.round(holdObj.transform.position.y / Settings.GRID_HEIGHT) * Settings.GRID_HEIGHT + Settings.GRID_HEIGHT / 2.0f;
+            targetX = Math.round(targetX / Settings.GRID_WIDTH) * Settings.GRID_WIDTH + Settings.GRID_WIDTH / 2.0f;
+            targetY = Math.round(targetY / Settings.GRID_HEIGHT) * Settings.GRID_HEIGHT + Settings.GRID_HEIGHT / 2.0f;
+
+            Vector2f targetPos = new Vector2f(targetX, targetY);
+
+            if (holdObj instanceof GameObject2D go2D) {
+                go2D.setPosition(targetPos);
+            } else if (holdObj instanceof GameObject go) {
+                for (Component c : go.getComponents()) {
+                    if (c instanceof SpatialComponent sC) {
+                        sC.setWorldPosition(targetPos);
+                    }
+                }
+            }
 
             // When click released, place the object.
             if (MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_LEFT)) {
@@ -100,8 +108,7 @@ public class MouseCtrl extends Component {
                 float halfHeight = Settings.GRID_HEIGHT / 2.0f;
 
                 if (MouseListener.isDragging() &&
-                        !isGridSquareOccupied(holdObj.transform.position.x - halfWidth,
-                                holdObj.transform.position.y - halfHeight)) {
+                        !isGridSquareOccupied(targetPos.x - halfWidth, targetPos.y - halfHeight)) {
 
                     // Disable mouse register if performing dragging and placing.
                     // This is to prevent placing an additional object by check [1].

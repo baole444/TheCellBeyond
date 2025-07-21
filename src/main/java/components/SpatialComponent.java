@@ -152,21 +152,15 @@ public abstract class SpatialComponent extends Component implements Transformati
         setTransformDirty();
     }
 
-    protected void setTransformDirty() {
+    public void setTransformDirty() {
         isTransformDirty = true;
-    }
-
-    private Transform getGameObjectTransform() {
-        if (gameObject instanceof GameObject2D go2D) return go2D.getTransForm();
-
-        return null;
     }
 
     private void updateEffectiveTransform() {
         if (effectiveTransform == null) effectiveTransform = new Transform();
 
         if (gameObject instanceof GameObject2D go2D) {
-            Transform goTransform = go2D.getTransForm();
+            Transform goTransform = go2D.getGlobalTransform();
             effectiveTransform.copyFrom(goTransform);
 
             addTransforms(effectiveTransform, localTransform);
@@ -174,7 +168,7 @@ public abstract class SpatialComponent extends Component implements Transformati
             effectiveTransform.copyFrom(localTransform);
         }
 
-        isTransformDirty = true;
+        isTransformDirty = false;
     }
 
     private void addTransforms(Transform target, Transform offset) {

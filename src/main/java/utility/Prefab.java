@@ -10,9 +10,6 @@ import render.texture.Sprite;
 public class Prefab {
     public static GameObject genSpsObj(Sprite sprite, float sizeX, float sizeY) {
         GameObject block = Window.getScene().generateObject("Sprite_object_gen");
-        block.transform.scale.x = sizeX;
-        block.transform.scale.y = sizeY;
-
         SpriteRenderer render = new SpriteRenderer();
         render.setSprite(sprite);
         block.addComponent(render);
