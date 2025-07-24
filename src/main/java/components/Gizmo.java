@@ -58,6 +58,9 @@ public class Gizmo extends SpatialComponent implements IsNotSerialized {
     private GameObject2D createGizmoObject(String name, Sprite sprite) {
         GameObject2D go2D = new GameObject2D(name);
 
+        // Make gizmo not store to level save file.
+        go2D.setNotSerialize();
+
         go2D.addComponent(new IsNotSelectable());
 
         SpriteRenderer renderer = new SpriteRenderer();
@@ -70,10 +73,6 @@ public class Gizmo extends SpatialComponent implements IsNotSerialized {
     @Override
     public void start() {
         super.start();
-        // Make gizmo not store to level save file.
-        this.xAxisObj.setNotSerialize();
-        this.yAxisObj.setNotSerialize();
-
         // Give gizmo correct rotation direction.
         this.xAxisObj.setRotation(90);
         this.yAxisObj.setRotation(180);
