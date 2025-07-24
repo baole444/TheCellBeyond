@@ -48,7 +48,7 @@ public class MouseCtrl extends Component {
             this.holdObj.destroy();
         }
         this.holdObj = obj;
-        this.holdObj.getComponent(SpriteRenderer.class).setColor(new Vector4f(1f, 1f, 1f, 0.35f));
+        this.holdObj.getFirstComponent(SpriteRenderer.class).setColor(new Vector4f(1f, 1f, 1f, 0.35f));
         this.holdObj.addComponent(new IsNotSelectable());
 
         // A fake object uses to illustrate targeted position (a preview).
@@ -61,12 +61,12 @@ public class MouseCtrl extends Component {
     public void placeObj() {
         GameObject newObj = this.holdObj.copy();
 
-        if (newObj.getComponent(StateEngine.class) != null) {
-            newObj.getComponent(StateEngine.class).reloadTexture();
+        if (newObj.getFirstComponent(StateEngine.class) != null) {
+            newObj.getFirstComponent(StateEngine.class).reloadTexture();
         }
 
-        newObj.getComponent(SpriteRenderer.class).setColor(new Vector4f(1, 1, 1, 1));
-        newObj.removeComponent(IsNotSelectable.class);
+        newObj.getFirstComponent(SpriteRenderer.class).setColor(new Vector4f(1, 1, 1, 1));
+        newObj.removeComponents(IsNotSelectable.class);
 
         // Make a placed object savable as it is now a real object.
         // A real object should be added to the object grouping scene.
@@ -148,7 +148,7 @@ public class MouseCtrl extends Component {
             GameObject selectedObj = currentScene.getGameObject(gObjectId);
 
             // Excluding the gizmo
-            if (selectedObj != null && selectedObj.getComponent(IsNotSelectable.class) == null) {
+            if (selectedObj != null && selectedObj.getFirstComponent(IsNotSelectable.class) == null) {
                 properties.setActiveGameObject(selectedObj);
             } else if (selectedObj == null && !MouseListener.isDragging()) {
                 properties.clearSelection();
@@ -214,7 +214,7 @@ public class MouseCtrl extends Component {
                 if (objId < 0) continue;
 
                 GameObject selectedObj = Window.getScene().getGameObject(objId);
-                if (selectedObj != null && selectedObj.getComponent(IsNotSelectable.class) == null) {
+                if (selectedObj != null && selectedObj.getFirstComponent(IsNotSelectable.class) == null) {
                     properties.addActiveGameObject(selectedObj);
                 }
             }
@@ -242,7 +242,7 @@ public class MouseCtrl extends Component {
             if (gameObjId <= 0) continue;
 
             GameObject selectedObj = Window.getScene().getGameObject((int) gameObjId);
-            if (selectedObj.getComponent(IsNotSelectable.class) == null) {
+            if (selectedObj.getFirstComponent(IsNotSelectable.class) == null) {
                 return true;
             }
         }

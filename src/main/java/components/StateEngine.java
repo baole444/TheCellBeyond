@@ -110,7 +110,7 @@ public class StateEngine extends Component {
     public void update(float dt) {
         if (instState != null) {
             instState.update(dt);
-            SpriteRenderer spriteRenderer = gameObject.getComponent(SpriteRenderer.class);
+            SpriteRenderer spriteRenderer = gameObject.getFirstComponent(SpriteRenderer.class);
             if (spriteRenderer != null) {
                 spriteRenderer.setSprite(instState.loadInstSprite());
             }
@@ -121,7 +121,7 @@ public class StateEngine extends Component {
     public void editorUpdate(float dt) {
         if (instState != null) {
             instState.update(dt);
-            SpriteRenderer spriteRenderer = gameObject.getComponent(SpriteRenderer.class);
+            SpriteRenderer spriteRenderer = gameObject.getFirstComponent(SpriteRenderer.class);
             if (spriteRenderer != null) {
                 spriteRenderer.setSprite(instState.loadInstSprite());
             }

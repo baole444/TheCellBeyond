@@ -136,21 +136,27 @@ public class LevelEditorSceneInit extends SceneInit {
 
         // Only generate if not existed
         for (GameObject obj : scene.getGameObjects().values()) {
-            if (obj.getComponent(SpriteRenderer.class) != null) {
-                SpriteRenderer spr = obj.getComponent(SpriteRenderer.class);
-                if (spr.getTexture() != null) {
-                    spr.setTexture(AssetsPool.loadTexture(spr.getTexture().getFilePath()));
+            if (obj.getFirstComponent(SpriteRenderer.class) != null) {
+                List<SpriteRenderer> sps = obj.getComponents(SpriteRenderer.class);
+                for (SpriteRenderer sprite : sps) {
+                    if (sprite.getTexture() != null) {
+                        sprite.setTexture(AssetsPool.loadTexture(sprite.getTexture().getFilePath()));
+                    }
                 }
             }
 
-            if (obj.getComponent(StateEngine.class) != null) {
-                StateEngine stateEngine = obj.getComponent(StateEngine.class);
-                stateEngine.reloadTexture();
+            if (obj.getFirstComponent(StateEngine.class) != null) {
+                List<StateEngine> states = obj.getComponents(StateEngine.class);
+                for (StateEngine state : states) {
+                    state.reloadTexture();
+                }
             }
 
-            if (obj.getComponent(TextComponent.class) != null) {
-                TextComponent textComponent = obj.getComponent(TextComponent.class);
-                textComponent.start();
+            if (obj.getFirstComponent(TextComponent.class) != null) {
+                List<TextComponent> texts = obj.getComponents(TextComponent.class);
+                for (TextComponent txt : texts) {
+                    txt.start();
+                }
             }
         }
     }

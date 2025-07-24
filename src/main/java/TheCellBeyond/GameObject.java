@@ -12,6 +12,8 @@ import scene.Scene;
 import utility.IdPool;
 
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 
 public class GameObject {
     private static final IdPool idCounter = new IdPool(1, true);
@@ -21,7 +23,12 @@ public class GameObject {
 
     private String uuid;
     public String name;
-    private final List<Component> components;
+
+    // During production, this might cause performance impact
+    // when user add component to an object.
+    // During runtime, most of the time will be spent reading this component list,
+    // Thia tradeoff is acceptable.
+    private final CopyOnWriteArrayList<Component> components;
 
     @Deprecated(since = "0.1", forRemoval = true)
     public transient Transform transform;
@@ -37,7 +44,7 @@ public class GameObject {
 
     public GameObject(String name) {
         this.name = name;
-        this.components = new ArrayList<>();
+        this.components = new CopyOnWriteArrayList<>();
         this.children = new LinkedHashSet<>();
         this.uuid = UUID.randomUUID().toString();
         this.cachedID = idCounter.newId();
@@ -139,8 +146,7 @@ public class GameObject {
         }
     }
 
-    // TODO: support multiple component by return a list
-    public <Obj extends Component> Obj getComponent(Class<Obj> componentClass) {
+    public <Obj extends Component> Obj getFirstComponent(Class<Obj> componentClass) {
         for (Component c : components) {
             if (componentClass.isAssignableFrom(c.getClass())) {
                 try {
@@ -153,14 +159,36 @@ public class GameObject {
         return null;
     }
 
-    public <Obj extends Component> void removeComponent(Class<Obj> componentClass) {
-        for (int i = 0; i < components.size(); i++) {
-            Component c = components.get(i);
-            if (componentClass.isAssignableFrom(c.getClass())) {
-                components.remove(i);
-                return;
-            }
-        }
+    /**
+     * Get components of a given type from this Object.
+     * @param componentClass the class of the components.
+     * @return list of the components.
+     * @param <T> Type of the components.
+     */
+    public <T extends Component> List<T> getComponents(Class<T> componentClass) {
+        return components.stream()
+                .filter(c -> componentClass.isAssignableFrom(c.getClass()))
+                .map(componentClass::cast)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Remove components of a given type from this Object.
+     * @param componentClass the class of the components.
+     * @param <T> Type of the component.
+     */
+    public <T extends Component> void removeComponents(Class<T> componentClass) {
+        components.removeIf(c -> componentClass.isAssignableFrom(c.getClass()));
+    }
+
+    /**
+     * Remove a component from this Object.
+     * @param component the component to be removed.
+     * @return true if removed.
+     * @param <T> Type of the component.
+     */
+    public <T extends Component> boolean removeComponent(T component) {
+        return components.remove(component);
     }
 
     public void addComponent(Component c) {
@@ -238,7 +266,7 @@ public class GameObject {
             c.createUID();
         }
 
-        SpriteRenderer sprite = obj.getComponent(SpriteRenderer.class);
+        SpriteRenderer sprite = obj.getFirstComponent(SpriteRenderer.class);
 
         if (sprite != null && sprite.getTexture() != null) {
             Texture ogTexture = sprite.getTexture();

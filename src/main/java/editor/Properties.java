@@ -38,21 +38,21 @@ public class Properties {
 
             if (ImGui.beginPopupContextWindow("AddComponent")) {
                 if (ImGui.menuItem("Generate Physic body")) {
-                    if (activeGameObject.getComponent(PhysicBody2D.class) == null) {
+                    if (activeGameObject.getFirstComponent(PhysicBody2D.class) == null) {
                         activeGameObject.addComponent(new PhysicBody2D());
                     }
                 }
 
                 if (ImGui.menuItem("Generate Box Collider")) {
-                    if ((activeGameObject.getComponent(BoxCollider2D.class) == null) &&
-                            (activeGameObject.getComponent(CircleCollider2D.class) == null)) {
+                    if ((activeGameObject.getFirstComponent(BoxCollider2D.class) == null) &&
+                            (activeGameObject.getFirstComponent(CircleCollider2D.class) == null)) {
                         activeGameObject.addComponent(new BoxCollider2D());
                     }
                 }
 
                 if (ImGui.menuItem("Generate Circle Collider")) {
-                    if ((activeGameObject.getComponent(CircleCollider2D.class) == null) &&
-                            (activeGameObject.getComponent(BoxCollider2D.class) == null)) {
+                    if ((activeGameObject.getFirstComponent(CircleCollider2D.class) == null) &&
+                            (activeGameObject.getFirstComponent(BoxCollider2D.class) == null)) {
                         activeGameObject.addComponent(new CircleCollider2D());
                     }
                 }
@@ -70,7 +70,7 @@ public class Properties {
      * @param go The desired {@link GameObject} that wanted to be set active.
      */
     public void addActiveGameObject(GameObject go) {
-        SpriteRenderer spriteRenderer = go.getComponent(SpriteRenderer.class);
+        SpriteRenderer spriteRenderer = go.getFirstComponent(SpriteRenderer.class);
         if (spriteRenderer != null) {
             //TODO: Allow user to select their preferred highlighting color.
             this.activeObjTrueColor.add(new Vector4f(spriteRenderer.getColor()));
@@ -140,7 +140,7 @@ public class Properties {
         if (!activeObjTrueColor.isEmpty()) {
             int i = 0;
             for (GameObject go : activeGameObjects) {
-                SpriteRenderer spriteRenderer = go.getComponent(SpriteRenderer.class);
+                SpriteRenderer spriteRenderer = go.getFirstComponent(SpriteRenderer.class);
                 if (spriteRenderer != null) {
                     spriteRenderer.setColor(activeObjTrueColor.get(i));
                 }

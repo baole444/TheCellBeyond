@@ -1,7 +1,6 @@
 package physic2d;
 
 import TheCellBeyond.GameObject;
-import TheCellBeyond.Transform;
 import components.Component;
 import org.jbox2d.collision.shapes.CircleShape;
 import org.jbox2d.collision.shapes.PolygonShape;
@@ -30,8 +29,9 @@ public class Physic2D {
         world.setContactListener(new Physic2DContactListener());
     }
 
+    // TODO: For now, limit to 1 collider and 1 physic body, will extend to multi collider when needed
     public void add(GameObject go) {
-        PhysicBody2D physicBody2D = go.getComponent(PhysicBody2D.class);
+        PhysicBody2D physicBody2D = go.getFirstComponent(PhysicBody2D.class);
 
         // Duplicate prevention
         if (physicBody2D != null && physicBody2D.getPhysicBodyRef() == null) {
@@ -73,26 +73,26 @@ public class Physic2D {
             PillBoxCollider pillBoxCollider;
 
             if ((circleCollider2D =
-                    go.getComponent(CircleCollider2D.class)) != null ) {
+                    go.getFirstComponent(CircleCollider2D.class)) != null ) {
 
                 addCircleCollider2D(physicBody2D, circleCollider2D);
             }
 
             if ((boxCollider2D =
-                    go.getComponent(BoxCollider2D.class)) != null) {
+                    go.getFirstComponent(BoxCollider2D.class)) != null) {
 
                 addBoxCollider2D(physicBody2D, boxCollider2D);
             }
 
             if ((pillBoxCollider =
-                    go.getComponent(PillBoxCollider.class)) != null) {
+                    go.getFirstComponent(PillBoxCollider.class)) != null) {
                 addPillBoxCollider(physicBody2D, pillBoxCollider);
             }
         }
     }
 
     public void destroyObject(GameObject go) {
-        PhysicBody2D physicBody2D = go.getComponent(PhysicBody2D.class);
+        PhysicBody2D physicBody2D = go.getFirstComponent(PhysicBody2D.class);
         if (physicBody2D != null) {
             if (physicBody2D.getPhysicBodyRef() != null) {
                 world.destroyBody(physicBody2D.getPhysicBodyRef());

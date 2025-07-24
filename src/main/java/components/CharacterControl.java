@@ -9,6 +9,7 @@ import physic2d.components.PhysicBody2D;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT;
 
+// TODO: Update this once other system finalized.
 public class CharacterControl extends Component {
     private float walkSpeed = 1f;
 
@@ -51,8 +52,8 @@ public class CharacterControl extends Component {
 
     @Override
     public void start() {
-        this.physicBody2D = gameObject.getComponent(PhysicBody2D.class);
-        this.stateEngine = gameObject.getComponent(StateEngine.class);
+        this.physicBody2D = gameObject.getFirstComponent(PhysicBody2D.class);
+        this.stateEngine = gameObject.getFirstComponent(StateEngine.class);
 
         // Set gravity to 0 to manage custom physic
         this.physicBody2D.setGravityScale(0.0f);

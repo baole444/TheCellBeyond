@@ -24,9 +24,7 @@ public abstract class SpatialComponent extends Component implements Transformati
 
     @Override
     public Transform getEffectiveTransform() {
-        if (isTransformDirty || effectiveTransform == null) {
-            updateEffectiveTransform();
-        }
+        updateEffectiveTransform();
 
         return effectiveTransform;
     }
@@ -157,9 +155,13 @@ public abstract class SpatialComponent extends Component implements Transformati
     }
 
     private void updateEffectiveTransform() {
+        if (!isTransformDirty && effectiveTransform != null) return;
+
         if (effectiveTransform == null) effectiveTransform = new Transform();
 
         if (gameObject instanceof GameObject2D go2D) {
+            if (go2D.isTransformUpdating()) return;
+
             Transform goTransform = go2D.getGlobalTransform();
             effectiveTransform.copyFrom(goTransform);
 

@@ -289,10 +289,14 @@ public class Batch implements Comparable<Batch> {
     }
 
     public boolean removeIfExist(GameObject go) {
-        SpriteRenderer spriteRenderer = go.getComponent(SpriteRenderer.class);
+        List<SpriteRenderer> sps = go.getComponents(SpriteRenderer.class);
+        if (sps.isEmpty()) return false;
 
-        for (int i = 0; i < countSprite; i++) {
-            if (sprites[i] == spriteRenderer) {
+        int removalCount = 0;
+
+        int i = 0;
+        while (i < countSprite) {
+            if (sps.contains(sprites[i])) {
                 // [1, 2, 3, 4, 5, 6, ...]
                 // Remove object 3 -> override 3 with 4 and move all stack up.
                 // Start moving the stack at position i, where the old sprite is supposed to be disposed
@@ -303,12 +307,20 @@ public class Batch implements Comparable<Batch> {
                     // Set damage to signal update on the moved up sprites.
                     sprites[j].setDirty(true);
                 }
+
                 // reduce stack size each time a sprite is removed
                 countSprite --;
-                return true;
+
+                // Clear the last duplicated position to prevent memory leaks
+                sprites[countSprite] = null;
+
+                removalCount++;
+            } else {
+                i++;
             }
         }
-        return false;
+
+        return removalCount > 0;
     }
 
     private int[] genIndices() {

@@ -102,8 +102,8 @@ public class Scene {
         if (go.getParentUUID() == null && !rootGameObjects.contains(go)) rootGameObjects.add(go);
 
         if (go.isSerialize() &&
-                go.getComponent(IsNotSelectable.class) == null &&
-                go.getComponent(Indicator.class) == null &&
+                go.getFirstComponent(IsNotSelectable.class) == null &&
+                go.getFirstComponent(Indicator.class) == null &&
                 go instanceof GameObject2D
         ) {
             Indicator indicator = new Indicator();
@@ -305,13 +305,17 @@ public class Scene {
                 if (obj.isSerialize() && CurrentProject != null && ProjectRoot != null && currentSceneName != null) {
                     obj.prepareForSerialization();
 
-                    if (obj.getComponent(SpriteRenderer.class) != null) {
+                    if (obj.getFirstComponent(SpriteRenderer.class) != null) {
                         PathResolver resolver = PathResolver.get();
 
-                        String texturePath = obj.getComponent(SpriteRenderer.class).getTexture().getFilePath();
-                        String canonicalPath = resolver.toCanonicalPath(texturePath);
+                        List<SpriteRenderer> sps = obj.getComponents(SpriteRenderer.class);
 
-                        obj.getComponent(SpriteRenderer.class).getTexture().setFilePath(canonicalPath);
+                        for (SpriteRenderer sprite : sps) {
+                            String texturePath = sprite.getTexture().getFilePath();
+                            String canonicalPath = resolver.toCanonicalPath(texturePath);
+
+                            sprite.getTexture().setFilePath(canonicalPath);
+                        }
                     }
 
                     serializeList.add(obj);
@@ -360,10 +364,10 @@ public class Scene {
             GameObject[] objects = gson.fromJson(loadFile, GameObject[].class);
             for (GameObject go : objects) {
                 if (CurrentProject != null && ProjectRoot != null && currentSceneName != null) {
-                    if (go.getComponent(SpriteRenderer.class) != null) {
-                        String canonicalPath = go.getComponent(SpriteRenderer.class).getTexture().getFilePath();
+                    if (go.getFirstComponent(SpriteRenderer.class) != null) {
+                        String canonicalPath = go.getFirstComponent(SpriteRenderer.class).getTexture().getFilePath();
 
-                        go.getComponent(SpriteRenderer.class).getTexture().setFilePath(canonicalPath);
+                        go.getFirstComponent(SpriteRenderer.class).getTexture().setFilePath(canonicalPath);
                     }
                 }
 

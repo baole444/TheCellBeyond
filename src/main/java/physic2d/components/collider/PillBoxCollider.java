@@ -1,7 +1,6 @@
 package physic2d.components.collider;
 
 import TheCellBeyond.Window;
-import components.Component;
 import components.SpatialComponent;
 import org.joml.Vector2f;
 import physic2d.components.PhysicBody2D;
@@ -109,7 +108,7 @@ public class PillBoxCollider extends SpatialComponent {
         shouldFixtureReset = false;
 
         if (gameObject != null) {
-            PhysicBody2D physicBody2D = gameObject.getComponent(PhysicBody2D.class);
+            PhysicBody2D physicBody2D = gameObject.getFirstComponent(PhysicBody2D.class);
 
             if (physicBody2D != null) {
                 Window.getPhysic2D().resetCollider(physicBody2D, this);

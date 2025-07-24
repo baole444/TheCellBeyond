@@ -5,7 +5,6 @@ import editor.Properties;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import render.texture.Sprite;
-import utility.Prefab;
 
 import static org.lwjgl.glfw.GLFW.*;
 
@@ -48,8 +47,8 @@ public class Gizmo extends SpatialComponent implements IsNotSerialized {
     public Gizmo(Sprite arrowSprite, Properties properties) {
         this.xAxisObj = createGizmoObject("gizmoX", arrowSprite);
         this.yAxisObj = createGizmoObject("gizmoY", arrowSprite);
-        this.xAxisSpr = xAxisObj.getComponent(SpriteRenderer.class);
-        this.yAxisSpr = yAxisObj.getComponent(SpriteRenderer.class);
+        this.xAxisSpr = xAxisObj.getFirstComponent(SpriteRenderer.class);
+        this.yAxisSpr = yAxisObj.getFirstComponent(SpriteRenderer.class);
         this.properties = properties;
 
         Window.getScene().queueForObjectAddition(this.xAxisObj);
@@ -59,12 +58,12 @@ public class Gizmo extends SpatialComponent implements IsNotSerialized {
     private GameObject2D createGizmoObject(String name, Sprite sprite) {
         GameObject2D go2D = new GameObject2D(name);
 
+        go2D.addComponent(new IsNotSelectable());
+
         SpriteRenderer renderer = new SpriteRenderer();
         renderer.setSprite(sprite);
 
         go2D.addComponent(renderer);
-        go2D.addComponent(new IsNotSelectable());
-
         return go2D;
     }
 

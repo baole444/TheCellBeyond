@@ -94,18 +94,20 @@ public class Renderer {
     }
 
     private void addGameObject(GameObject go) {
-        SpriteRenderer spr = go.getComponent(SpriteRenderer.class);
-        if (spr != null) {
-            addSprite(spr);
+        List<SpriteRenderer> sps = go.getComponents(SpriteRenderer.class);
+        for (SpriteRenderer sprite : sps) {
+            addSprite(sprite);
         }
 
-        TextComponent text = go.getComponent(TextComponent.class);
-        if (text != null) {
-            addText(text);
+        List<TextComponent> ts = go.getComponents(TextComponent.class);
+        for (TextComponent txt : ts) {
+            addText(txt);
         }
     }
 
     private void addSprite(SpriteRenderer sprite) {
+        if (sprite == null) return;
+
         boolean isAdded = false;
         for (Batch batch: textureBatches) {
             if (batch.hasSpace() && batch.zIndex() == sprite.getzIndex()) {
@@ -131,13 +133,15 @@ public class Renderer {
         }
     }
 
-    private void addText(TextComponent textComponent) {
+    private void addText(TextComponent text) {
+        if (text == null) return;
+
         boolean isAdded = false;
-        int zIndex = textComponent.getzIndex();
+        int zIndex = text.getzIndex();
 
         for (TextBatch batch : textBatches) {
             if (batch.hasRoom() && batch.getzIndex() == zIndex) {
-                batch.add(textComponent);
+                batch.add(text);
                 isAdded = true;
                 break;
             }
@@ -151,13 +155,13 @@ public class Renderer {
             if (viewMatrix != null) newBatch.setViewMatrix(viewMatrix);
 
             textBatches.add(newBatch);
-            newBatch.add(textComponent);
+            newBatch.add(text);
             Collections.sort(textBatches);
         }
     }
 
     private void destroyObject(GameObject go) {
-        if (go.getComponent(SpriteRenderer.class) != null) {
+        if (go.getFirstComponent(SpriteRenderer.class) != null) {
             for (Batch batch : textureBatches) {
                 if (batch.removeIfExist(go)) {
                     return;
@@ -165,7 +169,7 @@ public class Renderer {
             }
         }
 
-        TextComponent textComponent = go.getComponent(TextComponent.class);
+        TextComponent textComponent = go.getFirstComponent(TextComponent.class);
         if (textComponent != null) {
             for (TextBatch textBatch : textBatches) {
                 if (textBatch.removeComponent(textComponent)) {

@@ -58,7 +58,7 @@ public class Prefab {
      */
     public static GameObject genAlignedText(String text, String fontPath, int fontSize, Vector4f color, TextComponent.HorizontalAlignment hAlign, TextComponent.VerticalAlignment vAlign, GlyphRange glyphRange) {
         GameObject textObj = genText(text, fontPath, fontSize, color, glyphRange);
-        TextComponent textComponent = textObj.getComponent(TextComponent.class);
+        TextComponent textComponent = textObj.getFirstComponent(TextComponent.class);
 
         textComponent.setHorizontalAlignment(hAlign);
         textComponent.setVerticalAlignment(vAlign);

@@ -361,7 +361,7 @@ public class ImEditorGui {
                     GameObject obj = Prefab.genSpsObj(sps, sps.getWidth() * Settings.WORLD_SCALE_FACTOR, sps.getHeight() * Settings.WORLD_SCALE_FACTOR);
 
                     // Bind to mouse cursor
-                    levelEditorObject.getComponent(MouseCtrl.class).pickObj(obj);
+                    levelEditorObject.getFirstComponent(MouseCtrl.class).pickObj(obj);
                 }
 
                 if (ImGui.isItemHovered()) {
@@ -421,7 +421,7 @@ public class ImEditorGui {
                 GameObject obj = Prefab.genSpsObj(sprites, sprites.getWidth() / 100f, sprites.getHeight() / 100f);
 
                 // Bind to mouse cursor
-                levelEditorObject.getComponent(MouseCtrl.class).pickObj(obj);
+                levelEditorObject.getFirstComponent(MouseCtrl.class).pickObj(obj);
             }
 
             if (ImGui.isItemHovered()) {

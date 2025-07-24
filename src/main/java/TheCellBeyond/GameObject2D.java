@@ -19,6 +19,7 @@ public class GameObject2D extends GameObject {
     private final Transform globalTransform;
 
     private transient boolean isTransformDirty = true;
+    private transient boolean isTransformUpdating = false;
 
     private transient final Matrix3x2f localMatrix = new Matrix3x2f();
     private transient final Matrix3x2f globalMatrix = new Matrix3x2f();
@@ -28,9 +29,6 @@ public class GameObject2D extends GameObject {
         super(name);
         this.localTransform = new Transform();
         this.globalTransform = new Transform();
-
-        // TODO: When GameObject remove its transform, we don't need to do this
-        removeComponent(Transform.class);
     }
 
     public Vector2f getPosition() {
@@ -150,47 +148,52 @@ public class GameObject2D extends GameObject {
     }
 
     private void updateGlobalTransform() {
-        if (!isTransformDirty) return;
+        if (!isTransformDirty || isTransformUpdating) return;
 
-        localMatrix.identity()
-                .scale(localTransform.scale)
-                .rotate((float) Math.toRadians(localTransform.rotation))
-                .translate(localTransform.position);
+        // Circular reference prevention
+        isTransformUpdating = true;
 
-        GameObject2D parent2D = getParent2D();
-        if (parent2D != null) {
-            parent2D.updateGlobalTransform();
-            globalMatrix.set(parent2D.globalMatrix).mul(localMatrix);
-        } else {
-            globalMatrix.set(localMatrix);
+        try {
+            localMatrix.identity()
+                    .scale(localTransform.scale)
+                    .rotate((float) Math.toRadians(localTransform.rotation))
+                    .translate(localTransform.position);
+
+            GameObject2D parent2D = getParent2D();
+            if (parent2D != null) {
+                parent2D.updateGlobalTransform();
+                globalMatrix.set(parent2D.globalMatrix).mul(localMatrix);
+            } else {
+                globalMatrix.set(localMatrix);
+            }
+
+            Vector2f translation = new Vector2f(globalMatrix.m20(), globalMatrix.m21());
+            globalTransform.position.set(translation);
+
+            globalTransform.rotation = (float) Math.toDegrees(Math.atan2(globalMatrix.m01(), globalMatrix.m00()));
+
+            float scaleX = (float) Math.sqrt(globalMatrix.m00() * globalMatrix.m00()
+                    + globalMatrix.m01() * globalMatrix.m01());
+            float scaleY = (float) Math.sqrt(globalMatrix.m10() * globalMatrix.m11()
+                    + globalMatrix.m11() * globalMatrix.m11());
+
+            globalTransform.scale.set(scaleX, scaleY);
+
+            isTransformDirty = false;
+
+            updateSpatialComponents();
+        } finally {
+            isTransformUpdating = false;
         }
 
-        Vector2f translation = new Vector2f(globalMatrix.m20(), globalMatrix.m21());
-        globalTransform.position.set(translation);
-
-        globalTransform.rotation = (float) Math.toDegrees(Math.atan2(globalMatrix.m01(), globalMatrix.m00()));
-
-        float scaleX = (float) Math.sqrt(globalMatrix.m00() * globalMatrix.m00()
-                + globalMatrix.m01() * globalMatrix.m01());
-        float scaleY = (float) Math.sqrt(globalMatrix.m10() * globalMatrix.m11()
-                + globalMatrix.m11() * globalMatrix.m11());
-
-        globalTransform.scale.set(scaleX, scaleY);
-
-        updateSpatialComponents();
-
-        isTransformDirty = false;
     }
 
-    // Update all the spatial component attached to this object
+    // Inform spatial components that its effective transform is dirty
     private void updateSpatialComponents() {
-        List<Component> components = getComponents();
+        List<SpatialComponent> components = getComponents(SpatialComponent.class);
 
-        for (Component c : components) {
-            if (c instanceof SpatialComponent sC) {
-                sC.setTransformDirty();
-                sC.getEffectiveTransform();
-            }
+        for (SpatialComponent c : components) {
+            c.setTransformDirty();
         }
     }
 
@@ -218,6 +221,10 @@ public class GameObject2D extends GameObject {
         }
     }
 
+    public boolean isTransformUpdating() {
+        return isTransformUpdating;
+    }
+
     @Override
     public GameObject2D copy() {
         Gson gson = new GsonBuilder()
@@ -238,7 +245,7 @@ public class GameObject2D extends GameObject {
             component.createUID();
         }
 
-        SpriteRenderer sprite = copy.getComponent(SpriteRenderer.class);
+        SpriteRenderer sprite = copy.getFirstComponent(SpriteRenderer.class);
         if (sprite != null && sprite.getTexture() != null) {
             Texture ogTexture = sprite.getTexture();
             Texture textureCopy = ogTexture.copy();

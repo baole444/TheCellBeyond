@@ -32,14 +32,14 @@ public class GizmoControl extends Component {
     @Override
     public void editorUpdate(float dt) {
         if (isGizUse == 0) {
-            gameObject.getComponent(GizmoMove.class).setUse();
+            gameObject.getFirstComponent(GizmoMove.class).setUse();
 
-            gameObject.getComponent(GizmoScale.class).setUnUse();
+            gameObject.getFirstComponent(GizmoScale.class).setUnUse();
 
         } else if (isGizUse == 1) {
-            gameObject.getComponent(GizmoMove.class).setUnUse();
+            gameObject.getFirstComponent(GizmoMove.class).setUnUse();
 
-            gameObject.getComponent(GizmoScale.class).setUse();
+            gameObject.getFirstComponent(GizmoScale.class).setUse();
         }
     }
 }
