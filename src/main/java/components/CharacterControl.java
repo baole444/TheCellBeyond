@@ -10,6 +10,7 @@ import static org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT;
 
 // TODO: Update this once other system finalized.
+//  Temporary ignore this.
 public class CharacterControl extends Component {
     private float walkSpeed = 1f;
 

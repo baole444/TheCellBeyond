@@ -2,6 +2,7 @@ package render.texture;
 
 import org.joml.Vector2f;
 import render.Texture;
+import utility.WorldUnit;
 
 /**
  * A class dedicated to processing a sprite's texture orientation and dimension.
@@ -46,6 +47,14 @@ public class Sprite {
 
     public void setHeight(float height) {
         this.height = height;
+    }
+
+    public float getHeightAsWorldUnit() {
+        return WorldUnit.pixelToWorld(height);
+    }
+
+    public float getWidthAsWorldUnit() {
+        return WorldUnit.pixelToWorld(width);
     }
 
     public int getTextureID() {

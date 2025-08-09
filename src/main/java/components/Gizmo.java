@@ -5,6 +5,7 @@ import editor.Properties;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import render.texture.Sprite;
+import utility.WorldUnit;
 
 import static org.lwjgl.glfw.GLFW.*;
 
@@ -20,8 +21,9 @@ public class Gizmo extends SpatialComponent implements IsNotSerialized {
     private final Vector4f yAxisColor = new Vector4f(0.2f, 0.7f, 0.2f, 1.0f);
     private final Vector4f yHover = new Vector4f(0.35f, 0.85f, 0.35f, 1.0f);
 
-    private final Vector2f xOffset = new Vector2f(34.0f / 100, 0f);
-    private final Vector2f yOffset = new Vector2f(0.0f, 34.0f / 100);
+    private final float offset = WorldUnit.pixelToWorld(34.0f);
+    private final Vector2f xOffset = new Vector2f(offset, 0f);
+    private final Vector2f yOffset = new Vector2f(0.0f, offset);
 
     private final float gizWidth = 0.16f;
     private final float gizHeight = 0.48f;
