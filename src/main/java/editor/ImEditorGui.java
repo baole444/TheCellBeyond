@@ -2,7 +2,7 @@ package editor;
 
 import TheCellBeyond.GameObject;
 import TheCellBeyond.KeyListener;
-import utility.Prefab;
+import utility.*;
 import components.MouseCtrl;
 import render.texture.Sprite;
 import render.texture.SpriteSheet;
@@ -15,16 +15,17 @@ import imgui.type.ImString;
 import org.joml.Math;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
-import utility.AssetsPool;
-import utility.Settings;
-import utility.TextureScale;
 
 import java.util.List;
 
 import static org.lwjgl.glfw.GLFW.*;
 
 public class ImEditorGui {
-    private static float defaultWidth = 180.0f;
+    private static final float defaultWidth = 180.0f;
+
+    private static final Vector2f tmpPixelVector = new Vector2f();
+    private static final Vector2f tmpWorldVector = new Vector2f();
+
     public static void drawVec2Ctrl(String label, Vector2f val) {
         drawVec2Ctrl(label, val, 0.16f, defaultWidth);
     }
@@ -33,7 +34,7 @@ public class ImEditorGui {
         drawVec2Ctrl(label, val, resetVal, defaultWidth);
     }
 
-    public static void drawVec2Ctrl(String label, Vector2f val, float resetVal, float columnWidth) {
+    public static void drawVec2Ctrl(String label, Vector2f source, float resetVal, float columnWidth) {
         ImGui.pushID(label);
 
         ImGui.columns(2);
@@ -46,18 +47,25 @@ public class ImEditorGui {
         Vector2f labelSize = new Vector2f(lineHeight + 3.0f, lineHeight);
         float remainWidth = (ImGui.calcItemWidth() - labelSize.x * 2.0f) / 2.0f;
 
+        WorldUnit.worldToPixel(source, tmpPixelVector);
+        boolean updated = false;
+
         //=================== x button ===================
         ImGui.pushItemWidth(remainWidth);
         ImGui.pushStyleColor(ImGuiCol.Button, 0.7f, 0.2f, 0.2f, 1.0f);
         ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.8f, 0.3f, 0.3f, 1.0f);
         ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0.7f, 0.2f, 0.2f, 1.0f);
         if (ImGui.button("x", labelSize.x, labelSize.y)) {
-            val.x = resetVal;
+            tmpPixelVector.x = resetVal;
+            updated = true;
         }
         ImGui.popStyleColor(3);
         ImGui.sameLine();
-        float[] valX = {val.x};
-        ImGui.dragFloat("##x", valX, 1f);
+        float[] valX = {tmpPixelVector.x};
+        if (ImGui.dragFloat("##x", valX, 0.1f)) {
+            tmpPixelVector.x = valX[0];
+            updated = true;
+        }
         ImGui.popItemWidth();
         ImGui.sameLine();
         //================================================
@@ -68,31 +76,35 @@ public class ImEditorGui {
         ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.3f, 0.8f, 0.3f, 1.0f);
         ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0.2f, 0.7f, 0.2f, 1.0f);
         if (ImGui.button("y", labelSize.x, labelSize.y)) {
-            val.y = resetVal;
+            tmpPixelVector.y = resetVal;
+            updated = true;
         }
         ImGui.popStyleColor(3);
         ImGui.sameLine();
-        float[] valY = {val.y};
-        ImGui.dragFloat("##y", valY, 1f);
+        float[] valY = {source.y};
+        if (ImGui.dragFloat("##y", valY, 0.1f)) {
+            tmpPixelVector.y = valY[0];
+            updated = true;
+        }
+
         ImGui.popItemWidth();
         ImGui.sameLine();
         //================================================
-
+        if (updated) WorldUnit.pixelToWorld(tmpPixelVector, source);
 
         ImGui.nextColumn();
 
         // Update value here
-        val.x = valX[0];
-        val.y = valY[0];
-
-
+        source.x = valX[0];
+        source.y = valY[0];
+        
         // End and reset
         ImGui.popStyleVar();
         ImGui.columns(1);
         ImGui.popID();
     }
 
-    public static void spriteKeyTransform(String label, Vector2f val, float step) {
+    public static void spriteKeyTransform(String label, Vector2f source, float step) {
         ImGui.pushID(label);
         ImGui.newLine();
         ImGui.columns(2);
@@ -115,7 +127,7 @@ public class ImEditorGui {
         ImGui.sameLine();
 
         if (ImGui.button("  Up  ", 80.0f, labelSize.y) || KeyListener.isKeyTapped(GLFW_KEY_UP)) {
-            val.y += step;
+            source.y += step;
         }
 
         ImGui.sameLine();
@@ -135,7 +147,7 @@ public class ImEditorGui {
         ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0.7f, 0.2f, 0.2f, 1.0f);
 
         if (ImGui.button(" Left ", 80.0f, labelSize.y) || KeyListener.isKeyTapped(GLFW_KEY_LEFT)) {
-            val.x -= step;
+            source.x -= step;
         }
         ImGui.popStyleColor(3);
 
@@ -149,12 +161,12 @@ public class ImEditorGui {
 
         //A method to return object to the nearest standard coordinate position.
         if (ImGui.button("Nearest", 80.0f, labelSize.y) || KeyListener.isKeyTapped(GLFW_KEY_N)) {
-            if (val.x % 0.32f != 0.0f) {
-                val.x = Math.round(val.x / 0.32f) * 0.32f + 0.16f;
+            if (source.x % 0.32f != 0.0f) {
+                source.x = Math.round(source.x / 0.32f) * 0.32f + 0.16f;
             }
 
-            if (val.y % 0.32f != 0.0f) {
-                val.y = Math.round(val.y / 0.32f) * 0.32f + 0.16f;
+            if (source.y % 0.32f != 0.0f) {
+                source.y = Math.round(source.y / 0.32f) * 0.32f + 0.16f;
             }
             //Bellow is a legacy method that is no longer in use
             /*
@@ -190,7 +202,7 @@ public class ImEditorGui {
         ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0.7f, 0.2f, 0.2f, 1.0f);
 
         if (ImGui.button(" Right ", 80.0f, labelSize.y) || KeyListener.isKeyTapped(GLFW_KEY_RIGHT)) {
-            val.x += step;
+            source.x += step;
         }
 
         ImGui.popStyleColor(3);
@@ -208,7 +220,7 @@ public class ImEditorGui {
         ImGui.invisibleButton("empty", 90.0f, labelSize.y);
         ImGui.sameLine();
         if (ImGui.button(" Down ", 80.0f, labelSize.y) || KeyListener.isKeyTapped(GLFW_KEY_DOWN)) {
-            val.y -= step;
+            source.y -= step;
         }
 
         ImGui.sameLine();
@@ -357,8 +369,9 @@ public class ImEditorGui {
                 );
 
                 if (ImGui.isItemClicked()) {
+                    Vector2f spriteWorldSize = WorldUnit.pixelToWorld(new Vector2f(sps.getWidth(), sps.getHeight()));
 
-                    GameObject obj = Prefab.genSpsObj(sps, sps.getWidth() * Settings.WORLD_SCALE_FACTOR, sps.getHeight() * Settings.WORLD_SCALE_FACTOR);
+                    GameObject obj = Prefab.genSpsObj(sps, spriteWorldSize.x, spriteWorldSize.y);
 
                     // Bind to mouse cursor
                     levelEditorObject.getFirstComponent(MouseCtrl.class).pickObj(obj);
@@ -418,7 +431,9 @@ public class ImEditorGui {
             );
 
             if (ImGui.isItemClicked()) {
-                GameObject obj = Prefab.genSpsObj(sprites, sprites.getWidth() / 100f, sprites.getHeight() / 100f);
+                Vector2f spriteWorldSize = WorldUnit.pixelToWorld(new Vector2f(sprites.getWidth(), sprites.getHeight()));
+
+                GameObject obj = Prefab.genSpsObj(sprites, spriteWorldSize.x, spriteWorldSize.y);
 
                 // Bind to mouse cursor
                 levelEditorObject.getFirstComponent(MouseCtrl.class).pickObj(obj);

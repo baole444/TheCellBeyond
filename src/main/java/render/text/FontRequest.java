@@ -1,15 +1,20 @@
 package render.text;
 
+import utility.FontPT;
+
 import java.util.Objects;
 
-public record FontRequest(String fontPath, int fontSize, GlyphRange glyphRange, boolean isProjectAsset) {
+public record FontRequest(String fontPath, float point, GlyphRange glyphRange) {
+    public int getPixelSize() {
+        return FontPT.pointToPixel(point);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         FontRequest that = (FontRequest) o;
-        return fontSize == that.fontSize
-                && isProjectAsset == that.isProjectAsset
+        return point == that.point()
                 && Objects.equals(fontPath, that.fontPath)
                 && glyphRange == that.glyphRange;
     }
@@ -18,9 +23,8 @@ public record FontRequest(String fontPath, int fontSize, GlyphRange glyphRange, 
     public String toString() {
         return "FontRequest{" +
                 "Path='" + fontPath + "'" +
-                ", Size=" + fontSize +
+                ", Size=" + point +
                 ", glyph=" + glyphRange.getDescription() +
-                ", is project asset=" + isProjectAsset +
                 "}";
     }
 }

@@ -12,9 +12,9 @@ import java.util.*;
 public class DirectTextRenderer {
     private static DirectTextRenderer instance;
 
-    private List<TextBatch> textBatches = new ArrayList<>();
+    private final List<TextBatch> textBatches = new ArrayList<>();
 
-    private Map<String, List<TextComponent>> textGroups = new HashMap<>();
+    private final Map<String, List<TextComponent>> textGroups = new HashMap<>();
 
     private Matrix4f projectionMatrix, viewMatrix;
 
@@ -44,50 +44,22 @@ public class DirectTextRenderer {
         }
     }
 
-    public TextComponent drawText(String text, float x, float y, int fontSize, Vector4f color, String fontPath, int zIndex, GlyphRange glyphRange) {
+    public TextComponent drawText(String text, float x, float y, float point, Vector4f color, String fontPath, int zIndex, GlyphRange glyphRange) {
         if (fontPath == null) {
             fontPath = Settings.PATH.CONSOLA;
         }
 
-        TextComponent textComponent = new TextComponent(text, fontPath, fontSize, color, new Vector2f(x, y), glyphRange);
+        TextComponent textComponent = new TextComponent(text, fontPath, point, color, new Vector2f(x, y), glyphRange);
         textComponent.start();
 
-        String groupKey = zIndex + "_" + fontPath + "_" + fontSize;
+        String groupKey = zIndex + "_" + fontPath + "_" + point;
         textGroups.computeIfAbsent(groupKey, k -> new ArrayList<>()).add(textComponent);
 
         return textComponent;
     }
 
-    public TextComponent drawText(String text, float x, float y, int fontSize, Vector4f color, String fontPath) {
-        return drawText(text, x, y, fontSize, color, fontPath, 0, GlyphRange.ASCII);
-    }
-
-    public TextComponent drawText(String text, float x, float y, int fontSize, Vector4f color, String fontPath, GlyphRange glyphRange) {
-        return drawText(text, x, y, fontSize, color,fontPath, 0, glyphRange);
-    }
-
-    public TextComponent drawText(String text, float x, float y, int fontSize, Vector4f color) {
-        return drawText(text, x, y, fontSize, color, null, 0, GlyphRange.ASCII);
-    }
-
-    public TextComponent drawText(String text, float x, float y, int fontSize, Vector4f color, GlyphRange glyphRange) {
-        return drawText(text, x, y, fontSize, color, null, 0, glyphRange);
-    }
-
-    public TextComponent drawText(String text, float x, float y, int fontSize, String fontPath) {
-        return drawText(text, x, y, fontSize, new Vector4f(1, 1, 1, 1), fontPath);
-    }
-
-    public TextComponent drawText(String text, float x, float y, int fontSize, String fontPath, GlyphRange glyphRange) {
-        return drawText(text, x, y, fontSize, new Vector4f(1, 1, 1, 1), fontPath, glyphRange);
-    }
-
-    public TextComponent drawText(String text, float x, float y, int fontSize) {
-        return drawText(text, x, y, fontSize, new Vector4f(1, 1, 1, 1));
-    }
-
-    public TextComponent drawText(String text, float x, float y, int fontSize, GlyphRange glyphRange) {
-        return drawText(text, x, y, fontSize, new Vector4f(1, 1, 1, 1), glyphRange);
+    public TextComponent drawText(String text, float x, float y, float point, Vector4f color, String fontPath, GlyphRange glyphRange) {
+        return drawText(text, x, y, point, color,fontPath, 0, glyphRange);
     }
 
     public void render() {

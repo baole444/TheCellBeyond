@@ -1,7 +1,9 @@
 package utility;
 
 public class Settings {
+    @Deprecated(forRemoval = true)
     public static float WORLD_SCALE_FACTOR = 0.01f;
+
     public static float GRID_WIDTH = 0.32f;
     public static float GRID_HEIGHT = 0.32f;
 

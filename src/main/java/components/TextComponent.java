@@ -5,23 +5,18 @@ import imgui.ImGui;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import render.text.*;
-import utility.PathResolver;
-import utility.Settings;
+import utility.WorldUnit;
 
 import java.io.File;
 import java.util.Objects;
 
-import static editor.project.Project.CurrentProject;
-import static editor.project.Project.ProjectRoot;
-
 public class TextComponent extends SpatialComponent implements FontStatusCallback {
     private String text;
     private String fontPath;
-    private int fontSize;
+    private float point;
     private final Vector4f color;
     private boolean isDirty = true;
     private String glyphRangeName = "ASCII";
-    private boolean isProjectAsset = false;
 
     private transient TCBFont font;
     private final transient Vector2f textDimensions = new Vector2f();
@@ -39,34 +34,18 @@ public class TextComponent extends SpatialComponent implements FontStatusCallbac
     private HorizontalAlignment hAlign = HorizontalAlignment.LEFT;
     private VerticalAlignment vAlign = VerticalAlignment.TOP;
 
-    public TextComponent(String text, String fontPath, int fontSize, Vector4f color) {
+    public TextComponent(String text, String fontPath, float point, Vector4f color, GlyphRange glyphRange) {
         this.text = text;
         this.fontPath = fontPath;
-        this.fontSize = fontSize;
-        this.color = color;
-    }
-
-    public TextComponent(String text, String fontPath, int fontSize, Vector4f color, GlyphRange glyphRange) {
-        this.text = text;
-        this.fontPath = fontPath;
-        this.fontSize = fontSize;
+        this.point = point;
         this.color = color;
         this.glyphRangeName = glyphRange.name();
     }
 
-    public TextComponent(String text, String fontPath, int fontSize, Vector4f color, GlyphRange glyphRange, boolean isProjectAsset) {
+    public TextComponent(String text, String fontPath, float point, Vector4f color, Vector2f position, GlyphRange glyphRange) {
         this.text = text;
         this.fontPath = fontPath;
-        this.fontSize = fontSize;
-        this.color = color;
-        this.glyphRangeName = glyphRange.name();
-        this.isProjectAsset = isProjectAsset;
-    }
-
-    public TextComponent(String text, String fontPath, int fontSize, Vector4f color, Vector2f position, GlyphRange glyphRange) {
-        this.text = text;
-        this.fontPath = fontPath;
-        this.fontSize = fontSize;
+        this.point = point;
         this.color = color;
         this.glyphRangeName = glyphRange.name();
         setWorldPosition(position);
@@ -79,15 +58,7 @@ public class TextComponent extends SpatialComponent implements FontStatusCallbac
 
         GlyphRange range = GlyphRange.valueOf(glyphRangeName);
 
-        String resolvedFontPath = fontPath;
-
-        if (isProjectAsset) {
-            resolvedFontPath = "project://" + fontPath;
-        } else if (!fontPath.startsWith("engine://")) {
-            resolvedFontPath = "engine://" + fontPath;
-        }
-
-        FontRequest request = new FontRequest(resolvedFontPath, fontSize, range, isProjectAsset);
+        FontRequest request = new FontRequest(fontPath, point, range);
 
         if (currentRequest == null || !currentRequest.equals(request)) {
             currentRequest = request;
@@ -113,7 +84,7 @@ public class TextComponent extends SpatialComponent implements FontStatusCallbac
             return;
         }
 
-        float scaledFontSie = font.getFontSize() * Settings.WORLD_SCALE_FACTOR;
+        float scaledFontSie = WorldUnit.pixelToWorld(font.getFontSize());
 
         float width = 0;
         float height;
@@ -130,7 +101,7 @@ public class TextComponent extends SpatialComponent implements FontStatusCallbac
                 continue;
             }
 
-            float advance = font.getCharInfo(c).advance() * Settings.WORLD_SCALE_FACTOR;
+            float advance = WorldUnit.pixelToWorld(font.getCharInfo(c).advance());
             lineWidth += advance;
             width += advance;
         }
@@ -155,7 +126,7 @@ public class TextComponent extends SpatialComponent implements FontStatusCallbac
     public void update(float dt) {
         if (font == null
                 || !fontPath.equals(currentRequest.fontPath())
-                || fontSize != currentRequest.fontSize()
+                || point != currentRequest.point()
                 || !glyphRangeName.equals(currentRequest.glyphRange().name())
         ) {
             requestLoadFont();
@@ -166,7 +137,7 @@ public class TextComponent extends SpatialComponent implements FontStatusCallbac
     public void editorUpdate(float dt) {
         if (font == null
                 || !fontPath.equals(currentRequest.fontPath())
-                || fontSize != currentRequest.fontSize()
+                || point != currentRequest.point()
                 || !glyphRangeName.equals(currentRequest.glyphRange().name())
         ) {
             requestLoadFont();
@@ -178,26 +149,19 @@ public class TextComponent extends SpatialComponent implements FontStatusCallbac
         String textInput = ImEditorGui.inputTextWithIME("Text", text, 1024);
         setText(textInput);
 
+        // TODO: Fix this to work with asset ref in the future
         String fontPathInput = ImEditorGui.inputText("Font Path", fontPath);
         if (!fontPathInput.equals(fontPath)) {
-
-            String resolvedPath;
-            if (isProjectAsset && CurrentProject != null && ProjectRoot != null) {
-                resolvedPath = PathResolver.resolveToAbsolute(ProjectRoot, fontPathInput);
-            } else {
-                resolvedPath = new File(fontPathInput).getAbsolutePath();
-            }
-
-            if (new File(resolvedPath).exists()) {
+            if (new File(fontPathInput).exists()) {
                 this.fontPath = fontPathInput;
                 this.pendingRequest = false;
                 requestLoadFont();
             }
         }
 
-        int fontSizeInput = ImEditorGui.dragIntCtrl("Font Size", fontSize);
-        if (fontSizeInput != fontSize) {
-            this.fontSize = Math.abs(fontSizeInput);
+        float fontSizeInput = ImEditorGui.dragFloatCtrl("Font Size", point);
+        if (fontSizeInput != point) {
+            this.point = Math.abs(fontSizeInput);
             this.pendingRequest = false;
             requestLoadFont();
         }
@@ -253,8 +217,8 @@ public class TextComponent extends SpatialComponent implements FontStatusCallbac
         }
     }
 
-    public int getFontSize() {
-        return fontSize;
+    public float getPoint() {
+        return point;
     }
 
     public TCBFont getFont() {
@@ -276,29 +240,14 @@ public class TextComponent extends SpatialComponent implements FontStatusCallbac
         }
     }
 
-    public boolean isProjectAsset() {
-        return isProjectAsset;
-    }
-
-    public void setProjectAsset(boolean isProjectAsset) {
-        this.isProjectAsset = isProjectAsset;
-    }
-
     public String getFontPath() {
         return fontPath;
     }
 
+    // TODO: fix this using AssetRef
     public void setFontPath(String fontPathInput) {
         if (!fontPathInput.equals(fontPath)) {
-
-            String resolvedPath;
-            if (isProjectAsset && CurrentProject != null && ProjectRoot != null) {
-                resolvedPath = PathResolver.resolveToAbsolute(ProjectRoot, fontPathInput);
-            } else {
-                resolvedPath = new File(fontPathInput).getAbsolutePath();
-            }
-
-            if (new File(resolvedPath).exists()) {
+            if (new File(fontPathInput).exists()) {
                 this.fontPath = fontPathInput;
                 this.pendingRequest = false;
                 requestLoadFont();

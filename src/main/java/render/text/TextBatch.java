@@ -8,6 +8,7 @@ import render.RendererState;
 import render.Shader;
 import utility.AssetsPool;
 import utility.Settings;
+import utility.WorldUnit;
 
 import java.util.*;
 
@@ -241,7 +242,7 @@ public class TextBatch implements Comparable<TextBatch> {
 
                 // move to the next line
                 if (c == '\n') {
-                    y -= font.getFontSize() * Settings.WORLD_SCALE_FACTOR;
+                    y -= WorldUnit.pixelToWorld(font.getFontSize());
                     x = initialX;
                     continue;
                 }
@@ -249,12 +250,12 @@ public class TextBatch implements Comparable<TextBatch> {
                 CharInfo charInfo = font.getCharInfo(c);
                 if (charInfo == null) continue;
 
-                float charX = x + charInfo.xOffset() * Settings.WORLD_SCALE_FACTOR;
+                float charX = x + WorldUnit.pixelToWorld(charInfo.xOffset());
 
-                float width = (charInfo.x1() - charInfo.x0()) * Settings.WORLD_SCALE_FACTOR;
-                float height = (charInfo.y1() - charInfo.y0()) * Settings.WORLD_SCALE_FACTOR;
+                float width = WorldUnit.pixelToWorld(charInfo.x1() - charInfo.x0());
+                float height = WorldUnit.pixelToWorld(charInfo.y1() - charInfo.y0());
 
-                float charY = y - charInfo.yOffset() * Settings.WORLD_SCALE_FACTOR - height;
+                float charY = y - WorldUnit.pixelToWorld(charInfo.yOffset()) - height;
 
                 float texX0 = charInfo.x0() / (float) font.getBitmapWidth();
                 float texY0 = charInfo.y0() / (float) font.getBitmapHeight();
@@ -332,7 +333,7 @@ public class TextBatch implements Comparable<TextBatch> {
                 //</editor-fold>
 
                 // advance cursor position
-                x += charInfo.advance() * Settings.WORLD_SCALE_FACTOR;
+                x += WorldUnit.pixelToWorld(charInfo.advance());
             }
         }
 

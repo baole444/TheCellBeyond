@@ -59,6 +59,7 @@ public class FontManager {
         processor.start();
     }
 
+    // TODO: fix this later with AssetRef
     private void processFontRequest() {
         FontRequestEntry entry;
         while ((entry = pendingRequests.poll()) != null) {
@@ -71,19 +72,14 @@ public class FontManager {
             }
 
             try {
-                String resolvedPath;
-                if (request.isProjectAsset() && CurrentProject != null && ProjectRoot != null) {
-                    resolvedPath = PathResolver.resolveToAbsolute(ProjectRoot, request.fontPath());
-                } else {
-                    resolvedPath = new File(request.fontPath()).getAbsolutePath();
-                }
+                String resolvedPath = request.fontPath();
 
                 byte[] fontData = Files.readAllBytes(Paths.get(resolvedPath));
                 ByteBuffer fontBuffer = BufferUtils.createByteBuffer(fontData.length);
                 fontBuffer.put(fontData);
                 fontBuffer.flip();
 
-                font = new TCBFont(fontBuffer, resolvedPath, request.fontSize(), request.glyphRange());
+                font = new TCBFont(fontBuffer, resolvedPath, request.getPixelSize(), request.glyphRange());
 
                 fontCache.put(request, font);
 

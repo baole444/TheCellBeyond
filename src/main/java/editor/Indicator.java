@@ -9,10 +9,11 @@ import render.texture.Sprite;
 import render.texture.SpriteSheet;
 import utility.AssetsPool;
 import utility.Settings;
+import utility.WorldUnit;
 
 public class Indicator extends SpatialComponent implements IsNotSerialized {
     private static final String PATH = "engine://assets/textures/indicator.png";
-    private static final float SIZE = 12 * Settings.WORLD_SCALE_FACTOR;
+    private static final float SIZE = WorldUnit.pixelToWorld(12.0f);
 
     private transient SpriteSheet sheet;
     private transient SpriteRenderer indicatorRenderer;

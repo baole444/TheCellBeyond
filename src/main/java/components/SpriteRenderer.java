@@ -7,6 +7,7 @@ import org.joml.Vector4f;
 import render.Texture;
 import render.texture.Sprite;
 import utility.Settings;
+import utility.WorldUnit;
 
 /**
  * A class dedicated to rendering a sprite, and it's life cycle.
@@ -61,7 +62,7 @@ public class SpriteRenderer extends SpatialComponent {
     }
 
     public Vector2f getSpriteSizeAsWorldUnit() {
-        return getSpriteSize().mul(Settings.WORLD_SCALE_FACTOR);
+        return WorldUnit.pixelToWorld(getSpriteSize());
     }
 
     public Texture getTexture() {
