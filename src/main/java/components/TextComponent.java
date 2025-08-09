@@ -5,14 +5,15 @@ import imgui.ImGui;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import render.text.*;
+import utility.AssetReference;
+import utility.PathResolver;
 import utility.WorldUnit;
 
-import java.io.File;
 import java.util.Objects;
 
 public class TextComponent extends SpatialComponent implements FontStatusCallback {
     private String text;
-    private String fontPath;
+    private AssetReference assetReference;
     private float point;
     private final Vector4f color;
     private boolean isDirty = true;
@@ -36,7 +37,7 @@ public class TextComponent extends SpatialComponent implements FontStatusCallbac
 
     public TextComponent(String text, String fontPath, float point, Vector4f color, GlyphRange glyphRange) {
         this.text = text;
-        this.fontPath = fontPath;
+        this.assetReference = new AssetReference(fontPath);
         this.point = point;
         this.color = color;
         this.glyphRangeName = glyphRange.name();
@@ -44,7 +45,7 @@ public class TextComponent extends SpatialComponent implements FontStatusCallbac
 
     public TextComponent(String text, String fontPath, float point, Vector4f color, Vector2f position, GlyphRange glyphRange) {
         this.text = text;
-        this.fontPath = fontPath;
+        this.assetReference = new AssetReference(fontPath);
         this.point = point;
         this.color = color;
         this.glyphRangeName = glyphRange.name();
@@ -58,7 +59,7 @@ public class TextComponent extends SpatialComponent implements FontStatusCallbac
 
         GlyphRange range = GlyphRange.valueOf(glyphRangeName);
 
-        FontRequest request = new FontRequest(fontPath, point, range);
+        FontRequest request = new FontRequest(assetReference, point, range);
 
         if (currentRequest == null || !currentRequest.equals(request)) {
             currentRequest = request;
@@ -125,7 +126,7 @@ public class TextComponent extends SpatialComponent implements FontStatusCallbac
     @Override
     public void update(float dt) {
         if (font == null
-                || !fontPath.equals(currentRequest.fontPath())
+                || !assetReference.equals(currentRequest.fontAsset())
                 || point != currentRequest.point()
                 || !glyphRangeName.equals(currentRequest.glyphRange().name())
         ) {
@@ -136,7 +137,7 @@ public class TextComponent extends SpatialComponent implements FontStatusCallbac
     @Override
     public void editorUpdate(float dt) {
         if (font == null
-                || !fontPath.equals(currentRequest.fontPath())
+                || !assetReference.equals(currentRequest.fontAsset())
                 || point != currentRequest.point()
                 || !glyphRangeName.equals(currentRequest.glyphRange().name())
         ) {
@@ -149,11 +150,15 @@ public class TextComponent extends SpatialComponent implements FontStatusCallbac
         String textInput = ImEditorGui.inputTextWithIME("Text", text, 1024);
         setText(textInput);
 
-        // TODO: Fix this to work with asset ref in the future
-        String fontPathInput = ImEditorGui.inputText("Font Path", fontPath);
-        if (!fontPathInput.equals(fontPath)) {
-            if (new File(fontPathInput).exists()) {
-                this.fontPath = fontPathInput;
+        String currentPath = assetReference != null ? assetReference.getCanonicalPath() : "";
+
+        String fontPathInput = ImEditorGui.inputText("Font Path", currentPath);
+        if (!fontPathInput.equals(currentPath)) {
+            PathResolver resolver = PathResolver.get();
+            AssetReference newRef = new AssetReference(fontPathInput);
+
+            if (resolver.exists(newRef.getResolvedPath())) {
+                this.assetReference = newRef;
                 this.pendingRequest = false;
                 requestLoadFont();
             }
@@ -241,14 +246,18 @@ public class TextComponent extends SpatialComponent implements FontStatusCallbac
     }
 
     public String getFontPath() {
-        return fontPath;
+        return assetReference != null ? assetReference.getCanonicalPath() : "";
     }
 
-    // TODO: fix this using AssetRef
     public void setFontPath(String fontPathInput) {
-        if (!fontPathInput.equals(fontPath)) {
-            if (new File(fontPathInput).exists()) {
-                this.fontPath = fontPathInput;
+        if  (fontPathInput == null) return;
+
+        AssetReference newRef = new AssetReference(fontPathInput);
+
+        if (!Objects.equals(newRef, assetReference)) {
+            PathResolver resolver = PathResolver.get();
+            if (resolver.exists(newRef.getResolvedPath())) {
+                this.assetReference = newRef;
                 this.pendingRequest = false;
                 requestLoadFont();
             }

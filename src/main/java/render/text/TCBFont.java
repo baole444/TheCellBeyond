@@ -6,21 +6,15 @@ import org.lwjgl.system.MemoryStack;
 import utility.AssetReference;
 import utility.PathResolver;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static editor.project.Project.CurrentProject;
-import static editor.project.Project.ProjectRoot;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
 import static org.lwjgl.opengl.GL30.glGenerateMipmap;
@@ -44,8 +38,8 @@ public class TCBFont {
 
     private volatile ByteBuffer bitmap;
 
-    public TCBFont(ByteBuffer fontBuffer, String filepath, int fontSize, GlyphRange glyphRange) throws IOException {
-        assetReference = new AssetReference(filepath);
+    public TCBFont(ByteBuffer fontBuffer, AssetReference assetReference, int fontSize, GlyphRange glyphRange) throws IOException {
+        this.assetReference = assetReference;
         this.fontSize = fontSize;
         this.glyphRange = glyphRange;
 
@@ -64,22 +58,20 @@ public class TCBFont {
      * Create a font with ASCII glyph range.
      * @param filepath path to the font file.
      * @param fontSize size to render the text at.
-     * @param isProjectAsset is the file path relative to the project's root directory?
      * @throws IOException File does not exist.
      */
-    public TCBFont(String filepath, int fontSize, boolean isProjectAsset) throws IOException {
-        this(filepath, fontSize, isProjectAsset, GlyphRange.ASCII);
+    public TCBFont(String filepath, int fontSize) throws IOException {
+        this(filepath, fontSize, GlyphRange.ASCII);
     }
 
     /**
      * Create a font.
      * @param filepath path to the font file.
      * @param fontSize size to render the text at.
-     * @param isProjectAsset is the file path relative to the project's root directory?
      * @param glyphRange The Unicode range to support.
      * @throws IOException File does not exist.
      */
-    public TCBFont(String filepath, int fontSize, boolean isProjectAsset, GlyphRange glyphRange) throws IOException {
+    public TCBFont(String filepath, int fontSize, GlyphRange glyphRange) throws IOException {
         PathResolver resolver;
 
         if (!PathResolver.isInitialized()) {
@@ -114,9 +106,9 @@ public class TCBFont {
     }
 
     private void verifyFontFile() throws IOException {
-        File toVerify = new File(assetReference.getAbsolutePath());
+        PathResolver resolver = PathResolver.get();
 
-        if (!toVerify.exists()) throw new IOException("Font file does not exist at: '" + assetReference.getCanonicalPath() + "'");
+        if (!resolver.exists(assetReference.getResolvedPath())) throw new IOException("Font file does not exist at: '" + assetReference.getCanonicalPath() + "'");
     }
 
     private int calculateBitmapScale(int fontSize, int numGlyphs) {

@@ -1,10 +1,11 @@
 package render.text;
 
+import utility.AssetReference;
 import utility.FontPT;
 
 import java.util.Objects;
 
-public record FontRequest(String fontPath, float point, GlyphRange glyphRange) {
+public record FontRequest(AssetReference fontAsset, float point, GlyphRange glyphRange) {
     public int getPixelSize() {
         return FontPT.pointToPixel(point);
     }
@@ -15,14 +16,14 @@ public record FontRequest(String fontPath, float point, GlyphRange glyphRange) {
         if (o == null || getClass() != o.getClass()) return false;
         FontRequest that = (FontRequest) o;
         return point == that.point()
-                && Objects.equals(fontPath, that.fontPath)
+                && Objects.equals(fontAsset, that.fontAsset)
                 && glyphRange == that.glyphRange;
     }
 
     @Override
     public String toString() {
         return "FontRequest{" +
-                "Path='" + fontPath + "'" +
+                "Path='" + (fontAsset != null ? fontAsset.getCanonicalPath() : "null") + "'" +
                 ", Size=" + point +
                 ", glyph=" + glyphRange.getDescription() +
                 "}";

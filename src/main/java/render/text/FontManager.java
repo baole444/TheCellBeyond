@@ -1,9 +1,11 @@
 package render.text;
 
 import org.lwjgl.BufferUtils;
+import utility.AssetReference;
 import utility.PathResolver;
 
 import java.io.File;
+import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
@@ -53,13 +55,12 @@ public class FontManager {
                     break;
                 }
             }
-        }, "FontProcessing");
+        }, "FontProcessor");
 
         processor.setDaemon(true);
         processor.start();
     }
 
-    // TODO: fix this later with AssetRef
     private void processFontRequest() {
         FontRequestEntry entry;
         while ((entry = pendingRequests.poll()) != null) {
@@ -72,20 +73,24 @@ public class FontManager {
             }
 
             try {
-                String resolvedPath = request.fontPath();
+                AssetReference assetRef = request.fontAsset();
 
-                byte[] fontData = Files.readAllBytes(Paths.get(resolvedPath));
-                ByteBuffer fontBuffer = BufferUtils.createByteBuffer(fontData.length);
-                fontBuffer.put(fontData);
-                fontBuffer.flip();
+                // TODO: if race condition happened, need to sync PathResolver init sequence.
+                PathResolver resolver = PathResolver.get();
 
-                font = new TCBFont(fontBuffer, resolvedPath, request.getPixelSize(), request.glyphRange());
+                try (InputStream stream = resolver.getAssetStream(assetRef.getResolvedPath())) {
+                    byte[] fontData = stream.readAllBytes();
+                    ByteBuffer fontBuffer = BufferUtils.createByteBuffer(fontData.length);
+                    fontBuffer.put(fontData);
+                    fontBuffer.flip();
 
-                fontCache.put(request, font);
+                    font = new TCBFont(fontBuffer, assetRef, request.getPixelSize(), request.glyphRange());
 
-                fontsWaitingTexture.add(font);
+                    fontCache.put(request, font);
+                    fontsWaitingTexture.add(font);
 
-                notifyCallbacks(font, request, entry.callbacks);
+                    notifyCallbacks(font, request, entry.callbacks);
+                }
             } catch (Exception e) {
                 LOGGER.log(Level.SEVERE, "Failed to load font: " + request, e);
             }
