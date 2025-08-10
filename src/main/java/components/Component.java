@@ -12,17 +12,22 @@ import org.joml.Vector4f;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
+import java.util.UUID;
 
 /**
  * An abstraction of components for {@link GameObject} and some editor's components.
  * Also handle Editor's properties related functions.
  */
 public abstract class Component {
-    private static int ID_COUNTER = 0;
-    private int uID = -1;
+    private String uuid;
 
-    // TODO: change this to uuid reference
     public transient GameObject gameObject;
+
+    private String componentName;
+
+    public Component() {
+        this.uuid = UUID.randomUUID().toString();
+    }
 
     public void start() {}
 
@@ -30,24 +35,53 @@ public abstract class Component {
 
     public void update(float dt) {}
 
-    public void startCollision(GameObject targetObj, Contact contact, Vector2f hitNormalization) {
+    public void startCollision(GameObject targetObj, Contact contact, Vector2f hitNormalization) {}
 
+    public void endCollision(GameObject targetObj, Contact contact, Vector2f hitNormalization) {}
+
+    public void preSolve(GameObject targetObj, Contact contact, Vector2f hitNormalization) {}
+
+    public void postSolve(GameObject targetObj, Contact contact, Vector2f hitNormalization) {}
+
+    public void destroy() {}
+
+    protected <T extends Component> T getSibling(Class<T> componentClass) {
+        if (gameObject == null) return null;
+        return gameObject.getFirstComponent(componentClass);
     }
 
-    public void endCollision(GameObject targetObj, Contact contact, Vector2f hitNormalization) {
-
+    protected <T extends Component> T getFromParent(Class<T> componentClass) {
+        if (gameObject == null || gameObject.getParent() == null) return null;
+        return gameObject.getParent().getFirstComponent(componentClass);
     }
 
-    public void preSolve(GameObject targetObj, Contact contact, Vector2f hitNormalization) {
-
+    protected <T extends Component> T getFromChild(String childName, Class<T> componentClass) {
+        if (gameObject == null) return null;
+        GameObject child = gameObject.getChild(childName);
+        if (child == null) return null;
+        return child.getFirstComponent(componentClass);
     }
 
-    public void postSolve(GameObject targetObj, Contact contact, Vector2f hitNormalization) {
+    protected Component findComponentByName(String name) {
+        if (gameObject == null) return null;
+        GameObject root = gameObject.getRoot();
+        return root.findComponentByName(name);
+    }
 
+    protected Component getComponentByPath(String path) {
+        if (gameObject == null || path == null) return null;
+        return gameObject.resolveComponentPath(path);
     }
 
     public void imgui() {
         try {
+            if (componentName != null) {
+                String name = ImEditorGui.inputText("Component Name", componentName);
+                if (!name.equals(componentName)) {
+                    setComponentName(name);
+                }
+            }
+
             Field[] fields = this.getClass().getDeclaredFields();
             for (Field field : fields) {
                 boolean isTransient = Modifier.isTransient(field.getModifiers());
@@ -117,9 +151,26 @@ public abstract class Component {
         }
     }
 
-    public void createUID() {
-        if (this.uID == -1) {
-            this.uID = ID_COUNTER++;
+    public String getUUID() {
+        if (uuid == null) {
+            uuid = UUID.randomUUID().toString();
+        }
+
+        return uuid;
+    }
+
+    public void setUUID(String uuid) {
+        this.uuid = uuid;
+    }
+
+    public String getComponentName() {
+        return componentName;
+    }
+
+    public void setComponentName(String name) {
+        componentName = name;
+        if (gameObject != null) {
+            gameObject.onComponentNameChanged(this, name);
         }
     }
 
@@ -144,17 +195,5 @@ public abstract class Component {
             }
         }
         return  -1;
-    }
-
-    public void destroy() {
-
-    }
-
-    public int getUID() {
-        return this.uID;
-    }
-
-    public static void init(int maxID) {
-        ID_COUNTER = maxID;
     }
 }

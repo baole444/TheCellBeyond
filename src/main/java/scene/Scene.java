@@ -3,7 +3,7 @@ package scene;
 import TheCellBeyond.*;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import components.CompDeSerializer;
+import components.ComponentSerializer;
 import components.Component;
 import components.IsNotSelectable;
 import components.SpriteRenderer;
@@ -33,6 +33,7 @@ public class Scene {
     private final List<GameObject> addedGameObjects;
     private final List<GameObject> removedGameObjects;
     private final HashMap<GameObject, GameObject> addedGameObjectWithParents;
+    private final Map<String, Component> componentsByUUID;
 
     private final Physic2D physic2D;
 
@@ -51,6 +52,8 @@ public class Scene {
         this.addedGameObjects  = new ArrayList<>();
         this.removedGameObjects = new ArrayList<>();
         this.addedGameObjectWithParents = new HashMap<>();
+
+        this.componentsByUUID = new HashMap<>();
 
         this.isSceneOn = false;
     }
@@ -71,9 +74,26 @@ public class Scene {
             go.start();
             this.renderer.queueObjectForAddition(go);
             this.physic2D.add(go);
+            cacheComponents(go);
         }
 
         isSceneOn = true;
+    }
+
+    private void cacheComponents(GameObject go) {
+        for (Component c : go.getComponents()) {
+            componentsByUUID.put(c.getUUID(), c);
+        }
+    }
+
+    private void uncacheComponents(GameObject go) {
+        for (Component c : go.getComponents()) {
+            componentsByUUID.remove(c.getUUID());
+        }
+    }
+
+    public Component getComponentByUUID(String uuid) {
+        return componentsByUUID.get(uuid);
     }
 
     public void queueForObjectAddition(GameObject go, GameObject parent) {
@@ -114,6 +134,7 @@ public class Scene {
             go.start();
             this.renderer.queueObjectForAddition(go);
             this.physic2D.add(go);
+            cacheComponents(go);
         }
     }
 
@@ -146,12 +167,14 @@ public class Scene {
             gameObjectByUUIDs.remove(descendant.getUUID());
             renderer.queueObjectForRemoval(descendant);
             physic2D.destroyObject(descendant);
+            uncacheComponents(descendant);
         }
 
         cachedIDs.remove(go.getUID());
         gameObjectByUUIDs.remove(go.getUUID());
         renderer.queueObjectForRemoval(go);
         physic2D.destroyObject(go);
+        uncacheComponents(go);
     }
 
     public boolean reparentObject(GameObject child, GameObject newParent) {
@@ -183,6 +206,7 @@ public class Scene {
         removedGameObjects.clear();
         addedGameObjects.clear();
         addedGameObjectWithParents.clear();
+        componentsByUUID.clear();
     }
 
     private void updateGameObjectQueues() {
@@ -292,7 +316,7 @@ public class Scene {
 
         Gson gson = new GsonBuilder()
                 .setPrettyPrinting()
-                .registerTypeAdapter(Component.class, new CompDeSerializer())
+                .registerTypeAdapter(Component.class, new ComponentSerializer())
                 .registerTypeAdapter(GameObject.class, new GameObjectSerializer())
                 .registerTypeAdapter(GameObject2D.class, new GameObject2DSerializer())
                 .enableComplexMapKeySerialization()
@@ -342,7 +366,7 @@ public class Scene {
 
         Gson gson = new GsonBuilder()
                 .setPrettyPrinting()
-                .registerTypeAdapter(Component.class, new CompDeSerializer())
+                .registerTypeAdapter(Component.class, new ComponentSerializer())
                 .registerTypeAdapter(GameObject.class, new GameObjectSerializer())
                 .registerTypeAdapter(GameObject2D.class, new GameObject2DSerializer())
                 .enableComplexMapKeySerialization()
@@ -359,8 +383,6 @@ public class Scene {
         }
 
         if (!loadFile.isEmpty()) {
-            int maxCompID = -1;
-
             GameObject[] objects = gson.fromJson(loadFile, GameObject[].class);
             for (GameObject go : objects) {
                 if (CurrentProject != null && ProjectRoot != null && currentSceneName != null) {
@@ -372,20 +394,11 @@ public class Scene {
                 }
 
                 addObjToScene(go, null);
-
-                for (Component c : go.getComponents()) {
-                    if (c.getUID() > maxCompID) {
-                        maxCompID = c.getUID();
-                    }
-                }
             }
 
             for (GameObject go : objects) {
                 go.restoreHierarchy(this);
             }
-
-            maxCompID++;
-            Component.init(maxCompID);
         }
     }
 }

@@ -2,7 +2,7 @@ package TheCellBeyond;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import components.CompDeSerializer;
+import components.ComponentSerializer;
 import components.Component;
 import components.IsNotSerialized;
 import components.SpriteRenderer;
@@ -12,6 +12,7 @@ import scene.Scene;
 import utility.IdPool;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
@@ -29,6 +30,9 @@ public class GameObject {
     // During runtime, most of the time will be spent reading this component list,
     // Thia tradeoff is acceptable.
     private final CopyOnWriteArrayList<Component> components;
+
+    // Cached component that might be used for referencing
+    private final transient Map<String, Component> namedComponents = new ConcurrentHashMap<>();
 
     @Deprecated(since = "0.1", forRemoval = true)
     public transient Transform transform;
@@ -48,6 +52,16 @@ public class GameObject {
         this.children = new LinkedHashSet<>();
         this.uuid = UUID.randomUUID().toString();
         this.cachedID = idCounter.newId();
+    }
+
+    public GameObject getChild(String childName) {
+        for (GameObject child : children) {
+            if (child.name.equals(childName)) {
+                return child;
+            }
+        }
+
+        return null;
     }
 
     public void addChild(GameObject child) {
@@ -146,6 +160,58 @@ public class GameObject {
         }
     }
 
+    public Component findComponentByName(String componentName) {
+        Component c = namedComponents.get(componentName);
+        if (c != null) return c;
+
+        for (GameObject child : children) {
+            c = child.findComponentByName(componentName);
+            if (c != null) return c;
+        }
+
+        return null;
+    }
+
+    public Component resolveComponentPath(String path) {
+        if (path == null || path.isEmpty()) return null;
+
+        // From root
+        if (path.startsWith("/")) {
+            GameObject root = getRoot();
+            return root.resolveComponentPath(path.substring(1));
+        }
+
+        // Relative to parent
+        if (path.startsWith("../")) {
+            if (parent == null) return null;
+            return parent.resolveComponentPath(path.substring(3));
+        }
+
+        // Check if there are still more Objects to traverse
+        int slashIndex = path.indexOf("/");
+        if (slashIndex > 0) {
+            String childName = path.substring(0, slashIndex);
+            String remains = path.substring(slashIndex + 1);
+
+            GameObject child = getChild(childName);
+            if (child == null) return null;
+            return child.resolveComponentPath(remains);
+        }
+
+        // We are now at the final GameObject of this path
+        Component component = namedComponents.get(path);
+        if (component != null) return component;
+
+        // No component of given name, assumed it is class name
+        for (Component c : components) {
+            if (c.getClass().getSimpleName().equals(path)) {
+                return c;
+            }
+        }
+
+        return null;
+    }
+
     public <Obj extends Component> Obj getFirstComponent(Class<Obj> componentClass) {
         for (Component c : components) {
             if (componentClass.isAssignableFrom(c.getClass())) {
@@ -193,9 +259,25 @@ public class GameObject {
 
     public void addComponent(Component c) {
         if (c == null) return;
-        c.createUID();
+
+        if (c.getUUID() == null) {
+            c.setUUID(UUID.randomUUID().toString());
+        }
+
         this.components.add(c);
         c.gameObject = this;
+
+        if (c.getComponentName() != null && !c.getComponentName().isEmpty()) {
+            namedComponents.put(c.getComponentName(), c);
+        }
+    }
+
+    public void onComponentNameChanged(Component component, String name) {
+        namedComponents.values().removeIf(c -> c == component);
+
+        if (name != null && !name.isEmpty()) {
+            namedComponents.put(name, component);
+        }
     }
 
     public void editorUpdate(float dt) {
@@ -251,7 +333,7 @@ public class GameObject {
 
     public GameObject copy() {
         Gson gson = new GsonBuilder()
-                .registerTypeAdapter(Component.class, new CompDeSerializer())
+                .registerTypeAdapter(Component.class, new ComponentSerializer())
                 .registerTypeAdapter(GameObject.class, new GameObjectSerializer())
                 .enableComplexMapKeySerialization()
                 .create();
@@ -263,7 +345,11 @@ public class GameObject {
         obj.cachedID = idCounter.newId();
 
         for (Component c : obj.getComponents()) {
-            c.createUID();
+            c.setUUID(UUID.randomUUID().toString());
+
+            if (c.getComponentName() != null && !c.getComponentName().isEmpty()) {
+                obj.namedComponents.put(c.getComponentName(), c);
+            }
         }
 
         SpriteRenderer sprite = obj.getFirstComponent(SpriteRenderer.class);

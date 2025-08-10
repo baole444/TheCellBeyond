@@ -2,7 +2,7 @@ package TheCellBeyond;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import components.CompDeSerializer;
+import components.ComponentSerializer;
 import components.Component;
 import components.SpatialComponent;
 import components.SpriteRenderer;
@@ -228,7 +228,7 @@ public class GameObject2D extends GameObject {
     @Override
     public GameObject2D copy() {
         Gson gson = new GsonBuilder()
-                .registerTypeAdapter(Component.class, new CompDeSerializer())
+                .registerTypeAdapter(Component.class, new ComponentSerializer())
                 .registerTypeAdapter(GameObject2D.class, new GameObject2DSerializer())
                 .registerTypeAdapter(GameObject.class, new GameObjectSerializer())
                 .enableComplexMapKeySerialization()

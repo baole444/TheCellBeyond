@@ -4,7 +4,7 @@ import com.google.gson.*;
 
 import java.lang.reflect.Type;
 
-public class CompDeSerializer implements JsonSerializer<Component>,
+public class ComponentSerializer implements JsonSerializer<Component>,
         JsonDeserializer<Component> {
 
     @Override
@@ -14,7 +14,17 @@ public class CompDeSerializer implements JsonSerializer<Component>,
         JsonElement element = jsonObject.get("properties");
 
         try {
-            return context.deserialize(element, Class.forName(type));
+            Component component = context.deserialize(element, Class.forName(type));
+
+            if (jsonObject.has("uuid")) {
+                component.setUUID(jsonObject.get("uuid").getAsString());
+            }
+
+            if (jsonObject.has("componentName")) {
+                component.setComponentName(jsonObject.get("componentName").getAsString());
+            }
+
+            return component;
         } catch (ClassNotFoundException e) {
             throw new JsonParseException("Unknown element type: " + type, e);
         }
@@ -29,6 +39,13 @@ public class CompDeSerializer implements JsonSerializer<Component>,
                         getCanonicalName()
                 )
         );
+
+        result.add("uuid", new JsonPrimitive(component.getUUID()));
+
+        if (component.getComponentName() != null && !component.getComponentName().isEmpty()) {
+            result.add("componentName", new JsonPrimitive(component.getComponentName()));
+        }
+
         result.add("properties",
                 context.serialize(component,
                         component.getClass()
