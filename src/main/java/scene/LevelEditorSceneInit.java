@@ -9,10 +9,14 @@ import editor.project.ProjectSceneMap;
 import editor.project.ProjectSheetMap;
 import imgui.ImGui;
 import imgui.ImVec2;
+import imgui.flag.ImGuiCol;
+import org.joml.Vector2i;
 import render.texture.SpriteSheet;
 import utility.AssetsPool;
 import utility.PathResolver;
 import utility.Settings;
+import utility.prefabrication.PrefabData;
+import utility.prefabrication.PrefabManager;
 
 import java.util.*;
 
@@ -21,6 +25,8 @@ import static editor.project.Project.CurrentProject;
 import static editor.project.Project.ProjectRoot;
 
 public class LevelEditorSceneInit extends SceneInit {
+    private final Vector2i prefabButtonSize = new Vector2i(200, 30);
+
     private GameObject levelEditorObject;
 
     private final Map<String, List<SpriteSheet>> categorizedSpriteSheetList = new HashMap<>();
@@ -167,9 +173,9 @@ public class LevelEditorSceneInit extends SceneInit {
         //ImGui.begin("Level Editor Debug");
         //levelEditorObject.imgui();
         //ImGui.end();
-        ImGui.begin("Sprite list");
+        ImGui.begin("Resources");
 
-        if (ImGui.beginTabBar("SpriteList_TabBar")) {
+        if (ImGui.beginTabBar("Resource_TabBar")) {
 
             if (thisScene != null && CurrentProject != null) {
                 for (Map.Entry<String, List<SpriteSheet>> entry : categorizedSpriteSheetList.entrySet()) {
@@ -189,66 +195,73 @@ public class LevelEditorSceneInit extends SceneInit {
                 }
             }
 
-            /*
-            if(ImGui.beginTabItem("Prefabrication")) {
-
-                SpriteSheet wheelSprites = AssetsPool.loadSpSheet("assets/texture/animation_test.png");
-
-                Sprite sps = wheelSprites.spriteIndex(0);
-
-                Vector2f scaledSprite = TextureScale.calculateFitDimension(sps.loadWidth(), sps.loadHeight());
-
-                float spriteWidth = scaledSprite.x;
-                float spriteHeight = scaledSprite.y;
-                int id = sps.loadTexId();
-
-                Vector2f[] texCoord = sps.loadTexCrd();
-
-
-                ImGui.imageButton(id, spriteWidth, spriteHeight,
-                        texCoord[2].x, texCoord[0].y,
-                        texCoord[0].x, texCoord[2].y
-                );
-
-                if (ImGui.isItemClicked()) {
-                    // Testing for now, generate a spinning wheel
-                    GameObject obj = Prefab.genWheelSpin();
-
-                    // Bind to mouse cursor
-                    levelEditorObject.getComponent(MouseCtrl.class).pickObj(obj);
-                }
-                ImGui.sameLine();
-
+            if (ImGui.beginTabItem("Prefabrication")) {
+                drawPrefabList();
                 ImGui.endTabItem();
             }
-             */
-
-            /*
-            if (ImGui.beginTabItem("Sound collection")) {
-                Collection<Sound> sounds = AssetsPool.loadAllSound();
-
-                for (Sound sound : sounds) {
-                    File current = new File(sound.getFilepath());
-                    if (ImGui.button(current.getName())) {
-                        if (!sound.isPlaying()) {
-                            sound.play();
-                        } else {
-                            sound.stop();
-                        }
-                    }
-
-                    if (ImGui.getContentRegionAvailX() > 120) {
-                        ImGui.sameLine();
-                    }
-                }
-
-                ImGui.endTabItem();
-            }
-             */
 
             ImGui.endTabBar();
         }
         ImGui.end();
+    }
+
+    private void drawPrefabList() {
+        PrefabManager manager = PrefabManager.get();
+        if (manager.getPrefabNames().isEmpty()) {
+            manager.loadAllPrefabs();
+        }
+
+        List<String> prefabNames = manager.getPrefabNames();
+
+        if (prefabNames.isEmpty()) {
+            ImGui.text("No object prefabs available");
+            ImGui.text("To add an Object as a prefabrication blueprint");
+            ImGui.text("Right click on an Object in the Scene tree window and select \"Save as Prefab\"");
+            return;
+        }
+
+        for (String name : prefabNames) {
+            PrefabData data = manager.getPrefabData(name);
+
+            if (ImGui.button(name, prefabButtonSize.x, prefabButtonSize.y)) {
+                GameObject instance = manager.instantiatePrefab(name);
+                if (name != null) {
+                    levelEditorObject.getFirstComponent(MouseCtrl.class).pickObj(instance);
+                }
+            }
+
+            if (ImGui.isItemHovered() && data != null) {
+                ImGui.beginTooltip();
+                ImGui.text("Prefab: " + name);
+                ImGui.text(data.description());
+                ImGui.text("Click to instantiate");
+                ImGui.endTooltip();
+            }
+
+            ImGui.sameLine();
+
+            ImGui.pushID(name);
+            ImGui.pushStyleColor(ImGuiCol.Button, 0.7f, 0.2f, 0.2f, 1.0f);
+            ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.8f, 0.3f, 0.3f, 1.0f);
+            ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0.7f, 0.2f, 0.2f, 1.0f);
+
+            if (ImGui.button("X", Math.round((float) prefabButtonSize.x / 4), prefabButtonSize.y)) {
+                if (manager.deletePrefab(name)) {
+                    System.out.println("Deleted prefab: " + name);
+                }
+            }
+
+            ImGui.popStyleColor(3);
+            ImGui.popID();
+
+            if (ImGui.isItemHovered()) {
+                ImGui.beginTooltip();
+                ImGui.text("Delete this prefab blueprint");
+                ImGui.endTooltip();
+            }
+
+            ImGui.newLine();
+        }
     }
 
 }

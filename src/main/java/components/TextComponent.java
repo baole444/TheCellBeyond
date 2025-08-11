@@ -85,7 +85,7 @@ public class TextComponent extends SpatialComponent implements FontStatusCallbac
             return;
         }
 
-        float scaledFontSie = WorldUnit.pixelToWorld(font.getFontSize());
+        float scaledFontSize = WorldUnit.pixelToWorld(font.getFontSize());
 
         float width = 0;
         float height;
@@ -108,7 +108,7 @@ public class TextComponent extends SpatialComponent implements FontStatusCallbac
         }
 
         maxLineWidth = Math.max(maxLineWidth, lineWidth);
-        height = scaledFontSie * lineCount;
+        height = scaledFontSize * lineCount;
 
         if (lineCount > 1) {
             width = maxLineWidth;

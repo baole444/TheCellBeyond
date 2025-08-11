@@ -371,7 +371,9 @@ public class GameObject {
         return cachedID;
     }
 
-    protected void regenerateUID() {
+    // TODO: Investigate the effectiveness of regenerate uid
+    public void regenerateUID() {
+        idCounter.releaseId(cachedID);
         cachedID = idCounter.newId();
     }
 

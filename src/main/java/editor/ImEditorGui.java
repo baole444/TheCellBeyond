@@ -15,6 +15,7 @@ import imgui.type.ImString;
 import org.joml.Math;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
+import utility.prefabrication.Prefab;
 
 import java.util.List;
 
@@ -81,7 +82,7 @@ public class ImEditorGui {
         }
         ImGui.popStyleColor(3);
         ImGui.sameLine();
-        float[] valY = {source.y};
+        float[] valY = {tmpPixelVector.y};
         if (ImGui.dragFloat("##y", valY, 0.1f)) {
             tmpPixelVector.y = valY[0];
             updated = true;
@@ -93,10 +94,6 @@ public class ImEditorGui {
         if (updated) WorldUnit.pixelToWorld(tmpPixelVector, source);
 
         ImGui.nextColumn();
-
-        // Update value here
-        source.x = valX[0];
-        source.y = valY[0];
         
         // End and reset
         ImGui.popStyleVar();

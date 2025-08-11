@@ -5,6 +5,7 @@ import TheCellBeyond.Window;
 import imgui.ImGui;
 import imgui.flag.ImGuiTreeNodeFlags;
 import scene.Scene;
+import utility.prefabrication.PrefabManager;
 
 import java.util.List;
 
@@ -132,7 +133,30 @@ public class SceneTree {
                 scene.queueForObjectAddition(child, go);
             }
 
+            ImGui.separator();
+
+            if (ImGui.beginMenu("Save as Prefab")) {
+                if (ImGui.menuItem("Without children")) savePrefabDialog(go, false);
+
+                if (!go.getChildren().isEmpty() && ImGui.menuItem("With children")) savePrefabDialog(go, true);
+
+                ImGui.endMenu();
+            }
+
             ImGui.endPopup();
         }
+    }
+
+    private void savePrefabDialog(GameObject go, boolean withChildren) {
+        String prefabName = go.name.replaceAll("[^a-zA-z0-9_-]", "_");
+
+        // TODO: add popup to ask custom prefab name later,
+        //  auto fill it with current name in case user don't want to change it
+        if (PrefabManager.get().savePrefab(go, prefabName, withChildren)) {
+            System.out.println("Saved prefab: " + prefabName);
+            return;
+        }
+
+        System.err.println("Failed to save prefab: " + prefabName);
     }
 }

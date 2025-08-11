@@ -242,7 +242,7 @@ public class GameObject2D extends GameObject {
         copy.regenerateUID();
 
         for (Component component : copy.getComponents()) {
-            component.createUID();
+            component.setUUID(UUID.randomUUID().toString());
         }
 
         SpriteRenderer sprite = copy.getFirstComponent(SpriteRenderer.class);

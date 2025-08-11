@@ -50,11 +50,6 @@ public class MouseListener {
             clear();
         }
 
-
-        if (!Window.getImGuiLayer().getGameViewPort().getWantCaptureMouse()) {
-            clear();
-        }
-
         if (get().mouseButtonDown > 0) {
             get().isDragging = true;
         }
@@ -64,11 +59,6 @@ public class MouseListener {
 
         get().worldPastX = get().worldCurrentX;
         get().worldPastY = get().worldCurrentY;
-
-        if (!startupMode) {
-            getWorldX();
-            getWorldY();
-        }
     }
 
     private static void updateWorldCoordinates() {

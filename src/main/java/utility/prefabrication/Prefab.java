@@ -1,4 +1,4 @@
-package utility;
+package utility.prefabrication;
 
 import TheCellBeyond.GameObject;
 import TheCellBeyond.Window;
@@ -6,8 +6,33 @@ import components.*;
 import org.joml.Vector4f;
 import render.text.GlyphRange;
 import render.texture.Sprite;
+import utility.Settings;
 
 public class Prefab {
+    /**
+     * Instantiate a prefab by name.
+     * @param prefabName name of the prefab
+     * @return a new GameObject instance or null if prefab not found
+     */
+    public static GameObject instantiate(String prefabName) {
+        return PrefabManager.get().instantiatePrefab(prefabName);
+    }
+
+    /**
+     * Instantiate a prefab by name and add it to scene.
+     * @param prefabName name of the prefab
+     * @return a new GameObject instance that was added to the scene or null if prefab not found
+     */
+    public static GameObject instantiateToScene(String prefabName) {
+        GameObject instance = PrefabManager.get().instantiatePrefab(prefabName);
+        if (instance != null && Window.getScene() != null) {
+            Window.getScene().queueForObjectAddition(instance);
+        }
+
+        return instance;
+    }
+
+    // TODO: these outdated methods (below) will soon be removed as a new way to add component is introduced
     public static GameObject genSpsObj(Sprite sprite, float sizeX, float sizeY) {
         GameObject block = Window.getScene().generateObject("Sprite_object_gen");
         SpriteRenderer render = new SpriteRenderer();
@@ -65,47 +90,4 @@ public class Prefab {
 
         return textObj;
     }
-
-    /*
-    // TODO: a universal animation generator, which read from a separated yml for the animation.
-    public static GameObject genWheelSpin() {
-        SpriteSheet wheelSprites = AssetsPool.loadSpSheet("assets/texture/animation_test.png");
-        GameObject wheelSpin = genSpsObj(wheelSprites.spriteIndex(0), 0.32f, 0.32f);
-
-        AnimationState spin = new AnimationState();
-
-        spin.title = "Spin";
-        float defaultFrameTime = 0.2f;
-        spin.addFrame(wheelSprites.spriteIndex(0), defaultFrameTime);
-        spin.addFrame(wheelSprites.spriteIndex(1), defaultFrameTime);
-        spin.addFrame(wheelSprites.spriteIndex(2), defaultFrameTime);
-        spin.addFrame(wheelSprites.spriteIndex(3), defaultFrameTime);
-        spin.addFrame(wheelSprites.spriteIndex(4), defaultFrameTime);
-        spin.addFrame(wheelSprites.spriteIndex(5), defaultFrameTime);
-        spin.addFrame(wheelSprites.spriteIndex(6), defaultFrameTime);
-        spin.addFrame(wheelSprites.spriteIndex(7), defaultFrameTime);
-
-        spin.setLoop(true);
-
-        StateEngine stateEngine = new StateEngine();
-        stateEngine.addState(spin);
-        stateEngine.setDefaultState(spin.title);
-
-        wheelSpin.addComponent(stateEngine);
-
-        PillBoxCollider pillBoxCollider = new PillBoxCollider();
-        pillBoxCollider.setWidth(0.32f);
-        pillBoxCollider.setHeight(0.32f);
-        PhysicBody2D flatPhysicBody = new PhysicBody2D();
-        flatPhysicBody.setObjectClassification(PhysicBodyType.Dynamic);
-        flatPhysicBody.setNoneStopCollision(false);
-        flatPhysicBody.setMass(10.0f);
-
-        wheelSpin.addComponent(flatPhysicBody);
-        wheelSpin.addComponent(pillBoxCollider);
-        wheelSpin.addComponent(new CharacterControl());
-
-        return wheelSpin;
-    }
-     */
 }
