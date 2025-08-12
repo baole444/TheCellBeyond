@@ -33,8 +33,14 @@ public class SceneTree {
 
         List<GameObject> rootGameObjects = scene.getRootGameObjects();
 
-        float availHeight = ImGui.getContentRegionAvailY() - BUTTON_RESERVED_HEIGHT;
-        ImGui.beginChild(SCENE_TREE_ID, ImGuiWindowFlags.None, availHeight, !enableBorder);
+        float buttonW = ImGui.getContentRegionAvailX();
+        float buttonH = BUTTON_RESERVED_HEIGHT * 0.9f;
+        if (ImGui.button("Add new Object", buttonW, buttonH)) AddObjectDialog.show(null);
+
+        ImGui.separator();
+
+        float availHeight = ImGui.getContentRegionAvailY() - BUTTON_RESERVED_HEIGHT * 1.1f;
+        ImGui.beginChild(SCENE_TREE_ID, ImGuiWindowFlags.None, availHeight, enableBorder);
         if (rootGameObjects.isEmpty()) {
             ImGui.text("Scene is empty");
         } else {
@@ -53,12 +59,6 @@ public class SceneTree {
             ImGui.endPopup();
         }
         ImGui.endChild();
-
-        ImGui.separator();
-
-        float buttonW = ImGui.getContentRegionAvailX();
-        float buttonH = BUTTON_RESERVED_HEIGHT * 0.9f;
-        if (ImGui.button("Add new Object", buttonW, buttonH)) AddObjectDialog.show(null);
 
         AddObjectDialog.imgui();
 

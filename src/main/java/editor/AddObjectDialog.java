@@ -13,7 +13,6 @@ public class AddObjectDialog {
     private static final String POPUP_ID = "Add New Object";
     private static final String OBJECT_LIST_ID = "Object_Type_List";
     private static final String DESCRIPTION_SECTION_ID = "Description_section";
-    private static final String BUTTON_SECTION_ID = "Button_Section";
     private static final ImVec2 DIALOG_SIZE = new ImVec2(600.0f, 600.0f);
     private static boolean showDialog = false;
 
@@ -22,7 +21,6 @@ public class AddObjectDialog {
 
     private static final float listYPercentage = 0.55f;
     private static final float descriptionYPercentage = 0.2f;
-    private static final float buttonYPercentage = 0.9f - listYPercentage - descriptionYPercentage;
     private static final boolean enableBorder = true;
 
     // TODO: Need to come up with better solution in the future
@@ -82,7 +80,7 @@ public class AddObjectDialog {
             ImGui.separator();
             ImGui.text("Description:");
             sectionY = (int) (DIALOG_SIZE.y * descriptionYPercentage);
-            ImGui.beginChild(DESCRIPTION_SECTION_ID, ImGuiWindowFlags.None, sectionY, !enableBorder);
+            ImGui.beginChild(DESCRIPTION_SECTION_ID, ImGuiWindowFlags.None, sectionY, enableBorder);
             if (selectedType != null) {
                 ImGui.textWrapped(selectedType.description());
             } else {
@@ -91,26 +89,22 @@ public class AddObjectDialog {
             ImGui.endChild();
 
             ImGui.separator();
-            sectionY = (int) (DIALOG_SIZE.y * buttonYPercentage);
-            int buttonW = 100;
-            int buttonH = (int) (sectionY * 0.5f);
-            ImGui.beginChild(BUTTON_SECTION_ID, ImGuiWindowFlags.None, sectionY, !enableBorder);
+            int buttonW = 120;
             if (selectedType != null) {
-                if (ImGui.button("Create", buttonW, buttonH)) createObject(selectedType);
+                if (ImGui.button("Create", buttonW, 30)) createObject(selectedType);
             } else {
                 ImGui.beginDisabled();
-                ImGui.button("Create", buttonW, buttonH);
+                ImGui.button("Create", buttonW, 30);
                 ImGui.endDisabled();
             }
 
             ImGui.sameLine();
 
-            if (ImGui.button("Cancel", buttonW, buttonH)) {
+            if (ImGui.button("Cancel", buttonW, 30)) {
                 showDialog = false;
                 selectedType = null;
                 ImGui.closeCurrentPopup();
             }
-            ImGui.endChild();
 
             ImGui.endPopup();
         }
