@@ -48,7 +48,10 @@ public class MouseCtrl extends Component {
             this.holdObj.destroy();
         }
         this.holdObj = obj;
-        this.holdObj.getFirstComponent(SpriteRenderer.class).setColor(new Vector4f(1f, 1f, 1f, 0.35f));
+
+        if (this.holdObj.getFirstComponent(SpriteRenderer.class) != null) {
+            this.holdObj.getFirstComponent(SpriteRenderer.class).setColor(new Vector4f(1f, 1f, 1f, 0.35f));
+        }
         this.holdObj.addComponent(new IsNotSelectable());
 
         // A fake object uses to illustrate targeted position (a preview).
@@ -65,7 +68,10 @@ public class MouseCtrl extends Component {
             newObj.getFirstComponent(StateEngine.class).reloadTexture();
         }
 
-        newObj.getFirstComponent(SpriteRenderer.class).setColor(new Vector4f(1, 1, 1, 1));
+        if (newObj.getFirstComponent(SpriteRenderer.class) != null) {
+            newObj.getFirstComponent(SpriteRenderer.class).setColor(new Vector4f(1, 1, 1, 1));
+        }
+
         newObj.removeComponents(IsNotSelectable.class);
 
         // Make a placed object savable as it is now a real object.

@@ -21,7 +21,7 @@ public class SceneTree {
     private GameObject selectedObject = null;
 
     public void imgui() {
-        ImGui.begin("Scene Tree");
+        ImGui.begin("Scene Tree", ImGuiWindowFlags.NoScrollbar);
 
         Scene scene = Window.getScene();
 

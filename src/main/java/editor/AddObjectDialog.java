@@ -10,7 +10,7 @@ import imgui.flag.ImGuiWindowFlags;
 import scene.Scene;
 
 public class AddObjectDialog {
-    private static final String POPUP_ID = "New_Object_Dialog";
+    private static final String POPUP_ID = "Add New Object";
     private static final String OBJECT_LIST_ID = "Object_Type_List";
     private static final String DESCRIPTION_SECTION_ID = "Description_section";
     private static final String BUTTON_SECTION_ID = "Button_Section";
@@ -20,9 +20,9 @@ public class AddObjectDialog {
     private static GameObject parentObject = null;
     private static ObjectType selectedType = null;
 
-    private static final float listYPercentage = 0.6f;
-    private static final float descriptionYPercentage = 0.25f;
-    private static final float buttonYPercentage = 1f - listYPercentage - descriptionYPercentage;
+    private static final float listYPercentage = 0.55f;
+    private static final float descriptionYPercentage = 0.2f;
+    private static final float buttonYPercentage = 0.9f - listYPercentage - descriptionYPercentage;
     private static final boolean enableBorder = true;
 
     // TODO: Need to come up with better solution in the future
@@ -64,7 +64,7 @@ public class AddObjectDialog {
         ImGui.setNextWindowPos(centre.x, centre.y, ImGuiCond.Appearing, pivotXY, pivotXY);
         ImGui.setNextWindowSize(DIALOG_SIZE, ImGuiCond.FirstUseEver);
 
-        if (ImGui.beginPopupModal("New Object", ImGuiWindowFlags.NoResize)) {
+        if (ImGui.beginPopupModal(POPUP_ID, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)) {
             ImGui.text("Select one object type:");
 
             ImGui.separator();
@@ -93,7 +93,7 @@ public class AddObjectDialog {
             ImGui.separator();
             sectionY = (int) (DIALOG_SIZE.y * buttonYPercentage);
             int buttonW = 100;
-            int buttonH = (int) (sectionY * 0.6f);
+            int buttonH = (int) (sectionY * 0.5f);
             ImGui.beginChild(BUTTON_SECTION_ID, ImGuiWindowFlags.None, sectionY, !enableBorder);
             if (selectedType != null) {
                 if (ImGui.button("Create", buttonW, buttonH)) createObject(selectedType);
