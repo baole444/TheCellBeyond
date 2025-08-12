@@ -286,17 +286,6 @@ public class Scene {
         sceneInit.imgui();
     }
 
-    // TODO: rework on this method to handle different object type
-    public GameObject generateObject(String name) {
-        GameObject obj = new GameObject(name);
-
-        // TODO: remove adding this since as there is new GameObject2D class
-        obj.addComponent(new Transform());
-        //obj.transform = obj.getComponent(Transform.class);
-
-        return obj;
-    }
-
     public Physic2D getPhysic2D() {
         return physic2D;
     }

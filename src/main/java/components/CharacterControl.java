@@ -63,7 +63,7 @@ public class CharacterControl extends Component {
     @Override
     public void update(float dt) {
         if (KeyListener.isKeyPressed(GLFW_KEY_RIGHT)) {
-            this.gameObject.transform.scale.x = charWidth;
+            //this.gameObject.transform.scale.x = charWidth;
             this.acceleration.x = walkSpeed;
 
             if (this.velocity.x < 0) {
@@ -73,7 +73,7 @@ public class CharacterControl extends Component {
                 //this.stateEngine.condition("run");
             }
         } else if (KeyListener.isKeyPressed(GLFW_KEY_LEFT)) {
-            this.gameObject.transform.scale.x = -charWidth;
+            //this.gameObject.transform.scale.x = -charWidth;
             this.acceleration.x = -walkSpeed;
 
             if (this.velocity.x > 0) {
@@ -115,11 +115,4 @@ public class CharacterControl extends Component {
         this.physicBody2D.setVelocity(this.velocity);
         this.physicBody2D.setAngularVelocity(0.0f);
     }
-
-
-
-
-
-    
-
 }

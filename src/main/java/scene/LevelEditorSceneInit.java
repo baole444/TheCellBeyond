@@ -1,6 +1,7 @@
 package scene;
 
 import TheCellBeyond.GameObject;
+import TheCellBeyond.Transform;
 import components.*;
 import editor.EditorViewport;
 import editor.project.Project;
@@ -20,7 +21,6 @@ import utility.prefabrication.PrefabManager;
 
 import java.util.*;
 
-import static editor.ImEditorGui.drawSpriteList;
 import static editor.project.Project.CurrentProject;
 import static editor.project.Project.ProjectRoot;
 
@@ -50,10 +50,6 @@ public class LevelEditorSceneInit extends SceneInit {
 
     @Override
     public void init(Scene scene) {
-        //GameObject testText = Prefab.genText("〄々〆〇ぁあぃいぅツヅテデＢＣＤ仲仳以", "assets/fonts/NotoSansJP.ttf", 24, new Vector4f(1, 1f, 1, 1), GlyphRange.JAPANESE);
-        //testText.transform.position.set(1f, 1.5f);
-        //scene.addObjToScene(testText);
-
         if (sceneName != null && CurrentProject != null) {
             thisScene = CurrentProject.getScenes().get(sceneName);
 
@@ -83,9 +79,9 @@ public class LevelEditorSceneInit extends SceneInit {
 
         SpriteSheet gizmo = AssetsPool.loadSpriteSheet("assets/textures/Gizmo.png");
 
-        levelEditorObject = scene.generateObject("Editor");
+        levelEditorObject = new GameObject("EditorObject");
         levelEditorObject.setNotSerialize();
-
+        levelEditorObject.addComponent(new Transform());
         levelEditorObject.addComponent(new MouseCtrl());
         levelEditorObject.addComponent(new KeyCtrl());
         levelEditorObject.addComponent(new Grid());
@@ -177,6 +173,8 @@ public class LevelEditorSceneInit extends SceneInit {
 
         if (ImGui.beginTabBar("Resource_TabBar")) {
 
+            // TODO: we no longer generate object with sprite, this should be repurpose to showing added resource like sprites in the spritesheet
+            /*
             if (thisScene != null && CurrentProject != null) {
                 for (Map.Entry<String, List<SpriteSheet>> entry : categorizedSpriteSheetList.entrySet()) {
                     String category = entry.getKey();
@@ -188,12 +186,15 @@ public class LevelEditorSceneInit extends SceneInit {
                         ImVec2 windowSize = new ImVec2();
                         ImGui.getWindowSize(windowSize);
 
+
                         drawSpriteList(sheets, levelEditorObject, windowPos, windowSize);
 
                         ImGui.endTabItem();
                     }
                 }
             }
+
+             */
 
             if (ImGui.beginTabItem("Prefabrication")) {
                 drawPrefabList();

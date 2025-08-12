@@ -339,6 +339,7 @@ public class ImEditorGui {
         return txt;
     }
 
+    /*
     public static void drawSpriteList (List<SpriteSheet> sheets, GameObject levelEditorObject, ImVec2 winPos, ImVec2 winSize) {
         ImVec2 objectSpace = new ImVec2();
         ImGui.getStyle().getItemSpacing(objectSpace);
@@ -482,6 +483,7 @@ public class ImEditorGui {
         ImGui.popStyleVar();
         ImGui.columns(1);
     }
+     */
 
     public static String inputTextWithIME(String label, String txt, int bufferSize) {
         ImString out = new ImString(txt, bufferSize);

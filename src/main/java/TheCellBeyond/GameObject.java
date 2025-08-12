@@ -34,9 +34,6 @@ public class GameObject {
     // Cached component that might be used for referencing
     private final transient Map<String, Component> namedComponents = new ConcurrentHashMap<>();
 
-    @Deprecated(since = "0.1", forRemoval = true)
-    public transient Transform transform;
-
     private boolean isSerialize = true;
     private boolean isRemoved = false;
 

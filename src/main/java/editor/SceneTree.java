@@ -3,14 +3,21 @@ package editor;
 import TheCellBeyond.GameObject;
 import TheCellBeyond.Window;
 import imgui.ImGui;
+import imgui.flag.ImGuiMouseButton;
 import imgui.flag.ImGuiTreeNodeFlags;
+import imgui.flag.ImGuiWindowFlags;
 import scene.Scene;
 import utility.prefabrication.PrefabManager;
 
 import java.util.List;
 
 public class SceneTree {
-    private static final String GROUPING_PAYLOAD = "ObjectGrouping";
+    private static final String GROUPING_PAYLOAD = "Object_Grouping_Payload";
+    private static final String SCENE_TREE_ID = "Scene_Tree_Section";
+    private static final String NEW_POPUP_ID = "New_Add_Object_Popup";
+    private static final int BUTTON_RESERVED_HEIGHT = 36;
+    private static final boolean enableBorder = true;
+
     private GameObject selectedObject = null;
 
     public void imgui() {
@@ -19,23 +26,41 @@ public class SceneTree {
         Scene scene = Window.getScene();
 
         if (scene == null) {
-            ImGui.text("");
+            ImGui.text("No scene loaded");
             ImGui.end();
             return;
         }
 
         List<GameObject> rootGameObjects = scene.getRootGameObjects();
 
+        float availHeight = ImGui.getContentRegionAvailY() - BUTTON_RESERVED_HEIGHT;
+        ImGui.beginChild(SCENE_TREE_ID, ImGuiWindowFlags.None, availHeight, !enableBorder);
         if (rootGameObjects.isEmpty()) {
-            ImGui.end();
-            return;
-        }
-
-        for (GameObject go : rootGameObjects) {
-            if (go.isSerialize()) {
-                renderTree(go, scene);
+            ImGui.text("Scene is empty");
+        } else {
+            for (GameObject go : rootGameObjects) {
+                if (go.isSerialize()) renderTree(go, scene);
             }
         }
+
+        if (ImGui.isWindowHovered()
+                && !ImGui.isAnyItemHovered()
+                && ImGui.isMouseClicked(ImGuiMouseButton.Right)
+        ) ImGui.openPopup(NEW_POPUP_ID);
+
+        if (ImGui.beginPopup(NEW_POPUP_ID)) {
+            if (ImGui.menuItem("New Object...")) AddObjectDialog.show(null);
+            ImGui.endPopup();
+        }
+        ImGui.endChild();
+
+        ImGui.separator();
+
+        float buttonW = ImGui.getContentRegionAvailX();
+        float buttonH = BUTTON_RESERVED_HEIGHT * 0.9f;
+        if (ImGui.button("Add new Object", buttonW, buttonH)) AddObjectDialog.show(null);
+
+        AddObjectDialog.imgui();
 
         ImGui.end();
     }
@@ -128,9 +153,8 @@ public class SceneTree {
 
             ImGui.separator();
 
-            if (ImGui.menuItem("Create Child")) {
-                GameObject child = scene.generateObject("new_object");
-                scene.queueForObjectAddition(child, go);
+            if (ImGui.menuItem("Add child Object...")) {
+                AddObjectDialog.show(go);
             }
 
             ImGui.separator();
