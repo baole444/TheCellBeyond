@@ -328,36 +328,16 @@ public class GameObject {
         }
     }
 
-    public GameObject copy() {
-        Gson gson = new GsonBuilder()
-                .registerTypeAdapter(Component.class, new ComponentSerializer())
-                .registerTypeAdapter(GameObject.class, new GameObjectSerializer())
-                .enableComplexMapKeySerialization()
-                .create();
+    public GameObject copy () {
+        return copy(false);
+    }
 
-        String oJson = gson.toJson(this);
-        GameObject obj = gson.fromJson(oJson, GameObject.class);
+    public GameObject copy(boolean copyHierarchy) {
+        GameObject copy = copySingleObject();
 
-        obj.uuid = UUID.randomUUID().toString();
-        obj.cachedID = idCounter.newId();
+        if (copyHierarchy && !children.isEmpty()) copyDescendants(this, copy);
 
-        for (Component c : obj.getComponents()) {
-            c.setUUID(UUID.randomUUID().toString());
-
-            if (c.getComponentName() != null && !c.getComponentName().isEmpty()) {
-                obj.namedComponents.put(c.getComponentName(), c);
-            }
-        }
-
-        SpriteRenderer sprite = obj.getFirstComponent(SpriteRenderer.class);
-
-        if (sprite != null && sprite.getTexture() != null) {
-            Texture ogTexture = sprite.getTexture();
-            Texture copy = ogTexture.copy();
-            sprite.setTexture(copy);
-        }
-
-        return obj;
+        return copy;
     }
 
     public boolean isRemoved() {
@@ -460,6 +440,53 @@ public class GameObject {
 
         // Parent uuid still match with the object reference
         return !this.parentUUID.equals(parent.uuid);
+    }
+
+    protected GameObject copySingleObject() {
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(Component.class, new ComponentSerializer())
+                .registerTypeAdapter(GameObject.class, new GameObjectSerializer())
+                .enableComplexMapKeySerialization()
+                .create();
+
+        String oJson = gson.toJson(this);
+        GameObject obj = gson.fromJson(oJson, GameObject.class);
+
+        obj.uuid = UUID.randomUUID().toString();
+        obj.cachedID = idCounter.newId();
+
+        obj.parent = null;
+        obj.parentUUID = null;
+        obj.children.clear();
+        obj.childrenUUIDs = null;
+
+        for (Component c : obj.getComponents()) {
+            c.setUUID(UUID.randomUUID().toString());
+
+            if (c.getComponentName() != null && !c.getComponentName().isEmpty()) {
+                obj.namedComponents.put(c.getComponentName(), c);
+            }
+        }
+
+        SpriteRenderer sprite = obj.getFirstComponent(SpriteRenderer.class);
+
+        if (sprite != null && sprite.getTexture() != null) {
+            Texture ogTexture = sprite.getTexture();
+            Texture copy = ogTexture.copy();
+            sprite.setTexture(copy);
+        }
+
+        return obj;
+    }
+
+    protected void copyDescendants(GameObject source, GameObject target) {
+        for (GameObject sourceChild : source.children) {
+            GameObject copyChild = sourceChild.copySingleObject();
+
+            target.addChild(copyChild);
+
+            if (!sourceChild.children.isEmpty()) copyDescendants(sourceChild, copyChild);
+        }
     }
 
     @Override

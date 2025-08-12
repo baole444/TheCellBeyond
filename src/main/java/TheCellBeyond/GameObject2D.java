@@ -227,6 +227,18 @@ public class GameObject2D extends GameObject {
 
     @Override
     public GameObject2D copy() {
+        return copy(false);
+    }
+
+    @Override
+    public GameObject2D copy(boolean copyHierarchy) {
+        GameObject2D copy = (GameObject2D) copySingleObject();
+
+        if (copyHierarchy && !getChildren().isEmpty()) copyDescendants(this, copy);
+    }
+
+    @Override
+    protected GameObject copySingleObject() {
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(Component.class, new ComponentSerializer())
                 .registerTypeAdapter(GameObject2D.class, new GameObject2DSerializer())
