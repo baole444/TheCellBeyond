@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Properties {
+    private static final String PROPERTY_SECTION_ID = "Object_Component_Section";
+    private static final int BUTTON_RESERVED_HEIGHT = 36;
     private GameObject activeGameObject = null;
     private final List<GameObject> activeGameObjects;
 
@@ -22,7 +24,6 @@ public class Properties {
     private final List<Vector4f> activeObjTrueColor;
 
     private final ObjectSelection objectSelection;
-
 
     public Properties(ObjectSelection objectSelection) {
         this.activeGameObjects = new ArrayList<>();
@@ -36,31 +37,45 @@ public class Properties {
 
             ImGui.begin("Object properties");
 
-            if (ImGui.beginPopupContextWindow("AddComponent")) {
-                if (ImGui.menuItem("Generate Physic body")) {
-                    if (activeGameObject.getFirstComponent(PhysicBody2D.class) == null) {
-                        activeGameObject.addComponent(new PhysicBody2D());
-                    }
-                }
-
-                if (ImGui.menuItem("Generate Box Collider")) {
-                    if ((activeGameObject.getFirstComponent(BoxCollider2D.class) == null) &&
-                            (activeGameObject.getFirstComponent(CircleCollider2D.class) == null)) {
-                        activeGameObject.addComponent(new BoxCollider2D());
-                    }
-                }
-
-                if (ImGui.menuItem("Generate Circle Collider")) {
-                    if ((activeGameObject.getFirstComponent(CircleCollider2D.class) == null) &&
-                            (activeGameObject.getFirstComponent(BoxCollider2D.class) == null)) {
-                        activeGameObject.addComponent(new CircleCollider2D());
-                    }
-                }
-                ImGui.endPopup();
+            float buttonW = ImGui.getContentRegionAvailX();
+            float buttonH = BUTTON_RESERVED_HEIGHT * 0.9f;
+            if (ImGui.button("Add new Component", buttonW, buttonH)) {
+                System.out.println("Coming soon(tm)");
+                // TODO: Implement a add component popup dialog
             }
 
+            ImGui.separator();
+
             activeGameObject.imgui();
+
+            renderContextMenu();
+
             ImGui.end();
+        }
+    }
+
+    private void renderContextMenu() {
+        if (ImGui.beginPopupContextWindow("AddComponent")) {
+            if (ImGui.menuItem("Generate Physic body")) {
+                if (activeGameObject.getFirstComponent(PhysicBody2D.class) == null) {
+                    activeGameObject.addComponent(new PhysicBody2D());
+                }
+            }
+
+            if (ImGui.menuItem("Generate Box Collider")) {
+                if ((activeGameObject.getFirstComponent(BoxCollider2D.class) == null) &&
+                        (activeGameObject.getFirstComponent(CircleCollider2D.class) == null)) {
+                    activeGameObject.addComponent(new BoxCollider2D());
+                }
+            }
+
+            if (ImGui.menuItem("Generate Circle Collider")) {
+                if ((activeGameObject.getFirstComponent(CircleCollider2D.class) == null) &&
+                        (activeGameObject.getFirstComponent(BoxCollider2D.class) == null)) {
+                    activeGameObject.addComponent(new CircleCollider2D());
+                }
+            }
+            ImGui.endPopup();
         }
     }
 

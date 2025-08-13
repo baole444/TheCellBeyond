@@ -2,10 +2,9 @@ package TheCellBeyond;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import components.ComponentSerializer;
-import components.Component;
-import components.SpatialComponent;
-import components.SpriteRenderer;
+import components.*;
+import editor.ImEditorGui;
+import imgui.ImGui;
 import org.joml.Matrix3x2f;
 import org.joml.Vector2f;
 import render.Texture;
@@ -235,6 +234,8 @@ public class GameObject2D extends GameObject {
         GameObject2D copy = (GameObject2D) copySingleObject();
 
         if (copyHierarchy && !getChildren().isEmpty()) copyDescendants(this, copy);
+
+        return copy;
     }
 
     @Override
@@ -265,5 +266,13 @@ public class GameObject2D extends GameObject {
         }
 
         return copy;
+    }
+
+    @Override
+    protected void additionalImGuiLogic() {
+        ImGui.separator();
+        ImGui.text("Offset");
+        localTransform.imgui();
+        ImGui.separator();
     }
 }

@@ -6,6 +6,7 @@ import components.ComponentSerializer;
 import components.Component;
 import components.IsNotSerialized;
 import components.SpriteRenderer;
+import editor.ImEditorGui;
 import imgui.ImGui;
 import render.Texture;
 import scene.Scene;
@@ -296,6 +297,9 @@ public class GameObject {
     }
 
     public void imgui() {
+        ImEditorGui.inputText("Name", name);
+        additionalImGuiLogic();
+
         for (Component c: components) {
             if (c instanceof IsNotSerialized) continue;
 
@@ -303,6 +307,8 @@ public class GameObject {
                 c.imgui();
         }
     }
+
+    protected void additionalImGuiLogic() {}
 
     public void destroy() {
         this.isRemoved = true;

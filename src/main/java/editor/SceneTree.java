@@ -141,10 +141,18 @@ public class SceneTree {
                 go.destroy();
             }
 
-            if (ImGui.menuItem("Duplicate")) {
-                GameObject copy = go.copy();
-                copy.name = go.name + "_copy";
-                scene.queueForObjectAddition(copy, go.getParent());
+            if (ImGui.beginMenu("Duplicate...")) {
+                GameObject copy = null;
+
+                if (ImGui.menuItem("Without children")) copy = go.copy();
+                if (ImGui.menuItem("With children")) copy = go.copy(true);
+
+                if (copy != null) {
+                    copy.name = go.name + "_copy";
+                    scene.queueForObjectAddition(copy, go.getParent());
+                }
+
+                ImGui.endMenu();
             }
 
             if (go.getParent() != null && ImGui.menuItem("Move to Root")) {
@@ -159,7 +167,7 @@ public class SceneTree {
 
             ImGui.separator();
 
-            if (ImGui.beginMenu("Save as Prefab")) {
+            if (ImGui.beginMenu("Save as Prefab...")) {
                 if (ImGui.menuItem("Without children")) savePrefabDialog(go, false);
 
                 if (!go.getChildren().isEmpty() && ImGui.menuItem("With children")) savePrefabDialog(go, true);
