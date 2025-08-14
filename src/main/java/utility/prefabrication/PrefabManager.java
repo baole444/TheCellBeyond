@@ -2,7 +2,6 @@ package utility.prefabrication;
 
 import TheCellBeyond.GameObject;
 import TheCellBeyond.GameObject2D;
-import TheCellBeyond.GameObject2DSerializer;
 import TheCellBeyond.GameObjectSerializer;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -221,8 +220,7 @@ public class PrefabManager {
         return new GsonBuilder()
                 .setPrettyPrinting()
                 .registerTypeAdapter(Component.class, new ComponentSerializer())
-                .registerTypeAdapter(GameObject.class, new GameObjectSerializer())
-                .registerTypeAdapter(GameObject2D.class, new GameObject2DSerializer())
+                .registerTypeHierarchyAdapter(GameObject.class, new GameObjectSerializer())
                 .enableComplexMapKeySerialization()
                 .create();
     }

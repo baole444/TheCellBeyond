@@ -3,7 +3,6 @@ package TheCellBeyond;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import components.*;
-import editor.ImEditorGui;
 import imgui.ImGui;
 import org.joml.Matrix3x2f;
 import org.joml.Vector2f;
@@ -15,7 +14,7 @@ import java.util.UUID;
 public class GameObject2D extends GameObject {
     private final Transform localTransform;
 
-    private final Transform globalTransform;
+    private transient final Transform globalTransform;
 
     private transient boolean isTransformDirty = true;
     private transient boolean isTransformUpdating = false;
@@ -234,36 +233,6 @@ public class GameObject2D extends GameObject {
         GameObject2D copy = (GameObject2D) copySingleObject();
 
         if (copyHierarchy && !getChildren().isEmpty()) copyDescendants(this, copy);
-
-        return copy;
-    }
-
-    @Override
-    protected GameObject copySingleObject() {
-        Gson gson = new GsonBuilder()
-                .registerTypeAdapter(Component.class, new ComponentSerializer())
-                .registerTypeAdapter(GameObject2D.class, new GameObject2DSerializer())
-                .registerTypeAdapter(GameObject.class, new GameObjectSerializer())
-                .enableComplexMapKeySerialization()
-                .create();
-
-        String oJson = gson.toJson(this, GameObject2D.class);
-
-        GameObject2D copy = gson.fromJson(oJson, GameObject2D.class);
-
-        copy.setUUID(UUID.randomUUID().toString());
-        copy.regenerateUID();
-
-        for (Component component : copy.getComponents()) {
-            component.setUUID(UUID.randomUUID().toString());
-        }
-
-        SpriteRenderer sprite = copy.getFirstComponent(SpriteRenderer.class);
-        if (sprite != null && sprite.getTexture() != null) {
-            Texture ogTexture = sprite.getTexture();
-            Texture textureCopy = ogTexture.copy();
-            sprite.setTexture(textureCopy);
-        }
 
         return copy;
     }

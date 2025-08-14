@@ -136,6 +136,10 @@ public class Scene {
             this.physic2D.add(go);
             cacheComponents(go);
         }
+
+        for (GameObject child : go.getChildren()) {
+            if (!gameObjectByUUIDs.containsKey(child.getUUID())) queueForObjectAddition(child, go);
+        }
     }
 
     public void queueForObjectAddition(GameObject go) {
@@ -210,18 +214,21 @@ public class Scene {
     }
 
     private void updateGameObjectQueues() {
-        for (GameObject go : removedGameObjects) {
+        List<GameObject> toAdd = new ArrayList<>(addedGameObjects);
+        HashMap<GameObject, GameObject> toAddParent = new HashMap<>(addedGameObjectWithParents);
+        List<GameObject> toRemove = new ArrayList<>(removedGameObjects);
+        addedGameObjects.clear();
+        addedGameObjectWithParents.clear();
+        removedGameObjects.clear();
+
+        for (GameObject go : toRemove) {
             removeObjFromScene(go);
         }
 
-        for (GameObject go : addedGameObjects) {
-            GameObject parent = addedGameObjectWithParents.get(go);
+        for (GameObject go : toAdd) {
+            GameObject parent = toAddParent.get(go);
             addObjToScene(go, parent);
         }
-
-        removedGameObjects.clear();
-        addedGameObjects.clear();
-        addedGameObjectWithParents.clear();
     }
 
     public Map<String, GameObject> getGameObjects() {
@@ -306,8 +313,7 @@ public class Scene {
         Gson gson = new GsonBuilder()
                 .setPrettyPrinting()
                 .registerTypeAdapter(Component.class, new ComponentSerializer())
-                .registerTypeAdapter(GameObject.class, new GameObjectSerializer())
-                .registerTypeAdapter(GameObject2D.class, new GameObject2DSerializer())
+                .registerTypeHierarchyAdapter(GameObject.class, new GameObjectSerializer())
                 .enableComplexMapKeySerialization()
                 .create();
 
@@ -356,8 +362,7 @@ public class Scene {
         Gson gson = new GsonBuilder()
                 .setPrettyPrinting()
                 .registerTypeAdapter(Component.class, new ComponentSerializer())
-                .registerTypeAdapter(GameObject.class, new GameObjectSerializer())
-                .registerTypeAdapter(GameObject2D.class, new GameObject2DSerializer())
+                .registerTypeHierarchyAdapter(GameObject.class, new GameObjectSerializer())
                 .enableComplexMapKeySerialization()
                 .create();
 

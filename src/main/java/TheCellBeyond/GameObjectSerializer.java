@@ -4,78 +4,133 @@ import com.google.gson.*;
 import components.Component;
 import components.IsNotSerialized;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class GameObjectSerializer implements JsonSerializer<GameObject>, JsonDeserializer<GameObject> {
+    private final String TYPE = "type";
+    private final String PROPERTY = "properties";
+    private final String COMPONENT = "components";
+
     @Override
     public JsonElement serialize(GameObject gameObject, Type typeOfSrc, JsonSerializationContext context) {
         JsonObject result = new JsonObject();
 
-        result.addProperty("name", gameObject.name);
-        result.addProperty("uuid", gameObject.getUUID());
+        result.addProperty(TYPE, gameObject.getClass().getCanonicalName());
 
-        if (gameObject.getParentUUID() != null) {
-            result.addProperty("parentUUID", gameObject.getParentUUID());
-        }
+        JsonObject properties = new JsonObject();
+        serializeField(gameObject, gameObject.getClass(), properties, context);
 
-        if (gameObject.getChildrenUUIDs() != null && !gameObject.getChildrenUUIDs().isEmpty()) {
-            JsonArray childrenArray = new JsonArray();
-            for (String childUUID : gameObject.getChildrenUUIDs()) {
-                childrenArray.add(childUUID);
-            }
-
-            result.add("childrenUUIDs", childrenArray);
-        }
-
-        JsonArray componentsArray = new JsonArray();
-        for (Component component : gameObject.getComponents()) {
-            if (!(component instanceof IsNotSerialized)) {
-                JsonElement cJ = context.serialize(component, Component.class);
-                if (cJ != null && !cJ.isJsonNull()) {
-                    componentsArray.add(cJ);
-                }
-            }
-        }
-
-        result.add("components", componentsArray);
-
+        result.add(PROPERTY, properties);
         return result;
+    }
+
+    private void serializeField(GameObject go, Class<?> goClass, JsonObject properties, JsonSerializationContext context) {
+        if (goClass == null || goClass == Object.class) return;
+
+        serializeField(go, goClass.getSuperclass(), properties, context);
+
+        Field[] fields = goClass.getDeclaredFields();
+        for (Field field : fields) {
+            int modifier = field.getModifiers();
+
+            if (Modifier.isTransient(modifier) || Modifier.isStatic(modifier)) continue;
+
+            try {
+                field.setAccessible(true);
+                Object val = field.get(go);
+
+                if (field.getName().equals(COMPONENT) && val instanceof Collection) {
+                    JsonArray components = new JsonArray();
+                    for (Object c : (Collection<?>) val) {
+                        if (c instanceof Component && !(c instanceof IsNotSerialized)) {
+                            components.add(context.serialize(c, Component.class));
+                        }
+                    }
+                    properties.add(COMPONENT, components);
+                } else if (val != null) {
+                    properties.add(field.getName(), context.serialize(val));
+                }
+            } catch (IllegalAccessException e) {
+                System.err.println("Failed to serialize field: " + field.getName());
+            }
+        }
     }
 
     @Override
     public GameObject deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext context) throws JsonParseException {
         JsonObject jsonObject = jsonElement.getAsJsonObject();
-        String name = jsonObject.get("name").getAsString();
-        JsonArray components = jsonObject.getAsJsonArray("components");
+        String className = jsonObject.get(TYPE).getAsString();
+        JsonObject properties = jsonObject.getAsJsonObject(PROPERTY);
 
-        GameObject go = new GameObject(name);
+        try {
+            Class<?> goClass = Class.forName(className);
+            String name;
 
-        if (jsonObject.has("uuid")) {
-            go.setUUID(jsonObject.get("uuid").getAsString());
-        }
-
-        if (jsonObject.has("parentUUID")) {
-            go.setParentUUID(jsonObject.get("parentUUID").getAsString());
-        }
-
-        if (jsonObject.has("childrenUUIDs")) {
-            JsonArray childrenArray = jsonObject.getAsJsonArray("childrenUUIDs");
-            List<String> childrenUUIDs = new ArrayList<>();
-
-            for (JsonElement childUUID : childrenArray) {
-                childrenUUIDs.add(childUUID.getAsString());
+            if (properties.has("name")) {
+                name = properties.get("name").getAsString();
+            } else {
+                name = "Unnamed object";
             }
 
-            go.setChildrenUUIDs(childrenUUIDs);
-        }
+            GameObject go = createInstance(goClass, name);
 
-        for (JsonElement e : components) {
-            Component c = context.deserialize(e, Component.class);
-            go.addComponent(c);
-        }
+            deserializeField(go, goClass, properties, context);
 
-        return go;
+            return go;
+        } catch (Exception e) {
+            throw new JsonParseException("Failed to deserialize GameObject", e);
+        }
+    }
+
+    private GameObject createInstance(Class<?> goClass, String name) throws Exception {
+        try {
+            return (GameObject) goClass.getConstructor(String.class).newInstance(name);
+        } catch (NoSuchMethodException e) {
+            GameObject go = (GameObject) goClass.getConstructor().newInstance();
+            go.name = name;
+            return go;
+        }
+    }
+
+    private void deserializeField(GameObject go, Class<?> goClass, JsonObject properties, JsonDeserializationContext context) {
+        if (goClass == null || goClass == Object.class) return;
+
+        deserializeField(go, goClass.getSuperclass(), properties, context);
+
+        Field[] fields = goClass.getDeclaredFields();
+        for (Field field : fields) {
+            int modifier = field.getModifiers();
+
+            if (Modifier.isTransient(modifier) || Modifier.isStatic(modifier)) continue;
+
+            String fieldName = field.getName();
+            if (!properties.has(fieldName)) continue;
+
+            try {
+                field.setAccessible(true);
+                JsonElement element = properties.get(fieldName);
+
+                if (!element.isJsonNull()) {
+                    if (fieldName.equals(COMPONENT) && element.isJsonArray()) {
+                        JsonArray components = element.getAsJsonArray();
+                        for (JsonElement c : components) {
+                            Component component = context.deserialize(c, Component.class);
+                            go.addComponent(component);
+                        }
+                    } else {
+                        Object val = context.deserialize(element, field.getGenericType());
+                        field.set(go, val);
+                    }
+                }
+            } catch (IllegalAccessException e) {
+                System.err.println("Failed to deserialize field: " + fieldName);
+            }
+        }
     }
 }

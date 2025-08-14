@@ -279,16 +279,22 @@ public class GameObject {
     }
 
     public void editorUpdate(float dt) {
+        additionalUpdateLogic(dt);
+
         for (Component component : components) {
             component.editorUpdate(dt);
         }
     }
 
     public void update(float dt) {
+        additionalUpdateLogic(dt);
+
         for (Component component : components) {
             component.update(dt);
         }
     }
+
+    protected void additionalUpdateLogic(float dt) {}
 
     public void start() {
         for (Component component : components) {
@@ -451,7 +457,7 @@ public class GameObject {
     protected GameObject copySingleObject() {
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(Component.class, new ComponentSerializer())
-                .registerTypeAdapter(GameObject.class, new GameObjectSerializer())
+                .registerTypeHierarchyAdapter(GameObject.class, new GameObjectSerializer())
                 .enableComplexMapKeySerialization()
                 .create();
 
