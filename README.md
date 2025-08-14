@@ -19,11 +19,9 @@ A Java-based game editor with project compile ability, code auto-generation, and
 - Prefab save with children currently not working correctly.
 - No proper resource clearing/saving when creating a new scene due to improper name check.
 - No proper way to assign texture/sprite from a spritesheet to a SpriteRenderer component.
-- Cannot modify GameObject's name.
 
 ## Solved problems:
-- Unified GameObject serialization and deserialization logic, now correctly preserve type.
-- Concurrent exception when copy a hierarchy tree due to modification of live queue in scene update queue method.
+- Cannot modify GameObject's name.
 
 ## Additional maintenance:
 - Update ImGui to [latest release](https://github.com/SpaiR/imgui-java/releases).

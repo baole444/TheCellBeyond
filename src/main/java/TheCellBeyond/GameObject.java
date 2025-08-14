@@ -303,7 +303,7 @@ public class GameObject {
     }
 
     public void imgui() {
-        ImEditorGui.inputText("Name", name);
+        name = ImEditorGui.inputText("Name", name);
         additionalImGuiLogic();
 
         for (Component c: components) {
