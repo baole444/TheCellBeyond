@@ -202,8 +202,6 @@ public class TextRenderer extends SpatialComponent implements FontStatusCallback
 
             ImGui.endCombo();
         }
-
-        super.imgui();
     }
 
     public String getText() {
