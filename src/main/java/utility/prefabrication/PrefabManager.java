@@ -15,10 +15,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
@@ -27,10 +24,14 @@ import static editor.project.Project.ProjectRoot;
 public class PrefabManager {
     private static PrefabManager prefabManager;
     private final Map<String, PrefabData> loadedPrefabs = new ConcurrentHashMap<>();
-    private static final String PREFABS_DIR = "prefabs";
-    private static final String EXTENSION = ".prefab";
-    private static final String INCLUDE_CHILD = "includesChildren";
-    private static final String NAME_PATTERN = "[^a-zA-Z0-9_-]";
+    private final String PREFAB_NAME = "prefab_name";
+    private final String ROOT_UUID = "rootUUID";
+    private final String TIMESTAMP = "timestamp";
+    private final String DATA = "data";
+    private final String PREFABS_DIR = "prefabs";
+    private final String EXTENSION = ".prefab";
+    private final String INCLUDE_CHILD = "includesChildren";
+    private final String NAME_PATTERN = "[^a-zA-Z0-9_-]";
 
     private PrefabManager() {}
 
@@ -53,35 +54,35 @@ public class PrefabManager {
 
             if (!Files.exists(prefabsPath)) Files.createDirectories(prefabsPath);
 
-            GameObject prefabObject = gameObject.copy();
+            List<GameObject> gosToPrefab = new ArrayList<>();
 
-            // TODO: potentially faster way is to set the children list to null, could have consequence for that.
-            if (!includeChildren) {
-                for (GameObject child : new ArrayList<>(prefabObject.getChildren())) {
-                    prefabObject.removeChild(child);
+            if (includeChildren) {
+                GameObject prefabRoot = gameObject.copy(true);
+
+                gosToPrefab.add(prefabRoot);
+                gosToPrefab.addAll(prefabRoot.getAllDescendants());
+
+                for (GameObject go : gosToPrefab) {
+                    go.prepareForSerialization();
                 }
-
-                prefabObject.setChildrenUUIDs(new ArrayList<>());
+            } else {
+                GameObject prefabRoot = gameObject.copy(false);
+                prefabRoot.setChildrenUUIDs(new ArrayList<>());
+                prefabRoot.prepareForSerialization();
+                gosToPrefab.add(prefabRoot);
             }
-
-            prepareForSerialization(prefabObject);
 
             Gson gson = createGson();
 
             JsonObject prefabJson = new JsonObject();
-            prefabJson.addProperty("name", prefabName);
-            prefabJson.addProperty("type", gameObject instanceof GameObject2D ? "GameObject2D" : "GameObject");
+            prefabJson.addProperty(PREFAB_NAME, prefabName);
             prefabJson.addProperty(INCLUDE_CHILD, includeChildren);
-            prefabJson.addProperty("timestamp", System.currentTimeMillis());
+            prefabJson.addProperty(TIMESTAMP, System.currentTimeMillis());
+            prefabJson.addProperty(ROOT_UUID, gosToPrefab.getFirst().getUUID());
 
-            JsonElement objectData;
-            if (gameObject instanceof GameObject2D) {
-                objectData = gson.toJsonTree(prefabObject, GameObject2D.class);
-            } else {
-                objectData = gson.toJsonTree(prefabObject, GameObject.class);
-            }
+            JsonElement objectData = gson.toJsonTree(gosToPrefab);
 
-            prefabJson.add("data", objectData);
+            prefabJson.add(DATA, objectData);
 
             String filename = prefabName.replaceAll(NAME_PATTERN, "_") + EXTENSION;
             Path prefabFile = prefabsPath.resolve(filename);
@@ -94,7 +95,6 @@ public class PrefabManager {
             loadedPrefabs.put(prefabName, new PrefabData(
                     prefabName,
                     jsonString,
-                    gameObject instanceof GameObject2D,
                     gameObject.name + (includeChildren ? " (with children)" : "")
             ));
 
@@ -132,18 +132,47 @@ public class PrefabManager {
         try {
             Gson gson = createGson();
             JsonObject prefabJson = gson.fromJson(prefabData.json(), JsonObject.class);
-            JsonElement objectData = prefabJson.get("data");
+            JsonElement objectData = prefabJson.get(DATA);
+            List<GameObject> gameObjects = new ArrayList<>();
 
-            GameObject instance;
-            if (prefabData.is2DObject()) {
-                instance = gson.fromJson(objectData, GameObject2D.class);
-            } else {
-                instance = gson.fromJson(objectData, GameObject.class);
+            if (objectData.isJsonArray()) {
+                for (JsonElement goElement : objectData.getAsJsonArray()) {
+                    GameObject go = gson.fromJson(goElement, GameObject.class);
+                    gameObjects.add(go);
+                }
             }
 
-            regenUUIDs(instance);
+            if (gameObjects.isEmpty()) {
+                System.err.println("No valid GameObject found in prefab: '" + prefabName + "'");
+            }
 
-            return instance;
+            Map<String, GameObject> goMap = new HashMap<>();
+            for (GameObject go : gameObjects) {
+                goMap.put(go.getUUID(), go);
+            }
+
+            for (GameObject go : gameObjects) {
+                if (go.getParentUUID() != null) {
+                    GameObject parent = goMap.get(go.getParentUUID());
+                    if (parent != null) parent.addChild(go);
+                }
+
+                if (go.getChildrenUUIDs() != null && go.getChildrenUUIDs().isEmpty()) {
+                    for (String childUUID : go.getChildrenUUIDs()) {
+                        GameObject child = goMap.get(childUUID);
+                        if (child != null && child.getParent() == null) go.addChild(child);
+                    }
+                }
+            }
+
+            String rootUUID = prefabJson.get(ROOT_UUID).getAsString();
+            GameObject root = goMap.get(rootUUID);
+
+            if (root != null) {
+                regenUUIDs(root);
+            }
+
+            return root;
         } catch (Exception e) {
             System.err.println("Failed to instantiate prefab: " + e.getMessage());
             return null;
@@ -183,15 +212,14 @@ public class PrefabManager {
             Gson gson = createGson();
             JsonObject prefabJson = gson.fromJson(content, JsonObject.class);
 
-            String name = prefabJson.get("name").getAsString();
-            boolean is2DObject = "GameObject2D".equals(prefabJson.get("type").getAsString());
+            String name = prefabJson.get(PREFAB_NAME).getAsString();
 
             String description = name;
             if (prefabJson.has(INCLUDE_CHILD)
                     && prefabJson.get(INCLUDE_CHILD).getAsBoolean()
             ) description += " (with children)";
 
-            loadedPrefabs.put(name, new PrefabData(name, content, is2DObject, description));
+            loadedPrefabs.put(name, new PrefabData(name, content, description));
         } catch (Exception e) {
             System.err.println("Failed to load prefab file '" + file + "': " + e.getMessage());
         }
@@ -210,12 +238,6 @@ public class PrefabManager {
         }
     }
 
-    private void prepareForSerialization(GameObject gameObject) {
-        gameObject.prepareForSerialization();
-        for (GameObject child : gameObject.getChildren()) {
-            prepareForSerialization(child);
-        }
-    }
     private Gson createGson() {
         return new GsonBuilder()
                 .setPrettyPrinting()
