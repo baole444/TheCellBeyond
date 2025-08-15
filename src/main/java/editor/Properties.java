@@ -39,16 +39,15 @@ public class Properties {
 
             float buttonW = ImGui.getContentRegionAvailX();
             float buttonH = BUTTON_RESERVED_HEIGHT * 0.9f;
-            if (ImGui.button("Add new Component", buttonW, buttonH)) {
-                System.out.println("Coming soon(tm)");
-                // TODO: Implement a add component popup dialog
-            }
+            if (ImGui.button("Add new Component", buttonW, buttonH)) AddComponentDialog.show(activeGameObject);
 
             ImGui.separator();
 
             activeGameObject.imgui();
 
             renderContextMenu();
+
+            AddComponentDialog.imgui();
 
             ImGui.end();
         }

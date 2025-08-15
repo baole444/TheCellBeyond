@@ -238,7 +238,8 @@ public class GameObject2D extends GameObject {
     }
 
     @Override
-    protected void additionalImGuiLogic() {
+    public void imgui() {
+        super.imgui();
         ImGui.separator();
         ImGui.text("Offset");
         localTransform.imgui();

@@ -2,7 +2,7 @@ package render;
 
 import TheCellBeyond.GameObject;
 import components.SpriteRenderer;
-import components.TextComponent;
+import components.TextRenderer;
 import org.joml.Matrix4f;
 import render.text.FontManager;
 import render.text.TextBatch;
@@ -99,8 +99,8 @@ public class Renderer {
             addSprite(sprite);
         }
 
-        List<TextComponent> ts = go.getComponents(TextComponent.class);
-        for (TextComponent txt : ts) {
+        List<TextRenderer> ts = go.getComponents(TextRenderer.class);
+        for (TextRenderer txt : ts) {
             addText(txt);
         }
     }
@@ -133,7 +133,7 @@ public class Renderer {
         }
     }
 
-    private void addText(TextComponent text) {
+    private void addText(TextRenderer text) {
         if (text == null) return;
 
         boolean isAdded = false;
@@ -169,10 +169,10 @@ public class Renderer {
             }
         }
 
-        TextComponent textComponent = go.getFirstComponent(TextComponent.class);
-        if (textComponent != null) {
+        TextRenderer textRenderer = go.getFirstComponent(TextRenderer.class);
+        if (textRenderer != null) {
             for (TextBatch textBatch : textBatches) {
-                if (textBatch.removeComponent(textComponent)) {
+                if (textBatch.removeComponent(textRenderer)) {
                     return;
                 }
             }

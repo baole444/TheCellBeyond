@@ -1,38 +1,40 @@
 package editor;
 
 import TheCellBeyond.GameObject;
-import TheCellBeyond.GameObject2D;
 import TheCellBeyond.Window;
+import components.Component;
+import components.SpriteRenderer;
+import components.TextRenderer;
 import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiWindowFlags;
 import scene.Scene;
 
-public class AddObjectDialog {
-    private static final String POPUP_ID = "Add New Object";
-    private static final String OBJECT_LIST_ID = "Object_Type_List";
+public class AddComponentDialog {
+    private static final String POPUP_ID = "Add New Component";
+    private static final String COMPONENT_LIST_ID = "Component_Type_List";
     private static final String DESCRIPTION_SECTION_ID = "Description_section";
     private static final ImVec2 DIALOG_SIZE = new ImVec2(600.0f, 600.0f);
     private static boolean showDialog = false;
 
-    private static GameObject parentObject = null;
-    private static ObjectType selectedType = null;
+    private static GameObject selectedObject = null;
+    private static ComponentType selectedType = null;
 
     private static final float listYPercentage = 0.55f;
     private static final float descriptionYPercentage = 0.2f;
     private static final boolean enableBorder = true;
 
     // TODO: Need to come up with better solution in the future
-    //  to be able to register potential user's custom object type.
-    private enum ObjectType {
-        GameObject("GameObject", "The base class of other game object types."),
-        GameObject2D("GameObject2D", "The base class of 2D game object types with spatial support.");
+    //  to be able to register potential user's custom component type.
+    private enum ComponentType {
+        SpriteRenderer("SpriteRenderer", "Allow addition of a sprite for rendering to an object."),
+        TextRenderer("TextRenderer", "Allow addition of texts for rendering to an object");
 
         private final String displayLabel;
         private final String description;
 
-        ObjectType(String displayLabel, String description) {
+        ComponentType(String displayLabel, String description) {
             this.displayLabel = displayLabel;
             this.description = description;
         }
@@ -46,9 +48,9 @@ public class AddObjectDialog {
         }
     }
 
-    public static void show(GameObject parent) {
+    public static void show(GameObject selected) {
         showDialog = true;
-        parentObject = parent;
+        selectedObject = selected;
     }
 
     public static void imgui() {
@@ -63,12 +65,12 @@ public class AddObjectDialog {
         ImGui.setNextWindowSize(DIALOG_SIZE, ImGuiCond.FirstUseEver);
 
         if (ImGui.beginPopupModal(POPUP_ID, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)) {
-            ImGui.text("Select one object type:");
+            ImGui.text("Select one component type:");
 
             ImGui.separator();
             int sectionY = (int) (DIALOG_SIZE.y * listYPercentage);
-            ImGui.beginChild(OBJECT_LIST_ID, ImGuiWindowFlags.None, sectionY, enableBorder);
-            for (ObjectType type : ObjectType.values()) {
+            ImGui.beginChild(COMPONENT_LIST_ID, ImGuiWindowFlags.None, sectionY, enableBorder);
+            for (ComponentType type : ComponentType.values()) {
                 boolean isSelected = selectedType == type;
 
                 if (ImGui.selectable(type.label() + "##" + type.name(), isSelected)) {
@@ -84,17 +86,17 @@ public class AddObjectDialog {
             if (selectedType != null) {
                 ImGui.textWrapped(selectedType.description());
             } else {
-                ImGui.textDisabled("Select an object type to see it's description.");
+                ImGui.textDisabled("Select a component type to see it's description.");
             }
             ImGui.endChild();
 
             ImGui.separator();
             int buttonW = 120;
             if (selectedType != null) {
-                if (ImGui.button("Create", buttonW, 30)) createObject(selectedType);
+                if (ImGui.button("Add", buttonW, 30)) addComponent(selectedType);
             } else {
                 ImGui.beginDisabled();
-                ImGui.button("Create", buttonW, 30);
+                ImGui.button("Add", buttonW, 30);
                 ImGui.endDisabled();
             }
 
@@ -115,19 +117,18 @@ public class AddObjectDialog {
         }
     }
 
-    private static void createObject(ObjectType type) {
+    private static void addComponent(ComponentType type) {
         Scene scene = Window.getScene();
-        if (scene == null) return;
+        if (scene == null || selectedObject == null) return;
 
-        GameObject newObject;
+        Component c;
         switch (type) {
-            case GameObject2D -> newObject = new GameObject2D(type.label());
-            case GameObject -> newObject = new GameObject(type.label());
-            default -> newObject = null;
+            case SpriteRenderer -> c = new SpriteRenderer();
+            case TextRenderer -> c = new TextRenderer();
+            default -> c = null;
         }
 
-        scene.queueForObjectAddition(newObject, parentObject);
-        Window.getImGuiLayer().loadProperties().setActiveGameObject(newObject);
+        if (c != null) selectedObject.addComponent(c);
 
         showDialog = false;
         selectedType = null;

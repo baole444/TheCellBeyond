@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
+// TODO: This component had fallen behind updates. This will be address later.
 public class StateEngine extends Component {
     // Use for trigger a state
     private static class StateCondition {

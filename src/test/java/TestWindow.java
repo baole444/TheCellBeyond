@@ -1,5 +1,5 @@
 import TheCellBeyond.*;
-import components.TextComponent;
+import components.TextRenderer;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import org.lwjgl.glfw.GLFWErrorCallback;
@@ -92,21 +92,21 @@ public class TestWindow {
 
         textRenderer.setViewMatrix(viewport.getViewMatrix());
 
-        TextComponent test = textRenderer.drawText("Hello world ! TEST 1 2 3", 2f, 2.5f, 24, new Vector4f(0.5f, 1f, 0.7f, 1f), "assets/fonts/Consola.ttf", GlyphRange.ASCII_EXTENDED);
-        test.setVerticalAlignment(TextComponent.VerticalAlignment.MIDDLE);
-        test.setHorizontalAlignment(TextComponent.HorizontalAlignment.CENTER);
+        TextRenderer test = textRenderer.drawText("Hello world ! TEST 1 2 3", 2f, 2.5f, 24, new Vector4f(0.5f, 1f, 0.7f, 1f), "assets/fonts/Consola.ttf", GlyphRange.ASCII_EXTENDED);
+        test.setVerticalAlignment(TextRenderer.VerticalAlignment.MIDDLE);
+        test.setHorizontalAlignment(TextRenderer.HorizontalAlignment.CENTER);
 
-        TextComponent test2 = textRenderer.drawText("Kiểm thử Tiếng Việt", 2f, 2f, 32, new Vector4f(0.7f, 1f, 0.5f, 1f), "C:/Windows/Fonts/times.ttf", GlyphRange.VIETNAMESE);
-        test2.setVerticalAlignment(TextComponent.VerticalAlignment.MIDDLE);
-        test2.setHorizontalAlignment(TextComponent.HorizontalAlignment.CENTER);
+        TextRenderer test2 = textRenderer.drawText("Kiểm thử Tiếng Việt", 2f, 2f, 32, new Vector4f(0.7f, 1f, 0.5f, 1f), "C:/Windows/Fonts/times.ttf", GlyphRange.VIETNAMESE);
+        test2.setVerticalAlignment(TextRenderer.VerticalAlignment.MIDDLE);
+        test2.setHorizontalAlignment(TextRenderer.HorizontalAlignment.CENTER);
 
-        TextComponent test3 = textRenderer.drawText("Γεια σου κόσμο, δοκιμές στα ελληνικά!", 2f, 1.5f, 20, new Vector4f(0.1f, 0.6f, 0.8f, 1f), "C:/Windows/Fonts/arial.ttf", GlyphRange.LATIN_GREEK);
-        test3.setVerticalAlignment(TextComponent.VerticalAlignment.MIDDLE);
-        test3.setHorizontalAlignment(TextComponent.HorizontalAlignment.CENTER);
+        TextRenderer test3 = textRenderer.drawText("Γεια σου κόσμο, δοκιμές στα ελληνικά!", 2f, 1.5f, 20, new Vector4f(0.1f, 0.6f, 0.8f, 1f), "C:/Windows/Fonts/arial.ttf", GlyphRange.LATIN_GREEK);
+        test3.setVerticalAlignment(TextRenderer.VerticalAlignment.MIDDLE);
+        test3.setHorizontalAlignment(TextRenderer.HorizontalAlignment.CENTER);
 
-        TextComponent test4 = textRenderer.drawText("〄々〆〇ぁあぃいぅツヅテデＢＣＤ仲仳以", 2f, 1f, 24, new Vector4f(0.8f, 1f, 0.8f, 1f), "assets/fonts/NotoSansJP.ttf", GlyphRange.JAPANESE);
-        test4.setVerticalAlignment(TextComponent.VerticalAlignment.MIDDLE);
-        test4.setHorizontalAlignment(TextComponent.HorizontalAlignment.CENTER);
+        TextRenderer test4 = textRenderer.drawText("〄々〆〇ぁあぃいぅツヅテデＢＣＤ仲仳以", 2f, 1f, 24, new Vector4f(0.8f, 1f, 0.8f, 1f), "assets/fonts/NotoSansJP.ttf", GlyphRange.JAPANESE);
+        test4.setVerticalAlignment(TextRenderer.VerticalAlignment.MIDDLE);
+        test4.setHorizontalAlignment(TextRenderer.HorizontalAlignment.CENTER);
 
         while (!glfwWindowShouldClose(glfwWindow)) {
             glfwPollEvents(); //poll events

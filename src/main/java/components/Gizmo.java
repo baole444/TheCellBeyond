@@ -73,8 +73,7 @@ public class Gizmo extends SpatialComponent implements IsNotSerialized {
     }
 
     @Override
-    public void start() {
-        super.start();
+    protected void additionalStartLogic() {
         // Give gizmo correct rotation direction.
         this.xAxisObj.setRotation(90);
         this.yAxisObj.setRotation(180);
@@ -108,7 +107,6 @@ public class Gizmo extends SpatialComponent implements IsNotSerialized {
         }
 
         updatePosition();
-
     }
 
     private void updatePosition() {

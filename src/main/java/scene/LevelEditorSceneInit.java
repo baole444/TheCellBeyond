@@ -9,7 +9,6 @@ import editor.project.ProjectAssetMap;
 import editor.project.ProjectSceneMap;
 import editor.project.ProjectSheetMap;
 import imgui.ImGui;
-import imgui.ImVec2;
 import imgui.flag.ImGuiCol;
 import org.joml.Vector2i;
 import render.texture.SpriteSheet;
@@ -154,9 +153,9 @@ public class LevelEditorSceneInit extends SceneInit {
                 }
             }
 
-            if (obj.getFirstComponent(TextComponent.class) != null) {
-                List<TextComponent> texts = obj.getComponents(TextComponent.class);
-                for (TextComponent txt : texts) {
+            if (obj.getFirstComponent(TextRenderer.class) != null) {
+                List<TextRenderer> texts = obj.getComponents(TextRenderer.class);
+                for (TextRenderer txt : texts) {
                     txt.start();
                 }
             }

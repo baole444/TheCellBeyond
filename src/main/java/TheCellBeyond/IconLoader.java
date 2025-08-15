@@ -12,31 +12,7 @@ import java.nio.IntBuffer;
 
 import static org.lwjgl.stb.STBImage.*;
 
-public class IconLoader {
-    private ByteBuffer icon;
-    private int width, height;
-    private AssetReference assetReference;
-
-    public ByteBuffer getIcon() {
-        return icon;
-    }
-
-    IconLoader(int w, int h, ByteBuffer icon, AssetReference assetReference) {
-        this.icon = icon;
-        this.height = h;
-        this.width = w;
-        this.assetReference = assetReference;
-    }
-
-    public int loadIconW() {
-        return width;
-    }
-
-    public int loadIconH() {
-        return height;
-
-    }
-
+public record IconLoader(int width, int height, ByteBuffer icon, AssetReference assetReference) {
     public String getFilePath() {
         return assetReference != null ? assetReference.getCanonicalPath() : null;
     }
@@ -59,8 +35,7 @@ public class IconLoader {
 
             return loadFromBuffer(buffer, assetRef);
         } catch (IOException e) {
-            System.err.println("Failed to load icon: " + assetRef.getCanonicalPath());
-            e.printStackTrace();
+            System.err.println("Failed to load icon: '" + assetRef.getCanonicalPath() + "': " + e.getMessage());
             return null;
         }
     }
@@ -68,7 +43,6 @@ public class IconLoader {
     private static IconLoader loadFromBuffer(ByteBuffer buffer, AssetReference assetReference) {
         ByteBuffer icon;
         int width, height;
-        //  Image repeater
 
         //stbi_set_flip_vertically_on_load(true);
 
@@ -79,15 +53,13 @@ public class IconLoader {
 
             icon = stbi_load_from_memory(buffer, w, h, channels, 4);
 
-            if (icon == null ) {
+            if (icon == null) {
                 System.err.println("Texture failed to load! '" + assetReference.getCanonicalPath() + "'");
             }
 
             width = w.get();
             height = h.get();
-
         }
-        //stbi_image_free(icon); //Free memory and prevent memory leak
 
         return new IconLoader(width, height, icon, assetReference);
     }

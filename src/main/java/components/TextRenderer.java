@@ -7,11 +7,12 @@ import org.joml.Vector4f;
 import render.text.*;
 import utility.AssetReference;
 import utility.PathResolver;
+import utility.Settings;
 import utility.WorldUnit;
 
 import java.util.Objects;
 
-public class TextComponent extends SpatialComponent implements FontStatusCallback {
+public class TextRenderer extends SpatialComponent implements FontStatusCallback {
     private String text;
     private AssetReference assetReference;
     private float point;
@@ -35,7 +36,14 @@ public class TextComponent extends SpatialComponent implements FontStatusCallbac
     private HorizontalAlignment hAlign = HorizontalAlignment.LEFT;
     private VerticalAlignment vAlign = VerticalAlignment.TOP;
 
-    public TextComponent(String text, String fontPath, float point, Vector4f color, GlyphRange glyphRange) {
+    public TextRenderer() {
+        this.text = "Text renderer";
+        this.assetReference = new AssetReference(Settings.PATH.CONSOLA);
+        this.point = 12;
+        this.color = new Vector4f(1.0f, 1.0f, 1.0f, 1.0f);
+    }
+
+    public TextRenderer(String text, String fontPath, float point, Vector4f color, GlyphRange glyphRange) {
         this.text = text;
         this.assetReference = new AssetReference(fontPath);
         this.point = point;
@@ -43,7 +51,7 @@ public class TextComponent extends SpatialComponent implements FontStatusCallbac
         this.glyphRangeName = glyphRange.name();
     }
 
-    public TextComponent(String text, String fontPath, float point, Vector4f color, Vector2f position, GlyphRange glyphRange) {
+    public TextRenderer(String text, String fontPath, float point, Vector4f color, Vector2f position, GlyphRange glyphRange) {
         this.text = text;
         this.assetReference = new AssetReference(fontPath);
         this.point = point;
@@ -118,13 +126,12 @@ public class TextComponent extends SpatialComponent implements FontStatusCallbac
     }
 
     @Override
-    public void start() {
-        super.start();
+    protected void additionalStartLogic() {
         requestLoadFont();
     }
 
     @Override
-    public void update(float dt) {
+    protected void additionalUpdateLogic(float dt) {
         if (font == null
                 || !assetReference.equals(currentRequest.fontAsset())
                 || point != currentRequest.point()
@@ -135,18 +142,7 @@ public class TextComponent extends SpatialComponent implements FontStatusCallbac
     }
 
     @Override
-    public void editorUpdate(float dt) {
-        if (font == null
-                || !assetReference.equals(currentRequest.fontAsset())
-                || point != currentRequest.point()
-                || !glyphRangeName.equals(currentRequest.glyphRange().name())
-        ) {
-            requestLoadFont();
-        }
-    }
-
-    @Override
-    public void imgui() {
+    protected void additionalImGuiLogic() {
         String textInput = ImEditorGui.inputTextWithIME("Text", text, 1024);
         setText(textInput);
 

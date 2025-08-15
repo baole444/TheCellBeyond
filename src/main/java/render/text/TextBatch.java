@@ -1,6 +1,6 @@
 package render.text;
 
-import components.TextComponent;
+import components.TextRenderer;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
@@ -28,10 +28,10 @@ public class TextBatch implements Comparable<TextBatch> {
 
     private final int zIndex;
     private final int maxBatchSize;
-    private final List<TextComponent> textComponents;
+    private final List<TextRenderer> textRenderers;
 
     // Map fonts to components
-    private final Map<TCBFont, List<TextComponent>> fontGroups = new HashMap<>();
+    private final Map<TCBFont, List<TextRenderer>> fontGroups = new HashMap<>();
 
     private int vaoID, vboID;
 
@@ -53,7 +53,7 @@ public class TextBatch implements Comparable<TextBatch> {
     public TextBatch(int maxBatchSize, int zIndex) {
         this.maxBatchSize = maxBatchSize;
         this.zIndex = zIndex;
-        this.textComponents = new ArrayList<>();
+        this.textRenderers = new ArrayList<>();
         this.hasRoom = true;
 
         if (shader == null) {
@@ -92,24 +92,24 @@ public class TextBatch implements Comparable<TextBatch> {
         glBindVertexArray(0);
     }
 
-    public void add(TextComponent textComponent) {
-        if (textComponents.size() >= maxBatchSize) {
+    public void add(TextRenderer textRenderer) {
+        if (textRenderers.size() >= maxBatchSize) {
             hasRoom = false;
             return;
         }
 
-        if (!textComponents.contains(textComponent)) {
-            textComponents.add(textComponent);
+        if (!textRenderers.contains(textRenderer)) {
+            textRenderers.add(textRenderer);
             // Group by font
-            regroupComponent(textComponent);
+            regroupComponent(textRenderer);
         }
     }
 
     public void render() {
-        if (textComponents.isEmpty()) return;
+        if (textRenderers.isEmpty()) return;
 
         boolean requireRegroup = false;
-        for (TextComponent component : textComponents) {
+        for (TextRenderer component : textRenderers) {
             if (component.isDirty()) {
                 component.clearDirty();
                 requireRegroup = true;
@@ -151,9 +151,9 @@ public class TextBatch implements Comparable<TextBatch> {
         glBindBuffer(GL_ARRAY_BUFFER, vboID);
 
         // Render per group
-        for (Map.Entry<TCBFont, List<TextComponent>> entry : fontGroups.entrySet()) {
+        for (Map.Entry<TCBFont, List<TextRenderer>> entry : fontGroups.entrySet()) {
             TCBFont font = entry.getKey();
-            List<TextComponent> components = entry.getValue();
+            List<TextRenderer> components = entry.getValue();
 
             // Skip if no components use this font
             if (components.isEmpty()) continue;
@@ -194,7 +194,7 @@ public class TextBatch implements Comparable<TextBatch> {
         }
     }
 
-    private float[] genVertices(List<TextComponent> components, TCBFont font) {
+    private float[] genVertices(List<TextRenderer> components, TCBFont font) {
         int charCount = countChars(components);
 
         if (charCount == 0) return new float[0];
@@ -202,33 +202,33 @@ public class TextBatch implements Comparable<TextBatch> {
         float[] vertices = new float[charCount * 6 * VERTEX_SIZE];
         int vertexOffset = 0;
 
-        for (TextComponent textComponent: components) {
-            String text = textComponent.getText();
+        for (TextRenderer textRenderer : components) {
+            String text = textRenderer.getText();
             if (text.isEmpty()) continue;
 
-            Vector2f positon = textComponent.getWorldPosition();
+            Vector2f positon = textRenderer.getWorldPosition();
             Vector4f color;
             if (RendererState.get().getCurrentPass() == RendererState.RenderPass.SELECTION) {
                 color = new Vector4f(1.0f, 1.0f, 1.0f, 1.0f);
             } else {
-                color = textComponent.getColor();
+                color = textRenderer.getColor();
             }
-            Vector2f textDimensions = textComponent.getTextDimensions();
+            Vector2f textDimensions = textRenderer.getTextDimensions();
 
             float objectId = 0;
-            if (textComponent.gameObject != null) {
-                objectId = textComponent.gameObject.getUID();
+            if (textRenderer.gameObject != null) {
+                objectId = textRenderer.gameObject.getUID();
             }
 
             // Alignment offsets
             float xOffset = 0;
-            switch (textComponent.getHorizontalAlignment()) {
+            switch (textRenderer.getHorizontalAlignment()) {
                 case CENTER -> xOffset = - textDimensions.x / 2.0f;
                 case RIGHT -> xOffset = - textDimensions.x;
             }
 
             float yOffset = 0;
-            switch (textComponent.getVerticalAlignment()) {
+            switch (textRenderer.getVerticalAlignment()) {
                 case MIDDLE -> yOffset = textDimensions.y / 2.0f;
                 case BOTTOM -> yOffset = textDimensions.y;
             }
@@ -340,10 +340,10 @@ public class TextBatch implements Comparable<TextBatch> {
         return vertices;
     }
 
-    private int countChars(List<TextComponent> components) {
+    private int countChars(List<TextRenderer> components) {
         int count = 0;
-        for (TextComponent textComponent : components) {
-            String text = textComponent.getText();
+        for (TextRenderer textRenderer : components) {
+            String text = textRenderer.getText();
             for (int i = 0; i < text.length(); i++) {
                 if (text.charAt(i) != '\n') {
                     count++;
@@ -354,10 +354,10 @@ public class TextBatch implements Comparable<TextBatch> {
         return count;
     }
 
-    private void regroupComponent(TextComponent component) {
+    private void regroupComponent(TextRenderer component) {
         TCBFont font = component.getFont();
         if (font != null) {
-            List<TextComponent> components = fontGroups.computeIfAbsent(font, k -> new ArrayList<>());
+            List<TextRenderer> components = fontGroups.computeIfAbsent(font, k -> new ArrayList<>());
             if (!components.contains(component)) {
                 components.add(component);
             }
@@ -365,25 +365,25 @@ public class TextBatch implements Comparable<TextBatch> {
     }
 
     private void regroupComponents() {
-        List<TextComponent> allComponents = new ArrayList<>(textComponents);
+        List<TextRenderer> allComponents = new ArrayList<>(textRenderers);
 
         fontGroups.clear();
 
-        for (TextComponent component : allComponents) {
+        for (TextRenderer component : allComponents) {
             regroupComponent(component);
         }
     }
 
-    public boolean removeComponent(TextComponent textComponent) {
-        boolean removed = textComponents.remove(textComponent);
+    public boolean removeComponent(TextRenderer textRenderer) {
+        boolean removed = textRenderers.remove(textRenderer);
         if (removed) {
-            for (List<TextComponent> components : fontGroups.values()) {
-                components.remove(textComponent);
+            for (List<TextRenderer> components : fontGroups.values()) {
+                components.remove(textRenderer);
             }
 
             fontGroups.entrySet().removeIf(entry -> entry.getValue().isEmpty());
 
-            if (textComponents.size() < maxBatchSize) {
+            if (textRenderers.size() < maxBatchSize) {
                 hasRoom = true;
             }
         }

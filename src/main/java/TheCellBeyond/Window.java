@@ -11,7 +11,6 @@ import imgui.ImGui;
 import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiConfigFlags;
 import imgui.flag.ImGuiWindowFlags;
-import imgui.type.ImBoolean;
 import org.joml.Vector2i;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
@@ -277,11 +276,13 @@ public class Window implements EventInterface {
         this.imGuiLayer.initImGui(glslVer);
 
         //Set Icon
-        GLFWImage icon = GLFWImage.malloc();
-        GLFWImage.Buffer bufferIcon = GLFWImage.malloc(1);
-        icon.set(iconFile.loadIconW(), iconFile.loadIconH(), iconFile.getIcon());
-        bufferIcon.put(0, icon);
-        glfwSetWindowIcon(windowPtr, bufferIcon);
+        if (iconFile != null) {
+            GLFWImage icon = GLFWImage.malloc();
+            GLFWImage.Buffer bufferIcon = GLFWImage.malloc(1);
+            icon.set(iconFile.width(), iconFile.height(), iconFile.icon());
+            bufferIcon.put(0, icon);
+            glfwSetWindowIcon(windowPtr, bufferIcon);
+        }
 
         projectLoaded = (CurrentProject != null && ProjectRoot != null);
 

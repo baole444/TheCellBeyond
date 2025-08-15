@@ -16,7 +16,7 @@ public class GizmoControl extends Component {
     }
 
     @Override
-    public void start() {
+    protected void additionalStartLogic() {
         gameObject.addComponent(new GizmoMove(gizmo.spriteIndex(1), Window.getImGuiLayer().loadProperties()));
         gameObject.addComponent(new GizmoScale(gizmo.spriteIndex(2), Window.getImGuiLayer().loadProperties()));
     }

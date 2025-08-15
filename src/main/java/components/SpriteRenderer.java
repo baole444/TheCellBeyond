@@ -21,27 +21,17 @@ public class SpriteRenderer extends SpatialComponent {
     private transient boolean isDirty = true;
 
     @Override
-    public void start() {
-        super.start();
+    protected void additionalStartLogic() {
         instTransform = new Transform(getEffectiveTransform());
     }
 
     @Override
-    public void editorUpdate(float dt) {
-        super.editorUpdate(dt);
+    protected void additionalUpdateLogic(float dt) {
         updateInstTransform();
     }
 
     @Override
-    public void update(float dt) {
-        super.update(dt);
-        updateInstTransform();
-    }
-
-    @Override
-    public void imgui() {
-        super.imgui();
-
+    protected void additionalImGuiLogic() {
         if (ImEditorGui.colorCtrl("Color", this.color)) {
             this.isDirty = true;
         }

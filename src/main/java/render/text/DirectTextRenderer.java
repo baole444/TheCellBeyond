@@ -1,12 +1,11 @@
 package render.text;
 
-import components.TextComponent;
+import components.TextRenderer;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import utility.Settings;
 
-import java.io.IOException;
 import java.util.*;
 
 public class DirectTextRenderer {
@@ -14,7 +13,7 @@ public class DirectTextRenderer {
 
     private final List<TextBatch> textBatches = new ArrayList<>();
 
-    private final Map<String, List<TextComponent>> textGroups = new HashMap<>();
+    private final Map<String, List<TextRenderer>> textGroups = new HashMap<>();
 
     private Matrix4f projectionMatrix, viewMatrix;
 
@@ -44,38 +43,38 @@ public class DirectTextRenderer {
         }
     }
 
-    public TextComponent drawText(String text, float x, float y, float point, Vector4f color, String fontPath, int zIndex, GlyphRange glyphRange) {
+    public TextRenderer drawText(String text, float x, float y, float point, Vector4f color, String fontPath, int zIndex, GlyphRange glyphRange) {
         if (fontPath == null) {
             fontPath = Settings.PATH.CONSOLA;
         }
 
-        TextComponent textComponent = new TextComponent(text, fontPath, point, color, new Vector2f(x, y), glyphRange);
-        textComponent.start();
+        TextRenderer textRenderer = new TextRenderer(text, fontPath, point, color, new Vector2f(x, y), glyphRange);
+        textRenderer.start();
 
         String groupKey = zIndex + "_" + fontPath + "_" + point;
-        textGroups.computeIfAbsent(groupKey, k -> new ArrayList<>()).add(textComponent);
+        textGroups.computeIfAbsent(groupKey, k -> new ArrayList<>()).add(textRenderer);
 
-        return textComponent;
+        return textRenderer;
     }
 
-    public TextComponent drawText(String text, float x, float y, float point, Vector4f color, String fontPath, GlyphRange glyphRange) {
+    public TextRenderer drawText(String text, float x, float y, float point, Vector4f color, String fontPath, GlyphRange glyphRange) {
         return drawText(text, x, y, point, color,fontPath, 0, glyphRange);
     }
 
     public void render() {
         FontManager.get().updateFontTextures();
 
-        for (List<TextComponent> components : textGroups.values()) {
-            for (TextComponent component : components) {
+        for (List<TextRenderer> components : textGroups.values()) {
+            for (TextRenderer component : components) {
                 component.update(0.0f);
             }
         }
 
-        for (Map.Entry<String, List<TextComponent>> entry : textGroups.entrySet()) {
+        for (Map.Entry<String, List<TextRenderer>> entry : textGroups.entrySet()) {
             String[] parts = entry.getKey().split("_");
             int zIndex = Integer.parseInt(parts[0]);
 
-            List<TextComponent> components = entry.getValue();
+            List<TextRenderer> components = entry.getValue();
             if (components.isEmpty()) continue;
 
             TextBatch batch = null;
@@ -101,7 +100,7 @@ public class DirectTextRenderer {
                 Collections.sort(textBatches);
             }
 
-            for (TextComponent component : components) {
+            for (TextRenderer component : components) {
                 batch.add(component);
             }
         }
@@ -111,8 +110,8 @@ public class DirectTextRenderer {
         }
     }
 
-    public void removeText(TextComponent component) {
-        for (List<TextComponent> components : textGroups.values()) {
+    public void removeText(TextRenderer component) {
+        for (List<TextRenderer> components : textGroups.values()) {
             components.remove(component);
         }
 
