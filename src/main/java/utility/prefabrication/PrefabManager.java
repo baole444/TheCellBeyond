@@ -125,7 +125,7 @@ public class PrefabManager {
     public GameObject instantiatePrefab(String prefabName) {
         PrefabData prefabData = loadedPrefabs.get(prefabName);
         if (prefabData == null) {
-            System.err.println("Prefab not found: " + prefabName);
+            System.err.println("Prefab not found: '" + prefabName + "'");
             return null;
         }
 
@@ -168,11 +168,18 @@ public class PrefabManager {
             String rootUUID = prefabJson.get(ROOT_UUID).getAsString();
             GameObject root = goMap.get(rootUUID);
 
-            if (root != null) {
-                regenUUIDs(root);
+            if (root == null) {
+                System.err.println("Root object of prefab not found");
+                return null;
             }
 
-            return root;
+            boolean includeChildren = false;
+
+            if (prefabJson.has(INCLUDE_CHILD)) {
+                includeChildren = prefabJson.get(INCLUDE_CHILD).getAsBoolean();
+            }
+
+            return root.copy(includeChildren);
         } catch (Exception e) {
             System.err.println("Failed to instantiate prefab: " + e.getMessage());
             return null;
@@ -222,19 +229,6 @@ public class PrefabManager {
             loadedPrefabs.put(name, new PrefabData(name, content, description));
         } catch (Exception e) {
             System.err.println("Failed to load prefab file '" + file + "': " + e.getMessage());
-        }
-    }
-
-    private void regenUUIDs(GameObject gameObject) {
-        gameObject.setUUID(UUID.randomUUID().toString());
-        gameObject.regenerateUID();
-
-        for (Component c : gameObject.getComponents()) {
-            c.setUUID(UUID.randomUUID().toString());
-        }
-
-        for (GameObject child : gameObject.getChildren()) {
-            regenUUIDs(child);
         }
     }
 

@@ -32,7 +32,7 @@ public class KeyCtrl extends Component {
 
 
         if (KeyListener.isKeyTapped(GLFW_KEY_D, GLFW_MOD_CONTROL) && activeGameObj != null) {
-            GameObject newObj = activeGameObj.copy();
+            GameObject newObj = activeGameObj.copy(true);
             Window.getScene().queueForObjectAddition(newObj);
 
             if (newObj instanceof GameObject2D go2D) {
@@ -51,7 +51,7 @@ public class KeyCtrl extends Component {
 
             int i = 0;
             for (GameObject go : gameObjects) {
-                GameObject copy = go.copy();
+                GameObject copy = go.copy(true);
 
                 // Update sprite's color to true color
                 SpriteRenderer spriteRenderer = copy.getFirstComponent(SpriteRenderer.class);

@@ -42,15 +42,15 @@ public class MouseCtrl extends Component {
     private Vector2f boxSelectionEnd = new Vector2f();
 
     public void pickObj(GameObject obj) {
-        if (this.holdObj != null) {
+        if (holdObj != null) {
             // Use to prevent placing an old object at the edge of viewport
             // When selecting new sprite to place.
-            this.holdObj.destroy();
+            holdObj.destroy();
         }
-        this.holdObj = obj;
+        holdObj = obj;
 
-        if (this.holdObj.getFirstComponent(SpriteRenderer.class) != null) {
-            this.holdObj.getFirstComponent(SpriteRenderer.class).setColor(new Vector4f(1f, 1f, 1f, 0.35f));
+        if (holdObj.getFirstComponent(SpriteRenderer.class) != null) {
+            holdObj.getFirstComponent(SpriteRenderer.class).setColor(new Vector4f(1f, 1f, 1f, 0.35f));
         }
         this.holdObj.addComponent(new IsNotSelectable());
 
@@ -62,7 +62,12 @@ public class MouseCtrl extends Component {
     }
 
     public void placeObj() {
-        GameObject newObj = this.holdObj.copy();
+        GameObject newObj;
+        if (holdObj.getChildrenUUIDs().isEmpty()) {
+              newObj = holdObj.copy();
+        } else {
+            newObj = holdObj.copy(true);
+        }
 
         if (newObj.getFirstComponent(StateEngine.class) != null) {
             newObj.getFirstComponent(StateEngine.class).reloadTexture();
