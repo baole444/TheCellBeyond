@@ -1,12 +1,10 @@
 package components;
 
-import TheCellBeyond.Transform;
 import editor.ImEditorGui;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import render.Texture;
 import render.texture.Sprite;
-import utility.Settings;
 import utility.WorldUnit;
 
 /**
@@ -16,29 +14,23 @@ public class SpriteRenderer extends SpatialComponent {
     private final Vector4f color = new Vector4f(1, 1, 1 , 1);
     private Sprite sprite = new Sprite();
 
-    // Caching of effective transform
-    private transient Transform instTransform;
-    private transient boolean isDirty = true;
-
-    @Override
-    protected void additionalStartLogic() {
-        instTransform = new Transform(getEffectiveTransform());
-    }
-
-    @Override
-    protected void additionalUpdateLogic(float dt) {
-        updateInstTransform();
-    }
+    private transient boolean isSpriteDirty = true;
 
     @Override
     protected void additionalImGuiLogic() {
+        // TODO: add ability to add new sprite with drag drop target in the future
         if (ImEditorGui.colorCtrl("Color", this.color)) {
-            this.isDirty = true;
+            this.isSpriteDirty = true;
         }
     }
 
-    public void setDirty(boolean needsUpdate) {
-        this.isDirty = needsUpdate;
+    @Override
+    protected void additionalDirtyFlagLogic() {
+        if (!isSpriteDirty) isSpriteDirty = true;
+    }
+
+    public void setSpriteDirty(boolean needsUpdate) {
+        this.isSpriteDirty = needsUpdate;
     }
 
     public Vector4f getColor() {
@@ -65,30 +57,21 @@ public class SpriteRenderer extends SpatialComponent {
 
     public void setSprite(Sprite sprite) {
         this.sprite = sprite;
-        this.isDirty = true;
+        isSpriteDirty = true;
     }
 
     public void setColor(Vector4f color) {
         if(!this.color.equals(color)) {
-            this.isDirty = true;
+            isSpriteDirty = true;
             this.color.set(color);
         }
     }
 
-    public boolean isDirty() {
-        return this.isDirty;
+    public boolean isSpriteDirty() {
+        return isSpriteDirty;
     }
 
     public void setTexture(Texture texture) {
         this.sprite.setTexture(texture);
-    }
-
-    private void updateInstTransform() {
-        Transform current = getEffectiveTransform();
-
-        if (!current.equals(instTransform)) {
-            instTransform.copyFrom(current);
-            isDirty = true;
-        }
     }
 }

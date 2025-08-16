@@ -37,6 +37,7 @@ public class GameObject {
 
     private boolean isSerialize = true;
     private boolean isRemoved = false;
+    private transient boolean isDirty = false;
 
     private transient GameObject parent;
     private final transient LinkedHashSet<GameObject> children;
@@ -268,6 +269,8 @@ public class GameObject {
         if (c.getComponentName() != null && !c.getComponentName().isEmpty()) {
             namedComponents.put(c.getComponentName(), c);
         }
+
+        if (!isDirty()) setDirty(true);
     }
 
     public void onComponentNameChanged(Component component, String name) {
@@ -507,5 +510,13 @@ public class GameObject {
                 "\n  UUID: " + this.uuid +
                 "\n  isSerialize: " + this.isSerialize +
                 "\n  isGone: " + this.isRemoved;
+    }
+
+    public boolean isDirty() {
+        return isDirty;
+    }
+
+    public void setDirty(boolean dirty) {
+        isDirty = dirty;
     }
 }

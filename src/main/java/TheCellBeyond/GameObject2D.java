@@ -1,15 +1,11 @@
 package TheCellBeyond;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import components.*;
 import imgui.ImGui;
 import org.joml.Matrix3x2f;
 import org.joml.Vector2f;
-import render.Texture;
 
 import java.util.List;
-import java.util.UUID;
 
 public class GameObject2D extends GameObject {
     private final Transform localTransform;
@@ -40,12 +36,12 @@ public class GameObject2D extends GameObject {
 
     public void setPosition(Vector2f position) {
         localTransform.position.set(position);
-        setDirty();
+        setTransformDirty();
     }
 
     public void setPosition(float x, float y) {
         localTransform.position.set(x, y);
-        setDirty();
+        setTransformDirty();
     }
 
     public void setGlobalPosition(Vector2f globalPosition) {
@@ -58,7 +54,7 @@ public class GameObject2D extends GameObject {
             parent2D.tmpMatrix.transformPosition(globalPosition, localTransform.position);
         }
 
-        setDirty();
+        setTransformDirty();
     }
 
     public float getRotation() {
@@ -72,7 +68,7 @@ public class GameObject2D extends GameObject {
 
     public void setRotation(float rotation) {
         localTransform.rotation = rotation;
-        setDirty();
+        setTransformDirty();
     }
 
     public Vector2f getScale() {
@@ -86,7 +82,7 @@ public class GameObject2D extends GameObject {
 
     public void setScale(Vector2f scale) {
         localTransform.scale.set(scale);
-        setDirty();
+        setTransformDirty();
     }
 
     public int getzIndex() {
@@ -95,7 +91,7 @@ public class GameObject2D extends GameObject {
 
     public void setzIndex(int zIndex) {
         localTransform.zIndex = zIndex;
-        setDirty();
+        setTransformDirty();
     }
 
     public GameObject2D getParent2D() {
@@ -113,17 +109,17 @@ public class GameObject2D extends GameObject {
 
     public void translate(Vector2f offset) {
         localTransform.position.add(offset);
-        setDirty();
+        setTransformDirty();
     }
 
     public void rotate(float angle) {
         localTransform.rotation += angle;
-        setDirty();
+        setTransformDirty();
     }
 
     public void scale(Vector2f factor) {
         localTransform.scale.mul(factor);
-        setDirty();
+        setTransformDirty();
     }
 
     public Vector2f toGlobal(Vector2f localPosition) {
@@ -209,12 +205,12 @@ public class GameObject2D extends GameObject {
         return new Transform(globalTransform);
     }
 
-    private void setDirty() {
+    private void setTransformDirty() {
         if (!isTransformDirty) isTransformDirty = true;
 
         for (GameObject child : getChildren()) {
             if (child instanceof GameObject2D child2D) {
-                child2D.setDirty();
+                child2D.setTransformDirty();
             }
         }
     }

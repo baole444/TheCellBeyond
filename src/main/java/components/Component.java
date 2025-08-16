@@ -2,6 +2,7 @@ package components;
 
 import TheCellBeyond.GameObject;
 import editor.ImEditorGui;
+import imgui.ImGui;
 import org.jbox2d.dynamics.contacts.Contact;
 import org.joml.Vector2f;
 import java.util.UUID;
@@ -102,11 +103,11 @@ public abstract class Component {
      * @see Component#additionalImGuiLogic() Add additional field export logic
      */
     public void imgui() {
-        if (componentName != null) {
+        if (componentName == null) {
+            if (ImGui.button("Set component's name")) componentName = this.getClass().getSimpleName();
+        } else {
             String name = ImEditorGui.inputText("Component Name", componentName);
-            if (!name.equals(componentName)) {
-                setComponentName(name);
-            }
+            if (!name.equals(componentName)) setComponentName(name);
         }
 
         additionalImGuiLogic();

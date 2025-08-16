@@ -262,6 +262,10 @@ public class Scene {
             go.editorUpdate(dt);
 
             if (go.isRemoved()) queueObjectForRemoval(go);
+            else if (go.isDirty()) {
+                renderer.queueObjectForUpdate(go);
+                go.setDirty(false);
+            }
         }
 
         updateGameObjectQueues();
@@ -275,6 +279,10 @@ public class Scene {
             go.update(dt);
 
             if (go.isRemoved()) queueObjectForRemoval(go);
+            else if (go.isDirty()) {
+                renderer.queueObjectForUpdate(go);
+                go.setDirty(false);
+            }
         }
 
         updateGameObjectQueues();

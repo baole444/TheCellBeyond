@@ -152,7 +152,10 @@ public abstract class SpatialComponent extends Component implements Transformati
 
     public void setTransformDirty() {
         isTransformDirty = true;
+        additionalDirtyFlagLogic();
     }
+
+    protected void additionalDirtyFlagLogic() {}
 
     private void updateEffectiveTransform() {
         if (!isTransformDirty && effectiveTransform != null) return;

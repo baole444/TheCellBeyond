@@ -180,16 +180,18 @@ public class Renderer {
     }
 
     private void updateBatches() {
-        for (GameObject go: removedGameObjects) {
+        List<GameObject> updateList = new ArrayList<>(updatedGameObjects);
+        updatedGameObjects.clear();
+        List<GameObject> removeList = new ArrayList<>(removedGameObjects);
+        removedGameObjects.clear();
+
+        for (GameObject go: removeList) {
             destroyObject(go);
         }
 
-        for (GameObject go : updatedGameObjects) {
+        for (GameObject go : updateList) {
             if (!go.isRemoved()) addGameObject(go);
         }
-
-        updatedGameObjects.clear();
-        removedGameObjects.clear();
     }
 
     public void cleanup() {

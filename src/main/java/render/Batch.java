@@ -144,9 +144,9 @@ public class Batch implements Comparable<Batch> {
 
         for (int i = 0; i < countSprite; i++) {
             SpriteRenderer spr = sprites[i];
-            if (spr.isDirty()) {
+            if (spr.isSpriteDirty()) {
                 genVertexProperties(i);
-                spr.setDirty(false);
+                spr.setSpriteDirty(false);
                 rebufferData = true;
             }
 
@@ -305,7 +305,7 @@ public class Batch implements Comparable<Batch> {
                     sprites[j] = sprites[j + 1];
 
                     // Set damage to signal update on the moved up sprites.
-                    sprites[j].setDirty(true);
+                    sprites[j].setSpriteDirty(true);
                 }
 
                 // reduce stack size each time a sprite is removed

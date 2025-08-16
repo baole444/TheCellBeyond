@@ -16,12 +16,12 @@ A Java-based game editor with project compile ability, code auto-generation, and
 - [ ] Scripting system.
 
 ## Problems need attention:
-- Stack overflow error when loading TextRenderer's imgui, specifically in the text field.
+- Renderer and scene cannot comprehend the removal of a renderable component.
 - No proper resource clearing/saving when creating a new scene due to improper name check.
 - No proper way to assign texture/sprite from a spritesheet to a SpriteRenderer component.
 
 ## Solved problems:
-- Prefab save with children currently not working correctly.
+- Stack overflow error when loading TextRenderer's imgui, specifically in the text field.
 
 ## Additional maintenance:
 - Update ImGui to [latest release](https://github.com/SpaiR/imgui-java/releases).
