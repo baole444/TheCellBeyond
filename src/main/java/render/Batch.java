@@ -1,6 +1,7 @@
 package render;
 
 import TheCellBeyond.GameObject;
+import components.Component;
 import components.SpriteRenderer;
 import org.joml.Math;
 import org.joml.Matrix4f;
@@ -16,12 +17,11 @@ import static org.lwjgl.opengl.GL30.glBindVertexArray;
 import static org.lwjgl.opengl.GL30.glGenVertexArrays;
 
 public class Batch implements Comparable<Batch> {
-
     // Define how much texture each batch can have.
     // By default, is 8, will change on the limitation of the hardware.
     private int MAX_TEX_BATCH = 8;
-    // Vertices
 
+    // Vertices
     // |Position| |   Color  | |Coordinate| |TexID|
     // |  f, f  | |f, f, f, f| |   f, f   | |  f  |
 
@@ -64,7 +64,6 @@ public class Batch implements Comparable<Batch> {
 
     public Batch(int maxBatchSize, int zIndex, Renderer renderer) {
         int _trueLimit = GL11.glGetInteger(GL_MAX_TEXTURE_IMAGE_UNITS);
-        //System.out.println("Possible texture limit per batch is " + _trueLimit + " (Using " + MAX_TEX_BATCH+ "/" + _trueLimit + ")");
         if (MAX_TEX_BATCH > _trueLimit) {
             System.out.println("Encounter texture limit! " + "(Asking " + MAX_TEX_BATCH + "/" + _trueLimit + ")\nSetting new limit...");
             this.MAX_TEX_BATCH = _trueLimit;
@@ -93,8 +92,6 @@ public class Batch implements Comparable<Batch> {
         vboID = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, vboID);
         glBufferData(GL_ARRAY_BUFFER, (long) vertices.length * Float.BYTES, GL_DYNAMIC_DRAW);
-
-        // Indices buffer gen
 
         int eboID = glGenBuffers();
         int[] indices = genIndices();
@@ -157,14 +154,12 @@ public class Batch implements Comparable<Batch> {
             }
         }
         if (rebufferData) {
-            //Legacy: Re-buffer data/frame | New: Re-buffer data/change only
             glBindBuffer(GL_ARRAY_BUFFER, vboID);
             glBufferSubData(GL_ARRAY_BUFFER, 0, vertices);
         }
+
         // Shader
-
         Shader shader = RendererState.get().getCurrentShader();
-
         shader.use();
 
         // Set projection and view matrix
@@ -210,7 +205,6 @@ public class Batch implements Comparable<Batch> {
 
         // Set offset in the array (4/spt)
         int offset = index * 4 * VERTEX_SIZE;
-
         Vector4f color = spriteRenderer.getColor();
         Vector2f[] textureCoordinates = spriteRenderer.getTextureCoordinates();
 
@@ -219,7 +213,6 @@ public class Batch implements Comparable<Batch> {
 
         int ID = 0;
         //[0, tex, tex, tex, tex]
-
         if (spriteRenderer.getTexture() != null) {
             for (int i = 0; i < textures.size(); i++) {
                 if (textures.get(i).equals(spriteRenderer.getTexture())) {
@@ -229,13 +222,11 @@ public class Batch implements Comparable<Batch> {
             }
         }
 
-        // Sprite's size in world unit.
         Vector2f worldSize = spriteRenderer.getSpriteSizeAsWorldUnit();
-
         Vector2f pos = spriteRenderer.getPosition();
         float rotation = spriteRenderer.getRotation();
-
         boolean isRotated = rotation != 0.0f;
+
         Matrix4f transformMatrix = new Matrix4f().identity();
         if (isRotated) {
             transformMatrix.translate(pos.x, pos.y, 0);
@@ -297,23 +288,13 @@ public class Batch implements Comparable<Batch> {
         int i = 0;
         while (i < countSprite) {
             if (sps.contains(sprites[i])) {
-                // [1, 2, 3, 4, 5, 6, ...]
-                // Remove object 3 -> override 3 with 4 and move all stack up.
-                // Start moving the stack at position i, where the old sprite is supposed to be disposed
                 for (int j = i; j < countSprite - 1; j++) {
-                    // override the previous sprite with the next sprite in the stack
                     sprites[j] = sprites[j + 1];
-
-                    // Set damage to signal update on the moved up sprites.
                     sprites[j].setSpriteDirty(true);
                 }
 
-                // reduce stack size each time a sprite is removed
-                countSprite --;
-
-                // Clear the last duplicated position to prevent memory leaks
+                countSprite--;
                 sprites[countSprite] = null;
-
                 removalCount++;
             } else {
                 i++;
@@ -321,6 +302,32 @@ public class Batch implements Comparable<Batch> {
         }
 
         return removalCount > 0;
+    }
+
+    public boolean removeIfExist(Component component) {
+        if (component == null ) return false;
+
+        if (component instanceof SpriteRenderer spriteRenderer) {
+            for (int i = 0; i < countSprite; i++) {
+                if (sprites[i] == spriteRenderer) {
+                    for (int j = i; j < countSprite - 1; j++) {
+                        sprites[j] = sprites[j + 1];
+                        sprites[j].setSpriteDirty(true);
+                    }
+
+                    countSprite--;
+                    sprites[countSprite] = null;
+
+                    if (countSprite < maxBatchSize) {
+                        hasSpace = true;
+                    }
+
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private int[] genIndices() {

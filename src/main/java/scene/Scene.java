@@ -32,6 +32,7 @@ public class Scene {
     private final List<GameObject> rootGameObjects;
     private final List<GameObject> addedGameObjects;
     private final List<GameObject> removedGameObjects;
+    private final List<Component> removedComponents;
     private final HashMap<GameObject, GameObject> addedGameObjectWithParents;
     private final Map<String, Component> componentsByUUID;
 
@@ -42,20 +43,21 @@ public class Scene {
     public Scene(SceneInit sceneInit) {
         this.sceneInit = sceneInit;
 
-        this.physic2D = new Physic2D();
-        this.renderer = new Renderer();
+        physic2D = new Physic2D();
+        renderer = new Renderer();
 
-        this.cachedIDs = new HashMap<>();
-        this.gameObjectByUUIDs = new HashMap<>();
-        this.rootGameObjects = new ArrayList<>();
+        cachedIDs = new HashMap<>();
+        gameObjectByUUIDs = new HashMap<>();
+        rootGameObjects = new ArrayList<>();
 
-        this.addedGameObjects  = new ArrayList<>();
-        this.removedGameObjects = new ArrayList<>();
-        this.addedGameObjectWithParents = new HashMap<>();
+        addedGameObjects  = new ArrayList<>();
+        removedGameObjects = new ArrayList<>();
+        removedComponents = new ArrayList<>();
+        addedGameObjectWithParents = new HashMap<>();
 
-        this.componentsByUUID = new HashMap<>();
+        componentsByUUID = new HashMap<>();
 
-        this.isSceneOn = false;
+        isSceneOn = false;
     }
 
     public void init() {
@@ -68,7 +70,7 @@ public class Scene {
     }
 
     public void start() {
-        updateGameObjectQueues();
+        updateQueues();
 
         for (GameObject go : gameObjectByUUIDs.values()) {
             go.start();
@@ -156,6 +158,20 @@ public class Scene {
         }
     }
 
+    public void queueForComponentRemoval(Component component) {
+        if (component == null) return;
+
+        if (!removedComponents.contains(component)) removedComponents.add(component);
+    }
+
+    private void removeComponentFromScene(Component component) {
+        if (component == null) return;
+
+        componentsByUUID.remove(component.getUUID());
+
+        renderer.queueComponentForRemoval(component);
+    }
+
     private void removeObjFromScene(GameObject go) {
         if (go == null) return;
 
@@ -208,18 +224,25 @@ public class Scene {
         gameObjectByUUIDs.clear();
         rootGameObjects.clear();
         removedGameObjects.clear();
+        removedComponents.clear();
         addedGameObjects.clear();
         addedGameObjectWithParents.clear();
         componentsByUUID.clear();
     }
 
-    private void updateGameObjectQueues() {
+    private void updateQueues() {
         List<GameObject> toAdd = new ArrayList<>(addedGameObjects);
         HashMap<GameObject, GameObject> toAddParent = new HashMap<>(addedGameObjectWithParents);
         List<GameObject> toRemove = new ArrayList<>(removedGameObjects);
+        List<Component> componentToRemove = new ArrayList<>(removedComponents);
         addedGameObjects.clear();
         addedGameObjectWithParents.clear();
         removedGameObjects.clear();
+        removedComponents.clear();
+
+        for (Component c : componentToRemove) {
+            removeComponentFromScene(c);
+        }
 
         for (GameObject go : toRemove) {
             removeObjFromScene(go);
@@ -268,7 +291,7 @@ public class Scene {
             }
         }
 
-        updateGameObjectQueues();
+        updateQueues();
     }
 
     public void update(float dt) {
@@ -285,7 +308,7 @@ public class Scene {
             }
         }
 
-        updateGameObjectQueues();
+        updateQueues();
     }
 
     public void render() {

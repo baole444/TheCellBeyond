@@ -1,6 +1,7 @@
 package render;
 
 import TheCellBeyond.GameObject;
+import components.Component;
 import components.SpriteRenderer;
 import components.TextRenderer;
 import org.joml.Matrix4f;
@@ -19,6 +20,7 @@ public class Renderer {
 
     private final List<GameObject> updatedGameObjects;
     private final List<GameObject> removedGameObjects;
+    private final List<Component> removedComponents;
 
     private Matrix4f projectionMatrix = null;
     private Matrix4f viewMatrix = null;
@@ -43,10 +45,11 @@ public class Renderer {
     }
 
     public Renderer() {
-        this.textureBatches = new ArrayList<>();
-        this.textBatches = new ArrayList<>();
-        this.updatedGameObjects = new ArrayList<>();
-        this.removedGameObjects = new ArrayList<>();
+        textureBatches = new ArrayList<>();
+        textBatches = new ArrayList<>();
+        updatedGameObjects = new ArrayList<>();
+        removedGameObjects = new ArrayList<>();
+        removedComponents = new ArrayList<>();
     }
 
     public void render() {
@@ -87,6 +90,10 @@ public class Renderer {
     public void queueObjectForRemoval(GameObject go) {
         updatedGameObjects.remove(go);
         if (!removedGameObjects.contains(go)) removedGameObjects.add(go);
+    }
+
+    public void queueComponentForRemoval(Component component) {
+        if (!removedComponents.contains(component)) removedComponents.add(component);
     }
 
     public void queueObjectForUpdate(GameObject go) {
@@ -169,12 +176,29 @@ public class Renderer {
             }
         }
 
-        TextRenderer textRenderer = go.getFirstComponent(TextRenderer.class);
-        if (textRenderer != null) {
-            for (TextBatch textBatch : textBatches) {
-                if (textBatch.removeComponent(textRenderer)) {
-                    return;
+        List<TextRenderer> textRenderers = go.getComponents(TextRenderer.class);
+        if (!textRenderers.isEmpty()) {
+            for (TextRenderer t : textRenderers) {
+                if (t == null) continue;
+                for (TextBatch textBatch : textBatches) {
+                    if (textBatch.removeComponent(t)) return;
                 }
+            }
+        }
+    }
+
+    private void removeComponent(Component component) {
+        if (component == null) return;
+
+        if (component instanceof SpriteRenderer spriteRenderer) {
+            for (Batch batch : textureBatches) {
+                if (batch.removeIfExist(spriteRenderer)) return;
+            }
+        }
+
+        if (component instanceof TextRenderer textRenderer) {
+            for (TextBatch textBatch : textBatches) {
+                if (textBatch.removeComponent(textRenderer)) return;
             }
         }
     }
@@ -184,6 +208,12 @@ public class Renderer {
         updatedGameObjects.clear();
         List<GameObject> removeList = new ArrayList<>(removedGameObjects);
         removedGameObjects.clear();
+        List<Component> removeComponentList = new ArrayList<>(removedComponents);
+        removedComponents.clear();
+
+        for (Component c : removeComponentList) {
+            removeComponent(c);
+        }
 
         for (GameObject go: removeList) {
             destroyObject(go);
