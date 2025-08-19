@@ -142,6 +142,10 @@ public class Batch implements Comparable<Batch> {
         for (int i = 0; i < countSprite; i++) {
             SpriteRenderer spr = sprites[i];
             if (spr.isSpriteDirty()) {
+                if (spr.getTextureCoordinates() == null) {
+                    rebufferData = true;
+                    continue;
+                }
                 genVertexProperties(i);
                 spr.setSpriteDirty(false);
                 rebufferData = true;

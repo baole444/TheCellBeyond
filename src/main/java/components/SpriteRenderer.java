@@ -29,6 +29,13 @@ public class SpriteRenderer extends SpatialComponent {
         if (!isSpriteDirty) isSpriteDirty = true;
     }
 
+    @Override
+    protected void additionalUpdateLogic(float dt) {
+        if (!isSpriteDirty && sprite != null && sprite.getTextureCoordinates() != null) {
+            isSpriteDirty = true;
+        }
+    }
+
     public void setSpriteDirty(boolean needsUpdate) {
         this.isSpriteDirty = needsUpdate;
     }
@@ -73,5 +80,6 @@ public class SpriteRenderer extends SpatialComponent {
 
     public void setTexture(Texture texture) {
         this.sprite.setTexture(texture);
+        isSpriteDirty = true;
     }
 }
