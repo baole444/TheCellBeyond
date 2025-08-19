@@ -23,6 +23,7 @@ public class GameObject {
     // This is auto managed for shader compatibility, not serialized
     private transient int cachedID = -1;
 
+    // TODO: refactor this to use UUID class
     private String uuid;
     public String name;
 
@@ -327,7 +328,7 @@ public class GameObject {
     }
 
     public void imgui() {
-        name = ImEditorGui.inputText("Name", name);
+        name = ImEditorGui.inputText("Name", name, this);
         additionalImGuiLogic();
 
         for (Component c: components) {

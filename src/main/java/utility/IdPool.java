@@ -29,7 +29,7 @@ public class IdPool {
      * releasing them back to the pool when done using.
      *
      * @return integer from the sequence.
-     * @see IdPool#releaseId(int)
+     * @see IdPool#releaseId(int) Release ID back to the pool
      */
     public int newId() {
         Integer id = discardedIds.poll();

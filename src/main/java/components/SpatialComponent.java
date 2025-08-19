@@ -48,8 +48,8 @@ public abstract class SpatialComponent extends Component implements Transformati
         ImGui.text("Transform offset");
         ImEditorGui.drawVec2Ctrl("Position", localTransform.position, 0.0f);
         ImEditorGui.drawVec2Ctrl("Scale", localTransform.scale, 1.0f);
-        localTransform.rotation = ImEditorGui.dragFloatCtrl("Rotation", localTransform.rotation);
-        localTransform.zIndex = ImEditorGui.dragIntCtrl("Z-Index", localTransform.zIndex);
+        localTransform.rotation = ImEditorGui.dragFloatCtrl("Rotation", localTransform.rotation, this);
+        localTransform.zIndex = ImEditorGui.dragIntCtrl("Z-Index", localTransform.zIndex, this);
     }
 
     // Get effective (final) transform

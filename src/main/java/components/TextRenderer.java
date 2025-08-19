@@ -143,12 +143,12 @@ public class TextRenderer extends SpatialComponent implements FontStatusCallback
 
     @Override
     protected void additionalImGuiLogic() {
-        String textInput = ImEditorGui.inputTextWithIME("Text", text, 1024);
+        String textInput = ImEditorGui.inputTextWithIME("Text", text, 1024, this);
         setText(textInput);
 
         String currentPath = assetReference != null ? assetReference.getCanonicalPath() : "";
 
-        String fontPathInput = ImEditorGui.inputText("Font Path", currentPath);
+        String fontPathInput = ImEditorGui.inputText("Font Path", currentPath, this);
         if (!fontPathInput.equals(currentPath)) {
             PathResolver resolver = PathResolver.get();
             AssetReference newRef = new AssetReference(fontPathInput);
@@ -160,7 +160,7 @@ public class TextRenderer extends SpatialComponent implements FontStatusCallback
             }
         }
 
-        float fontSizeInput = ImEditorGui.dragFloatCtrl("Font Size", point);
+        float fontSizeInput = ImEditorGui.dragFloatCtrl("Font Size", point, this);
         if (fontSizeInput != point) {
             this.point = Math.abs(fontSizeInput);
             this.pendingRequest = false;
@@ -177,7 +177,7 @@ public class TextRenderer extends SpatialComponent implements FontStatusCallback
             ImGui.endCombo();
         }
 
-        if (ImEditorGui.colorCtrl("Color", color)) {
+        if (ImEditorGui.colorCtrl("Color", color, this)) {
             this.isDirty = true;
         }
 

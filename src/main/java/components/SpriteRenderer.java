@@ -19,7 +19,7 @@ public class SpriteRenderer extends SpatialComponent {
     @Override
     protected void additionalImGuiLogic() {
         // TODO: add ability to add new sprite with drag drop target in the future
-        if (ImEditorGui.colorCtrl("Color", this.color)) {
+        if (ImEditorGui.colorCtrl("Color", this.color, this)) {
             this.isSpriteDirty = true;
         }
     }

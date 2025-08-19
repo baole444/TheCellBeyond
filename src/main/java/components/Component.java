@@ -106,7 +106,7 @@ public abstract class Component {
         if (componentName == null) {
             if (ImGui.button("Set component's name")) componentName = this.getClass().getSimpleName();
         } else {
-            String name = ImEditorGui.inputText("Component Name", componentName);
+            String name = ImEditorGui.inputText("Component Name", componentName, this);
             if (!name.equals(componentName)) setComponentName(name);
         }
 
