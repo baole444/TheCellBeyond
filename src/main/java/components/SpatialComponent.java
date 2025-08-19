@@ -175,9 +175,9 @@ public abstract class SpatialComponent extends Component implements Transformati
     }
 
     private void addTransforms(Transform target, Transform offset) {
+        target.position.add(offset.position);
         target.rotation += offset.rotation;
         target.scale.mul(offset.scale);
-        target.position.add(offset.position);
 
         // zIndex is absolute
         if (offset.zIndex != 0) target.zIndex = offset.zIndex;

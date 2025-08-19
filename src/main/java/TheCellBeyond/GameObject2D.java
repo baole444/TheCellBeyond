@@ -149,9 +149,9 @@ public class GameObject2D extends GameObject {
 
         try {
             localMatrix.identity()
+                    .translate(localTransform.position)
                     .rotate((float) Math.toRadians(localTransform.rotation))
-                    .scale(localTransform.scale)
-                    .translate(localTransform.position);
+                    .scale(localTransform.scale);
 
             GameObject2D parent2D = getParent2D();
             if (parent2D != null) {
