@@ -53,6 +53,7 @@ public class ImEditorGui {
         boolean updated = false;
 
         //=================== x button ===================
+        ImGui.pushID("x");
         ImGui.pushItemWidth(remainWidth);
         ImGui.pushStyleColor(ImGuiCol.Button, 0.7f, 0.2f, 0.2f, 1.0f);
         ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.8f, 0.3f, 0.3f, 1.0f);
@@ -64,17 +65,17 @@ public class ImEditorGui {
         ImGui.popStyleColor(3);
         ImGui.sameLine();
         float[] valX = {tmpPixelVector.x};
-        ImGui.pushID(id + "x_field");
-        if (ImGui.dragFloat("##x", valX, 0.1f)) {
+        if (ImGui.dragFloat("##dragX", valX, 0.1f)) {
             tmpPixelVector.x = valX[0];
             updated = true;
         }
-        ImGui.popID();
         ImGui.popItemWidth();
+        ImGui.popID();
         ImGui.sameLine();
         //================================================
 
         //=================== y button ===================
+        ImGui.pushID("y");
         ImGui.pushItemWidth(remainWidth);
         ImGui.pushStyleColor(ImGuiCol.Button, 0.2f, 0.7f, 0.2f, 1.0f);
         ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.3f, 0.8f, 0.3f, 1.0f);
@@ -85,15 +86,13 @@ public class ImEditorGui {
         }
         ImGui.popStyleColor(3);
         ImGui.sameLine();
-        ImGui.pushID(id + "y_field");
         float[] valY = {tmpPixelVector.y};
-        if (ImGui.dragFloat("##y", valY, 0.1f)) {
+        if (ImGui.dragFloat("##dragY", valY, 0.1f)) {
             tmpPixelVector.y = valY[0];
             updated = true;
         }
-        ImGui.popID();
         ImGui.popItemWidth();
-        ImGui.sameLine();
+        ImGui.popID();
         //================================================
         if (updated) WorldUnit.pixelToWorld(tmpPixelVector, source);
 
