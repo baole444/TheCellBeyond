@@ -27,15 +27,15 @@ public class ImEditorGui {
     private static final Vector2f tmpPixelVector = new Vector2f();
     private static final Vector2f tmpWorldVector = new Vector2f();
 
-    public static void drawVec2Ctrl(String label, Vector2f val, Object caller) {
-        drawVec2Ctrl(label, val, 0.0f, defaultWidth, caller);
+    public static boolean drawVec2Ctrl(String label, Vector2f val, Object caller) {
+        return drawVec2Ctrl(label, val, 0.0f, defaultWidth, caller);
     }
 
-    public static void drawVec2Ctrl(String label, Vector2f val, float resetVal, Object caller) {
-        drawVec2Ctrl(label, val, resetVal, defaultWidth, caller);
+    public static boolean drawVec2Ctrl(String label, Vector2f val, float resetVal, Object caller) {
+        return drawVec2Ctrl(label, val, resetVal, defaultWidth, caller);
     }
 
-    public static void drawVec2Ctrl(String label, Vector2f source, float resetVal, float columnWidth, Object caller) {
+    public static boolean drawVec2Ctrl(String label, Vector2f source, float resetVal, float columnWidth, Object caller) {
         String id = createID(label, caller);
         ImGui.pushID(id);
 
@@ -102,6 +102,8 @@ public class ImEditorGui {
         ImGui.popStyleVar();
         ImGui.columns(1);
         ImGui.popID();
+
+        return updated;
     }
 
     public static float dragFloatCtrl(String label, float val, Object caller) {

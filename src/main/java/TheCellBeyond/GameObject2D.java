@@ -149,8 +149,8 @@ public class GameObject2D extends GameObject {
 
         try {
             localMatrix.identity()
-                    .scale(localTransform.scale)
                     .rotate((float) Math.toRadians(localTransform.rotation))
+                    .scale(localTransform.scale)
                     .translate(localTransform.position);
 
             GameObject2D parent2D = getParent2D();
@@ -179,7 +179,6 @@ public class GameObject2D extends GameObject {
         } finally {
             isTransformUpdating = false;
         }
-
     }
 
     // Inform spatial components that its effective transform is dirty
@@ -237,8 +236,12 @@ public class GameObject2D extends GameObject {
     public void imgui() {
         super.imgui();
         ImGui.separator();
-        ImGui.text("Offset");
+        ImGui.text("Transform");
+        Transform editing = new Transform(localTransform);
         localTransform.imgui();
+        if (!editing.equals(localTransform)) {
+            setTransformDirty();
+        }
         ImGui.separator();
     }
 }

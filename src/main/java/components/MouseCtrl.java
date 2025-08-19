@@ -63,7 +63,7 @@ public class MouseCtrl extends Component {
 
     public void placeObj() {
         GameObject newObj;
-        if (holdObj.getChildrenUUIDs().isEmpty()) {
+        if (holdObj.getChildrenUUIDs() == null) {
               newObj = holdObj.copy();
         } else {
             newObj = holdObj.copy(true);

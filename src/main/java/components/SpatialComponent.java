@@ -2,8 +2,6 @@ package components;
 
 import TheCellBeyond.GameObject2D;
 import TheCellBeyond.Transform;
-import editor.ImEditorGui;
-import imgui.ImGui;
 import org.joml.Vector2f;
 
 public abstract class SpatialComponent extends Component implements Transformation {
@@ -45,11 +43,11 @@ public abstract class SpatialComponent extends Component implements Transformati
     @Override
     public void imgui() {
         super.imgui();
-        ImGui.text("Transform offset");
-        ImEditorGui.drawVec2Ctrl("Position", localTransform.position, 0.0f, this);
-        ImEditorGui.drawVec2Ctrl("Scale", localTransform.scale, 1.0f, this);
-        localTransform.rotation = ImEditorGui.dragFloatCtrl("Rotation", localTransform.rotation, this);
-        localTransform.zIndex = ImEditorGui.dragIntCtrl("Z-Index", localTransform.zIndex, this);
+        Transform editing = new Transform(localTransform);
+        localTransform.imgui();
+        if (!editing.equals(localTransform)) {
+            setTransformDirty();
+        }
     }
 
     // Get effective (final) transform
@@ -177,11 +175,9 @@ public abstract class SpatialComponent extends Component implements Transformati
     }
 
     private void addTransforms(Transform target, Transform offset) {
-        target.position.add(offset.position);
-
         target.rotation += offset.rotation;
-
         target.scale.mul(offset.scale);
+        target.position.add(offset.position);
 
         // zIndex is absolute
         if (offset.zIndex != 0) target.zIndex = offset.zIndex;

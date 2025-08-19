@@ -245,14 +245,12 @@ public class GameObject {
      */
     public <T extends Component> void removeComponents(Class<T> componentClass) {
         Scene scene = Window.getScene();
-        Iterator<Component> iterator = components.iterator();
-        while(iterator.hasNext()) {
-            Component c = iterator.next();
-            if (componentClass.isAssignableFrom(c.getClass())) {
-                if (scene != null) scene.queueForComponentRemoval(c);
-                iterator.remove();
+        for (Component component : components) {
+            if (componentClass.isAssignableFrom(component.getClass())) {
+                if (scene != null) scene.queueForComponentRemoval(component);
             }
         }
+        components.removeIf(c -> componentClass.isAssignableFrom(c.getClass()));
     }
 
     /**
