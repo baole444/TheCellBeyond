@@ -64,10 +64,12 @@ public class ImEditorGui {
         ImGui.popStyleColor(3);
         ImGui.sameLine();
         float[] valX = {tmpPixelVector.x};
+        ImGui.pushID(id + "x_field");
         if (ImGui.dragFloat("##x", valX, 0.1f)) {
             tmpPixelVector.x = valX[0];
             updated = true;
         }
+        ImGui.popID();
         ImGui.popItemWidth();
         ImGui.sameLine();
         //================================================
@@ -83,12 +85,13 @@ public class ImEditorGui {
         }
         ImGui.popStyleColor(3);
         ImGui.sameLine();
+        ImGui.pushID(id + "y_field");
         float[] valY = {tmpPixelVector.y};
         if (ImGui.dragFloat("##y", valY, 0.1f)) {
             tmpPixelVector.y = valY[0];
             updated = true;
         }
-
+        ImGui.popID();
         ImGui.popItemWidth();
         ImGui.sameLine();
         //================================================
@@ -144,7 +147,7 @@ public class ImEditorGui {
 
     public static int dragIntCtrl(String label, int val, Object caller) {
         String id = createID(label, caller);
-        ImGui.pushID(label);
+        ImGui.pushID(id);
 
         ImGui.columns(2);
         ImGui.setColumnWidth(0, defaultWidth);
@@ -207,152 +210,6 @@ public class ImEditorGui {
 
         return txt;
     }
-
-    /*
-    public static void drawSpriteList (List<SpriteSheet> sheets, GameObject levelEditorObject, ImVec2 winPos, ImVec2 winSize) {
-        ImVec2 objectSpace = new ImVec2();
-        ImGui.getStyle().getItemSpacing(objectSpace);
-
-        float windowX2 = winPos.x + winSize.x;
-
-        for (SpriteSheet sprites : sheets) {
-            for (int i = 0; i < sprites.size(); i++) {
-                Sprite sps = sprites.spriteIndex(i);
-
-                Vector2f scaledSprite = TextureScale.calculateFitDimension(sps.getWidth(), sps.getHeight());
-
-                float spriteWidth = scaledSprite.x;
-                float spriteHeight = scaledSprite.y;
-                int id = sps.getTextureID();
-
-                Vector2f[] texCoord = sps.getTextureCoordinates();
-
-                ImGui.pushID(i);
-
-                String strId = Integer.toString(id);
-                ImGui.imageButton(strId, id, spriteWidth, spriteHeight,
-                        texCoord[2].x, texCoord[0].y,
-                        texCoord[0].x, texCoord[2].y
-                );
-
-                if (ImGui.isItemClicked()) {
-                    Vector2f spriteWorldSize = WorldUnit.pixelToWorld(new Vector2f(sps.getWidth(), sps.getHeight()));
-
-                    GameObject obj = Prefab.genSpsObj(sps, spriteWorldSize.x, spriteWorldSize.y);
-
-                    // Bind to mouse cursor
-                    levelEditorObject.getFirstComponent(MouseCtrl.class).pickObj(obj);
-                }
-
-                if (ImGui.isItemHovered()) {
-                    ImGui.beginTooltip();
-
-                    ImGui.text("Preview");
-                    ImGui.image(id, spriteWidth * 2, spriteHeight * 2,
-                            texCoord[2].x, texCoord[0].y,
-                            texCoord[0].x, texCoord[2].y);
-                    ImGui.text("Width: " + sps.getWidth());
-                    ImGui.text("Height: " + sps.getHeight());
-
-                    ImGui.endTooltip();
-                }
-
-                ImGui.popID();
-
-                ImVec2 lastButtonPos = new ImVec2();
-                ImGui.getItemRectMax(lastButtonPos);
-                float lastButtonX2 = lastButtonPos.x;
-                float nextButtonX2 = lastButtonX2 + objectSpace.x + spriteWidth;
-
-                if (i + 1 < sprites.size() && nextButtonX2 < windowX2) {
-                    ImGui.sameLine();
-                }
-            }
-        }
-    }
-
-    public static void drawSpriteList (String spritePath, GameObject levelEditorObject, ImVec2 winPos, ImVec2 winSize, int widthMod) {
-        ImVec2 objectSpace = new ImVec2();
-        ImGui.getStyle().getItemSpacing(objectSpace);
-
-        SpriteSheet spriteSps = AssetsPool.loadSpriteSheet(spritePath);
-
-
-        float windowX2 = winPos.x + (winSize.x / widthMod);
-        for (int i = 0; i < spriteSps.size(); i++) {
-            Sprite sprites = spriteSps.spriteIndex(i);
-
-            Vector2f scaledSprite = TextureScale.calculateFitDimension(sprites.getWidth(), sprites.getHeight());
-
-            float spriteWidth = scaledSprite.x;
-            float spriteHeight = scaledSprite.y;
-            int id = sprites.getTextureID();
-
-            Vector2f[] texCoord = sprites.getTextureCoordinates();
-
-            ImGui.pushID(i);
-            String strId = Integer.toString(id);
-            ImGui.imageButton(strId, id, spriteWidth, spriteHeight,
-                    texCoord[2].x, texCoord[0].y,
-                    texCoord[0].x, texCoord[2].y
-            );
-
-            if (ImGui.isItemClicked()) {
-                Vector2f spriteWorldSize = WorldUnit.pixelToWorld(new Vector2f(sprites.getWidth(), sprites.getHeight()));
-
-                GameObject obj = Prefab.genSpsObj(sprites, spriteWorldSize.x, spriteWorldSize.y);
-
-                // Bind to mouse cursor
-                levelEditorObject.getFirstComponent(MouseCtrl.class).pickObj(obj);
-            }
-
-            if (ImGui.isItemHovered()) {
-                ImGui.beginTooltip();
-
-                ImGui.text("Preview");
-                ImGui.image(id, spriteWidth * 2, spriteHeight * 2,
-                        texCoord[2].x, texCoord[0].y,
-                        texCoord[0].x, texCoord[2].y);
-                ImGui.text("Width: " + sprites.getWidth());
-                ImGui.text("Height: " + sprites.getHeight());
-
-                ImGui.endTooltip();
-            }
-
-            ImGui.popID();
-
-            ImVec2 lastButtonPos = new ImVec2();
-            ImGui.getItemRectMax(lastButtonPos);
-            float lastButtonX2 = lastButtonPos.x;
-            float nextButtonX2 = lastButtonX2 + objectSpace.x + spriteWidth;
-
-            if (i + 1 < spriteSps.size() && nextButtonX2 < windowX2) {
-                ImGui.sameLine();
-            }
-        }
-    }
-
-    public static void drawSpriteList (String[] spritePath, GameObject levelEditorObject, ImVec2 winPos, ImVec2 winSize) {
-        ImGui.newLine();
-        ImGui.columns(spritePath.length);
-
-        ImGui.pushStyleVar(ImGuiStyleVar.ItemSpacing, 0, 0);
-        float remainWidth = (ImGui.calcItemWidth() / spritePath.length);
-
-        for (int i = 0; i < spritePath.length; i++) {
-            ImGui.setColumnWidth(i, (winSize.x) / spritePath.length);
-            ImGui.pushItemWidth(remainWidth);
-            drawSpriteList(spritePath[i], levelEditorObject, winPos, winSize, spritePath.length);
-            ImGui.popItemWidth();
-
-            ImGui.sameLine();
-            ImGui.nextColumn();
-        }
-
-        ImGui.popStyleVar();
-        ImGui.columns(1);
-    }
-     */
 
     public static String inputTextWithIME(String label, String txt, int bufferSize, Object caller) {
         String id = createID(label, caller);
