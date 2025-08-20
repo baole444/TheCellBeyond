@@ -13,7 +13,7 @@ public class GizmoScale extends Gizmo{
     private final float scaleStep = 0.1f;
 
     public GizmoScale(Sprite boxSprite, Properties properties) {
-        super(boxSprite, properties);
+        super("scale_", boxSprite, properties);
     }
 
     @Override

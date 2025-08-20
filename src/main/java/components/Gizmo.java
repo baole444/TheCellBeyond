@@ -46,10 +46,10 @@ public class Gizmo extends SpatialComponent implements IsNotSerialized {
     // Create Gizmo, position, and color.
     // Mark Gizmo arrow is not a selectable object.
     // Push gizmo to the scene.
-    public Gizmo(Sprite arrowSprite, Properties properties) {
-        xAxisObj = createGizmoObject("gizmoX", arrowSprite);
-        yAxisObj = createGizmoObject("gizmoY", arrowSprite);
-        xAxisObj.rotate(90);
+    public Gizmo(String type, Sprite arrowSprite, Properties properties) {
+        xAxisObj = createGizmoObject(type + "gizmoX", arrowSprite);
+        yAxisObj = createGizmoObject(type + "gizmoY", arrowSprite);
+        xAxisObj.rotate(270);
         yAxisObj.rotate(180);
         xAxisSpr = xAxisObj.getFirstComponent(SpriteRenderer.class);
         yAxisSpr = yAxisObj.getFirstComponent(SpriteRenderer.class);
@@ -62,14 +62,13 @@ public class Gizmo extends SpatialComponent implements IsNotSerialized {
     private GameObject2D createGizmoObject(String name, Sprite sprite) {
         GameObject2D go2D = new GameObject2D(name);
 
-        go2D.setzIndex(100);
-
         // Make gizmo not store to level save file.
         go2D.setNotSerialize();
 
         go2D.addComponent(new IsNotSelectable());
 
         SpriteRenderer renderer = new SpriteRenderer();
+        renderer.setLocalzIndex(100);
         renderer.setSprite(sprite);
 
         go2D.addComponent(renderer);

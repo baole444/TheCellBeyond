@@ -151,7 +151,8 @@ public class Batch implements Comparable<Batch> {
         for (int i = 0; i < countSprite; i++) {
             SpriteRenderer spr = sprites[i];
             if (spr.isSpriteDirty()) {
-                if (spr.getTextureCoordinates() == null) continue;
+                if (spr.getTexture() == null) continue;
+                if (!textures.contains(spr.getTexture()) && hasSpace) textures.add(spr.getTexture());
                 dirtyIndex.add(i);
                 spr.setSpriteDirty(false);
             }
@@ -371,19 +372,31 @@ public class Batch implements Comparable<Batch> {
     }
 
     public boolean hasSpace() {
-        return this.hasSpace;
+        return hasSpace;
     }
 
     public boolean isTextureCapacityValid() {
-        return this.textures.size() < MAX_TEX_BATCH;
+        return textures.size() < MAX_TEX_BATCH;
     }
-     public boolean hasTexture(Texture t) {
-        return this.textures.contains(t);
-     }
 
-     public int zIndex() {
+    public boolean hasSprite(SpriteRenderer spriteRenderer) {
+        if (spriteRenderer == null || spriteRenderer.getUUID() == null) return false;
+
+        String uuid = spriteRenderer.getUUID();
+        for (int i = 0; i < countSprite; i++) {
+            if (sprites[i] != null && sprites[i].getUUID().equals(uuid)) return true;
+        }
+
+        return false;
+    }
+
+    public boolean hasTexture(Texture t) {
+        return textures.contains(t);
+    }
+
+    public int zIndex() {
         return this.zIndex;
-     }
+    }
 
     @Override
     public int compareTo(Batch o) {

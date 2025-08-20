@@ -11,7 +11,7 @@ import render.texture.Sprite;
  */
 public class GizmoMove extends Gizmo {
     public GizmoMove(Sprite arrowSprite, Properties properties) {
-        super(arrowSprite, properties);
+        super("translate_", arrowSprite, properties);
     }
 
     @Override
@@ -20,10 +20,8 @@ public class GizmoMove extends Gizmo {
             Vector2f cursorT = MouseListener.getCursorTraverse();
 
             if (xActiveDrag && !yActiveDrag) {
-                Vector2f current = go2D.getPosition();
                 go2D.translate(new Vector2f(- cursorT.x, 0));
             } else if (yActiveDrag) {
-                Vector2f current = go2D.getPosition();
                 go2D.translate(new Vector2f(0, - cursorT.y));
             }
         }

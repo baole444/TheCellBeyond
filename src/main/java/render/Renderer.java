@@ -117,6 +117,8 @@ public class Renderer {
 
         boolean isAdded = false;
         for (Batch batch: textureBatches) {
+            if (batch.hasSprite(sprite)) return;
+
             if (batch.hasSpace() && batch.zIndex() == sprite.getzIndex()) {
                 Texture t = sprite.getTexture();
                 if (t == null || (batch.hasTexture(t) || batch.isTextureCapacityValid())) {
