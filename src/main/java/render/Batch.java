@@ -245,9 +245,11 @@ public class Batch implements Comparable<Batch> {
 
         Matrix4f transformMatrix = new Matrix4f().identity();
         if (!isIndicator && isTransformed) {
-            transformMatrix.translate(pos.x, pos.y, 0);
-            transformMatrix.rotate(Math.toRadians(rotation), 0, 0, 1);
-            transformMatrix.scale(worldSize.x * scale.x, worldSize.y * scale.y, 1);
+            //Vector2f scaledWorldSize = new Vector2f(worldSize).mul(scale);
+            transformMatrix.translate(pos.x, pos.y, 0.0f);
+            transformMatrix.rotate(Math.toRadians(rotation), 0.0f, 0.0f, 1.0f);
+            transformMatrix.scale(worldSize.x, worldSize.y, 1.0f);
+            //transformMatrix.scale(scaledWorldSize.x, scaledWorldSize.y, 1.0f); // apply this line instead of previous break rotation
         }
 
         // Load match vertex

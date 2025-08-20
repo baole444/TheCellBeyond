@@ -16,15 +16,14 @@ A Java-based game editor with project compile ability, code auto-generation, and
 - [ ] Scripting system.
 
 ## Problems need attention:
-- Strange rendering clean up issue with Text rendering (likely due to component not being nullified.)
-- Strange blending error when rendering indicator.
+- If additional scaling from transform is applied, the rotation broke.
+- Due to lazy load there is no proper way to for hierarchy to actively update their effective transform.
 - No proper resource clearing/saving when creating a new scene due to improper name check.
 - No proper way to assign texture/sprite from a spritesheet to a SpriteRenderer component.
 
 ## Solved problems:
-- Undefined behavior related to update of transform offset value for spatial supported component and object.
-- ImEditorGui push conflicted ID due to using label as ID.
-- Rotation is calculated incorrectly for root object, rotate along 0,0 axis instead of its own axis.
+- Strange rendering clean up issue with Text rendering (likely due to component not being nullified.)
+- Strange blending error when rendering indicator.
 
 ## Additional maintenance:
 - Update ImGui to [latest release](https://github.com/SpaiR/imgui-java/releases).

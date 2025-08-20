@@ -49,7 +49,7 @@ public class Gizmo extends SpatialComponent implements IsNotSerialized {
     public Gizmo(String type, Sprite arrowSprite, Properties properties) {
         xAxisObj = createGizmoObject(type + "gizmoX", arrowSprite);
         yAxisObj = createGizmoObject(type + "gizmoY", arrowSprite);
-        xAxisObj.rotate(270);
+        xAxisObj.rotate(90);
         yAxisObj.rotate(180);
         xAxisSpr = xAxisObj.getFirstComponent(SpriteRenderer.class);
         yAxisSpr = yAxisObj.getFirstComponent(SpriteRenderer.class);
