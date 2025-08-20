@@ -38,6 +38,7 @@ public class GameObject {
 
     private boolean isSerialize = true;
     private boolean isRemoved = false;
+    private transient boolean isStarted = false;
     private transient boolean isDirty = false;
 
     private transient GameObject parent;
@@ -290,6 +291,8 @@ public class GameObject {
             namedComponents.put(c.getComponentName(), c);
         }
 
+        if (isStarted) c.start();
+
         if (!isDirty()) setDirty(true);
     }
 
@@ -320,6 +323,8 @@ public class GameObject {
     protected void additionalUpdateLogic(float dt) {}
 
     public void start() {
+        isStarted = true;
+
         for (Component component : components) {
             component.start();
         }

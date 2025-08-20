@@ -75,8 +75,8 @@ public class Gizmo extends SpatialComponent implements IsNotSerialized {
     @Override
     protected void additionalStartLogic() {
         // Give gizmo correct rotation direction.
-        this.xAxisObj.setRotation(180);
-        this.yAxisObj.setRotation(-90);
+        this.xAxisObj.rotate(90);
+        this.yAxisObj.rotate(180);
 
         // TODO: if this doesn't work, set sprite renderer's index instead
         // Push gizmo index to high value in order for the texture to be above the item.
@@ -107,7 +107,7 @@ public class Gizmo extends SpatialComponent implements IsNotSerialized {
         }
 
         updatePosition();
-        super.editorUpdate(dt);
+        handleInteraction();
     }
 
     private void updatePosition() {
@@ -118,13 +118,13 @@ public class Gizmo extends SpatialComponent implements IsNotSerialized {
             return;
         }
 
-        Vector2f targetPos = go2D.getGlobalPosition();
+        Vector2f targetPos = go2D.getPosition();
         setWorldPosition(targetPos);
 
         gizmoWorldPos.set(getWorldPosition());
 
-        this.xAxisObj.setGlobalPosition(new Vector2f(gizmoWorldPos).add(xOffset));
-        this.yAxisObj.setGlobalPosition(new Vector2f(gizmoWorldPos).add(yOffset));
+        this.xAxisObj.setPosition(new Vector2f(gizmoWorldPos).add(xOffset));
+        this.yAxisObj.setPosition(new Vector2f(gizmoWorldPos).add(yOffset));
     }
 
     private void handleInteraction() {
@@ -156,7 +156,7 @@ public class Gizmo extends SpatialComponent implements IsNotSerialized {
 
     private boolean isHoverX() {
         Vector2f cursorPos = MouseListener.getWorld();
-        Vector2f xAxisPos = this.xAxisObj.getGlobalPosition();
+        Vector2f xAxisPos = this.xAxisObj.getPosition();
         if (cursorPos.x <= xAxisPos.x + (gizHeight / 2.0f) &&
                 cursorPos.x >= xAxisPos.x - (gizWidth / 2.0f) &&
                 cursorPos.y >= xAxisPos.y - (gizHeight / 2.0f) &&
@@ -171,7 +171,7 @@ public class Gizmo extends SpatialComponent implements IsNotSerialized {
 
     private boolean isHoverY() {
         Vector2f cursorPos = MouseListener.getWorld();
-        Vector2f yAxisPos = this.yAxisObj.getGlobalPosition();
+        Vector2f yAxisPos = this.yAxisObj.getPosition();
         if (cursorPos.x <= yAxisPos.x + (gizWidth / 2.0f) &&
                 cursorPos.x >= yAxisPos.x - (gizWidth / 2.0f) &&
                 cursorPos.y <= yAxisPos.y + (gizHeight / 2.0f) &&

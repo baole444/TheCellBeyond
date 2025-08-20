@@ -20,11 +20,11 @@ public class GizmoMove extends Gizmo {
             Vector2f cursorT = MouseListener.getCursorTraverse();
 
             if (xActiveDrag && !yActiveDrag) {
-                Vector2f current = go2D.getGlobalPosition();
-                go2D.setGlobalPosition(new Vector2f(current.x - cursorT.x, current.y));
+                Vector2f current = go2D.getPosition();
+                go2D.translate(new Vector2f(- cursorT.x, 0));
             } else if (yActiveDrag) {
-                Vector2f current = go2D.getGlobalPosition();
-                go2D.setGlobalPosition(new Vector2f(current.x, current.y  - cursorT.y));
+                Vector2f current = go2D.getPosition();
+                go2D.translate(new Vector2f(0, - cursorT.y));
             }
         }
 

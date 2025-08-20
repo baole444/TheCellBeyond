@@ -36,7 +36,7 @@ public class KeyCtrl extends Component {
             Window.getScene().queueForObjectAddition(newObj);
 
             if (newObj instanceof GameObject2D go2D) {
-                Vector2f currentPos = go2D.getPosition();
+                Vector2f currentPos = go2D.getOffsetPosition();
                 currentPos.add(Settings.GRID_WIDTH / 2.0f, Settings.GRID_HEIGHT / 2.0f);
             }
 

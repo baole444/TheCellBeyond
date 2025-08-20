@@ -35,7 +35,7 @@ public abstract class SpatialComponent extends Component implements Transformati
 
     @Override
     public Vector2f getWorldPosition() {
-        if (gameObject instanceof GameObject2D go2D) return go2D.getGlobalPosition();
+        if (gameObject instanceof GameObject2D go2D) return go2D.getPosition();
 
         return new Vector2f(localTransform.position);
     }
@@ -113,7 +113,7 @@ public abstract class SpatialComponent extends Component implements Transformati
 
     public void setWorldPosition(Vector2f worldPosition) {
         if (gameObject instanceof GameObject2D go2D) {
-            Vector2f goPosition = go2D.getGlobalPosition();
+            Vector2f goPosition = go2D.getPosition();
             localTransform.position.set(worldPosition).sub(goPosition);
         } else {
             localTransform.position.set(worldPosition);
@@ -124,7 +124,7 @@ public abstract class SpatialComponent extends Component implements Transformati
 
     public void setWorldScale(Vector2f worldScale) {
         if (gameObject instanceof GameObject2D go2D) {
-            Vector2f goScale = go2D.getGlobalScale();
+            Vector2f goScale = go2D.getScale();
 
             if (goScale.x != 0 && goScale.y != 0) {
                 localTransform.scale.set(worldScale).div(goScale);
@@ -140,7 +140,7 @@ public abstract class SpatialComponent extends Component implements Transformati
 
     public void setWorldRotation(float worldRotation) {
         if (gameObject instanceof GameObject2D go2D) {
-            float goRotation = go2D.getGlobalRotation();
+            float goRotation = go2D.getRotation();
             localTransform.rotation = worldRotation - goRotation;
         } else {
             localTransform.rotation = worldRotation;

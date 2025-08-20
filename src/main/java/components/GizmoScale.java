@@ -20,7 +20,7 @@ public class GizmoScale extends Gizmo{
     public void editorUpdate(float dt) {
         if (activeGameObj != null && activeGameObj instanceof GameObject2D go2D) {
             Vector2f cursorT = MouseListener.getCursorTraverse();
-            Vector2f currentScale = go2D.getScale();
+            Vector2f currentScale = go2D.getOffsetScale();
 
             if (xActiveDrag && !yActiveDrag) {
                 float scaleX = currentScale.x - (cursorT.x * scaleStep);

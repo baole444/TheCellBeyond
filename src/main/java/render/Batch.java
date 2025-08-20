@@ -142,16 +142,12 @@ public class Batch implements Comparable<Batch> {
         for (int i = 0; i < countSprite; i++) {
             SpriteRenderer spr = sprites[i];
             if (spr.isSpriteDirty()) {
-                if (spr.getTextureCoordinates() == null) {
-                    rebufferData = true;
-                    continue;
-                }
                 genVertexProperties(i);
                 spr.setSpriteDirty(false);
                 rebufferData = true;
             }
 
-            if(spr.getzIndex() != this.zIndex) {
+            if (spr.getzIndex() != this.zIndex) {
                 removeIfExist(spr.gameObject);
                 renderer.queueObjectForUpdate(spr.gameObject);
                 i--;
@@ -228,17 +224,14 @@ public class Batch implements Comparable<Batch> {
 
         Vector2f worldSize = spriteRenderer.getSpriteSizeAsWorldUnit();
         Vector2f pos = spriteRenderer.getPosition();
-        Vector2f scale = spriteRenderer.getScale();
         float rotation = spriteRenderer.getRotation();
         boolean isRotated = rotation != 0.0f;
-        boolean isScaled = !scale.equals(new Vector2f(1.0f, 1.0f));
 
         Matrix4f transformMatrix = new Matrix4f().identity();
-        if (isRotated || isScaled) {
+        if (isRotated) {
             transformMatrix.translate(pos.x, pos.y, 0);
             transformMatrix.rotate(Math.toRadians(rotation), 0, 0, 1);
             transformMatrix.scale(worldSize.x, worldSize.y, 1);
-            transformMatrix.scale(scale.x, scale.y, 1);
         }
 
         // Load match vertex
@@ -256,7 +249,7 @@ public class Batch implements Comparable<Batch> {
                     pos.y + (yAdd * worldSize.y),
                     0, 1
             );
-            if (isRotated || isScaled) {
+            if (isRotated) {
                 instPos = new Vector4f(xAdd, yAdd, 0, 1).mul(transformMatrix);
             }
 

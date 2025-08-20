@@ -25,11 +25,11 @@ public class GameObject2D extends GameObject {
         this.globalTransform = new Transform();
     }
 
-    public Vector2f getPosition() {
+    public Vector2f getOffsetPosition() {
         return localTransform.position;
     }
 
-    public Vector2f getGlobalPosition() {
+    public Vector2f getPosition() {
         updateGlobalTransform();
         return globalTransform.position;
     }
@@ -57,11 +57,11 @@ public class GameObject2D extends GameObject {
         setTransformDirty();
     }
 
-    public float getRotation() {
+    public float getOffsetRotation() {
         return localTransform.rotation;
     }
 
-    public float getGlobalRotation() {
+    public float getRotation() {
         updateGlobalTransform();
         return globalTransform.rotation;
     }
@@ -71,11 +71,11 @@ public class GameObject2D extends GameObject {
         setTransformDirty();
     }
 
-    public Vector2f getScale() {
+    public Vector2f getOffsetScale() {
         return localTransform.scale;
     }
 
-    public Vector2f getGlobalScale() {
+    public Vector2f getScale() {
         updateGlobalTransform();
         return globalTransform.scale;
     }
