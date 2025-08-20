@@ -47,6 +47,7 @@ public abstract class SpatialComponent extends Component implements Transformati
         localTransform.imgui();
         if (!editing.equals(localTransform)) {
             setTransformDirty();
+            //System.out.println("Updating transform... Offset: " + localTransform.position);
         }
     }
 

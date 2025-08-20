@@ -75,8 +75,8 @@ public class Gizmo extends SpatialComponent implements IsNotSerialized {
     @Override
     protected void additionalStartLogic() {
         // Give gizmo correct rotation direction.
-        this.xAxisObj.setRotation(90);
-        this.yAxisObj.setRotation(180);
+        this.xAxisObj.setRotation(180);
+        this.yAxisObj.setRotation(-90);
 
         // TODO: if this doesn't work, set sprite renderer's index instead
         // Push gizmo index to high value in order for the texture to be above the item.
@@ -107,6 +107,7 @@ public class Gizmo extends SpatialComponent implements IsNotSerialized {
         }
 
         updatePosition();
+        super.editorUpdate(dt);
     }
 
     private void updatePosition() {

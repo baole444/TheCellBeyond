@@ -78,7 +78,7 @@ public class Indicator extends SpriteRenderer implements IsNotSerialized {
     // Override update method to do nothing.
     @Override
     public void update(float dt) {}
-    
+
     // It shouldn't also be edited in the properties windows too.
     // Override imgui to do nothing to prevent this
     @Override

@@ -110,7 +110,7 @@ public class TextBatch implements Comparable<TextBatch> {
 
         boolean requireRegroup = false;
         for (TextRenderer component : textRenderers) {
-            if (component.isDirty()) {
+            if (component.isTextDirty()) {
                 component.clearDirty();
                 requireRegroup = true;
             }
@@ -206,7 +206,7 @@ public class TextBatch implements Comparable<TextBatch> {
             String text = textRenderer.getText();
             if (text.isEmpty()) continue;
 
-            Vector2f positon = textRenderer.getWorldPosition();
+            Vector2f positon = textRenderer.getPosition();
             Vector4f color;
             if (RendererState.get().getCurrentPass() == RendererState.RenderPass.SELECTION) {
                 color = new Vector4f(1.0f, 1.0f, 1.0f, 1.0f);
@@ -262,75 +262,27 @@ public class TextBatch implements Comparable<TextBatch> {
                 float texX1 = charInfo.x1() / (float) font.getBitmapWidth();
                 float texY1 = charInfo.y1() / (float) font.getBitmapHeight();
 
-                //<editor-fold defaultstate="collapsed" desc="Add vertices to 2 tris">
-                // First triangle
-                // Vertex 1 (bottom-left)
-                vertices[vertexOffset++] = charX;
-                vertices[vertexOffset++] = charY;
-                vertices[vertexOffset++] = color.x;
-                vertices[vertexOffset++] = color.y;
-                vertices[vertexOffset++] = color.z;
-                vertices[vertexOffset++] = color.w;
-                vertices[vertexOffset++] = texX0;
-                vertices[vertexOffset++] = texY1;
-                vertices[vertexOffset++] = objectId;
+                float[][] verticesData = {
+                        {charX,             charY,          texX0, texY1},
+                        {charX,             charY + height, texX0, texY0},
+                        {charX + width,     charY,          texX1, texY1},
+                        {charX + width,     charY + height, texX1, texY0}
+                };
 
-                // Vertex 2 (top-left)
-                vertices[vertexOffset++] = charX;
-                vertices[vertexOffset++] = charY + height;
-                vertices[vertexOffset++] = color.x;
-                vertices[vertexOffset++] = color.y;
-                vertices[vertexOffset++] = color.z;
-                vertices[vertexOffset++] = color.w;
-                vertices[vertexOffset++] = texX0;
-                vertices[vertexOffset++] = texY0;
-                vertices[vertexOffset++] = objectId;
+                int[] indices = {0, 1, 2, 1, 3, 2};
 
-                // Vertex 3 (bottom-right)
-                vertices[vertexOffset++] = charX + width;
-                vertices[vertexOffset++] = charY;
-                vertices[vertexOffset++] = color.x;
-                vertices[vertexOffset++] = color.y;
-                vertices[vertexOffset++] = color.z;
-                vertices[vertexOffset++] = color.w;
-                vertices[vertexOffset++] = texX1;
-                vertices[vertexOffset++] = texY1;
-                vertices[vertexOffset++] = objectId;
-
-                // Second triangle
-                // Vertex 4 (top-left)
-                vertices[vertexOffset++] = charX;
-                vertices[vertexOffset++] = charY + height;
-                vertices[vertexOffset++] = color.x;
-                vertices[vertexOffset++] = color.y;
-                vertices[vertexOffset++] = color.z;
-                vertices[vertexOffset++] = color.w;
-                vertices[vertexOffset++] = texX0;
-                vertices[vertexOffset++] = texY0;
-                vertices[vertexOffset++] = objectId;
-
-                // Vertex 5 (top-right)
-                vertices[vertexOffset++] = charX + width;
-                vertices[vertexOffset++] = charY + height;
-                vertices[vertexOffset++] = color.x;
-                vertices[vertexOffset++] = color.y;
-                vertices[vertexOffset++] = color.z;
-                vertices[vertexOffset++] = color.w;
-                vertices[vertexOffset++] = texX1;
-                vertices[vertexOffset++] = texY0;
-                vertices[vertexOffset++] = objectId;
-
-                // Vertex 6 (bottom-right)
-                vertices[vertexOffset++] = charX + width;
-                vertices[vertexOffset++] = charY;
-                vertices[vertexOffset++] = color.x;
-                vertices[vertexOffset++] = color.y;
-                vertices[vertexOffset++] = color.z;
-                vertices[vertexOffset++] = color.w;
-                vertices[vertexOffset++] = texX1;
-                vertices[vertexOffset++] = texY1;
-                vertices[vertexOffset++] = objectId;
-                //</editor-fold>
+                for (int index : indices) {
+                    float[] vertexData = verticesData[index];
+                    vertices[vertexOffset++] = vertexData[0];
+                    vertices[vertexOffset++] = vertexData[1];
+                    vertices[vertexOffset++] = color.x;
+                    vertices[vertexOffset++] = color.y;
+                    vertices[vertexOffset++] = color.z;
+                    vertices[vertexOffset++] = color.w;
+                    vertices[vertexOffset++] = vertexData[2];
+                    vertices[vertexOffset++] = vertexData[3];
+                    vertices[vertexOffset++] = objectId;
+                }
 
                 // advance cursor position
                 x += WorldUnit.pixelToWorld(charInfo.advance());

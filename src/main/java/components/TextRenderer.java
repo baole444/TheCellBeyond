@@ -17,7 +17,7 @@ public class TextRenderer extends SpatialComponent implements FontStatusCallback
     private AssetReference assetReference;
     private float point;
     private final Vector4f color;
-    private boolean isDirty = true;
+    private boolean isTextDirty = true;
     private String glyphRangeName = "ASCII";
 
     private transient TCBFont font;
@@ -83,7 +83,7 @@ public class TextRenderer extends SpatialComponent implements FontStatusCallback
             this.font = loadedFont;
             this.pendingRequest = false;
             calculateTextDimensions();
-            this.isDirty = true;
+            this.isTextDirty = true;
         }
     }
 
@@ -142,6 +142,11 @@ public class TextRenderer extends SpatialComponent implements FontStatusCallback
     }
 
     @Override
+    protected void additionalDirtyFlagLogic() {
+        if (!isTextDirty()) isTextDirty = true;
+    }
+
+    @Override
     protected void additionalImGuiLogic() {
         String textInput = ImEditorGui.inputTextWithIME("Text", text, 1024, this);
         setText(textInput);
@@ -178,14 +183,14 @@ public class TextRenderer extends SpatialComponent implements FontStatusCallback
         }
 
         if (ImEditorGui.colorCtrl("Color", color, this)) {
-            this.isDirty = true;
+            this.isTextDirty = true;
         }
 
         if (ImGui.beginCombo("Horizontal Alignment", hAlign.toString())) {
             for (HorizontalAlignment align : HorizontalAlignment.values()) {
                 if (ImGui.selectable(align.toString(), align == hAlign)) {
                     hAlign = align;
-                    this.isDirty = true;
+                    this.isTextDirty = true;
                 }
             }
 
@@ -196,7 +201,7 @@ public class TextRenderer extends SpatialComponent implements FontStatusCallback
             for (VerticalAlignment align : VerticalAlignment.values()) {
                 if (ImGui.selectable(align.toString(), align == vAlign)) {
                     vAlign = align;
-                    this.isDirty = true;
+                    this.isTextDirty = true;
                 }
             }
 
@@ -211,7 +216,7 @@ public class TextRenderer extends SpatialComponent implements FontStatusCallback
     public void setText(String text) {
         if (!this.text.equals(text)) {
             this.text = text;
-            this.isDirty = true;
+            this.isTextDirty = true;
             calculateTextDimensions();
         }
     }
@@ -235,7 +240,7 @@ public class TextRenderer extends SpatialComponent implements FontStatusCallback
     public void setColor(Vector4f color) {
         if (!this.color.equals(color)) {
             this.color.set(color);
-            this.isDirty = true;
+            this.isTextDirty = true;
         }
     }
 
@@ -258,12 +263,12 @@ public class TextRenderer extends SpatialComponent implements FontStatusCallback
         }
     }
 
-    public boolean isDirty() {
-        return isDirty;
+    public boolean isTextDirty() {
+        return isTextDirty;
     }
 
     public void clearDirty() {
-        this.isDirty = false;
+        this.isTextDirty = false;
     }
 
     public Vector2f getTextDimensions() {
@@ -277,7 +282,7 @@ public class TextRenderer extends SpatialComponent implements FontStatusCallback
     public void setHorizontalAlignment(HorizontalAlignment hAlign) {
         if (this.hAlign != hAlign) {
             this.hAlign = hAlign;
-            this.isDirty = true;
+            this.isTextDirty = true;
         }
     }
 
@@ -288,7 +293,7 @@ public class TextRenderer extends SpatialComponent implements FontStatusCallback
     public void setVerticalAlignment(VerticalAlignment vAlign) {
         if (this.vAlign != vAlign) {
             this.vAlign = vAlign;
-            this.isDirty = true;
+            this.isTextDirty = true;
         }
     }
 
@@ -305,7 +310,7 @@ public class TextRenderer extends SpatialComponent implements FontStatusCallback
             this.glyphRangeName = glyphRange.name();
             this.pendingRequest = false;
             requestLoadFont();
-            this.isDirty = true;
+            this.isTextDirty = true;
         }
     }
 }
