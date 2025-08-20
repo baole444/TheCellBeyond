@@ -47,18 +47,22 @@ public class Gizmo extends SpatialComponent implements IsNotSerialized {
     // Mark Gizmo arrow is not a selectable object.
     // Push gizmo to the scene.
     public Gizmo(Sprite arrowSprite, Properties properties) {
-        this.xAxisObj = createGizmoObject("gizmoX", arrowSprite);
-        this.yAxisObj = createGizmoObject("gizmoY", arrowSprite);
-        this.xAxisSpr = xAxisObj.getFirstComponent(SpriteRenderer.class);
-        this.yAxisSpr = yAxisObj.getFirstComponent(SpriteRenderer.class);
+        xAxisObj = createGizmoObject("gizmoX", arrowSprite);
+        yAxisObj = createGizmoObject("gizmoY", arrowSprite);
+        xAxisObj.rotate(90);
+        yAxisObj.rotate(180);
+        xAxisSpr = xAxisObj.getFirstComponent(SpriteRenderer.class);
+        yAxisSpr = yAxisObj.getFirstComponent(SpriteRenderer.class);
         this.properties = properties;
 
-        Window.getScene().queueForObjectAddition(this.xAxisObj);
-        Window.getScene().queueForObjectAddition(this.yAxisObj);
+        Window.getScene().queueForObjectAddition(xAxisObj);
+        Window.getScene().queueForObjectAddition(yAxisObj);
     }
 
     private GameObject2D createGizmoObject(String name, Sprite sprite) {
         GameObject2D go2D = new GameObject2D(name);
+
+        go2D.setzIndex(100);
 
         // Make gizmo not store to level save file.
         go2D.setNotSerialize();
@@ -70,18 +74,6 @@ public class Gizmo extends SpatialComponent implements IsNotSerialized {
 
         go2D.addComponent(renderer);
         return go2D;
-    }
-
-    @Override
-    protected void additionalStartLogic() {
-        // Give gizmo correct rotation direction.
-        this.xAxisObj.rotate(90);
-        this.yAxisObj.rotate(180);
-
-        // TODO: if this doesn't work, set sprite renderer's index instead
-        // Push gizmo index to high value in order for the texture to be above the item.
-        this.xAxisObj.setzIndex(100);
-        this.yAxisObj.setzIndex(100);
     }
 
     @Override

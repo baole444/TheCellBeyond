@@ -57,7 +57,7 @@ public class Transform extends Component {
     @Override
     public void imgui() {
         ImEditorGui.drawVec2Ctrl("Position", this.position, 0.0f, this);
-        ImEditorGui.drawVec2Ctrl("Scale", this.scale, 1.0f, this);
+        ImEditorGui.drawVec2Ctrl("Scale", this.scale, 100.0f, this);
         this.rotation = ImEditorGui.dragFloatCtrl("Rotation", this.rotation, this);
         this.zIndex = ImEditorGui.dragIntCtrl("Z-Index", this.zIndex, this);
     }

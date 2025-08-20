@@ -3,6 +3,7 @@ package render;
 import TheCellBeyond.GameObject;
 import components.Component;
 import components.SpriteRenderer;
+import editor.Indicator;
 import org.joml.Math;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
@@ -129,7 +130,7 @@ public class Batch implements Comparable<Batch> {
         }
 
         // Add property to the vertex array
-        genVertexProperties(index);
+        genVertexProperties(vertices, index);
 
         if (countSprite >= this.maxBatchSize) {
             this.hasSpace = false;
@@ -137,25 +138,37 @@ public class Batch implements Comparable<Batch> {
     }
 
     public void render() {
-        boolean rebufferData = false;
-
         for (int i = 0; i < countSprite; i++) {
             SpriteRenderer spr = sprites[i];
-            if (spr.isSpriteDirty()) {
-                genVertexProperties(i);
-                spr.setSpriteDirty(false);
-                rebufferData = true;
-            }
-
             if (spr.getzIndex() != this.zIndex) {
                 removeIfExist(spr.gameObject);
                 renderer.queueObjectForUpdate(spr.gameObject);
                 i--;
             }
         }
-        if (rebufferData) {
+
+        List<Integer> dirtyIndex = new ArrayList<>();
+        for (int i = 0; i < countSprite; i++) {
+            SpriteRenderer spr = sprites[i];
+            if (spr.isSpriteDirty()) {
+                if (spr.getTextureCoordinates() == null) continue;
+                dirtyIndex.add(i);
+                spr.setSpriteDirty(false);
+            }
+        }
+
+        if (!dirtyIndex.isEmpty()) {
+            float[] newVertices = new float[vertices.length];
+            System.arraycopy(vertices, 0, newVertices, 0, vertices.length);
+
+            for (int i : dirtyIndex) {
+                genVertexProperties(newVertices, i);
+            }
+
             glBindBuffer(GL_ARRAY_BUFFER, vboID);
-            glBufferSubData(GL_ARRAY_BUFFER, 0, vertices);
+            glBufferSubData(GL_ARRAY_BUFFER, 0, newVertices);
+
+            System.arraycopy(newVertices, 0 , vertices, 0, vertices.length);
         }
 
         // Shader
@@ -200,7 +213,7 @@ public class Batch implements Comparable<Batch> {
         shader.detach();
     }
 
-    private void genVertexProperties(int index) {
+    private void genVertexProperties(float[] target, int index) {
         SpriteRenderer spriteRenderer = sprites[index];
 
         // Set offset in the array (4/spt)
@@ -224,14 +237,16 @@ public class Batch implements Comparable<Batch> {
 
         Vector2f worldSize = spriteRenderer.getSpriteSizeAsWorldUnit();
         Vector2f pos = spriteRenderer.getPosition();
+        Vector2f scale = spriteRenderer.getScale();
         float rotation = spriteRenderer.getRotation();
-        boolean isRotated = rotation != 0.0f;
+        boolean isTransformed = rotation != 0.0f || !scale.equals(new Vector2f(1.0f, 1.0f));
+        boolean isIndicator = spriteRenderer instanceof Indicator;
 
         Matrix4f transformMatrix = new Matrix4f().identity();
-        if (isRotated) {
+        if (!isIndicator && isTransformed) {
             transformMatrix.translate(pos.x, pos.y, 0);
             transformMatrix.rotate(Math.toRadians(rotation), 0, 0, 1);
-            transformMatrix.scale(worldSize.x, worldSize.y, 1);
+            transformMatrix.scale(worldSize.x * scale.x, worldSize.y * scale.y, 1);
         }
 
         // Load match vertex
@@ -249,29 +264,29 @@ public class Batch implements Comparable<Batch> {
                     pos.y + (yAdd * worldSize.y),
                     0, 1
             );
-            if (isRotated) {
+            if (!isIndicator && isTransformed) {
                 instPos = new Vector4f(xAdd, yAdd, 0, 1).mul(transformMatrix);
             }
 
             // Load position
-            vertices[offset] = instPos.x;
-            vertices[offset + 1] = instPos.y;
+            target[offset] = instPos.x;
+            target[offset + 1] = instPos.y;
 
             // Load color
-            vertices[offset + 2] = color.x;
-            vertices[offset + 3] = color.y;
-            vertices[offset + 4] = color.z;
-            vertices[offset + 5] = color.w;
+            target[offset + 2] = color.x;
+            target[offset + 3] = color.y;
+            target[offset + 4] = color.z;
+            target[offset + 5] = color.w;
 
             // Load coordinate
-            vertices[offset + 6] = textureCoordinates[i].x;
-            vertices[offset + 7] = textureCoordinates[i].y;
+            target[offset + 6] = textureCoordinates[i].x;
+            target[offset + 7] = textureCoordinates[i].y;
 
             // Load id
-            vertices[offset + 8] = ID;
+            target[offset + 8] = ID;
 
             // Load obj Id
-            vertices[offset + 9] = spriteRenderer.gameObject.getUID();
+            target[offset + 9] = spriteRenderer.gameObject.getUID();
 
             offset += VERTEX_SIZE;
         }
