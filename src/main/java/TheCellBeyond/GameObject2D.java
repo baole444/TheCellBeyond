@@ -14,6 +14,7 @@ public class GameObject2D extends GameObject {
 
     private transient boolean isTransformDirty = true;
     private transient boolean isTransformUpdating = false;
+    private transient boolean isNotifyingComponent = false;
 
     private transient final Matrix3x2f localMatrix = new Matrix3x2f();
     private transient final Matrix3x2f globalMatrix = new Matrix3x2f();
@@ -168,7 +169,8 @@ public class GameObject2D extends GameObject {
 
             float scaleX = (float) Math.sqrt(globalMatrix.m00() * globalMatrix.m00()
                     + globalMatrix.m01() * globalMatrix.m01());
-            float scaleY = (float) Math.sqrt(globalMatrix.m10() * globalMatrix.m11()
+            // Many thanks to "Whiteaxe" for finding the bug here: "globalMatrix.m10() * globalMatrix.m11()" <- supposed to be "m10()"
+            float scaleY = (float) Math.sqrt(globalMatrix.m10() * globalMatrix.m10()
                     + globalMatrix.m11() * globalMatrix.m11());
 
             globalTransform.scale.set(scaleX, scaleY);
@@ -183,11 +185,19 @@ public class GameObject2D extends GameObject {
 
     // Inform spatial components that its effective transform is dirty
     private void updateSpatialComponents() {
-        List<SpatialComponent> components = getComponents(SpatialComponent.class);
+        if (isNotifyingComponent) return;
 
-        for (SpatialComponent c : components) {
-            c.setTransformDirty();
+        isNotifyingComponent = true;
+        try {
+            List<SpatialComponent> components = getComponents(SpatialComponent.class);
+
+            for (SpatialComponent c : components) {
+                c.setTransformDirty();
+            }
+        } finally {
+            isNotifyingComponent = false;
         }
+
     }
 
     public Matrix3x2f getLocalMatrix() {
@@ -205,7 +215,11 @@ public class GameObject2D extends GameObject {
     }
 
     private void setTransformDirty() {
-        if (!isTransformDirty) isTransformDirty = true;
+        if (!isTransformDirty) {
+            isTransformDirty = true;
+
+            if (!isNotifyingComponent) updateSpatialComponents();
+        }
 
         for (GameObject child : getChildren()) {
             if (child instanceof GameObject2D child2D) {

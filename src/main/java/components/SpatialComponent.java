@@ -45,14 +45,10 @@ public abstract class SpatialComponent extends Component implements Transformati
         super.imgui();
         Transform editing = new Transform(localTransform);
         localTransform.imgui();
-        if (!editing.equals(localTransform)) {
-            setTransformDirty();
-            //System.out.println("Updating transform... Offset: " + localTransform.position);
-        }
+        if (!editing.equals(localTransform)) setTransformDirty();
     }
 
     // Get effective (final) transform
-
     public Vector2f getPosition() {
         return new Vector2f(getEffectiveTransform().position);
     }
@@ -162,7 +158,10 @@ public abstract class SpatialComponent extends Component implements Transformati
         if (effectiveTransform == null) effectiveTransform = new Transform();
 
         if (gameObject instanceof GameObject2D go2D) {
-            if (go2D.isTransformUpdating()) return;
+            if (go2D.isTransformUpdating()
+                    && effectiveTransform != null
+                    && !isTransformDirty
+            ) return;
 
             Transform goTransform = go2D.getGlobalTransform();
             effectiveTransform.copyFrom(goTransform);
