@@ -1,10 +1,12 @@
 package render.texture;
 
+import utility.IdPool;
+
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class TextureHandle {
-    private static final AtomicInteger HANDLE_COUNTER = new AtomicInteger(1);
+    private static final IdPool ID_POOL = new IdPool(1, false);
 
     public enum Status {
         WAITING,
@@ -22,11 +24,11 @@ public class TextureHandle {
     private volatile String errorMsg;
 
     public TextureHandle() {
-        this.handleId = HANDLE_COUNTER.getAndIncrement();
-        this.status = new AtomicReference<>(Status.WAITING);
-        this.textureId = new AtomicInteger(-1);
-        this.width = new AtomicInteger(-1);
-        this.height = new AtomicInteger(-1);
+        handleId = ID_POOL.newId();
+        status = new AtomicReference<>(Status.WAITING);
+        textureId = new AtomicInteger(-1);
+        width = new AtomicInteger(-1);
+        height = new AtomicInteger(-1);
     }
 
     public int getHandleId() {
@@ -72,7 +74,7 @@ public class TextureHandle {
     }
 
     protected void setTextureId(int id) {
-        this.textureId.set(id);
+        textureId.set(id);
     }
 
     protected void setSize(int width, int height) {
@@ -81,8 +83,12 @@ public class TextureHandle {
     }
 
     protected void setError(String message) {
-        this.errorMsg = message;
-        this.status.set(Status.FAILED);
+        errorMsg = message;
+        status.set(Status.FAILED);
+    }
+
+    protected void releaseId() {
+        ID_POOL.releaseId(handleId);
     }
 
     @Override

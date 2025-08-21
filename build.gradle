@@ -50,7 +50,7 @@ dependencies {
     runtimeOnly "org.lwjgl:lwjgl-stb::$lwjglNatives"
     implementation "org.joml:joml:${joml_version}"
     implementation "com.code-disaster.steamworks4j:steamworks4j:${steamworks4j_version}"
-    implementation "org.yaml:snakeyaml:$snakeYaml_version"
+    implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:$jacksonYaml_version"
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.2'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.2'

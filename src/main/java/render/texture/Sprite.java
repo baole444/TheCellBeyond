@@ -18,19 +18,19 @@ public class Sprite {
         };
 
     public Texture getTexture() {
-        return this.texture;
+        return texture;
     }
 
     public Vector2f[] getTextureCoordinates() {
-        return this.textureCoordinates;
+        return textureCoordinates;
     }
 
     public void setTexture(Texture tex) {
-        this.texture = tex;
+        texture = tex;
     }
 
     public void setTextureCoordinates(Vector2f[] texCrd) {
-        this.textureCoordinates = texCrd;
+        textureCoordinates = texCrd;
     }
 
     public float getWidth() {

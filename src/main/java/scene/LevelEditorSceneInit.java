@@ -50,16 +50,16 @@ public class LevelEditorSceneInit extends SceneInit {
     @Override
     public void init(Scene scene) {
         if (sceneName != null && CurrentProject != null) {
-            thisScene = CurrentProject.getScenes().get(sceneName);
+            thisScene = CurrentProject.scenes().get(sceneName);
 
-            sheetKeyList = thisScene.getSheet();
-            assetKeyList = thisScene.getAsset();
+            sheetKeyList = thisScene.sheet();
+            assetKeyList = thisScene.asset();
 
             for (String sheet : sheetKeyList) {
-                ProjectSheetMap sM = CurrentProject.getSheets().get(sheet);
+                ProjectSheetMap sM = CurrentProject.sheets().get(sheet);
 
-                String category = sM.getCategory();
-                String path = PathResolver.resolveToAbsolute(ProjectRoot, sM.getPath());
+                String category = sM.category();
+                String path = PathResolver.resolveToAbsolute(ProjectRoot, sM.path());
 
                 SpriteSheet spriteSheet = AssetsPool.loadSpriteSheet(path);
 
@@ -69,8 +69,8 @@ public class LevelEditorSceneInit extends SceneInit {
             }
 
             for (String asset : assetKeyList) {
-                ProjectAssetMap aM = CurrentProject.getAssets().get(asset);
-                String path = PathResolver.resolveToAbsolute(ProjectRoot, aM.getPath());
+                ProjectAssetMap aM = CurrentProject.assets().get(asset);
+                String path = PathResolver.resolveToAbsolute(ProjectRoot, aM.path());
 
                 assetList.add(AssetsPool.loadSpriteSheet(path));
             }
@@ -90,36 +90,37 @@ public class LevelEditorSceneInit extends SceneInit {
         scene.queueForObjectAddition(levelEditorObject);
     }
 
-
     @Override
     public void loadResource(Scene scene) {
         AssetsPool.loadShader(Settings.PATH.DEFAULT_TEXTURE_SHADER);
 
         if (sceneName != null && CurrentProject != null) {
-            thisScene = CurrentProject.getScenes().get(sceneName);
+            thisScene = CurrentProject.scenes().get(sceneName);
 
-            sheetKeyList = thisScene.getSheet();
-            assetKeyList = thisScene.getAsset();
+            sheetKeyList = thisScene.sheet();
+            assetKeyList = thisScene.asset();
 
             for (String sheet : sheetKeyList) {
-                ProjectSheetMap sM = CurrentProject.getSheets().get(sheet);
+                ProjectSheetMap sM = CurrentProject.sheets().get(sheet);
 
-                String projectPath = "project://" + sM.getPath();
+                String projectPath = "project://" + sM.path();
 
                 AssetsPool.addSpriteSheet(projectPath,
                         new SpriteSheet(AssetsPool.loadTexture(projectPath),
-                                sM.getSizeX(), sM.getSizeY(), sM.getCount(), sM.getPadding())
+                                sM.spriteSizeX(), sM.spriteSizeY(), sM.numberOfSprite(),
+                                sM.spriteSpacingX(), sM.spriteSpacingY(),
+                                sM.spriteStartPosX(), sM.spriteStartPosY())
                 );
             }
 
             for (String asset : assetKeyList) {
-                ProjectAssetMap aM = CurrentProject.getAssets().get(asset);
+                ProjectAssetMap aM = CurrentProject.assets().get(asset);
 
-                String projectPath = "project://" + aM.getPath();
+                String projectPath = "project://" + aM.path();
 
                 AssetsPool.addSpriteSheet(projectPath,
                         new SpriteSheet(AssetsPool.loadTexture(projectPath),
-                                aM.getSizeX(), aM.getSizeY(), 1, 0)
+                                aM.sizeX(), aM.sizeY(), 1, 0)
                 );
             }
 
@@ -129,11 +130,6 @@ public class LevelEditorSceneInit extends SceneInit {
                 new SpriteSheet(AssetsPool.loadTexture("engine://assets/textures/Gizmo.png"),
                          16, 48, 3, 0)
         );
-
-        // Temporary
-        AssetsPool.addSpriteSheet("engine://assets/textures/animation_test.png",
-                new SpriteSheet(AssetsPool.loadTexture("engine://assets/textures/animation_test.png"),
-                        32, 32, 8, 16));
 
         // Only generate if not existed
         for (GameObject obj : scene.getGameObjects().values()) {

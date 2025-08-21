@@ -336,7 +336,7 @@ public class Scene {
         String currentSceneName = Window.getCurrentSceneName();
         String resolvedPath;
         if (currentSceneName != null) {
-            resolvedPath = PathResolver.resolveToAbsolute(ProjectRoot, CurrentProject.getScenes().get(currentSceneName).getPath());
+            resolvedPath = PathResolver.resolveToAbsolute(ProjectRoot, CurrentProject.scenes().get(currentSceneName).path());
         } else {
             resolvedPath = "untitled.cell";
         }
@@ -385,7 +385,7 @@ public class Scene {
         String currentSceneName = Window.getCurrentSceneName();
         String resolvedPath;
         if (currentSceneName != null) {
-            resolvedPath = PathResolver.resolveToAbsolute(ProjectRoot, CurrentProject.getScenes().get(currentSceneName).getPath());
+            resolvedPath = PathResolver.resolveToAbsolute(ProjectRoot, CurrentProject.scenes().get(currentSceneName).path());
         } else {
             resolvedPath = "untitled.cell";
         }

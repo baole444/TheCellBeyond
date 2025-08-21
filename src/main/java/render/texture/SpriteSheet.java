@@ -1,6 +1,7 @@
 package render.texture;
 
 import org.joml.Vector2f;
+import org.joml.Vector2i;
 import render.Texture;
 
 import java.util.ArrayList;
@@ -11,59 +12,96 @@ import java.util.List;
  * Handle the separation of the sheet into individual sprites and indexing them.
  */
 public class SpriteSheet implements TextureStatusListener {
-    private final Texture texture;
+    private Texture texture;
     private final List<Sprite> sprites;
+
     private transient boolean requireCompute = false;
-    private final transient int spsWidth, spsHeight, countSprite, spacing;
+    private transient boolean isRegistered = false;
+    private transient int lastHandleId = -1;
 
-    public SpriteSheet(Texture texture, int spsWidth, int spsHeight, int countSprite, int spacing) {
-        this.sprites = new ArrayList<>();
+    private final transient int numberOfSprites;
+    private final transient Vector2i spriteSize, startPosition, spriteSpacing;
 
+    public SpriteSheet(Texture texture, int spriteWidth, int spriteHeight, int numberOfSprites, int spriteSpacing) {
+        this(texture, new Vector2i(spriteWidth, spriteHeight), numberOfSprites,
+                new Vector2i(spriteSpacing), new Vector2i()
+        );
+    }
+
+    public SpriteSheet(Texture texture, int spriteWidth, int spriteHeight, int numberOfSprites,
+                       int horizontalSpriteSpacing, int verticalSpriteSpacing,
+                       int startPosX, int startPosY
+    ) {
+        this(texture, new Vector2i(spriteWidth, spriteHeight), numberOfSprites,
+                new Vector2i(horizontalSpriteSpacing, verticalSpriteSpacing),
+                new Vector2i(startPosX, startPosY)
+        );
+    }
+
+    public SpriteSheet(Texture texture, Vector2i spriteSize, int numberOfSprites, Vector2i spriteSpacing, Vector2i startPosition) {
+        sprites = new ArrayList<>();
         this.texture = texture;
+        this.spriteSize = new Vector2i(spriteSize);
+        this.numberOfSprites = numberOfSprites;
+        this.spriteSpacing = new Vector2i(spriteSpacing);
+        this.startPosition = new Vector2i(startPosition);
 
-        this.spsWidth = spsWidth;
-        this.spsHeight = spsHeight;
-        this.countSprite = countSprite;
-        this.spacing = spacing;
+        textureReadyCheck(texture);
+    }
 
-        if (!texture.isReady()) {
-            TextureStatusCallback.register(this);
-            requireCompute = true;
-            return;
+    private void textureReadyCheck(Texture texture) {
+        if (texture == null) return;
+
+        int currentId = texture.getHandleId();
+
+        if (currentId != lastHandleId) {
+            lastHandleId = currentId;
+
+            if (texture.isReady()) {
+                requireCompute = true;
+                computeSprites();
+            }
+
+            if (!isRegistered) {
+                TextureStatusCallback.register(this);
+                isRegistered = true;
+                requireCompute = true;
+            }
         }
-
-        computeSprites();
     }
 
     private void computeSprites() {
-        if (!requireCompute || !texture.isReady()) return;
+        if (!requireCompute || !texture.isReady() || texture == null) return;
 
-        int instX = 0;
-        int instY = texture.getHeight() - spsHeight;
-        for (int i = 0; i < countSprite; i++) {
-            Sprite sprite = getSprite(instY, instX);
-            this.sprites.add(sprite);
-            instX += spsWidth + spacing;
-            if (instX >= texture.getWidth()) {
-                instX = 0;
-                instY -= spsHeight + spacing;
+        sprites.clear();
+
+        int instX = startPosition.x;
+        int instY = texture.getHeight() - startPosition.y - spriteSize.y;
+        for (int i = 0; i < numberOfSprites; i++) {
+            if (instX + spriteSize.x > texture.getWidth()) {
+                instX = startPosition.x;
+                instY -= spriteSize.y + spriteSpacing.y;
             }
+
+            if (instY < 0) {
+                System.err.println("Error extracting sprite " + i + ". Sheet successfully extracted " + sprites.size() + " sprite(s)");
+                break;
+            }
+
+            Sprite sprite = getSprite(instY, instX);
+            sprites.add(sprite);
+
+            instX += spriteSize.x + spriteSpacing.x;
         }
 
         requireCompute = false;
-
-        // SpriteSheet in most cases a long-live object, unregister might not be needed.
-        // Currently, there is no method that requires re-compute the SpriteSheet so leave it here for now.
-        // If in the future, there are mechanics that update the SpriteSheet during runtime,
-        // then move unregistering to clean up code or no unregister at all.
-        TextureStatusCallback.unRegister(this);
     }
 
     private Sprite getSprite(int instY, int instX) {
-        float topY = (instY + spsHeight) / (float)texture.getHeight();
-        float rightX = (instX + spsWidth) / (float)texture.getWidth();
-        float leftX = instX / (float)texture.getWidth();
-        float bottomY = instY / (float)texture.getHeight();
+        float topY = (instY + spriteSize.y) / (float) texture.getHeight();
+        float rightX = (instX + spriteSize.x) / (float) texture.getWidth();
+        float leftX = instX / (float) texture.getWidth();
+        float bottomY = instY / (float) texture.getHeight();
 
         Vector2f[] textureCoordinates = {
                 new Vector2f(rightX, topY),
@@ -75,23 +113,77 @@ public class SpriteSheet implements TextureStatusListener {
         Sprite sprite = new Sprite();
         sprite.setTexture(this.texture);
         sprite.setTextureCoordinates(textureCoordinates);
-        sprite.setWidth(spsWidth);
-        sprite.setHeight(spsHeight);
+        sprite.setWidth(spriteSize.x);
+        sprite.setHeight(spriteSize.y);
         return sprite;
     }
 
     public Sprite spriteIndex(int index) {
         if (requireCompute) return null;
 
-        return this.sprites.get(index);
+        if (index < 0 || index >= numberOfAvailableSprites()) {
+            System.err.println("Sprite index " + index + " does not exist. Number of sprite in this sheet: " + numberOfAvailableSprites());
+            return null;
+        }
+
+        return sprites.get(index);
     }
 
-    public int size() {
+    public void setTexture(Texture newTexture) {
+        if (texture != newTexture) {
+            if (isRegistered) {
+                TextureStatusCallback.unRegister(this);
+                isRegistered = false;
+            }
+
+            texture = newTexture;
+            sprites.clear();
+
+            textureReadyCheck(newTexture);
+        }
+    }
+
+    public int numberOfAvailableSprites() {
         return sprites.size();
+    }
+
+    public Vector2i getSpriteSize() {
+        return spriteSize;
+    }
+
+    public Vector2i getStartPosition() {
+        return startPosition;
+    }
+
+    public Vector2i getSpriteSpacing() {
+        return spriteSpacing;
     }
 
     @Override
     public void onTextureStatusChange(int handleId, TextureHandle.Status status) {
-        if (texture.getHandleId() == handleId && status.equals(TextureHandle.Status.READY)) computeSprites();
+        if (texture != null && texture.getHandleId() == handleId) {
+            switch (status) {
+                case READY -> {
+                    if (requireCompute) computeSprites();
+                }
+                case DISPOSED, FAILED -> {
+                    if (isRegistered) {
+                        TextureStatusCallback.unRegister(this);
+                        isRegistered = false;
+                    }
+                    requireCompute = false;
+                    lastHandleId = -1;
+                }
+            }
+        }
+    }
+
+    public void dispose() {
+        if (isRegistered) {
+            TextureStatusCallback.unRegister(this);
+            isRegistered = false;
+        }
+
+        sprites.clear();
     }
 }

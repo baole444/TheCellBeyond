@@ -1,6 +1,7 @@
 package editor;
 
 import TheCellBeyond.Window;
+import editor.project.Project;
 import eventviewer.EventSystem;
 import eventviewer.event.Event;
 import eventviewer.event.EventType;
@@ -64,7 +65,7 @@ public class MenuBar {
             ImGui.endMenu();
         }
 
-        if (CurrentProject != null && !CurrentProject.getSceneNames().isEmpty()) {
+        if (CurrentProject != null && !Project.getSceneNames().isEmpty()) {
             if (ImGui.beginMenu("Scenes")){
                 if (ImGui.menuItem("New scene")) {
                     // TODO: Confirm save current scene
@@ -72,7 +73,7 @@ public class MenuBar {
                 }
 
                 if (ImGui.beginMenu("Select scene")) {
-                    List<String> sceneNameList = CurrentProject.getSceneNames();
+                    List<String> sceneNameList = Project.getSceneNames();
 
                     for (String name : sceneNameList) {
                         if (ImGui.menuItem(name)) {

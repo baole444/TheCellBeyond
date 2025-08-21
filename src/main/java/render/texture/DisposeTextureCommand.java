@@ -20,6 +20,7 @@ public class DisposeTextureCommand extends TextureCommand {
         }
 
         handle.setStatus(TextureHandle.Status.DISPOSED);
+        handle.releaseId();
         textureManager.removeActiveHandle(handle.getHandleId());
     }
 }

@@ -17,37 +17,11 @@ assets:
     
 # Sprite sheet file.
 sheets:
-  test:
-    category: Asset
-    path: ./sheets/test_objects.png
-    count: 13
-    sizeX: 16
-    sizeY: 16
-    padding: 16
-  hbar:
-    category: Asset
-    path: ./sheets/Hbar.png
-    count: 1
-    sizeX: 128
-    sizeY: 16
-    padding: 0
-  wheel:
-    category: Annimation
-    path: ./sheets/animation_test.png
-    count: 8
-    sizeX: 32
-    sizeY: 32
-    padding: 16
-  # more sheets
 
 # Scenes
 scenes:
   test:
     path: ./scenes/test.cell
     asset:
-      - 'default'
     sheet:
-      - 'test'
-      - 'wheel'
-      - 'hbar'
   # more scenes

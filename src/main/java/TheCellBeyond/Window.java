@@ -121,7 +121,7 @@ public class Window implements EventInterface {
         }
 
         if (projectLoaded) {
-            String projectDetail = " - [" + CurrentProject.getProject().getName() + "] [" + ProjectRoot + "]";
+            String projectDetail = " - [" + CurrentProject.project().getName() + "] [" + ProjectRoot + "]";
 
             glfwSetWindowTitle(windowPtr, this.title + projectDetail);
             loop();
@@ -432,7 +432,7 @@ public class Window implements EventInterface {
                 if (projectLoaded) {
                     MouseListener.setStartupMode(false);
 
-                    String projectDetail = " - [" + CurrentProject.getProject().getName() + "] [" + ProjectRoot + "]";
+                    String projectDetail = " - [" + CurrentProject.project().getName() + "] [" + ProjectRoot + "]";
 
                     glfwSetWindowTitle(windowPtr, this.title + projectDetail);
 
