@@ -1,60 +1,94 @@
 package TheCellBeyond;
 
+import editor.project.ProjectPreference;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 
 public class Viewport {
-    private Matrix4f projectionMatrix, viewMatrix, inversedProjectionMatrix, inversedViewMatrix;
     public Vector2f position;
+    private final Matrix4f projectionMatrix;
+    private final Matrix4f viewMatrix;
+    private final Matrix4f inverseProjectionMatrix;
+    private final Matrix4f inverseViewMatrix;
 
-    private float sceneScale = 1.0f;
-    private Vector2f aspectRatio = new Vector2f(4.0f, 3.0f);
-    private Vector2f projectionSize = new Vector2f(aspectRatio.x * sceneScale, aspectRatio.y * sceneScale);
+    private final float sceneScale = 1.0f;
+    private float aspectRatio;
+    private Vector2f projectionSize;
     private float zoom = 1.0f;
+
+    private boolean isDynamic = true;
 
     public Viewport(Vector2f position) {
         this.position = position;
-        this.projectionMatrix = new Matrix4f();
-        this.viewMatrix = new Matrix4f();
-        this.inversedProjectionMatrix = new Matrix4f();
-        this.inversedViewMatrix = new Matrix4f();
+        projectionMatrix = new Matrix4f();
+        viewMatrix = new Matrix4f();
+        inverseProjectionMatrix = new Matrix4f();
+        inverseViewMatrix = new Matrix4f();
+
+        aspectRatio = (float) Window.getWidth() / Window.getHeight();
+        projectionSize = new Vector2f(aspectRatio * sceneScale, sceneScale);
         adjustProjection();
+    }
+
+    public void updateAspectRatio(float width, float height) {
+        if (isDynamic && width > 0 && height > 0) {
+            aspectRatio = width / height;
+            projectionSize = new Vector2f(aspectRatio * sceneScale, sceneScale);
+            adjustProjection();
+        }
+    }
+
+    public void lockToGameAspectRatio() {
+        isDynamic = false;
+        aspectRatio = ProjectPreference.get().getGameAspectRatio();
+        projectionSize = new Vector2f(aspectRatio * sceneScale, sceneScale);
+        adjustProjection();
+    }
+
+    public void unlockAspectRatio() {
+        isDynamic = true;
     }
 
     public void adjustProjection() {
         projectionMatrix.identity();
-        projectionMatrix.ortho(0.0f, projectionSize.x * this.zoom, 0.0f, projectionSize.y * this.zoom, -16.0f, 1024.0f);
-        projectionMatrix.invert(inversedProjectionMatrix);
+        projectionMatrix.ortho(0.0f, projectionSize.x * zoom,
+                0.0f, projectionSize.y * zoom,
+                -16.0f, 1024.0f
+        );
+        projectionMatrix.invert(inverseProjectionMatrix);
     }
 
     public Matrix4f getViewMatrix() {
-        Vector3f Front = new Vector3f(0.0f, 0.0f, -1.0f);
-        Vector3f Up = new Vector3f(0.0f, 1.0f, 0.0f);
-        this.viewMatrix.identity();
-        viewMatrix.lookAt(new Vector3f(position.x, position.y, 20.0f),
-                                            Front.add(position.x, position.y, 0.0f),Up);
+        Vector3f front = new Vector3f(0.0f, 0.0f, -1.0f).add(position.x, position.y, 0.0f);
+        Vector3f up = new Vector3f(0.0f, 1.0f, 0.0f);
+        Vector3f cameraPos = new Vector3f(position.x, position.y, 20.0f);
 
-        this.viewMatrix.invert(inversedViewMatrix);
+        viewMatrix.identity().lookAt(cameraPos, front, up);
 
-        return this.viewMatrix;
+        viewMatrix.invert(inverseViewMatrix);
+
+        return viewMatrix;
     }
 
     public Matrix4f getProjectionMatrix() {
-
-        return this.projectionMatrix;
+        return projectionMatrix;
     }
 
-    public Matrix4f getInversedProjectionMatrix() {
-        return this.inversedProjectionMatrix;
+    public Matrix4f getInverseProjectionMatrix() {
+        return inverseProjectionMatrix;
     }
 
-    public Matrix4f getInversedViewMatrix() {
-        return this.inversedViewMatrix;
+    public Matrix4f getInverseViewMatrix() {
+        return inverseViewMatrix;
     }
 
     public Vector2f getProjectionSize() {
-        return this.projectionSize;
+        return projectionSize;
+    }
+
+    public float getAspectRatio() {
+        return aspectRatio;
     }
 
     public float getZoom() {

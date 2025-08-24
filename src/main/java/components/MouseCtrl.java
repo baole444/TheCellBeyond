@@ -2,6 +2,7 @@ package components;
 
 import TheCellBeyond.*;
 import editor.Properties;
+import imgui.ImGui;
 import org.joml.Math;
 import org.joml.Vector2f;
 import org.joml.Vector2i;
@@ -88,6 +89,8 @@ public class MouseCtrl extends Component {
 
     @Override
     public void editorUpdate(float dt) {
+        if (ImGui.getIO().getWantCaptureMouse()) return;
+
         clickInit -= dt;
         Properties properties = Window.getImGuiLayer().loadProperties();
         ObjectSelection objectSelection = properties.getObjectSelection();

@@ -1,9 +1,11 @@
 package TheCellBeyond;
 
 import editor.ImGuiLayer;
+import editor.StartUpWindow;
 import editor.dialog.OpenProjectDialog;
 import editor.project.Project;
 import editor.Properties;
+import editor.project.ProjectPreference;
 import eventviewer.EventSystem;
 import eventviewer.EventInterface;
 import eventviewer.event.Event;
@@ -40,7 +42,7 @@ import static org.lwjgl.openal.ALC10.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
-public class Window implements EventInterface {
+public final class Window implements EventInterface {
     private int width;
     private int height;
     private final String title;
@@ -110,7 +112,7 @@ public class Window implements EventInterface {
         initWindow();
 
         if (!projectLoaded) {
-            showStartupScreen();
+            StartUpWindow.show(windowPtr, imGuiLayer, width, height);
 
             projectLoaded = (CurrentProject != null && ProjectRoot != null);
 
@@ -140,47 +142,6 @@ public class Window implements EventInterface {
         glfwSetErrorCallback(null).free();
     }
 
-    private void showStartupScreen() {
-        MouseListener.setStartupMode(true);
-
-        while (!glfwWindowShouldClose(windowPtr) && !projectLoaded) {
-            glfwPollEvents();
-
-            glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT);
-
-            imGuiLayer.getImGuiGlfw().newFrame();
-            imGuiLayer.getImGuiGl3().newFrame();
-            ImGui.newFrame();
-
-            ImGui.setNextWindowPos(width / 2.0f, height / 2.0f, ImGuiCond.Always, 0.5f, 0.5f);
-            ImGui.setNextWindowSize(400, 200);
-            ImGui.begin("Welcome to The Cell Beyond Editor", ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse);
-
-            ImGui.text("Please select a project to open:");
-
-            if (ImGui.button("Open Project", 150, 30)) {
-                OpenProjectDialog.openProjectDialog();
-            }
-
-            projectLoaded = (CurrentProject != null && ProjectRoot != null);
-
-            ImGui.end();
-
-            ImGui.render();
-            imGuiLayer.getImGuiGl3().renderDrawData(ImGui.getDrawData());
-
-            if (ImGui.getIO().hasConfigFlags(ImGuiConfigFlags.ViewportsEnable)) {
-                final long backupWindowPtr = glfwGetCurrentContext();
-                ImGui.updatePlatformWindows();
-                ImGui.renderPlatformWindowsDefault();
-                glfwMakeContextCurrent(backupWindowPtr);
-            }
-
-            glfwSwapBuffers(windowPtr);
-        }
-    }
-
     private void initWindow() {
         //error return
         GLFWErrorCallback.createPrint(System.err).set();
@@ -197,8 +158,8 @@ public class Window implements EventInterface {
 
         // Update width, height to current screen resolution
         // Make it smaller a bit
-        this.width = getScrSize().x;
-        this.height = getScrSize().y;
+        width = getScrSize().x;
+        height = getScrSize().y;
 
         //config GLFW
         glfwDefaultWindowHints();
@@ -208,12 +169,26 @@ public class Window implements EventInterface {
         //glfwWindowHint(GLFW_DECORATED, 0);
 
         // Spawn window
-        windowPtr = glfwCreateWindow(this.width, this.height, this.title, NULL, NULL);
+        windowPtr = glfwCreateWindow(width, height, title, NULL, NULL);
+        System.out.println("Creating new window, dimension: " + width + " x " + height);
         if (windowPtr == NULL) {
             System.out.println("Failed to spawn window.");
             System.exit(-1);
         }
-        System.out.println("Generating Window, dimension: " + this.width + " x " + this.height);
+
+        glfwSetWindowSizeCallback(windowPtr, (window, w, h) -> {
+           width = w;
+           height = h;
+
+           frameBuffer.resize(width, height);
+           objectSelection.resize(width, height);
+
+           if (currentScene != null && currentScene.viewport() != null && !runtimeMode) {
+               currentScene.viewport().updateAspectRatio(width, height);
+           }
+
+           glViewport(0, 0, width, height);
+        });
 
         glfwSetCursorPosCallback(windowPtr, MouseListener::mousePosCallback); // :: is java syntax lambda function
         glfwSetMouseButtonCallback(windowPtr, MouseListener::mouseButtonCallback);
@@ -267,13 +242,13 @@ public class Window implements EventInterface {
         glEnable(GL_BLEND);
         glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
-        this.frameBuffer = new FrameBuffer(this.width, this.height);
-        this.objectSelection = new ObjectSelection(this.width, this.height);
+        frameBuffer = new FrameBuffer(width, height);
+        objectSelection = new ObjectSelection(width, height);
 
-        glViewport(0, 0, this.width, this.height);
+        glViewport(0, 0, width, height);
 
-        this.imGuiLayer = new ImGuiLayer(windowPtr, objectSelection);
-        this.imGuiLayer.initImGui(glslVer);
+        imGuiLayer = new ImGuiLayer(windowPtr, objectSelection);
+        imGuiLayer.initImGui(glslVer);
 
         //Set Icon
         if (iconFile != null) {
@@ -353,7 +328,7 @@ public class Window implements EventInterface {
 
                 objectSelection.useWrite();
 
-                glViewport(0, 0, 1920, 1080);
+                glViewport(0, 0, width, height);
                 glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -370,7 +345,7 @@ public class Window implements EventInterface {
                 this.frameBuffer.use();
 
                 glClearColor(r, g, b, a);
-                glClear(GL_COLOR_BUFFER_BIT  | GL_DEPTH_BUFFER_BIT);
+                glClear(GL_COLOR_BUFFER_BIT);
 
                 if (runtimeMode) {
                     currentScene.update(dt); // Using the main update when not in the editor
@@ -477,7 +452,7 @@ public class Window implements EventInterface {
     }
 
     public static float getTargetAspectRatio() {
-        return 4.0f / 3.0f;
+        return ProjectPreference.get().getGameAspectRatio();
     }
 
     public static ImGuiLayer getImGuiLayer() {

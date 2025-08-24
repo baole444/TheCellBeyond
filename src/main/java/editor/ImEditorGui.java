@@ -22,10 +22,9 @@ import java.util.List;
 import static org.lwjgl.glfw.GLFW.*;
 
 public class ImEditorGui {
-    private static final float defaultWidth = 180.0f;
+    private static final float defaultWidth = 120.0f;
 
     private static final Vector2f tmpPixelVector = new Vector2f();
-    private static final Vector2f tmpWorldVector = new Vector2f();
 
     public static boolean drawVec2Ctrl(String label, Vector2f val, Object caller) {
         return drawVec2Ctrl(label, val, 0.0f, defaultWidth, caller);

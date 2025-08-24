@@ -77,8 +77,8 @@ public class MouseListener {
 
         Vector4f tmp = new Vector4f(currentX, currentY, 0, 1);
 
-        Matrix4f inverseView = new Matrix4f(camera.getInversedViewMatrix());
-        Matrix4f inverseProjection = new Matrix4f(camera.getInversedProjectionMatrix());
+        Matrix4f inverseView = new Matrix4f(camera.getInverseViewMatrix());
+        Matrix4f inverseProjection = new Matrix4f(camera.getInverseProjectionMatrix());
 
         tmp.mul(inverseView.mul(inverseProjection));
 
@@ -220,8 +220,8 @@ public class MouseListener {
 
         Vector4f tmp = new Vector4f(currentX, currentY, 0, 1);
 
-        Matrix4f inverseView = new Matrix4f(camera.getInversedViewMatrix());
-        Matrix4f inverseProjection = new Matrix4f(camera.getInversedProjectionMatrix());
+        Matrix4f inverseView = new Matrix4f(camera.getInverseViewMatrix());
+        Matrix4f inverseProjection = new Matrix4f(camera.getInverseProjectionMatrix());
 
         tmp.mul(inverseView.mul(inverseProjection));
 
@@ -252,8 +252,8 @@ public class MouseListener {
 
         Vector4f tmp = new Vector4f(normalization.x, normalization.y, 0 , 1);
 
-        Matrix4f inverseView = new Matrix4f(viewport.getInversedViewMatrix());
-        Matrix4f inverseProjection = new Matrix4f(viewport.getInversedProjectionMatrix());
+        Matrix4f inverseView = new Matrix4f(viewport.getInverseViewMatrix());
+        Matrix4f inverseProjection = new Matrix4f(viewport.getInverseProjectionMatrix());
 
         tmp.mul(inverseView.mul(inverseProjection));
 

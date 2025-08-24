@@ -6,23 +6,28 @@ import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL30.*;
 
 public class ObjectSelection {
-    private int objSelectID;
+    private int width;
+    private int height;
+
     private int frameBufferObj;
+    private int objectSelectionID;
     private int textureDepth;
 
     public ObjectSelection(int width, int height) {
-        init(width, height);
+        this.width = width;
+        this.height = height;
+        init();
     }
 
-    private void init(int width, int height) {
+    private void init() {
         // Make frame buffer
         frameBufferObj = glGenFramebuffers();
         glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObj);
 
         // Generate texture to frame buffer
-        objSelectID = glGenTextures();
+        objectSelectionID = glGenTextures();
 
-        glBindTexture(GL_TEXTURE_2D, objSelectID);
+        glBindTexture(GL_TEXTURE_2D, objectSelectionID);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -33,7 +38,7 @@ public class ObjectSelection {
         );
 
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                GL_TEXTURE_2D, this.objSelectID, 0
+                GL_TEXTURE_2D, objectSelectionID, 0
         );
 
         // Generate texture object for depth buffer
@@ -97,5 +102,28 @@ public class ObjectSelection {
         return pixels;
     }
 
+    public void resize(int width, int height) {
+        dispose();
 
+        this.width = width;
+        this.height = height;
+        init();
+    }
+
+    private void dispose() {
+        if (frameBufferObj != 0) {
+            glDeleteFramebuffers(frameBufferObj);
+            frameBufferObj = 0;
+        }
+
+        if (objectSelectionID != 0) {
+            glDeleteTextures(objectSelectionID);
+            objectSelectionID = 0;
+        }
+
+        if (textureDepth != 0) {
+            glDeleteTextures(textureDepth);
+            textureDepth = 0;
+        }
+    }
 }

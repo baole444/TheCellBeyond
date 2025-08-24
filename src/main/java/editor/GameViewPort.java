@@ -2,6 +2,7 @@ package editor;
 
 import TheCellBeyond.MouseListener;
 import TheCellBeyond.Window;
+import editor.project.ProjectPreference;
 import eventviewer.EventSystem;
 import eventviewer.event.Event;
 import eventviewer.event.EventType;
@@ -16,12 +17,10 @@ public class GameViewPort {
     private boolean isPlaying = false;
 
     public void imgui() {
-
         ImGui.begin("Game Viewport", ImGuiWindowFlags.NoScrollbar
                 | ImGuiWindowFlags.NoScrollWithMouse
                 | ImGuiWindowFlags.MenuBar
         );
-
 
         // Create menu bar
         ImGui.beginMenuBar();
@@ -43,6 +42,8 @@ public class GameViewPort {
         ImVec2 winSize = getMaxViewportSize();
         ImVec2 winPos = getViewportToCentral(winSize);
 
+        Window.getScene().viewport().updateAspectRatio(winSize.x, winSize.y);
+
         ImGui.setCursorPos(winPos.x, winPos.y);
 
         ImVec2 topLeft = new ImVec2();
@@ -54,14 +55,16 @@ public class GameViewPort {
         bottomY =  winPos.y + ImGui.getWindowPosY();
         topY = winPos.y + winSize.y + ImGui.getWindowPosY();
 
-        this.printDebug = new float[] {winSize.x, winSize.y,winPos.x, winPos.y, leftX, rightX, bottomY, topY};
+        printDebug = new float[] {winSize.x, winSize.y,winPos.x, winPos.y, leftX, rightX, bottomY, topY};
 
         int texID = Window.getFrameBuffer().getTextureID();
 
         ImGui.image(texID, winSize.x, winSize.y, 0, 1, 1, 0);
 
-        MouseListener.setWorkViewportPos(new Vector2f(leftX, bottomY));
-        MouseListener.setWorkViewportSize(new Vector2f(winSize.x, winSize.y));
+        if (!ImGui.getIO().getWantCaptureMouse()) {
+            MouseListener.setWorkViewportPos(new Vector2f(leftX, bottomY));
+            MouseListener.setWorkViewportSize(new Vector2f(winSize.x, winSize.y));
+        }
 
         ImGui.end();
     }
@@ -82,12 +85,12 @@ public class GameViewPort {
         ImVec2 winSize = new ImVec2();
         ImGui.getContentRegionAvail(winSize);
 
+        float aspectRatio = ProjectPreference.get().getGameAspectRatio();
         float usableWidth = winSize.x;
-        float usableHeight = usableWidth / Window.getTargetAspectRatio();
+        float usableHeight = usableWidth / aspectRatio;
         if (usableHeight > winSize.y) {
-            // Generate black region
             usableHeight = winSize.y;
-            usableWidth = usableHeight * Window.getTargetAspectRatio();
+            usableWidth = usableHeight * aspectRatio;
         }
 
         return new ImVec2(usableWidth, usableHeight);

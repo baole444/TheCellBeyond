@@ -190,7 +190,7 @@ public class ImGuiLayer {
         ImGui.setNextWindowViewport(mainViewport.getID());
 
         ImGui.setNextWindowPos(0.0f, 0.0f);
-        ImGui.setNextWindowSize(1920, 1080);
+        ImGui.setNextWindowSize(Window.getWidth(), Window.getHeight());
 
         ImGui.pushStyleVar(ImGuiStyleVar.WindowRounding, 0.0f);
         ImGui.pushStyleVar(ImGuiStyleVar.WindowBorderSize, 0.0f);

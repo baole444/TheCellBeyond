@@ -16,7 +16,7 @@ import static org.lwjgl.opengl.GL30.glBindVertexArray;
 import static org.lwjgl.opengl.GL30.glGenVertexArrays;
 
 public class DebugDraw {
-    private static final int MAX_LINE = 1024;
+    private static final int MAX_LINE = 4096;
     private static final List<Line2D> Lines = new ArrayList<>();
 
     // 6 float vertex, 2 vertices/line
@@ -84,7 +84,6 @@ public class DebugDraw {
                 vertexA[index + 5] = color.z;
 
                 index += 6;
-
             }
         }
 
