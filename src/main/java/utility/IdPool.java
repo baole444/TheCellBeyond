@@ -7,6 +7,8 @@ public class IdPool {
     // Use for when respect floating point limit is enabled
     private static final int FLOAT_PRECISION_LIMIT = 16777216;
 
+    private final int startValue;
+
     private final AtomicInteger nextId;
 
     private final ConcurrentLinkedQueue<Integer> discardedIds;
@@ -14,9 +16,10 @@ public class IdPool {
     private final boolean shouldRespectFloatPrecisionLimit;
 
     public IdPool (int startValue, boolean respectFloatPrecisionLimit) {
-        this.nextId = new AtomicInteger(startValue);
-        this.discardedIds = new ConcurrentLinkedQueue<>();
-        this.shouldRespectFloatPrecisionLimit = respectFloatPrecisionLimit;
+        this.startValue = startValue;
+        nextId = new AtomicInteger(startValue);
+        discardedIds = new ConcurrentLinkedQueue<>();
+        shouldRespectFloatPrecisionLimit = respectFloatPrecisionLimit;
     }
 
     /**
@@ -63,12 +66,12 @@ public class IdPool {
     }
 
     /**
-     * Reset tracking data of this ID pool.
+     * Reset tracking data of this ID pool to its original starting value.
      * <p>
      * <b>Warning:</b> this will cause collision if the pool is still in use and IDs are expected to be unique.
      */
     public void reset() {
-        nextId.set(1);
+        nextId.set(startValue);
         discardedIds.clear();
     }
 }

@@ -2,6 +2,7 @@ package editor;
 
 import TheCellBeyond.GameObject;
 import TheCellBeyond.Window;
+import editor.dialog.AddObjectDialog;
 import imgui.ImGui;
 import imgui.flag.ImGuiMouseButton;
 import imgui.flag.ImGuiTreeNodeFlags;

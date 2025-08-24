@@ -1,4 +1,4 @@
-package editor;
+package editor.dialog;
 
 import TheCellBeyond.GameObject;
 import TheCellBeyond.Window;

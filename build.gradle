@@ -2,7 +2,7 @@ plugins {
     id 'java'
 }
 
-group = 'Arsky'
+group = project.project_group
 version = project.TCB_version
 
 def targetJavaVersion = 21
@@ -20,38 +20,28 @@ test {
 }
 
 dependencies {
-    //Google Gson
     implementation "com.google.code.gson:gson:$google_gson_version"
-
-    // imGUI library
     implementation fileTree('library') { include '*.jar' }
-
-    // jbox2d library
     implementation name: 'jbox2d-library'
+
     // LWJGL
     implementation platform("org.lwjgl:lwjgl-bom:$lwjgl_version")
 
-    implementation "org.lwjgl:lwjgl"
-    implementation "org.lwjgl:lwjgl-assimp"
-    implementation "org.lwjgl:lwjgl-freetype"
-    implementation "org.lwjgl:lwjgl-cuda"
-    implementation "org.lwjgl:lwjgl-glfw"
-    implementation "org.lwjgl:lwjgl-nfd"
-    implementation "org.lwjgl:lwjgl-openal"
-    implementation "org.lwjgl:lwjgl-opengl"
-    implementation "org.lwjgl:lwjgl-stb"
-    runtimeOnly "org.lwjgl:lwjgl::$lwjglNatives"
-    runtimeOnly "org.lwjgl:lwjgl-assimp::$lwjglNatives"
-    runtimeOnly "org.lwjgl:lwjgl-freetype::$lwjglNatives"
-    runtimeOnly "org.lwjgl:lwjgl-glfw::$lwjglNatives"
-    runtimeOnly "org.lwjgl:lwjgl-nfd::$lwjglNatives"
-    runtimeOnly "org.lwjgl:lwjgl-openal::$lwjglNatives"
-    runtimeOnly "org.lwjgl:lwjgl-opengl::$lwjglNatives"
-    runtimeOnly "org.lwjgl:lwjgl-stb::$lwjglNatives"
+    ['', '-assimp', '-glfw', '-nfd', '-openal', '-opengl', '-stb'].each {
+        implementation "org.lwjgl:lwjgl$it"
+        implementation "org.lwjgl:lwjgl$it::$lwjglNatives"
+    }
+
     implementation "org.joml:joml:${joml_version}"
     implementation "com.code-disaster.steamworks4j:steamworks4j:${steamworks4j_version}"
     implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:$jacksonYaml_version"
 
+    // SpaiR-imgui
+    implementation "io.github.spair:imgui-java-binding:$imgui_version"
+    implementation "io.github.spair:imgui-java-lwjgl3:$imgui_version"
+    implementation "io.github.spair:imgui-java-natives-windows:$imgui_version"
+
+    // Test unit
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.2'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.2'
 }

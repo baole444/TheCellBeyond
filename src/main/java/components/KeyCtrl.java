@@ -4,7 +4,7 @@ import TheCellBeyond.GameObject;
 import TheCellBeyond.GameObject2D;
 import TheCellBeyond.KeyListener;
 import TheCellBeyond.Window;
-import editor.OpenProjectDialog;
+import editor.dialog.OpenProjectDialog;
 import editor.Properties;
 import eventviewer.EventSystem;
 import eventviewer.event.Event;
@@ -79,10 +79,8 @@ public class KeyCtrl extends Component {
         // Make keybinding of Shift + S = scale | Shift + T = translate
         if (KeyListener.isKeyTapped(GLFW_KEY_T, GLFW_MOD_SHIFT)) {
             GizmoControl.setIsGizUse(0);
-            //System.out.println("Using move gizmo");
         } else if (KeyListener.isKeyTapped(GLFW_KEY_S, GLFW_MOD_SHIFT)) {
             GizmoControl.setIsGizUse(1);
-            //System.out.println("using scale gizmo");
         }
 
         // Make keybinding of Ctrl + S = Save file | Ctrl + O = open file

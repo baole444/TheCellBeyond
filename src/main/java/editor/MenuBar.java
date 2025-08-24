@@ -1,6 +1,7 @@
 package editor;
 
 import TheCellBeyond.Window;
+import editor.dialog.OpenProjectDialog;
 import editor.project.Project;
 import eventviewer.EventSystem;
 import eventviewer.event.Event;

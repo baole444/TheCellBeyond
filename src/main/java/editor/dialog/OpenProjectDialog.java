@@ -1,4 +1,4 @@
-package editor;
+package editor.dialog;
 
 import TheCellBeyond.Window;
 import eventviewer.EventSystem;
@@ -93,13 +93,8 @@ public class OpenProjectDialog {
                     NFD_FreePath(pathPtr);
                 }
             }
-
-            case NFD_CANCEL -> {
-            }
-
-            default -> {
-                System.err.format("Error: %s\n", NFD_GetError());
-            }
+            case NFD_CANCEL -> {}
+            default -> System.err.format("Error: %s\n", NFD_GetError());
         }
     }
 

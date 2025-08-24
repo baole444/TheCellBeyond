@@ -2,6 +2,7 @@ package editor;
 
 import TheCellBeyond.GameObject;
 import components.SpriteRenderer;
+import editor.dialog.AddComponentDialog;
 import imgui.ImGui;
 import org.joml.Vector4f;
 import physic2d.components.PhysicBody2D;

@@ -1,7 +1,7 @@
 package TheCellBeyond;
 
 import editor.ImGuiLayer;
-import editor.OpenProjectDialog;
+import editor.dialog.OpenProjectDialog;
 import editor.project.Project;
 import editor.Properties;
 import eventviewer.EventSystem;

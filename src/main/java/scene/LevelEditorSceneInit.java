@@ -55,24 +55,28 @@ public class LevelEditorSceneInit extends SceneInit {
             sheetKeyList = thisScene.sheet();
             assetKeyList = thisScene.asset();
 
-            for (String sheet : sheetKeyList) {
-                ProjectSheetMap sM = CurrentProject.sheets().get(sheet);
+            if (sheetKeyList != null) {
+                for (String sheet : sheetKeyList) {
+                    ProjectSheetMap sM = CurrentProject.sheets().get(sheet);
 
-                String category = sM.category();
-                String path = PathResolver.resolveToAbsolute(ProjectRoot, sM.path());
+                    String category = sM.category();
+                    String path = PathResolver.resolveToAbsolute(ProjectRoot, sM.path());
 
-                SpriteSheet spriteSheet = AssetsPool.loadSpriteSheet(path);
+                    SpriteSheet spriteSheet = AssetsPool.loadSpriteSheet(path);
 
-                categorizedSpriteSheetList.
-                        computeIfAbsent(category, key -> new ArrayList<>()).
-                        add(spriteSheet);
+                    categorizedSpriteSheetList.
+                            computeIfAbsent(category, key -> new ArrayList<>()).
+                            add(spriteSheet);
+                }
             }
 
-            for (String asset : assetKeyList) {
-                ProjectAssetMap aM = CurrentProject.assets().get(asset);
-                String path = PathResolver.resolveToAbsolute(ProjectRoot, aM.path());
+            if (sheetKeyList != null) {
+                for (String asset : assetKeyList) {
+                    ProjectAssetMap aM = CurrentProject.assets().get(asset);
+                    String path = PathResolver.resolveToAbsolute(ProjectRoot, aM.path());
 
-                assetList.add(AssetsPool.loadSpriteSheet(path));
+                    assetList.add(AssetsPool.loadSpriteSheet(path));
+                }
             }
         }
 
@@ -100,30 +104,33 @@ public class LevelEditorSceneInit extends SceneInit {
             sheetKeyList = thisScene.sheet();
             assetKeyList = thisScene.asset();
 
-            for (String sheet : sheetKeyList) {
-                ProjectSheetMap sM = CurrentProject.sheets().get(sheet);
+            if (sheetKeyList != null) {
+                for (String sheet : sheetKeyList) {
+                    ProjectSheetMap sM = CurrentProject.sheets().get(sheet);
 
-                String projectPath = "project://" + sM.path();
+                    String projectPath = "project://" + sM.path();
 
-                AssetsPool.addSpriteSheet(projectPath,
-                        new SpriteSheet(AssetsPool.loadTexture(projectPath),
-                                sM.spriteSizeX(), sM.spriteSizeY(), sM.numberOfSprite(),
-                                sM.spriteSpacingX(), sM.spriteSpacingY(),
-                                sM.spriteStartPosX(), sM.spriteStartPosY())
-                );
+                    AssetsPool.addSpriteSheet(projectPath,
+                            new SpriteSheet(AssetsPool.loadTexture(projectPath),
+                                    sM.spriteSizeX(), sM.spriteSizeY(), sM.numberOfSprite(),
+                                    sM.spriteSpacingX(), sM.spriteSpacingY(),
+                                    sM.spriteStartPosX(), sM.spriteStartPosY())
+                    );
+                }
             }
 
-            for (String asset : assetKeyList) {
-                ProjectAssetMap aM = CurrentProject.assets().get(asset);
+            if (assetKeyList != null) {
+                for (String asset : assetKeyList) {
+                    ProjectAssetMap aM = CurrentProject.assets().get(asset);
 
-                String projectPath = "project://" + aM.path();
+                    String projectPath = "project://" + aM.path();
 
-                AssetsPool.addSpriteSheet(projectPath,
-                        new SpriteSheet(AssetsPool.loadTexture(projectPath),
-                                aM.sizeX(), aM.sizeY(), 1, 0)
-                );
+                    AssetsPool.addSpriteSheet(projectPath,
+                            new SpriteSheet(AssetsPool.loadTexture(projectPath),
+                                    aM.sizeX(), aM.sizeY(), 1, 0)
+                    );
+                }
             }
-
         }
 
         AssetsPool.addSpriteSheet("engine://assets/textures/Gizmo.png",
