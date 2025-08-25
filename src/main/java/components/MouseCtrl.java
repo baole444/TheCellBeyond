@@ -89,15 +89,16 @@ public class MouseCtrl extends Component {
 
     @Override
     public void editorUpdate(float dt) {
-        if (ImGui.getIO().getWantCaptureMouse()) return;
-
         clickInit -= dt;
         Properties properties = Window.getImGuiLayer().loadProperties();
         ObjectSelection objectSelection = properties.getObjectSelection();
         Scene currentScene = Window.getScene();
+        boolean imguiWantMouseCapture = ImGui.getIO().getWantCaptureMouse();
 
         // Return coordinate base position from raw mouse input to place an active object in standard position.
         if (holdObj != null) {
+            if (imguiWantMouseCapture) return;
+
             float targetX = MouseListener.getWorldX() - Settings.GRID_WIDTH / 2.0f; // Might not need to - 0.16f for both
             float targetY = MouseListener.getWorldY() - Settings.GRID_HEIGHT / 2.0f;
 

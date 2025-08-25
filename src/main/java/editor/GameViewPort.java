@@ -46,8 +46,7 @@ public class GameViewPort {
 
         ImGui.setCursorPos(winPos.x, winPos.y);
 
-        ImVec2 topLeft = new ImVec2();
-        ImGui.getCursorScreenPos(topLeft);
+        ImVec2 topLeft = ImGui.getCursorScreenPos();
         topLeft.x -= ImGui.getScrollX();
         topLeft.y -= ImGui.getScrollY();
         leftX = winPos.x + ImGui.getWindowPosX();
@@ -61,10 +60,8 @@ public class GameViewPort {
 
         ImGui.image(texID, winSize.x, winSize.y, 0, 1, 1, 0);
 
-        if (!ImGui.getIO().getWantCaptureMouse()) {
-            MouseListener.setWorkViewportPos(new Vector2f(leftX, bottomY));
-            MouseListener.setWorkViewportSize(new Vector2f(winSize.x, winSize.y));
-        }
+        MouseListener.setWorkViewportPos(new Vector2f(leftX, bottomY));
+        MouseListener.setWorkViewportSize(new Vector2f(winSize.x, winSize.y));
 
         ImGui.end();
     }
