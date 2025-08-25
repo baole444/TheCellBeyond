@@ -71,6 +71,8 @@ public class GameViewPort {
     }
 
     public boolean getWantCaptureMouse() {
+        if (ImGui.isPopupOpen("", ImGuiPopupFlags.AnyPopup)) return false;
+
         return MouseListener.getX() >= leftX &&
                 MouseListener.getX() <= rightX &&
                 MouseListener.getY() >= bottomY &&
