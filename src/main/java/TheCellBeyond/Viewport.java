@@ -12,7 +12,7 @@ public class Viewport {
     private final Matrix4f inverseProjectionMatrix;
     private final Matrix4f inverseViewMatrix;
 
-    private final float sceneScale = 1.0f;
+    private final float sceneScale = 10.0f;
     private float aspectRatio;
     private Vector2f projectionSize;
     private float zoom = 1.0f;

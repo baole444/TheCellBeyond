@@ -54,7 +54,7 @@ public class GameViewPort {
         bottomY =  winPos.y + ImGui.getWindowPosY();
         topY = winPos.y + winSize.y + ImGui.getWindowPosY();
 
-        printDebug = new float[] {winSize.x, winSize.y,winPos.x, winPos.y, leftX, rightX, bottomY, topY};
+        printDebug = new float[] {winSize.x, winSize.y, winPos.x, winPos.y, leftX, rightX, bottomY, topY};
 
         int texID = Window.getFrameBuffer().getTextureID();
 

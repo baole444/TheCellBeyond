@@ -328,7 +328,7 @@ public final class Window implements EventInterface {
 
                 objectSelection.useWrite();
 
-                glViewport(0, 0, width, height);
+                glViewport(0, 0, frameBuffer.getWidth(), frameBuffer.getHeight());
                 glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -459,8 +459,8 @@ public final class Window implements EventInterface {
         return get().imGuiLayer;
     }
 
-    public ObjectSelection getObjectSelection() {
-        return objectSelection;
+    public static ObjectSelection getObjectSelection() {
+        return get().objectSelection;
     }
 
     public static String getCurrentSceneName() {
