@@ -8,8 +8,10 @@ import eventviewer.event.Event;
 import eventviewer.event.EventType;
 import imgui.ImGui;
 import imgui.ImVec2;
+import imgui.flag.ImGuiPopupFlags;
 import imgui.flag.ImGuiWindowFlags;
 import org.joml.Vector2f;
+import render.FrameBuffer;
 
 public class GameViewPort {
     private float leftX, rightX, topY, bottomY;
@@ -37,30 +39,23 @@ public class GameViewPort {
         ImGui.endMenuBar();
         // End menu bar
 
-        ImGui.setCursorPos(ImGui.getCursorPosX(), ImGui.getCursorPosY());
+        ImVec2 winSize = ImGui.getContentRegionAvail();
+        ImVec2 winPos = ImGui.getCursorPos();
 
-        ImVec2 winSize = getMaxViewportSize();
-        ImVec2 winPos = getViewportToCentral(winSize);
-
-        Window.getScene().viewport().updateAspectRatio(winSize.x, winSize.y);
-
-        ImGui.setCursorPos(winPos.x, winPos.y);
-
-        ImVec2 topLeft = ImGui.getCursorScreenPos();
-        topLeft.x -= ImGui.getScrollX();
-        topLeft.y -= ImGui.getScrollY();
-        leftX = winPos.x + ImGui.getWindowPosX();
-        rightX = winPos.x + winSize.x + ImGui.getWindowPosX();
-        bottomY =  winPos.y + ImGui.getWindowPosY();
-        topY = winPos.y + winSize.y + ImGui.getWindowPosY();
+        leftX = winPos.x;
+        rightX = winPos.x + winSize.x;
+        bottomY =  winPos.y;
+        topY = winPos.y + winSize.y;
 
         printDebug = new float[] {winSize.x, winSize.y, winPos.x, winPos.y, leftX, rightX, bottomY, topY};
 
-        int texID = Window.getFrameBuffer().getTextureID();
 
-        ImGui.image(texID, winSize.x, winSize.y, 0, 1, 1, 0);
+        FrameBuffer frameBuffer = Window.getFrameBuffer();
+        int texID = frameBuffer.getTextureID();
 
-        MouseListener.setWorkViewportPos(new Vector2f(leftX, bottomY));
+        ImGui.image(texID, frameBuffer.getWidth(), frameBuffer.getHeight(), 0, 1, 1, 0);
+
+        MouseListener.setWorkViewportPos(new Vector2f(winPos.x, winPos.y));
         MouseListener.setWorkViewportSize(new Vector2f(winSize.x, winSize.y));
 
         ImGui.end();
@@ -71,36 +66,12 @@ public class GameViewPort {
     }
 
     public boolean getWantCaptureMouse() {
+        if (ImGui.isPopupOpen("", ImGuiPopupFlags.AnyPopup)) return false;
+
         return MouseListener.getX() >= leftX &&
                 MouseListener.getX() <= rightX &&
                 MouseListener.getY() >= bottomY &&
                 MouseListener.getY() <= topY;
 
     }
-
-    private ImVec2 getMaxViewportSize() {
-        ImVec2 winSize = new ImVec2();
-        ImGui.getContentRegionAvail(winSize);
-
-        float aspectRatio = ProjectPreference.get().getGameAspectRatio();
-        float usableWidth = winSize.x;
-        float usableHeight = usableWidth / aspectRatio;
-        if (usableHeight > winSize.y) {
-            usableHeight = winSize.y;
-            usableWidth = usableHeight * aspectRatio;
-        }
-
-        return new ImVec2(usableWidth, usableHeight);
-    }
-
-    private ImVec2 getViewportToCentral(ImVec2 usableSize) {
-        ImVec2 winSize = new ImVec2();
-        ImGui.getContentRegionAvail(winSize);
-
-        float portX = (winSize.x / 2.0f) - (usableSize.x / 2.0f);
-        float portY = (winSize.y / 2.0f) - (usableSize.y / 2.0f);
-
-        return new ImVec2(portX + ImGui.getCursorPosX(), portY + ImGui.getCursorPosY());
-    }
-
 }
