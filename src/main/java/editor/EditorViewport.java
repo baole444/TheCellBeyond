@@ -18,8 +18,8 @@ public class EditorViewport extends Component {
     private float scrollSensitivity = 0.1f; // zoom step
     private Viewport workViewport;
     private Vector2f clickOrigin;
-    private float MAX_ZOOM = 4.0f;
-    private float MIN_ZOOM = 0.5f;
+    private float MAX_ZOOM = 5.0f;
+    private float MIN_ZOOM = 0.1f;
 
     public EditorViewport(Viewport workViewport) {
         this.workViewport = workViewport;

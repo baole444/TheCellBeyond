@@ -69,7 +69,7 @@ public class MouseListener {
         currentX = (2.0f * (currentX / get().workViewportSize.x)) - 1.0f;
 
         float currentY = getY() - get().workViewportPos.y;
-        currentY = (2.0f * (currentX / get().workViewportSize.y)) - 1.0f;
+        currentY = (2.0f * (currentY / get().workViewportSize.y)) - 1.0f;
 
         Viewport camera = scene.viewport();
 
