@@ -1,6 +1,5 @@
 ---
-version: 0.0.1
-
+version: 0.1
 # Do not change version key!
 
 # Some project basic info.
@@ -22,6 +21,4 @@ sheets:
 scenes:
   test:
     path: ./scenes/test.cell
-    asset:
-    sheet:
   # more scenes

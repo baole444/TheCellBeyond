@@ -30,17 +30,15 @@ public class LevelEditorSceneInit extends SceneInit {
 
     private final Map<String, List<SpriteSheet>> categorizedSpriteSheetList = new HashMap<>();
     private final List<SpriteSheet> assetList = new ArrayList<>();
-    private List<String> sheetKeyList;
-    private List<String> assetKeyList;
 
     private String sceneName = null;
-    private ProjectSceneMap thisScene = null;
 
-    public LevelEditorSceneInit() {}
+    public LevelEditorSceneInit() {
+        this("New scene");
+    }
 
     /**
      * Initialize LevelEditorScene with a scene name attach to it.
-     * This allows loading assigned sheets and assets defined in the project file.
      * @param name a nested key within a scene, pulled from {@link Project}
      */
     public LevelEditorSceneInit(String name) {
@@ -49,34 +47,16 @@ public class LevelEditorSceneInit extends SceneInit {
 
     @Override
     public void init(Scene scene) {
-        if (sceneName != null && CurrentProject != null) {
-            thisScene = CurrentProject.scenes().get(sceneName);
+        if (CurrentProject != null && CurrentProject.sheets() != null) {
+            for (Map.Entry<String, ProjectSheetMap> entry : CurrentProject.sheets().entrySet()) {
+                ProjectSheetMap sM = entry.getValue();
 
-            sheetKeyList = thisScene.sheet();
-            assetKeyList = thisScene.asset();
+                String cat = sM.category();
+                String path = PathResolver.resolveToAbsolute(ProjectRoot, sM.path());
 
-            if (sheetKeyList != null) {
-                for (String sheet : sheetKeyList) {
-                    ProjectSheetMap sM = CurrentProject.sheets().get(sheet);
+                SpriteSheet spriteSheet = AssetsPool.loadSpriteSheet(path);
 
-                    String category = sM.category();
-                    String path = PathResolver.resolveToAbsolute(ProjectRoot, sM.path());
-
-                    SpriteSheet spriteSheet = AssetsPool.loadSpriteSheet(path);
-
-                    categorizedSpriteSheetList.
-                            computeIfAbsent(category, key -> new ArrayList<>()).
-                            add(spriteSheet);
-                }
-            }
-
-            if (sheetKeyList != null) {
-                for (String asset : assetKeyList) {
-                    ProjectAssetMap aM = CurrentProject.assets().get(asset);
-                    String path = PathResolver.resolveToAbsolute(ProjectRoot, aM.path());
-
-                    assetList.add(AssetsPool.loadSpriteSheet(path));
-                }
+                categorizedSpriteSheetList.computeIfAbsent(cat, key -> new ArrayList<>()).add(spriteSheet);
             }
         }
 
@@ -98,40 +78,7 @@ public class LevelEditorSceneInit extends SceneInit {
     public void loadResource(Scene scene) {
         AssetsPool.loadShader(Settings.PATH.DEFAULT_TEXTURE_SHADER);
 
-        if (sceneName != null && CurrentProject != null) {
-            thisScene = CurrentProject.scenes().get(sceneName);
-
-            sheetKeyList = thisScene.sheet();
-            assetKeyList = thisScene.asset();
-
-            if (sheetKeyList != null) {
-                for (String sheet : sheetKeyList) {
-                    ProjectSheetMap sM = CurrentProject.sheets().get(sheet);
-
-                    String projectPath = "project://" + sM.path();
-
-                    AssetsPool.addSpriteSheet(projectPath,
-                            new SpriteSheet(AssetsPool.loadTexture(projectPath),
-                                    sM.spriteSizeX(), sM.spriteSizeY(), sM.numberOfSprite(),
-                                    sM.spriteSpacingX(), sM.spriteSpacingY(),
-                                    sM.spriteStartPosX(), sM.spriteStartPosY())
-                    );
-                }
-            }
-
-            if (assetKeyList != null) {
-                for (String asset : assetKeyList) {
-                    ProjectAssetMap aM = CurrentProject.assets().get(asset);
-
-                    String projectPath = "project://" + aM.path();
-
-                    AssetsPool.addSpriteSheet(projectPath,
-                            new SpriteSheet(AssetsPool.loadTexture(projectPath),
-                                    aM.sizeX(), aM.sizeY(), 1, 0)
-                    );
-                }
-            }
-        }
+        Project.loadProjectData();
 
         AssetsPool.addSpriteSheet("engine://assets/textures/Gizmo.png",
                 new SpriteSheet(AssetsPool.loadTexture("engine://assets/textures/Gizmo.png"),
@@ -168,9 +115,6 @@ public class LevelEditorSceneInit extends SceneInit {
 
     @Override
     public void imgui() {
-        //ImGui.begin("Level Editor Debug");
-        //levelEditorObject.imgui();
-        //ImGui.end();
         ImGui.begin("Resources");
 
         if (ImGui.beginTabBar("Resource_TabBar")) {
