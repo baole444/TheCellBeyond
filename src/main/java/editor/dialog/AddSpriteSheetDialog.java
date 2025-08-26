@@ -1,6 +1,7 @@
 package editor.dialog;
 
 import editor.project.Project;
+import editor.project.ProjectSheetMap;
 import imgui.ImDrawList;
 import imgui.ImGui;
 import imgui.ImVec2;
@@ -24,6 +25,7 @@ public class AddSpriteSheetDialog {
     private static final String POPUP_ID = "Add new SpriteSheet";
     private static final String FILE_SELECTION_ID = "File_Selection";
     private static final String PREVIEW_SHEET_ID = "SpriteSheet_Preview";
+    private static final String META_ID = "Meta_Editor";
     private static final ImVec2 DIALOG_SIZE = new ImVec2(900.0f, 700.0f);
     private static boolean showDialog = false;
     //private static boolean editMode = false;
@@ -43,8 +45,8 @@ public class AddSpriteSheetDialog {
     private static float previewScale = 1.0f;
 
     private static final float fileYPercentage = 0.1f;
-    private static final float previewYPercentage = 0.65f;
-    private static final float propertiesYPercentage = 0.2f;
+    private static final float previewYPercentage = 0.60f;
+    private static final float metaYPercentage = 0.2f;
 
     private static final List<String> PICTURE_FORMATS = List.of(
             "png", "jpg", "jpeg", "bmp", "gif"
@@ -89,8 +91,11 @@ public class AddSpriteSheetDialog {
             renderPreviewSection();
             ImGui.separator();
 
+            int sectionY = (int) (DIALOG_SIZE.y * metaYPercentage);
+            ImGui.beginChild(META_ID, ImGuiWindowFlags.None, sectionY, !enableBorder);
             ImGui.inputText("Sheet name", sheetName);
             ImGui.inputText("Sheet category", category);
+            ImGui.endChild();
             ImGui.separator();
 
             int buttonW = 120;
@@ -281,13 +286,19 @@ public class AddSpriteSheetDialog {
             String filename = source.getFileName().toString();
 
             Path target = dir.resolve(filename);
-
-            createFile(dir, target, filename);
+            target = createFile(dir, target, filename);
 
             Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
 
-            // TODO: Update the project file with the new entry
-            System.out.println("New sheet added");
+            String relativePath = "./sheets/" + target.getFileName().toString();
+
+            ProjectSheetMap sheetMap = new ProjectSheetMap(category.get(), relativePath, numberOfSprite,
+                    spriteSize.x, spriteSize.y, spriteSpacing.x, spriteSpacing.y,
+                    spriteStartPosition.x, spriteStartPosition.y
+            );
+
+            boolean success = Project.addSheet(sheetName.get(), sheetMap);
+            if (success) System.out.println("New sheet '" + sheetName.get() + "' added to project");
 
             showDialog = false;
             ImGui.closeCurrentPopup();
@@ -296,16 +307,16 @@ public class AddSpriteSheetDialog {
         }
     }
 
-    private static void createFile(Path original, Path target, String filename) throws IOException {
+    private static Path createFile(Path original, Path target, String filename) throws IOException {
         try {
             Files.createFile(target);
-            return;
+            return target;
         } catch (FileAlreadyExistsException ignore) {}
 
         target = original.resolve("copy_" + filename);
         try {
             Files.createFile(target);
-            return;
+            return target;
         } catch (FileAlreadyExistsException ignore) {}
 
         int counter = 0;
@@ -314,7 +325,7 @@ public class AddSpriteSheetDialog {
                 counter++;
                 target = original.resolve("copy_" + counter + "_" + filename);
                 Files.createFile(target);
-                return;
+                return target;
             } catch (FileAlreadyExistsException ignore) {}
         }
     }
