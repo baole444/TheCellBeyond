@@ -3,8 +3,8 @@ package flat_physic_deprecated.primitive;
 import org.joml.Vector2f;
 
 public class ReturnRayCollision {
-    private Vector2f hitPoint;
-    private Vector2f normal;
+    private final Vector2f hitPoint;
+    private final Vector2f normal;
     private float t;
     private boolean hit;
 

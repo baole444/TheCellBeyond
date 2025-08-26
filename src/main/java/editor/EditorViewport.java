@@ -14,12 +14,12 @@ public class EditorViewport extends Component {
     private boolean isResetZ = false;
     private float lerpT = 0.0f;
     private float dragInit = 0.032f;
-    private float dragSensitivity = 24.0f; // in pixel
-    private float scrollSensitivity = 0.1f; // zoom step
-    private Viewport workViewport;
+    private final float dragSensitivity = 24.0f; // in pixel
+    private final float scrollSensitivity = 0.1f; // zoom step
+    private final Viewport workViewport;
     private Vector2f clickOrigin;
-    private float MAX_ZOOM = 5.0f;
-    private float MIN_ZOOM = 0.1f;
+    private final float MAX_ZOOM = 5.0f;
+    private final float MIN_ZOOM = 0.1f;
 
     public EditorViewport(Viewport workViewport) {
         this.workViewport = workViewport;

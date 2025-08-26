@@ -2,7 +2,7 @@ package editor;
 
 import TheCellBeyond.MouseListener;
 import TheCellBeyond.Window;
-import editor.project.ProjectPreference;
+import editor.project.Project;
 import eventviewer.EventSystem;
 import eventviewer.event.Event;
 import eventviewer.event.EventType;
@@ -11,7 +11,6 @@ import imgui.ImVec2;
 import imgui.flag.ImGuiPopupFlags;
 import imgui.flag.ImGuiWindowFlags;
 import org.joml.Vector2f;
-import render.FrameBuffer;
 
 public class GameViewPort {
     private float leftX, rightX, topY, bottomY;
@@ -85,7 +84,7 @@ public class GameViewPort {
         ImGui.getContentRegionAvail(winSize);
 
         float aspectRatio = Window.get().isRuntimeMode() ?
-                ProjectPreference.get().getGameAspectRatio() :
+                Project.preference().getGameAspectRatio() :
                 Window.getScene().viewport().getAspectRatio();
 
         float usableWidth = winSize.x;

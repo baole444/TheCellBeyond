@@ -36,7 +36,7 @@ public class StateEngine extends Component {
     }
 
     public HashMap<StateCondition, String> shiftState = new HashMap<>();
-    private List<AnimationState> states = new ArrayList<>();
+    private final List<AnimationState> states = new ArrayList<>();
     private transient AnimationState instState = null;
     private String defaultTitle = "";
 

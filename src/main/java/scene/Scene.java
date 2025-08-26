@@ -8,6 +8,7 @@ import components.Component;
 import components.IsNotSelectable;
 import components.SpriteRenderer;
 import editor.Indicator;
+import editor.project.Project;
 import org.joml.Vector2f;
 import physic2d.Physic2D;
 import render.Renderer;
@@ -19,9 +20,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static editor.project.Project.CurrentProject;
-import static editor.project.Project.ProjectRoot;
 
 public class Scene {
     private final Renderer renderer;
@@ -336,7 +334,7 @@ public class Scene {
         String currentSceneName = Window.getCurrentSceneName();
         String resolvedPath;
         if (currentSceneName != null) {
-            resolvedPath = PathResolver.resolveToAbsolute(ProjectRoot, CurrentProject.scenes().get(currentSceneName).path());
+            resolvedPath = PathResolver.resolveToAbsolute(Project.projectRoot(), Project.currentProject().scenes().get(currentSceneName).path());
         } else {
             resolvedPath = "untitled.cell";
         }
@@ -352,7 +350,7 @@ public class Scene {
             FileWriter writer = new FileWriter(resolvedPath);
             List<GameObject> serializeList = new ArrayList<>();
             for (GameObject obj : this.gameObjectByUUIDs.values()) {
-                if (obj.isSerialize() && CurrentProject != null && ProjectRoot != null && currentSceneName != null) {
+                if (obj.isSerialize() && Project.currentProject() != null && Project.projectRoot() != null && currentSceneName != null) {
                     obj.prepareForSerialization();
 
                     if (obj.getFirstComponent(SpriteRenderer.class) != null) {
@@ -385,7 +383,7 @@ public class Scene {
         String currentSceneName = Window.getCurrentSceneName();
         String resolvedPath;
         if (currentSceneName != null) {
-            resolvedPath = PathResolver.resolveToAbsolute(ProjectRoot, CurrentProject.scenes().get(currentSceneName).path());
+            resolvedPath = PathResolver.resolveToAbsolute(Project.projectRoot(), Project.currentProject().scenes().get(currentSceneName).path());
         } else {
             resolvedPath = "untitled.cell";
         }
@@ -410,7 +408,7 @@ public class Scene {
         if (!loadFile.isEmpty()) {
             GameObject[] objects = gson.fromJson(loadFile, GameObject[].class);
             for (GameObject go : objects) {
-                if (CurrentProject != null && ProjectRoot != null && currentSceneName != null) {
+                if (Project.currentProject() != null && Project.projectRoot() != null && currentSceneName != null) {
                     if (go.getFirstComponent(SpriteRenderer.class) != null) {
                         String canonicalPath = go.getFirstComponent(SpriteRenderer.class).getTexture().getFilePath();
 

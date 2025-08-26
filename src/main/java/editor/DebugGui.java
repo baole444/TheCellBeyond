@@ -11,7 +11,7 @@ public class DebugGui {
     private int x, y;
     private float wX, wY;
 
-    private boolean[] showContent = new boolean[] {false, false, false, false, false, false};
+    private final boolean[] showContent = new boolean[] {false, false, false, false, false, false};
     public void imgui(){
         printDebug = GameViewPort.debugOutput();
         ImGui.begin("Debug Tools set");
@@ -19,11 +19,7 @@ public class DebugGui {
         ImGui.text("= Viewport statistic =====");
 
         if (ImGui.button("Toggle statistic")) {
-            if (showContent[0]) {
-                showContent[0] = false;
-            } else {
-                showContent[0] = true;
-            }
+            showContent[0] = !showContent[0];
         }
 
         if (showContent[0]) {
@@ -39,11 +35,7 @@ public class DebugGui {
         ImGui.text("==========================");
 
         if (ImGui.button("Toggle Debug tool")) {
-            if (showContent[1]) {
-                showContent[1] = false;
-            } else {
-                showContent[1] = true;
-            }
+            showContent[1] = !showContent[1];
         }
 
         if (showContent[1]) {

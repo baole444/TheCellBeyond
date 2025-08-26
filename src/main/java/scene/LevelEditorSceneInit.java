@@ -5,8 +5,7 @@ import TheCellBeyond.Transform;
 import components.*;
 import editor.EditorViewport;
 import editor.project.Project;
-import editor.project.ProjectAssetMap;
-import editor.project.ProjectSceneMap;
+import editor.project.ProjectData;
 import editor.project.ProjectSheetMap;
 import imgui.ImGui;
 import imgui.flag.ImGuiCol;
@@ -19,9 +18,6 @@ import utility.prefabrication.PrefabData;
 import utility.prefabrication.PrefabManager;
 
 import java.util.*;
-
-import static editor.project.Project.CurrentProject;
-import static editor.project.Project.ProjectRoot;
 
 public class LevelEditorSceneInit extends SceneInit {
     private final Vector2i prefabButtonSize = new Vector2i(200, 30);
@@ -47,12 +43,14 @@ public class LevelEditorSceneInit extends SceneInit {
 
     @Override
     public void init(Scene scene) {
-        if (CurrentProject != null && CurrentProject.sheets() != null) {
-            for (Map.Entry<String, ProjectSheetMap> entry : CurrentProject.sheets().entrySet()) {
+        ProjectData project = Project.currentProject();
+
+        if (project != null && project.sheets() != null) {
+            for (Map.Entry<String, ProjectSheetMap> entry : project.sheets().entrySet()) {
                 ProjectSheetMap sM = entry.getValue();
 
                 String cat = sM.category();
-                String path = PathResolver.resolveToAbsolute(ProjectRoot, sM.path());
+                String path = PathResolver.resolveToAbsolute(Project.projectRoot(), sM.path());
 
                 SpriteSheet spriteSheet = AssetsPool.loadSpriteSheet(path);
 

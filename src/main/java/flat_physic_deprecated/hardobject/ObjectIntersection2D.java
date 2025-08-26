@@ -146,7 +146,7 @@ public class ObjectIntersection2D {
             return false;
         }
 
-        float rcSqRoot = (float)Math.sqrt(radiusSqr - orgToPjPt);
+        float rcSqRoot = Math.sqrt(radiusSqr - orgToPjPt);
         float t = 0;
         if (orgToCrLgthSqr < radiusSqr) {
             t = oTd + rcSqRoot;
@@ -241,7 +241,7 @@ public class ObjectIntersection2D {
                 hPa.setComponent(i, 0.00001f); // Make sure that we don't divide by 0
             }
 
-            tA[i  * 2 + 0] = (pjPa.get(i) + size.get(i)) / hPa.get(i); // get tmax on axis
+            tA[i * 2] = (pjPa.get(i) + size.get(i)) / hPa.get(i); // get tmax on axis
             tA[i * 2 + 1] = (pjPa.get(i) - size.get(i)) / hPa.get(i); // get tmin on axis
         }
 

@@ -13,8 +13,6 @@ import utility.ExitConfirmDialog;
 
 import java.util.List;
 
-import static editor.project.Project.CurrentProject;
-
 public class MenuBar {
     private static final boolean[] mode = new boolean[] {true, false, false};
     private final ExitConfirmDialog exitConfirmDialog = new ExitConfirmDialog();
@@ -66,7 +64,7 @@ public class MenuBar {
             ImGui.endMenu();
         }
 
-        if (CurrentProject != null && !Project.getSceneNames().isEmpty()) {
+        if (Project.currentProject() != null && !Project.getSceneNames().isEmpty()) {
             if (ImGui.beginMenu("Scenes")){
                 if (ImGui.menuItem("New scene")) {
                     // TODO: Confirm save current scene

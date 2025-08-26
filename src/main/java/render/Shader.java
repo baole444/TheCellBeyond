@@ -23,7 +23,7 @@ public class Shader {
 
     private String fragmentSrc;
 
-    private AssetReference assetReference;
+    private final AssetReference assetReference;
 
     private boolean isCompiled = false;
 

@@ -1,5 +1,6 @@
 package TheCellBeyond;
 
+import editor.project.Project;
 import editor.project.ProjectPreference;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
@@ -41,7 +42,7 @@ public class Viewport {
 
     public void lockToGameAspectRatio() {
         isDynamic = false;
-        aspectRatio = ProjectPreference.get().getGameAspectRatio();
+        aspectRatio = Project.preference().getGameAspectRatio();
         projectionSize = new Vector2f(aspectRatio * sceneScale, sceneScale);
         adjustProjection();
     }

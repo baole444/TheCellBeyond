@@ -5,8 +5,8 @@ import org.joml.Vector2f;
 
 public class Circle {
     private float radius = 1.0f;
-    private Vector2f origin = new Vector2f();
-    private HardObject hardObject = new HardObject();
+    private final Vector2f origin = new Vector2f();
+    private final HardObject hardObject = new HardObject();
 
     public void setRadius(float radius) {
         this.radius = radius;

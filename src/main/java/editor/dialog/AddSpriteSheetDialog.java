@@ -1,5 +1,6 @@
 package editor.dialog;
 
+import editor.project.Project;
 import imgui.ImDrawList;
 import imgui.ImGui;
 import imgui.ImVec2;
@@ -17,8 +18,6 @@ import utility.TextureScale;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.List;
-
-import static editor.project.Project.ProjectRoot;
 
 public class AddSpriteSheetDialog {
     private static final IdPool ID_POOL = new IdPool(0, false);
@@ -272,10 +271,10 @@ public class AddSpriteSheetDialog {
     }
 
     private static void addSpriteSheet() {
-        if (ProjectRoot == null) return;
+        if (Project.projectRoot() == null) return;
 
         try {
-            Path dir = Paths.get(ProjectRoot, "sheets");
+            Path dir = Paths.get(Project.projectRoot(), "sheets");
             if (!Files.exists(dir)) Files.createDirectories(dir);
 
             Path source = Paths.get(selectedFilePath.get());

@@ -6,8 +6,8 @@ import org.joml.Vector2f;
 //Flat boundary
 public class AABB {
     private Vector2f size = new Vector2f();
-    private Vector2f isHalf;
-    private HardObject hardObject = null;
+    private final Vector2f isHalf;
+    private final HardObject hardObject = null;
 
     public AABB() {
         this.isHalf =new Vector2f(size).mul(0.5f);

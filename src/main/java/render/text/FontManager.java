@@ -4,19 +4,13 @@ import org.lwjgl.BufferUtils;
 import utility.AssetReference;
 import utility.PathResolver;
 
-import java.io.File;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import static editor.project.Project.CurrentProject;
-import static editor.project.Project.ProjectRoot;
 
 public class FontManager {
     private static final Logger LOGGER = Logger.getLogger(FontManager.class.getName());

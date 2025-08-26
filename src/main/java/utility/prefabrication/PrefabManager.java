@@ -1,7 +1,6 @@
 package utility.prefabrication;
 
 import TheCellBeyond.GameObject;
-import TheCellBeyond.GameObject2D;
 import TheCellBeyond.GameObjectSerializer;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -9,17 +8,19 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import components.Component;
 import components.ComponentSerializer;
+import editor.project.Project;
 
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
-
-import static editor.project.Project.ProjectRoot;
 
 public class PrefabManager {
     private static PrefabManager prefabManager;
@@ -44,13 +45,15 @@ public class PrefabManager {
     public boolean savePrefab(GameObject gameObject, String prefabName, boolean includeChildren) {
         if (gameObject == null || prefabName == null || prefabName.isEmpty()) return false;
 
-        if (ProjectRoot == null) {
+        String root = Project.projectRoot();
+
+        if (root == null) {
             System.err.println("No project loaded to save prefab. How did you managed to call this anyways?");
             return false;
         }
 
         try {
-            Path prefabsPath = Paths.get(ProjectRoot, PREFABS_DIR);
+            Path prefabsPath = Paths.get(root, PREFABS_DIR);
 
             if (!Files.exists(prefabsPath)) Files.createDirectories(prefabsPath);
 
@@ -107,11 +110,13 @@ public class PrefabManager {
     }
 
     public void loadAllPrefabs() {
-        if (ProjectRoot == null) return;
+        String root = Project.projectRoot();
+
+        if (root == null) return;
 
         loadedPrefabs.clear();
 
-        Path prefabsPath = Paths.get(ProjectRoot, PREFABS_DIR);
+        Path prefabsPath = Paths.get(root, PREFABS_DIR);
 
         if (!Files.exists(prefabsPath)) return;
 
@@ -187,10 +192,12 @@ public class PrefabManager {
     }
 
     public boolean deletePrefab(String prefabName) {
-        if (ProjectRoot == null) return false;
+        String root = Project.projectRoot();
+
+        if (root == null) return false;
 
         String filename = prefabName.replaceAll(NAME_PATTERN, "_") + EXTENSION;
-        Path prefabFile = Paths.get(ProjectRoot, PREFABS_DIR, filename);
+        Path prefabFile = Paths.get(root, PREFABS_DIR, filename);
 
         try {
             if (Files.exists(prefabFile)) {

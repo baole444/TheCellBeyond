@@ -3,8 +3,8 @@ package flat_physic_deprecated.primitive;
 import org.joml.Vector2f;
 
 public class Ray2D {
-    private Vector2f origin;
-    private Vector2f head;
+    private final Vector2f origin;
+    private final Vector2f head;
 
     public Ray2D(Vector2f origin, Vector2f head) {
         this.origin = origin;

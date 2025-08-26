@@ -14,8 +14,9 @@ import java.util.List;
 import java.util.Map;
 
 public class Project {
-    public static ProjectData CurrentProject = null;
-    public static String ProjectRoot = null;
+    private static ProjectData CurrentProject = null;
+    private static String ProjectRoot = null;
+    private static ProjectPreference preference = null;
     private static String _projectYmlPath = null;
     private static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory());
 
@@ -26,6 +27,18 @@ public class Project {
             CurrentProject = YAML_MAPPER.readValue(projectFile, ProjectData.class);
             ProjectRoot = PathResolver.toRoot(path);
             _projectYmlPath = path;
+
+            if (CurrentProject != null) {
+                if (CurrentProject.project() == null) {
+                    System.err.println("Project preference is missing, generating new preference...");
+                    CurrentProject = new ProjectData(CurrentProject.version(),
+                            new ProjectPreference(), CurrentProject.assets(),
+                            CurrentProject.sheets(), CurrentProject.scenes()
+                    );
+                    save();
+                }
+                preference = CurrentProject.project();
+            }
 
             return CurrentProject;
         } catch (IOException e) {
@@ -64,6 +77,23 @@ public class Project {
         if (CurrentProject == null || CurrentProject.scenes() == null) return null;
 
         return CurrentProject.scenes().get(key);
+    }
+
+    public static boolean updateProjectPreference(String name, int windowWidth, int windowHeight, boolean allowResize, boolean maintainAspectRatio) {
+        preference = new ProjectPreference(name, windowWidth, windowHeight, allowResize, maintainAspectRatio);
+
+        if (CurrentProject == null) {
+            System.err.println("No project loaded");
+            return false;
+        }
+
+        CurrentProject = new ProjectData(CurrentProject.version(),
+                preference, CurrentProject.assets(),
+                CurrentProject.sheets(), CurrentProject.scenes()
+        );
+
+        save();
+        return true;
     }
 
     public static boolean addAsset(String key, ProjectAssetMap asset) {
@@ -265,5 +295,17 @@ public class Project {
                 AssetsPool.addSpriteSheet(projectPath, sheet);
             }
         }
+    }
+
+    public static ProjectData currentProject() {
+        return CurrentProject;
+    }
+
+    public static String projectRoot() {
+        return ProjectRoot;
+    }
+
+    public static ProjectPreference preference() {
+        return preference;
     }
 }

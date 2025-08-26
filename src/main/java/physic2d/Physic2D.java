@@ -18,12 +18,12 @@ public class Physic2D {
     // https://box2d.org Check out this website for reference codes
 
     private final Vec2 gravity = new Vec2(0, -9.80665f);
-    private World world = new World(gravity);
+    private final World world = new World(gravity);
 
     private float physicDt = 0.0f;
     private final float physicDtRate = 1.0f / 60.0f; // delta of 60 fps
-    private int velocityPassCount = 9;
-    private int positionPassCount = 3;
+    private final int velocityPassCount = 9;
+    private final int positionPassCount = 3;
 
     public Physic2D() {
         world.setContactListener(new Physic2DContactListener());

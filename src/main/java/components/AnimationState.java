@@ -10,7 +10,7 @@ public class AnimationState {
     public String title;
     public List<Frame> animateFrame = new ArrayList<>();
 
-    private static Sprite defaultSprite = new Sprite();
+    private static final Sprite defaultSprite = new Sprite();
     private transient float timeTrack = 0.0f;
     private transient int instSprite = 0;
     public boolean isLoop = false;

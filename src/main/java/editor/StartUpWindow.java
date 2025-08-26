@@ -2,13 +2,12 @@ package editor;
 
 import TheCellBeyond.MouseListener;
 import editor.dialog.OpenProjectDialog;
+import editor.project.Project;
 import imgui.ImGui;
 import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiConfigFlags;
 import imgui.flag.ImGuiWindowFlags;
 
-import static editor.project.Project.CurrentProject;
-import static editor.project.Project.ProjectRoot;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 
@@ -38,7 +37,7 @@ public class StartUpWindow{
                 OpenProjectDialog.openProjectDialog();
             }
 
-            loaded = (CurrentProject != null && ProjectRoot != null);
+            loaded = (Project.currentProject() != null && Project.projectRoot() != null);
 
             ImGui.end();
 

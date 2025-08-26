@@ -23,7 +23,7 @@ public class RayCastInfo implements RayCastCallback {
 
     public GameObject contactedObject;
 
-    private GameObject originObject;
+    private final GameObject originObject;
 
     public RayCastInfo(GameObject originObject) {
         fixture = null;

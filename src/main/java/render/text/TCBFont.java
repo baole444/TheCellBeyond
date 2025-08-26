@@ -21,7 +21,7 @@ import static org.lwjgl.opengl.GL30.glGenerateMipmap;
 import static org.lwjgl.stb.STBTruetype.*;
 
 public class TCBFont {
-    private AssetReference assetReference;
+    private final AssetReference assetReference;
     private final int fontSize;
     private final GlyphRange glyphRange;
     private int startChar;

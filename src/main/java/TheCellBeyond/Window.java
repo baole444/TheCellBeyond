@@ -2,17 +2,13 @@ package TheCellBeyond;
 
 import editor.ImGuiLayer;
 import editor.StartUpWindow;
-import editor.dialog.OpenProjectDialog;
 import editor.project.Project;
 import editor.Properties;
-import editor.project.ProjectPreference;
+import editor.project.ProjectData;
 import eventviewer.EventSystem;
 import eventviewer.EventInterface;
 import eventviewer.event.Event;
 import imgui.ImGui;
-import imgui.flag.ImGuiCond;
-import imgui.flag.ImGuiConfigFlags;
-import imgui.flag.ImGuiWindowFlags;
 import org.joml.Vector2i;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
@@ -34,8 +30,6 @@ import utility.Settings;
 
 import java.awt.*;
 
-import static editor.project.Project.CurrentProject;
-import static editor.project.Project.ProjectRoot;
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.openal.ALC10.*;
@@ -110,11 +104,12 @@ public final class Window implements EventInterface {
         System.out.println("Starting LWJGL " + Version.getVersion());
 
         initWindow();
+        ProjectData currentProject = Project.currentProject();
 
         if (!projectLoaded) {
             StartUpWindow.show(windowPtr, imGuiLayer, width, height);
 
-            projectLoaded = (CurrentProject != null && ProjectRoot != null);
+            projectLoaded = (currentProject != null && Project.projectRoot() != null);
 
             if (glfwWindowShouldClose(windowPtr)) {
                 endScr();
@@ -123,7 +118,7 @@ public final class Window implements EventInterface {
         }
 
         if (projectLoaded) {
-            String projectDetail = " - [" + CurrentProject.project().getName() + "] [" + ProjectRoot + "]";
+            String projectDetail = " - [" + Project.preference().name() + "] [" + Project.projectRoot() + "]";
 
             glfwSetWindowTitle(windowPtr, this.title + projectDetail);
             loop();
@@ -259,7 +254,7 @@ public final class Window implements EventInterface {
             glfwSetWindowIcon(windowPtr, bufferIcon);
         }
 
-        projectLoaded = (CurrentProject != null && ProjectRoot != null);
+        projectLoaded = (Project.currentProject() != null && Project.projectRoot() != null);
 
         if (projectLoaded) {
             Window.changeScene(new LevelEditorSceneInit());
@@ -402,12 +397,12 @@ public final class Window implements EventInterface {
 
                 Project.loadFromYaml(object.toString());
 
-                projectLoaded = (CurrentProject != null && ProjectRoot != null);
+                projectLoaded = (Project.currentProject() != null && Project.projectRoot() != null);
 
                 if (projectLoaded) {
                     MouseListener.setStartupMode(false);
 
-                    String projectDetail = " - [" + CurrentProject.project().getName() + "] [" + ProjectRoot + "]";
+                    String projectDetail = " - [" + Project.preference().name() + "] [" + Project.projectRoot() + "]";
 
                     glfwSetWindowTitle(windowPtr, this.title + projectDetail);
 
@@ -452,7 +447,7 @@ public final class Window implements EventInterface {
     }
 
     public static float getTargetAspectRatio() {
-        return ProjectPreference.get().getGameAspectRatio();
+        return Project.preference().getGameAspectRatio();
     }
 
     public static ImGuiLayer getImGuiLayer() {
