@@ -292,13 +292,22 @@ public class AddSpriteSheetDialog {
 
             String relativePath = "./sheets/" + target.getFileName().toString();
 
-            ProjectSheetMap sheetMap = new ProjectSheetMap(category.get(), relativePath, numberOfSprite,
+            ProjectSheetMap sheetMap = new ProjectSheetMap(relativePath, numberOfSprite,
                     spriteSize.x, spriteSize.y, spriteSpacing.x, spriteSpacing.y,
                     spriteStartPosition.x, spriteStartPosition.y
             );
 
-            boolean success = Project.addSheet(sheetName.get(), sheetMap);
-            if (success) System.out.println("New sheet '" + sheetName.get() + "' added to project");
+            String cat = category.get().trim();
+            String name = sheetName.get().trim();
+
+            if (cat.isEmpty()) cat = "Asset";
+            if (name.isEmpty()) name = target.getFileName().toString();
+
+            boolean success = Project.addSheet(cat, name, sheetMap);
+            if (success) {
+                System.out.println("New sheet '" + sheetName.get() + "' added to project");
+                Project.loadProjectData();
+            }
 
             showDialog = false;
             ImGui.closeCurrentPopup();

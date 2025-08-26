@@ -104,12 +104,11 @@ public final class Window implements EventInterface {
         System.out.println("Starting LWJGL " + Version.getVersion());
 
         initWindow();
-        ProjectData currentProject = Project.currentProject();
 
         if (!projectLoaded) {
             StartUpWindow.show(windowPtr, imGuiLayer, width, height);
 
-            projectLoaded = (currentProject != null && Project.projectRoot() != null);
+            projectLoaded = (Project.currentProject() != null && Project.projectRoot() != null);
 
             if (glfwWindowShouldClose(windowPtr)) {
                 endScr();
@@ -447,7 +446,7 @@ public final class Window implements EventInterface {
     }
 
     public static float getTargetAspectRatio() {
-        return Project.preference().getGameAspectRatio();
+        return Project.getGameAspectRatio();
     }
 
     public static ImGuiLayer getImGuiLayer() {

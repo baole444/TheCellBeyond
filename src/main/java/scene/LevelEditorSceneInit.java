@@ -24,7 +24,7 @@ public class LevelEditorSceneInit extends SceneInit {
 
     private GameObject levelEditorObject;
 
-    private final Map<String, List<SpriteSheet>> categorizedSpriteSheetList = new HashMap<>();
+    private final Map<String, Map<String, SpriteSheet>> categorizedSpriteSheetList = new HashMap<>();
     private final List<SpriteSheet> assetList = new ArrayList<>();
 
     private String sceneName = null;
@@ -46,15 +46,20 @@ public class LevelEditorSceneInit extends SceneInit {
         ProjectData project = Project.currentProject();
 
         if (project != null && project.sheets() != null) {
-            for (Map.Entry<String, ProjectSheetMap> entry : project.sheets().entrySet()) {
-                ProjectSheetMap sM = entry.getValue();
+            for (Map.Entry<String, Map<String, ProjectSheetMap>> categories : project.sheets().entrySet()) {
+                String category = categories.getKey();
+                Map<String, SpriteSheet> categorySheets = new HashMap<>();
 
-                String cat = sM.category();
-                String path = PathResolver.resolveToAbsolute(Project.projectRoot(), sM.path());
+                for (Map.Entry<String, ProjectSheetMap> sheets : categories.getValue().entrySet()) {
+                    String name = sheets.getKey();
+                    ProjectSheetMap sM = sheets.getValue();
+                    String path = PathResolver.resolveToAbsolute(Project.projectRoot(), sM.path());
 
-                SpriteSheet spriteSheet = AssetsPool.loadSpriteSheet(path);
+                    SpriteSheet spriteSheet = AssetsPool.loadSpriteSheet(path);
+                    if (spriteSheet != null) categorySheets.put(name, spriteSheet);
+                }
 
-                categorizedSpriteSheetList.computeIfAbsent(cat, key -> new ArrayList<>()).add(spriteSheet);
+                if (!categorySheets.isEmpty()) categorizedSpriteSheetList.put(category, categorySheets);
             }
         }
 

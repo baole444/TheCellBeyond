@@ -12,10 +12,4 @@ public record ProjectPreference(
     public ProjectPreference(String name) {
         this(name, 640, 480, false, true);
     }
-
-    public float getGameAspectRatio() {
-        return (float) gameWindowWidth / gameWindowHeight;
-    }
-
-
 }

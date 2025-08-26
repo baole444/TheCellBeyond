@@ -42,7 +42,7 @@ public class Viewport {
 
     public void lockToGameAspectRatio() {
         isDynamic = false;
-        aspectRatio = Project.preference().getGameAspectRatio();
+        aspectRatio = Project.getGameAspectRatio();
         projectionSize = new Vector2f(aspectRatio * sceneScale, sceneScale);
         adjustProjection();
     }

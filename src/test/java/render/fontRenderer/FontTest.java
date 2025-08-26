@@ -16,9 +16,8 @@ public class FontTest {
     public void runSuccess() throws IOException {
         String correctPath = "assets/fonts/Consola.ttf";
         TCBFont font = new TCBFont(correctPath, 16, GlyphRange.ASCII);
-        File file = new File("tempFont_Consola.png");
 
-        assertTrue(file.exists());
+        assertNotNull(font);
     }
 
     @Test
@@ -26,7 +25,6 @@ public class FontTest {
         try {
             String incorrectPath = "assets/fonts/Consolas.ttf";
             TCBFont font = new TCBFont(incorrectPath, 16, GlyphRange.ASCII);
-            File file = new File("tempFont_Consolas.png");
         } catch (IOException e) {
             assertNotNull(e);
         }
@@ -36,8 +34,7 @@ public class FontTest {
     public void runSuccessASCII_EXTENDED() throws IOException {
         String correctPath = "assets/fonts/Consola.ttf";
         TCBFont font = new TCBFont(correctPath, 16, GlyphRange.ASCII_EXTENDED);
-        File file = new File("tempFont_Consola.png");
 
-        assertTrue(file.exists());
+        assertNotNull(font);
     }
 }

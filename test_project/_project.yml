@@ -1,24 +1,17 @@
 ---
-version: 0.1
-# Do not change version key!
-
-# Some project basic info.
+version: "0.1"
 project:
-  name: Test Project
-
-# Standalone assets file.
+  name: "Untitled Project"
+  gameWindowWidth: 640
+  gameWindowHeight: 480
+  allowResize: false
+  maintainAspectRatio: true
 assets:
   default:
-    path: ./assets/Just_a_placeholder.png
+    path: "./assets/Just_a_placeholder.png"
     sizeX: 64
     sizeY: 64
-  # more assets
-    
-# Sprite sheet file.
-sheets:
-
-# Scenes
+sheets: null
 scenes:
   test:
-    path: ./scenes/test.cell
-  # more scenes
+    path: "./scenes/test.cell"

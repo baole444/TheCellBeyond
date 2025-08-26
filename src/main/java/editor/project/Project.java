@@ -26,6 +26,7 @@ public class Project {
 
             CurrentProject = YAML_MAPPER.readValue(projectFile, ProjectData.class);
             ProjectRoot = PathResolver.toRoot(path);
+            PathResolver.initialize(ProjectRoot);
             _projectYmlPath = path;
 
             if (CurrentProject != null) {
@@ -153,13 +154,13 @@ public class Project {
         return true;
     }
 
-    public static boolean addSheet(String key, ProjectSheetMap sheet) {
+    public static boolean addSheet(String category, String name, ProjectSheetMap sheet) {
         if (CurrentProject == null) {
             System.err.println("No project loaded");
             return false;
         }
 
-        Map<String, ProjectSheetMap> sheets = CurrentProject.sheets();
+        Map<String, Map<String, ProjectSheetMap>> sheets = CurrentProject.sheets();
         if (sheets == null) {
             sheets = new HashMap<>();
             CurrentProject = new ProjectData(
@@ -168,43 +169,54 @@ public class Project {
             );
         }
 
-        if (sheets.containsKey(key)) {
-            System.err.println("Sheet with key '" + key + "' already exists");
+        Map<String, ProjectSheetMap> categorizedSheets = sheets.computeIfAbsent(category, k -> new HashMap<>());
+
+        if (categorizedSheets.containsKey(name)) {
+            System.err.println("Sheet named '" + name + "' already exists in '" + category + "' category");
             return false;
         }
 
-        sheets.put(key, sheet);
+        categorizedSheets.put(name, sheet);
         save();
         return true;
     }
 
-    public static boolean updateSheet(String key, ProjectSheetMap sheet) {
+    public static boolean updateSheet(String category, String name, ProjectSheetMap sheet) {
         if (CurrentProject == null || CurrentProject.sheets() == null) {
             System.err.println("No project or sheets loaded");
             return false;
         }
 
-        if (!CurrentProject.sheets().containsKey(key)) {
-            System.err.println("Sheet with key '" + key + "' does not exist");
+        Map<String, ProjectSheetMap> categorizedSheets = CurrentProject.sheets().get(category);
+        if (categorizedSheets == null || !categorizedSheets.containsKey(name)) {
+            System.err.println("Sheet named '" + name + "' does not exist in '" + category + "' category");
             return false;
         }
 
-        CurrentProject.sheets().put(key, sheet);
+        categorizedSheets.put(name, sheet);
         save();
         return true;
     }
 
-    public static boolean removeSheet(String key) {
+    public static boolean removeSheet(String category, String name) {
         if (CurrentProject == null || CurrentProject.sheets() == null) {
             System.err.println("No project or sheets loaded");
             return false;
         }
 
-        ProjectSheetMap removed = CurrentProject.sheets().remove(key);
+        Map<String, ProjectSheetMap> categorizedSheets = CurrentProject.sheets().get(category);
+        if (categorizedSheets == null) {
+            System.err.println("Category '" + category + "' does not exist");
+            return false;
+        }
+
+        ProjectSheetMap removed = categorizedSheets.remove(name);
         if (removed == null) {
-            System.err.println("Sheet with key '" + key + "' does not exist");
+            System.err.println("Sheet named '" + name + "' does not exist in '" + category + "' category");
             return false;
         }
+
+        if (categorizedSheets.isEmpty()) CurrentProject.sheets().remove(category);
 
         save();
         return true;
@@ -270,17 +282,19 @@ public class Project {
         if (CurrentProject == null) return;
 
         if (CurrentProject.sheets() != null) {
-            for (Map.Entry<String, ProjectSheetMap> entry : CurrentProject.sheets().entrySet()) {
-                ProjectSheetMap sheetMap = entry.getValue();
-                String projectPath = "project://" + sheetMap.path();
+            for (Map.Entry<String, Map<String, ProjectSheetMap>> categories : CurrentProject.sheets().entrySet()) {
+                for (Map.Entry<String, ProjectSheetMap> sheets : categories.getValue().entrySet()) {
+                    ProjectSheetMap sheetMap = sheets.getValue();
+                    String projectPath = "project://" + sheetMap.path();
 
-                Texture texture = AssetsPool.loadTexture(projectPath);
-                SpriteSheet sheet = new SpriteSheet(texture, sheetMap.spriteSizeX(), sheetMap.spriteSizeY(),
-                        sheetMap.numberOfSprite(), sheetMap.spriteSpacingX(), sheetMap.spriteSpacingY(),
-                        sheetMap.spriteStartPosX(), sheetMap.spriteStartPosY()
-                );
+                    Texture texture = AssetsPool.loadTexture(projectPath);
+                    SpriteSheet sheet = new SpriteSheet(texture, sheetMap.spriteSizeX(), sheetMap.spriteSizeY(),
+                            sheetMap.numberOfSprite(), sheetMap.spriteSpacingX(), sheetMap.spriteSpacingY(),
+                            sheetMap.spriteStartPosX(), sheetMap.spriteStartPosY()
+                    );
 
-                AssetsPool.addSpriteSheet(projectPath, sheet);
+                    AssetsPool.addSpriteSheet(projectPath, sheet);
+                }
             }
         }
 
@@ -307,5 +321,11 @@ public class Project {
 
     public static ProjectPreference preference() {
         return preference;
+    }
+
+    public static float getGameAspectRatio() {
+        if (preference == null) return (float) 640 / 480;
+
+        return (float) preference.gameWindowWidth() / preference.gameWindowHeight();
     }
 }

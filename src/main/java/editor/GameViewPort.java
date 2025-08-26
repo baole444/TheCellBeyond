@@ -84,7 +84,7 @@ public class GameViewPort {
         ImGui.getContentRegionAvail(winSize);
 
         float aspectRatio = Window.get().isRuntimeMode() ?
-                Project.preference().getGameAspectRatio() :
+                Project.getGameAspectRatio() :
                 Window.getScene().viewport().getAspectRatio();
 
         float usableWidth = winSize.x;
