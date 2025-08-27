@@ -4,6 +4,7 @@ import TheCellBeyond.GameObject;
 import TheCellBeyond.Transform;
 import components.*;
 import editor.EditorViewport;
+import editor.dialog.AddSpriteSheetDialog;
 import editor.project.Project;
 import editor.project.ProjectData;
 import editor.project.ProjectSheetMap;
@@ -115,7 +116,6 @@ public class LevelEditorSceneInit extends SceneInit {
         }
     }
 
-
     @Override
     public void imgui() {
         ImGui.begin("Resources");
@@ -142,8 +142,12 @@ public class LevelEditorSceneInit extends SceneInit {
                     }
                 }
             }
-
              */
+
+            if (ImGui.beginTabItem("Sprite Sheets")) {
+                if (ImGui.button("Add Sprite sheet")) AddSpriteSheetDialog.show(false);
+                ImGui.endTabItem();
+            }
 
             if (ImGui.beginTabItem("Prefabrication")) {
                 drawPrefabList();
@@ -152,6 +156,9 @@ public class LevelEditorSceneInit extends SceneInit {
 
             ImGui.endTabBar();
         }
+
+        AddSpriteSheetDialog.imgui();
+
         ImGui.end();
     }
 

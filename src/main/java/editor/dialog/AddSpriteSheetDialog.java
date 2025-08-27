@@ -91,11 +91,11 @@ public class AddSpriteSheetDialog {
             renderPreviewSection();
             ImGui.separator();
 
-            int sectionY = (int) (DIALOG_SIZE.y * metaYPercentage);
-            ImGui.beginChild(META_ID, ImGuiWindowFlags.None, sectionY, !enableBorder);
+            //int sectionY = (int) (DIALOG_SIZE.y * metaYPercentage);
+            //ImGui.beginChild(META_ID, ImGuiWindowFlags.None, sectionY, !enableBorder);
             ImGui.inputText("Sheet name", sheetName);
             ImGui.inputText("Sheet category", category);
-            ImGui.endChild();
+            //ImGui.endChild();
             ImGui.separator();
 
             int buttonW = 120;
@@ -108,6 +108,13 @@ public class AddSpriteSheetDialog {
                 ImGui.beginDisabled();
                 ImGui.button("Add Sheet", buttonW, 0);
                 ImGui.endDisabled();
+            }
+
+            ImGui.sameLine();
+
+            if (ImGui.button("Cancel", buttonW, 0)) {
+                showDialog = false;
+                ImGui.closeCurrentPopup();
             }
 
             ImGui.endPopup();
@@ -133,7 +140,7 @@ public class AddSpriteSheetDialog {
 
         ImGui.sameLine();
         if (ImGui.button("Browse Files", browseButtonW, 0)) {
-            OpenFileDialog fileDialog = OpenFileDialog.get(PICTURE_FORMATS);
+            OpenFileDialog fileDialog = OpenFileDialog.get("Sheet Image", PICTURE_FORMATS);
             String path = fileDialog.openDialog();
 
             if (path != null) {
@@ -152,7 +159,7 @@ public class AddSpriteSheetDialog {
 
         ImGui.columns(2, "Preview_Editor_Columns", enableBorder);
 
-        int previewX = (int) (DIALOG_SIZE.x * 0.7f);
+        int previewX = (int) (DIALOG_SIZE.x * 0.65f);
         ImGui.setColumnWidth(0, previewX);
 
         renderPreviewImage();
@@ -169,14 +176,12 @@ public class AddSpriteSheetDialog {
         float[] scale = {previewScale};
         if (ImGui.sliderFloat("Scale", scale, 0.1f, 2.0f, "%.2f")) previewScale = scale[0];
 
-        ImGui.separator();
-
         if (previewTexture != null && previewTexture.isReady()) {
             int imageW = previewTexture.getWidth();
             int imageH = previewTexture.getHeight();
 
-            int maxW = (int) (ImGui.getColumnWidth() - 20);
-            int maxH = (int) (DIALOG_SIZE.y * previewYPercentage) - 100;
+            int maxW = (int) (ImGui.getColumnWidth() - 10);
+            int maxH = (int) (DIALOG_SIZE.y * previewYPercentage) - 10;
 
             Vector2f scaledSize = TextureScale.calculateFitDimension(imageW * previewScale, imageH * previewScale, maxW, maxH);
 
@@ -232,22 +237,20 @@ public class AddSpriteSheetDialog {
     }
 
     private static void renderSpritePropertiesEditor() {
-        inputInt("No. of sprites", numberOfSprite, 1);
+        ImGui.text("No. of Sprites:");
+        numberOfSprite = inputInt("##", numberOfSprite, 1);
 
         ImGui.text("Sprite size:");
-        inputInt("Width", spriteSize.x, 1);
-        inputInt("Height", spriteSize.y, 1);
-        ImGui.separator();
+        spriteSize.x = inputInt("Width", spriteSize.x, 1);
+        spriteSize.y = inputInt("Height", spriteSize.y, 1);
 
         ImGui.text("Sprite spacing:");
-        inputInt("Horizontal", spriteSpacing.x, 0);
-        inputInt("Vertical", spriteSpacing.y, 0);
-        ImGui.separator();
+        spriteSpacing.x = inputInt("Horizontal", spriteSpacing.x, 0);
+        spriteSpacing.y = inputInt("Vertical", spriteSpacing.y, 0);
 
         ImGui.text("Start position:");
-        inputInt("X Offset", spriteStartPosition.x, 0);
-        inputInt("Y Offset", spriteStartPosition.y, 0);
-        ImGui.separator();
+        spriteStartPosition.x = inputInt("X Offset", spriteStartPosition.x, 0);
+        spriteStartPosition.y = inputInt("Y Offset", spriteStartPosition.y, 0);
     }
 
     private static void loadPreviewTexture(String filePath) {
@@ -262,7 +265,7 @@ public class AddSpriteSheetDialog {
         }
     }
 
-    private static void inputInt(String label, int target, int minValue) {
+    private static int inputInt(String label, int target, int minValue) {
         String id = label + "_" + ID_POOL.newId();
         ImGui.pushID(id);
         final boolean modified;
@@ -270,9 +273,10 @@ public class AddSpriteSheetDialog {
 
         modified = ImGui.inputInt(label, destination);
 
-        if (modified) spriteSize.x = Math.max(destination.get(), minValue);
+        if (modified) target = Math.max(destination.get(), minValue);
 
         ImGui.popID();
+        return target;
     }
 
     private static void addSpriteSheet() {

@@ -22,21 +22,27 @@ import static org.lwjgl.system.MemoryUtil.memUTF8;
 import static org.lwjgl.util.nfd.NativeFileDialog.*;
 import static org.lwjgl.util.nfd.NativeFileDialog.NFD_GetError;
 
+/**
+ * Create and handle instances of file dialog with different filter set.
+ * @see <a href="https://github.com/LWJGL/lwjgl3/blob/master/modules/samples/src/test/java/org/lwjgl/demo/util/nfd/HelloNFD.java">Setup file open dialog</a>
+ */
 public class OpenFileDialog {
     private static final HashMap<List<String>, OpenFileDialog> instances = new HashMap<>();
     private static long windowHandle = -1;
     private static int handleType = -1;
+    private final String hint;
     private final Set<String> fileExtensions;
 
-    private OpenFileDialog(List<String> filteringExtensions) {
+    private OpenFileDialog(String hint, List<String> filteringExtensions) {
+        this.hint = hint;
         fileExtensions = new HashSet<>(filteringExtensions);
     }
 
-    public static OpenFileDialog get(List<String> filteringExtensions) {
+    public static OpenFileDialog get(String hint, List<String> filteringExtensions) {
         OpenFileDialog instance = instances.get(filteringExtensions);
 
         if (instance == null) {
-            instance = new OpenFileDialog(filteringExtensions);
+            instance = new OpenFileDialog(hint, filteringExtensions);
             instances.putIfAbsent(filteringExtensions, instance);
         }
 
@@ -75,20 +81,21 @@ public class OpenFileDialog {
         }
 
         try (MemoryStack stack = MemoryStack.stackPush()) {
-            NFDFilterItem.Buffer filter = NFDFilterItem.malloc(1);
-            for (String ext : fileExtensions) {
-                filter.get(0).spec(stack.UTF8(ext));
-            }
-
             PointerBuffer pointerBuffer = stack.mallocPointer(1);
 
-            int result = NFD_OpenDialog_With(pointerBuffer, NFDOpenDialogArgs.calloc(stack)
-                    .filterList(filter)
-                    .parentWindow(it -> it
-                            .type(handleType)
-                            .handle(windowHandle)
-                    )
-            );
+            NFDOpenDialogArgs args = NFDOpenDialogArgs.calloc(stack).
+                    parentWindow(it -> it.type(handleType).handle(windowHandle));
+
+            if (!fileExtensions.isEmpty()) {
+                NFDFilterItem.Buffer filter = NFDFilterItem.malloc(1);
+                String joined = String.join(",", fileExtensions);
+                filter.get(0)
+                        .name(stack.UTF8(hint))
+                        .spec(stack.UTF8(joined));
+                args.filterList(filter);
+            }
+
+            int result = NFD_OpenDialog_With(pointerBuffer, args);
 
             return checkResult(result, pointerBuffer);
         } catch (Exception e) {
