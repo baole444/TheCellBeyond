@@ -11,7 +11,17 @@ assets:
     path: "./assets/Just_a_placeholder.png"
     sizeX: 64
     sizeY: 64
-sheets: null
+sheets:
+  test:
+    animation_test:
+      path: "./sheets/animation_test.png"
+      numberOfSprite: 8
+      spriteSizeX: 32
+      spriteSizeY: 32
+      spriteSpacingX: 16
+      spriteSpacingY: 0
+      spriteStartPosX: 0
+      spriteStartPosY: 0
 scenes:
   test:
     path: "./scenes/test.cell"
