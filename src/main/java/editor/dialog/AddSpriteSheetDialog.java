@@ -7,7 +7,6 @@ import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiInputTextFlags;
-import imgui.flag.ImGuiPopupFlags;
 import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImInt;
 import imgui.type.ImString;
@@ -20,6 +19,7 @@ import utility.TextureScale;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.List;
+import java.util.Map;
 
 public class AddSpriteSheetDialog {
     private static final IdPool ID_POOL = new IdPool(0, false);
@@ -30,6 +30,7 @@ public class AddSpriteSheetDialog {
     private static final ImVec2 DIALOG_SIZE = new ImVec2(900.0f, 720.0f);
     private static boolean showDialog = false;
     private static final boolean enableBorder = true;
+    private static final int gridColor = ImGui.getColorU32(1.0f, 0.0f, 0.0f, 0.8f);
 
     // Standard path length limit is 256
     private static final ImString selectedFilePath = new ImString(256);
@@ -147,11 +148,11 @@ public class AddSpriteSheetDialog {
     private static void renderPreviewSection() {
         int sectionY = (int) (DIALOG_SIZE.y * previewYPercentage);
         ImGui.beginChild(PREVIEW_SHEET_ID, 0, sectionY, enableBorder);
-        renderPreviewImage(sectionY);
+        renderPreviewImage();
         ImGui.endChild();
     }
 
-    private static void renderPreviewImage(int limitH) {
+    private static void renderPreviewImage() {
         float[] scale = {previewScale};
         if (ImGui.sliderFloat("Scale", scale, 0.1f, 2.0f, "%.2f")) previewScale = scale[0];
         ImGui.separator();
@@ -169,10 +170,15 @@ public class AddSpriteSheetDialog {
                 scaledSize = TextureScale.calculateFitDimension(scaledImageW, scaledImageH, avail.x, avail.y);
             }
 
+            float portX = (avail.x / 2.0f) - (scaledSize.x / 2.0f);
+            float portY = (avail.y / 2.0f) - (scaledSize.y / 2.0f);
+
+            ImVec2 centeredPos = new ImVec2(portX + ImGui.getCursorPosX(), portY + ImGui.getCursorPosY());
+
+            ImGui.setCursorPos(centeredPos);
             ImVec2 cursorPos = ImGui.getCursorScreenPos();
 
-            ImGui.image(previewTexture.getID(), scaledSize.x, scaledSize.y);
-
+            ImGui.image(previewTexture.getID(), scaledSize.x, scaledSize.y, 0.0f, 1.0f, 1.0f, 0.0f);
             if (spriteSize.x > 0 && spriteSize.y > 0) drawSpriteDivider(cursorPos, scaledSize, imageW, imageH);
         } else {
             ImGui.textDisabled("Choose a sprite sheet using the \"Browse Files\" button");
@@ -189,47 +195,46 @@ public class AddSpriteSheetDialog {
         float startX = x * scaleX;
         float startY = y * scaleY;
 
-        int columns = (int) Math.ceil((originalWidth - x) / (spriteSize.x + spriteSpacing.x));
-        int rows = (int) Math.ceil((originalHeight - y) / (spriteSize.y + spriteSpacing.y));
+        int spritesPerRow = (int) Math.floor((originalWidth - x) / (spriteSize.x + spriteSpacing.x));
+        if (spritesPerRow <= 0) spritesPerRow = 1;
 
-        int gridColor = ImGui.getColorU32(1.0f, 0.0f, 0.0f, 0.8f);
+        int totalRows = (int) Math.ceil((double) numberOfSprite / spritesPerRow);
+        int remainingSprites = numberOfSprite;
 
         ImVec2 startPos = new ImVec2();
         ImVec2 endPos = new ImVec2();
-        for (int i = 0; i <= columns; i++) {
-            float xPos1 = imagePos.x + startX + (i * (spriteSize.x + spriteSpacing.x) * scaleX);
-            if (xPos1 <= imagePos.x + imageSize.x) {
-                startPos.set(xPos1, imagePos.y);
-                endPos.set(xPos1, imagePos.y + imageSize.y);
-                drawList.addLine(startPos, endPos, gridColor, 1);
-            }
-            if (spriteSpacing.x > 0 && i < columns) {
-                float xPos2 = imagePos.x + startX + ((i * (spriteSize.x + spriteSpacing.x) + spriteSize.x) * scaleX);
-                if (xPos2 <= imagePos.x + imageSize.x) {
-                    startPos.set(xPos2, imagePos.y);
-                    endPos.set(xPos2, imagePos.y + imageSize.y);
-                    drawList.addLine(startPos, endPos, gridColor, 1);
-                }
-            }
-        }
 
-        startPos.set(0, 0);
-        endPos.set(0, 0);
-        for (int i = 0; i <= rows; i++) {
-            float yPos1 = imagePos.y + startY + (i * (spriteSize.y + spriteSpacing.y) * scaleY);
-            if (yPos1 <= imagePos.y + imageSize.y) {
-                startPos.set(imagePos.x, yPos1);
-                endPos.set(imagePos.x + imageSize.x, yPos1);
-                drawList.addLine(startPos, endPos, gridColor, 1);
-            }
-            if (spriteSpacing.y > 0 && i < rows) {
-                float yPos2 = imagePos.y + startY + ((i * (spriteSize.y + spriteSpacing.y) + spriteSize.y) * scaleY);
-                if (yPos2 <= imagePos.y + imageSize.y) {
-                    startPos.set(imagePos.x, yPos2);
-                    endPos.set(imagePos.x + imageSize.x, yPos2);
+        for (int row = 0; row < totalRows; row++) {
+            int spritesInThisRow = Math.min(remainingSprites, spritesPerRow);
+            for (int col = 0; col <= spritesInThisRow; col++) {
+                float xPos = imagePos.x + startX + (col * (spriteSize.x + spriteSpacing.x) * scaleX);
+                if (xPos <= imagePos.x + imageSize.x) {
+                    float yTop = imagePos.y + startY + (row * (spriteSize.y + spriteSpacing.y) * scaleY);
+                    float yBottom = yTop + (spriteSize.y * scaleY);
+
+                    startPos.set(xPos, yTop);
+                    endPos.set(xPos, Math.min(yBottom, imagePos.y + imageSize.y));
                     drawList.addLine(startPos, endPos, gridColor, 1);
                 }
             }
+
+            float yTop = imagePos.y + startY + (row * (spriteSize.y + spriteSpacing.y) * scaleY);
+            float yBottom = yTop + (spriteSize.y * scaleY);
+
+            if (yTop <= imagePos.y + imageSize.y) {
+                float xEnd = imagePos.x + startX + (spritesInThisRow * (spriteSize.x + spriteSpacing.x) * scaleX);
+                startPos.set(imagePos.x + startX, yTop);
+                endPos.set(Math.min(xEnd, imagePos.x + imageSize.x), yTop);
+                drawList.addLine(startPos, endPos, gridColor, 1);
+                if (yBottom <= imagePos.y + imageSize.y) {
+                    startPos.set(imagePos.x + startX, yBottom);
+                    endPos.set(Math.min(xEnd, imagePos.x + imageSize.x), yBottom);
+                    drawList.addLine(startPos, endPos, gridColor, 1);
+                }
+            }
+
+            remainingSprites -= spritesInThisRow;
+            if (remainingSprites <= 0) break;
         }
     }
 
