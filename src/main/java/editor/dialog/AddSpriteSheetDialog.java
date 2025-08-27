@@ -19,7 +19,6 @@ import utility.TextureScale;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.List;
-import java.util.Map;
 
 public class AddSpriteSheetDialog {
     private static final IdPool ID_POOL = new IdPool(0, false);
@@ -195,7 +194,7 @@ public class AddSpriteSheetDialog {
         float startX = x * scaleX;
         float startY = y * scaleY;
 
-        int spritesPerRow = (int) Math.floor((originalWidth - x) / (spriteSize.x + spriteSpacing.x));
+        int spritesPerRow = (int) Math.floor((originalWidth - x + spriteSpacing.x) / (float) (spriteSize.x + spriteSpacing.x));
         if (spritesPerRow <= 0) spritesPerRow = 1;
 
         int totalRows = (int) Math.ceil((double) numberOfSprite / spritesPerRow);
@@ -206,30 +205,53 @@ public class AddSpriteSheetDialog {
 
         for (int row = 0; row < totalRows; row++) {
             int spritesInThisRow = Math.min(remainingSprites, spritesPerRow);
+
             for (int col = 0; col <= spritesInThisRow; col++) {
-                float xPos = imagePos.x + startX + (col * (spriteSize.x + spriteSpacing.x) * scaleX);
-                if (xPos <= imagePos.x + imageSize.x) {
+                float xPos1 = imagePos.x + startX + (col * (spriteSize.x + spriteSpacing.x) * scaleX);
+                if (xPos1 <= imagePos.x + imageSize.x) {
                     float yTop = imagePos.y + startY + (row * (spriteSize.y + spriteSpacing.y) * scaleY);
                     float yBottom = yTop + (spriteSize.y * scaleY);
 
-                    startPos.set(xPos, yTop);
-                    endPos.set(xPos, Math.min(yBottom, imagePos.y + imageSize.y));
+                    startPos.set(xPos1, yTop);
+                    endPos.set(xPos1, Math.min(yBottom, imagePos.y + imageSize.y));
                     drawList.addLine(startPos, endPos, gridColor, 1);
+                }
+
+                if (spriteSpacing.x > 0 && col < spritesInThisRow) {
+                    float xPos2 = imagePos.x + startX + ((col * (spriteSize.x + spriteSpacing.x) + spriteSize.x) * scaleX);
+                    if (xPos2 <= imagePos.x + imageSize.x) {
+                        float yTop = imagePos.y + startY + (row * (spriteSize.y + spriteSpacing.y) * scaleY);
+                        float yBottom = yTop + (spriteSize.y * scaleY);
+
+                        startPos.set(xPos2, yTop);
+                        endPos.set(xPos2, Math.min(yBottom, imagePos.y + imageSize.y));
+                        drawList.addLine(startPos, endPos, gridColor, 1);
+                    }
                 }
             }
 
             float yTop = imagePos.y + startY + (row * (spriteSize.y + spriteSpacing.y) * scaleY);
             float yBottom = yTop + (spriteSize.y * scaleY);
-
             if (yTop <= imagePos.y + imageSize.y) {
                 float xEnd = imagePos.x + startX + (spritesInThisRow * (spriteSize.x + spriteSpacing.x) * scaleX);
+
                 startPos.set(imagePos.x + startX, yTop);
                 endPos.set(Math.min(xEnd, imagePos.x + imageSize.x), yTop);
                 drawList.addLine(startPos, endPos, gridColor, 1);
+
                 if (yBottom <= imagePos.y + imageSize.y) {
                     startPos.set(imagePos.x + startX, yBottom);
                     endPos.set(Math.min(xEnd, imagePos.x + imageSize.x), yBottom);
                     drawList.addLine(startPos, endPos, gridColor, 1);
+                }
+
+                if (spriteSpacing.y > 0 && remainingSprites > spritesInThisRow) {
+                    float ySpacingTop = imagePos.y + startY + ((row * (spriteSize.y + spriteSpacing.y) + spriteSize.y) * scaleY);
+                    if (ySpacingTop <= imagePos.y + imageSize.y) {
+                        startPos.set(imagePos.x + startX, ySpacingTop);
+                        endPos.set(Math.min(xEnd, imagePos.x + imageSize.x), ySpacingTop);
+                        drawList.addLine(startPos, endPos, gridColor, 1);
+                    }
                 }
             }
 
