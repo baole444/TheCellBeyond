@@ -7,6 +7,7 @@ import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiInputTextFlags;
+import imgui.flag.ImGuiPopupFlags;
 import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImInt;
 import imgui.type.ImString;
@@ -26,9 +27,8 @@ public class AddSpriteSheetDialog {
     private static final String FILE_SELECTION_ID = "File_Selection";
     private static final String PREVIEW_SHEET_ID = "SpriteSheet_Preview";
     private static final String META_ID = "Meta_Editor";
-    private static final ImVec2 DIALOG_SIZE = new ImVec2(900.0f, 700.0f);
+    private static final ImVec2 DIALOG_SIZE = new ImVec2(900.0f, 720.0f);
     private static boolean showDialog = false;
-    //private static boolean editMode = false;
     private static final boolean enableBorder = true;
 
     // Standard path length limit is 256
@@ -44,9 +44,9 @@ public class AddSpriteSheetDialog {
 
     private static float previewScale = 1.0f;
 
-    private static final float fileYPercentage = 0.1f;
+    private static final float fileYPercentage = 0.03f;
     private static final float previewYPercentage = 0.60f;
-    private static final float metaYPercentage = 0.2f;
+    private static final float metaYPercentage = 0.22f;
 
     private static final List<String> PICTURE_FORMATS = List.of(
             "png", "jpg", "jpeg", "bmp", "gif"
@@ -86,17 +86,8 @@ public class AddSpriteSheetDialog {
 
         if (ImGui.beginPopupModal(POPUP_ID, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)) {
             renderFileSelection();
-            ImGui.separator();
-
             renderPreviewSection();
-            ImGui.separator();
-
-            //int sectionY = (int) (DIALOG_SIZE.y * metaYPercentage);
-            //ImGui.beginChild(META_ID, ImGuiWindowFlags.None, sectionY, !enableBorder);
-            ImGui.inputText("Sheet name", sheetName);
-            ImGui.inputText("Sheet category", category);
-            //ImGui.endChild();
-            ImGui.separator();
+            renderSpritePropertiesEditor();
 
             int buttonW = 120;
             boolean canAdd = !selectedFilePath.isEmpty() && !sheetName.isEmpty() &&
@@ -131,7 +122,7 @@ public class AddSpriteSheetDialog {
         ImGui.text("Click \"Browse Files\" to select an image");
 
         int sectionY = (int) (DIALOG_SIZE.y * fileYPercentage);
-        ImGui.beginChild(FILE_SELECTION_ID, ImGuiWindowFlags.None, sectionY, !enableBorder);
+        ImGui.beginChild(FILE_SELECTION_ID, 0, sectionY, !enableBorder);
 
         int browseButtonW = 120;
         ImGui.pushItemWidth(ImGui.getContentRegionAvailX() - browseButtonW - ImGui.getStyle().getItemSpacingX());
@@ -155,35 +146,28 @@ public class AddSpriteSheetDialog {
 
     private static void renderPreviewSection() {
         int sectionY = (int) (DIALOG_SIZE.y * previewYPercentage);
-        ImGui.beginChild(PREVIEW_SHEET_ID, ImGuiWindowFlags.None, sectionY, enableBorder);
-
-        ImGui.columns(2, "Preview_Editor_Columns", enableBorder);
-
-        int previewX = (int) (DIALOG_SIZE.x * 0.65f);
-        ImGui.setColumnWidth(0, previewX);
-
-        renderPreviewImage();
-
-        ImGui.nextColumn();
-
-        renderSpritePropertiesEditor();
-
-        ImGui.columns(1);
+        ImGui.beginChild(PREVIEW_SHEET_ID, 0, sectionY, enableBorder);
+        renderPreviewImage(sectionY);
         ImGui.endChild();
     }
 
-    private static void renderPreviewImage() {
+    private static void renderPreviewImage(int limitH) {
         float[] scale = {previewScale};
         if (ImGui.sliderFloat("Scale", scale, 0.1f, 2.0f, "%.2f")) previewScale = scale[0];
+        ImGui.separator();
 
         if (previewTexture != null && previewTexture.isReady()) {
             int imageW = previewTexture.getWidth();
             int imageH = previewTexture.getHeight();
+            ImVec2 avail = ImGui.getContentRegionAvail();
 
-            int maxW = (int) ImGui.getColumnWidth();
-            int maxH = (int) (DIALOG_SIZE.y * previewYPercentage);
+            float scaledImageW = imageW * previewScale;
+            float scaledImageH = imageH * previewScale;
+            Vector2f scaledSize = new Vector2f(scaledImageW, scaledImageH);
 
-            Vector2f scaledSize = TextureScale.calculateFitDimension(imageW * previewScale, imageH * previewScale, maxW, maxH);
+            if (scaledImageW > avail.x || scaledImageH > avail.y) {
+                scaledSize = TextureScale.calculateFitDimension(scaledImageW, scaledImageH, avail.x, avail.y);
+            }
 
             ImVec2 cursorPos = ImGui.getCursorScreenPos();
 
@@ -200,7 +184,6 @@ public class AddSpriteSheetDialog {
 
         float scaleX = imageSize.x / originalWidth;
         float scaleY = imageSize.y / originalHeight;
-
         int x = spriteStartPosition.x;
         int y = spriteStartPosition.y;
         float startX = x * scaleX;
@@ -214,15 +197,12 @@ public class AddSpriteSheetDialog {
         ImVec2 startPos = new ImVec2();
         ImVec2 endPos = new ImVec2();
         for (int i = 0; i <= columns; i++) {
-
             float xPos1 = imagePos.x + startX + (i * (spriteSize.x + spriteSpacing.x) * scaleX);
             if (xPos1 <= imagePos.x + imageSize.x) {
                 startPos.set(xPos1, imagePos.y);
                 endPos.set(xPos1, imagePos.y + imageSize.y);
                 drawList.addLine(startPos, endPos, gridColor, 1);
             }
-
-
             if (spriteSpacing.x > 0 && i < columns) {
                 float xPos2 = imagePos.x + startX + ((i * (spriteSize.x + spriteSpacing.x) + spriteSize.x) * scaleX);
                 if (xPos2 <= imagePos.x + imageSize.x) {
@@ -237,13 +217,11 @@ public class AddSpriteSheetDialog {
         endPos.set(0, 0);
         for (int i = 0; i <= rows; i++) {
             float yPos1 = imagePos.y + startY + (i * (spriteSize.y + spriteSpacing.y) * scaleY);
-
             if (yPos1 <= imagePos.y + imageSize.y) {
                 startPos.set(imagePos.x, yPos1);
                 endPos.set(imagePos.x + imageSize.x, yPos1);
                 drawList.addLine(startPos, endPos, gridColor, 1);
             }
-
             if (spriteSpacing.y > 0 && i < rows) {
                 float yPos2 = imagePos.y + startY + ((i * (spriteSize.y + spriteSpacing.y) + spriteSize.y) * scaleY);
                 if (yPos2 <= imagePos.y + imageSize.y) {
@@ -256,20 +234,33 @@ public class AddSpriteSheetDialog {
     }
 
     private static void renderSpritePropertiesEditor() {
-        ImGui.text("No. of Sprites:");
-        numberOfSprite = inputInt("##", numberOfSprite, 1);
+        int ySection =(int) (DIALOG_SIZE.y * metaYPercentage);
+        ImGui.beginChild(META_ID, 0, ySection, enableBorder);
+        numberOfSprite = inputInt("Number of sprites", numberOfSprite, 1);
+        ImGui.separator();
+        ImGui.columns(3, "sprite_stats_columns", enableBorder);
+        ImGui.setColumnWidth(0, DIALOG_SIZE.x / 3);
+        ImGui.setColumnWidth(1, DIALOG_SIZE.x / 3);
 
         ImGui.text("Sprite size:");
         spriteSize.x = inputInt("Width", spriteSize.x, 1);
         spriteSize.y = inputInt("Height", spriteSize.y, 1);
+        ImGui.nextColumn();
 
         ImGui.text("Sprite spacing:");
-        spriteSpacing.x = inputInt("Horizontal", spriteSpacing.x, 0);
-        spriteSpacing.y = inputInt("Vertical", spriteSpacing.y, 0);
+        spriteSpacing.x = inputInt("X space", spriteSpacing.x, 0);
+        spriteSpacing.y = inputInt("Y space", spriteSpacing.y, 0);
+        ImGui.nextColumn();
 
         ImGui.text("Start position:");
-        spriteStartPosition.x = inputInt("X Offset", spriteStartPosition.x, 0);
-        spriteStartPosition.y = inputInt("Y Offset", spriteStartPosition.y, 0);
+        spriteStartPosition.x = inputInt("X offset", spriteStartPosition.x, 0);
+        spriteStartPosition.y = inputInt("Y offset", spriteStartPosition.y, 0);
+        ImGui.columns(1);
+
+        ImGui.separator();
+        ImGui.inputText("Sheet name", sheetName);
+        ImGui.inputText("Sheet category", category);
+        ImGui.endChild();
     }
 
     private static void loadPreviewTexture(String filePath) {
