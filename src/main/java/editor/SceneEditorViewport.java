@@ -12,7 +12,7 @@ import imgui.flag.ImGuiPopupFlags;
 import imgui.flag.ImGuiWindowFlags;
 import org.joml.Vector2f;
 
-public class GameViewPort {
+public class SceneEditorViewport {
     private float leftX, rightX, topY, bottomY;
     private static float[] printDebug;
     private boolean isPlaying = false;

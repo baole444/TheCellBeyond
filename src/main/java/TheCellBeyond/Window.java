@@ -4,7 +4,6 @@ import editor.ImGuiLayer;
 import editor.StartUpWindow;
 import editor.project.Project;
 import editor.Properties;
-import editor.project.ProjectData;
 import eventviewer.EventSystem;
 import eventviewer.EventInterface;
 import eventviewer.event.Event;
@@ -21,7 +20,7 @@ import org.lwjgl.openal.ALCapabilities;
 import org.lwjgl.opengl.GL;
 import physic2d.Physic2D;
 import render.*;
-import scene.LevelEditorSceneInit;
+import scene.SceneEditor;
 import scene.Scene;
 import scene.SceneInit;
 import utility.AssetsPool;
@@ -256,7 +255,7 @@ public final class Window implements EventInterface {
         projectLoaded = (Project.currentProject() != null && Project.projectRoot() != null);
 
         if (projectLoaded) {
-            Window.changeScene(new LevelEditorSceneInit());
+            Window.changeScene(new SceneEditor());
         }
     }
 
@@ -373,18 +372,18 @@ public final class Window implements EventInterface {
             case ENGINE_START -> {
                 this.runtimeMode = true;
                 currentScene.saveLevel();
-                Window.changeScene(new LevelEditorSceneInit(currentSceneName)); // Reset view to runtime mode.
+                Window.changeScene(new SceneEditor(currentSceneName)); // Reset view to runtime mode.
                 System.out.println("Engine starting.");
             }
             case ENGINE_END -> {
                 this.runtimeMode = false;
-                Window.changeScene(new LevelEditorSceneInit(currentSceneName)); // Reset to Editor runtime.
+                Window.changeScene(new SceneEditor(currentSceneName)); // Reset to Editor runtime.
                 System.out.println("Engine stopping.");
             }
             case LEVEL_LOAD -> {
                 if (this.runtimeMode) this.runtimeMode = false;
 
-                Window.changeScene(new LevelEditorSceneInit(currentSceneName));
+                Window.changeScene(new SceneEditor(currentSceneName));
                 System.out.println("Loading current level...");
             }
             case LEVEL_SAVE -> {
@@ -406,7 +405,7 @@ public final class Window implements EventInterface {
                     glfwSetWindowTitle(windowPtr, this.title + projectDetail);
 
                     if (currentScene == null) {
-                        Window.changeScene(new LevelEditorSceneInit());
+                        Window.changeScene(new SceneEditor());
                     }
                 }
             }
@@ -418,7 +417,7 @@ public final class Window implements EventInterface {
 
                 setCurrentSceneName(sceneName);
 
-                Window.changeScene(new LevelEditorSceneInit(sceneName));
+                Window.changeScene(new SceneEditor(sceneName));
 
                 System.out.println("Requested to load Scene: " + sceneName);
             }

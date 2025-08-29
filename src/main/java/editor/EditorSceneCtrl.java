@@ -9,7 +9,7 @@ import org.joml.Vector2f;
 
 import static org.lwjgl.glfw.GLFW.*;
 
-public class EditorViewport extends Component {
+public class EditorSceneCtrl extends Component {
     private boolean isBackTo0 = false;
     private boolean isResetZ = false;
     private float lerpT = 0.0f;
@@ -21,7 +21,7 @@ public class EditorViewport extends Component {
     private final float MAX_ZOOM = 5.0f;
     private final float MIN_ZOOM = 0.1f;
 
-    public EditorViewport(Viewport workViewport) {
+    public EditorSceneCtrl(Viewport workViewport) {
         this.workViewport = workViewport;
         this.clickOrigin = new Vector2f();
     }

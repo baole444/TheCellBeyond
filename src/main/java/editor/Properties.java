@@ -33,25 +33,36 @@ public class Properties {
     }
 
     public void imgui() {
+        ImGui.begin("Object properties");
+
         if (activeGameObjects.size() == 1 && activeGameObjects.getFirst() != null) {
             activeGameObject = activeGameObjects.getFirst();
-
-            ImGui.begin("Object properties");
-
-            float buttonW = ImGui.getContentRegionAvailX();
-            float buttonH = BUTTON_RESERVED_HEIGHT * 0.9f;
-            if (ImGui.button("Add new Component", buttonW, buttonH)) AddComponentDialog.show(activeGameObject);
-
-            ImGui.separator();
-
-            activeGameObject.imgui();
-
-            renderContextMenu();
-
-            AddComponentDialog.imgui();
-
-            ImGui.end();
         }
+
+        if (activeGameObject == null) {
+            ImGui.beginDisabled();
+            ImGui.textWrapped("Select an object in the Scene tree or in the scene to edit its properties");
+            ImGui.endDisabled();
+            ImGui.end();
+            return;
+        }
+
+        float buttonW = ImGui.getContentRegionAvailX();
+        float buttonH = BUTTON_RESERVED_HEIGHT * 0.9f;
+        if (ImGui.button("Add new Component", buttonW, buttonH)) AddComponentDialog.show(activeGameObject);
+
+        ImGui.separator();
+
+        activeGameObject.imgui();
+
+        renderContextMenu();
+
+        AddComponentDialog.imgui();
+
+        ImGui.end();
+
+
+
     }
 
     private void renderContextMenu() {

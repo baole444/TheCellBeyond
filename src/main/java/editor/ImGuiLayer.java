@@ -28,7 +28,7 @@ public class ImGuiLayer {
     private final ImGuiImplGlfw imGuiGlfw = new ImGuiImplGlfw();
     private final ImGuiImplGl3 imGuiGl3 = new ImGuiImplGl3();
     private final long windowPtr;
-    private final GameViewPort gameViewPort;
+    private final SceneEditorViewport sceneEditorViewport;
     private final DebugGui debugGui;
     private final Properties properties;
     private final MenuBar menuBar;
@@ -39,7 +39,7 @@ public class ImGuiLayer {
 
     // Constructor
     public ImGuiLayer(long windowPtr, ObjectSelection objectSelection) {
-        this.gameViewPort = new GameViewPort();
+        this.sceneEditorViewport = new SceneEditorViewport();
         this.debugGui = new DebugGui();
         this.windowPtr = windowPtr;
         this.properties = new Properties(objectSelection);
@@ -70,7 +70,7 @@ public class ImGuiLayer {
                 ImGui.setWindowFocus(null);
             }
 
-            if (!io.getWantCaptureMouse() || gameViewPort.getWantCaptureMouse()) {
+            if (!io.getWantCaptureMouse() || sceneEditorViewport.getWantCaptureMouse()) {
                 MouseListener.mouseButtonCallback(w, button, action, mods);
             }
         });
@@ -80,7 +80,7 @@ public class ImGuiLayer {
                 ImGui.setWindowFocus(null);
             }
 
-            if (!io.getWantCaptureMouse() || gameViewPort.getWantCaptureMouse()) {
+            if (!io.getWantCaptureMouse() || sceneEditorViewport.getWantCaptureMouse()) {
                 MouseListener.mouseScrollCallback(w, x, y);
             } else {
                 MouseListener.clear();
@@ -155,7 +155,7 @@ public class ImGuiLayer {
         imDocking();
 
         currentScene.imgui();
-        gameViewPort.imgui();
+        sceneEditorViewport.imgui();
         debugGui.imgui();
         properties.imgui();
         sceneTree.imgui();
@@ -221,8 +221,8 @@ public class ImGuiLayer {
         return this.properties;
     }
 
-    public GameViewPort getGameViewPort() {
-        return this.gameViewPort;
+    public SceneEditorViewport getGameViewPort() {
+        return this.sceneEditorViewport;
     }
 
 }

@@ -13,7 +13,7 @@ public class DebugGui {
 
     private final boolean[] showContent = new boolean[] {false, false, false, false, false, false};
     public void imgui(){
-        printDebug = GameViewPort.debugOutput();
+        printDebug = SceneEditorViewport.debugOutput();
         ImGui.begin("Debug Tools set");
 
         ImGui.text("= Viewport statistic =====");

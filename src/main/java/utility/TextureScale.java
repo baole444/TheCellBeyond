@@ -5,22 +5,6 @@ import org.joml.Math;
 
 public class TextureScale {
     /**
-     * Calculate texture's dimension that will fit in
-     * sprite list's display size limit.
-     * @param width image's width (in pixel) cast as float.
-     * @param height image's height (in pixel) cast as float.
-     * @return {@link Vector2f} {@code x} for width and {@code y} for height.
-     */
-    public static Vector2f calculateFitDimension(float width, float height) {
-        double scaleDiff = Math.min(width / Settings.BOX_H, height / Settings.BOX_W);
-
-        float newW = (float) (width * scaleDiff);
-        float newH = (float) (height * scaleDiff);
-
-        return new Vector2f(newW, newH);
-    }
-
-    /**
      * Calculate texture's dimension that will fit in the user's given limit.
      * @param width image's width (in pixel.
      * @param height image's height (in pixel).

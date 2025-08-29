@@ -8,7 +8,7 @@ import eventviewer.event.Event;
 import eventviewer.event.EventType;
 import imgui.ImGui;
 import imgui.internal.flag.ImGuiItemFlags;
-import scene.LevelEditorSceneInit;
+import scene.SceneEditor;
 import utility.ExitConfirmDialog;
 
 import java.util.List;
@@ -68,7 +68,7 @@ public class MenuBar {
             if (ImGui.beginMenu("Scenes")){
                 if (ImGui.menuItem("New scene")) {
                     // TODO: Confirm save current scene
-                    Window.changeScene(new LevelEditorSceneInit());
+                    Window.changeScene(new SceneEditor());
                 }
 
                 if (ImGui.beginMenu("Select scene")) {

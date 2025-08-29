@@ -106,8 +106,7 @@ public class DebugDraw {
         // Batching
         glDrawArrays(GL_LINES, 0, Lines.size() * 6 * 2);
 
-        // Bresenham line (maybe later)
-
+        // Bresenham line (maybe not)
 
         // End
         glDisableVertexAttribArray(0);
