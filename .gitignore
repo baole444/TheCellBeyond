@@ -1,6 +1,5 @@
 .gradle
 build/
-gradle
 
 ### IntelliJ IDEA ###
 .idea
