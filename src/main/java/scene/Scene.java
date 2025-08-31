@@ -359,9 +359,9 @@ public class Scene {
                         List<SpriteRenderer> sps = obj.getComponents(SpriteRenderer.class);
 
                         for (SpriteRenderer sprite : sps) {
+                            if (sprite.getTexture() == null) continue;
                             String texturePath = sprite.getTexture().getFilePath();
                             String canonicalPath = resolver.toCanonicalPath(texturePath);
-
                             sprite.getTexture().setFilePath(canonicalPath);
                         }
                     }
@@ -410,9 +410,12 @@ public class Scene {
             for (GameObject go : objects) {
                 if (Project.currentProject() != null && Project.projectRoot() != null && currentSceneName != null) {
                     if (go.getFirstComponent(SpriteRenderer.class) != null) {
-                        String canonicalPath = go.getFirstComponent(SpriteRenderer.class).getTexture().getFilePath();
-
-                        go.getFirstComponent(SpriteRenderer.class).getTexture().setFilePath(canonicalPath);
+                        List<SpriteRenderer> spriteRenderers = go.getComponents(SpriteRenderer.class);
+                        for (SpriteRenderer sprite : spriteRenderers) {
+                            if (sprite.getTexture() == null) continue;
+                            String canonicalPath = sprite.getTexture().getFilePath();
+                            sprite.getTexture().setFilePath(canonicalPath);
+                        }
                     }
                 }
 

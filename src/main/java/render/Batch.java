@@ -151,8 +151,7 @@ public class Batch implements Comparable<Batch> {
         for (int i = 0; i < countSprite; i++) {
             SpriteRenderer spr = sprites[i];
             if (spr.isSpriteDirty()) {
-                if (spr.getTexture() == null) continue;
-                if (!textures.contains(spr.getTexture()) && hasSpace) textures.add(spr.getTexture());
+                if (spr.getTexture() != null && !textures.contains(spr.getTexture()) && hasSpace) textures.add(spr.getTexture());
                 dirtyIndex.add(i);
                 spr.setSpriteDirty(false);
             }
@@ -223,7 +222,16 @@ public class Batch implements Comparable<Batch> {
         Vector2f[] textureCoordinates = spriteRenderer.getTextureCoordinates();
 
         // No data available yet
-        if (textureCoordinates == null) return;
+        if (textureCoordinates == null || spriteRenderer.getTexture() == null) {
+            textureCoordinates = new Vector2f[] {
+                    new Vector2f(1, 1),
+                    new Vector2f(1, 0),
+                    new Vector2f(0, 0),
+                    new Vector2f(0, 1)
+            };
+
+            color = new Vector4f(color.x, color.y, color.z, 0.0f);
+        }
 
         int ID = 0;
         //[0, tex, tex, tex, tex]

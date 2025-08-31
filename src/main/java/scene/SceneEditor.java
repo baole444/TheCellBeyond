@@ -6,6 +6,7 @@ import TheCellBeyond.Window;
 import components.*;
 import editor.EditorSceneCtrl;
 import editor.dialog.AddSpriteSheetDialog;
+import editor.payload.SpriteDragDropPayload;
 import editor.project.Project;
 import editor.project.ProjectData;
 import editor.project.ProjectSheetMap;
@@ -246,7 +247,6 @@ public class SceneEditor extends SceneInit {
             );
             float buttonWidth = ImGui.getItemRectSizeX() + spacing;
             consumedWidth += buttonWidth;
-            //if (ImGui.isItemClicked()) {}
 
             if (ImGui.isItemHovered()) {
                 ImGui.beginTooltip();
@@ -258,6 +258,20 @@ public class SceneEditor extends SceneInit {
                 ImGui.text("Width: " + sprite.getWidth());
                 ImGui.text("Height: " + sprite.getHeight());
                 ImGui.endTooltip();
+            }
+
+            if (ImGui.beginDragDropSource()) {
+                SpriteDragDropPayload.setPayload(sprite);
+                ImGui.setDragDropPayload(SpriteDragDropPayload.getPayloadType(), sprite);
+
+                ImGui.text("Sheet: " + sprite.getTexture().getFilePath());
+                ImGui.text("Index: " + i);
+                Vector2f previewImageSize = TextureScale.calculateFitDimension(sprite.getWidth(), sprite.getHeight(), 80.0f, 80.f);
+                ImGui.image(textureID, previewImageSize.x, previewImageSize.y,
+                        textureCoordinates[2].x, textureCoordinates[0].y,
+                        textureCoordinates[0].x, textureCoordinates[2].y);
+
+                ImGui.endDragDropSource();
             }
 
             ImGui.popID();
