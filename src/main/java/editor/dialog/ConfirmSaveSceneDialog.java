@@ -14,10 +14,16 @@ public class ConfirmSaveSceneDialog {
     private static final ImVec2 DIALOG_SIZE = new ImVec2(400, 200);
     private static boolean showDialog = false;
     private static Runnable onCompleteDecision = null;
+    private static Runnable onCancelDecision = null;
 
     public static void show(Runnable decisionCallback) {
-        showDialog =  true;
+        show(decisionCallback, null);
+    }
+
+    public static void show(Runnable decisionCallback, Runnable cancelCallback) {
+        showDialog = true;
         onCompleteDecision = decisionCallback;
+        onCancelDecision = cancelCallback;
     }
 
     public static void imgui() {
@@ -61,7 +67,11 @@ public class ConfirmSaveSceneDialog {
             if (ImGui.button("Cancel", buttonWidth, 0)) {
                 showDialog = false;
                 onCompleteDecision = null;
+                Runnable cancelCallback = onCancelDecision;
+                onCancelDecision = null;
                 ImGui.closeCurrentPopup();
+
+                if (cancelCallback != null)  cancelCallback.run();
             }
 
             ImGui.endPopup();
@@ -70,6 +80,7 @@ public class ConfirmSaveSceneDialog {
         if (!ImGui.isPopupOpen(POPUP_ID)) {
             showDialog = false;
             onCompleteDecision = null;
+            onCancelDecision = null;
             ImGui.closeCurrentPopup();
         }
     }
@@ -82,6 +93,7 @@ public class ConfirmSaveSceneDialog {
 
         Runnable callback = onCompleteDecision;
         onCompleteDecision = null;
+        onCancelDecision = null;
         callback.run();
     }
 }

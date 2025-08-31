@@ -43,6 +43,9 @@ public class NewSceneDialog {
             if (currentSceneName != null && Project.getSceneNames().contains(currentSceneName)) {
                 ConfirmSaveSceneDialog.show(() -> {
                     saveCurrentScene = false;
+                }, () -> {
+                    showDialog = false;
+                    resetDialogData();
                 });
                 return;
             }
