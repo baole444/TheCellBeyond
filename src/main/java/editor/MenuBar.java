@@ -1,6 +1,8 @@
 package editor;
 
 import TheCellBeyond.Window;
+import editor.dialog.ConfirmSaveSceneDialog;
+import editor.dialog.NewSceneDialog;
 import editor.dialog.OpenProjectDialog;
 import editor.project.Project;
 import eventviewer.EventSystem;
@@ -67,16 +69,21 @@ public class MenuBar {
         if (Project.currentProject() != null && !Project.getSceneNames().isEmpty()) {
             if (ImGui.beginMenu("Scenes")){
                 if (ImGui.menuItem("New scene")) {
-                    // TODO: Confirm save current scene
-                    Window.changeScene(new SceneEditor());
+                    boolean requireSave = Project.getSceneNames().contains(Window.getCurrentSceneName());
+                    NewSceneDialog.show(requireSave);
                 }
 
                 if (ImGui.beginMenu("Select scene")) {
                     List<String> sceneNameList = Project.getSceneNames();
-
                     for (String name : sceneNameList) {
                         if (ImGui.menuItem(name)) {
-                            EventSystem.emit(name, new Event(EventType.SCENE_LOAD));
+                            String sceneName = Window.getCurrentSceneName();
+
+                            if (sceneName != null && !sceneName.equals(name) && Project.getSceneNames().contains(sceneName)) {
+                                ConfirmSaveSceneDialog.show(() -> EventSystem.emit(name, new Event(EventType.SCENE_LOAD)));
+                            } else {
+                                EventSystem.emit(name, new Event(EventType.SCENE_LOAD));
+                            }
                         }
                     }
 
@@ -85,11 +92,13 @@ public class MenuBar {
 
                 ImGui.endMenu();
             }
-
         }
 
         ImGui.popID();
         ImGui.endMenuBar();
+
+        NewSceneDialog.imgui();
+        ConfirmSaveSceneDialog.imgui();
     }
 }
 

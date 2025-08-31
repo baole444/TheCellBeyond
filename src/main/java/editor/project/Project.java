@@ -39,6 +39,8 @@ public class Project {
                     save();
                 }
                 preference = CurrentProject.project();
+
+                sanctionRelativePath();
             }
 
             return CurrentProject;
@@ -278,6 +280,59 @@ public class Project {
         return true;
     }
 
+    private static void sanctionRelativePath() {
+        if (CurrentProject == null) return;
+
+        boolean modified = false;
+
+        if (CurrentProject.assets() != null) {
+            for (Map.Entry<String, ProjectAssetMap> entry : new HashMap<>(CurrentProject.assets()).entrySet()) {
+                String path = entry.getValue().path();
+                String sanctioned = fixRelativePath(path);
+                if (!path.equals(sanctioned)) {
+                    modified = true;
+                    ProjectAssetMap fixed = new ProjectAssetMap(sanctioned, entry.getValue().sizeX(), entry.getValue().sizeY());
+                    updateAsset(entry.getKey(), fixed);
+                }
+            }
+        }
+
+        if (CurrentProject.sheets() != null) {
+            for (Map.Entry<String, Map<String, ProjectSheetMap>> category : new HashMap<>(CurrentProject.sheets()).entrySet()) {
+                for (Map.Entry<String, ProjectSheetMap> sheet : new HashMap<>(category.getValue()).entrySet()) {
+                    String path = sheet.getValue().path();
+                    String sanctioned = fixRelativePath(path);
+                    if (!path.equals(sanctioned)) {
+                        modified = true;
+                        ProjectSheetMap current = sheet.getValue();
+                        ProjectSheetMap fixed = new ProjectSheetMap(sanctioned, current.numberOfSprite(),
+                                current.spriteSizeX(), current.spriteSizeY(),
+                                current.spriteSpacingX(), current.spriteSpacingY(),
+                                current.spriteStartPosX(), current.spriteStartPosY()
+                        );
+
+                        updateSheet(category.getKey(), sheet.getKey(), fixed);
+                    }
+                }
+            }
+        }
+
+        if (CurrentProject.scenes() != null) {
+            for (Map.Entry<String, ProjectSceneMap> entry : new HashMap<>(CurrentProject.scenes()).entrySet()) {
+                String path = entry.getValue().path();
+                String sanctioned = fixRelativePath(path);
+                if (!path.equals(sanctioned)) {
+                    modified = true;
+                    updateScene(entry.getKey(), new ProjectSceneMap(sanctioned));
+                }
+            }
+        }
+
+        if (modified) {
+            System.out.println("Corrected current project's relative paths");
+        }
+    }
+
     public static void loadProjectData() {
         if (CurrentProject == null) return;
 
@@ -309,6 +364,14 @@ public class Project {
                 AssetsPool.addSpriteSheet(projectPath, sheet);
             }
         }
+    }
+
+    private static String fixRelativePath(String path) {
+        if (path == null) return null;
+
+        if (path.startsWith("/")) return "." + path;
+
+        return path;
     }
 
     public static ProjectData currentProject() {

@@ -66,8 +66,6 @@ public class AddComponentDialog {
 
         if (ImGui.beginPopupModal(POPUP_ID, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)) {
             ImGui.text("Select one component type:");
-
-            ImGui.separator();
             int sectionY = (int) (DIALOG_SIZE.y * listYPercentage);
             ImGui.beginChild(COMPONENT_LIST_ID, ImGuiWindowFlags.None, sectionY, enableBorder);
             for (ComponentType type : ComponentType.values()) {
@@ -78,8 +76,8 @@ public class AddComponentDialog {
                 }
             }
             ImGui.endChild();
-
             ImGui.separator();
+            
             ImGui.text("Description:");
             sectionY = (int) (DIALOG_SIZE.y * descriptionYPercentage);
             ImGui.beginChild(DESCRIPTION_SECTION_ID, ImGuiWindowFlags.None, sectionY, enableBorder);
@@ -89,20 +87,28 @@ public class AddComponentDialog {
                 ImGui.textDisabled("Select a component type to see it's description.");
             }
             ImGui.endChild();
-
             ImGui.separator();
-            int buttonW = 120;
+
+            float buttonReserverY = ImGui.getFrameHeightWithSpacing();
+            ImGui.setCursorPosY(ImGui.getWindowHeight() - buttonReserverY - ImGui.getStyle().getWindowPaddingY());
+
+            float buttonWidth = 120;
+            float buttonPivotX = buttonWidth * 0.5f;
+            float availX = ImGui.getContentRegionAvailX();
+            float addX = (availX * 0.25f) - (buttonPivotX);
+            float cancelX = (availX * 0.75f) - (buttonPivotX);
+            ImGui.setCursorPosX(addX);
             if (selectedType != null) {
-                if (ImGui.button("Add", buttonW, 30)) addComponent(selectedType);
+                if (ImGui.button("Add", buttonWidth, 0)) addComponent(selectedType);
             } else {
                 ImGui.beginDisabled();
-                ImGui.button("Add", buttonW, 30);
+                ImGui.button("Add", buttonWidth, 0);
                 ImGui.endDisabled();
             }
 
             ImGui.sameLine();
-
-            if (ImGui.button("Cancel", buttonW, 30)) {
+            ImGui.setCursorPosX(cancelX);
+            if (ImGui.button("Cancel", buttonWidth, 0)) {
                 showDialog = false;
                 selectedType = null;
                 ImGui.closeCurrentPopup();

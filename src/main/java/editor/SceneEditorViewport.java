@@ -16,14 +16,19 @@ public class SceneEditorViewport {
     private float leftX, rightX, topY, bottomY;
     private static float[] printDebug;
     private boolean isPlaying = false;
-
+    private String currentSceneName = "New scene";
     public void imgui() {
-        ImGui.begin("Game Viewport", ImGuiWindowFlags.NoScrollbar
+        String sceneName = Window.getCurrentSceneName();
+
+        if (sceneName != null && !currentSceneName.equals(sceneName)) {
+            currentSceneName = sceneName;
+        }
+
+        ImGui.begin(currentSceneName + "###Game Viewport", ImGuiWindowFlags.NoScrollbar
                 | ImGuiWindowFlags.NoScrollWithMouse
                 | ImGuiWindowFlags.MenuBar
         );
 
-        // Create menu bar
         ImGui.beginMenuBar();
         if (ImGui.menuItem("Play","", isPlaying, !isPlaying)) {
             isPlaying = true;
@@ -36,7 +41,6 @@ public class SceneEditorViewport {
         }
 
         ImGui.endMenuBar();
-        // End menu bar
 
         ImGui.setCursorPos(ImGui.getCursorPosX(), ImGui.getCursorPosY());
 

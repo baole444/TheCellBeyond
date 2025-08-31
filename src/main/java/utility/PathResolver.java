@@ -114,8 +114,10 @@ public class PathResolver {
             return relativePath;
         }
 
+        String sanctioned = relativePath.startsWith("/") ? relativePath.substring(1) : relativePath;
+
         Path rootPath = Paths.get(projectRoot);
-        Path resolvedPath = rootPath.resolve(relativePath).normalize();
+        Path resolvedPath = rootPath.resolve(sanctioned).normalize();
         return resolvedPath.toString();
     }
 
@@ -247,8 +249,10 @@ public class PathResolver {
     public static String resolveToAbsolute(String root, String relative) {
         if (root == null) return relative;
 
+        String sanctioned = relative.startsWith("/") ? relative.substring(1) : relative;
+
         Path rootPath = Paths.get(root);
-        Path resolvedPath = rootPath.resolve(relative).normalize();
+        Path resolvedPath = rootPath.resolve(sanctioned).normalize();
 
         return resolvedPath.toString();
     }

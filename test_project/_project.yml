@@ -8,13 +8,13 @@ project:
   maintainAspectRatio: true
 assets:
   default:
-    path: "./assets/Just_a_placeholder.png"
+    path: "assets/Just_a_placeholder.png"
     sizeX: 64
     sizeY: 64
 sheets:
   test:
     animation_test:
-      path: "./sheets/animation_test.png"
+      path: "sheets/animation_test.png"
       numberOfSprite: 8
       spriteSizeX: 32
       spriteSizeY: 32
@@ -24,4 +24,6 @@ sheets:
       spriteStartPosY: 0
 scenes:
   test:
-    path: "./scenes/test.cell"
+    path: "scenes/test.cell"
+  newTest:
+    path: "scenes/newTest.cell"

@@ -89,21 +89,28 @@ public class AddSpriteSheetDialog {
             renderPreviewSection();
             renderSpritePropertiesEditor();
 
-            int buttonW = 120;
+            float buttonReserverY = ImGui.getFrameHeightWithSpacing();
+            ImGui.setCursorPosY(ImGui.getWindowHeight() - buttonReserverY - ImGui.getStyle().getWindowPaddingY());
+
+            float buttonWidth = 120;
+            float buttonPivotX = buttonWidth * 0.5f;
+            float availX = ImGui.getContentRegionAvailX();
+            float addX = (availX * 0.25f) - (buttonPivotX);
+            float cancelX = (availX * 0.75f) - (buttonPivotX);
             boolean canAdd = !selectedFilePath.isEmpty() && !sheetName.isEmpty() &&
                     spriteSize.x > 0 && spriteSize.y > 0 && numberOfSprite > 0;
-
+            ImGui.setCursorPosX(addX);
             if (canAdd) {
-                if (ImGui.button("Add Sheet", buttonW, 0)) addSpriteSheet();
+                if (ImGui.button("Add Sheet", buttonWidth, 0)) addSpriteSheet();
             } else {
                 ImGui.beginDisabled();
-                ImGui.button("Add Sheet", buttonW, 0);
+                ImGui.button("Add Sheet", buttonWidth, 0);
                 ImGui.endDisabled();
             }
 
             ImGui.sameLine();
-
-            if (ImGui.button("Cancel", buttonW, 0)) {
+            ImGui.setCursorPosX(cancelX);
+            if (ImGui.button("Cancel", buttonWidth, 0)) {
                 showDialog = false;
                 ImGui.closeCurrentPopup();
             }
@@ -331,7 +338,7 @@ public class AddSpriteSheetDialog {
 
             Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
 
-            String relativePath = "./sheets/" + target.getFileName().toString();
+            String relativePath = "sheets/" + target.getFileName().toString();
 
             ProjectSheetMap sheetMap = new ProjectSheetMap(relativePath, numberOfSprite,
                     spriteSize.x, spriteSize.y, spriteSpacing.x, spriteSpacing.y,

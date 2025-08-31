@@ -19,7 +19,7 @@ public class AddObjectDialog {
     private static GameObject parentObject = null;
     private static ObjectType selectedType = null;
 
-    private static final float listYPercentage = 0.55f;
+    private static final float listYPercentage = 0.6f;
     private static final float descriptionYPercentage = 0.2f;
     private static final boolean enableBorder = true;
 
@@ -64,8 +64,6 @@ public class AddObjectDialog {
 
         if (ImGui.beginPopupModal(POPUP_ID, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)) {
             ImGui.text("Select one object type:");
-
-            ImGui.separator();
             int sectionY = (int) (DIALOG_SIZE.y * listYPercentage);
             ImGui.beginChild(OBJECT_LIST_ID, ImGuiWindowFlags.None, sectionY, enableBorder);
             for (ObjectType type : ObjectType.values()) {
@@ -76,8 +74,8 @@ public class AddObjectDialog {
                 }
             }
             ImGui.endChild();
-
             ImGui.separator();
+
             ImGui.text("Description:");
             sectionY = (int) (DIALOG_SIZE.y * descriptionYPercentage);
             ImGui.beginChild(DESCRIPTION_SECTION_ID, ImGuiWindowFlags.None, sectionY, enableBorder);
@@ -87,20 +85,28 @@ public class AddObjectDialog {
                 ImGui.textDisabled("Select an object type to see it's description.");
             }
             ImGui.endChild();
-
             ImGui.separator();
-            int buttonW = 120;
+
+            float buttonReserverY = ImGui.getFrameHeightWithSpacing();
+            ImGui.setCursorPosY(ImGui.getWindowHeight() - buttonReserverY - ImGui.getStyle().getWindowPaddingY());
+
+            float buttonWidth = 120;
+            float buttonPivotX = buttonWidth * 0.5f;
+            float availX = ImGui.getContentRegionAvailX();
+            float createX = (availX * 0.25f) - (buttonPivotX);
+            float cancelX = (availX * 0.75f) - (buttonPivotX);
+            ImGui.setCursorPosX(createX);
             if (selectedType != null) {
-                if (ImGui.button("Create", buttonW, 30)) createObject(selectedType);
+                if (ImGui.button("Create", buttonWidth, 0)) createObject(selectedType);
             } else {
                 ImGui.beginDisabled();
-                ImGui.button("Create", buttonW, 30);
+                ImGui.button("Create", buttonWidth, 0);
                 ImGui.endDisabled();
             }
 
             ImGui.sameLine();
-
-            if (ImGui.button("Cancel", buttonW, 30)) {
+            ImGui.setCursorPosX(cancelX);
+            if (ImGui.button("Cancel", buttonWidth, 0)) {
                 showDialog = false;
                 selectedType = null;
                 ImGui.closeCurrentPopup();
