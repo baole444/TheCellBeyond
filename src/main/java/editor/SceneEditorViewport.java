@@ -3,7 +3,7 @@ package editor;
 import TheCellBeyond.MouseListener;
 import TheCellBeyond.Window;
 import editor.project.Project;
-import eventviewer.EventSystem;
+import eventviewer.EngineEventCallback;
 import eventviewer.event.Event;
 import eventviewer.event.EventType;
 import imgui.ImGui;
@@ -32,12 +32,12 @@ public class SceneEditorViewport {
         ImGui.beginMenuBar();
         if (ImGui.menuItem("Play","", isPlaying, !isPlaying)) {
             isPlaying = true;
-            EventSystem.emit(null, new Event(EventType.ENGINE_START));
+            EngineEventCallback.emit(null, new Event(EventType.ENGINE_START));
         }
 
         if (ImGui.menuItem("Stop","", !isPlaying, isPlaying)) {
             isPlaying = false;
-            EventSystem.emit(null, new Event(EventType.ENGINE_END));
+            EngineEventCallback.emit(null, new Event(EventType.ENGINE_END));
         }
 
         ImGui.endMenuBar();

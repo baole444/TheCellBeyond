@@ -1,6 +1,6 @@
 package utility;
 
-import eventviewer.EventSystem;
+import eventviewer.EngineEventCallback;
 import eventviewer.event.Event;
 import eventviewer.event.EventType;
 
@@ -84,7 +84,7 @@ public class ExitConfirmDialog {
             saveDialogPref(false);
         }
         if (confirm == 0) {
-            EventSystem.emit(null, new Event(EventType.LEVEL_SAVE));
+            EngineEventCallback.emit(null, new Event(EventType.LEVEL_SAVE));
             return true;
         } else return confirm == 1;
     }

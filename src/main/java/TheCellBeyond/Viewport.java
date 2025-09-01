@@ -1,12 +1,14 @@
 package TheCellBeyond;
 
 import editor.project.Project;
-import editor.project.ProjectPreference;
+import eventviewer.EngineEventListener;
+import eventviewer.EngineEventCallback;
+import eventviewer.event.Event;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 
-public class Viewport {
+public class Viewport implements EngineEventListener {
     public Vector2f position;
     private final Matrix4f projectionMatrix;
     private final Matrix4f viewMatrix;
@@ -30,6 +32,7 @@ public class Viewport {
         aspectRatio = (float) Window.getWidth() / Window.getHeight();
         projectionSize = new Vector2f(aspectRatio * sceneScale, sceneScale);
         adjustProjection();
+        EngineEventCallback.register(this);
     }
 
     public void updateAspectRatio(float width, float height) {
@@ -102,5 +105,18 @@ public class Viewport {
 
     public void addZoom(float val) {
         this.zoom += val;
+    }
+
+    @Override
+    public void onEventEmit(Object object, Event event) {
+        switch (event.type) {
+            case ENGINE_START -> {
+                lockToGameAspectRatio();
+            }
+            case ENGINE_END -> {
+                unlockAspectRatio();
+                updateAspectRatio(Window.getWidth(), Window.getHeight());
+            }
+        }
     }
 }

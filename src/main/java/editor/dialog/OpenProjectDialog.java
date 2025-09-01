@@ -1,7 +1,7 @@
 package editor.dialog;
 
 import TheCellBeyond.Window;
-import eventviewer.EventSystem;
+import eventviewer.EngineEventCallback;
 import eventviewer.event.Event;
 import eventviewer.event.EventType;
 import org.lwjgl.PointerBuffer;
@@ -85,7 +85,7 @@ public class OpenProjectDialog {
                 String selectedPath = memUTF8(pathPtr);
 
                 if (isFileValid(selectedPath)){
-                    EventSystem.emit(selectedPath, new Event(EventType.PROJECT_LOAD));
+                    EngineEventCallback.emit(selectedPath, new Event(EventType.PROJECT_LOAD));
 
                     NFD_FreePath(pathPtr);
                 } else {

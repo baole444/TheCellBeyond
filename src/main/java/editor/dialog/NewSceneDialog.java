@@ -3,12 +3,11 @@ package editor.dialog;
 import TheCellBeyond.Window;
 import editor.project.Project;
 import editor.project.ProjectSceneMap;
-import eventviewer.EventSystem;
+import eventviewer.EngineEventCallback;
 import eventviewer.event.Event;
 import eventviewer.event.EventType;
 import imgui.ImGui;
 import imgui.ImVec2;
-import imgui.ImVec4;
 import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiWindowFlags;
@@ -156,7 +155,7 @@ public class NewSceneDialog {
 
         Window.setCurrentSceneName(name);
         Window.changeScene(new SceneEditor(name));
-        EventSystem.emit(name, new Event(EventType.SCENE_LOAD));
+        EngineEventCallback.emit(name, new Event(EventType.SCENE_LOAD));
 
         showDialog = false;
         ImGui.closeCurrentPopup();

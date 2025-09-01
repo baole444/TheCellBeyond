@@ -1,7 +1,6 @@
 package editor.dialog;
 
-import TheCellBeyond.Window;
-import eventviewer.EventSystem;
+import eventviewer.EngineEventCallback;
 import eventviewer.event.Event;
 import eventviewer.event.EventType;
 import imgui.ImGui;
@@ -54,7 +53,7 @@ public class ConfirmSaveSceneDialog {
 
             ImGui.setCursorPosX(saveX);
             if (ImGui.button("Save", buttonWidth, 0)) {
-                EventSystem.emit(null, new Event(EventType.LEVEL_SAVE));
+                EngineEventCallback.emit(null, new Event(EventType.LEVEL_SAVE));
                 closeConfirmation();
             }
 

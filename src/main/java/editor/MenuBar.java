@@ -5,7 +5,7 @@ import editor.dialog.ConfirmSaveSceneDialog;
 import editor.dialog.NewSceneDialog;
 import editor.dialog.OpenProjectDialog;
 import editor.project.Project;
-import eventviewer.EventSystem;
+import eventviewer.EngineEventCallback;
 import eventviewer.event.Event;
 import eventviewer.event.EventType;
 import imgui.ImGui;
@@ -24,11 +24,11 @@ public class MenuBar {
         ImGui.pushID(ImGuiItemFlags.SelectableDontClosePopup);
         if (ImGui.beginMenu("File")) {
             if (ImGui.menuItem("Save", "Ctrl+S")) {
-                EventSystem.emit(null, new Event(EventType.LEVEL_SAVE));
+                EngineEventCallback.emit(null, new Event(EventType.LEVEL_SAVE));
             }
 
             if (ImGui.menuItem("Open", "Ctrl+O")) {
-                EventSystem.emit(null, new Event(EventType.LEVEL_LOAD));
+                EngineEventCallback.emit(null, new Event(EventType.LEVEL_LOAD));
             }
 
             if (ImGui.menuItem("Open Project")) {
@@ -79,9 +79,9 @@ public class MenuBar {
                             String sceneName = Window.getCurrentSceneName();
 
                             if (sceneName != null && !sceneName.equals(name) && Project.getSceneNames().contains(sceneName)) {
-                                ConfirmSaveSceneDialog.show(() -> EventSystem.emit(name, new Event(EventType.SCENE_LOAD)));
+                                ConfirmSaveSceneDialog.show(() -> EngineEventCallback.emit(name, new Event(EventType.SCENE_LOAD)));
                             } else {
-                                EventSystem.emit(name, new Event(EventType.SCENE_LOAD));
+                                EngineEventCallback.emit(name, new Event(EventType.SCENE_LOAD));
                             }
                         }
                     }

@@ -103,6 +103,8 @@ public class ObjectSelection {
     }
 
     public void resize(int width, int height) {
+        if (width <= 0 || height <= 0) return;
+
         dispose();
 
         this.width = width;

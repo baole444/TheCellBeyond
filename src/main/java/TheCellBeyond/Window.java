@@ -4,8 +4,8 @@ import editor.ImGuiLayer;
 import editor.StartUpWindow;
 import editor.project.Project;
 import editor.Properties;
-import eventviewer.EventSystem;
-import eventviewer.EventInterface;
+import eventviewer.EngineEventCallback;
+import eventviewer.EngineEventListener;
 import eventviewer.event.Event;
 import imgui.ImGui;
 import org.joml.Vector2i;
@@ -35,7 +35,7 @@ import static org.lwjgl.openal.ALC10.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
-public final class Window implements EventInterface {
+public final class Window implements EngineEventListener {
     private int width;
     private int height;
     private final String title;
@@ -69,7 +69,7 @@ public final class Window implements EventInterface {
         this.height = 480;
         this.title = "The Cell Beyond";
         this.exitConfirmDialog = new ExitConfirmDialog();
-        EventSystem.addViewer(this);
+        EngineEventCallback.register(this);
 
         r = 0.027f;
         g = 0.122f;
@@ -170,17 +170,17 @@ public final class Window implements EventInterface {
         }
 
         glfwSetWindowSizeCallback(windowPtr, (window, w, h) -> {
-           width = w;
-           height = h;
+            if (w <= 0 || h <= 0) return;
 
-           frameBuffer.resize(width, height);
-           objectSelection.resize(width, height);
+            width = w;
+            height = h;
 
-           if (currentScene != null && currentScene.viewport() != null && !runtimeMode) {
-               currentScene.viewport().updateAspectRatio(width, height);
-           }
-
-           glViewport(0, 0, width, height);
+            frameBuffer.resize(width, height);
+            objectSelection.resize(width, height);
+            if (currentScene != null && currentScene.viewport() != null && !runtimeMode) {
+                currentScene.viewport().updateAspectRatio(width, height);
+            }
+            glViewport(0, 0, width, height);
         });
 
         glfwSetCursorPosCallback(windowPtr, MouseListener::mousePosCallback); // :: is java syntax lambda function
@@ -261,14 +261,6 @@ public final class Window implements EventInterface {
 
     /**
      * Return current active display size that the windows is on.
-     * <ul>
-     *      <li>Format: <code>Vector(width, height);</code></li>
-     *      <li>Type: <cite>integer</cite></li>
-     *      <li>Use: joml <code>Vector2i</code> class</li>
-     * </ul>
-     * Call:<br>
-     * <code>this.variable_one = getScrSize().x;<br>
-     * this.variable_two = getScrSize().y;</code>
     */
     public Vector2i getScrSize() {
         GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
@@ -367,7 +359,7 @@ public final class Window implements EventInterface {
     }
 
     @Override
-    public void whenNotice(Object object, Event event) {
+    public void onEventEmit(Object object, Event event) {
         switch (event.type) {
             case ENGINE_START -> {
                 this.runtimeMode = true;

@@ -6,7 +6,7 @@ import TheCellBeyond.KeyListener;
 import TheCellBeyond.Window;
 import editor.dialog.OpenProjectDialog;
 import editor.Properties;
-import eventviewer.EventSystem;
+import eventviewer.EngineEventCallback;
 import eventviewer.event.Event;
 import eventviewer.event.EventType;
 import org.joml.Vector2f;
@@ -85,11 +85,11 @@ public class KeyCtrl extends Component {
 
         // Make keybinding of Ctrl + S = Save file | Ctrl + O = open file
         if (KeyListener.isKeyTapped(GLFW_KEY_S, GLFW_MOD_CONTROL)) {
-            EventSystem.emit(null, new Event(EventType.LEVEL_SAVE));
+            EngineEventCallback.emit(null, new Event(EventType.LEVEL_SAVE));
         }
 
         if (KeyListener.isKeyTapped(GLFW_KEY_O, GLFW_MOD_CONTROL)) {
-            EventSystem.emit(null, new Event(EventType.LEVEL_LOAD));
+            EngineEventCallback.emit(null, new Event(EventType.LEVEL_LOAD));
         }
 
         // Make keybinding of Ctrl + P = Open project dialog box | ESC while dialog box is active = close.
