@@ -17,12 +17,12 @@ public class SceneEditorViewport {
     private static float[] printDebug;
     private boolean isPlaying = false;
     private String currentSceneName = "New scene";
+
     public void imgui() {
         String sceneName = Window.getCurrentSceneName();
 
-        if (sceneName != null && !currentSceneName.equals(sceneName)) {
-            currentSceneName = sceneName;
-        }
+        if (sceneName == null) currentSceneName = "Untitled";
+        if (sceneName != null && !currentSceneName.equals(sceneName)) currentSceneName = sceneName;
 
         ImGui.begin(currentSceneName + "###Game Viewport", ImGuiWindowFlags.NoScrollbar
                 | ImGuiWindowFlags.NoScrollWithMouse
@@ -41,8 +41,6 @@ public class SceneEditorViewport {
         }
 
         ImGui.endMenuBar();
-
-        ImGui.setCursorPos(ImGui.getCursorPosX(), ImGui.getCursorPosY());
 
         ImVec2 winSize = getMaxViewportSize();
         ImVec2 winPos = getViewportToCentral(winSize);
@@ -84,12 +82,11 @@ public class SceneEditorViewport {
     }
 
     private ImVec2 getMaxViewportSize() {
-        ImVec2 winSize = new ImVec2();
-        ImGui.getContentRegionAvail(winSize);
+        ImVec2 winSize = ImGui.getContentRegionAvail();
 
         float aspectRatio = Window.get().isRuntimeMode() ?
                 Project.getGameAspectRatio() :
-                Window.getScene().viewport().getAspectRatio();
+                (float) Window.getWidth() / Window.getHeight();
 
         float usableWidth = winSize.x;
         float usableHeight = usableWidth / aspectRatio;
