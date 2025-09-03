@@ -1,5 +1,10 @@
 package editor.dialog;
 
+import editor.project.Project;
+import editor.project.ProjectPreference;
+import eventviewer.EngineEventCallback;
+import eventviewer.event.Event;
+import eventviewer.event.EventType;
 import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.ImGuiCond;
@@ -153,7 +158,21 @@ public class NewProjectDialog {
     }
 
     private static void createProject() {
-        System.out.println("Coming soon");
+        if (selectedDirectoryPath.isEmpty() || gameTitle.isEmpty()) return;
+        if (gameWindowSize.x < 1 || gameWindowSize.y < 1) return;
+
+        ProjectPreference preference = new ProjectPreference(gameTitle.get(),
+                gameWindowSize.x, gameWindowSize.y,
+                allowResize, maintainAspectRatio
+        );
+
+        Path projectRoot = Path.of(selectedDirectoryPath.get());
+        boolean success = Project.createNewProject(projectRoot, preference);
+
+        if (success) {
+            String toYML = projectRoot.resolve("_project.yml").toString();
+            EngineEventCallback.emit(toYML, new Event(EventType.PROJECT_LOAD));
+        }
     }
 
     private static int inputInt(String label, int target, int minValue) {

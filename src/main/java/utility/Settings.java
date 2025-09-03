@@ -15,6 +15,4 @@ public class Settings {
         public static final String OBJECT_SELECTION_SHADER = "engine://assets/shaders/objSelection.glsl";
         public static final String DEBUG_LINE2_SHADER = "engine://assets/shaders/DBLine2.glsl";
     }
-
-    public static final String _projectVersion = "0.0.1";
 }

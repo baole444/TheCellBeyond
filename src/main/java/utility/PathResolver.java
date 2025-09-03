@@ -252,7 +252,7 @@ public class PathResolver {
         String sanctioned = relative.startsWith("/") ? relative.substring(1) : relative;
 
         Path rootPath = Paths.get(root);
-        Path resolvedPath = rootPath.resolve(sanctioned ).normalize();
+        Path resolvedPath = rootPath.resolve(sanctioned).normalize();
 
         return resolvedPath.toString();
     }
@@ -290,5 +290,9 @@ public class PathResolver {
      */
     public static boolean isInitialized () {
         return instance != null;
+    }
+
+    public static void clear() {
+        instance = null;
     }
 }

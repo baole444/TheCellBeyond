@@ -24,7 +24,7 @@ public class UserPreference {
     }
 
     private static void loadConfigDirectory() {
-        String OS = System.getProperty("os.name");
+        String OS = System.getProperty("os.name").toLowerCase();
 
         String dataDir = OS.contains("win") ? System.getenv("APPDATA") :
                 System.getProperty("user.home") + File.separator + ".config";

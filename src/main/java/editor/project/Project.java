@@ -9,6 +9,8 @@ import utility.PathResolver;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +21,8 @@ public class Project {
     private static ProjectPreference preference = null;
     private static String _projectYmlPath = null;
     private static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory());
+    private static final List<String> requiredDirs = List.of("assets", "prefabs", "scenes", "sheets");
+    public static final String PROJECT_VERSION = "0.1";
 
     public static ProjectData loadFromYaml(String path) {
         try {
@@ -41,6 +45,7 @@ public class Project {
                 preference = CurrentProject.project();
 
                 sanctionRelativePath();
+                checkAndAddRequiredDirs();
             }
 
             return CurrentProject;
@@ -68,6 +73,44 @@ public class Project {
         }
 
         saveToYaml(_projectYmlPath);
+    }
+
+    public static boolean createNewProject(Path newProjectRoot, ProjectPreference preference) {
+        if (newProjectRoot == null) return false;
+        String warning = "It is ill-advised to create multiple projects in same root directory.\n" +
+                "If nested project is needed, consider create it in a sub-directory of the parent project.";
+        if (ProjectRoot != null && newProjectRoot.equals(Path.of(ProjectRoot))) {
+            System.err.println(warning);
+            return false;
+        }
+        Path potentialProject = newProjectRoot.resolve("_project.yml");
+        if (potentialProject.toFile().exists()) {
+            System.err.println(warning);
+            return false;
+        }
+
+        ProjectPreference newPref = preference;
+        if (newPref == null) newPref = new ProjectPreference();
+
+        ProjectData newProject = new ProjectData(PROJECT_VERSION, newPref);
+
+        try {
+            YAML_MAPPER.writeValue(potentialProject.toFile(), newProject);
+        } catch (IOException e) {
+            System.err.println("Failed to create new project");
+            return false;
+        }
+
+        for (String dir : requiredDirs) {
+            Path toDir = newProjectRoot.resolve(dir);
+            try {
+                Files.createDirectories(toDir);
+            } catch (IOException e) {
+                System.err.println("Cannot create '" + dir + "' directory for the project");
+            }
+        }
+
+        return true;
     }
 
     public static List<String> getSceneNames() {
@@ -374,6 +417,21 @@ public class Project {
         return path;
     }
 
+    private static void checkAndAddRequiredDirs() {
+        if (CurrentProject == null || ProjectRoot == null) return;
+
+        for (String dir : requiredDirs) {
+            Path toDir = Path.of(PathResolver.resolveToAbsolute(ProjectRoot, dir));
+            if (!Files.isDirectory(toDir)) {
+                try {
+                    Files.createDirectories(toDir);
+                } catch (IOException e) {
+                    System.err.println("Cannot create missing '" + dir + "' directory for the project");
+                }
+            }
+        }
+    }
+
     public static ProjectData currentProject() {
         return CurrentProject;
     }
@@ -390,5 +448,12 @@ public class Project {
         if (preference == null) return (float) 640 / 480;
 
         return (float) preference.gameWindowWidth() / preference.gameWindowHeight();
+    }
+
+    public static void clear() {
+        CurrentProject = null;
+        ProjectRoot = null;
+        _projectYmlPath = null;
+        preference = null;
     }
 }

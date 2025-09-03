@@ -544,4 +544,8 @@ public class GameObject {
     public void setDirty(boolean dirty) {
         isDirty = dirty;
     }
+
+    public static void clear() {
+        idCounter.reset();
+    }
 }
