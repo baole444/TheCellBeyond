@@ -1,14 +1,10 @@
 package editor.dialog;
 
 import TheCellBeyond.Window;
-import eventviewer.EngineEventCallback;
-import eventviewer.event.Event;
-import eventviewer.event.EventType;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.Platform;
-import org.lwjgl.util.nfd.NFDFilterItem;
-import org.lwjgl.util.nfd.NFDOpenDialogArgs;
+import org.lwjgl.util.nfd.NFDPickFolderArgs;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -20,8 +16,9 @@ import static org.lwjgl.glfw.GLFWNativeX11.glfwGetX11Window;
 import static org.lwjgl.system.MemoryUtil.NULL;
 import static org.lwjgl.system.MemoryUtil.memUTF8;
 import static org.lwjgl.util.nfd.NativeFileDialog.*;
+import static org.lwjgl.util.nfd.NativeFileDialog.NFD_GetError;
 
-public class OpenProjectDialog {
+public class OpenNoneProjectFolderDialog {
     private static long windowHandle = -1;
     private static int handleType = -1;
 
@@ -51,21 +48,15 @@ public class OpenProjectDialog {
         }
     }
 
-    public static Path openProjectDialog() {
+    public static Path openFolderDialog() {
         if (windowHandle == -1 || handleType == -1) {
             setPlatform();
         }
 
         try (MemoryStack stack = MemoryStack.stackPush()) {
-            NFDFilterItem.Buffer filter = NFDFilterItem.malloc(1);
-            filter.get(0)
-                    .name(stack.UTF8("_project"))
-                    .spec(stack.UTF8("yml,yaml"));
+            PointerBuffer outPath = stack.mallocPointer(1);
 
-            PointerBuffer pointerBuffer = stack.mallocPointer(1);
-
-            int result = NFD_OpenDialog_With(pointerBuffer, NFDOpenDialogArgs.calloc(stack)
-                    .filterList(filter)
+            int result = NFD_PickFolder_With(outPath, NFDPickFolderArgs.calloc(stack)
                     .parentWindow(it -> it
                             .type(handleType)
                             .handle(windowHandle)
@@ -73,7 +64,7 @@ public class OpenProjectDialog {
             );
 
             // Check the result, set project file path and free the pointer.
-            return checkResult(result, pointerBuffer);
+            return checkResult(result, outPath);
         } catch (Exception e) {
             System.err.println("Error while opening file dialog: " + e.getMessage());
             return null;
@@ -87,7 +78,7 @@ public class OpenProjectDialog {
                 long pathPtr = pp.get(0);
                 String selectedPath = memUTF8(pathPtr);
 
-                if (isFileValid(selectedPath)){
+                if (isFolderValid(selectedPath)){
                     validPath = Paths.get(selectedPath);
                     NFD_FreePath(pathPtr);
                 } else {
@@ -102,13 +93,13 @@ public class OpenProjectDialog {
         return validPath;
     }
 
-    private static boolean isFileValid(String path) {
+    private static boolean isFolderValid(String path) {
         if (path == null || path.isEmpty()) {
             return false;
         }
 
-        if (!Files.exists(Paths.get(path))) return false;
+        Path existingProject = Paths.get(path).resolve("_project.yml");
 
-        return path.toLowerCase().endsWith(".yml") || path.toLowerCase().endsWith(".yaml");
+        return !Files.exists(existingProject);
     }
 }

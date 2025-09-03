@@ -55,7 +55,7 @@ public class PathResolver {
         instance = new PathResolver(projectRoot);
     }
 
-    public static PathResolver get() {
+    public static synchronized PathResolver get() {
         if (instance == null) {
             throw new IllegalStateException("PathResolver not initialized. Please call initialize() first.");
         }
@@ -252,7 +252,7 @@ public class PathResolver {
         String sanctioned = relative.startsWith("/") ? relative.substring(1) : relative;
 
         Path rootPath = Paths.get(root);
-        Path resolvedPath = rootPath.resolve(sanctioned).normalize();
+        Path resolvedPath = rootPath.resolve(sanctioned ).normalize();
 
         return resolvedPath.toString();
     }

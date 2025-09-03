@@ -31,10 +31,6 @@ public class MenuBar {
                 EngineEventCallback.emit(null, new Event(EventType.LEVEL_LOAD));
             }
 
-            if (ImGui.menuItem("Open Project")) {
-                OpenProjectDialog.openProjectDialog();
-            }
-
             ImGui.endMenu();
         }
         if (ImGui.beginMenu("Workspace")) {

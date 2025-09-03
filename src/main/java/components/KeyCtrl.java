@@ -91,10 +91,5 @@ public class KeyCtrl extends Component {
         if (KeyListener.isKeyTapped(GLFW_KEY_O, GLFW_MOD_CONTROL)) {
             EngineEventCallback.emit(null, new Event(EventType.LEVEL_LOAD));
         }
-
-        // Make keybinding of Ctrl + P = Open project dialog box | ESC while dialog box is active = close.
-        if (KeyListener.isKeyTapped(GLFW_KEY_P, GLFW_MOD_CONTROL)) {
-            OpenProjectDialog.openProjectDialog();
-        }
     }
 }
