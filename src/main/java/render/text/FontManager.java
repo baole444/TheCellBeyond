@@ -16,13 +16,11 @@ public class FontManager {
     private static final Logger LOGGER = Logger.getLogger(FontManager.class.getName());
 
     private static FontManager instance;
-
+    private static Thread processor;
     private final ExecutorService executorService;
 
     private final Map<FontRequest, TCBFont> fontCache = new ConcurrentHashMap<>();
-
     private final Queue<FontRequestEntry> pendingRequests = new ConcurrentLinkedDeque<>();
-
     private final Queue<TCBFont> fontsWaitingTexture = new ConcurrentLinkedDeque<>();
 
     private FontManager() {
@@ -39,7 +37,7 @@ public class FontManager {
     }
 
     private void startProcessingThread() {
-        Thread processor = new Thread(() -> {
+        processor = new Thread(() -> {
             while (!Thread.currentThread().isInterrupted()) {
                 processFontRequest();
                 try {
@@ -179,9 +177,23 @@ public class FontManager {
         }
 
         fontCache.clear();
-
         pendingRequests.clear();
-
         fontsWaitingTexture.clear();
+    }
+
+    public synchronized void dispose() {
+        if (processor != null) {
+            processor.interrupt();
+            try {
+                processor.join(200);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            processor = null;
+        }
+
+        cleanup();
+        LOGGER.log(Level.INFO, "Thread shutdown completed");
+        instance = null;
     }
 }

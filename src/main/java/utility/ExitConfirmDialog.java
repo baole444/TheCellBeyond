@@ -1,59 +1,20 @@
 package utility;
 
+import editor.preference.EditorPreferences;
+import editor.preference.UserPreference;
 import eventviewer.EngineEventCallback;
 import eventviewer.event.Event;
 import eventviewer.event.EventType;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.*;
 
 public class ExitConfirmDialog {
-    private boolean dialogPref;
-
-    public ExitConfirmDialog() {
-        this.dialogPref = loadDialogPref();
-
-    }
-
-    public void reloadDialog() {
-        this.dialogPref = loadDialogPref();
-    }
-
-    public String getDialogPref() {
-        return Boolean.toString(loadDialogPref());
-    }
-
-    public void setDialogPref(boolean b) {
-        saveDialogPref(b);
-    }
-
-    private boolean loadDialogPref() {
-        File config = new File("./Pref/closeConfirm.config");
-        if (config.exists()) {
-            try (BufferedReader reader = new BufferedReader(new FileReader(config))) {
-                return Boolean.parseBoolean(reader.readLine());
-            } catch (IOException e) {
-                System.out.println("Failed to read from config file");
-            }
-        }
-        return true; // Always show if pref not set.
-    }
-
-    private void saveDialogPref(boolean show) {
-        File config = new File("./Pref/closeConfirm.config");
-        config.getParentFile().mkdirs(); // Check directory existence
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(config))) {
-            writer.write(Boolean.toString(show));
-        } catch (IOException e) {
-            System.out.println("Failed to save to config file");
-        }
-    }
-
-    public boolean exitDialog() {
-        if (!dialogPref) {
+    public static boolean exitDialog() {
+        if (isAutoSaveOnExitOn()) {
             return true;
         }
+
         // Set JFrame to force always on top for confirm dialog
         JFrame frame = new JFrame();
         frame.setAlwaysOnTop(true);
@@ -61,12 +22,12 @@ public class ExitConfirmDialog {
         frame.setVisible(true);
         frame.setLocationRelativeTo(null);
 
-        JCheckBox hide = new JCheckBox("Do not show this again (Exit without save.)");
+        JCheckBox autoSave = new JCheckBox("Enable auto save on exit");
 
         JPanel panel = new JPanel();
         panel.setLayout(new BorderLayout());
         panel.add(new JLabel("All current progress before save will be lost."), BorderLayout.CENTER);
-        panel.add(hide, BorderLayout.SOUTH);
+        panel.add(autoSave, BorderLayout.SOUTH);
 
         Object[] options = {"Save & Exit", "Exit", "Cancel"};
 
@@ -80,12 +41,26 @@ public class ExitConfirmDialog {
 
         frame.dispose();
 
-        if (hide.isSelected()) {
-            saveDialogPref(false);
+        if (autoSave.isSelected()) {
+            setAutoSaveOn();
         }
         if (confirm == 0) {
             EngineEventCallback.emit(null, new Event(EventType.LEVEL_SAVE));
             return true;
         } else return confirm == 1;
+    }
+
+    private static boolean isAutoSaveOnExitOn() {
+        return UserPreference.editorPreferences().autoSaveOnExit();
+    }
+
+    private static void setAutoSaveOn() {
+        EditorPreferences current = UserPreference.reloadEditorPreferences();
+
+        if (current.autoSaveOnExit()) return;
+
+        EditorPreferences update = new EditorPreferences(true, current.autoSaveOnChangeScene());
+
+        UserPreference.updateEditorPreferences(update);
     }
 }

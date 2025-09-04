@@ -79,6 +79,9 @@ public class StartUpWindow{
 
             glfwSwapBuffers(windowPtr);
         }
+
+        recentProjects.clear();
+        selectedProject = null;
     }
 
     private static void renderProjectList() {
@@ -171,7 +174,7 @@ public class StartUpWindow{
         for (Map.Entry<UUID, RecentProject> entry : recentProjects.entrySet()) {
             RecentProject recentProject = entry.getValue();
             if (recentProject == null) continue;
-
+            float originalX = ImGui.getCursorPosX();
             boolean selected = selectedProject == recentProject;
             if (ImGui.selectable("##" + recentProject.title(), selected, 0.0f, ImGui.getTextLineHeight() * 4.8f)) {
                 selectedProject = recentProject;
@@ -188,7 +191,13 @@ public class StartUpWindow{
             ImGui.setCursorPosX(cursorPos.x);
             if (!recentProject.isPresentedAtPath()) {
                 ImGui.textColored(ImGui.colorConvertFloat4ToU32(1.0f, 0.2f, 0.2f, 1.0f), "Cannot locate project at designated location");
+            } else {
+                ImGui.newLine();
             }
+            float finalY = ImGui.getCursorPosY();
+            ImGui.setCursorPos(originalX, finalY + ImGui.getStyle().getWindowPaddingY());
+            ImGui.separator();
+            ImGui.spacing();
         }
     }
 

@@ -2,8 +2,8 @@ package TheCellBeyond;
 
 import editor.ImGuiLayer;
 import editor.StartUpWindow;
+import editor.preference.UserPreference;
 import editor.project.Project;
-import editor.Properties;
 import eventviewer.EngineEventCallback;
 import eventviewer.EngineEventListener;
 import eventviewer.event.Event;
@@ -20,6 +20,7 @@ import org.lwjgl.openal.ALCapabilities;
 import org.lwjgl.opengl.GL;
 import physic2d.Physic2D;
 import render.*;
+import render.text.FontManager;
 import scene.SceneEditor;
 import scene.Scene;
 import scene.SceneInit;
@@ -47,17 +48,14 @@ public final class Window implements EngineEventListener {
     private static String currentSceneName;
     private boolean runtimeMode = false; //Run without editor (release) or not
 
-    private String glslVer = null;
     private ImGuiLayer imGuiLayer;
     private FrameBuffer frameBuffer;
-
     private ObjectSelection objectSelection;
-    private Properties properties;
 
     private final IconLoader iconFile = IconLoader.loadIcon("assets/textures/TCB icon.png");
 
-    private final ExitConfirmDialog exitConfirmDialog;
     private boolean shouldClose;
+    private boolean forceClose = false;
 
     private long soundContext;
     private long audioDevice;
@@ -68,7 +66,6 @@ public final class Window implements EngineEventListener {
         this.width = 640;
         this.height = 480;
         this.title = "The Cell Beyond";
-        this.exitConfirmDialog = new ExitConfirmDialog();
         EngineEventCallback.register(this);
 
         r = 0.027f;
@@ -127,11 +124,7 @@ public final class Window implements EngineEventListener {
 
         System.out.println("Active GPU: " + renderer + " Driver version: " + version);
 
-        //free memories
-
         endScr();
-
-        //end GLFW and error callback
         glfwSetErrorCallback(null).free();
     }
 
@@ -145,7 +138,7 @@ public final class Window implements EngineEventListener {
             System.exit(-1);
         }
 
-        glslVer = "#version 330 core";
+        String glslVer = "#version 330 core";
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 
@@ -195,10 +188,15 @@ public final class Window implements EngineEventListener {
         glfwSetWindowCloseCallback(windowPtr, new GLFWWindowCloseCallback() {
             @Override
             public void invoke(long l) {
-                glfwSetWindowShouldClose(windowPtr, false);
-                exitConfirmDialog.reloadDialog();
+                if (forceClose) {
+                    glfwSetWindowShouldClose(windowPtr, true);
+                    return;
+                }
 
-                shouldClose = exitConfirmDialog.exitDialog();
+                if (UserPreference.editorPreferences().autoSaveOnExit()) currentScene.saveLevel();
+
+                glfwSetWindowShouldClose(windowPtr, false);
+                shouldClose = ExitConfirmDialog.exitDialog();
                 if (shouldClose) {
                     glfwSetWindowShouldClose(windowPtr, true);
                 }
@@ -271,6 +269,7 @@ public final class Window implements EngineEventListener {
     }
 
     private void endScr(){
+        FontManager.get().dispose();
         AssetsPool.clearCache();
         RendererState.cleanup();
 
@@ -355,6 +354,8 @@ public final class Window implements EngineEventListener {
             endTime = (float)glfwGetTime();
             dt = endTime - beginTime;
             beginTime = endTime;
+
+            if (forceClose) glfwSetWindowShouldClose(windowPtr, true);
         }
     }
 
@@ -462,5 +463,9 @@ public final class Window implements EngineEventListener {
 
     public boolean isRuntimeMode() {
         return runtimeMode;
+    }
+
+    public void forceClose() {
+        forceClose = true;
     }
 }

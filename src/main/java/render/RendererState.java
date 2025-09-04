@@ -74,4 +74,8 @@ public class RendererState {
             instance.currentShader = null;
         }
     }
+
+    public static void dispose() {
+        instance = null;
+    }
 }

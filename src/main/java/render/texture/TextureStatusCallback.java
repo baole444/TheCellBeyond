@@ -18,4 +18,8 @@ public class TextureStatusCallback {
             listener.onTextureStatusChange(handleId, status);
         }
     }
+
+    static void clear() {
+        listeners.clear();
+    }
 }

@@ -2,6 +2,7 @@ package editor;
 
 import TheCellBeyond.Window;
 import editor.dialog.ConfirmSaveSceneDialog;
+import editor.dialog.ExitToProjectListDialog;
 import editor.dialog.NewSceneDialog;
 import editor.project.Project;
 import eventviewer.EngineEventCallback;
@@ -24,19 +25,7 @@ public class MenuBar {
                 System.out.println("Coming soon(tm)");
             }
 
-            if (ImGui.menuItem("Exit to Project List")) {
-                System.out.println("Coming soon(tm)");
-            }
-
-            ImGui.endMenu();
-        }
-        if (ImGui.beginMenu("Workspace")) {
-            if (ImGui.menuItem("Toggle Exit Save", exitConfirmDialog.getDialogPref())) {
-                switch (exitConfirmDialog.getDialogPref()) {
-                    case "true" -> exitConfirmDialog.setDialogPref(false);
-                    case null, default -> exitConfirmDialog.setDialogPref(true);
-                }
-            }
+            if (ImGui.menuItem("Exit to Project List")) ExitToProjectListDialog.show();
 
             ImGui.endMenu();
         }
@@ -80,6 +69,7 @@ public class MenuBar {
 
         NewSceneDialog.imgui();
         ConfirmSaveSceneDialog.imgui();
+        ExitToProjectListDialog.imgui();
     }
 }
 

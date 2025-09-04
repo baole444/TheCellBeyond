@@ -3,7 +3,6 @@ package TheCellBeyond;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
-import render.ObjectSelection;
 import scene.Scene;
 
 import java.util.Arrays;
@@ -20,7 +19,6 @@ public class MouseListener {
     private int mouseButtonDown = 0;
     private final Vector2f workViewportPos = new Vector2f();
     private final Vector2f workViewportSize = new Vector2f();
-    private ObjectSelection objectSelection;
 
     private static boolean startupMode = true;
 

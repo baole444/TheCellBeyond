@@ -11,13 +11,10 @@ import static org.lwjgl.opengl.GL11.glDeleteTextures;
 
 public class TextureManager {
     static final Logger LOGGER = Logger.getLogger(TextureManager.class.getName());
-
     private static TextureManager instance;
 
     private final ConcurrentLinkedQueue<TextureCommand> commandQueue;
-
     private final ConcurrentHashMap<Integer, TextureHandle> activeHandles;
-
     private final ConcurrentHashMap<String, TextureHandle> handlesByPath;
 
     // Limit per cycle
@@ -147,5 +144,11 @@ public class TextureManager {
         commandQueue.clear();
 
         LOGGER.info("TextureManager cleanup completed");
+    }
+
+    public static void dispose() {
+        get().cleanup();
+        TextureStatusCallback.clear();
+        instance = null;
     }
 }

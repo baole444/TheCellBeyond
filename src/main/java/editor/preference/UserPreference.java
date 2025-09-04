@@ -15,11 +15,14 @@ public class UserPreference {
     private static final String APPLICATION = "TheCellBeyond";
     private static Path CONFIG_DIR = null;
     private static final String RECENT_PROJECT_FILE = "recent_project";
+    private static final String EDITOR_PREFERENCE_FILE = "configs";
     private static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory());
     private static final HashMap<UUID, RecentProject> recentProjects = new HashMap<>();
+    private static EditorPreferences editorPreferences = new EditorPreferences();
 
     static {
         loadConfigDirectory();
+        loadEditorPreferences();
         loadRecentProjects();
     }
 
@@ -62,6 +65,19 @@ public class UserPreference {
         }
     }
 
+    private static void loadEditorPreferences() {
+        if (CONFIG_DIR == null) return;
+
+        Path config = CONFIG_DIR.resolve(EDITOR_PREFERENCE_FILE);
+        if (Files.exists(config)) {
+            try {
+                editorPreferences = YAML_MAPPER.readValue(config.toFile(), EditorPreferences.class);
+            } catch (IOException e) {
+                System.err.println("Failed to load editor preferences");
+            }
+        }
+    }
+
     public static HashMap<UUID, RecentProject> recentProjects() {
         return new HashMap<>(recentProjects);
     }
@@ -95,6 +111,35 @@ public class UserPreference {
             YAML_MAPPER.writerWithDefaultPrettyPrinter().writeValue(recents.toFile(), recentProjects);
         } catch (IOException e) {
             System.err.println("Failed to save recent projects");
+        }
+    }
+
+    public static EditorPreferences editorPreferences() {
+        return editorPreferences;
+    }
+
+    public static void updateEditorPreferences(EditorPreferences newPreferences) {
+        if (newPreferences == null) return;
+
+        editorPreferences = newPreferences;
+        saveEditorPreferences();
+    }
+
+    public static EditorPreferences reloadEditorPreferences() {
+        loadEditorPreferences();
+
+        return editorPreferences();
+    }
+
+    private static void saveEditorPreferences() {
+        if (CONFIG_DIR == null) return;
+
+        Path config = CONFIG_DIR.resolve(EDITOR_PREFERENCE_FILE);
+
+        try {
+            YAML_MAPPER.writerWithDefaultPrettyPrinter().writeValue(config.toFile(), editorPreferences);
+        } catch (IOException e) {
+            System.err.println("Failed to save editor preferences");
         }
     }
 }

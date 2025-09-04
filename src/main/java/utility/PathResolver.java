@@ -293,6 +293,7 @@ public class PathResolver {
     }
 
     public static void clear() {
+        get().clearCache();
         instance = null;
     }
 }
