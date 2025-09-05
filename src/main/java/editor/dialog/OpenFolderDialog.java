@@ -18,7 +18,7 @@ import static org.lwjgl.system.MemoryUtil.memUTF8;
 import static org.lwjgl.util.nfd.NativeFileDialog.*;
 import static org.lwjgl.util.nfd.NativeFileDialog.NFD_GetError;
 
-public class OpenNoneProjectFolderDialog {
+public class OpenFolderDialog {
     private static long windowHandle = -1;
     private static int handleType = -1;
 
@@ -82,7 +82,7 @@ public class OpenNoneProjectFolderDialog {
                     validPath = Paths.get(selectedPath);
                     NFD_FreePath(pathPtr);
                 } else {
-                    System.out.println("Selected file format not supported.");
+                    System.out.println("Selected folder does not exist");
                     NFD_FreePath(pathPtr);
                 }
             }
@@ -98,8 +98,8 @@ public class OpenNoneProjectFolderDialog {
             return false;
         }
 
-        Path existingProject = Paths.get(path).resolve("_project.yml");
+        Path newProjectRoot = Path.of(path);
 
-        return !Files.exists(existingProject);
+        return newProjectRoot.toFile().isDirectory();
     }
 }

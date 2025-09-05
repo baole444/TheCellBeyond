@@ -28,15 +28,14 @@ public class NewProjectDialog {
     private static final boolean enableBorder = true;
 
     private static final ImString selectedDirectoryPath = new ImString(256);
+    private static final ImBoolean projectAlreadyExist = new ImBoolean(false);
 
     private static final ImString gameTitle = new ImString(128);
     private static final Vector2i gameWindowSize = new Vector2i(640, 480);
-    private static boolean allowResize = false;
-    private static final ImBoolean resizable = new ImBoolean(false);
-    private static boolean maintainAspectRatio = true;
-    private static final ImBoolean lockAR = new ImBoolean(true);
+    private static final ImBoolean allowResize = new ImBoolean(false);
+    private static final ImBoolean maintainAspectRatio = new ImBoolean(true);
 
-    private static final float fileYPercentage = 0.1f;
+    private static final float fileYPercentage = 0.15f;
     private static final float metaYPercentage = 0.8f;
 
     public static void show() {
@@ -46,10 +45,11 @@ public class NewProjectDialog {
 
     private static void resetDialogData() {
         selectedDirectoryPath.clear();
+        projectAlreadyExist.set(false);
         gameTitle.clear();
         gameWindowSize.set(640, 480);
-        allowResize = false;
-        maintainAspectRatio = true;
+        allowResize.set(false);
+        maintainAspectRatio.set(true);
     }
 
     public static void imgui() {
@@ -74,9 +74,11 @@ public class NewProjectDialog {
             ImGui.setCursorPosY(ImGui.getWindowHeight() - buttonReserverY - (buttonHeight / 2) - ImGui.getStyle().getWindowPaddingY());
             float buttonPivotX = buttonWidth * 0.5f;
             float availX = ImGui.getContentRegionAvailX();
-            float addX = (availX * 0.25f) - (buttonPivotX);
-            float cancelX = (availX * 0.75f) - (buttonPivotX);
-            boolean canAdd = gameTitle.isNotEmpty() && selectedDirectoryPath.isNotEmpty() && gameWindowSize.x > 0 && gameWindowSize.y > 0;
+            float addX = (availX * 0.25f) - buttonPivotX;
+            float cancelX = (availX * 0.75f) - buttonPivotX;
+            boolean canAdd = !projectAlreadyExist.get()
+                    && gameTitle.isNotEmpty() && selectedDirectoryPath.isNotEmpty() 
+                    && gameWindowSize.x > 0 && gameWindowSize.y > 0;
             ImGui.setCursorPosX(addX);
             if (canAdd) {
                 if (ImGui.button("Create project", buttonWidth, buttonHeight)) createProject();
@@ -115,9 +117,25 @@ public class NewProjectDialog {
         ImGui.popItemWidth();
 
         ImGui.sameLine();
+
         if (ImGui.button("Select Directory", selectButtonW, 0)) {
-            Path openedPath = OpenNoneProjectFolderDialog.openFolderDialog();
-            if (openedPath != null) selectedDirectoryPath.set(openedPath.toString());
+            Path openedPath = OpenFolderDialog.openFolderDialog();
+            if (openedPath != null) {
+                selectedDirectoryPath.set(openedPath.toString());
+                checkForExistingProject(openedPath);
+            }
+        }
+
+        if (selectedDirectoryPath.isEmpty()) {
+            ImGui.newLine();
+            ImGui.endChild();
+            return;
+        }
+
+        if (projectAlreadyExist.get()) {
+            ImGui.textColored(ImGui.colorConvertFloat4ToU32(1.0f, 0.2f, 0.2f, 1.0f), "There is already a project at selected directory");
+        } else {
+            ImGui.textColored(ImGui.colorConvertFloat4ToU32(0.2f, 1.0f, 0.2f, 1.0f), "Selected directory is valid");
         }
 
         ImGui.endChild();
@@ -143,13 +161,13 @@ public class NewProjectDialog {
         gameWindowSize.y = inputInt("Height", gameWindowSize.y, 1);
         ImGui.spacing();
 
-        allowResize = ImGui.checkbox("Resizable", resizable);
+        ImGui.checkbox("Resizable", allowResize);
         ImGui.beginDisabled();
         ImGui.textWrapped("(allow player to resize the game window)");
         ImGui.endDisabled();
         ImGui.spacing();
 
-        maintainAspectRatio = ImGui.checkbox("Lock aspect ratio", lockAR);
+        ImGui.checkbox("Lock aspect ratio", maintainAspectRatio);
         ImGui.beginDisabled();
         ImGui.textWrapped("(maintain the game's intended aspect ratio when window is resized)");
         ImGui.endDisabled();
@@ -158,12 +176,13 @@ public class NewProjectDialog {
     }
 
     private static void createProject() {
+        if (projectAlreadyExist.get()) return;
         if (selectedDirectoryPath.isEmpty() || gameTitle.isEmpty()) return;
         if (gameWindowSize.x < 1 || gameWindowSize.y < 1) return;
 
         ProjectPreference preference = new ProjectPreference(gameTitle.get(),
                 gameWindowSize.x, gameWindowSize.y,
-                allowResize, maintainAspectRatio
+                allowResize.get(), maintainAspectRatio.get()
         );
 
         Path projectRoot = Path.of(selectedDirectoryPath.get());
@@ -187,5 +206,11 @@ public class NewProjectDialog {
 
         ImGui.popID();
         return target;
+    }
+
+    private static void checkForExistingProject(Path projectRoot) {
+        Path projectYAML = projectRoot.resolve("_project.yml");
+
+        projectAlreadyExist.set(projectYAML.toFile().exists());
     }
 }
