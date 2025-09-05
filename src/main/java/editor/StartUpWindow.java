@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import editor.dialog.NewProjectDialog;
 import editor.dialog.OpenProjectDialog;
+import editor.dialog.RemoveMissingProjectDialog;
 import editor.preference.RecentProject;
 import editor.preference.UserPreference;
 import editor.project.Project;
@@ -34,6 +35,7 @@ public class StartUpWindow{
 
     private static final HashMap<UUID, RecentProject> recentProjects = new HashMap<>();
     private static RecentProject selectedProject = null;
+    private static UUID selectedUUID = null;
 
     private static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory());
 
@@ -112,10 +114,8 @@ public class StartUpWindow{
             float buttonWidth = ImGui.getContentRegionAvailX();
             float buttonHeight = 30;
 
-            if (selectedProject != null && selectedProject.isPresentedAtPath()) {
-                if (ImGui.button("Start Edit", buttonWidth, buttonHeight)) {
-                    EngineEventCallback.emit(selectedProject.path(), new Event(EventType.PROJECT_LOAD));
-                }
+            if (selectedProject != null) {
+                if (ImGui.button("Start Edit", buttonWidth, buttonHeight)) startEditing();
             } else {
                 ImGui.beginDisabled();
                 ImGui.button("Start Edit", buttonWidth, buttonHeight);
@@ -161,6 +161,7 @@ public class StartUpWindow{
         ImGui.endTable();
         ImGui.endChild();
         NewProjectDialog.imgui();
+        RemoveMissingProjectDialog.imgui();
     }
 
     private static void renderSelectableList() {
@@ -172,12 +173,20 @@ public class StartUpWindow{
         }
 
         for (Map.Entry<UUID, RecentProject> entry : recentProjects.entrySet()) {
+            UUID key = entry.getKey();
             RecentProject recentProject = entry.getValue();
             if (recentProject == null) continue;
             float originalX = ImGui.getCursorPosX();
             boolean selected = selectedProject == recentProject;
             if (ImGui.selectable("##" + recentProject.title(), selected, 0.0f, ImGui.getTextLineHeight() * 4.8f)) {
+                selectedUUID = key;
                 selectedProject = recentProject;
+            }
+
+            if (ImGui.isItemHovered() && ImGui.isMouseDoubleClicked(GLFW_MOUSE_BUTTON_1)) {
+                selectedUUID = key;
+                selectedProject = recentProject;
+                startEditing();
             }
 
             ImGui.sameLine();
@@ -223,5 +232,19 @@ public class StartUpWindow{
             System.err.println("Failed to load project file: " + e.getMessage());
             return null;
         }
+    }
+
+    private static void startEditing() {
+        if (selectedProject.isPresentedAtPath()) {
+            EngineEventCallback.emit(selectedProject.path(), new Event(EventType.PROJECT_LOAD));
+            return;
+        }
+
+        RemoveMissingProjectDialog.show(() -> {
+            if (selectedUUID == null) return;
+            UserPreference.removeRecentProject(selectedUUID);
+            recentProjects.clear();
+            recentProjects.putAll(UserPreference.reloadRecentProject());
+        }, selectedProject);
     }
 }

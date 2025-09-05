@@ -102,6 +102,13 @@ public class UserPreference {
         saveRecentProjects();
     }
 
+    public static void removeRecentProject(UUID uuid) {
+        if (uuid == null) return;
+
+        recentProjects.remove(uuid);
+        saveRecentProjects();
+    }
+
     private static void saveRecentProjects() {
         if (CONFIG_DIR == null) return;
 

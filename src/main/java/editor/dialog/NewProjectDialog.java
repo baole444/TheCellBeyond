@@ -77,7 +77,7 @@ public class NewProjectDialog {
             float addX = (availX * 0.25f) - buttonPivotX;
             float cancelX = (availX * 0.75f) - buttonPivotX;
             boolean canAdd = !projectAlreadyExist.get()
-                    && gameTitle.isNotEmpty() && selectedDirectoryPath.isNotEmpty() 
+                    && gameTitle.isNotEmpty() && selectedDirectoryPath.isNotEmpty()
                     && gameWindowSize.x > 0 && gameWindowSize.y > 0;
             ImGui.setCursorPosX(addX);
             if (canAdd) {
