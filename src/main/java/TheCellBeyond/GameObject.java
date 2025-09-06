@@ -389,6 +389,7 @@ public class GameObject {
     public void regenerateUID() {
         idCounter.releaseId(cachedID);
         cachedID = idCounter.newId();
+        setDirty(true);
     }
 
     public String getUUID() {

@@ -101,6 +101,7 @@ public class SpriteRenderer extends SpatialComponent {
      */
     public void setSpriteDirty(boolean needsUpdate) {
         this.isSpriteDirty = needsUpdate;
+        if (!needsUpdate && sprite != null) sprite.rendererUpdated();
     }
 
     /**
@@ -176,18 +177,7 @@ public class SpriteRenderer extends SpatialComponent {
      * @return true if the sprite needs update
      */
     public boolean isSpriteDirty() {
+        if (sprite != null && sprite.requestRendererUpdate()) isSpriteDirty = true;
         return isSpriteDirty;
-    }
-
-    /**
-     * Set the texture of the Sprite in this SpriteRenderer.
-     * This will trigger sprite dirty flag if the new texture is different.<br>
-     * Set the texture to {@code null} or {@code new Texture()} will disable rendering of this component.
-     * @param texture the new texture reference
-     */
-    public void setTexture(Texture texture) {
-        if (Objects.equals(getTexture(), texture)) return;
-        this.sprite.setTexture(texture);
-        isSpriteDirty = true;
     }
 }

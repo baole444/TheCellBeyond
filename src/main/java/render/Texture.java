@@ -117,7 +117,7 @@ public class Texture {
         return handle != null ? handle.getErrorMsg() : null;
     }
 
-    public String getFilePath() {
+    public String getCanonicalPath() {
         return assetReference != null ? assetReference.getCanonicalPath() : null;
     }
 
@@ -127,7 +127,7 @@ public class Texture {
 
     public void dispose() {
         if (handle == null) return;
-        String canonicalPath = getFilePath();
+        String canonicalPath = getCanonicalPath();
         TextureManager.get().disposeTexture(handle, canonicalPath);
 
         handle = null;
@@ -156,8 +156,8 @@ public class Texture {
         if (obj == null) return false;
         if (!(obj instanceof Texture objTex)) return false;
 
-        if (this.getFilePath() != null && objTex.getFilePath() != null) {
-            return Objects.equals(this.getFilePath(), objTex.getFilePath());
+        if (this.getCanonicalPath() != null && objTex.getCanonicalPath() != null) {
+            return Objects.equals(this.getCanonicalPath(), objTex.getCanonicalPath());
         }
 
         if (this.handle != null && objTex.handle != null) {
@@ -166,13 +166,13 @@ public class Texture {
 
         return objTex.getWidth() == this.getWidth() &&
                 objTex.getHeight() == this.getHeight() &&
-                Objects.equals(objTex.getFilePath(), this.getFilePath());
+                Objects.equals(objTex.getCanonicalPath(), this.getCanonicalPath());
     }
 
     @Override
     public int hashCode() {
-        if (getFilePath() != null) {
-            return Objects.hash(getFilePath());
+        if (getCanonicalPath() != null) {
+            return Objects.hash(getCanonicalPath());
         }
 
         if (handle != null) {

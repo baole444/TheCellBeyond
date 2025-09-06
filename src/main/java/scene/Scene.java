@@ -360,7 +360,7 @@ public class Scene {
 
                         for (SpriteRenderer sprite : sps) {
                             if (sprite.getTexture() == null) continue;
-                            String texturePath = sprite.getTexture().getFilePath();
+                            String texturePath = sprite.getTexture().getCanonicalPath();
                             String canonicalPath = resolver.toCanonicalPath(texturePath);
                             sprite.getTexture().setFilePath(canonicalPath);
                         }
@@ -413,7 +413,7 @@ public class Scene {
                         List<SpriteRenderer> spriteRenderers = go.getComponents(SpriteRenderer.class);
                         for (SpriteRenderer sprite : spriteRenderers) {
                             if (sprite.getTexture() == null) continue;
-                            String canonicalPath = sprite.getTexture().getFilePath();
+                            String canonicalPath = sprite.getTexture().getCanonicalPath();
                             sprite.getTexture().setFilePath(canonicalPath);
                         }
                     }

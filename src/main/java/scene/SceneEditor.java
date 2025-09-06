@@ -77,14 +77,11 @@ public class SceneEditor extends SceneInit {
                 new SpriteSheet(AssetsPool.loadTexture("engine://assets/textures/Gizmo.png"),
                          16, 48, 3, 0)
         );
-
-        loadGameObjectFromScene(scene);
     }
 
     public void reloadResource() {
         Project.loadProjectData();
         loadCategorizedSheet();
-        loadGameObjectFromScene(Window.getScene()); // Why ? because you can only reload the scene you are currently on
     }
 
     @Override
@@ -106,16 +103,21 @@ public class SceneEditor extends SceneInit {
                 ImGui.pushStyleColor(ImGuiCol.Button, 0.2f, 0.7f, 0.2f, 1.0f);
                 ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.3f, 0.8f, 0.3f, 1.0f);
                 ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0.2f, 0.7f, 0.2f, 1.0f);
-                if (ImGui.button("Add", 60, 0)) AddSpriteSheetDialog.show(false);
+                if (ImGui.button("Add", 60.0f, 0.0f)) AddSpriteSheetDialog.show(false);
                 ImGui.popStyleColor(3);
                 ImGui.sameLine();
-                ImGui.text("    "); ImGui.sameLine();
-                ImGui.text("Search sheet:"); ImGui.sameLine();
-                ImGui.pushItemWidth(360);
-                ImGui.inputTextWithHint("##Search", "Enter name of a sheet...", spriteSearchFilter);
+                ImGui.text("Search:"); ImGui.sameLine();
+                float buttonW = 30.0f;
+                float searchW = Math.min(360.0f, ImGui.getContentRegionAvailX() - buttonW - ImGui.getStyle().getItemSpacingX());
+                ImGui.pushItemWidth(searchW);
+                ImGui.inputTextWithHint("##Search", "Enter sheet name...", spriteSearchFilter);
                 ImGui.popItemWidth();
                 ImGui.sameLine();
-                if (ImGui.button("Clear search")) spriteSearchFilter.clear();
+                ImGui.pushStyleColor(ImGuiCol.Button, 0.7f, 0.2f, 0.2f, 1.0f);
+                ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.8f, 0.3f, 0.3f, 1.0f);
+                ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0.7f, 0.2f, 0.2f, 1.0f);
+                if (ImGui.button("X", buttonW, 0.0f)) spriteSearchFilter.clear();
+                ImGui.popStyleColor(3);
                 drawSpriteList();
                 ImGui.endTabItem();
             }
@@ -235,7 +237,7 @@ public class SceneEditor extends SceneInit {
         for (int i = 0; i < sheet.numberOfAvailableSprites(); i++) {
             Sprite sprite = sheet.spriteIndex(i);
             int textureID = sprite.getTextureID();
-            Vector2f scaledSpriteSize = TextureScale.calculateFitDimension(sprite.getWidth(), sprite.getHeight(), 64, 64);
+            Vector2f scaledSpriteSize = TextureScale.calculateFitDimension(sprite.getWidth(), sprite.getHeight(), 32, 32);
             Vector2f[] textureCoordinates = sprite.getTextureCoordinates();
 
             String compositeId = name + i;
@@ -264,7 +266,7 @@ public class SceneEditor extends SceneInit {
                 SpriteDragDropPayload.setPayload(sprite);
                 ImGui.setDragDropPayload(SpriteDragDropPayload.getPayloadType(), sprite);
 
-                ImGui.text("Sheet: " + sprite.getTexture().getFilePath());
+                ImGui.text("Sheet: " + sprite.getTexture().getCanonicalPath());
                 ImGui.text("Index: " + i);
                 Vector2f previewImageSize = TextureScale.calculateFitDimension(sprite.getWidth(), sprite.getHeight(), 80.0f, 80.f);
                 ImGui.image(textureID, previewImageSize.x, previewImageSize.y,
@@ -320,20 +322,6 @@ public class SceneEditor extends SceneInit {
                 }
 
                 if (!categorySheets.isEmpty()) categorizedSpriteSheetList.put(category, categorySheets);
-            }
-        }
-    }
-
-    private void loadGameObjectFromScene(Scene scene) {
-        for (GameObject obj : scene.getGameObjects().values()) {
-            for (SpriteRenderer sprite : obj.getComponents(SpriteRenderer.class)) {
-                if (sprite.getTexture() != null) {
-                    sprite.setTexture(AssetsPool.loadTexture(sprite.getTexture().getFilePath()));
-                }
-            }
-
-            for (TextRenderer txt : obj.getComponents(TextRenderer.class)) {
-                txt.start();
             }
         }
     }
