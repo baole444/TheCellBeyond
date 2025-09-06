@@ -225,8 +225,4 @@ public class Renderer {
             if (!go.isRemoved()) addGameObject(go);
         }
     }
-
-    public void cleanup() {
-        TextureManager.get().cleanup();
-    }
 }

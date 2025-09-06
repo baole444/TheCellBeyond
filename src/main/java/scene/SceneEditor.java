@@ -326,27 +326,14 @@ public class SceneEditor extends SceneInit {
 
     private void loadGameObjectFromScene(Scene scene) {
         for (GameObject obj : scene.getGameObjects().values()) {
-            if (obj.getFirstComponent(SpriteRenderer.class) != null) {
-                List<SpriteRenderer> sps = obj.getComponents(SpriteRenderer.class);
-                for (SpriteRenderer sprite : sps) {
-                    if (sprite.getTexture() != null) {
-                        sprite.setTexture(AssetsPool.loadTexture(sprite.getTexture().getFilePath()));
-                    }
+            for (SpriteRenderer sprite : obj.getComponents(SpriteRenderer.class)) {
+                if (sprite.getTexture() != null) {
+                    sprite.setTexture(AssetsPool.loadTexture(sprite.getTexture().getFilePath()));
                 }
             }
 
-            if (obj.getFirstComponent(StateEngine.class) != null) {
-                List<StateEngine> states = obj.getComponents(StateEngine.class);
-                for (StateEngine state : states) {
-                    state.reloadTexture();
-                }
-            }
-
-            if (obj.getFirstComponent(TextRenderer.class) != null) {
-                List<TextRenderer> texts = obj.getComponents(TextRenderer.class);
-                for (TextRenderer txt : texts) {
-                    txt.start();
-                }
+            for (TextRenderer txt : obj.getComponents(TextRenderer.class)) {
+                txt.start();
             }
         }
     }

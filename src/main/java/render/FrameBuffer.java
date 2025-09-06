@@ -14,9 +14,7 @@ public class FrameBuffer {
     private long windowPtr = 0;
     private int renderBufferObjID = 0;
     private int frameBufferObjID = 0;
-    private Texture texture = null;
-
-    private boolean waitingForTexture = false;
+    int textureId = -1;
 
     public FrameBuffer(int width, int height) {
         this.width = width;
@@ -32,21 +30,39 @@ public class FrameBuffer {
     }
 
     private void init() {
-        // Make frame buffer
         this.frameBufferObjID = glGenFramebuffers();
         glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObjID);
-
-        // Generate texture to frame buffer
-        this.texture = Texture.createFrameBufferTexture(width, height);
-        this.waitingForTexture = true;
-
+        createTexture();
         setupRenderBuffer();
 
-        completeFrameBufferSetup();
+        glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObjID);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                GL_TEXTURE_2D, textureId, 0
+        );
+
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+            throw new RuntimeException("Error: Framebuffer is not complete");
+        }
 
         // Send frame back to window
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+    }
+
+    private void createTexture() {
+        textureId = glGenTextures();
+        glBindTexture(GL_TEXTURE_2D, textureId);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        // Generate empty space
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,
+                width, height,
+                0, GL_RGB, GL_UNSIGNED_BYTE, 0
+        );
+
+        glBindTexture(GL_TEXTURE_2D, 0);
     }
 
     private void setupRenderBuffer() {
@@ -56,32 +72,11 @@ public class FrameBuffer {
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderBufferObjID);
     }
 
-    private void completeFrameBufferSetup() {
-        if (waitingForTexture && texture != null && texture.isReady()) {
-            glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObjID);
-
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                    GL_TEXTURE_2D,
-                    this.texture.getID(),
-                    0
-            );
-
-            if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-                throw new RuntimeException("Error: Framebuffer is not complete");
-            }
-
-            waitingForTexture = false;
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        }
-    }
-
     public void setWindow(long windowPtr) {
         this.windowPtr = windowPtr;
     }
 
     public void use() {
-        if (waitingForTexture) completeFrameBufferSetup();
-
         glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObjID);
     }
 
@@ -94,11 +89,11 @@ public class FrameBuffer {
     }
 
     public int getTextureID() {
-        return texture != null ? texture.getID() : -1;
+        return textureId;
     }
 
     public boolean isReady() {
-        return !waitingForTexture && texture != null && texture.isReady();
+        return textureId > 0;
     }
 
     /**
@@ -189,22 +184,19 @@ public class FrameBuffer {
     }
 
     public void dispose() {
-        if (frameBufferObjID != 0) {
+        if (textureId > 0) {
+            glDeleteTextures(textureId);
+            textureId = -1;
+        }
+
+        if (frameBufferObjID > 0) {
             glDeleteFramebuffers(frameBufferObjID);
-            frameBufferObjID = 0;
+            frameBufferObjID = -1;
         }
 
-        if (renderBufferObjID != 0) {
+        if (renderBufferObjID > 0) {
             glDeleteRenderbuffers(renderBufferObjID);
-            renderBufferObjID = 0;
+            renderBufferObjID = -1;
         }
-
-        if (texture != null) {
-            texture.dispose();
-            texture = null;
-        }
-
-        waitingForTexture = false;
     }
-
 }

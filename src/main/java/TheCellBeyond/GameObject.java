@@ -4,11 +4,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import components.ComponentSerializer;
 import components.Component;
-import components.IsNotSerialized;
-import components.SpriteRenderer;
+import components.NotSerializeComponent;
 import editor.ImEditorGui;
 import imgui.ImGui;
-import render.Texture;
 import scene.Scene;
 import utility.IdPool;
 
@@ -335,10 +333,9 @@ public class GameObject {
         additionalImGuiLogic();
 
         for (Component c: components) {
-            if (c instanceof IsNotSerialized) continue;
-
-            if (ImGui.collapsingHeader(c.getClass().getSimpleName()))
-                c.imgui();
+            if (c instanceof NotSerializeComponent) continue;
+            String label = c.getClass().getSimpleName() + "###" + c.getUUID();
+            if (ImGui.collapsingHeader(label)) c.imgui();
         }
     }
 
@@ -502,18 +499,9 @@ public class GameObject {
 
         for (Component c : obj.getComponents()) {
             c.setUUID(UUID.randomUUID().toString());
-
             if (c.getComponentName() != null && !c.getComponentName().isEmpty()) {
                 obj.namedComponents.put(c.getComponentName(), c);
             }
-        }
-
-        SpriteRenderer sprite = obj.getFirstComponent(SpriteRenderer.class);
-
-        if (sprite != null && sprite.getTexture() != null) {
-            Texture ogTexture = sprite.getTexture();
-            Texture copy = ogTexture.copy();
-            sprite.setTexture(copy);
         }
 
         return obj;

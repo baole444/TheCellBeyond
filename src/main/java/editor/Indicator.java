@@ -1,17 +1,14 @@
 package editor;
 
 import TheCellBeyond.GameObject2D;
-import components.IsNotSerialized;
-import components.SpatialComponent;
+import components.NotSerializeComponent;
 import components.SpriteRenderer;
 import org.joml.Vector4f;
 import render.texture.Sprite;
 import render.texture.SpriteSheet;
 import utility.AssetsPool;
-import utility.Settings;
-import utility.WorldUnit;
 
-public class Indicator extends SpriteRenderer implements IsNotSerialized {
+public class Indicator extends SpriteRenderer implements NotSerializeComponent {
     private static final String PATH = "engine://assets/textures/indicator.png";
 
     private transient SpriteSheet sheet;

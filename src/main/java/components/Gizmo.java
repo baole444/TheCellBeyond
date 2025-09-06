@@ -13,7 +13,7 @@ import static org.lwjgl.glfw.GLFW.*;
  * A class dedicated to handle gizmo selection and activity, so as its position and appearance.
  * For handling gizmo's type and movement, see {@link GizmoControl}.
  */
-public class Gizmo extends SpatialComponent implements IsNotSerialized {
+public class Gizmo extends SpatialComponent implements NotSerializeComponent {
     // Gizmo Color
     private final Vector4f resetColor = new Vector4f(0, 0, 0 , 0);
     private final Vector4f xAxisColor = new Vector4f(0.7f, 0.2f, 0.2f, 1.0f);

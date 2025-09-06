@@ -2,15 +2,12 @@ package TheCellBeyond;
 
 import com.google.gson.*;
 import components.Component;
-import components.IsNotSerialized;
+import components.NotSerializeComponent;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 public class GameObjectSerializer implements JsonSerializer<GameObject>, JsonDeserializer<GameObject> {
     private final String TYPE = "type";
@@ -48,7 +45,7 @@ public class GameObjectSerializer implements JsonSerializer<GameObject>, JsonDes
                 if (field.getName().equals(COMPONENT) && val instanceof Collection) {
                     JsonArray components = new JsonArray();
                     for (Object c : (Collection<?>) val) {
-                        if (c instanceof Component && !(c instanceof IsNotSerialized)) {
+                        if (c instanceof Component && !(c instanceof NotSerializeComponent)) {
                             components.add(context.serialize(c, Component.class));
                         }
                     }

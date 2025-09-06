@@ -21,7 +21,9 @@ import static org.lwjgl.glfw.GLFW.*;
  * A class dedicated to processing mouse's events for the editor.
  * Handle object's position and placement.
  */
-public class MouseCtrl extends Component {
+public class MouseCtrl extends Component implements NotSerializeComponent {
+    private static final Vector4f resetColor = new Vector4f(1.0f, 1.0f, 1.0f, 1.0f);
+    private static final Vector4f pickUpColor = new Vector4f(1f, 1f, 1f, 0.35f);
     /**
      * A phantom object, allow preview of the real object's placement.
      * Is not serialized and is not selectable.
@@ -50,9 +52,10 @@ public class MouseCtrl extends Component {
         }
         holdObj = obj;
 
-        if (holdObj.getFirstComponent(SpriteRenderer.class) != null) {
-            holdObj.getFirstComponent(SpriteRenderer.class).setColor(new Vector4f(1f, 1f, 1f, 0.35f));
+        for (SpriteRenderer sprite : holdObj.getComponents(SpriteRenderer.class)) {
+            sprite.setColor(pickUpColor);
         }
+
         this.holdObj.addComponent(new IsNotSelectable());
 
         // A fake object uses to illustrate targeted position (a preview).
@@ -70,12 +73,8 @@ public class MouseCtrl extends Component {
             newObj = holdObj.copy(true);
         }
 
-        if (newObj.getFirstComponent(StateEngine.class) != null) {
-            newObj.getFirstComponent(StateEngine.class).reloadTexture();
-        }
-
-        if (newObj.getFirstComponent(SpriteRenderer.class) != null) {
-            newObj.getFirstComponent(SpriteRenderer.class).setColor(new Vector4f(1, 1, 1, 1));
+        for (SpriteRenderer sprite : newObj.getComponents(SpriteRenderer.class)) {
+            sprite.setColor(resetColor);
         }
 
         newObj.removeComponents(IsNotSelectable.class);

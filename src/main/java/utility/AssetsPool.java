@@ -75,7 +75,6 @@ public class AssetsPool {
         textures.put(canonicalPath, texture);
 
         return texture;
-
     }
 
     public static boolean hasSpriteSheet(String path) {

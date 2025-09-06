@@ -4,7 +4,6 @@ import TheCellBeyond.GameObject;
 import TheCellBeyond.GameObject2D;
 import TheCellBeyond.KeyListener;
 import TheCellBeyond.Window;
-import editor.dialog.OpenProjectDialog;
 import editor.Properties;
 import eventviewer.EngineEventCallback;
 import eventviewer.event.Event;
@@ -23,7 +22,7 @@ import static org.lwjgl.glfw.GLFW.*;
  * Handle active objects, duplication, and deletion of objects.
  * Handle Project, Save and Load keybinding
  */
-public class KeyCtrl extends Component {
+public class KeyCtrl extends Component implements NotSerializeComponent {
     @Override
     public void editorUpdate(float dt) {
         Properties properties = Window.getImGuiLayer().loadProperties();
@@ -43,30 +42,21 @@ public class KeyCtrl extends Component {
             properties.setActiveGameObject(newObj);
         } else if (KeyListener.isKeyTapped(GLFW_KEY_D, GLFW_MOD_CONTROL) && activeObjList.size() > 1) {
             List<GameObject> gameObjects = new ArrayList<>(activeObjList);
-
-            // Get a copy of selected sprites' true color.
-            List<Vector4f> trueColor = properties.getActiveObjTrueColor();
-
+            List<List<Vector4f>> trueColors = properties.getActiveObjTrueColor();
             properties.clearSelection();
 
-            int i = 0;
-            for (GameObject go : gameObjects) {
+            for (int i = 0; i < gameObjects.size(); i++) {
+                GameObject go = gameObjects.get(i);
                 GameObject copy = go.copy(true);
-
-                // Update sprite's color to true color
-                SpriteRenderer spriteRenderer = copy.getFirstComponent(SpriteRenderer.class);
-                if (spriteRenderer != null) {
-                    spriteRenderer.setColor(trueColor.get(i));
-                }
-
-                // Refresh texture
-                if (copy.getFirstComponent(StateEngine.class) != null) {
-                    copy.getFirstComponent(StateEngine.class).reloadTexture();
+                List<Vector4f> colors = trueColors.get(i);
+                List<SpriteRenderer> sprites = go.getComponents(SpriteRenderer.class);
+                for (int j = 0; j < sprites.size(); j++) {
+                    SpriteRenderer sprite = sprites.get(j);
+                    if (sprite != null) sprite.setColor(colors.get(j));
                 }
 
                 Window.getScene().queueForObjectAddition(copy);
                 properties.addActiveGameObject(copy);
-                i++;
             }
         } else if (KeyListener.isKeyPressed(GLFW_KEY_DELETE)) {
             for (GameObject go : activeObjList) {

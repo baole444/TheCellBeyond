@@ -1,5 +1,6 @@
 package render.texture;
 
+import render.Texture;
 import utility.AssetReference;
 
 import java.nio.ByteBuffer;
@@ -23,9 +24,9 @@ public class TextureManager {
     private static final int TEXTURE_OPERATION_LIMIT = 8;
 
     private TextureManager() {
-        this.commandQueue = new ConcurrentLinkedQueue<>();
-        this.activeHandles = new ConcurrentHashMap<>();
-        this.handlesByPath = new ConcurrentHashMap<>();
+        commandQueue = new ConcurrentLinkedQueue<>();
+        activeHandles = new ConcurrentHashMap<>();
+        handlesByPath = new ConcurrentHashMap<>();
     }
 
     public static TextureManager get() {
@@ -75,17 +76,6 @@ public class TextureManager {
         return handle;
     }
 
-    public TextureHandle createFrameBufferTexture(int width, int height) {
-        TextureHandle handle = new TextureHandle();
-
-        CreateFrameBufferTextureCommand command = new CreateFrameBufferTextureCommand(handle, width, height);
-        commandQueue.offer(command);
-
-        activeHandles.put(handle.getHandleId(), handle);
-
-        return handle;
-    }
-
     public void disposeTexture(TextureHandle handle, String canonicalPath) {
         if (handle != null && !handle.isDisposed()) {
             TextureHandle currentHandle = handlesByPath.get(canonicalPath);
@@ -130,7 +120,7 @@ public class TextureManager {
         LOGGER.info("Cleared texture path cache");
     }
 
-    public void cleanup() {
+    void cleanup() {
         for (TextureHandle handle : activeHandles.values()) {
             if (handle.isReady()) {
                 glDeleteTextures(handle.getTextureId());

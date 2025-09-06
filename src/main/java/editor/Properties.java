@@ -9,6 +9,7 @@ import physic2d.components.PhysicBody2D;
 import physic2d.components.collider.BoxCollider2D;
 import physic2d.components.collider.CircleCollider2D;
 import render.ObjectSelection;
+import render.texture.Sprite;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,14 +23,14 @@ public class Properties {
     /**
      * Preserve sprite's original color for recovery after selection.
      */
-    private final List<Vector4f> activeObjTrueColor;
+    private final List<List<Vector4f>> activeObjTrueColor;
 
     private final ObjectSelection objectSelection;
 
     public Properties(ObjectSelection objectSelection) {
-        this.activeGameObjects = new ArrayList<>();
+        activeGameObjects = new ArrayList<>();
         this.objectSelection = objectSelection;
-        this.activeObjTrueColor = new ArrayList<>();
+        activeObjTrueColor = new ArrayList<>();
     }
 
     public void imgui() {
@@ -52,17 +53,10 @@ public class Properties {
         if (ImGui.button("Add new Component", buttonW, buttonH)) AddComponentDialog.show(activeGameObject);
 
         ImGui.separator();
-
         activeGameObject.imgui();
-
         renderContextMenu();
-
         AddComponentDialog.imgui();
-
         ImGui.end();
-
-
-
     }
 
     private void renderContextMenu() {
@@ -96,25 +90,12 @@ public class Properties {
      * @param go The desired {@link GameObject} that wanted to be set active.
      */
     public void addActiveGameObject(GameObject go) {
-        SpriteRenderer spriteRenderer = go.getFirstComponent(SpriteRenderer.class);
-        if (spriteRenderer != null) {
-            //TODO: Allow user to select their preferred highlighting color.
-            this.activeObjTrueColor.add(new Vector4f(spriteRenderer.getColor()));
-            // I like this color, but more testing with user feedbacks will be more valuable.
-            // This is orange
-            //spriteRenderer.setColor(new Vector4f(1f, 0.8f, 0.6f, 0.5f));
-
-            // This is yellow
-            spriteRenderer.setColor(new Vector4f(1f, 1f, 0.6f, 0.5f));
-
-            // This is blue
-            //spriteRenderer.setColor(new Vector4f(0.6f, 1f, 1f, 0.5f));
-        } else {
-            this.activeObjTrueColor.add(new Vector4f());
+        List<Vector4f> colors = new ArrayList<>();
+        for (SpriteRenderer sprite : go.getComponents(SpriteRenderer.class)) {
+            if (sprite != null) colors.add(sprite.getColor());
         }
-
-        this.activeGameObjects.add(go);
-
+        activeObjTrueColor.add(colors);
+        activeGameObjects.add(go);
     }
 
     /**
@@ -124,7 +105,7 @@ public class Properties {
      */
     public GameObject getActiveGameObject() {
         if (activeGameObjects.size() == 1) {
-            return this.activeGameObjects.getFirst();
+            return activeGameObjects.getFirst();
         } else {
             return null;
         }
@@ -141,19 +122,15 @@ public class Properties {
     public void setActiveGameObject(GameObject go) {
         if (go != null) {
             clearSelection();
-            this.activeGameObjects.add(go);
+            activeGameObjects.add(go);
         }
     }
 
     public ObjectSelection getObjectSelection() {
-        return this.objectSelection;
+        return objectSelection;
     }
 
-    /**
-     * Create a shallow copy of {@link #activeObjTrueColor}.
-     * @return a new ArrayList of active objects' true color.
-     */
-    public List<Vector4f> getActiveObjTrueColor() {
+    public List<List<Vector4f>> getActiveObjTrueColor() {
         return new ArrayList<>(activeObjTrueColor);
     }
 
@@ -164,16 +141,17 @@ public class Properties {
      */
     public void clearSelection() {
         if (!activeObjTrueColor.isEmpty()) {
-            int i = 0;
-            for (GameObject go : activeGameObjects) {
-                SpriteRenderer spriteRenderer = go.getFirstComponent(SpriteRenderer.class);
-                if (spriteRenderer != null) {
-                    spriteRenderer.setColor(activeObjTrueColor.get(i));
+            for (int i = 0; i < activeGameObjects.size(); i++) {
+                GameObject go = activeGameObjects.get(i);
+                List<Vector4f> colors = activeObjTrueColor.get(i);
+                List<SpriteRenderer> sprites = go.getComponents(SpriteRenderer.class);
+                for (int j = 0; j < sprites.size(); j++) {
+                    SpriteRenderer sprite = sprites.get(j);
+                    if (sprite != null) sprite.setColor(colors.get(j));
                 }
-                i++;
             }
         }
-        this.activeGameObjects.clear();
-        this.activeObjTrueColor.clear();
+        activeGameObjects.clear();
+        activeObjTrueColor.clear();
     }
 }

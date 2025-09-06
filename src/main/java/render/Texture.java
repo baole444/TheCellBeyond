@@ -19,31 +19,14 @@ public class Texture {
     private transient int width, height;
 
     private transient boolean isSizeInitialized = false;
-    private transient boolean isFrameBufferTexture = false;
 
     public Texture() {
-        // Intended to fail if parameter not set
         width = -1;
         height = -1;
     }
 
-    // Used by FrameBuffer
-    static Texture createFrameBufferTexture(int width, int height) {
-        Texture texture = new Texture();
-        texture.assetReference = null;
-        texture.width = width;
-        texture.height = height;
-        texture.isSizeInitialized = true;
-        texture.isFrameBufferTexture = true;
-
-        texture.handle = TextureManager.get().createFrameBufferTexture(width, height);
-
-        return texture;
-    }
-
     public void init(String filepath) {
         assetReference = new AssetReference(filepath);
-
         loadTextureDate();
     }
 
@@ -59,11 +42,12 @@ public class Texture {
             this.handle = TextureManager.get().getTextureHandle(buffer, assetReference);
         } catch (IOException e) {
             System.err.println("Failed to load texture: " + assetReference.getCanonicalPath());
-            e.printStackTrace();
+            System.err.println("Cause: " + e.getMessage());
         }
     }
 
     public void bind() {
+        checkInitialization();
         int textureId = getID();
         if (textureId > 0) {
             glBindTexture(GL_TEXTURE_2D, textureId);
@@ -75,26 +59,28 @@ public class Texture {
     }
 
     public int getWidth() {
-        if (handle != null && handle.isReady()) {
-            if (this.width != handle.getWidth()) this.width = handle.getWidth();
+        checkInitialization();
+        if (handle == null) return width;
 
-            return handle.getWidth();
+        if (!isSizeInitialized && handle.isReady()) {
+            updateSizeFromHandle();
         }
 
-        return this.width;
+        return width;
     }
 
     public int getHeight() {
-        if (handle != null && handle.isReady()) {
-            if (this.height != handle.getHeight()) this.height = handle.getHeight();
-
-            return handle.getHeight();
+        checkInitialization();
+        if (handle == null) return height;
+        if (!isSizeInitialized && handle.isReady()) {
+            updateSizeFromHandle();
         }
 
-        return this.height;
+        return height;
     }
 
     public int getID() {
+        checkInitialization();
         if (handle != null && handle.isReady()) {
             return handle.getTextureId();
         }
@@ -115,6 +101,7 @@ public class Texture {
     }
 
     public boolean isReady() {
+        checkInitialization();
         return handle != null && handle.isReady();
     }
 
@@ -139,16 +126,11 @@ public class Texture {
     }
 
     public void dispose() {
-        if (handle != null) {
-            if (isFrameBufferTexture) {
-                TextureManager.get().forceDisposeTexture(handle);
-            } else {
-                String canonicalPath = getFilePath();
-                TextureManager.get().disposeTexture(handle, canonicalPath);
-            }
+        if (handle == null) return;
+        String canonicalPath = getFilePath();
+        TextureManager.get().disposeTexture(handle, canonicalPath);
 
-            handle = null;
-        }
+        handle = null;
     }
 
     private void updateSizeFromHandle() {
@@ -159,15 +141,13 @@ public class Texture {
         }
     }
 
+    private void checkInitialization() {
+        if (assetReference != null && handle == null) loadTextureDate();
+    }
+
     public Texture copy() {
         Texture copy = new Texture();
-
-        if (this.assetReference != null) {
-            copy.init(assetReference.getCanonicalPath());
-        } else if (isSizeInitialized && isFrameBufferTexture) {
-            return createFrameBufferTexture(width, height);
-        }
-
+        if (this.assetReference != null) copy.init(assetReference.getCanonicalPath());
         return copy;
     }
 
@@ -213,10 +193,6 @@ public class Texture {
         if (handle != null) {
             builder.append(", status=").append(handle.getStatus());
             builder.append(", handleId=").append(handle.getHandleId());
-        }
-
-        if (isFrameBufferTexture) {
-            builder.append(", type=framebuffer");
         }
 
         builder.append("}");
