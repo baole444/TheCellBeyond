@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 public class UserPreference {
@@ -87,6 +88,28 @@ public class UserPreference {
 
     public static HashMap<UUID, RecentProject> recentProjects() {
         return new HashMap<>(recentProjects);
+    }
+
+    public static RecentProject recentProject(String path) {
+        if (path == null) return null;
+
+        for (RecentProject project : recentProjects.values()) {
+            if (project.path().equals(path)) return project;
+        }
+
+        return null;
+    }
+
+    public static void updateRecentProject(RecentProject recentProject) {
+        if (recentProject == null || recentProject.path() == null) return;
+
+        for (Map.Entry<UUID, RecentProject> entry : recentProjects.entrySet()) {
+            RecentProject project = entry.getValue();
+            if (!project.path().equals(recentProject.path())) continue;
+            entry.setValue(recentProject);
+            saveRecentProjects();
+            break;
+        }
     }
 
     public static HashMap<UUID, RecentProject> reloadRecentProject() {

@@ -450,6 +450,10 @@ public class Project {
         return (float) preference.gameWindowWidth() / preference.gameWindowHeight();
     }
 
+    public static String projectYMLPath() {
+        return _projectYmlPath;
+    }
+
     public static void clear() {
         CurrentProject = null;
         ProjectRoot = null;

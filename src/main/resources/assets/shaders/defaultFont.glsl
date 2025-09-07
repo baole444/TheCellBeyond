@@ -30,5 +30,8 @@ out vec4 color;
 void main()
 {
     float alpha = texture(uFontTex, fTexCrd).r;
+
+    alpha = step(0.5, alpha);
+
     color = vec4(fColor.rgb, fColor.a * alpha);
 }

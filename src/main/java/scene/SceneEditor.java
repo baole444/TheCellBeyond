@@ -37,19 +37,9 @@ public class SceneEditor extends SceneInit {
     private final Map<String, Map<String, SpriteSheet>> categorizedSpriteSheetList = new HashMap<>();
     private final List<SpriteSheet> assetList = new ArrayList<>();
 
-    private String sceneName = null;
     private transient final ImString spriteSearchFilter;
 
     public SceneEditor() {
-        this("New scene");
-    }
-
-    /**
-     * Initialize LevelEditorScene with a scene name attach to it.
-     * @param name a nested key within a scene, pulled from {@link Project}
-     */
-    public SceneEditor(String name) {
-        this.sceneName = name;
         spriteSearchFilter = new ImString(128);
     }
 
@@ -57,7 +47,6 @@ public class SceneEditor extends SceneInit {
     public void init(Scene scene) {
         loadCategorizedSheet();
 
-        SpriteSheet gizmo = AssetsPool.loadSpriteSheet("assets/textures/Gizmo.png");
         levelEditorObject = new GameObject("EditorObject");
         levelEditorObject.setNotSerialize();
         levelEditorObject.addComponent(new Transform());
@@ -65,7 +54,7 @@ public class SceneEditor extends SceneInit {
         levelEditorObject.addComponent(new KeyCtrl());
         levelEditorObject.addComponent(new Grid());
         levelEditorObject.addComponent(new EditorSceneCtrl(scene.viewport()));
-        levelEditorObject.addComponent(new GizmoControl(gizmo));
+        levelEditorObject.addComponent(new GizmoControl());
 
         scene.queueForObjectAddition(levelEditorObject);
     }
@@ -74,10 +63,6 @@ public class SceneEditor extends SceneInit {
     public void loadResource(Scene scene) {
         Project.loadProjectData();
         AssetsPool.loadShader(Settings.PATH.DEFAULT_TEXTURE_SHADER);
-        AssetsPool.addSpriteSheet("engine://assets/textures/Gizmo.png",
-                new SpriteSheet(AssetsPool.loadTexture("engine://assets/textures/Gizmo.png"),
-                         16, 48, 3, 0)
-        );
     }
 
     public void reloadResource() {
@@ -89,7 +74,7 @@ public class SceneEditor extends SceneInit {
     public void imgui() {
         ImGui.begin(WINDOW_ID, ImGuiWindowFlags.NoCollapse);
         ImGui.text("Resources");
-        ImGui.spacing();
+        ImGui.separator();
         if (ImGui.beginTabBar("Resource_TabBar")) {
             ImGui.pushStyleColor(ImGuiCol.Tab, 0.6f, 0.25f, 0.0f, 1.0f);
             ImGui.pushStyleColor(ImGuiCol.TabHovered, 0.75f, 0.31f, 0.0f, 1.0f);

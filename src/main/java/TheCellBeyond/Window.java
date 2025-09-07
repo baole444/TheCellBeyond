@@ -2,8 +2,10 @@ package TheCellBeyond;
 
 import editor.ImGuiLayer;
 import editor.StartUpWindow;
+import editor.preference.RecentProject;
 import editor.preference.UserPreference;
 import editor.project.Project;
+import editor.project.ProjectPreference;
 import eventviewer.EngineEventCallback;
 import eventviewer.EngineEventListener;
 import eventviewer.event.Event;
@@ -29,6 +31,7 @@ import utility.ExitConfirmDialog;
 import utility.Settings;
 
 import java.awt.*;
+import java.util.List;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
@@ -322,7 +325,7 @@ public final class Window implements EngineEventListener {
 
                 DebugDraw.startFrame();
 
-                this.frameBuffer.use();
+                frameBuffer.use();
 
                 glClearColor(r, g, b, a);
                 glClear(GL_COLOR_BUFFER_BIT);
@@ -335,11 +338,11 @@ public final class Window implements EngineEventListener {
                 currentScene.render();
                 DebugDraw.draw();
 
-                this.frameBuffer.detach();
+                frameBuffer.detach();
 
                 //this.frameBuffer.renderToScreen();
 
-                this.imGuiLayer.update(dt, currentScene);
+                imGuiLayer.update(dt, currentScene);
             }
 
             MouseListener.endFrame();
@@ -359,20 +362,20 @@ public final class Window implements EngineEventListener {
     public void onEventEmit(Object object, Event event) {
         switch (event.type) {
             case ENGINE_START -> {
-                this.runtimeMode = true;
+                runtimeMode = true;
                 currentScene.saveLevel();
-                Window.changeScene(new SceneEditor(currentSceneName)); // Reset view to runtime mode.
-                System.out.println("Engine starting.");
+                Window.changeScene(new SceneEditor());
+                System.out.println("Testing scene started");
             }
             case ENGINE_END -> {
-                this.runtimeMode = false;
-                Window.changeScene(new SceneEditor(currentSceneName)); // Reset to Editor runtime.
-                System.out.println("Engine stopping.");
+                runtimeMode = false;
+                Window.changeScene(new SceneEditor());
+                System.out.println("Stopped testing scene");
             }
             case LEVEL_LOAD -> {
-                if (this.runtimeMode) this.runtimeMode = false;
+                runtimeMode = false;
 
-                Window.changeScene(new SceneEditor(currentSceneName));
+                Window.changeScene(new SceneEditor());
                 System.out.println("Loading current level...");
             }
             case LEVEL_SAVE -> {
@@ -380,34 +383,44 @@ public final class Window implements EngineEventListener {
                 System.out.println("Saving current level...");
             }
             case PROJECT_LOAD -> {
-                System.out.println("Loading project file at " + object.toString());
-
-                Project.loadFromYaml(object.toString());
-
+                String projectPath = object.toString();
+                System.out.println("Loading project file at " + projectPath);
+                Project.loadFromYaml(projectPath);
                 projectLoaded = (Project.currentProject() != null && Project.projectRoot() != null);
 
                 if (projectLoaded) {
                     MouseListener.setStartupMode(false);
-
                     String projectDetail = " - [" + Project.preference().name() + "] [" + Project.projectRoot() + "]";
-
                     glfwSetWindowTitle(windowPtr, this.title + projectDetail);
-
-                    if (currentScene == null) {
+                    List<String> availScenes = Project.getSceneNames();
+                    if (availScenes.isEmpty()) {
+                        setCurrentSceneName(null);
                         Window.changeScene(new SceneEditor());
+                        return;
                     }
+
+                    RecentProject project = UserPreference.recentProject(projectPath);
+                    String lastOpenScene = project != null ? project.lastOpenScene() : null;
+                    if (lastOpenScene == null || !availScenes.contains(lastOpenScene)) {
+                        lastOpenScene = availScenes.getFirst();
+                    }
+
+                    setCurrentSceneName(lastOpenScene);
+                    Window.changeScene(new SceneEditor());
                 }
             }
             case SCENE_LOAD -> {
-                if (this.runtimeMode) {
-                    this.runtimeMode = false;
-                }
+                this.runtimeMode = false;
                 String sceneName = (String) object;
-
                 setCurrentSceneName(sceneName);
+                String path = Project.projectYMLPath();
+                if (path != null) {
+                    ProjectPreference preference = Project.preference();
+                    RecentProject update = new RecentProject(preference.name(), path, sceneName);
+                    UserPreference.updateRecentProject(update);
+                }
 
-                Window.changeScene(new SceneEditor(sceneName));
-
+                Window.changeScene(new SceneEditor());
                 System.out.println("Requested to load Scene: " + sceneName);
             }
         }

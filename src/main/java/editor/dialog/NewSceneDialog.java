@@ -154,7 +154,6 @@ public class NewSceneDialog {
         }
 
         Window.setCurrentSceneName(name);
-        Window.changeScene(new SceneEditor(name));
         EngineEventCallback.emit(name, new Event(EventType.SCENE_LOAD));
 
         showDialog = false;
