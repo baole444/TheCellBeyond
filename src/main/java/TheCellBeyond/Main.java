@@ -7,11 +7,11 @@ import java.io.PrintStream;
 
 public class Main {
     public static void main(String[] args){
-        ConsoleStream consoleStream = ConsoleStream.get();
-        PrintStream printStream = new PrintStream(consoleStream, true);
+        //ConsoleStream consoleStream = ConsoleStream.get();
+        //PrintStream printStream = new PrintStream(consoleStream, true);
 
-        System.setOut(printStream);
-        System.setErr(printStream);
+        //System.setOut(printStream);
+        //System.setErr(printStream);
 
         PathResolver.initialize(null);
 

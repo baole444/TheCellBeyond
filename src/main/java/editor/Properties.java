@@ -4,6 +4,7 @@ import TheCellBeyond.GameObject;
 import components.SpriteRenderer;
 import editor.dialog.AddComponentDialog;
 import imgui.ImGui;
+import imgui.flag.ImGuiWindowFlags;
 import org.joml.Vector4f;
 import physic2d.components.PhysicBody2D;
 import physic2d.components.collider.BoxCollider2D;
@@ -15,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Properties {
-    private static final String PROPERTY_SECTION_ID = "Object_Component_Section";
+    public static final String WINDOW_ID = "Inspector###Object_Properties";
     private static final int BUTTON_RESERVED_HEIGHT = 36;
     private GameObject activeGameObject = null;
     private final List<GameObject> activeGameObjects;
@@ -34,7 +35,7 @@ public class Properties {
     }
 
     public void imgui() {
-        ImGui.begin("Object properties");
+        ImGui.begin(WINDOW_ID, ImGuiWindowFlags.NoCollapse);
 
         if (activeGameObjects.size() == 1 && activeGameObjects.getFirst() != null) {
             activeGameObject = activeGameObjects.getFirst();

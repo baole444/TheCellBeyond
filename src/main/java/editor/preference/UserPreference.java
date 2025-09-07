@@ -16,6 +16,7 @@ public class UserPreference {
     private static Path CONFIG_DIR = null;
     private static final String RECENT_PROJECT_FILE = "recent_project";
     private static final String EDITOR_PREFERENCE_FILE = "configs";
+    private static final String EDITOR_LAYOUT_FILE = "layout.ini";
     private static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory());
     private static final HashMap<UUID, RecentProject> recentProjects = new HashMap<>();
     private static EditorPreferences editorPreferences = new EditorPreferences();
@@ -76,6 +77,12 @@ public class UserPreference {
                 System.err.println("Failed to load editor preferences");
             }
         }
+    }
+
+    public static String getEditorLayoutFilepath() {
+        if (CONFIG_DIR == null) return EDITOR_LAYOUT_FILE;
+
+        return CONFIG_DIR.resolve(EDITOR_LAYOUT_FILE).toString();
     }
 
     public static HashMap<UUID, RecentProject> recentProjects() {

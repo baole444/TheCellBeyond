@@ -13,8 +13,8 @@ import imgui.flag.ImGuiWindowFlags;
 import org.joml.Vector2f;
 
 public class SceneEditorViewport {
+    public static volatile String WINDOW_ID = "2D Scene###Editor_Scene_Viewport";
     private float leftX, rightX, topY, bottomY;
-    private static float[] printDebug;
     private boolean isPlaying = false;
     private String currentSceneName = "New scene";
 
@@ -23,10 +23,10 @@ public class SceneEditorViewport {
 
         if (sceneName == null) currentSceneName = "Untitled";
         if (sceneName != null && !currentSceneName.equals(sceneName)) currentSceneName = sceneName;
-
-        ImGui.begin(currentSceneName + "###Game Viewport", ImGuiWindowFlags.NoScrollbar
+        ImGui.begin(WINDOW_ID, ImGuiWindowFlags.NoScrollbar
                 | ImGuiWindowFlags.NoScrollWithMouse
                 | ImGuiWindowFlags.MenuBar
+                | ImGuiWindowFlags.NoCollapse
         );
 
         ImGui.beginMenuBar();
@@ -39,6 +39,12 @@ public class SceneEditorViewport {
             isPlaying = false;
             EngineEventCallback.emit(null, new Event(EventType.ENGINE_END));
         }
+
+        float remainWidth = ImGui.getContentRegionAvailX();
+        float textWidth = ImGui.calcTextSizeX(currentSceneName);
+        float offset = Math.max((remainWidth - textWidth) * 0.5f, 0.0f);
+        ImGui.setCursorPosX(ImGui.getCursorPosX() + offset);
+        ImGui.text(currentSceneName);
 
         ImGui.endMenuBar();
 
@@ -55,8 +61,6 @@ public class SceneEditorViewport {
         bottomY =  winPos.y + ImGui.getWindowPosY();
         topY = winPos.y + winSize.y + ImGui.getWindowPosY();
 
-        printDebug = new float[] {winSize.x, winSize.y, winPos.x, winPos.y, leftX, rightX, bottomY, topY};
-
         int texID = Window.getFrameBuffer().getTextureID();
 
         ImGui.image(texID, winSize.x, winSize.y, 0, 1, 1, 0);
@@ -65,10 +69,6 @@ public class SceneEditorViewport {
         MouseListener.setWorkViewportSize(new Vector2f(winSize.x, winSize.y));
 
         ImGui.end();
-    }
-
-    public static float[] debugOutput() {
-        return printDebug;
     }
 
     public boolean getWantCaptureMouse() {
@@ -107,5 +107,4 @@ public class SceneEditorViewport {
 
         return new ImVec2(portX + ImGui.getCursorPosX(), portY + ImGui.getCursorPosY());
     }
-
 }

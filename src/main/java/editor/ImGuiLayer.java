@@ -2,6 +2,7 @@ package editor;
 
 import TheCellBeyond.MouseListener;
 import TheCellBeyond.Window;
+import editor.preference.UserPreference;
 import imgui.*;
 import imgui.callback.ImStrConsumer;
 import imgui.callback.ImStrSupplier;
@@ -18,6 +19,7 @@ import utility.Settings;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Objects;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
@@ -25,29 +27,24 @@ import static org.lwjgl.opengl.GL30.GL_FRAMEBUFFER;
 import static org.lwjgl.opengl.GL30.glBindFramebuffer;
 
 public class ImGuiLayer {
+    private static final String DOCK_ID = "###EDITOR_DOCK";
     private final ImGuiImplGlfw imGuiGlfw = new ImGuiImplGlfw();
     private final ImGuiImplGl3 imGuiGl3 = new ImGuiImplGl3();
     private final long windowPtr;
     private final SceneEditorViewport sceneEditorViewport;
-    private final DebugGui debugGui;
     private final Properties properties;
-    private final MenuBar menuBar;
     private final SceneTree sceneTree;
     private ImGuiIO io;
 
-    // End boolean section
+    private static boolean resetLayout = false;
 
-    // Constructor
     public ImGuiLayer(long windowPtr, ObjectSelection objectSelection) {
         this.sceneEditorViewport = new SceneEditorViewport();
-        this.debugGui = new DebugGui();
         this.windowPtr = windowPtr;
         this.properties = new Properties(objectSelection);
-        this.menuBar = new MenuBar();
         this.sceneTree = new SceneTree();
     }
 
-    // Initialization im ImGui
     public void initImGui(String glslVer) {
         ImGui.createContext();
         this.io = ImGui.getIO();
@@ -98,15 +95,11 @@ public class ImGuiLayer {
            @Override
            public String get() {
                final String clipboardString = glfwGetClipboardString(windowPtr);
-               if (clipboardString != null) {
-                   return clipboardString;
-               } else {
-                   return "";
-               }
+               return Objects.requireNonNullElse(clipboardString, "");
            }
        });
 
-        io.setIniFilename("imgui.ini");
+        io.setIniFilename(UserPreference.getEditorLayoutFilepath());
         io.addConfigFlags(ImGuiConfigFlags.ViewportsEnable);
         io.setConfigFlags(ImGuiConfigFlags.DockingEnable);
         imGuiGlfw.init(windowPtr, true);
@@ -147,22 +140,19 @@ public class ImGuiLayer {
     }
 
     public void update(float dt, Scene currentScene) {
-        // ImGui frame
+        if (dt < 0.0f) return;
         imGuiGlfw.newFrame();
         imGuiGl3.newFrame();
         ImGui.newFrame();
 
-        imDocking();
-
+        renderDocking();
         currentScene.imgui();
         sceneEditorViewport.imgui();
-        debugGui.imgui();
         properties.imgui();
         sceneTree.imgui();
+        BottomPanel.imgui();
 
-        //ImGui.showDemoWindow();
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
         glViewport(0,0, Window.getWidth(), Window.getHeight());
         glClearColor(0, 0,0,1);
         glClear(GL_COLOR_BUFFER_BIT);
@@ -170,20 +160,20 @@ public class ImGuiLayer {
         ImGui.render();
         imGuiGl3.renderDrawData(ImGui.getDrawData());
 
-        // Enable viewport
         if (ImGui.getIO().hasConfigFlags(ImGuiConfigFlags.ViewportsEnable)) {
-            final long backupWindowPtr = org.lwjgl.glfw.GLFW.glfwGetCurrentContext();
+            final long backupWindowPtr = glfwGetCurrentContext();
             ImGui.updatePlatformWindows();
             ImGui.renderPlatformWindowsDefault();
-            org.lwjgl.glfw.GLFW.glfwMakeContextCurrent(backupWindowPtr);
-
+            glfwMakeContextCurrent(backupWindowPtr);
         }
     }
 
-    private void imDocking() {
-        int winFlag = ImGuiWindowFlags.MenuBar | ImGuiWindowFlags.NoDocking;
+    private void renderDocking() {
+        int winFlag = ImGuiWindowFlags.MenuBar | ImGuiWindowFlags.NoDocking | ImGuiWindowFlags.NoTitleBar
+                | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove |
+                ImGuiWindowFlags.NoBringToFrontOnFocus | ImGuiWindowFlags.NoNavFocus;
 
-        // Make view port the main windows
+        // Make viewport the main windows
         ImGuiViewport mainViewport = ImGui.getMainViewport();
         ImGui.setNextWindowPos(mainViewport.getWorkPosX(), mainViewport.getWorkPosY());
         ImGui.setNextWindowSize(mainViewport.getWorkSizeX(), mainViewport.getWorkSizeY());
@@ -194,18 +184,15 @@ public class ImGuiLayer {
 
         ImGui.pushStyleVar(ImGuiStyleVar.WindowRounding, 0.0f);
         ImGui.pushStyleVar(ImGuiStyleVar.WindowBorderSize, 0.0f);
-        winFlag |= ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoCollapse |
-                ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove |
-                ImGuiWindowFlags.NoBringToFrontOnFocus | ImGuiWindowFlags.NoNavFocus;
-
-        ImGui.begin("Dock", new ImBoolean(true), winFlag);
+        ImGui.begin(DOCK_ID, new ImBoolean(true), winFlag);
         ImGui.popStyleVar(2);
-
-        // Dock space
-        ImGui.dockSpace(ImGui.getID("Dock"));
-
-        menuBar.imgui();
-
+        int id = ImGui.getID(DOCK_ID);
+        ImGui.dockSpace(id);
+        if (!DefaultEditorLayout.dockingValid(id) || resetLayout) {
+            DefaultEditorLayout.resetLayout(id);
+            resetLayout = false;
+        }
+        MenuBar.imgui();
         ImGui.end();
     }
 
@@ -225,4 +212,7 @@ public class ImGuiLayer {
         return this.sceneEditorViewport;
     }
 
+    public static void resetLayout() {
+        resetLayout = true;
+    }
 }

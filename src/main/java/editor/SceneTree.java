@@ -13,6 +13,7 @@ import utility.prefabrication.PrefabManager;
 import java.util.List;
 
 public class SceneTree {
+    public static final String WINDOW_ID = "Scene Tree###Editor_Current_Scene_Tree";
     private static final String GROUPING_PAYLOAD = "Object_Grouping_Payload";
     private static final String SCENE_TREE_ID = "Scene_Tree_Section";
     private static final String NEW_POPUP_ID = "New_Add_Object_Popup";
@@ -22,7 +23,7 @@ public class SceneTree {
     private GameObject selectedObject = null;
 
     public void imgui() {
-        ImGui.begin("Scene Tree", ImGuiWindowFlags.NoScrollbar);
+        ImGui.begin(WINDOW_ID, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoCollapse);
 
         Scene scene = Window.getScene();
 

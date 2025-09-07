@@ -2,7 +2,6 @@ package scene;
 
 import TheCellBeyond.GameObject;
 import TheCellBeyond.Transform;
-import TheCellBeyond.Window;
 import components.*;
 import editor.EditorSceneCtrl;
 import editor.dialog.AddSpriteSheetDialog;
@@ -13,6 +12,7 @@ import editor.project.ProjectSheetMap;
 import imgui.ImGui;
 import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiTabItemFlags;
+import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImString;
 import org.joml.Vector2f;
 import org.joml.Vector2i;
@@ -29,8 +29,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class SceneEditor extends SceneInit {
-    private final Vector2i prefabButtonSize = new Vector2i(200, 30);
+    public static final String WINDOW_ID = "Resources###Editor_Project_Resource";
 
+    private final Vector2i prefabButtonSize = new Vector2i(200, 30);
     private GameObject levelEditorObject;
 
     private final Map<String, Map<String, SpriteSheet>> categorizedSpriteSheetList = new HashMap<>();
@@ -86,7 +87,9 @@ public class SceneEditor extends SceneInit {
 
     @Override
     public void imgui() {
-        ImGui.begin("Resources");
+        ImGui.begin(WINDOW_ID, ImGuiWindowFlags.NoCollapse);
+        ImGui.text("Resources");
+        ImGui.spacing();
         if (ImGui.beginTabBar("Resource_TabBar")) {
             ImGui.pushStyleColor(ImGuiCol.Tab, 0.6f, 0.25f, 0.0f, 1.0f);
             ImGui.pushStyleColor(ImGuiCol.TabHovered, 0.75f, 0.31f, 0.0f, 1.0f);

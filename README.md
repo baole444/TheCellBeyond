@@ -16,12 +16,11 @@ A Java-based game editor with project compile ability, code auto-generation, and
 - [ ] Scripting system.
 
 ## Problems need attention:
-- No proper resource clearing/saving when creating a new scene due to improper name check.
-- No proper way to assign texture/sprite from a spritesheet to a SpriteRenderer component.
+- N/A
 
 ## Solved problems:
-- If additional scaling from transform is applied, the rotation broke. Caused by broken math in GameObject2D.
-- Due to lazy load there is no proper way to for hierarchy to actively update their effective transform.
+- No proper resource clearing/saving when creating a new scene due to improper name check.
+- No proper way to assign texture/sprite from a spritesheet to a SpriteRenderer component.
 
 ## Additional maintenance:
 - Update ImGui to [latest release](https://github.com/SpaiR/imgui-java/releases).

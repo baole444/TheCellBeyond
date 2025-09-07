@@ -13,13 +13,12 @@ import utility.ExitConfirmDialog;
 import java.util.List;
 
 public class MenuBar {
-    private final ExitConfirmDialog exitConfirmDialog = new ExitConfirmDialog();
-
-    public void imgui() {
+    public static void imgui() {
         ImGui.beginMenuBar();
         ImGui.pushID(ImGuiItemFlags.SelectableDontClosePopup);
         if (ImGui.beginMenu("Editor")) {
             if (ImGui.menuItem("Preferences###Editor_prefs")) EditEditorPreferencesDialog.show();
+            if (ImGui.menuItem("Reset Layout###Reset_Editor_layout")) ImGuiLayer.resetLayout();
             ImGui.endMenu();
         }
 
