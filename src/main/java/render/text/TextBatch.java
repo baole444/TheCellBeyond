@@ -255,7 +255,7 @@ public class TextBatch implements Comparable<TextBatch> {
                 float width = WorldUnit.pixelToWorld(charInfo.width());
                 float height = WorldUnit.pixelToWorld(charInfo.height());
 
-                float charY = y - WorldUnit.pixelToWorld(charInfo.yOffset()) - height;
+                float charY = y + WorldUnit.pixelToWorld(charInfo.yOffset());
 
                 float texX0 = charInfo.x0() / (float) font.getAtlasWidth();
                 float texY0 = charInfo.y0() / (float) font.getAtlasHeight();

@@ -6,6 +6,7 @@ import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.util.freetype.FT_Face;
 import org.lwjgl.util.freetype.FT_GlyphSlot;
+import org.lwjgl.util.freetype.FT_Size;
 import org.lwjgl.util.freetype.FreeType;
 import org.lwjgl.util.msdfgen.MSDFGenBitmap;
 import org.lwjgl.util.msdfgen.MSDFGenTransform;
@@ -249,6 +250,15 @@ public class TCBFont {
                 return;
             }
             long shape = pp.get(0);
+            FT_GlyphSlot slot = face.glyph();
+
+            float ft_float_factor = 64.0f;
+            float advance, bearingX, bearingY, width, height;
+            advance = slot.advance().x() / ft_float_factor;
+            bearingX = slot.metrics().horiBearingX() / ft_float_factor;
+            bearingY = slot.metrics().horiBearingX() / ft_float_factor;
+            width = slot.metrics().width() / ft_float_factor;
+            height = slot.metrics().height() / ft_float_factor;
 
             check(msdf_shape_normalize(shape));
             check(msdf_shape_edge_colors_simple(shape, 3.0));
@@ -267,31 +277,14 @@ public class TCBFont {
                             .lower(-0.5 * TRANSLATION)
                             .upper(0.5 * TRANSLATION))
             ));
+            ByteBuffer pixels = getBitmapU8(stack, bitmap);
 
-            MSDFGenBitmap output = bitmap;
-
-            ByteBuffer pixels = getBitmapU8(stack, output);
-
-            FT_GlyphSlot slot = face.glyph();
-            float advance = 0.0f;
-            float bearingX = 0.0f;
-            float bearingY = MSDF_SIZE * 0.75f;
-            float width =  MSDF_SIZE;
-            float height = MSDF_SIZE;
-            if (slot != null) {
-                advance = slot.advance().x() >> 6;
-                bearingX = slot.bitmap_left();
-                bearingY = slot.bitmap_top();
-                width = slot.bitmap().width();
-                height = slot.bitmap().rows();
-            }
 
             MSDFGlyphData data = new MSDFGlyphData(
                     pixels, advance,
                     new Vector2f(bearingX, bearingY),
                     new Vector2f(width, height)
             );
-            
             glyphData.put(ch, data);
 
             msdf_bitmap_free(bitmap);
@@ -344,7 +337,8 @@ public class TCBFont {
     private void copyGlyphToAtlas(ByteBuffer glyphData, int X, int Y) {
         for (int y = 0; y < MSDF_SIZE; y++) {
             for (int x = 0; x < MSDF_SIZE; x++) {
-                int glyphIdx = (y * MSDF_SIZE + x) * colorChannelCount;
+                int flipY = MSDF_SIZE - 1 - y;
+                int glyphIdx = (flipY * MSDF_SIZE + x) * colorChannelCount;
                 int atlasIdx = ((Y + y) * atlasWidth + (X + x)) * colorChannelCount;
                 if (atlasIdx + 2 >= atlasData.capacity() || glyphIdx + 2 >= glyphData.capacity()) continue;
 
