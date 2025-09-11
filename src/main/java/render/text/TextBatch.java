@@ -252,15 +252,15 @@ public class TextBatch implements Comparable<TextBatch> {
 
                 float charX = x + WorldUnit.pixelToWorld(charInfo.xOffset());
 
-                float width = WorldUnit.pixelToWorld(charInfo.x1() - charInfo.x0());
-                float height = WorldUnit.pixelToWorld(charInfo.y1() - charInfo.y0());
+                float width = WorldUnit.pixelToWorld(charInfo.width());
+                float height = WorldUnit.pixelToWorld(charInfo.height());
 
-                float charY = y - WorldUnit.pixelToWorld(charInfo.yOffset()) - height;
+                float charY = y + WorldUnit.pixelToWorld(charInfo.yOffset());
 
-                float texX0 = charInfo.x0() / (float) font.getBitmapWidth();
-                float texY0 = charInfo.y0() / (float) font.getBitmapHeight();
-                float texX1 = charInfo.x1() / (float) font.getBitmapWidth();
-                float texY1 = charInfo.y1() / (float) font.getBitmapHeight();
+                float texX0 = charInfo.x0() / (float) font.getAtlasWidth();
+                float texY0 = charInfo.y0() / (float) font.getAtlasHeight();
+                float texX1 = charInfo.x1() / (float) font.getAtlasWidth();
+                float texY1 = charInfo.y1() / (float) font.getAtlasHeight();
 
                 float[][] verticesData = {
                         {charX,             charY,          texX0, texY1},

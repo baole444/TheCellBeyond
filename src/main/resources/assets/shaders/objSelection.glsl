@@ -36,6 +36,10 @@ uniform sampler2D uFontTex;
 
 out vec3 color;
 
+float median(float r, float g, float b) {
+    return max(min(r, g), min(max(r, g), b));
+}
+
 void main()
 {
     if (fTexID > 0) {
@@ -49,9 +53,13 @@ void main()
     }
 
     else {
+        vec3 msd = texture(uFontTex, fTexCrd).rgb;
+
+        float sd = median(msd.r, msd.g, msd.b);
+
         float alpha = texture(uFontTex, fTexCrd).r;
 
-        if (alpha < 0.1) {
+        if (alpha < 0.5) {
             discard;
         }
     }

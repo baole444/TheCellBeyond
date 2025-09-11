@@ -27,7 +27,7 @@ dependencies {
     // LWJGL
     implementation platform("org.lwjgl:lwjgl-bom:$lwjgl_version")
 
-    ['', '-assimp', '-glfw', '-nfd', '-openal', '-opengl', '-stb'].each {
+    ['', '-assimp', '-glfw', '-nfd', '-openal', '-opengl', '-stb', '-msdfgen', '-freetype'].each {
         implementation "org.lwjgl:lwjgl$it"
         implementation "org.lwjgl:lwjgl$it::$lwjglNatives"
     }
