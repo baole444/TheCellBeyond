@@ -208,7 +208,7 @@ public class ImGuiLayer {
         return this.properties;
     }
 
-    public SceneEditorViewport getGameViewPort() {
+    public SceneEditorViewport getSceneEditorViewPort() {
         return this.sceneEditorViewport;
     }
 

@@ -1,9 +1,11 @@
 package components;
 
+import TheCellBeyond.Window;
 import editor.ImEditorGui;
 import imgui.ImGui;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
+import render.DebugDraw;
 import render.text.*;
 import utility.AssetReference;
 import utility.PathResolver;
@@ -139,6 +141,9 @@ public class TextRenderer extends SpatialComponent implements FontStatusCallback
         ) {
             requestLoadFont();
         }
+        if (Window.get().isRuntimeMode()) return;
+
+        DebugDraw.addLine2(getEffectiveTransform().position, new Vector2f(getEffectiveTransform().position).add(0.6f, 0.0f));
     }
 
     @Override

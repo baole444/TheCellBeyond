@@ -1,6 +1,7 @@
 package render.text;
 
 import org.joml.Vector2f;
+import org.joml.Vector4d;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
@@ -9,6 +10,7 @@ import org.lwjgl.util.freetype.FT_GlyphSlot;
 import org.lwjgl.util.freetype.FT_Size;
 import org.lwjgl.util.freetype.FreeType;
 import org.lwjgl.util.msdfgen.MSDFGenBitmap;
+import org.lwjgl.util.msdfgen.MSDFGenBounds;
 import org.lwjgl.util.msdfgen.MSDFGenTransform;
 import utility.AssetReference;
 import utility.PathResolver;
@@ -16,6 +18,7 @@ import utility.PathResolver;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.nio.DoubleBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.HashMap;
@@ -144,6 +147,7 @@ public class TCBFont {
         }
 
         createAtlas();
+        stbi_write_png("atlas.png", atlasWidth, atlasHeight, colorChannelCount, atlasData, 0);
     }
 
     private void generateCombinedRangeAtlas() {
@@ -161,7 +165,7 @@ public class TCBFont {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             PointerBuffer pp = stack.mallocPointer(1);
 
-            check(msdf_ft_set_load_callback(name -> FreeType.getLibrary().getFunctionAddress(memByteBuffer(name, memByteBufferNT1(name).capacity() + 1))));
+            check(msdf_ft_set_load_callback(name -> getLibrary().getFunctionAddress(memByteBuffer(name, memByteBufferNT1(name).capacity() + 1))));
             check(msdf_ft_init(pp));
             msdfFTHandle = pp.get(0);
 
@@ -253,18 +257,28 @@ public class TCBFont {
             FT_GlyphSlot slot = face.glyph();
 
             float ft_float_factor = 64.0f;
-            float advance, bearingX, bearingY, width, height;
+            float advance, bearingX, bearingY;
             advance = slot.advance().x() / ft_float_factor;
             bearingX = slot.metrics().horiBearingX() / ft_float_factor;
-            bearingY = slot.metrics().horiBearingX() / ft_float_factor;
-            width = slot.metrics().width() / ft_float_factor;
-            height = slot.metrics().height() / ft_float_factor;
+            bearingY = slot.metrics().horiBearingY() / ft_float_factor;
 
             check(msdf_shape_normalize(shape));
             check(msdf_shape_edge_colors_simple(shape, 3.0));
 
             MSDFGenBitmap bitmap = MSDFGenBitmap.calloc(stack);
             check(msdf_bitmap_alloc(MSDF_BITMAP_TYPE_MSDF, MSDF_SIZE, MSDF_SIZE, bitmap));
+
+            MSDFGenBounds bounds = MSDFGenBounds.calloc(stack);
+            check(msdf_shape_bound(shape, bounds));
+
+            double left = bounds.l();
+            double bottom = bounds.b();
+            double right = bounds.r();
+            double top = bounds.t();
+            double padding = 1.0d;
+
+            double glyphWidth = right - left;
+            double glyphHeight = top - bottom;
 
             check(msdf_generate_msdf(bitmap, shape, MSDFGenTransform.calloc(stack)
                     .scale(it -> it
@@ -279,11 +293,10 @@ public class TCBFont {
             ));
             ByteBuffer pixels = getBitmapU8(stack, bitmap);
 
-
             MSDFGlyphData data = new MSDFGlyphData(
                     pixels, advance,
                     new Vector2f(bearingX, bearingY),
-                    new Vector2f(width, height)
+                    new Vector2f()
             );
             glyphData.put(ch, data);
 
@@ -325,7 +338,7 @@ public class TCBFont {
 
             CharInfo charInfo = new CharInfo(x0, y0, x1, y1,
                     xOffset, yOffset, data.advance(),
-                    size.x, size.y);
+                    size.x, size.y, fontSize);
             characters.put(ch, charInfo);
 
             gIndex++;
