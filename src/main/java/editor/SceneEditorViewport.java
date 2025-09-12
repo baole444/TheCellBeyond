@@ -103,7 +103,7 @@ public class SceneEditorViewport {
         }
 
         if (!Window.get().isRuntimeMode()) {
-            Window.getScene().viewport().adjustSceneScale(winSize.y);
+            Window.getScene().viewport().adjustSceneScale(usableHeight);
         }
 
         return new ImVec2(usableWidth, usableHeight);

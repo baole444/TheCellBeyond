@@ -1,14 +1,10 @@
 package render.text;
 
-import org.joml.Vector2f;
-import org.joml.Vector4d;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.util.freetype.FT_Face;
 import org.lwjgl.util.freetype.FT_GlyphSlot;
-import org.lwjgl.util.freetype.FT_Size;
-import org.lwjgl.util.freetype.FreeType;
 import org.lwjgl.util.msdfgen.MSDFGenBitmap;
 import org.lwjgl.util.msdfgen.MSDFGenBounds;
 import org.lwjgl.util.msdfgen.MSDFGenTransform;
@@ -18,7 +14,6 @@ import utility.PathResolver;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.nio.DoubleBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.HashMap;
@@ -29,7 +24,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
 import static org.lwjgl.opengl.GL30.glGenerateMipmap;
-import static org.lwjgl.stb.STBImageWrite.stbi_flip_vertically_on_write;
 import static org.lwjgl.stb.STBImageWrite.stbi_write_png;
 import static org.lwjgl.system.MemoryUtil.*;
 import static org.lwjgl.util.freetype.FreeType.*;
@@ -248,19 +242,21 @@ public class TCBFont {
             if (!shapeOK || !glyphOk) {
                 MSDFGlyphData data = new MSDFGlyphData(
                         BufferUtils.createByteBuffer(MSDF_SIZE * MSDF_SIZE  * 3),
-                        0.0f, new Vector2f(), new Vector2f()
+                        0.0f, 0.0d, 0.0d
                 );
                 glyphData.put(ch, data);
                 return;
             }
             long shape = pp.get(0);
+
             FT_GlyphSlot slot = face.glyph();
 
             float ft_float_factor = 64.0f;
-            float advance, bearingX, bearingY;
+            float advance, bearingX, bearingY, height;
             advance = slot.advance().x() / ft_float_factor;
             bearingX = slot.metrics().horiBearingX() / ft_float_factor;
             bearingY = slot.metrics().horiBearingY() / ft_float_factor;
+            height = slot.metrics().height() / ft_float_factor;
 
             check(msdf_shape_normalize(shape));
             check(msdf_shape_edge_colors_simple(shape, 3.0));
@@ -270,33 +266,29 @@ public class TCBFont {
 
             MSDFGenBounds bounds = MSDFGenBounds.calloc(stack);
             check(msdf_shape_bound(shape, bounds));
-
             double left = bounds.l();
             double bottom = bounds.b();
-            double right = bounds.r();
-            double top = bounds.t();
-            double padding = 1.0d;
-
-            double glyphWidth = right - left;
-            double glyphHeight = top - bottom;
-
+            int marginPixel = 2;
+            double margin = (double) marginPixel / MSDF_SIZE;
             check(msdf_generate_msdf(bitmap, shape, MSDFGenTransform.calloc(stack)
                     .scale(it -> it
                             .x(MSDF_SIZE)
                             .y(MSDF_SIZE))
                     .translation(it -> it
-                            .x(TRANSLATION)
-                            .y(TRANSLATION))
+                            .x(-(left - margin))
+                            .y(-(bottom - margin)))
                     .distance_mapping(it -> it
                             .lower(-0.5 * TRANSLATION)
                             .upper(0.5 * TRANSLATION))
             ));
             ByteBuffer pixels = getBitmapU8(stack, bitmap);
 
+            double leftOffset = bearingX - marginPixel;
+            double bottomOffset = height - bearingY - marginPixel;
+
             MSDFGlyphData data = new MSDFGlyphData(
                     pixels, advance,
-                    new Vector2f(bearingX, bearingY),
-                    new Vector2f()
+                    leftOffset, bottomOffset
             );
             glyphData.put(ch, data);
 
@@ -332,13 +324,11 @@ public class TCBFont {
             float y0 = (float) Y;
             float x1 = x0 + MSDF_SIZE;
             float y1 = y0 + MSDF_SIZE;
-            float xOffset = data.bearing().x;
-            float yOffset = data.bearing().y;
-            Vector2f size = data.size();
+            double xOffset = data.leftOffset();
+            double yOffset = data.bottomOffset();
 
             CharInfo charInfo = new CharInfo(x0, y0, x1, y1,
-                    xOffset, yOffset, data.advance(),
-                    size.x, size.y, fontSize);
+                    xOffset, yOffset, data.advance(), fontSize);
             characters.put(ch, charInfo);
 
             gIndex++;

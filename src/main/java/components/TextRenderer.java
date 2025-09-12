@@ -141,9 +141,6 @@ public class TextRenderer extends SpatialComponent implements FontStatusCallback
         ) {
             requestLoadFont();
         }
-        if (Window.get().isRuntimeMode()) return;
-
-        DebugDraw.addLine2(getEffectiveTransform().position, new Vector2f(getEffectiveTransform().position).add(0.6f, 0.0f));
     }
 
     @Override

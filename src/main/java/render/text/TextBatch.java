@@ -249,13 +249,10 @@ public class TextBatch implements Comparable<TextBatch> {
 
                 CharInfo charInfo = font.getCharInfo(c);
                 if (charInfo == null) continue;
-
-                float charX = x;
-
+                float charX = x - WorldUnit.pixelToWorld((float) charInfo.xOffset());
+                float charY = y - WorldUnit.pixelToWorld((float) charInfo.yOffset());
                 float width = WorldUnit.pixelToWorld(charInfo.fontSize());
                 float height = WorldUnit.pixelToWorld(charInfo.fontSize());
-
-                float charY = y;
 
                 float texX0 = charInfo.x0() / (float) font.getAtlasWidth();
                 float texY0 = charInfo.y0() / (float) font.getAtlasHeight();

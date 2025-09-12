@@ -125,4 +125,8 @@ public class Viewport {
     public float sceneScale() {
         return sceneScale;
     }
+
+    public boolean isDynamic() {
+        return isDynamic;
+    }
 }
