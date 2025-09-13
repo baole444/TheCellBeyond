@@ -20,8 +20,10 @@ public class FontManager {
     private final ExecutorService executorService;
 
     private final Map<FontRequest, TCBFont> fontCache = new ConcurrentHashMap<>();
-    private final Queue<FontRequestEntry> pendingRequests = new ConcurrentLinkedDeque<>();
+    private final BlockingQueue<FontRequestEntry> pendingRequests = new LinkedBlockingQueue<>();
+    private final Map<FontRequest, FontRequestEntry> requests = new ConcurrentHashMap<>();
     private final Queue<TCBFont> fontsWaitingTexture = new ConcurrentLinkedDeque<>();
+    private final Map<AssetReference, Map<GlyphRange, ByteBuffer>> atlases = new ConcurrentHashMap<>();
 
     private FontManager() {
         this.executorService = Executors.newVirtualThreadPerTaskExecutor();
@@ -39,9 +41,13 @@ public class FontManager {
     private void startProcessingThread() {
         processor = new Thread(() -> {
             while (!Thread.currentThread().isInterrupted()) {
-                processFontRequest();
                 try {
-                    Thread.sleep(50);
+                    FontRequestEntry entry = pendingRequests.take();
+
+                    do {
+                        processFontRequest(entry);
+                        requests.remove(entry.request);
+                    } while ((entry = pendingRequests.poll()) != null);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     break;
@@ -53,39 +59,35 @@ public class FontManager {
         processor.start();
     }
 
-    private void processFontRequest() {
-        FontRequestEntry entry;
-        while ((entry = pendingRequests.poll()) != null) {
-            FontRequest request = entry.request;
+    private void processFontRequest(FontRequestEntry entry) {
+        if (entry == null) return;
 
-            TCBFont font = fontCache.get(request);
-            if (font != null) {
+        FontRequest request = entry.request;
+        TCBFont font = fontCache.get(request);
+        if (font != null) {
+            notifyCallbacks(font, request, entry.callbacks);
+            return;
+        }
+
+        try {
+            AssetReference assetRef = request.fontAsset();
+            PathResolver resolver = PathResolver.get();
+
+            try (InputStream stream = resolver.getAssetStream(assetRef.getResolvedPath())) {
+                byte[] fontData = stream.readAllBytes();
+                ByteBuffer fontBuffer = BufferUtils.createByteBuffer(fontData.length);
+                fontBuffer.put(fontData);
+                fontBuffer.flip();
+
+                font = new TCBFont(fontBuffer, assetRef, request.getPixelSize(), request.glyphRange());
+
+                fontCache.put(request, font);
+                fontsWaitingTexture.add(font);
+
                 notifyCallbacks(font, request, entry.callbacks);
-                continue;
             }
-
-            try {
-                AssetReference assetRef = request.fontAsset();
-
-                // TODO: if race condition happened, need to sync PathResolver init sequence.
-                PathResolver resolver = PathResolver.get();
-
-                try (InputStream stream = resolver.getAssetStream(assetRef.getResolvedPath())) {
-                    byte[] fontData = stream.readAllBytes();
-                    ByteBuffer fontBuffer = BufferUtils.createByteBuffer(fontData.length);
-                    fontBuffer.put(fontData);
-                    fontBuffer.flip();
-
-                    font = new TCBFont(fontBuffer, assetRef, request.getPixelSize(), request.glyphRange());
-
-                    fontCache.put(request, font);
-                    fontsWaitingTexture.add(font);
-
-                    notifyCallbacks(font, request, entry.callbacks);
-                }
-            } catch (Exception e) {
-                LOGGER.log(Level.SEVERE, "Failed to load font: " + request, e);
-            }
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Failed to load font: " + request, e);
         }
     }
 
@@ -113,23 +115,27 @@ public class FontManager {
         TCBFont existingFont = fontCache.get(request);
 
         if (existingFont != null) {
-            if (callback != null) {
-                callback.onFontReady(existingFont, request);
-            }
+            if (callback != null) callback.onFontReady(existingFont, request);
             return;
         }
 
-        boolean alreadyExisting = false;
-        for (FontRequestEntry entry : pendingRequests) {
-            if (entry.request.equals(request)) {
-                entry.addCallback(callback);
-                alreadyExisting = true;
-                break;
-            }
+        FontRequestEntry existingEntry = requests.get(request);
+        if (existingEntry != null) {
+            existingEntry.addCallback(callback);
+            return;
         }
 
-        if (!alreadyExisting) {
-            pendingRequests.add(new FontRequestEntry(request, callback));
+        FontRequestEntry newEntry = new FontRequestEntry(request, callback);
+        FontRequestEntry current = requests.putIfAbsent(request, newEntry);
+
+        if (current != null) {
+            current.addCallback(callback);
+            return;
+        }
+
+        if (!pendingRequests.offer(newEntry)) {
+            LOGGER.log(Level.WARNING, "Failed to queue font request: " + request);
+            requests.remove(request);
         }
     }
 

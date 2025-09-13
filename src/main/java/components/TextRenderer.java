@@ -1,11 +1,9 @@
 package components;
 
-import TheCellBeyond.Window;
 import editor.ImEditorGui;
 import imgui.ImGui;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
-import render.DebugDraw;
 import render.text.*;
 import utility.AssetReference;
 import utility.PathResolver;
@@ -95,7 +93,7 @@ public class TextRenderer extends SpatialComponent implements FontStatusCallback
             return;
         }
 
-        float scaledFontSize = WorldUnit.pixelToWorld(font.getFontSize());
+        float scaledFontSize = WorldUnit.pixelToWorld(font.getFontSizePixel());
 
         float width = 0;
         float height;

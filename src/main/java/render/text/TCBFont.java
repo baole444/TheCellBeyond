@@ -24,7 +24,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
 import static org.lwjgl.opengl.GL30.glGenerateMipmap;
-import static org.lwjgl.stb.STBImageWrite.stbi_write_png;
 import static org.lwjgl.system.MemoryUtil.*;
 import static org.lwjgl.util.freetype.FreeType.*;
 import static org.lwjgl.util.msdfgen.MSDFGen.*;
@@ -45,7 +44,7 @@ public class TCBFont {
     private boolean msdfReady = false;
 
     private final AssetReference assetReference;
-    private final int fontSize;
+    private final int fontSizePixel;
     private final GlyphRange glyphRange;
     private int startChar;
     private int numGlyphs;
@@ -55,20 +54,21 @@ public class TCBFont {
     private int atlasHeight;
 
     private final Map<Character, CharInfo> characters = new HashMap<>();
-
     private final AtomicBoolean isLoaded = new AtomicBoolean(false);
     private final AtomicBoolean hasTexture = new AtomicBoolean(false);
 
     private volatile ByteBuffer atlasData;
+    private volatile ByteBuffer fontData;
 
-    public TCBFont(ByteBuffer fontBuffer, AssetReference assetReference, int fontSize, GlyphRange glyphRange) {
+    public TCBFont(ByteBuffer fontBuffer, AssetReference assetReference, int fontSizePixel, GlyphRange glyphRange) {
         this.assetReference = assetReference;
-        this.fontSize = fontSize;
+        this.fontSizePixel = fontSizePixel;
         this.glyphRange = glyphRange;
+        fontData = fontBuffer;
 
         try {
             initializeMSDF();
-            loadFontData(fontBuffer);
+            loadFontData();
 
             if (glyphRange.hasUnicodeRanges()) {
                 generateCombinedRangeAtlas();
@@ -87,11 +87,11 @@ public class TCBFont {
     /**
      * Create a font.
      * @param filepath path to the font file.
-     * @param fontSize size to render the text at.
+     * @param fontSizePixel size to render the text at in pixel.
      * @param glyphRange The Unicode range to support.
      * @throws IOException File does not exist.
      */
-    public TCBFont(String filepath, int fontSize, GlyphRange glyphRange) throws IOException {
+    public TCBFont(String filepath, int fontSizePixel, GlyphRange glyphRange) throws IOException {
         PathResolver resolver;
         if (!PathResolver.isInitialized()) PathResolver.initialize(null);
         resolver = PathResolver.get();
@@ -99,19 +99,20 @@ public class TCBFont {
         assetReference = new AssetReference(filepath);
         verifyFontFile();
 
-        this.fontSize = fontSize;
+        this.fontSizePixel = fontSizePixel;
         this.glyphRange = glyphRange;
 
         // Load font file
         try (InputStream stream = resolver.getAssetStream(assetReference.getResolvedPath())) {
-            byte[] fontData = stream.readAllBytes();
-            ByteBuffer fontBuffer = BufferUtils.createByteBuffer(fontData.length);
-            fontBuffer.put(fontData);
+            byte[] data = stream.readAllBytes();
+            ByteBuffer fontBuffer = BufferUtils.createByteBuffer(data.length);
+            fontBuffer.put(data);
             fontBuffer.flip();
+            fontData = fontBuffer;
 
             try {
                 initializeMSDF();
-                loadFontData(fontBuffer);
+                loadFontData();
 
                 if (glyphRange.hasUnicodeRanges()) {
                     generateCombinedRangeAtlas();
@@ -141,7 +142,6 @@ public class TCBFont {
         }
 
         createAtlas();
-        stbi_write_png("atlas.png", atlasWidth, atlasHeight, colorChannelCount, atlasData, 0);
     }
 
     private void generateCombinedRangeAtlas() {
@@ -170,7 +170,7 @@ public class TCBFont {
         }
     }
 
-    private void loadFontData(ByteBuffer fontData) {
+    private void loadFontData() {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             PointerBuffer pp = stack.mallocPointer(1);
             check(msdf_ft_load_font_data(msdfFTHandle, fontData, pp));
@@ -179,7 +179,7 @@ public class TCBFont {
             check(FT_New_Memory_Face(ftLib, fontData, 0 , pp));
             ftFace = pp.get(0);
 
-            check(FT_Set_Pixel_Sizes(FT_Face.create(ftFace), 0, fontSize));
+            check(FT_Set_Pixel_Sizes(FT_Face.create(ftFace), 0, fontSizePixel));
         }
     }
 
@@ -328,7 +328,7 @@ public class TCBFont {
             double yOffset = data.bottomOffset();
 
             CharInfo charInfo = new CharInfo(x0, y0, x1, y1,
-                    xOffset, yOffset, data.advance(), fontSize);
+                    xOffset, yOffset, data.advance(), fontSizePixel);
             characters.put(ch, charInfo);
 
             gIndex++;
@@ -397,8 +397,8 @@ public class TCBFont {
         }
     }
 
-    public int getFontSize() {
-        return fontSize;
+    public int getFontSizePixel() {
+        return fontSizePixel;
     }
 
     public int getTextureId() {
@@ -411,6 +411,10 @@ public class TCBFont {
 
     public int getAtlasHeight() {
         return atlasHeight;
+    }
+
+    public ByteBuffer getFontData() {
+        return fontData;
     }
 
     public CharInfo getCharInfo(char c) {
@@ -441,5 +445,6 @@ public class TCBFont {
         }
 
         atlasData = null;
+        fontData = null;
     }
 }

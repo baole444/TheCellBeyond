@@ -30,7 +30,6 @@ public class TextBatch implements Comparable<TextBatch> {
     private final int maxBatchSize;
     private final List<TextRenderer> textRenderers;
 
-    // Map fonts to components
     private final Map<TCBFont, List<TextRenderer>> fontGroups = new HashMap<>();
 
     private int vaoID, vboID;
@@ -62,29 +61,23 @@ public class TextBatch implements Comparable<TextBatch> {
     }
 
     public void start() {
-        // create vao
         vaoID = glGenVertexArrays();
         glBindVertexArray(vaoID);
 
-        // allocate vbo
         vboID = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, vboID);
         glBufferData(GL_ARRAY_BUFFER, (long) maxBatchSize * 6 * VERTEX_SIZE * Float.BYTES, GL_DYNAMIC_DRAW);
 
         // Enable vertex attributes
-        // Position
         glVertexAttribPointer(0, POS_SIZE, GL_FLOAT, false, VERTEX_SIZE * Float.BYTES, 0);
         glEnableVertexAttribArray(0);
 
-        // Color
         glVertexAttribPointer(1, COLOR_SIZE, GL_FLOAT, false, VERTEX_SIZE * Float.BYTES, POS_SIZE * Float.BYTES);
         glEnableVertexAttribArray(1);
 
-        // Texture coordinates
         glVertexAttribPointer(2, TEX_COORD_SIZE, GL_FLOAT, false, VERTEX_SIZE * Float.BYTES, (POS_SIZE + COLOR_SIZE) * Float.BYTES);
         glEnableVertexAttribArray(2);
 
-        // Object ID
         glVertexAttribPointer(3, OBJECT_ID_SIZE, GL_FLOAT, false, VERTEX_SIZE * Float.BYTES, (POS_SIZE + COLOR_SIZE + TEX_COORD_SIZE) * Float.BYTES);
         glEnableVertexAttribArray(3);
 
@@ -120,19 +113,13 @@ public class TextBatch implements Comparable<TextBatch> {
             regroupComponents();
         }
 
-        RendererState state = RendererState.get();
-        RendererState.RenderPass currentPass = state.getCurrentPass();
-
-        Shader instShader;
-        if (currentPass == RendererState.RenderPass.SELECTION) {
-            instShader = state.getCurrentShader();
-        } else {
-            instShader = shader;
-            instShader.use();
-            state.enableTextRendering();
+        Shader instShader = shader;
+        if (RendererState.isSelectionPass()) {
+            instShader = RendererState.getCurrentShader();
         }
 
-        // Set projection and view matrix
+        instShader.use();
+
         Matrix4f projMatrix;
         Matrix4f vMatrix;
 
@@ -155,31 +142,20 @@ public class TextBatch implements Comparable<TextBatch> {
             TCBFont font = entry.getKey();
             List<TextRenderer> components = entry.getValue();
 
-            // Skip if no components use this font
             if (components.isEmpty()) continue;
-
-            // If font is not available, is stilling loading
             if (font == null || !font.isLoaded() || font.waitingTexture()) continue;
-
-            // Skip texture binding during selection pass
-            if (currentPass != RendererState.RenderPass.SELECTION) {
+            if (RendererState.isNormalPass()) {
                 int textureId = font.getTextureId();
                 if (textureId < 0) continue;
                 glActiveTexture(GL_TEXTURE0);
                 glBindTexture(GL_TEXTURE_2D, textureId);
-                shader.loadInt("uFontTex", 0);
+                instShader.loadInt("uFontTex", 0);
             }
 
-            // Create vertex data for all text components of this group
             float[] vertices = genVertices(components, font);
-
-            // If no vertices to render
             if (vertices.length == 0) continue;
 
-            // Upload to GPU
             glBufferSubData(GL_ARRAY_BUFFER, 0, vertices);
-
-            // Draw
             int charCount = countChars(components);
             glDrawArrays(GL_TRIANGLES, 0 , charCount * 6);
         }
@@ -188,9 +164,8 @@ public class TextBatch implements Comparable<TextBatch> {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
 
-        // Detach if font shader is used
-        if (currentPass != RendererState.RenderPass.SELECTION) {
-            shader.detach();
+        if (RendererState.isNormalPass()) {
+            instShader.detach();
         }
     }
 
@@ -208,7 +183,7 @@ public class TextBatch implements Comparable<TextBatch> {
 
             Vector2f positon = textRenderer.getPosition();
             Vector4f color;
-            if (RendererState.get().getCurrentPass() == RendererState.RenderPass.SELECTION) {
+            if (RendererState.isSelectionPass()) {
                 color = new Vector4f(1.0f, 1.0f, 1.0f, 1.0f);
             } else {
                 color = textRenderer.getColor();
@@ -242,7 +217,7 @@ public class TextBatch implements Comparable<TextBatch> {
 
                 // move to the next line
                 if (c == '\n') {
-                    y -= WorldUnit.pixelToWorld(font.getFontSize());
+                    y -= WorldUnit.pixelToWorld(font.getFontSizePixel());
                     x = initialX;
                     continue;
                 }

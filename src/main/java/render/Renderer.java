@@ -59,7 +59,7 @@ public class Renderer {
 
         RendererState state = RendererState.get();
 
-        if (state.getCurrentPass() == RendererState.RenderPass.NORMAL) {
+        if (RendererState.isNormalPass()) {
             state.enableSpriteRendering();
         }
 
@@ -67,7 +67,7 @@ public class Renderer {
             batch.render();
         }
 
-        if (state.getCurrentPass() == RendererState.RenderPass.NORMAL) {
+        if (RendererState.isNormalPass()) {
             state.enableTextRendering();
         }
 

@@ -44,6 +44,5 @@ void main()
     float sd = median(msd.r, msd.g, msd.b);
     float screenPxDistance = screenPxRange() * (sd - 0.5);
     float alpha = clamp(screenPxDistance + 0.5, 0.0, 1.0);
-    alpha = smoothstep(0.3, 0.7, alpha);
     color = vec4(fColor.rgb, fColor.a * alpha);
 }
