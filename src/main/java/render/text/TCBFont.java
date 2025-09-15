@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static org.lwjgl.stb.STBImageWrite.stbi_write_png;
 import static org.lwjgl.system.MemoryUtil.*;
 import static org.lwjgl.util.freetype.FreeType.*;
 import static org.lwjgl.util.msdfgen.MSDFGen.*;
@@ -30,6 +31,8 @@ import static org.lwjgl.util.msdfgen.MSDFGenExt.*;
 
 public class TCBFont {
     private static final int MSDF_SIZE = 32;
+    private static final int TEXTURE_SIZE_MULTIPLIER = 2;
+    private static final int bitmapSize = MSDF_SIZE * TEXTURE_SIZE_MULTIPLIER;
     private static final double TRANSLATION = 0.125d;
     private int colorChannelCount;
     private long ftFace, ftLib, msdfFTHandle, fontHandle;
@@ -129,6 +132,7 @@ public class TCBFont {
         }
 
         createAtlas();
+        stbi_write_png("msdfgen.png", atlasWidth, atlasHeight, colorChannelCount, atlasData, 0);
     }
 
     private void generateCombinedRangeAtlas() {
@@ -228,7 +232,7 @@ public class TCBFont {
             boolean shapeOK = msdf_ft_font_load_glyph(fontHandle, ch, MSDF_FONT_SCALING_EM_NORMALIZED, pp) == MSDF_SUCCESS;
             if (!shapeOK || !glyphOk) {
                 MSDFGlyphData data = new MSDFGlyphData(
-                        BufferUtils.createByteBuffer(MSDF_SIZE * MSDF_SIZE  * 3),
+                        BufferUtils.createByteBuffer(bitmapSize * bitmapSize * 3),
                         0.0f, 0.0d, 0.0d
                 );
                 glyphData.put(ch, data);
@@ -249,14 +253,14 @@ public class TCBFont {
             check(msdf_shape_edge_colors_simple(shape, 3.0));
 
             MSDFGenBitmap bitmap = MSDFGenBitmap.calloc(stack);
-            check(msdf_bitmap_alloc(MSDF_BITMAP_TYPE_MSDF, MSDF_SIZE, MSDF_SIZE, bitmap));
+            check(msdf_bitmap_alloc(MSDF_BITMAP_TYPE_MSDF, bitmapSize, bitmapSize, bitmap));
 
             MSDFGenBounds bounds = MSDFGenBounds.calloc(stack);
             check(msdf_shape_bound(shape, bounds));
             double left = bounds.l();
             double bottom = bounds.b();
-            int marginPixel = 2;
-            double margin = (double) marginPixel / MSDF_SIZE;
+            int marginPixel = 2 * TEXTURE_SIZE_MULTIPLIER;
+            double margin = (double) marginPixel / bitmapSize;
             check(msdf_generate_msdf(bitmap, shape, MSDFGenTransform.calloc(stack)
                     .scale(it -> it
                             .x(MSDF_SIZE)
@@ -270,8 +274,8 @@ public class TCBFont {
             ));
             ByteBuffer pixels = getBitmapU8(stack, bitmap);
 
-            double leftOffset = bearingX - marginPixel;
-            double bottomOffset = height - bearingY - marginPixel;
+            double leftOffset = (bearingX - marginPixel) / TEXTURE_SIZE_MULTIPLIER;
+            double bottomOffset = (height - bearingY - marginPixel) / TEXTURE_SIZE_MULTIPLIER;
 
             MSDFGlyphData data = new MSDFGlyphData(
                     pixels, advance,
@@ -288,10 +292,9 @@ public class TCBFont {
         if (glyphData.isEmpty()) return;
 
         int glyphCount = glyphData.size();
-
         int glyphsPerRow = (int) Math.ceil(Math.sqrt(glyphCount));
-        atlasWidth = glyphsPerRow * MSDF_SIZE;
-        atlasHeight = ((glyphCount + glyphsPerRow - 1) / glyphsPerRow) * MSDF_SIZE;
+        atlasWidth = glyphsPerRow * bitmapSize;
+        atlasHeight = ((glyphCount + glyphsPerRow - 1) / glyphsPerRow) * bitmapSize;
         atlasData = BufferUtils.createByteBuffer(atlasWidth * atlasHeight * colorChannelCount);
 
         int gIndex = 0;
@@ -301,16 +304,16 @@ public class TCBFont {
 
             int row = gIndex / glyphsPerRow;
             int col = gIndex % glyphsPerRow;
-            int X = col * MSDF_SIZE;
-            int Y = row * MSDF_SIZE;
+            int X = col * bitmapSize;
+            int Y = row * bitmapSize;
 
             copyGlyphToAtlas(data.pixelData(), X, Y);
             memFree(data.pixelData());
 
             float x0 = (float) X;
             float y0 = (float) Y;
-            float x1 = x0 + MSDF_SIZE;
-            float y1 = y0 + MSDF_SIZE;
+            float x1 = x0 + bitmapSize;
+            float y1 = y0 + bitmapSize;
             double xOffset = data.leftOffset();
             double yOffset = data.bottomOffset();
 
@@ -326,10 +329,10 @@ public class TCBFont {
     }
 
     private void copyGlyphToAtlas(ByteBuffer glyphData, int X, int Y) {
-        for (int y = 0; y < MSDF_SIZE; y++) {
-            for (int x = 0; x < MSDF_SIZE; x++) {
-                int flipY = MSDF_SIZE - 1 - y;
-                int glyphIdx = (flipY * MSDF_SIZE + x) * colorChannelCount;
+        for (int y = 0; y < bitmapSize; y++) {
+            for (int x = 0; x < bitmapSize; x++) {
+                int flipY = bitmapSize - 1 - y;
+                int glyphIdx = (flipY * bitmapSize + x) * colorChannelCount;
                 int atlasIdx = ((Y + y) * atlasWidth + (X + x)) * colorChannelCount;
                 if (atlasIdx + 2 >= atlasData.capacity() || glyphIdx + 2 >= glyphData.capacity()) continue;
 
