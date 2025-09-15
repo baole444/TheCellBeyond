@@ -14,6 +14,7 @@ import render.ObjectSelection;
 import scene.Scene;
 import org.joml.Math;
 import utility.AssetReference;
+import utility.FontPT;
 import utility.PathResolver;
 import utility.Settings;
 
@@ -108,18 +109,11 @@ public class ImGuiLayer {
 
     public void guiFont(ImGuiIO io) {
         final ImFontAtlas fontAtlas = io.getFonts();
-
-        // Font config must be destroyed after call
         final ImFontConfig fontConfig = new ImFontConfig();
-
-        // glyphs range
-
-        //Merge font
-        //fontConfig.setMergeMode(true); //For multiple font, turn this back on
         fontConfig.setPixelSnapH(true);
 
         // Get font data
-        AssetReference assetReference = new AssetReference(Settings.PATH.CONSOLA);
+        AssetReference assetReference = new AssetReference(Settings.PATH.NOTO_SANS_MONO);
         PathResolver resolver;
 
         if (!PathResolver.isInitialized()) {
@@ -129,7 +123,7 @@ public class ImGuiLayer {
 
         try (InputStream stream = resolver.getAssetStream(assetReference.getResolvedPath())) {
             byte[] fontData = stream.readAllBytes();
-            fontAtlas.addFontFromMemoryTTF(fontData, 14, fontConfig);
+            fontAtlas.addFontFromMemoryTTF(fontData, FontPT.pointToPixel(12), fontConfig);
         } catch (IOException e) {
             System.err.println("ImGui failed to read font from '" + assetReference.getCanonicalPath() + "'");
             fontAtlas.addFontDefault();
@@ -173,7 +167,6 @@ public class ImGuiLayer {
                 | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove |
                 ImGuiWindowFlags.NoBringToFrontOnFocus | ImGuiWindowFlags.NoNavFocus;
 
-        // Make viewport the main windows
         ImGuiViewport mainViewport = ImGui.getMainViewport();
         ImGui.setNextWindowPos(mainViewport.getWorkPosX(), mainViewport.getWorkPosY());
         ImGui.setNextWindowSize(mainViewport.getWorkSizeX(), mainViewport.getWorkSizeY());

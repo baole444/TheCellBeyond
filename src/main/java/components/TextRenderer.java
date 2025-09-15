@@ -38,7 +38,7 @@ public class TextRenderer extends SpatialComponent implements FontStatusCallback
 
     public TextRenderer() {
         this.text = "Text renderer";
-        this.assetReference = new AssetReference(Settings.PATH.CONSOLA);
+        this.assetReference = new AssetReference(Settings.PATH.NOTO_SANS_MONO);
         this.point = 12;
         this.color = new Vector4f(1.0f, 1.0f, 1.0f, 1.0f);
     }
