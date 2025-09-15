@@ -143,9 +143,9 @@ public class TextBatch implements Comparable<TextBatch> {
             List<TextRenderer> components = entry.getValue();
 
             if (components.isEmpty()) continue;
-            if (font == null || !font.isLoaded() || font.waitingTexture()) continue;
+            if (font == null || !font.isLoaded()) continue;
             if (RendererState.isNormalPass()) {
-                int textureId = font.getTextureId();
+                int textureId = font.getTextureID();
                 if (textureId < 0) continue;
                 glActiveTexture(GL_TEXTURE0);
                 glBindTexture(GL_TEXTURE_2D, textureId);

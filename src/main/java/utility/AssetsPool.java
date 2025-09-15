@@ -1,6 +1,8 @@
 package utility;
 
 import TheCellBeyond.Sound;
+import render.FontAtlasTexture;
+import render.text.GlyphRange;
 import render.texture.SpriteSheet;
 import render.Shader;
 import render.Texture;
@@ -11,8 +13,11 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class AssetsPool {
+    private record AtlasKey(String canonicalPath, GlyphRange glyphRange) {}
+
     private static final Map<String, Shader> shaders = new ConcurrentHashMap<>();
     private static final Map<String, Texture> textures = new ConcurrentHashMap<>();
+    private static final Map<AtlasKey, FontAtlasTexture> fontAtlasTextures = new ConcurrentHashMap<>();
     private static final Map<String, SpriteSheet> spritesheets = new ConcurrentHashMap<>();
     private static final Map<String, Sound> sounds = new ConcurrentHashMap<>();
 
@@ -73,6 +78,24 @@ public class AssetsPool {
         Texture texture = new Texture();
         texture.init(canonicalPath);
         textures.put(canonicalPath, texture);
+
+        return texture;
+    }
+
+    public static FontAtlasTexture loadFontAtlasTexture(String path, GlyphRange glyphRange, int width, int height, int channels) {
+        PathResolver resolver = PathResolver.get();
+        String canonicalPath = resolver.toCanonicalPath(path);
+
+        AtlasKey key = new AtlasKey(canonicalPath, glyphRange);
+        FontAtlasTexture currentTexture = fontAtlasTextures.get(key);
+
+        if (currentTexture != null) {
+            return currentTexture;
+        }
+
+        FontAtlasTexture texture = new FontAtlasTexture();
+        texture.init(canonicalPath, glyphRange, width, height, channels);
+        fontAtlasTextures.put(key, texture);
 
         return texture;
     }

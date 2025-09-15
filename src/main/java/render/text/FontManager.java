@@ -22,7 +22,6 @@ public class FontManager {
     private final Map<FontRequest, TCBFont> fontCache = new ConcurrentHashMap<>();
     private final BlockingQueue<FontRequestEntry> pendingRequests = new LinkedBlockingQueue<>();
     private final Map<FontRequest, FontRequestEntry> requests = new ConcurrentHashMap<>();
-    private final Queue<TCBFont> fontsWaitingTexture = new ConcurrentLinkedDeque<>();
     private final Map<AssetReference, Map<GlyphRange, ByteBuffer>> atlases = new ConcurrentHashMap<>();
 
     private FontManager() {
@@ -30,7 +29,7 @@ public class FontManager {
         startProcessingThread();
     }
 
-    public static FontManager get() {
+    public static synchronized FontManager get() {
         if (instance == null) {
             instance = new FontManager();
         }
@@ -82,7 +81,6 @@ public class FontManager {
                 font = new TCBFont(fontBuffer, assetRef, request.getPixelSize(), request.glyphRange());
 
                 fontCache.put(request, font);
-                fontsWaitingTexture.add(font);
 
                 notifyCallbacks(font, request, entry.callbacks);
             }
@@ -109,6 +107,18 @@ public class FontManager {
         }
 
         callbacks.removeAll(expiredCallbacks);
+    }
+
+    void cacheFontAtlas(AssetReference assetReference, GlyphRange glyphRange, ByteBuffer atlasData) {
+        if (assetReference == null || glyphRange == null || atlasData == null) return;
+
+        atlases.computeIfAbsent(assetReference, k -> new ConcurrentHashMap<>()).put(glyphRange, atlasData);
+    }
+
+    public ByteBuffer getFontAtlas(AssetReference assetReference, GlyphRange glyphRange) {
+        if (assetReference == null || glyphRange == null) return null;
+
+        return atlases.getOrDefault(assetReference, Map.of()).get(glyphRange);
     }
 
     public void requestFont(FontRequest request, FontStatusCallback callback) {
@@ -139,31 +149,10 @@ public class FontManager {
         }
     }
 
-    public void updateFontTextures() {
-        TCBFont font;
-        while ((font = fontsWaitingTexture.poll()) != null) {
-            if (font.waitingTexture()) {
-                try {
-                    font.createTexture();
-                } catch (Exception e) {
-                    LOGGER.log(Level.SEVERE, "Failed to create texture for font: " + font.getFilepath(), e);
-
-                    fontsWaitingTexture.add(font);
-                }
-            }
-        }
-    }
-
     public TCBFont getFont(FontRequest request) {
         TCBFont font = fontCache.get(request);
 
-        if (font != null) {
-            if (font.waitingTexture()) {
-                fontsWaitingTexture.add(font);
-            }
-
-            return font;
-        }
+        if (font != null) return font;
 
         requestFont(request, null);
 
@@ -172,19 +161,13 @@ public class FontManager {
 
     public boolean isFontLoaded(FontRequest request) {
         TCBFont font = fontCache.get(request);
-        return font != null && font.isLoaded() && !font.waitingTexture();
+        return font != null && font.isLoaded();
     }
 
     public void cleanup() {
         executorService.shutdown();
-
-        for (TCBFont font : fontCache.values()) {
-            font.cleanup();
-        }
-
         fontCache.clear();
         pendingRequests.clear();
-        fontsWaitingTexture.clear();
     }
 
     public synchronized void dispose() {

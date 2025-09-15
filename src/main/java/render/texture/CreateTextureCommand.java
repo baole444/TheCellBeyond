@@ -67,13 +67,13 @@ class CreateTextureCommand extends TextureCommand {
                 glDeleteTextures(textureId);
                 handle.setError("Failed to load image data");
 
-                textureManager.removeHandleByPath(canonicalPath);
+                textureManager.removeTextureHandle(canonicalPath);
                 TextureManager.LOGGER.warning("Failed to load texture from " + canonicalPath);
             }
         } catch (Exception e) {
             handle.setError("OpenGL texture creation failed: " + e.getMessage());
 
-            textureManager.removeHandleByPath(canonicalPath);
+            textureManager.removeTextureHandle(canonicalPath);
             TextureManager.LOGGER.severe("Failed to create texture for " + canonicalPath + e);
         }
     }

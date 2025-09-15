@@ -55,8 +55,6 @@ public class Renderer {
     public void render() {
         TextureManager.get().processCommands();
 
-        FontManager.get().updateFontTextures(); // Within a render loop for a GL context, this can only be call once.
-
         RendererState state = RendererState.get();
 
         if (RendererState.isNormalPass()) {

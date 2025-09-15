@@ -8,7 +8,9 @@ import org.lwjgl.util.freetype.FT_GlyphSlot;
 import org.lwjgl.util.msdfgen.MSDFGenBitmap;
 import org.lwjgl.util.msdfgen.MSDFGenBounds;
 import org.lwjgl.util.msdfgen.MSDFGenTransform;
+import render.FontAtlasTexture;
 import utility.AssetReference;
+import utility.AssetsPool;
 import utility.PathResolver;
 
 import java.io.IOException;
@@ -21,44 +23,29 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
-import static org.lwjgl.opengl.GL30.glGenerateMipmap;
 import static org.lwjgl.system.MemoryUtil.*;
 import static org.lwjgl.util.freetype.FreeType.*;
 import static org.lwjgl.util.msdfgen.MSDFGen.*;
 import static org.lwjgl.util.msdfgen.MSDFGenExt.*;
 
-/**
- * <a href="https://github.com/LWJGL/lwjgl3/blob/master/modules/samples/src/test/java/org/lwjgl/demo/util/msdfgen/HelloMSDFGen.java">Will be replaced with lwjgl msdfgen binding</a>
- */
 public class TCBFont {
     private static final int MSDF_SIZE = 32;
     private static final double TRANSLATION = 0.125d;
     private int colorChannelCount;
-    private long ftFace;
-    private long ftLib;
-    private long msdfFTHandle;
-    private long fontHandle;
+    private long ftFace, ftLib, msdfFTHandle, fontHandle;
     private final Map<Character, MSDFGlyphData> glyphData = new HashMap<>();
+    private volatile ByteBuffer atlasData;
+    private final ByteBuffer fontData;
     private boolean msdfReady = false;
+    private final AtomicBoolean isLoaded = new AtomicBoolean(false);
 
     private final AssetReference assetReference;
-    private final int fontSizePixel;
     private final GlyphRange glyphRange;
+    private final int fontSizePixel;
     private int startChar;
     private int numGlyphs;
-
-    private transient int textureId;
-    private int atlasWidth;
-    private int atlasHeight;
-
+    private int atlasWidth, atlasHeight;
     private final Map<Character, CharInfo> characters = new HashMap<>();
-    private final AtomicBoolean isLoaded = new AtomicBoolean(false);
-    private final AtomicBoolean hasTexture = new AtomicBoolean(false);
-
-    private volatile ByteBuffer atlasData;
-    private volatile ByteBuffer fontData;
 
     public TCBFont(ByteBuffer fontBuffer, AssetReference assetReference, int fontSizePixel, GlyphRange glyphRange) {
         this.assetReference = assetReference;
@@ -335,6 +322,7 @@ public class TCBFont {
         }
 
         glyphData.clear();
+        FontManager.get().cacheFontAtlas(assetReference, glyphRange, atlasData);
     }
 
     private void copyGlyphToAtlas(ByteBuffer glyphData, int X, int Y) {
@@ -358,51 +346,15 @@ public class TCBFont {
         }
     }
 
-    public void createTexture() {
-        if (hasTexture.get() || atlasData == null) return;
-
-        int newTextureId = 0;
-
-        try {
-            newTextureId = glGenTextures();
-
-            IntBuffer previousTexture = BufferUtils.createIntBuffer(1);
-
-            glGetIntegerv(GL_TEXTURE_BINDING_2D, previousTexture);
-            glBindTexture(GL_TEXTURE_2D, newTextureId);
-
-            int format = colorChannelCount == 3 ? GL_RGB : GL_RED;
-            glTexImage2D(GL_TEXTURE_2D, 0, format, atlasWidth, atlasHeight, 0, format, GL_UNSIGNED_BYTE, atlasData);
-
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            glGenerateMipmap(GL_TEXTURE_2D);
-
-            glBindTexture(GL_TEXTURE_2D, previousTexture.get(0));
-
-            if (textureId != 0) glDeleteTextures(textureId);
-
-            textureId = newTextureId;
-            hasTexture.set(true);
-
-            atlasData = null;
-        } catch (Exception e) {
-            if (newTextureId != 0) {
-                glDeleteTextures(newTextureId);
-            }
-
-            throw e;
-        }
-    }
-
     public int getFontSizePixel() {
         return fontSizePixel;
     }
 
-    public int getTextureId() {
-        return textureId;
+    public int getTextureID() {
+        if (assetReference == null || assetReference.getCanonicalPath() == null) return -1;
+
+        FontAtlasTexture texture = AssetsPool.loadFontAtlasTexture(assetReference.getCanonicalPath(), glyphRange, atlasWidth, atlasHeight, colorChannelCount);
+        return texture.getID();
     }
 
     public int getAtlasWidth() {
@@ -421,7 +373,7 @@ public class TCBFont {
         return characters.getOrDefault(c, characters.get(' '));
     }
 
-    public String getFilepath() {
+    public String getCanonicalPath() {
         return assetReference != null ? assetReference.getCanonicalPath() : null;
     }
 
@@ -431,20 +383,5 @@ public class TCBFont {
 
     public boolean isLoaded() {
         return isLoaded.get();
-    }
-
-    public boolean waitingTexture() {
-        return isLoaded.get() && !hasTexture.get();
-    }
-
-    public void cleanup() {
-        if (hasTexture.get() && textureId != 0) {
-            glDeleteTextures(textureId);
-
-            textureId = 0;
-        }
-
-        atlasData = null;
-        fontData = null;
     }
 }
