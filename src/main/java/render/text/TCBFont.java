@@ -241,11 +241,12 @@ public class TCBFont {
             FT_GlyphSlot slot = face.glyph();
 
             float ft_float_factor = 64.0f;
-            float advance, bearingX, bearingY, height;
+            float advance, bearingX, bearingY, height, width;
             advance = slot.advance().x() / ft_float_factor;
             bearingX = slot.metrics().horiBearingX() / ft_float_factor;
             bearingY = slot.metrics().horiBearingY() / ft_float_factor;
             height = slot.metrics().height() / ft_float_factor;
+            width = slot.metrics().width() / ft_float_factor;
 
             check(msdf_shape_normalize(shape));
             check(msdf_shape_edge_colors_simple(shape, 3.0));
@@ -272,11 +273,11 @@ public class TCBFont {
             ));
             ByteBuffer pixels = getBitmapU8(stack, bitmap);
 
-            double leftOffset = (bearingX - marginPixel) / TEXTURE_SIZE_MULTIPLIER;
-            double bottomOffset = (height - bearingY - marginPixel) / TEXTURE_SIZE_MULTIPLIER;
+            double leftOffset = bearingX - marginPixel;
+            double bottomOffset = height - bearingY - marginPixel;
 
             MSDFGlyphData data = new MSDFGlyphData(
-                    pixels, advance / TEXTURE_SIZE_MULTIPLIER,
+                    pixels, advance,
                     leftOffset, bottomOffset
             );
             glyphData.put(ch, data);
@@ -317,7 +318,7 @@ public class TCBFont {
             double yOffset = data.bottomOffset();
 
             CharInfo charInfo = new CharInfo(x0, y0, x1, y1,
-                    xOffset, yOffset, data.advance(), fontSizePixel);
+                    xOffset, yOffset, data.advance(), fontSizePixel * TEXTURE_SIZE_MULTIPLIER);
             characters.put(ch, charInfo);
 
             gIndex++;
