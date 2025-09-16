@@ -23,7 +23,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.lwjgl.stb.STBImageWrite.stbi_write_png;
 import static org.lwjgl.system.MemoryUtil.*;
 import static org.lwjgl.util.freetype.FreeType.*;
 import static org.lwjgl.util.msdfgen.MSDFGen.*;
@@ -132,7 +131,6 @@ public class TCBFont {
         }
 
         createAtlas();
-        stbi_write_png("msdfgen.png", atlasWidth, atlasHeight, colorChannelCount, atlasData, 0);
     }
 
     private void generateCombinedRangeAtlas() {
@@ -278,7 +276,7 @@ public class TCBFont {
             double bottomOffset = (height - bearingY - marginPixel) / TEXTURE_SIZE_MULTIPLIER;
 
             MSDFGlyphData data = new MSDFGlyphData(
-                    pixels, advance,
+                    pixels, advance / TEXTURE_SIZE_MULTIPLIER,
                     leftOffset, bottomOffset
             );
             glyphData.put(ch, data);
@@ -290,11 +288,12 @@ public class TCBFont {
 
     private void createAtlas() {
         if (glyphData.isEmpty()) return;
-
+        int glyphPadding = 2;
+        int paddedBitmapSize = bitmapSize + glyphPadding * 2;
         int glyphCount = glyphData.size();
         int glyphsPerRow = (int) Math.ceil(Math.sqrt(glyphCount));
-        atlasWidth = glyphsPerRow * bitmapSize;
-        atlasHeight = ((glyphCount + glyphsPerRow - 1) / glyphsPerRow) * bitmapSize;
+        atlasWidth = glyphsPerRow * paddedBitmapSize;
+        atlasHeight = ((glyphCount + glyphsPerRow - 1) / glyphsPerRow) * paddedBitmapSize;
         atlasData = BufferUtils.createByteBuffer(atlasWidth * atlasHeight * colorChannelCount);
 
         int gIndex = 0;
@@ -304,8 +303,8 @@ public class TCBFont {
 
             int row = gIndex / glyphsPerRow;
             int col = gIndex % glyphsPerRow;
-            int X = col * bitmapSize;
-            int Y = row * bitmapSize;
+            int X = col * paddedBitmapSize + glyphPadding;
+            int Y = row * paddedBitmapSize + glyphPadding;
 
             copyGlyphToAtlas(data.pixelData(), X, Y);
             memFree(data.pixelData());
