@@ -111,6 +111,11 @@ public class ImGuiLayer {
         final ImFontAtlas fontAtlas = io.getFonts();
         final ImFontConfig fontConfig = new ImFontConfig();
         fontConfig.setPixelSnapH(true);
+        ImFontGlyphRangesBuilder glyphRangesBuilder = new ImFontGlyphRangesBuilder();
+        glyphRangesBuilder.addRanges(fontAtlas.getGlyphRangesDefault());
+        glyphRangesBuilder.addRanges(fontAtlas.getGlyphRangesVietnamese());
+        
+        fontConfig.setGlyphRanges(glyphRangesBuilder.buildRanges());
 
         // Get font data
         AssetReference assetReference = new AssetReference(Settings.PATH.NOTO_SANS_MONO);

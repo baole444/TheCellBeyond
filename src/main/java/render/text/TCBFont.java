@@ -27,6 +27,7 @@ import static org.lwjgl.system.MemoryUtil.*;
 import static org.lwjgl.util.freetype.FreeType.*;
 import static org.lwjgl.util.msdfgen.MSDFGen.*;
 import static org.lwjgl.util.msdfgen.MSDFGenExt.*;
+import static org.lwjgl.stb.STBImageWrite.*;
 
 public class TCBFont {
     private static final int MSDF_SIZE = 32;
@@ -241,12 +242,8 @@ public class TCBFont {
             FT_GlyphSlot slot = face.glyph();
 
             float ft_float_factor = 64.0f;
-            float advance, bearingX, bearingY, height, width;
+            float advance;
             advance = slot.advance().x() / ft_float_factor;
-            bearingX = slot.metrics().horiBearingX() / ft_float_factor;
-            bearingY = slot.metrics().horiBearingY() / ft_float_factor;
-            height = slot.metrics().height() / ft_float_factor;
-            width = slot.metrics().width() / ft_float_factor;
 
             check(msdf_shape_normalize(shape));
             check(msdf_shape_edge_colors_simple(shape, 3.0));
@@ -257,24 +254,23 @@ public class TCBFont {
             MSDFGenBounds bounds = MSDFGenBounds.calloc(stack);
             check(msdf_shape_bound(shape, bounds));
             double left = bounds.l();
-            double bottom = bounds.b();
-            int marginPixel = 2 * TEXTURE_SIZE_MULTIPLIER;
-            double margin = (double) marginPixel / bitmapSize;
+            int marginPixel = MSDF_SIZE / 2;
+            double margin = (double) marginPixel / MSDF_SIZE;
             check(msdf_generate_msdf(bitmap, shape, MSDFGenTransform.calloc(stack)
                     .scale(it -> it
                             .x(MSDF_SIZE)
                             .y(MSDF_SIZE))
                     .translation(it -> it
-                            .x(-(left - margin))
-                            .y(-(bottom - margin)))
+                            .x(- left + margin)
+                            .y(margin))
                     .distance_mapping(it -> it
                             .lower(-0.5 * TRANSLATION)
                             .upper(0.5 * TRANSLATION))
             ));
             ByteBuffer pixels = getBitmapU8(stack, bitmap);
 
-            double leftOffset = bearingX - marginPixel;
-            double bottomOffset = height - bearingY - marginPixel;
+            double leftOffset = left * MSDF_SIZE + (double) marginPixel / 2;
+            double bottomOffset = (double) marginPixel / 2;
 
             MSDFGlyphData data = new MSDFGlyphData(
                     pixels, advance,
