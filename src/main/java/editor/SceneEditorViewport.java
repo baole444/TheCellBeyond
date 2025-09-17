@@ -11,12 +11,15 @@ import imgui.ImVec2;
 import imgui.flag.ImGuiPopupFlags;
 import imgui.flag.ImGuiWindowFlags;
 import org.joml.Vector2f;
+import render.FrameBuffer;
 
 public class SceneEditorViewport {
     public static volatile String WINDOW_ID = "2D Scene###Editor_Scene_Viewport";
     private float leftX, rightX, topY, bottomY;
     private boolean isPlaying = false;
     private String currentSceneName = "New scene";
+    public transient float currentWidth;
+    public transient float currentHeight;
 
     public void imgui() {
         String sceneName = Window.getCurrentSceneName();
@@ -78,21 +81,29 @@ public class SceneEditorViewport {
                 MouseListener.getX() <= rightX &&
                 MouseListener.getY() >= bottomY &&
                 MouseListener.getY() <= topY;
-
     }
 
     private ImVec2 getMaxViewportSize() {
         ImVec2 winSize = ImGui.getContentRegionAvail();
-
+        FrameBuffer fb = Window.getFrameBuffer();
         float aspectRatio = Window.get().isRuntimeMode() ?
                 Project.getGameAspectRatio() :
-                (float) Window.getWidth() / Window.getHeight();
+                (float) fb.getWidth() / fb.getHeight();
 
         float usableWidth = winSize.x;
         float usableHeight = usableWidth / aspectRatio;
         if (usableHeight > winSize.y) {
             usableHeight = winSize.y;
             usableWidth = usableHeight * aspectRatio;
+        }
+
+        if (usableWidth != currentWidth || usableHeight != currentHeight) {
+            currentWidth = usableWidth;
+            currentHeight = usableHeight;
+        }
+
+        if (!Window.get().isRuntimeMode()) {
+            Window.getScene().viewport().adjustSceneScale(usableHeight);
         }
 
         return new ImVec2(usableWidth, usableHeight);

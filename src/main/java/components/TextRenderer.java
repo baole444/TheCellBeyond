@@ -1,9 +1,12 @@
 package components;
 
+import TheCellBeyond.Window;
 import editor.ImEditorGui;
 import imgui.ImGui;
 import org.joml.Vector2f;
+import org.joml.Vector3f;
 import org.joml.Vector4f;
+import render.DebugDraw;
 import render.text.*;
 import utility.AssetReference;
 import utility.PathResolver;
@@ -38,7 +41,7 @@ public class TextRenderer extends SpatialComponent implements FontStatusCallback
 
     public TextRenderer() {
         this.text = "Text renderer";
-        this.assetReference = new AssetReference(Settings.PATH.CONSOLA);
+        this.assetReference = new AssetReference(Settings.PATH.NOTO_SANS_MONO);
         this.point = 12;
         this.color = new Vector4f(1.0f, 1.0f, 1.0f, 1.0f);
     }
@@ -93,7 +96,7 @@ public class TextRenderer extends SpatialComponent implements FontStatusCallback
             return;
         }
 
-        float scaledFontSize = WorldUnit.pixelToWorld(font.getFontSize());
+        float scaledFontSize = WorldUnit.pixelToWorld(font.getFontSizePixel());
 
         float width = 0;
         float height;
@@ -138,7 +141,12 @@ public class TextRenderer extends SpatialComponent implements FontStatusCallback
                 || !glyphRangeName.equals(currentRequest.glyphRange().name())
         ) {
             requestLoadFont();
+            return;
         }
+
+        if (Window.get().isRuntimeMode()) return;
+        Vector2f pos = new Vector2f(getEffectiveTransform().position);
+        DebugDraw.addLine2(pos, new Vector2f(pos).add(textDimensions.x, 0), new Vector3f(0.8f, 0.2f, 0.2f), 1);
     }
 
     @Override

@@ -25,20 +25,7 @@ public class Batch implements Comparable<Batch> {
     // Vertices
     // |Position| |   Color  | |Coordinate| |TexID|
     // |  f, f  | |f, f, f, f| |   f, f   | |  f  |
-
-    private final int POS_SIZE = 2;
-    private final int COLOR_SIZE = 4;
-    private final int TEX_COORD_SIZE = 2;
-    private final int TEX_ID_SIZE = 1;
-    private final int OBJECT_ID_SIZE = 1;
-
-    private final int POS_OFFSET = 0;
-    private final int COLOR_OFFSET = POS_OFFSET + POS_SIZE *Float.BYTES;
-    private final int TEX_COORD_OFFSET = COLOR_OFFSET + COLOR_SIZE * Float.BYTES;
-    private final int TEX_ID_OFFSET = TEX_COORD_OFFSET + TEX_COORD_SIZE * Float.BYTES;
     private final int VERTEX_SIZE = 10;
-    private final int OBJECT_ID_OFFSET = TEX_ID_OFFSET + TEX_ID_SIZE * Float.BYTES;
-    private final int VERTEX_SIZE_BYTES = VERTEX_SIZE * Float.BYTES;
 
     private final SpriteRenderer[] sprites;
     private int countSprite;
@@ -100,20 +87,30 @@ public class Batch implements Comparable<Batch> {
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW);
 
         // Enable buffer attrib pointer
-
-        glVertexAttribPointer(0, POS_SIZE, GL_FLOAT, false, VERTEX_SIZE_BYTES, POS_OFFSET);
+        int vertexBytes = VERTEX_SIZE * Float.BYTES;
+        int positionOffset = 0;
+        int positionSize = 2;
+        glVertexAttribPointer(0, positionSize, GL_FLOAT, false, vertexBytes, positionOffset);
         glEnableVertexAttribArray(0);
 
-        glVertexAttribPointer(1, COLOR_SIZE, GL_FLOAT, false, VERTEX_SIZE_BYTES, COLOR_OFFSET);
+        int colorOffset = positionOffset + positionSize * Float.BYTES;
+        int colorSize = 4;
+        glVertexAttribPointer(1, colorSize, GL_FLOAT, false, vertexBytes, colorOffset);
         glEnableVertexAttribArray(1);
 
-        glVertexAttribPointer(2, TEX_COORD_SIZE, GL_FLOAT, false, VERTEX_SIZE_BYTES, TEX_COORD_OFFSET);
+        int textureCoordinateSize = 2;
+        int textureCoordinateOffset = colorOffset + colorSize * Float.BYTES;
+        glVertexAttribPointer(2, textureCoordinateSize, GL_FLOAT, false, vertexBytes, textureCoordinateOffset);
         glEnableVertexAttribArray(2);
 
-        glVertexAttribPointer(3, TEX_ID_SIZE, GL_FLOAT, false, VERTEX_SIZE_BYTES, TEX_ID_OFFSET);
+        int textureIdSize = 1;
+        int textureIdOffset = textureCoordinateOffset + textureCoordinateSize * Float.BYTES;
+        glVertexAttribPointer(3, textureIdSize, GL_FLOAT, false, vertexBytes, textureIdOffset);
         glEnableVertexAttribArray(3);
 
-        glVertexAttribPointer(4, OBJECT_ID_SIZE, GL_FLOAT, false, VERTEX_SIZE_BYTES, OBJECT_ID_OFFSET);
+        int OBJECT_ID_SIZE = 1;
+        int OBJECT_ID_OFFSET = textureIdOffset + textureIdSize * Float.BYTES;
+        glVertexAttribPointer(4, OBJECT_ID_SIZE, GL_FLOAT, false, vertexBytes, OBJECT_ID_OFFSET);
         glEnableVertexAttribArray(4);
     }
 
@@ -172,7 +169,7 @@ public class Batch implements Comparable<Batch> {
         }
 
         // Shader
-        Shader shader = RendererState.get().getCurrentShader();
+        Shader shader = RendererState.getCurrentShader();
         shader.use();
 
         // Set projection and view matrix
@@ -258,7 +255,6 @@ public class Batch implements Comparable<Batch> {
             transformMatrix.scale(worldSize.x * scale.x, worldSize.y * scale.y, 1.0f);
         }
 
-        // Load match vertex
         float xAdd = 0.5f;
         float yAdd = 0.5f;
         for (int i = 0; i < 4; i++) {
@@ -277,24 +273,15 @@ public class Batch implements Comparable<Batch> {
                 instPos = new Vector4f(xAdd, yAdd, 0, 1).mul(transformMatrix);
             }
 
-            // Load position
             target[offset] = instPos.x / instPos.w;
             target[offset + 1] = instPos.y / instPos.w;
-
-            // Load color
             target[offset + 2] = color.x;
             target[offset + 3] = color.y;
             target[offset + 4] = color.z;
             target[offset + 5] = color.w;
-
-            // Load coordinate
             target[offset + 6] = textureCoordinates[i].x;
             target[offset + 7] = textureCoordinates[i].y;
-
-            // Load id
             target[offset + 8] = ID;
-
-            // Load obj Id
             target[offset + 9] = spriteRenderer.gameObject.getUID();
 
             offset += VERTEX_SIZE;

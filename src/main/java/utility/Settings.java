@@ -8,8 +8,7 @@ public class Settings {
     public static int BOX_H = (int) (GRID_HEIGHT * 200);
 
     public static class PATH {
-        public static final String CONSOLA = "engine://assets/fonts/Consola.ttf";
-
+        public static final String NOTO_SANS_MONO = "engine://assets/fonts/NotoSansMono_Regular.ttf";
         public static final String DEFAULT_TEXTURE_SHADER = "engine://assets/shaders/defaultTexture.glsl";
         public static final String DEFAULT_FONT_SHADER = "engine://assets/shaders/defaultFont.glsl";
         public static final String OBJECT_SELECTION_SHADER = "engine://assets/shaders/objSelection.glsl";

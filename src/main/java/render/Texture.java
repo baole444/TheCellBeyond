@@ -27,10 +27,10 @@ public class Texture {
 
     public void init(String filepath) {
         assetReference = new AssetReference(filepath);
-        loadTextureDate();
+        loadTextureData();
     }
 
-    private void loadTextureDate() {
+    private void loadTextureData() {
         PathResolver resolver = PathResolver.get();
 
         try (InputStream stream = resolver.getAssetStream(assetReference.getResolvedPath())) {
@@ -121,10 +121,6 @@ public class Texture {
         return assetReference != null ? assetReference.getCanonicalPath() : null;
     }
 
-    public void setFilePath(String path) {
-        this.assetReference = new AssetReference(path);
-    }
-
     public void dispose() {
         if (handle == null) return;
         String canonicalPath = getCanonicalPath();
@@ -142,7 +138,7 @@ public class Texture {
     }
 
     private void checkInitialization() {
-        if (assetReference != null && handle == null) loadTextureDate();
+        if (assetReference != null && handle == null) loadTextureData();
     }
 
     public Texture copy() {
@@ -164,9 +160,7 @@ public class Texture {
             return this.handle.getHandleId() == objTex.handle.getHandleId();
         }
 
-        return objTex.getWidth() == this.getWidth() &&
-                objTex.getHeight() == this.getHeight() &&
-                Objects.equals(objTex.getCanonicalPath(), this.getCanonicalPath());
+        return false;
     }
 
     @Override

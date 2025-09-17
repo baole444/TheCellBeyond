@@ -4,6 +4,8 @@ import editor.project.Project;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
+import render.FrameBuffer;
+import utility.WorldUnit;
 
 public class Viewport {
     public Vector2f position;
@@ -12,7 +14,7 @@ public class Viewport {
     private final Matrix4f inverseProjectionMatrix;
     private final Matrix4f inverseViewMatrix;
 
-    private final float sceneScale = 5.0f;
+    private float sceneScale;
     private float aspectRatio;
     private Vector2f projectionSize;
     private float zoom = 1.0f;
@@ -27,10 +29,11 @@ public class Viewport {
         inverseViewMatrix = new Matrix4f();
 
         aspectRatio = (float) Window.getWidth() / Window.getHeight();
-
+        sceneScale = WorldUnit.pixelToWorld(Window.getHeight());
         if (Window.get().isRuntimeMode()) {
             isDynamic = false;
             aspectRatio = Window.getTargetAspectRatio();
+            sceneScale = WorldUnit.pixelToWorld(Project.preference().gameWindowHeight());
         }
 
         projectionSize = new Vector2f(aspectRatio * sceneScale, sceneScale);
@@ -54,6 +57,16 @@ public class Viewport {
 
     public void unlockAspectRatio() {
         isDynamic = true;
+    }
+
+    public void adjustSceneScale(float availHeight) {
+        FrameBuffer fb = Window.getFrameBuffer();
+        float fbHWorldUnit = WorldUnit.pixelToWorld(fb.getHeight());
+        float scale = availHeight / fb.getHeight();
+
+        sceneScale = fbHWorldUnit * scale;
+
+        projectionSize = new Vector2f(aspectRatio * sceneScale, sceneScale);
     }
 
     public void adjustProjection() {
@@ -107,5 +120,13 @@ public class Viewport {
 
     public void addZoom(float val) {
         this.zoom += val;
+    }
+
+    public float sceneScale() {
+        return sceneScale;
+    }
+
+    public boolean isDynamic() {
+        return isDynamic;
     }
 }

@@ -35,8 +35,8 @@ public class RendererState {
         }
     }
 
-    public RenderPass getCurrentPass() {
-        return currentPass;
+    public static RenderPass getCurrentPass() {
+        return get().currentPass;
     }
 
     public void setShader(Shader shader) {
@@ -52,8 +52,8 @@ public class RendererState {
         }
     }
 
-    public Shader getCurrentShader() {
-        return currentShader;
+    public static Shader getCurrentShader() {
+        return get().currentShader;
     }
 
     public void enableTextRendering() {
@@ -73,6 +73,14 @@ public class RendererState {
             instance.currentShader.detach();
             instance.currentShader = null;
         }
+    }
+
+    public static boolean isSelectionPass() {
+        return get().currentPass == RenderPass.SELECTION;
+    }
+
+    public static boolean isNormalPass() {
+        return get().currentPass == RenderPass.NORMAL;
     }
 
     public static void dispose() {

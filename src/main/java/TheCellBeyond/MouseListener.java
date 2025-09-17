@@ -43,8 +43,8 @@ public class MouseListener {
 
     public static void mousePosCallback(long window, double xpos, double ypos) {
         if (!startupMode && Window.getImGuiLayer() != null
-                && Window.getImGuiLayer().getGameViewPort() != null
-                && !Window.getImGuiLayer().getGameViewPort().getWantCaptureMouse()) {
+                && Window.getImGuiLayer().getSceneEditorViewPort() != null
+                && !Window.getImGuiLayer().getSceneEditorViewPort().getWantCaptureMouse()) {
             clear();
         }
 

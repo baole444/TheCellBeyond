@@ -352,20 +352,6 @@ public class Scene {
             for (GameObject obj : this.gameObjectByUUIDs.values()) {
                 if (obj.isSerialize() && Project.currentProject() != null && Project.projectRoot() != null && currentSceneName != null) {
                     obj.prepareForSerialization();
-
-                    if (obj.getFirstComponent(SpriteRenderer.class) != null) {
-                        PathResolver resolver = PathResolver.get();
-
-                        List<SpriteRenderer> sps = obj.getComponents(SpriteRenderer.class);
-
-                        for (SpriteRenderer sprite : sps) {
-                            if (sprite.getTexture() == null) continue;
-                            String texturePath = sprite.getTexture().getCanonicalPath();
-                            String canonicalPath = resolver.toCanonicalPath(texturePath);
-                            sprite.getTexture().setFilePath(canonicalPath);
-                        }
-                    }
-
                     serializeList.add(obj);
                 }
             }
@@ -408,17 +394,6 @@ public class Scene {
         if (!loadFile.isEmpty()) {
             GameObject[] objects = gson.fromJson(loadFile, GameObject[].class);
             for (GameObject go : objects) {
-                if (Project.currentProject() != null && Project.projectRoot() != null && currentSceneName != null) {
-                    if (go.getFirstComponent(SpriteRenderer.class) != null) {
-                        List<SpriteRenderer> spriteRenderers = go.getComponents(SpriteRenderer.class);
-                        for (SpriteRenderer sprite : spriteRenderers) {
-                            if (sprite.getTexture() == null) continue;
-                            String canonicalPath = sprite.getTexture().getCanonicalPath();
-                            sprite.getTexture().setFilePath(canonicalPath);
-                        }
-                    }
-                }
-
                 addObjToScene(go, null);
             }
 
