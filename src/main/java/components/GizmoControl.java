@@ -77,14 +77,14 @@ public class GizmoControl extends Component {
         }
 
         if (isGizUse == 0) {
-            gameObject.getFirstComponent(GizmoMove.class).setUse();
+            gameObject.getFirstComponent(GizmoMove.class).use();
 
-            gameObject.getFirstComponent(GizmoScale.class).setUnUse();
+            gameObject.getFirstComponent(GizmoScale.class).stopUse();
 
         } else if (isGizUse == 1) {
-            gameObject.getFirstComponent(GizmoMove.class).setUnUse();
+            gameObject.getFirstComponent(GizmoMove.class).stopUse();
 
-            gameObject.getFirstComponent(GizmoScale.class).setUse();
+            gameObject.getFirstComponent(GizmoScale.class).use();
         }
     }
 }

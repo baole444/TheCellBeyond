@@ -37,9 +37,7 @@ public class Properties {
     public void imgui() {
         ImGui.begin(WINDOW_ID, ImGuiWindowFlags.NoCollapse);
 
-        if (activeGameObjects.size() == 1 && activeGameObjects.getFirst() != null) {
-            activeGameObject = activeGameObjects.getFirst();
-        }
+        activeGameObject = getActiveGameObject();
 
         if (activeGameObject == null) {
             ImGui.beginDisabled();
@@ -105,19 +103,17 @@ public class Properties {
      * @return first element of {@link #activeGameObjects}.
      */
     public GameObject getActiveGameObject() {
-        if (activeGameObjects.size() == 1) {
-            return activeGameObjects.getFirst();
-        } else {
-            return null;
-        }
+        if (activeGameObjects.isEmpty()) return null;
+
+        return activeGameObjects.getFirst();
     }
 
     /**
      * Get all active game objects.
-     * @return reference to {@link  #activeGameObjects}
+     * @return reference to {@link #activeGameObjects}
      */
     public List<GameObject> getActiveGameObjects() {
-        return this.activeGameObjects;
+        return activeGameObjects;
     }
 
     public void setActiveGameObject(GameObject go) {
@@ -152,6 +148,7 @@ public class Properties {
                 }
             }
         }
+
         activeGameObjects.clear();
         activeObjTrueColor.clear();
     }

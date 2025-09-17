@@ -83,7 +83,7 @@ public final class Window implements EngineEventListener {
             currentScene.destroy();
         }
 
-        getImGuiLayer().loadProperties().setActiveGameObject(null);
+        getImGuiLayer().loadProperties().clearSelection();
 
         currentScene = new Scene(sceneInit);
         currentScene.loadLevel();

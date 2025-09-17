@@ -114,7 +114,7 @@ public class ImGuiLayer {
         ImFontGlyphRangesBuilder glyphRangesBuilder = new ImFontGlyphRangesBuilder();
         glyphRangesBuilder.addRanges(fontAtlas.getGlyphRangesDefault());
         glyphRangesBuilder.addRanges(fontAtlas.getGlyphRangesVietnamese());
-        
+
         fontConfig.setGlyphRanges(glyphRangesBuilder.buildRanges());
 
         // Get font data
