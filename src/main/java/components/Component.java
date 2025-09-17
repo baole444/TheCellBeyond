@@ -11,6 +11,8 @@ import java.util.UUID;
  * Component is an extension for a {@link GameObject} that it is mounted to.
  * Component does not participate in the hierarchy system and is local to its object.
  *
+ * <p>Common usages include adding rendering logic, physics behavior, or
+ * custom scripts.</p>
  */
 public abstract class Component {
     private String uuid;
@@ -60,26 +62,65 @@ public abstract class Component {
      */
     protected void additionalUpdateLogic(float dt) {}
 
+    /**
+     * Called when a collision starts with another object.
+     * Override to handle collision enter.
+     * @param targetObj the other object
+     * @param contact collision data
+     * @param hitNormalization collision normal vector
+     */
     public void startCollision(GameObject targetObj, Contact contact, Vector2f hitNormalization) {}
 
+    /**
+     * Called when a collision ends with another object.
+     * Override to handle collision exit.
+     */
     public void endCollision(GameObject targetObj, Contact contact, Vector2f hitNormalization) {}
 
+     /**
+     * Called before the physics solver resolves a collision.
+     * Override to adjust or cancel collision behavior.
+     */
     public void preSolve(GameObject targetObj, Contact contact, Vector2f hitNormalization) {}
 
+    /**
+     * Called after the physics solver resolves a collision.
+     * Override to react to collision results.
+     */
     public void postSolve(GameObject targetObj, Contact contact, Vector2f hitNormalization) {}
 
+    /**
+     * Called when this component is destroyed.
+     * Override to clean up resources.
+     */
     public void destroy() {}
 
+    /**
+     * Finds a sibling component of the same GameObject.
+     * @param componentClass the class of the component
+     * @return the first matching component, or null if not found
+     */
     public <T extends Component> T getSibling(Class<T> componentClass) {
         if (gameObject == null) return null;
         return gameObject.getFirstComponent(componentClass);
     }
 
+    /**
+     * Finds a component from the parent GameObject.
+     * @param componentClass the class of the component
+     * @return the first matching component, or null if not found or no parent exists
+     */
     public <T extends Component> T getFromParent(Class<T> componentClass) {
         if (gameObject == null || gameObject.getParent() == null) return null;
         return gameObject.getParent().getFirstComponent(componentClass);
     }
 
+    /**
+     * Finds a component from a named child GameObject.
+     * @param childName the name of the child
+     * @param componentClass the class of the component
+     * @return the first matching component, or null if not found
+     */
     public <T extends Component> T getFromChild(String childName, Class<T> componentClass) {
         if (gameObject == null) return null;
         GameObject child = gameObject.getChild(childName);
@@ -87,12 +128,22 @@ public abstract class Component {
         return child.getFirstComponent(componentClass);
     }
 
+     /**
+     * Finds a component by its name in the root GameObject hierarchy.
+     * @param name the component name
+     * @return the matching component, or null if not found
+     */
     public Component findComponentByName(String name) {
         if (gameObject == null) return null;
         GameObject root = gameObject.getRoot();
         return root.findComponentByName(name);
     }
 
+    /**
+     * Finds a component by its path.
+     * @param path the path string
+     * @return the matching component, or null if not found
+     */
     public Component getComponentByPath(String path) {
         if (gameObject == null || path == null) return null;
         return gameObject.resolveComponentPath(path);
@@ -134,6 +185,10 @@ public abstract class Component {
         return componentName;
     }
 
+    /**
+     * Sets the name of this component and notifies the owning GameObject.
+     * @param name new component name
+     */
     public void setComponentName(String name) {
         componentName = name;
         if (gameObject != null) {

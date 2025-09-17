@@ -49,7 +49,7 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
         if (animation == currentAnimation) currentAnimation = null;
     }
 
-        /**
+    /**
      * Sets the frame rate (FPS) of the animation with the given name.
      *
      * <p>If the animation does not exist, this method does nothing.

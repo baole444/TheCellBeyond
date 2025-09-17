@@ -4,6 +4,14 @@ import com.google.gson.*;
 
 import java.lang.reflect.Type;
 
+/**
+ * A custom serializer and deserializer for {@link Component} objects,
+ * enabling conversion between {@link Component} instances and their JSON representation.
+ * <p>
+ * This class integrates with Gson to support saving and loading {@code Component}
+ * subclasses by embedding type information, UUID, and component name into JSON.
+ * </p>
+ */
 public class ComponentSerializer implements JsonSerializer<Component>,
         JsonDeserializer<Component> {
 
