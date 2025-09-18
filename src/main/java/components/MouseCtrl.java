@@ -2,6 +2,7 @@ package components;
 
 import TheCellBeyond.*;
 import editor.Properties;
+import editor.SceneTree;
 import imgui.ImGui;
 import org.joml.Math;
 import org.joml.Vector2f;
@@ -89,8 +90,7 @@ public class MouseCtrl extends Component implements NotSerializeComponent {
     @Override
     public void editorUpdate(float dt) {
         clickInit -= dt;
-        Properties properties = Window.getImGuiLayer().loadProperties();
-        ObjectSelection objectSelection = properties.getObjectSelection();
+        ObjectSelection objectSelection = Window.getObjectSelection();
         Scene currentScene = Window.getScene();
         boolean imguiWantMouseCapture = ImGui.getIO().getWantCaptureMouse();
 
@@ -163,15 +163,17 @@ public class MouseCtrl extends Component implements NotSerializeComponent {
 
             // Excluding the gizmo
             if (selectedObj != null && selectedObj.getFirstComponent(IsNotSelectable.class) == null) {
-                properties.setActiveGameObject(selectedObj);
+                Properties.setActiveGameObject(selectedObj);
             } else if (selectedObj == null && !MouseListener.isDragging()) {
-                properties.clearSelection();
+                Properties.clearSelection();
+                SceneTree.clearSelection();
             }
 
             this.clickInit = clickResetTime;
         } else if (MouseListener.isDragging() && MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_LEFT)) {
             if (!isBoxSelectionInit) {
-                properties.clearSelection();
+                Properties.clearSelection();
+                SceneTree.clearSelection();
                 boxSelectionBegin = MouseListener.getScreen();
                 isBoxSelectionInit = true;
             }
@@ -229,15 +231,13 @@ public class MouseCtrl extends Component implements NotSerializeComponent {
 
                 GameObject selectedObj = Window.getScene().getGameObject(objId);
                 if (selectedObj != null && selectedObj.getFirstComponent(IsNotSelectable.class) == null) {
-                    properties.addActiveGameObject(selectedObj);
+                    Properties.addActiveGameObject(selectedObj);
                 }
             }
         }
     }
 
     private boolean isGridSquareOccupied(float x, float y) {
-        Properties properties = Window.getImGuiLayer().loadProperties();
-
         Vector2f begin = new Vector2f(x, y);
         Vector2f end = new Vector2f(begin).add(
                 new Vector2f(Settings.GRID_WIDTH, Settings.GRID_HEIGHT)
@@ -250,7 +250,7 @@ public class MouseCtrl extends Component implements NotSerializeComponent {
         Vector2i beginScr = new Vector2i((int)(beginScrFloat.x) + 2, (int)(beginScrFloat.y) + 2);
         Vector2i endScr = new Vector2i((int)(endScrFloat.x) - 2, (int)(endScrFloat.y) - 2);
 
-        float[] gameObjIds = properties.getObjectSelection().checkPixelsIn(beginScr, endScr);
+        float[] gameObjIds = Window.getObjectSelection().checkPixelsIn(beginScr, endScr);
 
         for (float gameObjId : gameObjIds) {
             if (gameObjId <= 0) continue;

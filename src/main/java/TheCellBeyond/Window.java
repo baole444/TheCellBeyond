@@ -1,6 +1,8 @@
 package TheCellBeyond;
 
 import editor.ImGuiLayer;
+import editor.Properties;
+import editor.SceneTree;
 import editor.StartUpWindow;
 import editor.preference.RecentProject;
 import editor.preference.UserPreference;
@@ -83,7 +85,8 @@ public final class Window implements EngineEventListener {
             currentScene.destroy();
         }
 
-        getImGuiLayer().loadProperties().clearSelection();
+        Properties.clearSelection();
+        SceneTree.clearSelection();
 
         currentScene = new Scene(sceneInit);
         currentScene.loadLevel();
@@ -240,7 +243,7 @@ public final class Window implements EngineEventListener {
 
         glViewport(0, 0, width, height);
 
-        imGuiLayer = new ImGuiLayer(windowPtr, objectSelection);
+        imGuiLayer = new ImGuiLayer(windowPtr);
         imGuiLayer.initImGui(glslVer);
 
         glfwMaximizeWindow(windowPtr);

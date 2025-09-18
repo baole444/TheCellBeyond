@@ -36,21 +36,19 @@ public class Gizmo extends SpatialComponent implements NotSerializeComponent {
     private final GameObject2D yAxisObj;
     private final SpriteRenderer xAxisSpr;
     private final SpriteRenderer yAxisSpr;
-    private final Properties properties;
 
     private transient final Vector2f gizmoWorldPos = new Vector2f();
 
     // Create Gizmo, position, and color.
     // Mark Gizmo arrow is not a selectable object.
     // Push gizmo to the scene.
-    public Gizmo(String type, Sprite arrowSprite, Properties properties) {
+    public Gizmo(String type, Sprite arrowSprite) {
         xAxisObj = createGizmoObject(type + "gizmoX", arrowSprite);
         yAxisObj = createGizmoObject(type + "gizmoY", arrowSprite);
         xAxisObj.rotate(90);
         yAxisObj.rotate(180);
         xAxisSpr = xAxisObj.getFirstComponent(SpriteRenderer.class);
         yAxisSpr = yAxisObj.getFirstComponent(SpriteRenderer.class);
-        this.properties = properties;
 
         Window.getScene().queueForObjectAddition(xAxisObj);
         Window.getScene().queueForObjectAddition(yAxisObj);
@@ -82,7 +80,7 @@ public class Gizmo extends SpatialComponent implements NotSerializeComponent {
         if (!isUsed) return;
 
         // Update onscreen active object.
-        activeGameObj = properties.getActiveGameObject();
+        activeGameObj = Properties.getActiveGameObject();
         if (activeGameObj == null) {
             setInactive();
             return;

@@ -10,10 +10,9 @@ import render.texture.Sprite;
  * Gizmo used for scaling an object in the editor
  */
 public class GizmoScale extends Gizmo{
-    private final float scaleStep = 0.1f;
 
-    public GizmoScale(Sprite boxSprite, Properties properties) {
-        super("scale_", boxSprite, properties);
+    public GizmoScale(Sprite boxSprite) {
+        super("scale_", boxSprite);
     }
 
     @Override
@@ -22,6 +21,7 @@ public class GizmoScale extends Gizmo{
             Vector2f cursorT = MouseListener.getCursorTraverse();
             Vector2f currentScale = go2D.getOffsetScale();
 
+            float scaleStep = 0.1f;
             if (xActiveDrag && !yActiveDrag) {
                 float scaleX = currentScale.x - (cursorT.x * scaleStep);
                 scaleX = Math.max(scaleX, 0.01f);

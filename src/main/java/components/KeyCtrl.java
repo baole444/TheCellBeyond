@@ -25,9 +25,8 @@ import static org.lwjgl.glfw.GLFW.*;
 public class KeyCtrl extends Component implements NotSerializeComponent {
     @Override
     public void editorUpdate(float dt) {
-        Properties properties = Window.getImGuiLayer().loadProperties();
-        GameObject activeGameObj = properties.getActiveGameObject();
-        List<GameObject> activeObjList = properties.getActiveGameObjects();
+        GameObject activeGameObj = Properties.getActiveGameObject();
+        List<GameObject> activeObjList = Properties.getActiveGameObjects();
 
 
         if (KeyListener.isKeyTapped(GLFW_KEY_D, GLFW_MOD_CONTROL) && activeGameObj != null) {
@@ -39,11 +38,11 @@ public class KeyCtrl extends Component implements NotSerializeComponent {
                 currentPos.add(Settings.GRID_WIDTH / 2.0f, Settings.GRID_HEIGHT / 2.0f);
             }
 
-            properties.setActiveGameObject(newObj);
+            Properties.setActiveGameObject(newObj);
         } else if (KeyListener.isKeyTapped(GLFW_KEY_D, GLFW_MOD_CONTROL) && activeObjList.size() > 1) {
             List<GameObject> gameObjects = new ArrayList<>(activeObjList);
-            List<List<Vector4f>> trueColors = properties.getActiveObjTrueColor();
-            properties.clearSelection();
+            List<List<Vector4f>> trueColors = Properties.getActiveObjTrueColor();
+            Properties.clearSelection();
 
             for (int i = 0; i < gameObjects.size(); i++) {
                 GameObject go = gameObjects.get(i);
@@ -56,14 +55,14 @@ public class KeyCtrl extends Component implements NotSerializeComponent {
                 }
 
                 Window.getScene().queueForObjectAddition(copy);
-                properties.addActiveGameObject(copy);
+                Properties.addActiveGameObject(copy);
             }
         } else if (KeyListener.isKeyPressed(GLFW_KEY_DELETE)) {
             for (GameObject go : activeObjList) {
                 go.destroy();
             }
 
-            properties.clearSelection();
+            Properties.clearSelection();
         }
 
         // Make keybinding of Shift + S = scale | Shift + T = translate
