@@ -49,6 +49,7 @@ public class SceneEditor extends SceneInit {
 
         levelEditorObject = new GameObject("EditorObject");
         levelEditorObject.setNotSerialize();
+        levelEditorObject.addComponent(new IsNotSelectable());
         levelEditorObject.addComponent(new Transform());
         levelEditorObject.addComponent(new MouseCtrl());
         levelEditorObject.addComponent(new KeyCtrl());

@@ -155,7 +155,7 @@ public final class Window implements EngineEventListener {
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
         glfwWindowHint(GLFW_MAXIMIZED, GLFW_FALSE);
-        //glfwWindowHint(GLFW_DECORATED, 0);
+
 
         // Spawn window
         windowPtr = glfwCreateWindow(width, height, title, NULL, NULL);
@@ -164,7 +164,6 @@ public final class Window implements EngineEventListener {
             System.out.println("Failed to spawn window.");
             System.exit(-1);
         }
-
         glfwSetWindowSizeCallback(windowPtr, (window, w, h) -> {
             if (w <= 0 || h <= 0) return;
 
@@ -244,7 +243,8 @@ public final class Window implements EngineEventListener {
         imGuiLayer = new ImGuiLayer(windowPtr, objectSelection);
         imGuiLayer.initImGui(glslVer);
 
-        //Set Icon
+        glfwMaximizeWindow(windowPtr);
+
         if (iconFile != null) {
             GLFWImage icon = GLFWImage.malloc();
             GLFWImage.Buffer bufferIcon = GLFWImage.malloc(1);
@@ -255,9 +255,8 @@ public final class Window implements EngineEventListener {
 
         projectLoaded = (Project.currentProject() != null && Project.projectRoot() != null);
 
-        if (projectLoaded) {
-            Window.changeScene(new SceneEditor());
-        }
+        if (projectLoaded) Window.changeScene(new SceneEditor());
+
     }
 
     /**

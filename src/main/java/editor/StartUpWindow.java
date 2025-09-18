@@ -96,7 +96,7 @@ public class StartUpWindow{
         ImVec2 remainTableSize = ImGui.getContentRegionAvail();
 
         if (!ImGui.beginTable(TABLE_ID, 2, ImGuiTableFlags.NoBordersInBody | ImGuiTableFlags.SizingStretchProp, remainTableSize)) {
-            ImGui.endTable();
+            ImGui.endChild();
             return;
         }
 
