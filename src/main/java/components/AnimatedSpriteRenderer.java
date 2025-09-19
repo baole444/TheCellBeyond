@@ -1,5 +1,8 @@
 package components;
 
+import editor.SpriteFrameEditor;
+import imgui.ImGui;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -76,5 +79,16 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
         if (!play || currentAnimation == null) return;
         currentAnimation.update(dt);
         setSprite(currentAnimation.currentFrame().sprite);
+    }
+
+    @Override
+    public void imgui() {
+        if (ImGui.isItemClicked()) SpriteFrameEditor.selectedAnimatedSpriteRenderer = this;
+        super.imgui();
+    }
+
+    @Override
+    protected void additionalImGuiLogic() {
+        ImGui.textWrapped("Extra control later");
     }
 }

@@ -46,42 +46,27 @@ public class MouseCtrl extends Component implements NotSerializeComponent {
     private Vector2f boxSelectionEnd = new Vector2f();
 
     public void pickObj(GameObject obj) {
-        if (holdObj != null) {
-            // Use to prevent placing an old object at the edge of viewport
-            // When selecting new sprite to place.
-            holdObj.destroy();
-        }
+        if (holdObj != null) holdObj.destroy();
         holdObj = obj;
 
         for (SpriteRenderer sprite : holdObj.getComponents(SpriteRenderer.class)) {
             sprite.setColor(pickUpColor);
         }
-
-        this.holdObj.addComponent(new IsNotSelectable());
-
-        // A fake object uses to illustrate targeted position (a preview).
-        // It should not be savable ore appeared on the object grouping scene.
-        this.holdObj.setNotSerialize();
+        holdObj.addComponent(new IsNotSelectable());
+        holdObj.setNotSerialize();
 
         Window.getScene().queueForObjectAddition(obj);
     }
 
     public void placeObj() {
         GameObject newObj;
-        if (holdObj.getChildrenUUIDs() == null) {
-              newObj = holdObj.copy();
-        } else {
-            newObj = holdObj.copy(true);
-        }
+        newObj = holdObj.copy(true);
 
         for (SpriteRenderer sprite : newObj.getComponents(SpriteRenderer.class)) {
             sprite.setColor(resetColor);
         }
 
         newObj.removeComponents(IsNotSelectable.class);
-
-        // Make a placed object savable as it is now a real object.
-        // A real object should be added to the object grouping scene.
         newObj.setSerialize(true);
 
         Window.getScene().queueForObjectAddition(newObj);
@@ -116,43 +101,25 @@ public class MouseCtrl extends Component implements NotSerializeComponent {
                 }
             }
 
-            // When click released, place the object.
             if (MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_LEFT)) {
                 float halfWidth = Settings.GRID_WIDTH / 2.0f;
                 float halfHeight = Settings.GRID_HEIGHT / 2.0f;
 
-                if (MouseListener.isDragging() &&
-                        !isGridSquareOccupied(targetPos.x - halfWidth, targetPos.y - halfHeight)) {
-
-                    // Disable mouse register if performing dragging and placing.
-                    // This is to prevent placing an additional object by check [1].
-                    if (mouseButtonHeld) {
-                        mouseButtonHeld = false;
-                    }
+                if (MouseListener.isDragging() && !isGridSquareOccupied(targetPos.x - halfWidth, targetPos.y - halfHeight)) {
+                    if (mouseButtonHeld) mouseButtonHeld = false;
                     placeObj();
                 } else if (!MouseListener.isDragging() && clickInit < 0) {
-                    // Set click register state to true.
                     mouseButtonHeld = true;
-
-                    // When clicking but not dragging will place the object only once.
                     clickInit = clickResetTime;
                 }
-
-            }
-            // [1]
-            // Place an object when the mouse button is released.
-            // The Object is placed on the next frame.
-            else if (!MouseListener.isDragging() && !MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_LEFT) && mouseButtonHeld) {
+            } else if (!MouseListener.isDragging() && !MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_LEFT) && mouseButtonHeld) {
                 placeObj();
-
-                // Reset click register state.
                 mouseButtonHeld = false;
             }
 
-            // Remove the current selected object to be place from the scene.
             if (KeyListener.isKeyPressed(GLFW_KEY_ESCAPE)) {
-                this.holdObj.destroy();
-                this.holdObj = null;
+                holdObj.destroy();
+                holdObj = null;
             }
         } else if (!MouseListener.isDragging() && MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_LEFT) && clickInit < 0) {
             int x = (int) MouseListener.getScreenX();
@@ -161,7 +128,6 @@ public class MouseCtrl extends Component implements NotSerializeComponent {
             int gObjectId = objectSelection.checkPixelAt(x, y);
             GameObject selectedObj = currentScene.getGameObject(gObjectId);
 
-            // Excluding the gizmo
             if (selectedObj != null && selectedObj.getFirstComponent(IsNotSelectable.class) == null) {
                 Properties.setActiveGameObject(selectedObj);
             } else if (selectedObj == null && !MouseListener.isDragging()) {

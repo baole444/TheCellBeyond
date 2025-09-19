@@ -9,7 +9,6 @@ public class SpriteFrameEditor {
     public static AnimatedSpriteRenderer selectedAnimatedSpriteRenderer;
     private static final float animationListXPercentage = 0.25f;
     private static final float CONTROL_RESERVE = ImGui.getFrameHeightWithSpacing();
-    private static final float SEPARATOR_RESERVE = ImGui.getStyle().getItemSpacingY();
     private static final float padding = 4.0f;
 
     static void imgui() {
@@ -24,11 +23,16 @@ public class SpriteFrameEditor {
         ImGui.tableSetupColumn("##AnimationFrames_Column", ImGuiTableColumnFlags.WidthStretch);
 
         ImGui.tableNextColumn();
-        ImGui.beginChild("##AnimationList", ImGui.getContentRegionAvail(), true);
-        ImGui.textWrapped("This hold list of animation");
-        ImGui.endChild();
+        if (ImGui.beginChild("##AnimationList", ImGui.getContentRegionAvail(), true)) {
+            ImGui.textWrapped("This hold list of animation");
+            ImGui.endChild();
+        }
+
         ImGui.tableNextColumn();
-        ImGui.textWrapped("Sprite frames go here");
+        if (ImGui.beginChild("##AnimationFrames", ImGui.getContentRegionAvail(), true)) {
+            ImGui.textWrapped("This hold frames of animation");
+            ImGui.endChild();
+        }
 
         ImGui.endTable();
     }

@@ -249,13 +249,12 @@ public class GameObject2D extends GameObject {
     @Override
     public void imgui() {
         super.imgui();
-        ImGui.separator();
-        ImGui.text("Transform");
+        ImGui.spacing();
+        ImGui.text("Position");
         Transform editing = new Transform(localTransform);
         localTransform.imgui();
         if (!editing.equals(localTransform)) {
             setTransformDirty();
         }
-        ImGui.separator();
     }
 }

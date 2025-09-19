@@ -2,6 +2,7 @@ package editor.dialog;
 
 import TheCellBeyond.GameObject;
 import TheCellBeyond.Window;
+import components.AnimatedSpriteRenderer;
 import components.Component;
 import components.SpriteRenderer;
 import components.TextRenderer;
@@ -28,8 +29,9 @@ public class AddComponentDialog {
     // TODO: Need to come up with better solution in the future
     //  to be able to register potential user's custom component type.
     private enum ComponentType {
-        SpriteRenderer("SpriteRenderer", "Allow addition of a sprite for rendering to an object."),
-        TextRenderer("TextRenderer", "Allow addition of texts for rendering to an object");
+        Sprite("Sprite", "Allow addition of a sprite for rendering to an object."),
+        AnimatedSprite("AnimatedSprite", "Allow addition of sprite-based animations for rendering to an object."),
+        Text("Text", "Allow addition of texts for rendering to an object");
 
         private final String displayLabel;
         private final String description;
@@ -129,8 +131,9 @@ public class AddComponentDialog {
 
         Component c;
         switch (type) {
-            case SpriteRenderer -> c = new SpriteRenderer();
-            case TextRenderer -> c = new TextRenderer();
+            case Sprite -> c = new SpriteRenderer();
+            case AnimatedSprite -> c = new AnimatedSpriteRenderer();
+            case Text -> c = new TextRenderer();
             default -> c = null;
         }
 

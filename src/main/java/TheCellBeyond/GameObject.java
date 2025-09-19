@@ -7,6 +7,8 @@ import components.Component;
 import components.NotSerializeComponent;
 import editor.ImEditorGui;
 import imgui.ImGui;
+import imgui.ImVec2;
+import imgui.flag.ImGuiCol;
 import scene.Scene;
 import utility.IdPool;
 
@@ -331,12 +333,43 @@ public class GameObject {
     public void imgui() {
         name = ImEditorGui.inputText("Name", name, this);
         additionalImGuiLogic();
-
+        ImGui.separator();
+        ImGui.text("Components");
+        float xWidth = ImGui.calcTextSizeX("  X  ");
+        float availX = ImGui.getContentRegionAvailX();
+        float offset = availX - xWidth;
         for (Component c: components) {
             if (c instanceof NotSerializeComponent) continue;
+            ImVec2 currentPos = ImGui.getCursorPos();
+            boolean open;
             String label = c.getClass().getSimpleName() + "###" + c.getUUID();
-            if (ImGui.collapsingHeader(label)) c.imgui();
+            ImGui.setNextItemAllowOverlap();
+            ImGui.pushStyleColor(ImGuiCol.Header, 0.0f, 0.0f, 0.0f, 0.0f);
+            open = (ImGui.collapsingHeader(label));
+            ImGui.popStyleColor(1);
+
+            ImGui.setCursorPos(currentPos.x + offset, currentPos.y);
+            ImGui.pushStyleColor(ImGuiCol.Button, 0.7f, 0.2f, 0.2f, 1.0f);
+            ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.8f, 0.3f, 0.3f, 1.0f);
+            ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0.7f, 0.2f, 0.2f, 1.0f);
+
+            if (ImGui.button("X##" + "Remove_" + c.getUUID(), xWidth, 0.0f)) removeComponent(c);
+            ImGui.popStyleColor(3);
+
+            if (ImGui.isItemHovered()) {
+                ImGui.beginTooltip();
+                ImGui.text("Delete component");
+                ImGui.endTooltip();
+            }
+
+            if (open) {
+                ImGui.separator();
+                c.imgui();
+                ImGui.separator();
+            }
         }
+
+        ImGui.spacing();
     }
 
     protected void additionalImGuiLogic() {}
@@ -344,9 +377,7 @@ public class GameObject {
     public void destroy() {
         this.isRemoved = true;
 
-        if (parent != null) {
-            parent.removeChild(this);
-        }
+        if (parent != null) parent.removeChild(this);
 
         List<GameObject> childrenCopy = new ArrayList<>(children);
 
@@ -372,13 +403,14 @@ public class GameObject {
     public GameObject copy(boolean copyHierarchy) {
         GameObject copy = copySingleObject();
 
-        if (copyHierarchy && !children.isEmpty()) copyDescendants(this, copy);
+        boolean isChildrenEmpty = children.isEmpty() && (childrenUUIDs == null || childrenUUIDs.isEmpty());
+        if (copyHierarchy && !isChildrenEmpty) copyDescendants(this, copy);
 
         return copy;
     }
 
     public boolean isRemoved() {
-        return this.isRemoved;
+        return isRemoved;
     }
 
     public int getUID() {
@@ -393,7 +425,7 @@ public class GameObject {
     }
 
     public String getUUID() {
-        return this.uuid;
+        return uuid;
     }
 
     public void setUUID(String uuid) {
@@ -401,35 +433,35 @@ public class GameObject {
     }
 
     public List<Component> getComponents() {
-        return this.components;
+        return components;
     }
 
     public void setNotSerialize() {
-        this.isSerialize = false;
+        isSerialize = false;
     }
 
     public void setSerialize(boolean isSerialized) {
-        this.isSerialize = isSerialized;
+        isSerialize = isSerialized;
     }
 
     public boolean isSerialize() {
-        return this.isSerialize;
+        return isSerialize;
     }
 
     public GameObject getParent() {
-        return this.parent;
+        return parent;
     }
 
     public String getParentUUID() {
-        return this.parentUUID;
+        return parentUUID;
     }
 
     public void setParentUUID(String uuid) {
-        this.parentUUID = uuid;
+        parentUUID = uuid;
     }
 
     public Set<GameObject> getChildren() {
-        return this.children;
+        return children;
     }
 
     public List<String> getChildrenUUIDs() {
@@ -450,25 +482,21 @@ public class GameObject {
     }
 
     public void restoreHierarchy(Scene scene) {
-        // Parent relationship
         if (parentUUID != null && isParentNotValid()) {
             GameObject parentGO = scene.getGameObject(parentUUID);
             if (parentGO != null) {
-                this.parent = parentGO;
+                parent = parentGO;
                 parentGO.children.add(this);
             }
         }
 
-        // Children relationships
-        if (childrenUUIDs != null) {
-            children.clear();
-            for (String childUUID : childrenUUIDs) {
-                GameObject childGO = scene.getGameObject(childUUID);
-                if (childGO != null) {
-                    children.add(childGO);
-                    if (childGO.isParentNotValid()) childGO.parent = this;
-                }
-            }
+        if (childrenUUIDs == null) return;
+        children.clear();
+        for (String childUUID : childrenUUIDs) {
+            GameObject childGO = scene.getGameObject(childUUID);
+            if (childGO == null) continue;
+            children.add(childGO);
+            if (childGO.isParentNotValid()) childGO.parent = this;
         }
     }
 
@@ -500,9 +528,8 @@ public class GameObject {
 
         for (Component c : obj.getComponents()) {
             c.setUUID(UUID.randomUUID().toString());
-            if (c.getComponentName() != null && !c.getComponentName().isEmpty()) {
-                obj.namedComponents.put(c.getComponentName(), c);
-            }
+            if (c.getComponentName() == null || c.getComponentName().isEmpty()) continue;
+            obj.namedComponents.put(c.getComponentName(), c);
         }
 
         return obj;
