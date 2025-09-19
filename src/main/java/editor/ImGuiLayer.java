@@ -21,6 +21,7 @@ import utility.Settings;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
@@ -34,8 +35,8 @@ public class ImGuiLayer {
     private final long windowPtr;
     private final SceneEditorViewport sceneEditorViewport;
     private ImGuiIO io;
-
     private static boolean resetLayout = false;
+    private static final AtomicBoolean wantedCaptureMouse = new AtomicBoolean(false);
 
     public ImGuiLayer(long windowPtr) {
         this.sceneEditorViewport = new SceneEditorViewport();
@@ -152,6 +153,8 @@ public class ImGuiLayer {
         glClearColor(0, 0,0,1);
         glClear(GL_COLOR_BUFFER_BIT);
 
+        wantedCaptureMouse.set(io.getWantCaptureMouse());
+
         ImGui.render();
         imGuiGl3.renderDrawData(ImGui.getDrawData());
 
@@ -204,5 +207,9 @@ public class ImGuiLayer {
 
     public static void resetLayout() {
         resetLayout = true;
+    }
+
+    public static boolean getWantedCaptureMouse() {
+        return wantedCaptureMouse.get();
     }
 }

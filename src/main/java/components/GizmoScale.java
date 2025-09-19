@@ -10,7 +10,6 @@ import render.texture.Sprite;
  * Gizmo used for scaling an object in the editor
  */
 public class GizmoScale extends Gizmo{
-
     public GizmoScale(Sprite boxSprite) {
         super("scale_", boxSprite);
     }

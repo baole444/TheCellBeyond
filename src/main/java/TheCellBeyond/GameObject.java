@@ -21,7 +21,7 @@ public class GameObject {
     private static final IdPool idCounter = new IdPool(1, true);
 
     // This is auto managed for shader compatibility, not serialized
-    private transient int cachedID = -1;
+    private transient int cachedID;
 
     // TODO: refactor this to use UUID class
     private String uuid;

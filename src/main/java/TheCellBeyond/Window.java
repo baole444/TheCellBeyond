@@ -181,7 +181,7 @@ public final class Window implements EngineEventListener {
             glViewport(0, 0, width, height);
         });
 
-        glfwSetCursorPosCallback(windowPtr, MouseListener::mousePosCallback); // :: is java syntax lambda function
+        glfwSetCursorPosCallback(windowPtr, MouseListener::mousePosCallback);
         glfwSetMouseButtonCallback(windowPtr, MouseListener::mouseButtonCallback);
         glfwSetScrollCallback(windowPtr, MouseListener::mouseScrollCallback);
         glfwSetKeyCallback(windowPtr, KeyListener::keyCallback);
@@ -208,16 +208,9 @@ public final class Window implements EngineEventListener {
             }
         });
 
-        // OpenGL context current
         glfwMakeContextCurrent(windowPtr);
-
-        //V-sync yes
         glfwSwapInterval(1);
-
-        //Make window visible
         glfwShowWindow(windowPtr);
-
-        // Init sound
         String defaultAudioDevice = alcGetString(0, ALC_DEFAULT_DEVICE_SPECIFIER);
         audioDevice = alcOpenDevice(defaultAudioDevice);
 
