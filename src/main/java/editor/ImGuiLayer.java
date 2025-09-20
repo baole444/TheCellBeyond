@@ -21,6 +21,7 @@ import utility.Settings;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
@@ -33,17 +34,13 @@ public class ImGuiLayer {
     private final ImGuiImplGl3 imGuiGl3 = new ImGuiImplGl3();
     private final long windowPtr;
     private final SceneEditorViewport sceneEditorViewport;
-    private final Properties properties;
-    private final SceneTree sceneTree;
     private ImGuiIO io;
-
     private static boolean resetLayout = false;
+    private static final AtomicBoolean wantedCaptureMouse = new AtomicBoolean(false);
 
-    public ImGuiLayer(long windowPtr, ObjectSelection objectSelection) {
+    public ImGuiLayer(long windowPtr) {
         this.sceneEditorViewport = new SceneEditorViewport();
         this.windowPtr = windowPtr;
-        this.properties = new Properties(objectSelection);
-        this.sceneTree = new SceneTree();
     }
 
     public void initImGui(String glslVer) {
@@ -114,7 +111,7 @@ public class ImGuiLayer {
         ImFontGlyphRangesBuilder glyphRangesBuilder = new ImFontGlyphRangesBuilder();
         glyphRangesBuilder.addRanges(fontAtlas.getGlyphRangesDefault());
         glyphRangesBuilder.addRanges(fontAtlas.getGlyphRangesVietnamese());
-        
+
         fontConfig.setGlyphRanges(glyphRangesBuilder.buildRanges());
 
         // Get font data
@@ -147,14 +144,16 @@ public class ImGuiLayer {
         renderDocking();
         currentScene.imgui();
         sceneEditorViewport.imgui();
-        properties.imgui();
-        sceneTree.imgui();
+        Properties.imgui();
+        SceneTree.imgui();
         BottomPanel.imgui();
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glViewport(0,0, Window.getWidth(), Window.getHeight());
         glClearColor(0, 0,0,1);
         glClear(GL_COLOR_BUFFER_BIT);
+
+        wantedCaptureMouse.set(io.getWantCaptureMouse());
 
         ImGui.render();
         imGuiGl3.renderDrawData(ImGui.getDrawData());
@@ -202,15 +201,15 @@ public class ImGuiLayer {
         return imGuiGl3;
     }
 
-    public Properties loadProperties() {
-        return this.properties;
-    }
-
     public SceneEditorViewport getSceneEditorViewPort() {
         return this.sceneEditorViewport;
     }
 
     public static void resetLayout() {
         resetLayout = true;
+    }
+
+    public static boolean getWantedCaptureMouse() {
+        return wantedCaptureMouse.get();
     }
 }

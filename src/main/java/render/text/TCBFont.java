@@ -22,12 +22,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
 
 import static org.lwjgl.system.MemoryUtil.*;
 import static org.lwjgl.util.freetype.FreeType.*;
 import static org.lwjgl.util.msdfgen.MSDFGen.*;
 import static org.lwjgl.util.msdfgen.MSDFGenExt.*;
-import static org.lwjgl.stb.STBImageWrite.*;
 
 public class TCBFont {
     private static final int MSDF_SIZE = 32;
@@ -49,6 +49,24 @@ public class TCBFont {
     private int numGlyphs;
     private int atlasWidth, atlasHeight;
     private final Map<Character, CharInfo> characters = new HashMap<>();
+
+    public TCBFont(TCBFont font, int fontSizePixel) {
+        fontData = font.fontData;
+        atlasData = font.atlasData;
+        assetReference = font.assetReference;
+        glyphRange = font.glyphRange;
+        this.fontSizePixel = fontSizePixel;
+        characters.putAll(font.characters);
+        colorChannelCount = font.colorChannelCount;
+        startChar = font.startChar;
+        numGlyphs = font.numGlyphs;
+        atlasWidth = font.atlasWidth;
+        atlasHeight = font.atlasHeight;
+
+        updateFontSize();
+
+        isLoaded.set(true);
+    }
 
     public TCBFont(ByteBuffer fontBuffer, AssetReference assetReference, int fontSizePixel, GlyphRange glyphRange) {
         this.assetReference = assetReference;
@@ -116,6 +134,61 @@ public class TCBFont {
             } finally {
                 cleanupMSDF();
             }
+        }
+    }
+
+    private void updateFontSize() {
+        if (fontSizePixel < 0 || characters.isEmpty()) return;
+
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            PointerBuffer pp = stack.mallocPointer(1);
+            check(FT_Init_FreeType(pp));
+            ftLib = pp.get(0);
+
+            check(FT_New_Memory_Face(ftLib, fontData, 0 , pp));
+            ftFace = pp.get(0);
+
+            check(FT_Set_Pixel_Sizes(FT_Face.create(ftFace), 0, fontSizePixel));
+            FT_Face face = FT_Face.create(ftFace);
+
+            for (Map.Entry<Character, CharInfo> entry : characters.entrySet()) {
+                char c = entry.getKey();
+                updateCharInfo(face, c);
+            }
+        } catch (Exception e) {
+            FontManager.LOGGER.log(Level.WARNING, "Failed to complete font size update for " + assetReference.getCanonicalPath() + " to " + fontSizePixel, e);
+        } finally {
+            if (ftFace != 0) {
+                FT_Done_Face(FT_Face.create(ftFace));
+                ftFace = 0;
+            }
+            if (ftLib != 0) {
+                FT_Done_FreeType(ftLib);
+                ftLib = 0;
+            }
+        }
+    }
+
+    private void updateCharInfo(FT_Face face,char ch) {
+        try {
+            int glyphIndex = FT_Get_Char_Index(face, ch);
+            FT_Load_Glyph(face, glyphIndex, FT_LOAD_DEFAULT);
+
+            FT_GlyphSlot slot = face.glyph();
+
+            float ft_float_factor = 64.0f;
+            float advance;
+            advance = slot.advance().x() / ft_float_factor;
+
+            CharInfo currentChar = getCharInfo(ch);
+            if (currentChar == null) return;
+
+            CharInfo newChar = new CharInfo(
+                    currentChar.x0(), currentChar.y0(), currentChar.x1(), currentChar.y1(),
+                    currentChar.xOffset(), currentChar.yOffset(), advance, fontSizePixel * TEXTURE_SIZE_MULTIPLIER);
+            characters.put(ch, newChar);
+        } catch (Exception e) {
+            FontManager.LOGGER.log(Level.WARNING, "Failed to update metric for char '" + ch + "'", e);
         }
     }
 
@@ -282,6 +355,8 @@ public class TCBFont {
             msdf_shape_free(shape);
         }
     }
+
+
 
     private void createAtlas() {
         if (glyphData.isEmpty()) return;

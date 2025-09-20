@@ -49,9 +49,8 @@ public class GizmoControl extends Component {
 
         if (gizmoMove == null || gizmoScale == null) return;
 
-        Properties properties = Window.getImGuiLayer().loadProperties();
-        gameObject.addComponent(new GizmoMove(gizmoMove, properties));
-        gameObject.addComponent(new GizmoScale(gizmoScale, properties));
+        gameObject.addComponent(new GizmoMove(gizmoMove));
+        gameObject.addComponent(new GizmoScale(gizmoScale));
 
         isInitialized = true;
     }
@@ -77,14 +76,14 @@ public class GizmoControl extends Component {
         }
 
         if (isGizUse == 0) {
-            gameObject.getFirstComponent(GizmoMove.class).setUse();
+            gameObject.getFirstComponent(GizmoMove.class).use();
 
-            gameObject.getFirstComponent(GizmoScale.class).setUnUse();
+            gameObject.getFirstComponent(GizmoScale.class).stopUse();
 
         } else if (isGizUse == 1) {
-            gameObject.getFirstComponent(GizmoMove.class).setUnUse();
+            gameObject.getFirstComponent(GizmoMove.class).stopUse();
 
-            gameObject.getFirstComponent(GizmoScale.class).setUse();
+            gameObject.getFirstComponent(GizmoScale.class).use();
         }
     }
 }

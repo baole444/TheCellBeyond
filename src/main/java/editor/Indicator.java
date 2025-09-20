@@ -13,6 +13,7 @@ public class Indicator extends SpriteRenderer implements NotSerializeComponent {
 
     private transient SpriteSheet sheet;
     private transient boolean isInitialized = false;
+    private transient boolean active = false;
 
     @Override
     protected void additionalStartLogic() {
@@ -35,7 +36,7 @@ public class Indicator extends SpriteRenderer implements NotSerializeComponent {
             }
 
             sheet = AssetsPool.loadSpriteSheet(PATH);
-            setColor(new Vector4f(1.0f, 1.0f, 1.0f, 0.8f));
+            setActive();
             completeInit();
         } catch (Exception e) {
             System.err.println("Failed to initialize Indicator: " + e.getMessage());
@@ -68,16 +69,28 @@ public class Indicator extends SpriteRenderer implements NotSerializeComponent {
             return;
         }
 
+        if (!active) setActive();
+
         super.editorUpdate(dt);
     }
 
-    // Object's indicator will not be show in runtime mode (update).
-    // Override update method to do nothing.
     @Override
-    public void update(float dt) {}
+    public void update(float dt) {
+        if (active) setInactive();
+    }
 
-    // It shouldn't also be edited in the properties windows too.
+    // It shouldn't be edited in the properties windows too.
     // Override imgui to do nothing to prevent this
     @Override
     public void imgui() {}
+
+    private void setInactive() {
+        active = false;
+        setColor(new Vector4f(0.0f));
+    }
+
+    private void setActive() {
+        active = true;
+        setColor(new Vector4f(1.0f, 1.0f, 1.0f, 0.8f));
+    }
 }

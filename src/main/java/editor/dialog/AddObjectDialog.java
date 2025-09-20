@@ -3,6 +3,7 @@ package editor.dialog;
 import TheCellBeyond.GameObject;
 import TheCellBeyond.GameObject2D;
 import TheCellBeyond.Window;
+import editor.Properties;
 import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.ImGuiCond;
@@ -133,7 +134,7 @@ public class AddObjectDialog {
         }
 
         scene.queueForObjectAddition(newObject, parentObject);
-        Window.getImGuiLayer().loadProperties().setActiveGameObject(newObject);
+        Properties.setActiveGameObject(newObject);
 
         showDialog = false;
         selectedType = null;

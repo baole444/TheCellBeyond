@@ -21,7 +21,7 @@ public class KeyListener {
         return KeyListener.instance;
     }
 
-    public static void keyCallback(long window, int key, int scancode, int action, int mods) {
+    public static synchronized void keyCallback(long window, int key, int scancode, int action, int mods) {
         // don't process for unknown key input
         if (!isKeyValid(key)) return;
 

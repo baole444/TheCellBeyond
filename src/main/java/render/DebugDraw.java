@@ -89,9 +89,6 @@ public class DebugDraw {
 
         glBindBuffer(GL_ARRAY_BUFFER, vboID);
         glBufferData(GL_ARRAY_BUFFER, vertexA, GL_DYNAMIC_DRAW);
-        //glBufferSubData(GL_ARRAY_BUFFER, 0,
-        //        Arrays.copyOfRange(vertexA, 0, Lines.size() * 6 * 2)
-        //);
 
         // Use shader
         shader.use();
@@ -119,7 +116,6 @@ public class DebugDraw {
     // Line2D methods
 
     public static void addLine2(Vector2f start, Vector2f end) {
-        // TODO: Add constants for common color
         addLine2(start, end, new Vector3f(1, 1, 0), 1);
     }
 
@@ -132,7 +128,6 @@ public class DebugDraw {
         DebugDraw.Lines.add(new Line2D(start, end, color, alive));
     }
 
-    // Box2D methods
 
     public static void addBox2(Vector2f centre, Vector2f dimension, float rotate) {
 

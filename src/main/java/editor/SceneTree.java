@@ -19,10 +19,9 @@ public class SceneTree {
     private static final String NEW_POPUP_ID = "New_Add_Object_Popup";
     private static final int BUTTON_RESERVED_HEIGHT = 36;
     private static final boolean enableBorder = true;
+    private static GameObject selectedObject = null;
 
-    private GameObject selectedObject = null;
-
-    public void imgui() {
+    public static void imgui() {
         ImGui.begin(WINDOW_ID, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoCollapse);
 
         Scene scene = Window.getScene();
@@ -67,7 +66,11 @@ public class SceneTree {
         ImGui.end();
     }
 
-    private void renderTree(GameObject go, Scene scene) {
+    public static void clearSelection() {
+        selectedObject = null;
+    }
+
+    private static void renderTree(GameObject go, Scene scene) {
         ImGui.pushID(go.getUUID());
 
         int flags = ImGuiTreeNodeFlags.OpenOnArrow
@@ -89,7 +92,7 @@ public class SceneTree {
 
         if (ImGui.isItemClicked() && !ImGui.isItemToggledOpen()) {
             selectedObject = go;
-            Window.getImGuiLayer().loadProperties().setActiveGameObject(go);
+            Properties.setActiveGameObject(go);
         }
 
         if (ImGui.beginDragDropSource()) {
@@ -135,7 +138,7 @@ public class SceneTree {
         ImGui.popID();
     }
 
-    private void renderContextMenu(GameObject go, Scene scene) {
+    private static void renderContextMenu(GameObject go, Scene scene) {
         if (ImGui.beginPopupContextItem()) {
             if (go == null || scene == null) return;
 
@@ -181,7 +184,7 @@ public class SceneTree {
         }
     }
 
-    private void savePrefabDialog(GameObject go, boolean withChildren) {
+    private static void savePrefabDialog(GameObject go, boolean withChildren) {
         String prefabName = go.name.replaceAll("[^a-zA-z0-9_-]", "_");
 
         // TODO: add popup to ask custom prefab name later,
