@@ -8,8 +8,19 @@ import render.texture.Sprite;
 
 /**
  * Gizmo used for scaling an object in the editor
+ *
+ * <p>Extends {@link Gizmo} to provide functionality for scaling
+ * {@link GameObject2D} objects along the X or Y axis using mouse input.</p>
+ *
+ * @see Gizmo
+ * @see GizmoControl
  */
 public class GizmoScale extends Gizmo{
+     /**
+     * Creates a scale gizmo with the given box sprite.
+     *
+     * @param boxSprite sprite used for rendering scale handles
+     */
     public GizmoScale(Sprite boxSprite) {
         super("scale_", boxSprite);
     }

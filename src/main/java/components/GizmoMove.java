@@ -8,8 +8,15 @@ import render.texture.Sprite;
 
 /**
  * Gizmo used for moving an object around in the editor.
+ *
+ * <p>Extends {@link Gizmo} to provide functionality for translating
+ * {@link GameObject2D} objects along the X or Y axis using mouse input.</p>
+ *
+ * @see Gizmo
+ * @see GizmoControl
  */
 public class GizmoMove extends Gizmo {
+    // Creates a move gizmo with the given arrow sprite.
     public GizmoMove(Sprite arrowSprite) {
         super("translate_", arrowSprite);
     }
