@@ -18,28 +18,14 @@ import java.util.List;
 public class Properties {
     public static final String WINDOW_ID = "Inspector###Object_Properties";
     private static final int BUTTON_RESERVED_HEIGHT = 36;
-    private GameObject activeGameObject = null;
-    private final List<GameObject> activeGameObjects;
+    private static GameObject activeGameObject = null;
+    private static final List<GameObject> activeGameObjects = new ArrayList<>();
+    private static final List<List<Vector4f>> activeObjTrueColor = new ArrayList<>();
 
-    /**
-     * Preserve sprite's original color for recovery after selection.
-     */
-    private final List<List<Vector4f>> activeObjTrueColor;
-
-    private final ObjectSelection objectSelection;
-
-    public Properties(ObjectSelection objectSelection) {
-        activeGameObjects = new ArrayList<>();
-        this.objectSelection = objectSelection;
-        activeObjTrueColor = new ArrayList<>();
-    }
-
-    public void imgui() {
+    public static void imgui() {
         ImGui.begin(WINDOW_ID, ImGuiWindowFlags.NoCollapse);
 
-        if (activeGameObjects.size() == 1 && activeGameObjects.getFirst() != null) {
-            activeGameObject = activeGameObjects.getFirst();
-        }
+        activeGameObject = getActiveGameObject();
 
         if (activeGameObject == null) {
             ImGui.beginDisabled();
@@ -60,7 +46,7 @@ public class Properties {
         ImGui.end();
     }
 
-    private void renderContextMenu() {
+    private static void renderContextMenu() {
         if (ImGui.beginPopupContextWindow("AddComponent")) {
             if (ImGui.menuItem("Generate Physic body")) {
                 if (activeGameObject.getFirstComponent(PhysicBody2D.class) == null) {
@@ -90,7 +76,7 @@ public class Properties {
      * Also copy the object's sprite's color attribute to {@link #activeObjTrueColor}.
      * @param go The desired {@link GameObject} that wanted to be set active.
      */
-    public void addActiveGameObject(GameObject go) {
+    public static void addActiveGameObject(GameObject go) {
         List<Vector4f> colors = new ArrayList<>();
         for (SpriteRenderer sprite : go.getComponents(SpriteRenderer.class)) {
             if (sprite != null) colors.add(sprite.getColor());
@@ -104,34 +90,28 @@ public class Properties {
      * Used when there is currently only one active game object.
      * @return first element of {@link #activeGameObjects}.
      */
-    public GameObject getActiveGameObject() {
-        if (activeGameObjects.size() == 1) {
-            return activeGameObjects.getFirst();
-        } else {
-            return null;
-        }
+    public static GameObject getActiveGameObject() {
+        if (activeGameObjects.isEmpty()) return null;
+
+        return activeGameObjects.getFirst();
     }
 
     /**
      * Get all active game objects.
-     * @return reference to {@link  #activeGameObjects}
+     * @return reference to {@link #activeGameObjects}
      */
-    public List<GameObject> getActiveGameObjects() {
-        return this.activeGameObjects;
+    public static List<GameObject> getActiveGameObjects() {
+        return activeGameObjects;
     }
 
-    public void setActiveGameObject(GameObject go) {
+    public static void setActiveGameObject(GameObject go) {
         if (go != null) {
             clearSelection();
             activeGameObjects.add(go);
         }
     }
 
-    public ObjectSelection getObjectSelection() {
-        return objectSelection;
-    }
-
-    public List<List<Vector4f>> getActiveObjTrueColor() {
+    public static List<List<Vector4f>> getActiveObjTrueColor() {
         return new ArrayList<>(activeObjTrueColor);
     }
 
@@ -140,7 +120,7 @@ public class Properties {
      * The user's object selection will be cleared.
      * Also clear true color list after resetting all sprites' original color.
      */
-    public void clearSelection() {
+    public static void clearSelection() {
         if (!activeObjTrueColor.isEmpty()) {
             for (int i = 0; i < activeGameObjects.size(); i++) {
                 GameObject go = activeGameObjects.get(i);
@@ -152,6 +132,7 @@ public class Properties {
                 }
             }
         }
+
         activeGameObjects.clear();
         activeObjTrueColor.clear();
     }

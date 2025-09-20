@@ -23,17 +23,17 @@ public class MouseListener {
     private static boolean startupMode = true;
 
     private MouseListener() {
-        this.scrollX = 0.0;
-        this.scrollY = 0.0;
-        this.xPos = 0.0;
-        this.yPos = 0.0;
+        scrollX = 0.0;
+        scrollY = 0.0;
+        xPos = 0.0;
+        yPos = 0.0;
     }
 
     public static void setStartupMode(boolean mode) {
         startupMode = mode;
     }
 
-    public static MouseListener get() {
+    public static synchronized MouseListener get() {
         if (MouseListener.instance == null) {
             instance = new MouseListener();
         }
@@ -41,7 +41,7 @@ public class MouseListener {
         return MouseListener.instance;
     }
 
-    public static void mousePosCallback(long window, double xpos, double ypos) {
+    public static synchronized void mousePosCallback(long window, double xPos, double yPos) {
         if (!startupMode && Window.getImGuiLayer() != null
                 && Window.getImGuiLayer().getSceneEditorViewPort() != null
                 && !Window.getImGuiLayer().getSceneEditorViewPort().getWantCaptureMouse()) {
@@ -52,8 +52,8 @@ public class MouseListener {
             get().isDragging = true;
         }
 
-        get().xPos  = xpos;
-        get().yPos = ypos;
+        get().xPos  = xPos;
+        get().yPos = yPos;
 
         get().worldPastX = get().worldCurrentX;
         get().worldPastY = get().worldCurrentY;

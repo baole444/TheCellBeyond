@@ -14,7 +14,6 @@ import static org.lwjgl.glfw.GLFW.*;
  * For handling gizmo's type and movement, see {@link GizmoControl}.
  */
 public class Gizmo extends SpatialComponent implements NotSerializeComponent {
-    // Gizmo Color
     private final Vector4f resetColor = new Vector4f(0, 0, 0 , 0);
     private final Vector4f xAxisColor = new Vector4f(0.7f, 0.2f, 0.2f, 1.0f);
     private final Vector4f xHover = new Vector4f(0.85f, 0.35f, 0.35f, 1.0f);
@@ -37,23 +36,19 @@ public class Gizmo extends SpatialComponent implements NotSerializeComponent {
     private final GameObject2D yAxisObj;
     private final SpriteRenderer xAxisSpr;
     private final SpriteRenderer yAxisSpr;
-    private final Properties properties;
 
-    // Caching
-    private transient final Vector2f tmpPos = new Vector2f();
     private transient final Vector2f gizmoWorldPos = new Vector2f();
 
     // Create Gizmo, position, and color.
     // Mark Gizmo arrow is not a selectable object.
     // Push gizmo to the scene.
-    public Gizmo(String type, Sprite arrowSprite, Properties properties) {
+    public Gizmo(String type, Sprite arrowSprite) {
         xAxisObj = createGizmoObject(type + "gizmoX", arrowSprite);
         yAxisObj = createGizmoObject(type + "gizmoY", arrowSprite);
         xAxisObj.rotate(90);
         yAxisObj.rotate(180);
         xAxisSpr = xAxisObj.getFirstComponent(SpriteRenderer.class);
         yAxisSpr = yAxisObj.getFirstComponent(SpriteRenderer.class);
-        this.properties = properties;
 
         Window.getScene().queueForObjectAddition(xAxisObj);
         Window.getScene().queueForObjectAddition(yAxisObj);
@@ -77,35 +72,37 @@ public class Gizmo extends SpatialComponent implements NotSerializeComponent {
 
     @Override
     public void update(float dt) {
-        if (isUsed) {
-            this.setInactiveObj();
-        }
-        this.setInactiveObj();
+        setInactive();
     }
 
-    // TODO: Move this to its own "keyCtrl" class similar to MouseCtrl
     @Override
     public void editorUpdate(float dt) {
         if (!isUsed) return;
 
         // Update onscreen active object.
-        this.activeGameObj = this.properties.getActiveGameObject();
-        if (this.activeGameObj != null) {
-            this.setActiveObj();
-        } else {
-            this.setInactiveObj();
+        activeGameObj = Properties.getActiveGameObject();
+        if (activeGameObj == null) {
+            setInactive();
             return;
         }
+
+        if (activeGameObj.getFirstComponent(IsNotSelectable.class) != null) {
+            activeGameObj = null;
+            setInactive();
+            return;
+        }
+
+        setActive();
 
         updatePosition();
         handleInteraction();
     }
 
     private void updatePosition() {
-        if (this.activeGameObj == null) return;
+        if (activeGameObj == null) return;
 
         if (!(activeGameObj instanceof GameObject2D go2D)) {
-            setInactiveObj();
+            setInactive();
             return;
         }
 
@@ -114,12 +111,11 @@ public class Gizmo extends SpatialComponent implements NotSerializeComponent {
 
         gizmoWorldPos.set(getWorldPosition());
 
-        this.xAxisObj.setPosition(new Vector2f(gizmoWorldPos).add(xOffset));
-        this.yAxisObj.setPosition(new Vector2f(gizmoWorldPos).add(yOffset));
+        xAxisObj.setPosition(new Vector2f(gizmoWorldPos).add(xOffset));
+        yAxisObj.setPosition(new Vector2f(gizmoWorldPos).add(yOffset));
     }
 
     private void handleInteraction() {
-        // Update if gizmo is being hovered.
         boolean xAxisHover = isHoverX();
         boolean yAxisHover = isHoverY();
 
@@ -135,14 +131,14 @@ public class Gizmo extends SpatialComponent implements NotSerializeComponent {
         }
     }
 
-    private void setActiveObj() {
-        this.xAxisSpr.setColor(xAxisColor);
-        this.yAxisSpr.setColor(yAxisColor);
+    private void setActive() {
+        xAxisSpr.setColor(xAxisColor);
+        yAxisSpr.setColor(yAxisColor);
     }
 
-    private void setInactiveObj() {
-        this.xAxisSpr.setColor(resetColor);
-        this.yAxisSpr.setColor(resetColor);
+    private void setInactive() {
+        xAxisSpr.setColor(resetColor);
+        yAxisSpr.setColor(resetColor);
     }
 
     private boolean isHoverX() {
@@ -175,12 +171,13 @@ public class Gizmo extends SpatialComponent implements NotSerializeComponent {
         return false;
     }
 
-    public void setUse() {
-        this.isUsed = true;
+    public void use() {
+        isUsed = true;
+        setActive();
     }
 
-    public void setUnUse() {
-        this.isUsed = false;
-        this.setInactiveObj();
+    public void stopUse() {
+        isUsed = false;
+        setInactive();
     }
 }

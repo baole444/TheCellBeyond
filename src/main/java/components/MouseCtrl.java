@@ -1,8 +1,9 @@
 package components;
 
 import TheCellBeyond.*;
+import editor.ImGuiLayer;
 import editor.Properties;
-import imgui.ImGui;
+import editor.SceneTree;
 import org.joml.Math;
 import org.joml.Vector2f;
 import org.joml.Vector2i;
@@ -45,42 +46,27 @@ public class MouseCtrl extends Component implements NotSerializeComponent {
     private Vector2f boxSelectionEnd = new Vector2f();
 
     public void pickObj(GameObject obj) {
-        if (holdObj != null) {
-            // Use to prevent placing an old object at the edge of viewport
-            // When selecting new sprite to place.
-            holdObj.destroy();
-        }
+        if (holdObj != null) holdObj.destroy();
         holdObj = obj;
 
         for (SpriteRenderer sprite : holdObj.getComponents(SpriteRenderer.class)) {
             sprite.setColor(pickUpColor);
         }
-
-        this.holdObj.addComponent(new IsNotSelectable());
-
-        // A fake object uses to illustrate targeted position (a preview).
-        // It should not be savable ore appeared on the object grouping scene.
-        this.holdObj.setNotSerialize();
+        holdObj.addComponent(new IsNotSelectable());
+        holdObj.setNotSerialize();
 
         Window.getScene().queueForObjectAddition(obj);
     }
 
     public void placeObj() {
         GameObject newObj;
-        if (holdObj.getChildrenUUIDs() == null) {
-              newObj = holdObj.copy();
-        } else {
-            newObj = holdObj.copy(true);
-        }
+        newObj = holdObj.copy(true);
 
         for (SpriteRenderer sprite : newObj.getComponents(SpriteRenderer.class)) {
             sprite.setColor(resetColor);
         }
 
         newObj.removeComponents(IsNotSelectable.class);
-
-        // Make a placed object savable as it is now a real object.
-        // A real object should be added to the object grouping scene.
         newObj.setSerialize(true);
 
         Window.getScene().queueForObjectAddition(newObj);
@@ -89,89 +75,84 @@ public class MouseCtrl extends Component implements NotSerializeComponent {
     @Override
     public void editorUpdate(float dt) {
         clickInit -= dt;
-        Properties properties = Window.getImGuiLayer().loadProperties();
-        ObjectSelection objectSelection = properties.getObjectSelection();
-        Scene currentScene = Window.getScene();
-        boolean imguiWantMouseCapture = ImGui.getIO().getWantCaptureMouse();
+        boolean imguiWantMouseCapture = ImGuiLayer.getWantedCaptureMouse();
 
-        // Return coordinate base position from raw mouse input to place an active object in standard position.
-        if (holdObj != null) {
-            if (imguiWantMouseCapture) return;
+        if (holdObj == null) {
+            onNotHoldingObject();
+            return;
+        }
 
-            float targetX = MouseListener.getWorldX() - Settings.GRID_WIDTH / 2.0f; // Might not need to - 0.16f for both
-            float targetY = MouseListener.getWorldY() - Settings.GRID_HEIGHT / 2.0f;
+        if (imguiWantMouseCapture) return;
+        float targetX = MouseListener.getWorldX() - Settings.GRID_WIDTH / 2.0f; // Might not need to - 0.16f for both
+        float targetY = MouseListener.getWorldY() - Settings.GRID_HEIGHT / 2.0f;
 
-            targetX = Math.round(targetX / Settings.GRID_WIDTH) * Settings.GRID_WIDTH + Settings.GRID_WIDTH / 2.0f;
-            targetY = Math.round(targetY / Settings.GRID_HEIGHT) * Settings.GRID_HEIGHT + Settings.GRID_HEIGHT / 2.0f;
+        targetX = Math.round(targetX / Settings.GRID_WIDTH) * Settings.GRID_WIDTH + Settings.GRID_WIDTH / 2.0f;
+        targetY = Math.round(targetY / Settings.GRID_HEIGHT) * Settings.GRID_HEIGHT + Settings.GRID_HEIGHT / 2.0f;
 
-            Vector2f targetPos = new Vector2f(targetX, targetY);
+        Vector2f targetPos = new Vector2f(targetX, targetY);
 
-            if (holdObj instanceof GameObject2D go2D) {
-                go2D.setPosition(targetPos);
-            } else if (holdObj instanceof GameObject go) {
-                for (Component c : go.getComponents()) {
-                    if (c instanceof SpatialComponent sC) {
-                        sC.setWorldPosition(targetPos);
-                    }
-                }
+        if (holdObj instanceof GameObject2D go2D) {
+            go2D.setPosition(targetPos);
+        } else if (holdObj instanceof GameObject go) {
+            for (Component c : go.getComponents()) {
+                if (c instanceof SpatialComponent sC) sC.setWorldPosition(targetPos);
             }
+        }
 
-            // When click released, place the object.
-            if (MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_LEFT)) {
-                float halfWidth = Settings.GRID_WIDTH / 2.0f;
-                float halfHeight = Settings.GRID_HEIGHT / 2.0f;
+        if (KeyListener.isKeyPressed(GLFW_KEY_ESCAPE)) {
+            holdObj.destroy();
+            holdObj = null;
+            return;
+        }
 
-                if (MouseListener.isDragging() &&
-                        !isGridSquareOccupied(targetPos.x - halfWidth, targetPos.y - halfHeight)) {
-
-                    // Disable mouse register if performing dragging and placing.
-                    // This is to prevent placing an additional object by check [1].
-                    if (mouseButtonHeld) {
-                        mouseButtonHeld = false;
-                    }
-                    placeObj();
-                } else if (!MouseListener.isDragging() && clickInit < 0) {
-                    // Set click register state to true.
-                    mouseButtonHeld = true;
-
-                    // When clicking but not dragging will place the object only once.
-                    clickInit = clickResetTime;
-                }
-
-            }
-            // [1]
-            // Place an object when the mouse button is released.
-            // The Object is placed on the next frame.
-            else if (!MouseListener.isDragging() && !MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_LEFT) && mouseButtonHeld) {
+        if (!MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_LEFT)) {
+            if (!MouseListener.isDragging() && !MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_LEFT) && mouseButtonHeld) {
                 placeObj();
-
-                // Reset click register state.
                 mouseButtonHeld = false;
             }
+            return;
+        }
 
-            // Remove the current selected object to be place from the scene.
-            if (KeyListener.isKeyPressed(GLFW_KEY_ESCAPE)) {
-                this.holdObj.destroy();
-                this.holdObj = null;
-            }
-        } else if (!MouseListener.isDragging() && MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_LEFT) && clickInit < 0) {
+        float halfWidth = Settings.GRID_WIDTH / 2.0f;
+        float halfHeight = Settings.GRID_HEIGHT / 2.0f;
+
+        if (MouseListener.isDragging() && !isGridSquareOccupied(targetPos.x - halfWidth, targetPos.y - halfHeight)) {
+            if (mouseButtonHeld) mouseButtonHeld = false;
+            placeObj();
+            return;
+        }
+
+        if (!MouseListener.isDragging() && clickInit < 0) {
+            mouseButtonHeld = true;
+            clickInit = clickResetTime;
+        }
+    }
+
+    private void onNotHoldingObject() {
+        ObjectSelection objectSelection = Window.getObjectSelection();
+        Scene currentScene = Window.getScene();
+        if (!MouseListener.isDragging() && MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_LEFT) && clickInit < 0) {
             int x = (int) MouseListener.getScreenX();
             int y = (int) MouseListener.getScreenY();
 
             int gObjectId = objectSelection.checkPixelAt(x, y);
             GameObject selectedObj = currentScene.getGameObject(gObjectId);
 
-            // Excluding the gizmo
             if (selectedObj != null && selectedObj.getFirstComponent(IsNotSelectable.class) == null) {
-                properties.setActiveGameObject(selectedObj);
+                Properties.setActiveGameObject(selectedObj);
             } else if (selectedObj == null && !MouseListener.isDragging()) {
-                properties.clearSelection();
+                Properties.clearSelection();
+                SceneTree.clearSelection();
             }
 
             this.clickInit = clickResetTime;
-        } else if (MouseListener.isDragging() && MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_LEFT)) {
+            return;
+        }
+
+        if (MouseListener.isDragging() && MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_LEFT)) {
             if (!isBoxSelectionInit) {
-                properties.clearSelection();
+                Properties.clearSelection();
+                SceneTree.clearSelection();
                 boxSelectionBegin = MouseListener.getScreen();
                 isBoxSelectionInit = true;
             }
@@ -181,63 +162,57 @@ public class MouseCtrl extends Component implements NotSerializeComponent {
             Vector2f boxSelectBeginWorld = MouseListener.screen2WorldCoord(boxSelectionBegin);
             Vector2f boxSelectEndWorld = MouseListener.screen2WorldCoord(boxSelectionEnd);
 
-            // get 1/2 dimension for selection box debug draw
-            // because the box is drawn from the center.
             Vector2f halfSize = (new Vector2f(boxSelectEndWorld).
                     sub(boxSelectBeginWorld)).mul(0.5f);
 
             DebugDraw.addBox2((new Vector2f(boxSelectBeginWorld)).add(halfSize),
                     new Vector2f(halfSize).mul(2.0f), 0.0f);
-        } else if (isBoxSelectionInit) {
-            isBoxSelectionInit = false;
 
-            // store box selection value temporary
-            int screenBeginX = (int) boxSelectionBegin.x;
-            int screenBeginY = (int) boxSelectionBegin.y;
-            int screenEndX = (int) boxSelectionEnd.x;
-            int screenEndY = (int) boxSelectionEnd.y;
+            return;
+        }
 
-            // reset value of box selection
-            boxSelectionBegin.zero();
-            boxSelectionEnd.zero();
+        if (!isBoxSelectionInit) return;
 
-            if (screenEndX < screenBeginX) {
-                int tmp = screenBeginX;
-                screenBeginX = screenEndX;
-                screenEndX = tmp;
-            }
+        isBoxSelectionInit = false;
+        int screenBeginX = (int) boxSelectionBegin.x;
+        int screenBeginY = (int) boxSelectionBegin.y;
+        int screenEndX = (int) boxSelectionEnd.x;
+        int screenEndY = (int) boxSelectionEnd.y;
+        boxSelectionBegin.zero();
+        boxSelectionEnd.zero();
 
-            if (screenEndY < screenBeginY) {
-                int tmp = screenBeginY;
-                screenBeginY = screenEndY;
-                screenEndY = tmp;
-            }
+        if (screenEndX < screenBeginX) {
+            int tmp = screenBeginX;
+            screenBeginX = screenEndX;
+            screenEndX = tmp;
+        }
 
-            float[] gameObjIds = objectSelection.checkPixelsIn(
-                    new Vector2i(screenBeginX, screenBeginY),
-                    new Vector2i(screenEndX, screenEndY)
-            );
+        if (screenEndY < screenBeginY) {
+            int tmp = screenBeginY;
+            screenBeginY = screenEndY;
+            screenEndY = tmp;
+        }
 
-            Set<Integer> uniqueGOIds = new HashSet<>();
+        float[] gameObjIds = objectSelection.checkPixelsIn(
+                new Vector2i(screenBeginX, screenBeginY),
+                new Vector2i(screenEndX, screenEndY)
+        );
 
-            for (float objId : gameObjIds) {
-                uniqueGOIds.add((int) objId);
-            }
+        Set<Integer> uniqueGOIds = new HashSet<>();
 
-            for (Integer objId : uniqueGOIds) {
-                if (objId < 0) continue;
+        for (float objId : gameObjIds) {
+            uniqueGOIds.add((int) objId);
+        }
 
-                GameObject selectedObj = Window.getScene().getGameObject(objId);
-                if (selectedObj != null && selectedObj.getFirstComponent(IsNotSelectable.class) == null) {
-                    properties.addActiveGameObject(selectedObj);
-                }
-            }
+        for (Integer objId : uniqueGOIds) {
+            if (objId < 0) continue;
+
+            GameObject selectedObj = Window.getScene().getGameObject(objId);
+            if (selectedObj != null && selectedObj.getFirstComponent(IsNotSelectable.class) == null) Properties.addActiveGameObject(selectedObj);
         }
     }
 
     private boolean isGridSquareOccupied(float x, float y) {
-        Properties properties = Window.getImGuiLayer().loadProperties();
-
         Vector2f begin = new Vector2f(x, y);
         Vector2f end = new Vector2f(begin).add(
                 new Vector2f(Settings.GRID_WIDTH, Settings.GRID_HEIGHT)
@@ -250,7 +225,7 @@ public class MouseCtrl extends Component implements NotSerializeComponent {
         Vector2i beginScr = new Vector2i((int)(beginScrFloat.x) + 2, (int)(beginScrFloat.y) + 2);
         Vector2i endScr = new Vector2i((int)(endScrFloat.x) - 2, (int)(endScrFloat.y) - 2);
 
-        float[] gameObjIds = properties.getObjectSelection().checkPixelsIn(beginScr, endScr);
+        float[] gameObjIds = Window.getObjectSelection().checkPixelsIn(beginScr, endScr);
 
         for (float gameObjId : gameObjIds) {
             if (gameObjId <= 0) continue;

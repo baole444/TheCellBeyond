@@ -180,21 +180,13 @@ public class TextRenderer extends SpatialComponent implements FontStatusCallback
             requestLoadFont();
         }
 
-        if (ImGui.beginCombo("Glyph Range", glyphRangeName)) {
-            for (GlyphRange range : GlyphRange.values()) {
-                if (ImGui.selectable(range.getDescription(), range.name().equals(glyphRangeName))) {
-                    setGlyphRange(range);
-                }
-            }
-
-            ImGui.endCombo();
-        }
-
         if (ImEditorGui.colorCtrl("Color", color, this)) {
             this.isTextDirty = true;
         }
 
-        if (ImGui.beginCombo("Horizontal Alignment", hAlign.toString())) {
+        ImGui.text("Alignment");
+        ImGui.indent();
+        if (ImGui.beginCombo("Horizontal", hAlign.toString())) {
             for (HorizontalAlignment align : HorizontalAlignment.values()) {
                 if (ImGui.selectable(align.toString(), align == hAlign)) {
                     hAlign = align;
@@ -205,11 +197,23 @@ public class TextRenderer extends SpatialComponent implements FontStatusCallback
             ImGui.endCombo();
         }
 
-        if (ImGui.beginCombo("Vertical Alignment", vAlign.toString())) {
+        if (ImGui.beginCombo("Vertical", vAlign.toString())) {
             for (VerticalAlignment align : VerticalAlignment.values()) {
                 if (ImGui.selectable(align.toString(), align == vAlign)) {
                     vAlign = align;
                     this.isTextDirty = true;
+                }
+            }
+
+            ImGui.endCombo();
+        }
+
+        ImGui.unindent();
+
+        if (ImGui.beginCombo("Glyph Range", glyphRangeName)) {
+            for (GlyphRange range : GlyphRange.values()) {
+                if (ImGui.selectable(range.getDescription(), range.name().equals(glyphRangeName))) {
+                    setGlyphRange(range);
                 }
             }
 

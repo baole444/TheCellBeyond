@@ -1,6 +1,8 @@
 package TheCellBeyond;
 
 import editor.ImGuiLayer;
+import editor.Properties;
+import editor.SceneTree;
 import editor.StartUpWindow;
 import editor.preference.RecentProject;
 import editor.preference.UserPreference;
@@ -83,7 +85,8 @@ public final class Window implements EngineEventListener {
             currentScene.destroy();
         }
 
-        getImGuiLayer().loadProperties().setActiveGameObject(null);
+        Properties.clearSelection();
+        SceneTree.clearSelection();
 
         currentScene = new Scene(sceneInit);
         currentScene.loadLevel();
@@ -155,7 +158,7 @@ public final class Window implements EngineEventListener {
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
         glfwWindowHint(GLFW_MAXIMIZED, GLFW_FALSE);
-        //glfwWindowHint(GLFW_DECORATED, 0);
+
 
         // Spawn window
         windowPtr = glfwCreateWindow(width, height, title, NULL, NULL);
@@ -164,7 +167,6 @@ public final class Window implements EngineEventListener {
             System.out.println("Failed to spawn window.");
             System.exit(-1);
         }
-
         glfwSetWindowSizeCallback(windowPtr, (window, w, h) -> {
             if (w <= 0 || h <= 0) return;
 
@@ -179,7 +181,7 @@ public final class Window implements EngineEventListener {
             glViewport(0, 0, width, height);
         });
 
-        glfwSetCursorPosCallback(windowPtr, MouseListener::mousePosCallback); // :: is java syntax lambda function
+        glfwSetCursorPosCallback(windowPtr, MouseListener::mousePosCallback);
         glfwSetMouseButtonCallback(windowPtr, MouseListener::mouseButtonCallback);
         glfwSetScrollCallback(windowPtr, MouseListener::mouseScrollCallback);
         glfwSetKeyCallback(windowPtr, KeyListener::keyCallback);
@@ -206,16 +208,9 @@ public final class Window implements EngineEventListener {
             }
         });
 
-        // OpenGL context current
         glfwMakeContextCurrent(windowPtr);
-
-        //V-sync yes
         glfwSwapInterval(1);
-
-        //Make window visible
         glfwShowWindow(windowPtr);
-
-        // Init sound
         String defaultAudioDevice = alcGetString(0, ALC_DEFAULT_DEVICE_SPECIFIER);
         audioDevice = alcOpenDevice(defaultAudioDevice);
 
@@ -241,10 +236,11 @@ public final class Window implements EngineEventListener {
 
         glViewport(0, 0, width, height);
 
-        imGuiLayer = new ImGuiLayer(windowPtr, objectSelection);
+        imGuiLayer = new ImGuiLayer(windowPtr);
         imGuiLayer.initImGui(glslVer);
 
-        //Set Icon
+        glfwMaximizeWindow(windowPtr);
+
         if (iconFile != null) {
             GLFWImage icon = GLFWImage.malloc();
             GLFWImage.Buffer bufferIcon = GLFWImage.malloc(1);
@@ -255,9 +251,8 @@ public final class Window implements EngineEventListener {
 
         projectLoaded = (Project.currentProject() != null && Project.projectRoot() != null);
 
-        if (projectLoaded) {
-            Window.changeScene(new SceneEditor());
-        }
+        if (projectLoaded) Window.changeScene(new SceneEditor());
+
     }
 
     /**

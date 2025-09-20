@@ -10,8 +10,8 @@ import render.texture.Sprite;
  * Gizmo used for moving an object around in the editor.
  */
 public class GizmoMove extends Gizmo {
-    public GizmoMove(Sprite arrowSprite, Properties properties) {
-        super("translate_", arrowSprite, properties);
+    public GizmoMove(Sprite arrowSprite) {
+        super("translate_", arrowSprite);
     }
 
     @Override

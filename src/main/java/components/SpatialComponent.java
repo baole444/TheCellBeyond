@@ -2,6 +2,7 @@ package components;
 
 import TheCellBeyond.GameObject2D;
 import TheCellBeyond.Transform;
+import imgui.ImGui;
 import org.joml.Vector2f;
 
 public abstract class SpatialComponent extends Component implements Transformation {
@@ -44,7 +45,9 @@ public abstract class SpatialComponent extends Component implements Transformati
     public void imgui() {
         super.imgui();
         Transform editing = new Transform(localTransform);
+        ImGui.indent();
         localTransform.imgui();
+        ImGui.unindent();
         if (!editing.equals(localTransform)) setTransformDirty();
     }
 

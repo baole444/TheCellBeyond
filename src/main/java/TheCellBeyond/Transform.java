@@ -2,8 +2,9 @@ package TheCellBeyond;
 
 import components.Component;
 import editor.ImEditorGui;
+import imgui.ImGui;
+import imgui.flag.ImGuiCol;
 import org.joml.Vector2f;
-import utility.Settings;
 
 public class Transform extends Component {
     public Vector2f position;
@@ -24,10 +25,10 @@ public class Transform extends Component {
     }
 
     public Transform(Transform from) {
-        this.position = new Vector2f(from.position);
-        this.scale = new Vector2f(from.scale);
-        this.rotation = from.rotation;
-        this.zIndex = from.zIndex;
+        position = new Vector2f(from.position);
+        scale = new Vector2f(from.scale);
+        rotation = from.rotation;
+        zIndex = from.zIndex;
     }
 
     public void init(Vector2f position, Vector2f scale) {
@@ -56,10 +57,19 @@ public class Transform extends Component {
 
     @Override
     public void imgui() {
-        ImEditorGui.drawVec2Ctrl("Position", this.position, 0.0f, this);
-        ImEditorGui.drawVec2Ctrl("Scale", this.scale, 100.0f, this);
-        this.rotation = ImEditorGui.dragFloatCtrl("Rotation", this.rotation, this);
-        this.zIndex = ImEditorGui.dragIntCtrl("Z-Index", this.zIndex, this);
+        String compositeID = "Transform##" + getUUID();
+        boolean open;
+        ImGui.pushStyleColor(ImGuiCol.Header, 0.0f, 0.0f, 0.0f, 0.0f);
+        open = ImGui.collapsingHeader(compositeID);
+        ImGui.popStyleColor(1);
+        if (open) {
+            ImGui.separator();
+            ImEditorGui.dragVec2PixelToWorld("Position", position, 0.0f, this);
+            ImEditorGui.dragVec2Ctrl("Scale", scale, 1.0f, this);
+            this.rotation = ImEditorGui.dragFloatCtrl("Rotation", rotation, this);
+            this.zIndex = ImEditorGui.dragIntCtrl("Z-Index", zIndex, this);
+            ImGui.separator();
+        }
     }
 
     @Override

@@ -13,7 +13,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class FontManager {
-    private static final Logger LOGGER = Logger.getLogger(FontManager.class.getName());
+    static final Logger LOGGER = Logger.getLogger(FontManager.class.getName());
 
     private static FontManager instance;
     private static Thread processor;
@@ -69,6 +69,17 @@ public class FontManager {
         }
 
         try {
+            TCBFont currentSimilar = getSimilarFont(request);
+
+            if (currentSimilar != null) {
+                font = new TCBFont(currentSimilar, request.getPixelSize());
+                fontCache.put(request, font);
+                notifyCallbacks(font, request, entry.callbacks);
+                return;
+            }
+        } catch (Exception ignored) {}
+
+        try {
             AssetReference assetRef = request.fontAsset();
             PathResolver resolver = PathResolver.get();
 
@@ -87,6 +98,21 @@ public class FontManager {
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Failed to load font: " + request, e);
         }
+    }
+
+    private TCBFont getSimilarFont(FontRequest request) {
+        return fontCache.values().stream()
+                .filter(TCBFont::isLoaded)
+                .filter(f -> resizeable(f, request))
+                .findFirst().orElse(null);
+    }
+
+    private boolean resizeable(TCBFont font, FontRequest request) {
+        if (font.getCanonicalPath() == null || request.fontAsset().getCanonicalPath() == null) return false;
+
+        return Objects.equals(font.getCanonicalPath(), request.fontAsset().getCanonicalPath())
+                && Objects.equals(font.getGlyphRange(), request.glyphRange())
+                && font.getFontSizePixel() != request.getPixelSize();
     }
 
     private void notifyCallbacks(TCBFont font, FontRequest request, List<WeakReference<FontStatusCallback>> callbacks) {
@@ -147,21 +173,6 @@ public class FontManager {
             LOGGER.log(Level.WARNING, "Failed to queue font request: " + request);
             requests.remove(request);
         }
-    }
-
-    public TCBFont getFont(FontRequest request) {
-        TCBFont font = fontCache.get(request);
-
-        if (font != null) return font;
-
-        requestFont(request, null);
-
-        return null;
-    }
-
-    public boolean isFontLoaded(FontRequest request) {
-        TCBFont font = fontCache.get(request);
-        return font != null && font.isLoaded();
     }
 
     public void cleanup() {
