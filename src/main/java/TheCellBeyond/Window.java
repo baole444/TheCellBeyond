@@ -80,10 +80,7 @@ public final class Window implements EngineEventListener {
     }
 
     public static void changeScene(SceneInit sceneInit) {
-        if (currentScene != null) {
-            // Destroy
-            currentScene.destroy();
-        }
+        if (currentScene != null) currentScene.destroy();
 
         Properties.clearSelection();
         SceneTree.clearSelection();

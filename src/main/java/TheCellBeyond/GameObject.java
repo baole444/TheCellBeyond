@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import components.ComponentSerializer;
 import components.Component;
 import components.NotSerializeComponent;
+import editor.BottomPanel;
 import editor.ImEditorGui;
 import imgui.ImGui;
 import imgui.ImVec2;
@@ -16,6 +17,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
+
+import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_1;
 
 public class GameObject {
     private static final IdPool idCounter = new IdPool(1, true);
@@ -346,6 +349,9 @@ public class GameObject {
             ImGui.setNextItemAllowOverlap();
             ImGui.pushStyleColor(ImGuiCol.Header, 0.0f, 0.0f, 0.0f, 0.0f);
             open = (ImGui.collapsingHeader(label));
+            if (ImGui.isItemClicked(GLFW_MOUSE_BUTTON_1)) {
+                BottomPanel.interacted(c);
+            }
             ImGui.popStyleColor(1);
 
             ImGui.setCursorPos(currentPos.x + offset, currentPos.y);
@@ -382,6 +388,7 @@ public class GameObject {
         List<GameObject> childrenCopy = new ArrayList<>(children);
 
         for (GameObject child : childrenCopy) {
+            if (child == null) continue;
             child.destroy();
         }
 

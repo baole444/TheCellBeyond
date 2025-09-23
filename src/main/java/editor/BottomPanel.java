@@ -1,5 +1,9 @@
 package editor;
 
+import components.AnimatedSpriteRenderer;
+import components.AnimationPlayer;
+import components.Component;
+import components.TileMap;
 import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.ImGuiChildFlags;
@@ -33,6 +37,26 @@ public class BottomPanel {
 
         static int size() {
             return values().length;
+        }
+    }
+
+    public static void interacted(Component component) {
+        if (component == null) return;
+        switch (component) {
+            case AnimatedSpriteRenderer spriteFrame -> {
+                SpriteFrameEditor.edit(spriteFrame);
+                selectedTab = TabName.SpriteFrame;
+            }
+            case TileMap tileSet -> {
+                System.out.println("TileSet editor not yet implemented");
+                selectedTab = TabName.TileSet;
+            }
+            case AnimationPlayer animationPlayer -> {
+                System.out.println("AnimationPlayer editor not yet implemented");
+                selectedTab = TabName.AnimationPlayer;
+            }
+
+            default -> {}
         }
     }
 

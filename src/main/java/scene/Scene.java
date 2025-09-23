@@ -166,8 +166,8 @@ public class Scene {
         if (component == null) return;
 
         componentsByUUID.remove(component.getUUID());
-
         renderer.queueComponentForRemoval(component);
+        component.destroy();
     }
 
     private void removeObjFromScene(GameObject go) {
@@ -239,6 +239,7 @@ public class Scene {
         removedComponents.clear();
 
         for (Component c : componentToRemove) {
+
             removeComponentFromScene(c);
         }
 

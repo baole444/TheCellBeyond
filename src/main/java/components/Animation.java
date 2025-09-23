@@ -32,6 +32,14 @@ public class Animation {
         this.frames.addAll(frames);
         updateDuration();
     }
+
+    public Animation(Animation animation) {
+        frames.addAll(animation.frames);
+        speedMultiplier = animation.speedMultiplier;
+        loop = animation.loop;
+        updateDuration();
+    }
+
     /**
      * Append a new frame into the animation.
      * @param sprite sprite used by that frame
@@ -105,7 +113,10 @@ public class Animation {
     public void setFPS(float fps) {
         if (fps <= 0) return;
         float frameTime = 1.0f / fps;
-
+        for (Frame frame : frames) {
+            frame.frameTime = frameTime;
+        }
+        updateDuration();
     }
 
     /**
@@ -160,6 +171,14 @@ public class Animation {
     public Frame getFrameAt(int index) {
         if (index < 0 || index >= frames.size()) return null;
         return frames.get(index);
+    }
+
+    /**
+     * Get the full frame sequence in this animation.
+     * @return a new list of frames
+     */
+    public List<Frame> frames() {
+        return new ArrayList<>(frames);
     }
 
     /**

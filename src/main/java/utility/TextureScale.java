@@ -5,12 +5,12 @@ import org.joml.Math;
 
 public class TextureScale {
     /**
-     * Calculate texture's dimension that will fit in the user's given limit.
-     * @param width image's width (in pixel.
-     * @param height image's height (in pixel).
-     * @param limitW user's width limit (in pixel).
-     * @param limitH user's height limit (in pixel).
-     * @return {@link Vector2f} {@code x} for width and {@code y} for height.
+     * Calculate texture's dimension that will fit in a rectangle region.
+     * @param width original texture width
+     * @param height original texture height
+     * @param limitW rectangle limiting width
+     * @param limitH rectangle limiting height
+     * @return Vector of the new texture size with aspect ratio respected
      */
     public static Vector2f calculateFitDimension(float width, float height, float limitW, float limitH) {
         double scaleDiff = Math.min(limitW / width, limitH / height);
@@ -22,17 +22,23 @@ public class TextureScale {
     }
 
     /**
-     * Calculate texture's new dimension base on original
-     * size and given scale factor.
-     * @param width image's width (in pixel) cast as float.
-     * @param height image's height (in pixel) cast as float.
-     * @param scale user's scale factor, negative value will flip the image.
-     * @return {@link Vector2f} {@code x} for width and {@code y} for height.
+     * Calculate texture's dimension that will fit in a square region.
+     * @param width original texture width
+     * @param height original texture height
+     * @param squareLimit size of the square region to fit
+     * @return Vector of the new texture size with aspect ratio respected
      */
-    public static Vector2f textureScale(float width, float height, float scale) {
-        float newW = width * scale;
-        float newH = height * scale;
+    public static Vector2f calculateFitSquare(float width, float height, float squareLimit) {
+        float aspectRatio = width / height;
 
-        return new Vector2f(newW, newH);
+        if (width >= height) {
+            width = squareLimit;
+            height = squareLimit / aspectRatio;
+        } else {
+            height = squareLimit;
+            width = squareLimit * aspectRatio;
+        }
+
+        return new Vector2f(width, height);
     }
 }

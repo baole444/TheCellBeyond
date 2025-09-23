@@ -8,9 +8,9 @@ import org.joml.Vector2f;
 import java.util.UUID;
 
 /**
- * Component is an extension for a {@link GameObject} that it is mounted to.
- * Component does not participate in the hierarchy system and is local to its object.
- *
+ * Component is an extension for a {@link GameObject} that it is mounted to.<br>
+ * It is the leaf of the scene hierarchy, only affected by the immediate object it belongs to.<br>
+ * Component can reference each other by name or by hierarchy path.
  */
 public abstract class Component {
     private String uuid;
@@ -68,7 +68,14 @@ public abstract class Component {
 
     public void postSolve(GameObject targetObj, Contact contact, Vector2f hitNormalization) {}
 
-    public void destroy() {}
+    /**
+     * Upon calling destroy, the component will discard its uuid, game object reference, and its name.
+     */
+    public final void destroy() {
+        uuid = null;
+        gameObject = null;
+        componentName = null;
+    }
 
     public <T extends Component> T getSibling(Class<T> componentClass) {
         if (gameObject == null) return null;
@@ -99,7 +106,7 @@ public abstract class Component {
     }
 
     /**
-     * Override this fully customize the exported field(s) in the properties window.
+     * Override this to fully customize the exported field(s) in the properties window.
      * @see Component#additionalImGuiLogic() Add additional field export logic
      */
     public void imgui() {

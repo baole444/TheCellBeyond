@@ -21,6 +21,7 @@ import java.util.Objects;
  * This flag is volatile and clear by the Renderer.
  */
 public class SpriteRenderer extends SpatialComponent {
+    private static final float PREVIEW_LIMIT_Y = 160;
     private final Vector4f color = new Vector4f(1, 1, 1 , 1);
     private volatile Sprite sprite = new Sprite();
 
@@ -28,7 +29,7 @@ public class SpriteRenderer extends SpatialComponent {
 
     @Override
     protected void additionalImGuiLogic() {
-        float sizeLimit = Math.min(ImGui.getContentRegionAvailX(), 160);
+        float availX = ImGui.getContentRegionAvailX();
         ImGui.text("Sprite: ");
 
         if (sprite != null && sprite.getTexture() != null) {
@@ -44,7 +45,7 @@ public class SpriteRenderer extends SpatialComponent {
         }
 
         if (sprite == null || sprite.getTexture() == null) {
-            ImGui.beginChild("Mock_sprite_drop_area", sizeLimit, sizeLimit, true);
+            ImGui.beginChild("Mock_sprite_drop_area", ImGui.getContentRegionAvailX(), PREVIEW_LIMIT_Y, true);
             ImGui.beginDisabled();
             ImGui.textWrapped("No sprite assigned. Drag and drop a sprite from Sprite list here.");
             ImGui.endDisabled();
@@ -53,7 +54,7 @@ public class SpriteRenderer extends SpatialComponent {
             int textureId = sprite.getTextureID();
             Vector2f[] textureCoordinates = sprite.getTextureCoordinates();
 
-            Vector2f previewSize = TextureScale.calculateFitDimension(sprite.getWidth(), sprite.getHeight(), sizeLimit, sizeLimit);
+            Vector2f previewSize = TextureScale.calculateFitDimension(sprite.getWidth(), sprite.getHeight(), availX, PREVIEW_LIMIT_Y);
             ImGui.image(textureId, previewSize.x, previewSize.y,
                     textureCoordinates[2].x, textureCoordinates[0].y,
                     textureCoordinates[0].x, textureCoordinates[2].y
