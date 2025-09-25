@@ -1,9 +1,9 @@
 #type vertex
 #version 330 core
 layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec3 aColor;
+layout (location = 1) in vec4 aColor;
 
-out vec3 fColor;
+out vec4 fColor;
 
 uniform mat4 uView;
 uniform mat4 uProject;
@@ -17,11 +17,11 @@ void main()
 
 #type fragment
 #version 330 core
-in vec3 fColor;
+in vec4 fColor;
 
 out vec4 color;
 
 void main()
 {
-    color = vec4(fColor, 1);
+    color = fColor;
 }

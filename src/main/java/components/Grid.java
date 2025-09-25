@@ -5,12 +5,17 @@ import TheCellBeyond.Window;
 import org.joml.Math;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
+import org.joml.Vector4f;
 import render.DebugDraw;
 import utility.Settings;
 
-public class Grid extends Component {
+public class Grid extends Component implements NotSerializeComponent {
+    public static volatile boolean showGridLine = true;
+    public static final Vector4f color = new Vector4f(0.5f, 0.5f, 0.0f, 0.6f);
+
     @Override
     public void editorUpdate(float dt) {
+        if (!showGridLine || dt < 0.0f) return;
         Viewport viewport = Window.getScene().viewport();
         Vector2f viewPos = viewport.position;
         Vector2f projectSize = viewport.getProjectionSize();
@@ -25,7 +30,7 @@ public class Grid extends Component {
         float width = (int)(projectSize.x * viewport.getZoom()) + Settings.GRID_WIDTH * 5;
 
         int maxLines = Math.max(countVertical, countHorizontal);
-        Vector3f color = new Vector3f(0.4f, 0.4f, 0.0f);
+
 
         for (int i = 0; i < maxLines; i++) {
             float x = firstX + (Settings.GRID_WIDTH * i);

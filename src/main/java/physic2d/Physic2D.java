@@ -14,16 +14,18 @@ import physic2d.components.collider.BoxCollider2D;
 import physic2d.components.collider.CircleCollider2D;
 import physic2d.components.collider.PillBoxCollider;
 
+/**
+ * <a href="https://box2d.org">Reference Box2D code (C code)</a>
+ */
 public class Physic2D {
-    // https://box2d.org Check out this website for reference codes
+    public static final float physicDtRate = 1.0f / 60.0f;
+    public static final int velocityPassCount = 9;
+    public static final int positionPassCount = 3;
 
     private final Vec2 gravity = new Vec2(0, -9.80665f);
     private final World world = new World(gravity);
 
-    private float physicDt = 0.0f;
-    private final float physicDtRate = 1.0f / 60.0f; // delta of 60 fps
-    private final int velocityPassCount = 9;
-    private final int positionPassCount = 3;
+    private transient float physicDt = 0.0f;
 
     public Physic2D() {
         world.setContactListener(new Physic2DContactListener());
@@ -104,7 +106,6 @@ public class Physic2D {
     public void update(float dt) {
         physicDt += dt;
         // Update only once per 60 frames (Or 1 update / sec)
-        // Help fix frame time variable (Might have minor frame skip)
         if (physicDt >= 0.0f) {
             physicDt -= physicDtRate;
             world.step(physicDtRate, velocityPassCount, positionPassCount);
@@ -177,8 +178,6 @@ public class Physic2D {
             addCircleCollider2D(physicBody2D, pillBoxCollider.getHeadCircle());
             addCircleCollider2D(physicBody2D, pillBoxCollider.getFootCircle());
         }
-
-
     }
 
     public void resetCollider(PhysicBody2D physicBody2D, Component colliderObject) {

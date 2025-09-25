@@ -129,11 +129,19 @@ public class Animation {
 
     /**
      * Get the index of frame this animation is currently at.
-     * @return the current frame index.
+     * @return the current frame index
      * @see Animation#currentFrame() Get current frame of the animation
      */
     public int currentFrameIndex() {
         return frameIndex;
+    }
+
+    /**
+     * Allow direct manipulation of the current frame index for this animation.
+     * @param index the targeted frame index, clamped by the method to prevent out of bound
+     */
+    public void setCurrentFrameIndex(int index) {
+        frameIndex = Math.max(0, Math.min(index, frames.size()));
     }
 
     /**

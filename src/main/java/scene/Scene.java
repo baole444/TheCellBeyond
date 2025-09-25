@@ -1,6 +1,7 @@
 package scene;
 
 import TheCellBeyond.*;
+import TheCellBeyond.internal.DataSnapshot;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import components.ComponentSerializer;
@@ -9,6 +10,7 @@ import components.IsNotSelectable;
 import components.SpriteRenderer;
 import editor.Indicator;
 import editor.project.Project;
+import imgui.type.ImBoolean;
 import org.joml.Vector2f;
 import physic2d.Physic2D;
 import render.Renderer;
@@ -23,46 +25,30 @@ import java.util.stream.Collectors;
 
 public class Scene {
     private final Renderer renderer;
-    private Viewport viewport;
-    private boolean isSceneOn;
-    private final Map<Integer, String> cachedIDs;
-    private final Map<String, GameObject> gameObjectByUUIDs;
-    private final List<GameObject> rootGameObjects;
+    private final SceneInit sceneInit;
+    private transient final ImBoolean isSceneOn;
+    private final DataSnapshot sceneData;
+
     private final List<GameObject> addedGameObjects;
     private final List<GameObject> removedGameObjects;
     private final List<Component> removedComponents;
     private final HashMap<GameObject, GameObject> addedGameObjectWithParents;
-    private final Map<String, Component> componentsByUUID;
 
-    private final Physic2D physic2D;
-
-    private final SceneInit sceneInit;
 
     public Scene(SceneInit sceneInit) {
         this.sceneInit = sceneInit;
+        renderer = Renderer.get();
 
-        physic2D = new Physic2D();
-        renderer = new Renderer();
-
-        cachedIDs = new HashMap<>();
-        gameObjectByUUIDs = new HashMap<>();
-        rootGameObjects = new ArrayList<>();
+        sceneData = new DataSnapshot();
 
         addedGameObjects  = new ArrayList<>();
         removedGameObjects = new ArrayList<>();
         removedComponents = new ArrayList<>();
         addedGameObjectWithParents = new HashMap<>();
-
-        componentsByUUID = new HashMap<>();
-
-        isSceneOn = false;
+        isSceneOn = new ImBoolean(false);
     }
 
     public void init() {
-        // View point position
-        viewport = new Viewport(new Vector2f(0, 0));
-
-        // Load resource, maintain init method
         sceneInit.loadResource(this);
         sceneInit.init(this);
     }
@@ -70,36 +56,36 @@ public class Scene {
     public void start() {
         updateQueues();
 
-        for (GameObject go : gameObjectByUUIDs.values()) {
+        for (GameObject go : sceneData.gameObjectByUUIDs().values()) {
             go.start();
-            this.renderer.queueObjectForAddition(go);
-            this.physic2D.add(go);
+            renderer.queueObjectForAddition(go);
+            sceneData.physic2D().add(go);
             cacheComponents(go);
         }
 
-        isSceneOn = true;
+        isSceneOn.set(true);
     }
 
     private void cacheComponents(GameObject go) {
         for (Component c : go.getComponents()) {
-            componentsByUUID.put(c.getUUID(), c);
+            sceneData.componentsByUUID().put(c.getUUID(), c);
         }
     }
 
     private void uncacheComponents(GameObject go) {
         for (Component c : go.getComponents()) {
-            componentsByUUID.remove(c.getUUID());
+            sceneData.componentsByUUID().remove(c.getUUID());
         }
     }
 
     public Component getComponentByUUID(String uuid) {
-        return componentsByUUID.get(uuid);
+        return sceneData.componentsByUUID().get(uuid);
     }
 
     public void queueForObjectAddition(GameObject go, GameObject parent) {
         if (go == null) return;
 
-        if (!addedGameObjects.contains(go) && !gameObjectByUUIDs.containsKey(go.getUUID())) {
+        if (!addedGameObjects.contains(go) && !sceneData.gameObjectByUUIDs().containsKey(go.getUUID())) {
             addedGameObjects.add(go);
             if (parent != null) {
                 addedGameObjectWithParents.put(go, parent);
@@ -110,16 +96,16 @@ public class Scene {
     private void addObjToScene(GameObject go, GameObject parent) {
         if (go == null) return;
 
-        if (gameObjectByUUIDs.containsKey(go.getUUID())) return;
+        if (sceneData.gameObjectByUUIDs().containsKey(go.getUUID())) return;
 
-        cachedIDs.put(go.getUID(), go.getUUID());
-        gameObjectByUUIDs.put(go.getUUID(), go);
+        sceneData.cachedIDs().put(go.getUID(), go.getUUID());
+        sceneData.gameObjectByUUIDs().put(go.getUUID(), go);
 
         if (parent != null) {
             parent.addChild(go);
         }
 
-        if (go.getParentUUID() == null && !rootGameObjects.contains(go)) rootGameObjects.add(go);
+        if (go.getParentUUID() == null && !sceneData.rootGameObjects().contains(go)) sceneData.rootGameObjects().add(go);
 
         if (go.isSerialize() &&
                 go.getFirstComponent(IsNotSelectable.class) == null &&
@@ -130,15 +116,15 @@ public class Scene {
             go.addComponent(indicator);
         }
 
-        if (isSceneOn) {
+        if (isSceneOn.get()) {
             go.start();
-            this.renderer.queueObjectForAddition(go);
-            this.physic2D.add(go);
+            renderer.queueObjectForAddition(go);
+            sceneData.physic2D().add(go);
             cacheComponents(go);
         }
 
         for (GameObject child : go.getChildren()) {
-            if (!gameObjectByUUIDs.containsKey(child.getUUID())) queueForObjectAddition(child, go);
+            if (!sceneData.gameObjectByUUIDs().containsKey(child.getUUID())) queueForObjectAddition(child, go);
         }
     }
 
@@ -149,7 +135,7 @@ public class Scene {
     public void queueObjectForRemoval(GameObject go) {
         if (go == null) return;
 
-        if (!removedGameObjects.contains(go) && gameObjectByUUIDs.containsKey(go.getUUID())) {
+        if (!removedGameObjects.contains(go) && sceneData.gameObjectByUUIDs().containsKey(go.getUUID())) {
             removedGameObjects.add(go);
             addedGameObjects.remove(go);
             addedGameObjectWithParents.remove(go);
@@ -165,7 +151,7 @@ public class Scene {
     private void removeComponentFromScene(Component component) {
         if (component == null) return;
 
-        componentsByUUID.remove(component.getUUID());
+        sceneData.componentsByUUID().remove(component.getUUID());
         renderer.queueComponentForRemoval(component);
         component.destroy();
     }
@@ -176,56 +162,55 @@ public class Scene {
         if (go.getParent() != null) {
             go.getParent().removeChild(go);
         } else {
-            rootGameObjects.remove(go);
+            sceneData.rootGameObjects().remove(go);
         }
 
         List<GameObject> descendants = go.getAllDescendants();
         for (GameObject descendant : descendants) {
-            cachedIDs.remove(descendant.getUID());
-            gameObjectByUUIDs.remove(descendant.getUUID());
+            sceneData.cachedIDs().remove(descendant.getUID());
+            sceneData.gameObjectByUUIDs().remove(descendant.getUUID());
             renderer.queueObjectForRemoval(descendant);
-            physic2D.destroyObject(descendant);
+            sceneData.physic2D().destroyObject(descendant);
             uncacheComponents(descendant);
         }
 
-        cachedIDs.remove(go.getUID());
-        gameObjectByUUIDs.remove(go.getUUID());
+        sceneData.cachedIDs().remove(go.getUID());
+        sceneData.gameObjectByUUIDs().remove(go.getUUID());
         renderer.queueObjectForRemoval(go);
-        physic2D.destroyObject(go);
+        sceneData.physic2D().destroyObject(go);
         uncacheComponents(go);
     }
 
     public boolean reparentObject(GameObject child, GameObject newParent) {
         if (child == null) return false;
-
-        // cannot reparent oneself to oneself
         if (newParent != null && (child == newParent || child.isAncestor(newParent))) {
             return false;
         }
 
-        if (child.getParent() == null) rootGameObjects.remove(child);
+        if (child.getParent() == null) sceneData.rootGameObjects().remove(child);
 
         child.setParent(newParent);
 
-        if (newParent == null && !rootGameObjects.contains(child)) {
-            rootGameObjects.add(child);
+        if (newParent == null && !sceneData.rootGameObjects().contains(child)) {
+            sceneData.rootGameObjects().add(child);
         }
 
         return true;
     }
 
     public void destroy() {
-        for (GameObject go : gameObjectByUUIDs.values()) {
+        for (GameObject go : sceneData.gameObjectByUUIDs().values()) {
             go.destroy();
         }
 
-        gameObjectByUUIDs.clear();
-        rootGameObjects.clear();
+        sceneData.gameObjectByUUIDs().clear();
+        sceneData.rootGameObjects().clear();
         removedGameObjects.clear();
         removedComponents.clear();
         addedGameObjects.clear();
         addedGameObjectWithParents.clear();
-        componentsByUUID.clear();
+        sceneData.componentsByUUID().clear();
+        Renderer.clearData();
     }
 
     private void updateQueues() {
@@ -254,33 +239,33 @@ public class Scene {
     }
 
     public Map<String, GameObject> getGameObjects() {
-        return this.gameObjectByUUIDs;
+        return sceneData.gameObjectByUUIDs();
     }
 
     public List<GameObject> getSerializedObject() {
-        return gameObjectByUUIDs.values().stream().filter(GameObject::isSerialize).collect(Collectors.toCollection(ArrayList::new));
+        return sceneData.gameObjectByUUIDs().values().stream().filter(GameObject::isSerialize).collect(Collectors.toCollection(ArrayList::new));
     }
 
     public List<GameObject> getRootGameObjects() {
-        return new ArrayList<>(rootGameObjects);
+        return new ArrayList<>(sceneData.rootGameObjects());
     }
 
     public GameObject getGameObject(int id) {
-        String uuid = cachedIDs.get(id);
+        String uuid = sceneData.cachedIDs().get(id);
 
-        if (uuid != null) return gameObjectByUUIDs.get(uuid);
+        if (uuid != null) return sceneData.gameObjectByUUIDs().get(uuid);
 
         return null;
     }
 
     public GameObject getGameObject(String objectUUID) {
-        return gameObjectByUUIDs.get(objectUUID);
+        return sceneData.gameObjectByUUIDs().get(objectUUID);
     }
 
     public void editorUpdate(float dt) {
-        viewport.adjustProjection();
+        sceneData.viewport().adjustProjection();
 
-        for (GameObject go : gameObjectByUUIDs.values()) {
+        for (GameObject go : sceneData.gameObjectByUUIDs().values()) {
             go.editorUpdate(dt);
 
             if (go.isRemoved()) queueObjectForRemoval(go);
@@ -294,10 +279,10 @@ public class Scene {
     }
 
     public void update(float dt) {
-        viewport.adjustProjection();
-        physic2D.update(dt);
+        sceneData.viewport().adjustProjection();
+        sceneData.physic2D().update(dt);
 
-        for (GameObject go : gameObjectByUUIDs.values()) {
+        for (GameObject go : sceneData.gameObjectByUUIDs().values()) {
             go.update(dt);
 
             if (go.isRemoved()) queueObjectForRemoval(go);
@@ -311,12 +296,13 @@ public class Scene {
     }
 
     public void render() {
+        Viewport viewport = viewport();
         renderer.setMatrices(viewport.getProjectionMatrix(), viewport.getViewMatrix());
         renderer.render();
     }
 
     public Viewport viewport() {
-        return viewport;
+        return sceneData.viewport();
     }
 
     public void imgui() {
@@ -324,11 +310,7 @@ public class Scene {
     }
 
     public Physic2D getPhysic2D() {
-        return physic2D;
-    }
-
-    public Renderer getRenderer() {
-        return renderer;
+        return sceneData.physic2D();
     }
 
     public void saveLevel() {
@@ -350,7 +332,7 @@ public class Scene {
         try {
             FileWriter writer = new FileWriter(resolvedPath);
             List<GameObject> serializeList = new ArrayList<>();
-            for (GameObject obj : this.gameObjectByUUIDs.values()) {
+            for (GameObject obj : sceneData.gameObjectByUUIDs().values()) {
                 if (obj.isSerialize() && Project.currentProject() != null && Project.projectRoot() != null && currentSceneName != null) {
                     obj.prepareForSerialization();
                     serializeList.add(obj);

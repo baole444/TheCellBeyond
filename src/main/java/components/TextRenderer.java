@@ -146,7 +146,7 @@ public class TextRenderer extends SpatialComponent implements FontStatusCallback
 
         if (Window.get().isRuntimeMode()) return;
         Vector2f pos = new Vector2f(getEffectiveTransform().position);
-        DebugDraw.addLine2(pos, new Vector2f(pos).add(textDimensions.x, 0), new Vector3f(0.8f, 0.2f, 0.2f), 1);
+        DebugDraw.addLine2(pos, new Vector2f(pos).add(textDimensions.x, 0), new Vector4f(0.8f, 0.2f, 0.2f, 1.0f), 1);
     }
 
     @Override

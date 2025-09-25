@@ -289,51 +289,40 @@ public final class Window implements EngineEventListener {
 
         Shader defaultShader = AssetsPool.loadShader(Settings.PATH.DEFAULT_TEXTURE_SHADER);
         Shader objectSelectShader = AssetsPool.loadShader(Settings.PATH.OBJECT_SELECTION_SHADER);
-
+        Shader debugLineShader = AssetsPool.loadShader(Settings.PATH.DEBUG_LINE2_SHADER);
+        DebugDraw.init(debugLineShader);
         RendererState rendererState = RendererState.get();
 
         while (!glfwWindowShouldClose(windowPtr)) {
             glfwPollEvents(); //poll events
 
             if (dt >= 0) {
-                // Pass 1: object selection layer (invisible)
-
                 rendererState.setRenderPass(RendererState.RenderPass.SELECTION);
                 rendererState.setShader(objectSelectShader);
-
                 objectSelection.useWrite();
-
                 glViewport(0, 0, frameBuffer.getWidth(), frameBuffer.getHeight());
                 glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
                 currentScene.render();
-
                 objectSelection.detachWrite();
 
-                // Pass 2: Visualized scene
                 rendererState.setRenderPass(RendererState.RenderPass.NORMAL);
                 rendererState.setShader(defaultShader);
 
                 DebugDraw.startFrame();
-
                 frameBuffer.use();
-
                 glClearColor(r, g, b, a);
                 glClear(GL_COLOR_BUFFER_BIT);
 
                 if (runtimeMode) {
-                    currentScene.update(dt); // Using the main update when not in the editor
+                    currentScene.update(dt);
                 } else {
-                    currentScene.editorUpdate(dt); // Using editor update under edit mode
+                    currentScene.editorUpdate(dt);
                 }
                 currentScene.render();
                 DebugDraw.draw();
 
                 frameBuffer.detach();
-
-                //this.frameBuffer.renderToScreen();
-
                 imGuiLayer.update(dt, currentScene);
             }
 

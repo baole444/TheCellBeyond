@@ -2,9 +2,7 @@ package render;
 
 import TheCellBeyond.Window;
 import org.joml.Vector2f;
-import org.joml.Vector3f;
-import utility.AssetsPool;
-import utility.Settings;
+import org.joml.Vector4f;
 import utility.TCBMath;
 
 import java.util.ArrayList;
@@ -18,44 +16,37 @@ import static org.lwjgl.opengl.GL30.glGenVertexArrays;
 public class DebugDraw {
     private static final int MAX_LINE = 4096;
     private static final List<Line2D> Lines = new ArrayList<>();
+    private static Shader shader;
 
-    // 6 float vertex, 2 vertices/line
-    private static final float[] vertexA = new float[MAX_LINE * 6 * 2];
-
-    private static final Shader shader = AssetsPool.loadShader(Settings.PATH.DEBUG_LINE2_SHADER);
-
+    private static final float[] vertices = new float[MAX_LINE * 7 * 2];
     private static int vaoID;
     private static int vboID;
-    private static boolean isLoaded = false;
+    private static boolean init = false;
 
-    public static void start(){
-        //VAO
+    public static void init(Shader s) {
+        shader = s;
+        start();
+        init = true;
+    }
+
+    public static void start() {
         vaoID = glGenVertexArrays();
         glBindVertexArray(vaoID);
 
-        //Memory buffer
         vboID = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, vboID);
-        glBufferData(GL_ARRAY_BUFFER, vertexA.length * Float.BYTES, GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, vertices.length * Float.BYTES, GL_DYNAMIC_DRAW);
 
-        //Attribute
-        glVertexAttribPointer(0, 3, GL_FLOAT, false, 6 * Float.BYTES, 0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, false, 7 * Float.BYTES, 0);
         glEnableVertexAttribArray(0);
 
-        glVertexAttribPointer(1, 3, GL_FLOAT, false, 6 * Float.BYTES, 3 * Float.BYTES);
+        glVertexAttribPointer(1, 4, GL_FLOAT, false, 7 * Float.BYTES, 3 * Float.BYTES);
         glEnableVertexAttribArray(1);
 
-        // Line width
         glLineWidth(2.0f);
     }
 
     public static void startFrame() {
-        if (!isLoaded) {
-            start();
-            isLoaded = true;
-        }
-
-        // Remove leftover
         for (int i = 0; i < Lines.size(); i++) {
             if (Lines.get(i).startFrame() < 0) {
                 Lines.remove(i);
@@ -65,47 +56,42 @@ public class DebugDraw {
     }
 
     public static void draw() {
-        if (Lines.size() <= 0) return;
+        if (Lines.isEmpty() || !init || shader == null) return;
 
         int index = 0;
         for (Line2D line: Lines) {
             for (int i = 0; i < 2; i++) {
                 Vector2f pos = i == 0 ? line.getStart() : line.getEnd();
-                Vector3f color = line.loadColor();
+                Vector4f color = line.color();
 
                 // Position
-                vertexA[index] = pos.x;
-                vertexA[index + 1] = pos.y;
-                vertexA[index + 2] = -10.0f; //Object depth, can be within defined view range
+                vertices[index] = pos.x;
+                vertices[index + 1] = pos.y;
+                vertices[index + 2] = -10.0f;
 
                 // Color
-                vertexA[index + 3] = color.x;
-                vertexA[index + 4] = color.y;
-                vertexA[index + 5] = color.z;
+                vertices[index + 3] = color.x;
+                vertices[index + 4] = color.y;
+                vertices[index + 5] = color.z;
+                vertices[index + 6] = color.w;
 
-                index += 6;
+                index += 7;
             }
         }
 
         glBindBuffer(GL_ARRAY_BUFFER, vboID);
-        glBufferData(GL_ARRAY_BUFFER, vertexA, GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, vertices, GL_DYNAMIC_DRAW);
 
-        // Use shader
         shader.use();
         shader.loadMat4f("uProject", Window.getScene().viewport().getProjectionMatrix());
         shader.loadMat4f("uView", Window.getScene().viewport().getViewMatrix());
 
-        // Bind VAO
         glBindVertexArray(vaoID);
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
 
-        // Batching
-        glDrawArrays(GL_LINES, 0, Lines.size() * 6 * 2);
+        glDrawArrays(GL_LINES, 0, Lines.size() * 7 * 2);
 
-        // Bresenham line (maybe not)
-
-        // End
         glDisableVertexAttribArray(0);
         glDisableVertexAttribArray(1);
         glBindVertexArray(0);
@@ -113,67 +99,49 @@ public class DebugDraw {
         shader.detach();
     }
 
-    // Line2D methods
-
     public static void addLine2(Vector2f start, Vector2f end) {
-        addLine2(start, end, new Vector3f(1, 1, 0), 1);
+        addLine2(start, end, new Vector4f(1, 1, 1, 1), 1);
     }
 
-    public static void addLine2(Vector2f start, Vector2f end, Vector3f color) {
+    public static void addLine2(Vector2f start, Vector2f end, Vector4f color) {
         addLine2(start, end, color, 1);
     }
 
-    public static void addLine2(Vector2f start, Vector2f end, Vector3f color, int alive) {
+    public static void addLine2(Vector2f start, Vector2f end, Vector4f color, int alive) {
         if (Lines.size() >= MAX_LINE) return;
         DebugDraw.Lines.add(new Line2D(start, end, color, alive));
     }
 
-
     public static void addBox2(Vector2f centre, Vector2f dimension, float rotate) {
-
-        addBox2(centre, dimension, rotate, new Vector3f(1, 1, 1), 1);
+        addBox2(centre, dimension, rotate, new Vector4f(1, 1, 1, 1), 1);
     }
 
-    public static void addBox2(Vector2f centre, Vector2f dimension, float rotate, Vector3f color) {
+    public static void addBox2(Vector2f centre, Vector2f dimension, float rotate, Vector4f color) {
         addBox2(centre, dimension, rotate, color, 1);
     }
 
-   public static void addBox2(Vector2f centre, Vector2f dimension,
-                              float rotate, Vector3f color, int alive)
-   {
-       Vector2f min = new Vector2f(centre).sub(new Vector2f(dimension).mul(0.5f));
-       Vector2f max = new Vector2f(centre).add(new Vector2f(dimension).mul(0.5f));
-       Vector2f[] vertices = {
-               new Vector2f(min.x, min.y), new Vector2f(min.x, max.y),
-               new Vector2f(max.x, max.y), new Vector2f(max.x, min.y)
-       };
-       if (rotate != 0.0f) {
-           for (Vector2f v : vertices) {
-               TCBMath.rotate(v, rotate, centre);
-           }
-       }
+    public static void addBox2(Vector2f centre, Vector2f dimension, float rotate, Vector4f color, int alive) {
+        Vector2f min = new Vector2f(centre).sub(new Vector2f(dimension).mul(0.5f));
+        Vector2f max = new Vector2f(centre).add(new Vector2f(dimension).mul(0.5f));
+        Vector2f[] vertices = {new Vector2f(min.x, min.y), new Vector2f(min.x, max.y), new Vector2f(max.x, max.y), new Vector2f(max.x, min.y)};
 
-       addLine2(vertices[0], vertices[1], color, alive);
-       addLine2(vertices[0], vertices[3], color, alive);
-       addLine2(vertices[1], vertices[2], color, alive);
-       addLine2(vertices[2], vertices[3], color, alive);
+        if (rotate != 0.0f) for (Vector2f v : vertices) TCBMath.rotate(v, rotate, centre);
 
-   }
-
-   // Circle methods
+        addLine2(vertices[0], vertices[1], color, alive);
+        addLine2(vertices[0], vertices[3], color, alive);
+        addLine2(vertices[1], vertices[2], color, alive);
+        addLine2(vertices[2], vertices[3], color, alive);
+    }
 
     public static void addCircle(Vector2f centre, float radius) {
-        addCircle(centre, radius, new Vector3f(1, 1, 0), 1);
+        addCircle(centre, radius, new Vector4f(1, 1, 1, 1), 1);
     }
 
-    public static void addCircle(Vector2f centre, float radius, int alive) {
-        addCircle(centre, radius, new Vector3f(1, 1, 0), alive);
-    }
-
-    public static void addCircle(Vector2f centre, float radius, Vector3f color) {
+    public static void addCircle(Vector2f centre, float radius, Vector4f color) {
         addCircle(centre, radius, color, 1);
     }
-    public static void addCircle(Vector2f centre, float radius, Vector3f color, int alive) {
+
+    public static void addCircle(Vector2f centre, float radius, Vector4f color, int alive) {
         Vector2f[] pt = new Vector2f[36];
         int step = 360 / pt.length;
         int startAngle = 0;

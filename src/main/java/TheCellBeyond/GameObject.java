@@ -40,7 +40,7 @@ public class GameObject {
     private final transient Map<String, Component> namedComponents = new ConcurrentHashMap<>();
 
     private boolean isSerialize = true;
-    private boolean isRemoved = false;
+    private transient boolean isRemoved = false;
     private transient boolean isStarted = false;
     private transient boolean isDirty = false;
 
@@ -326,6 +326,7 @@ public class GameObject {
     protected void additionalUpdateLogic(float dt) {}
 
     public void start() {
+        isDirty = true;
         isStarted = true;
 
         for (Component component : components) {

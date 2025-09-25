@@ -142,6 +142,12 @@ public class ImGuiLayer {
         ImGui.newFrame();
 
         renderDocking();
+        if (resetLayout) {
+            resetLayout = false;
+            ImGui.endFrame();
+            return;
+        }
+
         currentScene.imgui();
         sceneEditorViewport.imgui();
         Properties.imgui();
@@ -185,10 +191,9 @@ public class ImGuiLayer {
         ImGui.popStyleVar(2);
         int id = ImGui.getID(DOCK_ID);
         ImGui.dockSpace(id);
-        if (!DefaultEditorLayout.dockingValid(id) || resetLayout) {
-            DefaultEditorLayout.resetLayout(id);
-            resetLayout = false;
-        }
+
+        if (!DefaultEditorLayout.dockingValid(id) || resetLayout) DefaultEditorLayout.resetLayout(id);
+
         MenuBar.imgui();
         ImGui.end();
     }

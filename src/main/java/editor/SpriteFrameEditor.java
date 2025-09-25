@@ -22,7 +22,8 @@ import static org.lwjgl.glfw.GLFW.*;
 
 public class SpriteFrameEditor {
     private static final String CONTROL_SECTION = "##Sprite frame controls";
-    private static final float PREVIEW_FRAME_SIZE = 80.0f;
+    private static final float PREVIEW_FRAME_SIZE = 96.0f;
+    private static final float INPUT_WIDTH = ImGui.calcTextSizeX("999.999");
     private static AnimatedSpriteRenderer editingAnimatedSprite;
     private static String selectedName;
 
@@ -53,47 +54,7 @@ public class SpriteFrameEditor {
         selectedName = editingAnimatedSprite.currentAnimationName();
 
         if (!ImGui.beginChild(CONTROL_SECTION, 0, CONTROL_RESERVE + padding, false)) return;
-
-        if (ImGui.button("Add")) editingAnimatedSprite.newAnimation();
-        ImGui.sameLine();
-        if (selectedName != null) {
-            if (ImGui.button("Duplicate")) {
-                editingAnimatedSprite.duplicateAnimation(selectedName);
-            }
-            ImGui.sameLine();
-            if (ImGui.button("Delete")) {
-                editingAnimatedSprite.removeAnimation(selectedName);
-                if (Objects.equals(editingName, selectedName)) {
-                    editingName = null;
-                    editingNameBuffer.clear();
-                }
-                selectedName = null;
-            }
-
-            ImGui.sameLine();
-            ImBoolean enableLoop = new ImBoolean(editingAnimatedSprite.isAnimationLoop(selectedName));
-            if (ImGui.checkbox("Loop", enableLoop)) editingAnimatedSprite.setAnimationLoop(enableLoop.get(), selectedName);
-
-            ImGui.sameLine();
-            ImFloat fps = new ImFloat(editingAnimatedSprite.getAnimationFPS(selectedName));
-            if (ImGui.inputFloat("FPS", fps)) editingAnimatedSprite.setFPS(fps.get(), selectedName);
-
-            ImGui.sameLine();
-            if (ImGui.button("Play")) editingAnimatedSprite.play(selectedName);
-
-            ImGui.sameLine();
-            if (ImGui.button("Stop")) editingAnimatedSprite.stop();
-
-
-        } else {
-            ImGui.beginDisabled();
-            ImGui.button("Duplicate");
-            ImGui.sameLine();
-            ImGui.button("Delete");
-            ImGui.endDisabled();
-
-        }
-
+        renderAnimationControl();
         ImGui.endChild();
 
         if (!ImGui.beginTable("##SFE_Table_Id", 2, ImGuiTableFlags.NoBordersInBody | ImGuiTableFlags.SizingStretchProp, ImGui.getContentRegionAvail())) return;
@@ -128,6 +89,71 @@ public class SpriteFrameEditor {
         ImGui.endTable();
     }
 
+    private static void renderAnimationControl() {
+        if (ImGui.button("Add")) editingAnimatedSprite.newAnimation();
+        ImGui.sameLine();
+
+        boolean enableUI = selectedName != null;
+        if (!enableUI) ImGui.beginDisabled();
+        if (ImGui.button("Duplicate")) {
+            editingAnimatedSprite.duplicateAnimation(selectedName);
+        }
+        ImGui.sameLine();
+        if (ImGui.button("Delete")) {
+            editingAnimatedSprite.removeAnimation(selectedName);
+            if (Objects.equals(editingName, selectedName)) {
+                editingName = null;
+                editingNameBuffer.clear();
+            }
+            selectedName = null;
+        }
+
+        ImGui.sameLine();
+        boolean currentlyDefault = Objects.equals(editingAnimatedSprite.defaultAnimation(), selectedName);
+        ImBoolean setAsDefault = new ImBoolean(currentlyDefault);
+        if (ImGui.checkbox("Default", setAsDefault)) {
+            boolean setVal = setAsDefault.get();
+            if (setVal) {
+                editingAnimatedSprite.setDefaultAnimation(selectedName);
+            } else {
+                editingAnimatedSprite.setDefaultAnimation(null);
+            }
+        }
+
+        ImGui.sameLine();
+        ImBoolean enableLoop = new ImBoolean(editingAnimatedSprite.isAnimationLoop(selectedName));
+        if (ImGui.checkbox("Loop", enableLoop)) editingAnimatedSprite.setAnimationLoop(enableLoop.get(), selectedName);
+
+        ImGui.sameLine();
+        ImFloat fps = new ImFloat(editingAnimatedSprite.getAnimationFPS(selectedName));
+        ImGui.pushItemWidth(INPUT_WIDTH);
+        if (ImGui.inputFloat("FPS", fps, 0.0f, 0.0f, "%.2f")) editingAnimatedSprite.setFPS(fps.get(), selectedName);
+        ImGui.popItemWidth();
+
+        ImGui.sameLine();
+        if (ImGui.button("Play")) editingAnimatedSprite.play(selectedName);
+
+        ImGui.sameLine();
+        if (editingAnimatedSprite.isPlaying()) {
+            if (ImGui.button("Pause")) editingAnimatedSprite.pause();
+        } else {
+            if (ImGui.button("Resume")) editingAnimatedSprite.resume();
+        }
+
+
+        ImGui.sameLine();
+        if (ImGui.button("Stop")) editingAnimatedSprite.stop();
+
+        ImGui.sameLine();
+        Animation animation = editingAnimatedSprite.currentAnimation();
+        ImFloat speedMultiplier = new ImFloat(animation.speedMultiplier());
+        ImGui.pushItemWidth(INPUT_WIDTH);
+        if (ImGui.inputFloat("Speed", speedMultiplier, 0.0f, 0.0f, "%.2f")) animation.setSpeed(speedMultiplier.get());
+        ImGui.popItemWidth();
+
+        if (!enableUI) ImGui.endDisabled();
+    }
+
     private static void renderAnimationList() {
         HashMap<String, Animation> animations = editingAnimatedSprite.animations();
 
@@ -137,8 +163,10 @@ public class SpriteFrameEditor {
             float height = ImGui.getTextLineHeight() + ImGui.getStyle().getFramePaddingY() * 2;
             ImGui.setNextItemAllowOverlap();
             if (ImGui.selectable("##" + entry.getKey(), isSelected, 0.0f, height)) {
-                selectedName = entry.getKey();
-                editingAnimatedSprite.setCurrentAnimation(entry.getKey());
+                if (!isSelected) {
+                    selectedName = entry.getKey();
+                    editingAnimatedSprite.setCurrentAnimation(entry.getKey());
+                }
             }
 
             if (Objects.equals(editingName, entry.getKey())) {
@@ -187,26 +215,44 @@ public class SpriteFrameEditor {
 
         float spacing = ImGui.getStyle().getItemSpacingX();
         float availWidth = ImGui.getContentRegionAvailX();
+        float textLineHeight = ImGui.getTextLineHeightWithSpacing();
         float consumedWidth = 0.0f;
         for (int i = 0; i < frames.size(); i++) {
             Sprite sprite = frames.get(i).sprite;
             if (sprite == null) continue;
             int textureID = sprite.getTextureID();
-            Vector2f scaledSpriteSize = TextureScale.calculateFitSquare(sprite.getWidth(), sprite.getHeight(), PREVIEW_FRAME_SIZE);
+            Vector2f scaledSpriteSize = TextureScale.calculateFitDimension(sprite.getWidth(), sprite.getHeight(), PREVIEW_FRAME_SIZE, PREVIEW_FRAME_SIZE - textLineHeight);
             Vector2f[] textureCoordinates = sprite.getTextureCoordinates();
 
             String compositeId = selectedName + "_frame_" + i;
             ImGui.pushID(compositeId);
-
-            ImGui.imageButton(compositeId, textureID, scaledSpriteSize.x, scaledSpriteSize.y,
+            ImVec2 cursorPos = ImGui.getCursorPos();
+            boolean isCurrentFrame = animation.currentFrameIndex() == i;
+            if (ImGui.selectable("##" + compositeId + "_selection", isCurrentFrame, scaledSpriteSize.x, scaledSpriteSize.y + textLineHeight)) {
+                if  (!isCurrentFrame) {
+                    editingAnimatedSprite.stop();
+                    editingAnimatedSprite.currentAnimation().setCurrentFrameIndex(i);
+                }
+            }
+            ImGui.setCursorPos(cursorPos);
+            ImGui.beginGroup();
+            ImGui.image(textureID, scaledSpriteSize.x, scaledSpriteSize.y,
                     textureCoordinates[2].x, textureCoordinates[0].y,
                     textureCoordinates[0].x, textureCoordinates[2].y
             );
-            float buttonWidth = ImGui.getItemRectSizeX() + spacing;
-            consumedWidth += buttonWidth;
+            float buttonWidth = ImGui.getItemRectSizeX();
+            consumedWidth += (buttonWidth + spacing);
+
+            float cursorX = ImGui.getCursorPosX();
+            String frameIndex = Integer.toString(i);
+            float indexWidth = ImGui.calcTextSizeX(frameIndex);
+            float offset = Math.max((scaledSpriteSize.x - indexWidth) * 0.5f, 0.0f);
+            ImGui.setCursorPosX(cursorX + offset);
+            ImGui.text(frameIndex);
+            ImGui.endGroup();
 
             ImGui.popID();
-            if (consumedWidth + buttonWidth <= availWidth) {
+            if (consumedWidth + buttonWidth + spacing <= availWidth) {
                 ImGui.sameLine();
                 continue;
             }

@@ -1,5 +1,6 @@
 package components;
 
+import TheCellBeyond.Window;
 import imgui.ImGui;
 import render.texture.Sprite;
 
@@ -22,7 +23,12 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
     }
 
     public void setDefaultAnimation(String name) {
-        if (name == null || name.isBlank() || !animations.containsKey(name)) return;
+        if (name == null) {
+            defaultAnimation = null;
+            return;
+        }
+
+        if (name.isBlank() || !animations.containsKey(name)) return;
 
         defaultAnimation = name;
     }
@@ -126,6 +132,10 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
         animationFPS.put(name, fps);
     }
 
+    public boolean isPlaying() {
+        return play;
+    }
+
     public void play(String name) {
         if (name == null || !animations.containsKey(name)) return;
         Animation animation = animations.get(name);
@@ -219,6 +229,8 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
         for (Map.Entry<String, Animation> entry : animations.entrySet()) {
             entry.getValue().start();
         }
+
+        if (Window.get().isRuntimeMode()) play(defaultAnimation);
     }
 
     @Override

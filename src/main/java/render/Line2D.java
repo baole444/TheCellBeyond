@@ -1,12 +1,12 @@
 package render;
 
 import org.joml.Vector2f;
-import org.joml.Vector3f;
+import org.joml.Vector4f;
 
 public class Line2D {
     private final Vector2f start;
     private final Vector2f end;
-    private Vector3f color;
+    private Vector4f color;
     private int alive;
 
     public Line2D(Vector2f start, Vector2f end) {
@@ -14,7 +14,7 @@ public class Line2D {
         this.end = end;
     }
 
-    public Line2D(Vector2f start, Vector2f end, Vector3f color, int alive) {
+    public Line2D(Vector2f start, Vector2f end, Vector4f color, int alive) {
         this.start = start;
         this.end = end;
         this.color = color;
@@ -34,7 +34,7 @@ public class Line2D {
         return end;
     }
 
-    public Vector3f loadColor() {
+    public Vector4f color() {
         return color;
     }
 

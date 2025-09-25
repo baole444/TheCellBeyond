@@ -5,7 +5,6 @@ import components.Component;
 import components.SpriteRenderer;
 import components.TextRenderer;
 import org.joml.Matrix4f;
-import render.text.FontManager;
 import render.text.TextBatch;
 import render.texture.TextureManager;
 
@@ -14,7 +13,8 @@ import java.util.Collections;
 import java.util.List;
 
 public class Renderer {
-    private final int MAX_BATCH_SIZE = 1000;
+    private static volatile Renderer instance;
+    public static final int MAX_BATCH_SIZE = 512;
     private final List<Batch> textureBatches;
     private final List<TextBatch> textBatches;
 
@@ -44,12 +44,22 @@ public class Renderer {
         }
     }
 
-    public Renderer() {
+    private Renderer() {
         textureBatches = new ArrayList<>();
         textBatches = new ArrayList<>();
         updatedGameObjects = new ArrayList<>();
         removedGameObjects = new ArrayList<>();
         removedComponents = new ArrayList<>();
+    }
+
+    public static synchronized Renderer get() {
+        if (instance == null) instance = new Renderer();
+
+        return instance;
+    }
+
+    public static synchronized void clearData() {
+        instance = null;
     }
 
     public void render() {
