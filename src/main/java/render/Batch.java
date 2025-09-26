@@ -139,7 +139,7 @@ public class Batch implements Comparable<Batch> {
             SpriteRenderer spr = sprites[i];
             if (spr.getzIndex() != this.zIndex) {
                 removeIfExist(spr.gameObject);
-                renderer.queueObjectForUpdate(spr.gameObject);
+                renderer.switchZIndex(spr.gameObject);
                 i--;
             }
         }

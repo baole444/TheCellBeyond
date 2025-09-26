@@ -326,12 +326,13 @@ public class GameObject {
     protected void additionalUpdateLogic(float dt) {}
 
     public void start() {
-        isDirty = true;
         isStarted = true;
 
         for (Component component : components) {
             component.start();
         }
+
+        isDirty = true;
     }
 
     public void imgui() {

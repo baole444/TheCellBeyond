@@ -2,6 +2,7 @@ package scene;
 
 import TheCellBeyond.*;
 import TheCellBeyond.internal.DataSnapshot;
+import TheCellBeyond.internal.RenderingSnapshot;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import components.ComponentSerializer;
@@ -58,7 +59,6 @@ public class Scene {
 
         for (GameObject go : sceneData.gameObjectByUUIDs().values()) {
             go.start();
-            renderer.queueObjectForAddition(go);
             sceneData.physic2D().add(go);
             cacheComponents(go);
         }
@@ -118,7 +118,6 @@ public class Scene {
 
         if (isSceneOn.get()) {
             go.start();
-            renderer.queueObjectForAddition(go);
             sceneData.physic2D().add(go);
             cacheComponents(go);
         }
@@ -152,7 +151,7 @@ public class Scene {
         if (component == null) return;
 
         sceneData.componentsByUUID().remove(component.getUUID());
-        renderer.queueComponentForRemoval(component);
+        sceneData.markComponentForRemove(component);
         component.destroy();
     }
 
@@ -169,14 +168,14 @@ public class Scene {
         for (GameObject descendant : descendants) {
             sceneData.cachedIDs().remove(descendant.getUID());
             sceneData.gameObjectByUUIDs().remove(descendant.getUUID());
-            renderer.queueObjectForRemoval(descendant);
+            sceneData.markObjectForRemove(descendant);
             sceneData.physic2D().destroyObject(descendant);
             uncacheComponents(descendant);
         }
 
         sceneData.cachedIDs().remove(go.getUID());
         sceneData.gameObjectByUUIDs().remove(go.getUUID());
-        renderer.queueObjectForRemoval(go);
+        sceneData.markObjectForRemove(go);
         sceneData.physic2D().destroyObject(go);
         uncacheComponents(go);
     }
@@ -224,7 +223,6 @@ public class Scene {
         removedComponents.clear();
 
         for (Component c : componentToRemove) {
-
             removeComponentFromScene(c);
         }
 
@@ -263,22 +261,21 @@ public class Scene {
     }
 
     public void editorUpdate(float dt) {
+        sceneData.updated().set(false);
         sceneData.viewport().adjustProjection();
 
         for (GameObject go : sceneData.gameObjectByUUIDs().values()) {
             go.editorUpdate(dt);
 
             if (go.isRemoved()) queueObjectForRemoval(go);
-            else if (go.isDirty()) {
-                renderer.queueObjectForUpdate(go);
-                go.setDirty(false);
-            }
         }
 
         updateQueues();
+        sceneData.updated().set(true);
     }
 
     public void update(float dt) {
+        sceneData.updated().set(false);
         sceneData.viewport().adjustProjection();
         sceneData.physic2D().update(dt);
 
@@ -286,16 +283,16 @@ public class Scene {
             go.update(dt);
 
             if (go.isRemoved()) queueObjectForRemoval(go);
-            else if (go.isDirty()) {
-                renderer.queueObjectForUpdate(go);
-                go.setDirty(false);
-            }
         }
 
         updateQueues();
+        sceneData.updated().set(true);
     }
 
     public void render() {
+        RenderingSnapshot snapshot = sceneData.extractRenderData();
+        if (snapshot != null) renderer.queueSnapshot(snapshot);
+
         Viewport viewport = viewport();
         renderer.setMatrices(viewport.getProjectionMatrix(), viewport.getViewMatrix());
         renderer.render();

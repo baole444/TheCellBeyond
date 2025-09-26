@@ -1,6 +1,7 @@
 package render;
 
 import TheCellBeyond.GameObject;
+import TheCellBeyond.internal.RenderingSnapshot;
 import components.Component;
 import components.SpriteRenderer;
 import components.TextRenderer;
@@ -11,6 +12,7 @@ import render.texture.TextureManager;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Renderer {
     private static volatile Renderer instance;
@@ -18,9 +20,9 @@ public class Renderer {
     private final List<Batch> textureBatches;
     private final List<TextBatch> textBatches;
 
-    private final List<GameObject> updatedGameObjects;
-    private final List<GameObject> removedGameObjects;
-    private final List<Component> removedComponents;
+    private final ConcurrentLinkedQueue<RenderingSnapshot> snapshots;
+
+    private final List<GameObject> switchZIndexQueue;
 
     private Matrix4f projectionMatrix = null;
     private Matrix4f viewMatrix = null;
@@ -47,9 +49,10 @@ public class Renderer {
     private Renderer() {
         textureBatches = new ArrayList<>();
         textBatches = new ArrayList<>();
-        updatedGameObjects = new ArrayList<>();
-        removedGameObjects = new ArrayList<>();
-        removedComponents = new ArrayList<>();
+
+        snapshots = new ConcurrentLinkedQueue<>();
+
+        switchZIndexQueue = new ArrayList<>();
     }
 
     public static synchronized Renderer get() {
@@ -67,6 +70,8 @@ public class Renderer {
 
         RendererState state = RendererState.get();
 
+        processSnapshot();
+
         if (RendererState.isNormalPass()) {
             state.enableSpriteRendering();
         }
@@ -83,29 +88,15 @@ public class Renderer {
             textBatch.render();
         }
 
-        updateBatches();
+        adjustZIndex();
     }
 
-    /**
-     * This is just an alias for {@link Renderer#queueObjectForUpdate(GameObject)}.
-     * @param go game object to add.
-     */
-    public void queueObjectForAddition(GameObject go) {
-        queueObjectForUpdate(go);
+    public void queueSnapshot(RenderingSnapshot snapshot) {
+        if (snapshot != null) snapshots.offer(snapshot);
     }
 
-    // Add a game object to the removal list and remove it from the update list.
-    public void queueObjectForRemoval(GameObject go) {
-        updatedGameObjects.remove(go);
-        if (!removedGameObjects.contains(go)) removedGameObjects.add(go);
-    }
-
-    public void queueComponentForRemoval(Component component) {
-        if (!removedComponents.contains(component)) removedComponents.add(component);
-    }
-
-    public void queueObjectForUpdate(GameObject go) {
-        if (!updatedGameObjects.contains(go) && !removedGameObjects.contains(go)) updatedGameObjects.add(go);
+    void switchZIndex(GameObject go) {
+        if (!switchZIndexQueue.contains(go)) switchZIndexQueue.add(go);
     }
 
     private void addGameObject(GameObject go) {
@@ -213,24 +204,22 @@ public class Renderer {
         }
     }
 
-    private void updateBatches() {
-        List<GameObject> updateList = new ArrayList<>(updatedGameObjects);
-        updatedGameObjects.clear();
-        List<GameObject> removeList = new ArrayList<>(removedGameObjects);
-        removedGameObjects.clear();
-        List<Component> removeComponentList = new ArrayList<>(removedComponents);
-        removedComponents.clear();
+    private void adjustZIndex() {
+        if (switchZIndexQueue.isEmpty()) return;
+        List<GameObject> updateList = new ArrayList<>(switchZIndexQueue);
+        switchZIndexQueue.clear();
 
-        for (Component c : removeComponentList) {
-            removeComponent(c);
-        }
+        for (GameObject go : updateList) if (!go.isRemoved()) addGameObject(go);
+    }
 
-        for (GameObject go: removeList) {
-            destroyObject(go);
-        }
+    private void processSnapshot() {
+        RenderingSnapshot snapshot = snapshots.poll();
+        if (snapshot == null) return;
 
-        for (GameObject go : updateList) {
-            if (!go.isRemoved()) addGameObject(go);
-        }
+        for (Component component : snapshot.removeComponents()) removeComponent(component);
+
+        for (GameObject go : snapshot.removeObjects()) destroyObject(go);
+
+        for (GameObject go : snapshot.updateObjects()) if (!go.isRemoved()) addGameObject(go);
     }
 }
