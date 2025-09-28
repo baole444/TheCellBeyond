@@ -8,8 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A class dedicated to handle sprite sheet details.
- * Handle the separation of the sheet into individual sprites and indexing them.
+ * SpriteSheet facilitate the texture used by the sprites, allow register callback with Texture Management system.
+ * SpriteSheet will calculate its sprites' texture coordinate and size once the texture assigned to it is ready.
+ * @see TextureUnit calculate sprite as a full texture.
  */
 public class SpriteSheet implements TextureStatusListener {
     private Texture texture;
@@ -28,10 +29,7 @@ public class SpriteSheet implements TextureStatusListener {
         );
     }
 
-    public SpriteSheet(Texture texture, int spriteWidth, int spriteHeight, int numberOfSprites,
-                       int horizontalSpriteSpacing, int verticalSpriteSpacing,
-                       int startPosX, int startPosY
-    ) {
+    public SpriteSheet(Texture texture, int spriteWidth, int spriteHeight, int numberOfSprites, int horizontalSpriteSpacing, int verticalSpriteSpacing, int startPosX, int startPosY) {
         this(texture, new Vector2i(spriteWidth, spriteHeight), numberOfSprites,
                 new Vector2i(horizontalSpriteSpacing, verticalSpriteSpacing),
                 new Vector2i(startPosX, startPosY)
@@ -53,25 +51,22 @@ public class SpriteSheet implements TextureStatusListener {
         if (texture == null) return;
 
         int currentId = texture.getHandleId();
+        if (currentId == lastHandleId) return;
+        lastHandleId = currentId;
 
-        if (currentId != lastHandleId) {
-            lastHandleId = currentId;
-
-            if (texture.isReady()) {
-                requireCompute = true;
-                computeSprites();
-            }
-
-            if (!isRegistered) {
-                TextureStatusCallback.register(this);
-                isRegistered = true;
-                requireCompute = true;
-            }
+        if (texture.isReady()) {
+            requireCompute = true;
+            computeSprites();
         }
+
+        if (isRegistered) return;
+        TextureStatusCallback.register(this);
+        isRegistered = true;
+        requireCompute = true;
     }
 
     private void computeSprites() {
-        if (!requireCompute || !texture.isReady() || texture == null) return;
+        if (!requireCompute || texture == null || !texture.isReady()) return;
 
         sprites.clear();
 
@@ -130,17 +125,16 @@ public class SpriteSheet implements TextureStatusListener {
     }
 
     public void setTexture(Texture newTexture) {
-        if (texture != newTexture) {
-            if (isRegistered) {
-                TextureStatusCallback.unRegister(this);
-                isRegistered = false;
-            }
-
-            texture = newTexture;
-            sprites.clear();
-
-            textureReadyCheck(newTexture);
+        if (texture == newTexture) return;
+        if (isRegistered) {
+            TextureStatusCallback.unRegister(this);
+            isRegistered = false;
         }
+
+        texture = newTexture;
+        sprites.clear();
+
+        textureReadyCheck(newTexture);
     }
 
     public int numberOfAvailableSprites() {
@@ -161,19 +155,19 @@ public class SpriteSheet implements TextureStatusListener {
 
     @Override
     public void onTextureStatusChange(int handleId, TextureHandle.Status status) {
-        if (texture != null && texture.getHandleId() == handleId) {
-            switch (status) {
-                case READY -> {
-                    if (requireCompute) computeSprites();
+        if (texture == null || texture.getHandleId() != handleId) return;
+
+        switch (status) {
+            case READY -> {
+                if (requireCompute) computeSprites();
+            }
+            case DISPOSED, FAILED -> {
+                if (isRegistered) {
+                    TextureStatusCallback.unRegister(this);
+                    isRegistered = false;
                 }
-                case DISPOSED, FAILED -> {
-                    if (isRegistered) {
-                        TextureStatusCallback.unRegister(this);
-                        isRegistered = false;
-                    }
-                    requireCompute = false;
-                    lastHandleId = -1;
-                }
+                requireCompute = false;
+                lastHandleId = -1;
             }
         }
     }

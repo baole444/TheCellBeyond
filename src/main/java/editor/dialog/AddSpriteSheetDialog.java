@@ -5,15 +5,14 @@ import editor.project.ProjectSheetMap;
 import imgui.ImDrawList;
 import imgui.ImGui;
 import imgui.ImVec2;
-import imgui.flag.ImGuiCond;
-import imgui.flag.ImGuiInputTextFlags;
-import imgui.flag.ImGuiWindowFlags;
+import imgui.flag.*;
 import imgui.type.ImInt;
 import imgui.type.ImString;
 import org.joml.Vector2f;
 import org.joml.Vector2i;
 import render.Texture;
 import utility.IdPool;
+import utility.PathResolver;
 import utility.TextureScale;
 
 import java.io.IOException;
@@ -269,27 +268,35 @@ public class AddSpriteSheetDialog {
 
     private static void renderSpritePropertiesEditor() {
         int ySection =(int) (DIALOG_SIZE.y * metaYPercentage);
-        ImGui.beginChild(META_ID, 0, ySection, enableBorder);
+        if (!ImGui.beginChild(META_ID, 0, ySection, enableBorder)) return;
+
         numberOfSprite = inputInt("Number of sprites", numberOfSprite, 1);
         ImGui.separator();
-        ImGui.columns(3, "sprite_stats_columns", enableBorder);
-        ImGui.setColumnWidth(0, DIALOG_SIZE.x / 3);
-        ImGui.setColumnWidth(1, DIALOG_SIZE.x / 3);
 
+        if (!ImGui.beginTable("##SpriteSheetPropertiesTable", 3, ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.SizingStretchProp, ImGui.getContentRegionAvailX())) {
+            ImGui.endChild();
+            return;
+        }
+
+        float columnWidth = ImGui.getContentRegionAvailX() / 3.0f;
+        ImGui.tableSetupColumn("##sprite_size_column", ImGuiTableColumnFlags.WidthFixed, columnWidth);
+        ImGui.tableSetupColumn("##sprite_spacing_column", ImGuiTableColumnFlags.WidthFixed, columnWidth);
+        ImGui.tableSetupColumn("##sprite_start_pos_column", ImGuiTableColumnFlags.WidthStretch);
+        ImGui.tableNextColumn();
         ImGui.text("Sprite size:");
         spriteSize.x = inputInt("Width", spriteSize.x, 1);
         spriteSize.y = inputInt("Height", spriteSize.y, 1);
-        ImGui.nextColumn();
 
+        ImGui.tableNextColumn();
         ImGui.text("Sprite spacing:");
         spriteSpacing.x = inputInt("X space", spriteSpacing.x, 0);
         spriteSpacing.y = inputInt("Y space", spriteSpacing.y, 0);
-        ImGui.nextColumn();
 
+        ImGui.tableNextColumn();
         ImGui.text("Start position:");
         spriteStartPosition.x = inputInt("X offset", spriteStartPosition.x, 0);
         spriteStartPosition.y = inputInt("Y offset", spriteStartPosition.y, 0);
-        ImGui.columns(1);
+        ImGui.endTable();
 
         ImGui.separator();
         ImGui.inputText("Sheet name", sheetName);
@@ -326,30 +333,36 @@ public class AddSpriteSheetDialog {
     private static void addSpriteSheet() {
         if (Project.projectRoot() == null) return;
 
+        String cat = category.get().trim();
+        String name = sheetName.get().trim();
+
+        if (cat.isEmpty() || name.isEmpty()) return;
+
         try {
-            Path dir = Paths.get(Project.projectRoot(), "sheets");
-            if (!Files.exists(dir)) Files.createDirectories(dir);
-
+            Path projectRoot = Paths.get(Project.projectRoot());
             Path source = Paths.get(selectedFilePath.get());
-            String filename = source.getFileName().toString();
+            Path target;
+            String relativePath;
 
-            Path target = dir.resolve(filename);
-            target = createFile(dir, target, filename);
+            if (source.startsWith(projectRoot)) {
+                relativePath = PathResolver.resolveToRelative(projectRoot.toString(), source.toString());
+            } else {
+                Path dir = Paths.get(Project.projectRoot(), "sheets");
+                if (!Files.exists(dir)) Files.createDirectories(dir);
 
-            Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
+                String filename = source.getFileName().toString();
+                target = dir.resolve(filename);
+                target = createFile(dir, target, filename);
 
-            String relativePath = "sheets/" + target.getFileName().toString();
+                Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
+
+                relativePath = "sheets/" + target.getFileName().toString();
+            }
 
             ProjectSheetMap sheetMap = new ProjectSheetMap(relativePath, numberOfSprite,
                     spriteSize.x, spriteSize.y, spriteSpacing.x, spriteSpacing.y,
                     spriteStartPosition.x, spriteStartPosition.y
             );
-
-            String cat = category.get().trim();
-            String name = sheetName.get().trim();
-
-            if (cat.isEmpty()) cat = "Asset";
-            if (name.isEmpty()) name = target.getFileName().toString();
 
             boolean success = Project.addSheet(cat, name, sheetMap);
             if (success) {

@@ -7,7 +7,7 @@ import utility.AssetsPool;
 import utility.WorldUnit;
 
 /**
- * Sprite store the canonical path to the texture image and the texture UV coordinates and the size of the sprite.<br>
+ * Sprite store the canonical path to the texture image, the texture UV coordinates and the size of the sprite.<br>
  * Sprite will mark itself dirty (volatile) when its parameters are updated,
  * which will be cleared by its responsible SpriteRenderer.<br>
  * All texture creation in Sprite is pass into {@link AssetsPool#loadTexture(String)} using the sanctioned canonical path.

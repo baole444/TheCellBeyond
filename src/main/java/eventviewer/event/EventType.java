@@ -11,6 +11,7 @@ public enum EventType {
 
     SCENE_NEW,
     SCENE_LOAD,
+    SCENE_RELOAD_RESOURCE,
 
     UserEvent,
 }

@@ -9,6 +9,10 @@ import editor.payload.SpriteDragDropPayload;
 import editor.project.Project;
 import editor.project.ProjectData;
 import editor.project.ProjectSheetMap;
+import eventviewer.EngineEventCallback;
+import eventviewer.EngineEventListener;
+import eventviewer.event.Event;
+import eventviewer.event.EventType;
 import imgui.ImGui;
 import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiTabItemFlags;
@@ -28,7 +32,7 @@ import utility.prefabrication.PrefabManager;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class SceneEditor extends SceneInit {
+public class SceneEditor extends SceneInit implements EngineEventListener {
     public static final String WINDOW_ID = "Resources###Editor_Project_Resource";
 
     private final Vector2i prefabButtonSize = new Vector2i(200, 30);
@@ -41,6 +45,7 @@ public class SceneEditor extends SceneInit {
 
     public SceneEditor() {
         spriteSearchFilter = new ImString(128);
+        EngineEventCallback.register(this);
     }
 
     @Override
@@ -313,5 +318,15 @@ public class SceneEditor extends SceneInit {
                 if (!categorySheets.isEmpty()) categorizedSpriteSheetList.put(category, categorySheets);
             }
         }
+    }
+
+    @Override
+    void dispose() {
+        EngineEventCallback.unregister(this);
+    }
+
+    @Override
+    public void onEventEmit(Object object, Event event) {
+        if (event.type == EventType.SCENE_RELOAD_RESOURCE) reloadResource();
     }
 }

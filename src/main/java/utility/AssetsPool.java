@@ -7,6 +7,7 @@ import render.texture.SpriteSheet;
 import render.Shader;
 import render.Texture;
 import render.texture.TextureManager;
+import render.texture.TextureUnit;
 
 import java.util.Collection;
 import java.util.Map;
@@ -19,6 +20,7 @@ public class AssetsPool {
     private static final Map<String, Texture> textures = new ConcurrentHashMap<>();
     private static final Map<AtlasKey, FontAtlasTexture> fontAtlasTextures = new ConcurrentHashMap<>();
     private static final Map<String, SpriteSheet> spritesheets = new ConcurrentHashMap<>();
+    private static final Map<String, TextureUnit> textureUnits = new ConcurrentHashMap<>();
     private static final Map<String, Sound> sounds = new ConcurrentHashMap<>();
 
     public static Shader loadShader(String path) {
@@ -100,10 +102,36 @@ public class AssetsPool {
         return texture;
     }
 
+    public static boolean hasTextureUnit(String path) {
+        PathResolver resolver = PathResolver.get();
+        String canonicalPath = resolver.toCanonicalPath(path);
+        return textureUnits.containsKey(canonicalPath);
+    }
+
+    public static void addTextureUnit(String path, TextureUnit textureUnit) {
+        PathResolver resolver = PathResolver.get();
+        String canonicalPath = resolver.toCanonicalPath(path);
+
+        if (!textureUnits.containsKey(canonicalPath)) {
+            textureUnits.put(canonicalPath, textureUnit);
+        }
+    }
+
+    public static TextureUnit loadTextureUnit(String path) {
+        PathResolver resolver = PathResolver.get();
+        String canonicalPath = resolver.toCanonicalPath(path);
+
+        if (!textureUnits.containsKey(canonicalPath)) {
+            System.err.println("Failed to load '" + canonicalPath + "', no asset added.");
+        }
+
+        return textureUnits.getOrDefault(canonicalPath, null);
+    }
+
     public static boolean hasSpriteSheet(String path) {
         PathResolver resolver = PathResolver.get();
         String canonicalPath = resolver.toCanonicalPath(path);
-        return  spritesheets.containsKey(canonicalPath);
+        return spritesheets.containsKey(canonicalPath);
     }
 
     public static void addSpriteSheet(String path, SpriteSheet spritesheet) {
@@ -166,6 +194,7 @@ public class AssetsPool {
         shaders.clear();
         textures.clear();
         spritesheets.clear();
+        textureUnits.clear();
         sounds.clear();
 
         TextureManager.get().clearPathCache();

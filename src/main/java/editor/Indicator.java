@@ -6,12 +6,13 @@ import components.SpriteRenderer;
 import org.joml.Vector4f;
 import render.texture.Sprite;
 import render.texture.SpriteSheet;
+import render.texture.TextureUnit;
 import utility.AssetsPool;
 
 public class Indicator extends SpriteRenderer implements NotSerializeComponent {
     private static final String PATH = "engine://assets/textures/indicator.png";
 
-    private transient SpriteSheet sheet;
+    private transient TextureUnit textureUnit;
     private transient boolean isInitialized = false;
     private transient boolean active = false;
 
@@ -29,13 +30,13 @@ public class Indicator extends SpriteRenderer implements NotSerializeComponent {
         ) return;
 
         try {
-            if (!AssetsPool.hasSpriteSheet(PATH)) {
-                AssetsPool.addSpriteSheet(PATH,
-                        new SpriteSheet(AssetsPool.loadTexture(PATH), 12, 12, 1, 0)
+            if (!AssetsPool.hasTextureUnit(PATH)) {
+                AssetsPool.addTextureUnit(PATH,
+                        new TextureUnit(AssetsPool.loadTexture(PATH), 12, 12)
                 );
             }
 
-            sheet = AssetsPool.loadSpriteSheet(PATH);
+            textureUnit = AssetsPool.loadTextureUnit(PATH);
             setActive();
             completeInit();
         } catch (Exception e) {
@@ -44,9 +45,9 @@ public class Indicator extends SpriteRenderer implements NotSerializeComponent {
     }
 
     private void completeInit() {
-        if (sheet == null) return;
+        if (textureUnit == null) return;
 
-        Sprite sprite = sheet.spriteIndex(0);
+        Sprite sprite = textureUnit.getSprite();
 
         if (sprite == null) return;
 
@@ -59,7 +60,7 @@ public class Indicator extends SpriteRenderer implements NotSerializeComponent {
     public void editorUpdate(float dt) {
         if (!gameObject.isSerialize()) return;
 
-        if (sheet == null) {
+        if (textureUnit == null) {
             initIndicator();
             return;
         }

@@ -8,11 +8,9 @@ import com.google.gson.GsonBuilder;
 import components.ComponentSerializer;
 import components.Component;
 import components.IsNotSelectable;
-import components.SpriteRenderer;
 import editor.Indicator;
 import editor.project.Project;
 import imgui.type.ImBoolean;
-import org.joml.Vector2f;
 import physic2d.Physic2D;
 import render.Renderer;
 import utility.PathResolver;
@@ -34,7 +32,6 @@ public class Scene {
     private final List<GameObject> removedGameObjects;
     private final List<Component> removedComponents;
     private final HashMap<GameObject, GameObject> addedGameObjectWithParents;
-
 
     public Scene(SceneInit sceneInit) {
         this.sceneInit = sceneInit;
@@ -197,7 +194,7 @@ public class Scene {
         return true;
     }
 
-    public void destroy() {
+    public synchronized void destroy() {
         for (GameObject go : sceneData.gameObjectByUUIDs().values()) {
             go.destroy();
         }
@@ -210,6 +207,7 @@ public class Scene {
         addedGameObjectWithParents.clear();
         sceneData.componentsByUUID().clear();
         Renderer.clearData();
+        sceneInit.dispose();
     }
 
     private void updateQueues() {
@@ -272,6 +270,9 @@ public class Scene {
 
         updateQueues();
         sceneData.updated().set(true);
+
+        RenderingSnapshot snapshot = sceneData.extractRenderData();
+        if (snapshot != null) renderer.queueSnapshot(snapshot);
     }
 
     public void update(float dt) {
@@ -287,12 +288,12 @@ public class Scene {
 
         updateQueues();
         sceneData.updated().set(true);
+
+        RenderingSnapshot snapshot = sceneData.extractRenderData();
+        if (snapshot != null) renderer.queueSnapshot(snapshot);
     }
 
     public void render() {
-        RenderingSnapshot snapshot = sceneData.extractRenderData();
-        if (snapshot != null) renderer.queueSnapshot(snapshot);
-
         Viewport viewport = viewport();
         renderer.setMatrices(viewport.getProjectionMatrix(), viewport.getViewMatrix());
         renderer.render();
