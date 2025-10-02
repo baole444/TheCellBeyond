@@ -10,7 +10,7 @@ A Java-based game editor with project compile ability, code auto-generation, and
 ## Tasks:
 - [X] Basic engine functions.
 - [X] ImGui implementation.
-- [ ] Improve internal API and resolve conflicts.
+- [X] Improve internal API and resolve conflicts.
 - [ ] Editor features. (Currently being worked on.)
 - [ ] Code template.
 - [ ] Scripting system.
@@ -19,14 +19,21 @@ A Java-based game editor with project compile ability, code auto-generation, and
 - N/A
 
 ## Solved problems:
-- No proper resource clearing/saving when creating a new scene due to improper name check.
-- No proper way to assign texture/sprite from a spritesheet to a SpriteRenderer component.
+- N/A
 
 ## Additional maintenance:
 - Update ImGui to [latest release](https://github.com/SpaiR/imgui-java/releases).
 - Maintain compatibility of the project loading system.
 
 ## Current work:
+- [ ] Tile Map and Tile Set API.
+- [ ] Implement API for Sound effect.
+- 
+### Finished work:
+This is a list of finished work and is now in maintaining state:
+<details>
+    <summary>Past works</summary>
+
 - [X] Project system.
 - [X] Unified Path System.
 - [X] GameObject hierarchy structure.
@@ -34,9 +41,10 @@ A Java-based game editor with project compile ability, code auto-generation, and
 - [X] Investigating Scripting Engine support.
 - [X] Migration to the new object UUID system.
 - [X] Native Filed Dialog implementation.
-- [ ] Reimplementation of object properties panel and component addition/deletion workflow
-- [ ] Add a way to save a project.
-- [ ] Extend the Project system to cover animation and sound effects.
-- [ ] Dynamically loaded assets.
+- [X] Reimplementation of object properties panel and component addition/deletion workflow
+- [X] Add a way to save a project.
+- [X] Dynamically loaded assets.
+
+</details>
 
 *To be continued*

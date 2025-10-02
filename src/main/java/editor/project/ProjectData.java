@@ -2,10 +2,11 @@ package editor.project;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public record ProjectData(
         String version, ProjectPreference project,
-        Map<String, ProjectAssetMap> assets,
+        Map<UUID, ProjectAssetMap> assets,
         Map<String, Map<String, ProjectSheetMap>> sheets,
         Map<String, ProjectSceneMap> scenes
 ) {

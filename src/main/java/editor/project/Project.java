@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import render.Texture;
 import render.texture.SpriteSheet;
+import render.texture.TextureUnit;
 import utility.AssetsPool;
 import utility.PathResolver;
 
@@ -14,6 +15,7 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public class Project {
     private static ProjectData CurrentProject = null;
@@ -142,13 +144,13 @@ public class Project {
         return true;
     }
 
-    public static boolean addAsset(String key, ProjectAssetMap asset) {
+    public static boolean addAsset(UUID key, ProjectAssetMap asset) {
         if (CurrentProject == null) {
             System.err.println("No project loaded");
             return false;
         }
 
-        Map<String, ProjectAssetMap> assets = CurrentProject.assets();
+        Map<UUID, ProjectAssetMap> assets = CurrentProject.assets();
         if (assets == null) {
             assets = new HashMap<>();
             CurrentProject = new ProjectData(
@@ -167,7 +169,7 @@ public class Project {
         return true;
     }
 
-    public static boolean updateAsset(String key, ProjectAssetMap asset) {
+    public static boolean updateAsset(UUID key, ProjectAssetMap asset) {
         if (CurrentProject == null || CurrentProject.assets() == null) {
             System.err.println("No project or assets loaded");
             return false;
@@ -183,7 +185,7 @@ public class Project {
         return true;
     }
 
-    public static boolean removeAsset(String key) {
+    public static boolean removeAsset(UUID key) {
         if (CurrentProject == null || CurrentProject.assets() == null) {
             System.err.println("No project or assets loaded");
             return false;
@@ -329,7 +331,7 @@ public class Project {
         boolean modified = false;
 
         if (CurrentProject.assets() != null) {
-            for (Map.Entry<String, ProjectAssetMap> entry : new HashMap<>(CurrentProject.assets()).entrySet()) {
+            for (Map.Entry<UUID, ProjectAssetMap> entry : new HashMap<>(CurrentProject.assets()).entrySet()) {
                 String path = entry.getValue().path();
                 String sanctioned = fixRelativePath(path);
                 if (!path.equals(sanctioned)) {
@@ -397,14 +399,14 @@ public class Project {
         }
 
         if (CurrentProject.assets() != null) {
-            for (Map.Entry<String, ProjectAssetMap> entry : CurrentProject.assets().entrySet()) {
+            for (Map.Entry<UUID, ProjectAssetMap> entry : CurrentProject.assets().entrySet()) {
                 ProjectAssetMap assetMap = entry.getValue();
                 String projectPath = "project://" + assetMap.path();
 
                 Texture texture = AssetsPool.loadTexture(projectPath);
-                SpriteSheet sheet = new SpriteSheet(texture, assetMap.sizeX(), assetMap.sizeY(), 1, 0);
+                TextureUnit unit = new TextureUnit(texture, assetMap.sizeX(), assetMap.sizeY());
 
-                AssetsPool.addSpriteSheet(projectPath, sheet);
+                AssetsPool.addTextureUnit(projectPath, unit);
             }
         }
     }

@@ -5,8 +5,10 @@ import TheCellBeyond.Transform;
 import components.*;
 import editor.EditorSceneCtrl;
 import editor.dialog.AddSpriteSheetDialog;
+import editor.dialog.AddTextureUnitDialog;
 import editor.payload.SpriteDragDropPayload;
 import editor.project.Project;
+import editor.project.ProjectAssetMap;
 import editor.project.ProjectData;
 import editor.project.ProjectSheetMap;
 import eventviewer.EngineEventCallback;
@@ -22,6 +24,7 @@ import org.joml.Vector2f;
 import org.joml.Vector2i;
 import render.texture.Sprite;
 import render.texture.SpriteSheet;
+import render.texture.TextureUnit;
 import utility.AssetsPool;
 import utility.PathResolver;
 import utility.Settings;
@@ -39,7 +42,7 @@ public class SceneEditor extends SceneInit implements EngineEventListener {
     private GameObject levelEditorObject;
 
     private final Map<String, Map<String, SpriteSheet>> categorizedSpriteSheetList = new HashMap<>();
-    private final List<SpriteSheet> assetList = new ArrayList<>();
+    private final Map<UUID, TextureUnit> textureUnits = new HashMap<>();
 
     private transient final ImString spriteSearchFilter;
 
@@ -51,6 +54,7 @@ public class SceneEditor extends SceneInit implements EngineEventListener {
     @Override
     public void init(Scene scene) {
         loadCategorizedSheet();
+        loadTextureUnits();
 
         levelEditorObject = new GameObject("EditorObject");
         levelEditorObject.setNotSerialize();
@@ -68,12 +72,12 @@ public class SceneEditor extends SceneInit implements EngineEventListener {
     @Override
     public void loadResource(Scene scene) {
         Project.loadProjectData();
-        AssetsPool.loadShader(Settings.PATH.DEFAULT_TEXTURE_SHADER);
     }
 
     public void reloadResource() {
         Project.loadProjectData();
         loadCategorizedSheet();
+        loadTextureUnits();
     }
 
     @Override
@@ -116,6 +120,16 @@ public class SceneEditor extends SceneInit implements EngineEventListener {
                 ImGui.endTabItem();
             }
 
+            if (ImGui.beginTabItem("Assets")) {
+                ImGui.pushStyleColor(ImGuiCol.Button, 0.2f, 0.7f, 0.2f, 1.0f);
+                ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.3f, 0.8f, 0.3f, 1.0f);
+                ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0.2f, 0.7f, 0.2f, 1.0f);
+                if (ImGui.button("Add", ImGui.getContentRegionAvailX(), 0.0f)) AddTextureUnitDialog.show();
+                ImGui.popStyleColor(3);
+                drawAssetsTextureUnit();
+                ImGui.endTabItem();
+            }
+
             if (ImGui.beginTabItem("Prefabrication")) {
                 drawPrefabList();
                 ImGui.endTabItem();
@@ -125,6 +139,7 @@ public class SceneEditor extends SceneInit implements EngineEventListener {
         }
 
         AddSpriteSheetDialog.imgui();
+        AddTextureUnitDialog.imgui();
 
         ImGui.end();
     }
@@ -223,6 +238,66 @@ public class SceneEditor extends SceneInit implements EngineEventListener {
         }
     }
 
+    private void drawAssetsTextureUnit() {
+        if (textureUnits.isEmpty()) {
+            ImGui.textDisabled("No texture unit added, click \"Add\" to import new unit");
+            return;
+        }
+
+        float spacing = ImGui.getStyle().getItemSpacingX();
+        float availWidth = ImGui.getContentRegionAvailX();
+        float consumedWidth = 0.0f;
+
+        for (Map.Entry<UUID, TextureUnit> unit : textureUnits.entrySet()) {
+            Sprite sprite = unit.getValue().getSprite();
+            int textureID = sprite.getTextureID();
+            Vector2f scaledSpriteSize = TextureScale.calculateFitDimension(sprite.getWidth(), sprite.getHeight(), 32, 32);
+            Vector2f[] textureCoordinates = sprite.getTextureCoordinates();
+
+            String compositeId = unit.getKey().toString() + "_TU";
+            ImGui.pushID(compositeId);
+            ImGui.imageButton(compositeId, textureID, scaledSpriteSize.x, scaledSpriteSize.y,
+                    textureCoordinates[2].x, textureCoordinates[0].y,
+                    textureCoordinates[0].x, textureCoordinates[2].y
+            );
+            float buttonWidth = ImGui.getItemRectSizeX() + spacing;
+            consumedWidth += buttonWidth;
+
+            if (ImGui.isItemHovered()) {
+                ImGui.beginTooltip();
+                ImGui.text("Preview");
+                Vector2f previewImageSize = TextureScale.calculateFitDimension(sprite.getWidth(), sprite.getHeight(), 160.0f, 160.f);
+                ImGui.image(textureID, previewImageSize.x, previewImageSize.y,
+                        textureCoordinates[2].x, textureCoordinates[0].y,
+                        textureCoordinates[0].x, textureCoordinates[2].y);
+                ImGui.text("Width: " + sprite.getWidth());
+                ImGui.text("Height: " + sprite.getHeight());
+                ImGui.endTooltip();
+            }
+
+            if (ImGui.beginDragDropSource()) {
+                SpriteDragDropPayload.setPayload(sprite);
+                ImGui.setDragDropPayload(SpriteDragDropPayload.getPayloadType(), sprite);
+
+                ImGui.text("Texture: " + sprite.getTexture().getCanonicalPath());
+                Vector2f previewImageSize = TextureScale.calculateFitDimension(sprite.getWidth(), sprite.getHeight(), 80.0f, 80.f);
+                ImGui.image(textureID, previewImageSize.x, previewImageSize.y,
+                        textureCoordinates[2].x, textureCoordinates[0].y,
+                        textureCoordinates[0].x, textureCoordinates[2].y);
+
+                ImGui.endDragDropSource();
+            }
+
+            ImGui.popID();
+            if (consumedWidth + buttonWidth <= availWidth) {
+                ImGui.sameLine();
+                continue;
+            }
+
+            consumedWidth = 0.0f;
+        }
+    }
+
     private void drawSpriteItems (String name, SpriteSheet sheet) {
         float spacing = ImGui.getStyle().getItemSpacingX();
         float availWidth = ImGui.getContentRegionAvailX();
@@ -301,22 +376,39 @@ public class SceneEditor extends SceneInit implements EngineEventListener {
     private void loadCategorizedSheet() {
         ProjectData project = Project.currentProject();
 
-        if (project != null && project.sheets() != null) {
-            for (Map.Entry<String, Map<String, ProjectSheetMap>> categories : project.sheets().entrySet()) {
-                String category = categories.getKey();
-                Map<String, SpriteSheet> categorySheets = new HashMap<>();
+        if (project == null || project.sheets() == null) return;
+        categorizedSpriteSheetList.clear();
 
-                for (Map.Entry<String, ProjectSheetMap> sheets : categories.getValue().entrySet()) {
-                    String name = sheets.getKey();
-                    ProjectSheetMap sM = sheets.getValue();
-                    String path = PathResolver.resolveToAbsolute(Project.projectRoot(), sM.path());
+        for (Map.Entry<String, Map<String, ProjectSheetMap>> categories : project.sheets().entrySet()) {
+            String category = categories.getKey();
+            Map<String, SpriteSheet> categorySheets = new HashMap<>();
 
-                    SpriteSheet spriteSheet = AssetsPool.loadSpriteSheet(path);
-                    if (spriteSheet != null) categorySheets.put(name, spriteSheet);
-                }
+            for (Map.Entry<String, ProjectSheetMap> sheets : categories.getValue().entrySet()) {
+                String name = sheets.getKey();
+                ProjectSheetMap sM = sheets.getValue();
+                String path = PathResolver.resolveToAbsolute(Project.projectRoot(), sM.path());
 
-                if (!categorySheets.isEmpty()) categorizedSpriteSheetList.put(category, categorySheets);
+                SpriteSheet spriteSheet = AssetsPool.loadSpriteSheet(path);
+                if (spriteSheet != null) categorySheets.put(name, spriteSheet);
             }
+
+            if (!categorySheets.isEmpty()) categorizedSpriteSheetList.put(category, categorySheets);
+        }
+    }
+
+    private void loadTextureUnits() {
+        ProjectData project = Project.currentProject();
+
+        if (project == null || project.assets() == null) return;
+        textureUnits.clear();
+
+        for (Map.Entry<UUID, ProjectAssetMap> entry : project.assets().entrySet()) {
+            UUID uuid = entry.getKey();
+            String path = entry.getValue().path();
+            if (path == null || path.isEmpty()) continue;
+            TextureUnit unit = AssetsPool.loadTextureUnit(path);
+
+            if (unit != null) textureUnits.put(uuid, unit);
         }
     }
 

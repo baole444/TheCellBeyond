@@ -2,6 +2,9 @@ package editor.dialog;
 
 import editor.project.Project;
 import editor.project.ProjectSheetMap;
+import eventviewer.EngineEventCallback;
+import eventviewer.event.Event;
+import eventviewer.event.EventType;
 import imgui.ImDrawList;
 import imgui.ImGui;
 import imgui.ImVec2;
@@ -43,9 +46,7 @@ public class AddSpriteSheetDialog {
 
     private static float previewScale = 1.0f;
 
-    private static final float fileYPercentage = 0.03f;
-    private static final float previewYPercentage = 0.60f;
-    private static final float metaYPercentage = 0.22f;
+    private static final float previewYPercentage = 0.56f;
 
     private static final List<String> PICTURE_FORMATS = List.of(
             "png", "jpg", "jpeg", "bmp", "gif"
@@ -127,8 +128,8 @@ public class AddSpriteSheetDialog {
     private static void renderFileSelection() {
         ImGui.text("Click \"Browse Files\" to select an image");
 
-        int sectionY = (int) (DIALOG_SIZE.y * fileYPercentage);
-        ImGui.beginChild(FILE_SELECTION_ID, 0, sectionY, !enableBorder);
+        int sectionY = (int) (ImGui.getTextLineHeightWithSpacing() + ImGui.getStyle().getFramePaddingY());
+        if (!ImGui.beginChild(FILE_SELECTION_ID, 0, sectionY, !enableBorder)) return;
 
         int browseButtonW = 120;
         ImGui.pushItemWidth(ImGui.getContentRegionAvailX() - browseButtonW - ImGui.getStyle().getItemSpacingX());
@@ -152,7 +153,7 @@ public class AddSpriteSheetDialog {
 
     private static void renderPreviewSection() {
         int sectionY = (int) (DIALOG_SIZE.y * previewYPercentage);
-        ImGui.beginChild(PREVIEW_SHEET_ID, 0, sectionY, enableBorder);
+        if (!ImGui.beginChild(PREVIEW_SHEET_ID, 0, sectionY, enableBorder)) return;
         renderPreviewImage();
         ImGui.endChild();
     }
@@ -162,32 +163,36 @@ public class AddSpriteSheetDialog {
         if (ImGui.sliderFloat("Scale", scale, 0.1f, 2.0f, "%.2f")) previewScale = scale[0];
         ImGui.separator();
 
-        if (previewTexture != null && previewTexture.isReady()) {
-            int imageW = previewTexture.getWidth();
-            int imageH = previewTexture.getHeight();
-            ImVec2 avail = ImGui.getContentRegionAvail();
-
-            float scaledImageW = imageW * previewScale;
-            float scaledImageH = imageH * previewScale;
-            Vector2f scaledSize = new Vector2f(scaledImageW, scaledImageH);
-
-            if (scaledImageW > avail.x || scaledImageH > avail.y) {
-                scaledSize = TextureScale.calculateFitDimension(scaledImageW, scaledImageH, avail.x, avail.y);
-            }
-
-            float portX = (avail.x / 2.0f) - (scaledSize.x / 2.0f);
-            float portY = (avail.y / 2.0f) - (scaledSize.y / 2.0f);
-
-            ImVec2 centeredPos = new ImVec2(portX + ImGui.getCursorPosX(), portY + ImGui.getCursorPosY());
-
-            ImGui.setCursorPos(centeredPos);
-            ImVec2 cursorPos = ImGui.getCursorScreenPos();
-
-            ImGui.image(previewTexture.getID(), scaledSize.x, scaledSize.y, 0.0f, 1.0f, 1.0f, 0.0f);
-            if (spriteSize.x > 0 && spriteSize.y > 0) drawSpriteDivider(cursorPos, scaledSize, imageW, imageH);
-        } else {
+        if (previewTexture == null) {
             ImGui.textDisabled("Choose a sprite sheet using the \"Browse Files\" button");
+            return;
         }
+
+        if (!previewTexture.isReady()) {
+            ImGui.textDisabled("Loading preview image...");
+            return;
+        }
+
+        int imageW = previewTexture.getWidth();
+        int imageH = previewTexture.getHeight();
+        ImVec2 avail = ImGui.getContentRegionAvail();
+
+        float scaledImageW = imageW * previewScale;
+        float scaledImageH = imageH * previewScale;
+        Vector2f scaledSize = new Vector2f(scaledImageW, scaledImageH);
+
+        if (scaledImageW > avail.x || scaledImageH > avail.y) {
+            scaledSize = TextureScale.calculateFitDimension(scaledImageW, scaledImageH, avail.x, avail.y);
+        }
+
+        float portX = (avail.x / 2.0f) - (scaledSize.x / 2.0f);
+        float portY = (avail.y / 2.0f) - (scaledSize.y / 2.0f);
+        ImVec2 centeredPos = new ImVec2(portX + ImGui.getCursorPosX(), portY + ImGui.getCursorPosY());
+        ImGui.setCursorPos(centeredPos);
+        ImVec2 cursorPos = ImGui.getCursorScreenPos();
+
+        ImGui.image(previewTexture.getID(), scaledSize.x, scaledSize.y, 0.0f, 1.0f, 1.0f, 0.0f);
+        if (spriteSize.x > 0 && spriteSize.y > 0) drawSpriteDivider(cursorPos, scaledSize, imageW, imageH);
     }
 
     private static void drawSpriteDivider(ImVec2 imagePos, Vector2f imageSize, float originalWidth, float originalHeight) {
@@ -267,7 +272,7 @@ public class AddSpriteSheetDialog {
     }
 
     private static void renderSpritePropertiesEditor() {
-        int ySection =(int) (DIALOG_SIZE.y * metaYPercentage);
+        int ySection =(int) (ImGui.getTextLineHeightWithSpacing() * 6 + ImGui.getStyle().getFramePaddingY() * 5 + ImGui.getStyle().getItemSpacingY() * 11);
         if (!ImGui.beginChild(META_ID, 0, ySection, enableBorder)) return;
 
         numberOfSprite = inputInt("Number of sprites", numberOfSprite, 1);
@@ -367,7 +372,7 @@ public class AddSpriteSheetDialog {
             boolean success = Project.addSheet(cat, name, sheetMap);
             if (success) {
                 System.out.println("New sheet '" + sheetName.get() + "' added to project");
-                Project.loadProjectData();
+                EngineEventCallback.emit(null, new Event(EventType.SCENE_RELOAD_RESOURCE));
             }
 
             showDialog = false;

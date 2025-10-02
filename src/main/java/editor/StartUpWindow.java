@@ -84,6 +84,7 @@ public class StartUpWindow{
 
         recentProjects.clear();
         selectedProject = null;
+        selectedUUID = null;
     }
 
     private static void renderProjectList() {
@@ -245,6 +246,9 @@ public class StartUpWindow{
             UserPreference.removeRecentProject(selectedUUID);
             recentProjects.clear();
             recentProjects.putAll(UserPreference.reloadRecentProject());
+
+            selectedProject = null;
+            selectedUUID = null;
         }, selectedProject);
     }
 }
