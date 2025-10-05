@@ -9,6 +9,7 @@ import components.ComponentSerializer;
 import components.Component;
 import components.IsNotSelectable;
 import editor.Indicator;
+import editor.dialog.SaveSceneAsDialog;
 import editor.project.Project;
 import imgui.type.ImBoolean;
 import physic2d.Physic2D;
@@ -313,12 +314,12 @@ public class Scene {
 
     public void saveLevel() {
         String currentSceneName = Window.getCurrentSceneName();
-        String resolvedPath;
-        if (currentSceneName != null) {
-            resolvedPath = PathResolver.resolveToAbsolute(Project.projectRoot(), Project.currentProject().scenes().get(currentSceneName).path());
-        } else {
-            resolvedPath = "untitled.cell";
+        if (currentSceneName == null) {
+            SaveSceneAsDialog.show(this::saveLevel);
+            return;
         }
+
+        String resolvedPath = PathResolver.resolveToAbsolute(Project.projectRoot(), Project.currentProject().scenes().get(currentSceneName).path());
 
         Gson gson = new GsonBuilder()
                 .setPrettyPrinting()
@@ -348,12 +349,10 @@ public class Scene {
 
     public void loadLevel() {
         String currentSceneName = Window.getCurrentSceneName();
-        String resolvedPath;
-        if (currentSceneName != null) {
-            resolvedPath = PathResolver.resolveToAbsolute(Project.projectRoot(), Project.currentProject().scenes().get(currentSceneName).path());
-        } else {
-            resolvedPath = "untitled.cell";
-        }
+
+        if (currentSceneName == null) return;
+
+        String resolvedPath = PathResolver.resolveToAbsolute(Project.projectRoot(), Project.currentProject().scenes().get(currentSceneName).path());
 
         Gson gson = new GsonBuilder()
                 .setPrettyPrinting()

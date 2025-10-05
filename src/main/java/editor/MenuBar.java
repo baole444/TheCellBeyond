@@ -66,6 +66,7 @@ public class MenuBar {
         EditProjectPreferencesDialog.imgui();
         EditEditorPreferencesDialog.imgui();
         ExitToProjectListDialog.imgui();
+        SaveSceneAsDialog.imgui();
         ConfirmSaveSceneDialog.imgui();
         NewSceneDialog.imgui();
     }

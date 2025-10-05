@@ -21,7 +21,6 @@ import java.util.Objects;
  * This flag is volatile and clear by the Renderer.
  */
 public class SpriteRenderer extends SpatialComponent {
-    private static final float PREVIEW_LIMIT_Y = 160;
     private final Vector4f color = new Vector4f(1, 1, 1 , 1);
     private volatile Sprite sprite = new Sprite();
 
@@ -44,17 +43,19 @@ public class SpriteRenderer extends SpatialComponent {
             ImGui.popStyleColor(3);
         }
 
+        float previewLimitY = 160.0f;
         if (sprite == null || sprite.getTexture() == null) {
-            ImGui.beginChild("Mock_sprite_drop_area", ImGui.getContentRegionAvailX(), PREVIEW_LIMIT_Y, true);
-            ImGui.beginDisabled();
-            ImGui.textWrapped("No sprite assigned. Drag and drop a sprite from Sprite list here.");
-            ImGui.endDisabled();
-            ImGui.endChild();
+            if (ImGui.beginChild("Mock_sprite_drop_area", ImGui.getContentRegionAvailX(), previewLimitY, true)) {
+                ImGui.beginDisabled();
+                ImGui.textWrapped("No sprite assigned. Drag and drop a sprite from Sprite list here.");
+                ImGui.endDisabled();
+                ImGui.endChild();
+            }
         } else {
             int textureId = sprite.getTextureID();
             Vector2f[] textureCoordinates = sprite.getTextureCoordinates();
 
-            Vector2f previewSize = TextureScale.calculateFitDimension(sprite.getWidth(), sprite.getHeight(), availX, PREVIEW_LIMIT_Y);
+            Vector2f previewSize = TextureScale.calculateFitDimension(sprite.getWidth(), sprite.getHeight(), availX, previewLimitY);
             ImGui.image(textureId, previewSize.x, previewSize.y,
                     textureCoordinates[2].x, textureCoordinates[0].y,
                     textureCoordinates[0].x, textureCoordinates[2].y
@@ -101,7 +102,7 @@ public class SpriteRenderer extends SpatialComponent {
      * @param needsUpdate true to set sprite dirty
      */
     public void setSpriteDirty(boolean needsUpdate) {
-        this.isSpriteDirty = needsUpdate;
+        isSpriteDirty = needsUpdate;
         if (!needsUpdate && sprite != null) sprite.rendererUpdated();
     }
 
@@ -118,7 +119,7 @@ public class SpriteRenderer extends SpatialComponent {
      * @return size vector of the sprite
      */
     public Vector2f getSpriteSize() {
-        if (sprite == null) return new Vector2f(1, 1);
+        if (sprite == null) return new Vector2f(1.0f);
 
         return new Vector2f(sprite.getWidth(), sprite.getHeight());
     }

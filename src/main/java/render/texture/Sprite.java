@@ -81,14 +81,6 @@ public class Sprite {
         this.height = height;
     }
 
-    public float getHeightAsWorldUnit() {
-        return WorldUnit.pixelToWorld(height);
-    }
-
-    public float getWidthAsWorldUnit() {
-        return WorldUnit.pixelToWorld(width);
-    }
-
     public int getTextureID() {
         if (textureCanonicalPath == null) return -1;
 
