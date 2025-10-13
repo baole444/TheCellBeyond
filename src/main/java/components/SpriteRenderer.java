@@ -6,6 +6,7 @@ import imgui.ImDrawList;
 import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.ImGuiCol;
+import imgui.type.ImBoolean;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import render.Texture;
@@ -23,6 +24,8 @@ import java.util.Objects;
 public class SpriteRenderer extends SpatialComponent {
     private final Vector4f color = new Vector4f(1, 1, 1 , 1);
     private volatile Sprite sprite = new Sprite();
+    private volatile boolean flipHorizontally = false;
+    private volatile boolean flipVertically = false;
 
     private volatile transient boolean isSpriteDirty = true;
 
@@ -90,6 +93,19 @@ public class SpriteRenderer extends SpatialComponent {
         if (ImEditorGui.colorCtrl("Color", this.color, this)) {
             this.isSpriteDirty = true;
         }
+
+        ImGui.indent();
+        ImBoolean flipHState = new ImBoolean(flipHorizontally);
+        ImBoolean flipVState = new ImBoolean(flipVertically);
+        String compositeID = "Flip axis##" + getUUID();
+        ImGui.pushStyleColor(ImGuiCol.Header, 0.0f, 0.0f, 0.0f, 0.0f);
+        boolean open = ImGui.collapsingHeader(compositeID);
+        ImGui.popStyleColor(1);
+        if (open) {
+            if (ImGui.checkbox("Horizontal##" + getUUID(), flipHState)) flipHorizontally(flipHState.get());
+            if (ImGui.checkbox("Vertical##" + getUUID(), flipVState)) flipVertically(flipVState.get());
+        }
+        ImGui.unindent();
     }
 
     @Override
@@ -175,11 +191,53 @@ public class SpriteRenderer extends SpatialComponent {
     }
 
     /**
+     * Set the horizontal flip status for the Sprite.
+     * This will trigger sprite dirty flag if the state changed.<br>
+     * This will not affect the original texture.
+     * @param flip true to fip the sprite
+     */
+    public void flipHorizontally(boolean flip) {
+        if (flip == flipHorizontally) return;
+
+        flipHorizontally = flip;
+        isSpriteDirty = true;
+    }
+
+    /**
+     * Set the vertical flip status for the Sprite.
+     * This will trigger sprite dirty flag if the state changed.<br>
+     * This will not affect the original texture.
+     * @param flip true to fip the sprite
+     */
+    public void flipVertically(boolean flip) {
+        if (flip == flipVertically) return;
+
+        flipVertically = flip;
+        isSpriteDirty = true;
+    }
+
+    /**
      * Check the sprite dirty flag of this SpriteRenderer.
      * @return true if the sprite needs update
      */
     public boolean isSpriteDirty() {
         if (sprite != null && sprite.requestRendererUpdate()) isSpriteDirty = true;
         return isSpriteDirty;
+    }
+
+    /**
+     * Check the horizontal flip status of this SpriteRenderer.
+     * @return true if the sprite is flipped vertically
+     */
+    public boolean isFlipHorizontally() {
+        return flipHorizontally;
+    }
+
+    /**
+     * Check the vertical flip status of this SpriteRenderer.
+     * @return true if the sprite is flipped vertically
+     */
+    public boolean isFlipVertically() {
+        return flipVertically;
     }
 }

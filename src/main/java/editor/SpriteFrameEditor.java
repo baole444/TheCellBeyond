@@ -26,6 +26,7 @@ public class SpriteFrameEditor {
     private static final float INPUT_WIDTH = ImGui.calcTextSizeX("999.999");
     private static AnimatedSpriteRenderer editingAnimatedSprite;
     private static String selectedName;
+    private static int selectedFrame;
 
     private static String editingName;
     private static final ImString editingNameBuffer = new ImString(512);
@@ -51,7 +52,11 @@ public class SpriteFrameEditor {
             return;
         }
 
-        selectedName = editingAnimatedSprite.currentAnimationName();
+        String current = editingAnimatedSprite.currentAnimationName();
+        if (!Objects.equals(selectedName, current)) {
+            selectedName = current;
+            selectedFrame = 0;
+        }
 
         if (!ImGui.beginChild(CONTROL_SECTION, 0, CONTROL_RESERVE + padding, false)) return;
         renderAnimationControl();
@@ -90,25 +95,39 @@ public class SpriteFrameEditor {
     }
 
     private static void renderAnimationControl() {
-        if (ImGui.button("Add")) editingAnimatedSprite.newAnimation();
-        ImGui.sameLine();
-
-        boolean enableUI = selectedName != null;
-        if (!enableUI) ImGui.beginDisabled();
-        if (ImGui.button("Duplicate")) {
-            editingAnimatedSprite.duplicateAnimation(selectedName);
+        if (selectedName == null) {
+            if (ImEditorGui.iconButton("Add##Add_New_Animation_SFC", EditorIcons.Icons.New, "Create new animation")) editingAnimatedSprite.newAnimation();
+            return;
         }
+
+        if (!ImGui.beginTable("##Animation_Frame_Control_SFC", 5, ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.SizingFixedFit)) {
+            ImGui.textDisabled("Control function failed to initiate");
+            return;
+        }
+        ImGui.tableSetupColumn("##NCD_Animation_Column_SFC");
+        ImGui.tableSetupColumn("##Default_Animation_Column_SFC");
+        ImGui.tableSetupColumn("##Playback_Animation_Column_SFC");
+        ImGui.tableSetupColumn("##Frame_Animation_Column_SFC");
+        ImGui.tableSetupColumn("##FrameTime_Animation_Column_SFC");
+        ImGui.tableNextColumn();
+        if (ImEditorGui.iconButton("Add##Add_New_Animation_SFC", EditorIcons.Icons.New, "Create new animation")) editingAnimatedSprite.newAnimation();
+
         ImGui.sameLine();
-        if (ImGui.button("Delete")) {
+        if (ImEditorGui.iconButton("Duplicate##Duplicate_Animation_SFC", EditorIcons.Icons.Copy, "Duplicate selected animation")) editingAnimatedSprite.duplicateAnimation(selectedName);
+
+        ImGui.sameLine();
+        if (ImEditorGui.iconButton("Delete##Delete_Animation_SFC", EditorIcons.Icons.Delete, "Delete selected animation")) {
             editingAnimatedSprite.removeAnimation(selectedName);
             if (Objects.equals(editingName, selectedName)) {
                 editingName = null;
                 editingNameBuffer.clear();
             }
             selectedName = null;
+            ImGui.endTable();
+            return;
         }
 
-        ImGui.sameLine();
+        ImGui.tableNextColumn();
         boolean currentlyDefault = Objects.equals(editingAnimatedSprite.defaultAnimation(), selectedName);
         ImBoolean setAsDefault = new ImBoolean(currentlyDefault);
         if (ImGui.checkbox("Default", setAsDefault)) {
@@ -120,7 +139,7 @@ public class SpriteFrameEditor {
             }
         }
 
-        ImGui.sameLine();
+        ImGui.tableNextColumn();
         ImBoolean enableLoop = new ImBoolean(editingAnimatedSprite.isAnimationLoop(selectedName));
         if (ImGui.checkbox("Loop", enableLoop)) editingAnimatedSprite.setAnimationLoop(enableLoop.get(), selectedName);
 
@@ -131,27 +150,82 @@ public class SpriteFrameEditor {
         ImGui.popItemWidth();
 
         ImGui.sameLine();
-        if (ImGui.button("Play")) editingAnimatedSprite.play(selectedName);
-
-        ImGui.sameLine();
-        if (editingAnimatedSprite.isPlaying()) {
-            if (ImGui.button("Pause")) editingAnimatedSprite.pause();
-        } else {
-            if (ImGui.button("Resume")) editingAnimatedSprite.resume();
+        if (ImEditorGui.iconButton("Step Back##Step_Back_Frame_SFC", EditorIcons.SpriteFrameIcons.PreviousFrame, "Step animation back 1 frame")) {
+            editingAnimatedSprite.pause();
+            Animation current = editingAnimatedSprite.currentAnimation();
+            if (current != null) {
+                current.setCurrentFrameIndex(selectedFrame - 1);
+                selectedFrame = current.currentFrameIndex();
+            }
         }
 
+        boolean play = editingAnimatedSprite.isPlaying();
+        boolean backward = editingAnimatedSprite.isBackward();
 
         ImGui.sameLine();
-        if (ImGui.button("Stop")) editingAnimatedSprite.stop();
+        if (ImEditorGui.iconButton("Play Backward##Play_Animation_Backward_SFC", EditorIcons.SpriteFrameIcons.PlayBackward, "Play/Resume the animation backward")) {
+            if (play && !backward) {
+                editingAnimatedSprite.playBackward(selectedName);
+            } else if (!play) {
+                editingAnimatedSprite.resume();
+            }
+        }
 
         ImGui.sameLine();
+        if (play) {
+            if (ImEditorGui.iconButton("Pause##Pause_Animation_SFC", EditorIcons.SpriteFrameIcons.Pause, "Pause the animation")) editingAnimatedSprite.pause();
+        } else {
+            if (ImEditorGui.iconButton("Stop##Stop_Animation_SFC", EditorIcons.SpriteFrameIcons.Stop, "Stop the animation")) editingAnimatedSprite.stop();
+        }
+
+        ImGui.sameLine();
+        if (ImEditorGui.iconButton("Play#Play_Animation_SFC", EditorIcons.SpriteFrameIcons.Play, "Play/Resume the animation")) {
+            if (play && backward) {
+                editingAnimatedSprite.play(selectedName);
+            } else if (!play) {
+                editingAnimatedSprite.resume();
+            }
+        }
+
+        ImGui.sameLine();
+        if (ImEditorGui.iconButton("Step Forward##Step_Forward_Frame_SFC", EditorIcons.SpriteFrameIcons.NextFrame, "Step animation forward 1 frame")) {
+            editingAnimatedSprite.pause();
+            Animation animation = editingAnimatedSprite.currentAnimation();
+            if (animation != null) {
+                animation.setCurrentFrameIndex(selectedFrame + 1);
+                selectedFrame = animation.currentFrameIndex();
+            }
+        }
+
+        ImGui.tableNextColumn();
+        if (ImEditorGui.iconButton("Move Frame Left##Move_Frame_Left_SFC", EditorIcons.SpriteFrameIcons.MoveFrameLeft, "Move selected frame to the left of the current index")) {
+            editingAnimatedSprite.stop();
+            boolean moved = editingAnimatedSprite.moveFrameLeft(selectedName, selectedFrame);
+            if (moved) selectedFrame--;
+        }
+
+        ImGui.sameLine();
+        if (ImEditorGui.iconButton("Move Frame Right##Move_Frame_Right_SFC", EditorIcons.SpriteFrameIcons.MoveFrameRight, "Move selected frame to the right of the current index")) {
+            editingAnimatedSprite.stop();
+            boolean moved = editingAnimatedSprite.moveFrameRight(selectedName, selectedFrame);
+            if (moved) selectedFrame++;
+        }
+
+        ImGui.sameLine();
+        if (ImEditorGui.iconButton("Delete Frame##Delete_Frame_SFC", EditorIcons.Icons.Delete, "Delete the selected frame from the animation")) {
+            editingAnimatedSprite.stop();
+            editingAnimatedSprite.removeFrame(selectedName, selectedFrame);
+            selectedFrame = 0;
+        }
+
+        ImGui.tableNextColumn();
         Animation animation = editingAnimatedSprite.currentAnimation();
         ImFloat speedMultiplier = new ImFloat(animation.speedMultiplier());
         ImGui.pushItemWidth(INPUT_WIDTH);
         if (ImGui.inputFloat("Speed", speedMultiplier, 0.0f, 0.0f, "%.2f")) animation.setSpeed(speedMultiplier.get());
         ImGui.popItemWidth();
 
-        if (!enableUI) ImGui.endDisabled();
+        ImGui.endTable();
     }
 
     private static void renderAnimationList() {
@@ -165,6 +239,7 @@ public class SpriteFrameEditor {
             if (ImGui.selectable("##" + entry.getKey(), isSelected, 0.0f, height)) {
                 if (!isSelected) {
                     selectedName = entry.getKey();
+                    selectedFrame = 0;
                     editingAnimatedSprite.setCurrentAnimation(entry.getKey());
                 }
             }
@@ -201,6 +276,10 @@ public class SpriteFrameEditor {
             }
 
             ImGui.setCursorPos(cursorPos.x, cursorPos.y + (height - ImGui.getTextLineHeight()) / 2.0f);
+            if (Objects.equals(editingAnimatedSprite.defaultAnimation(), entry.getKey())) {
+                ImGui.text("(Default)");
+                ImGui.sameLine();
+            }
             ImGui.text(entry.getKey());
             ImGui.spacing();
         }
@@ -227,12 +306,10 @@ public class SpriteFrameEditor {
             String compositeId = selectedName + "_frame_" + i;
             ImGui.pushID(compositeId);
             ImVec2 cursorPos = ImGui.getCursorPos();
-            boolean isCurrentFrame = animation.currentFrameIndex() == i;
-            if (ImGui.selectable("##" + compositeId + "_selection", isCurrentFrame, scaledSpriteSize.x, scaledSpriteSize.y + textLineHeight)) {
-                if  (!isCurrentFrame) {
-                    editingAnimatedSprite.stop();
-                    editingAnimatedSprite.currentAnimation().setCurrentFrameIndex(i);
-                }
+            boolean selected = selectedFrame == i;
+            if (ImGui.selectable("##" + compositeId + "_selection", selected, scaledSpriteSize.x, scaledSpriteSize.y + textLineHeight)) {
+                selectedFrame = i;
+                if  (!editingAnimatedSprite.isPlaying()) editingAnimatedSprite.currentAnimation().setCurrentFrameIndex(i);
             }
             ImGui.setCursorPos(cursorPos);
             ImGui.beginGroup();
@@ -295,10 +372,12 @@ public class SpriteFrameEditor {
         }
     }
 
-    static void clearDialogData() {
+    private static void clearDialogData() {
+        selectedFrame = 0;
         editingName = null;
         editingNameBuffer.clear();
         editingAnimatedSprite = null;
         selectedName = null;
     }
+
 }

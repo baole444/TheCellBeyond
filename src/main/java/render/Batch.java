@@ -213,12 +213,10 @@ public class Batch implements Comparable<Batch> {
     private void genVertexProperties(float[] target, int index) {
         SpriteRenderer spriteRenderer = sprites[index];
 
-        // Set offset in the array (4/spt)
         int offset = index * 4 * VERTEX_SIZE;
         Vector4f color = spriteRenderer.getColor();
         Vector2f[] textureCoordinates = spriteRenderer.getTextureCoordinates();
 
-        // No data available yet
         if (textureCoordinates == null || spriteRenderer.getTexture() == null) {
             textureCoordinates = new Vector2f[] {
                     new Vector2f(1, 1),
@@ -228,6 +226,21 @@ public class Batch implements Comparable<Batch> {
             };
 
             color = new Vector4f(color.x, color.y, color.z, 0.0f);
+        }
+
+        boolean flipH = spriteRenderer.isFlipHorizontally();
+        boolean flipV = spriteRenderer.isFlipVertically();
+
+        if (flipH || flipV) {
+            Vector2f[] flipCoordinates = new Vector2f[4];
+
+            for (int i = 0; i < 4; i++) {
+                int sourceIndex = flipSourceIndex(i, flipH, flipV);
+
+                flipCoordinates[i] = new Vector2f(textureCoordinates[sourceIndex]);
+            }
+
+            textureCoordinates = flipCoordinates;
         }
 
         int ID = 0;
@@ -286,6 +299,30 @@ public class Batch implements Comparable<Batch> {
 
             offset += VERTEX_SIZE;
         }
+    }
+
+    private static int flipSourceIndex(int i, boolean flipH, boolean flipV) {
+        int sourceIndex = i;
+        if (flipH) {
+            sourceIndex = switch (i) {
+                case 0 -> 3;
+                case 1 -> 2;
+                case 2 -> 1;
+                case 3 -> 0;
+                default -> i;
+            };
+        }
+
+        if (flipV) {
+            sourceIndex = switch (sourceIndex) {
+                case 0 -> 1;
+                case 1 -> 0;
+                case 2 -> 3;
+                case 3 -> 2;
+                default -> sourceIndex;
+            };
+        }
+        return sourceIndex;
     }
 
     public boolean removeIfExist(GameObject go) {

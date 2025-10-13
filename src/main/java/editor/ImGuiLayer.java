@@ -36,6 +36,7 @@ public class ImGuiLayer {
     private final SceneEditorViewport sceneEditorViewport;
     private ImGuiIO io;
     private static boolean resetLayout = false;
+    private static boolean exitFrameEarly = false;
     private static final AtomicBoolean wantedCaptureMouse = new AtomicBoolean(false);
 
     public ImGuiLayer(long windowPtr) {
@@ -102,6 +103,7 @@ public class ImGuiLayer {
         io.setConfigFlags(ImGuiConfigFlags.DockingEnable);
         imGuiGlfw.init(windowPtr, true);
         imGuiGl3.init(glslVer);
+        EditorIcons.init();
     }
 
     public void guiFont(ImGuiIO io) {
@@ -142,8 +144,8 @@ public class ImGuiLayer {
         ImGui.newFrame();
 
         renderDocking();
-        if (resetLayout) {
-            resetLayout = false;
+        if (exitFrameEarly) {
+            exitFrameEarly = false;
             ImGui.endFrame();
             return;
         }
@@ -192,7 +194,11 @@ public class ImGuiLayer {
         int id = ImGui.getID(DOCK_ID);
         ImGui.dockSpace(id);
 
-        if (!DefaultEditorLayout.dockingValid(id) || resetLayout) DefaultEditorLayout.resetLayout(id);
+        if (!DefaultEditorLayout.dockingValid(id) || resetLayout) {
+            DefaultEditorLayout.resetLayout(id);
+            resetLayout = false;
+            exitFrameEarly = true;
+        }
 
         MenuBar.imgui();
         ImGui.end();

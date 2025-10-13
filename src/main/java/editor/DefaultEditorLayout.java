@@ -7,8 +7,12 @@ import imgui.internal.flag.ImGuiDockNodeFlags;
 import imgui.type.ImInt;
 import scene.SceneEditor;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 class DefaultEditorLayout {
-    private static final float SIDE_COLUMNS = 0.25f;
+    private static final float SIDE_COLUMNS = 0.2f;
     private static final float BOTTOM_LEFT_ROW = 0.4f;
     private static final float BOTTOM_CENTRE_ROW = 0.3f;
 
@@ -24,7 +28,7 @@ class DefaultEditorLayout {
         ImInt bottomMainDock = new ImInt();
 
         ImGui.dockBuilderSplitNode(mainDock.get(), ImGuiDir.Left, SIDE_COLUMNS, leftDock, mainDock);
-        ImGui.dockBuilderSplitNode(mainDock.get(), ImGuiDir.Right, SIDE_COLUMNS, rightDock, mainDock);
+        ImGui.dockBuilderSplitNode(mainDock.get(), ImGuiDir.Right, SIDE_COLUMNS / (1.f - SIDE_COLUMNS), rightDock, mainDock);
         ImGui.dockBuilderSplitNode(leftDock.get(), ImGuiDir.Down, BOTTOM_LEFT_ROW, bottomLeftDock, leftDock);
         ImGui.dockBuilderSplitNode(mainDock.get(), ImGuiDir.Down, BOTTOM_CENTRE_ROW, bottomMainDock, mainDock);
 

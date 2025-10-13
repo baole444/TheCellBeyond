@@ -58,9 +58,8 @@ public class Transform extends Component {
     @Override
     public void imgui() {
         String compositeID = "Transform##" + getUUID();
-        boolean open;
         ImGui.pushStyleColor(ImGuiCol.Header, 0.0f, 0.0f, 0.0f, 0.0f);
-        open = ImGui.collapsingHeader(compositeID);
+        boolean open = ImGui.collapsingHeader(compositeID);
         ImGui.popStyleColor(1);
         if (open) {
             ImGui.separator();

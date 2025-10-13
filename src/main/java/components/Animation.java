@@ -141,7 +141,7 @@ public class Animation {
      * @param index the targeted frame index, clamped by the method to prevent out of bound
      */
     public void setCurrentFrameIndex(int index) {
-        frameIndex = Math.max(0, Math.min(index, frames.size()));
+        frameIndex = Math.max(0, Math.min(index, frames.size() - 1));
     }
 
     /**
@@ -168,7 +168,7 @@ public class Animation {
     public Frame currentFrame() {
         if (frames.isEmpty()) return null;
 
-        return frames.get(frameIndex);
+        return frames.get(Math.max(0, Math.min(frameIndex, frames.size() - 1)));
     }
 
     /**
@@ -195,6 +195,15 @@ public class Animation {
      */
     public void reset() {
         frameIndex = 0;
+        elapsedTime = 0.0f;
+    }
+
+    /**
+     * Reset this animation to the last frame (highest index.)
+     * @see Animation#reset() reset the animation to the first frame
+     */
+    public void resetBackward() {
+        frameIndex = Math.max(frames.size() - 1, 0);
         elapsedTime = 0.0f;
     }
 
@@ -231,6 +240,35 @@ public class Animation {
                 low = mid + 1;
             }
         }
+        frameIndex = low;
+    }
+
+    /**
+     * Update the frame index of the animation base on elapsed time and animation speed in reverse.
+     * @param dt delta time
+     */
+    public void updateBackward(float dt) {
+        if (frames.isEmpty()) return;
+
+        elapsedTime += dt * speedMultiplier;
+        if (!loop && elapsedTime >= animationDuration) {
+            frameIndex = 0;
+            return;
+        }
+
+        float time = loop ? (elapsedTime % animationDuration) : elapsedTime;
+        float reversed = animationDuration - time;
+        int low = 0;
+        int high = frames.size() - 1;
+        while (low < high) {
+            int mid = (low + high) / 2;
+            if (reversed < frames.get(mid).endTime) {
+                high = mid;
+            } else {
+                low = mid + 1;
+            }
+        }
+
         frameIndex = low;
     }
 

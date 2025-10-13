@@ -2,6 +2,7 @@ package editor;
 
 import TheCellBeyond.KeyListener;
 import imgui.flag.*;
+import render.texture.Sprite;
 import utility.*;
 
 import imgui.ImGui;
@@ -351,5 +352,30 @@ public class ImEditorGui {
         if (caller instanceof String s) return label + "__" + s;
 
         return label + "__" + System.identityHashCode(caller);
+    }
+
+    public static boolean iconButton(String id, EditorIcons.EditorIconSprite sprite, String toolTip) {
+        Sprite icon = sprite.getIcon();
+        if (icon == null) return ImGui.button(id);
+        float sizeLimit = ImGui.getFontSize();
+
+        int textureID = icon.getTextureID();
+        Vector2f scaledSize = TextureScale.calculateFitSquare(icon.getWidth(), icon.getHeight(), sizeLimit);
+        Vector2f[] textureCoordinates = icon.getTextureCoordinates();
+
+        ImGui.pushStyleColor(ImGuiCol.Button, 1.0f, 1.0f, 1.0f, 0.0f);
+        boolean clicked = ImGui.imageButton(id, textureID, scaledSize.x, scaledSize.y,
+                textureCoordinates[2].x, textureCoordinates[0].y,
+                textureCoordinates[0].x, textureCoordinates[2].y
+        );
+        ImGui.popStyleColor(1);
+
+        if (ImGui.isItemHovered() && toolTip != null) {
+            ImGui.beginTooltip();
+            ImGui.text(toolTip);
+            ImGui.endTooltip();
+        }
+
+        return clicked;
     }
 }

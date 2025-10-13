@@ -2,9 +2,12 @@ package components;
 
 import TheCellBeyond.Window;
 import imgui.ImGui;
+import imgui.flag.ImGuiCol;
+import imgui.type.ImBoolean;
 import render.texture.Sprite;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -14,9 +17,11 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
     private final ConcurrentHashMap<String, Animation> animations = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Float> animationFPS = new ConcurrentHashMap<>();
     private String defaultAnimation = null;
+
     private transient String currentAnimationName = null;
     private transient Animation currentAnimation = null;
     private transient boolean play = false;
+    private transient boolean backward = false;
 
     public String defaultAnimation() {
         return defaultAnimation;
@@ -136,6 +141,14 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
         return play;
     }
 
+    public boolean isBackward() {
+        return backward;
+    }
+
+    public boolean isPlayingBackward() {
+        return play && backward;
+    }
+
     public void play(String name) {
         if (name == null || !animations.containsKey(name)) return;
         Animation animation = animations.get(name);
@@ -144,6 +157,20 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
         if (animation != currentAnimation) animation.reset();
         currentAnimationName = name;
         currentAnimation = animation;
+        backward = false;
+        play = true;
+        updateSpriteFromCurrentAnimation();
+    }
+
+    public void playBackward(String name) {
+        if (name == null || !animations.containsKey(name)) return;
+        Animation animation = animations.get(name);
+        if (animation == null) return;
+
+        if (animation != currentAnimation) animation.resetBackward();
+        currentAnimationName = name;
+        currentAnimation = animation;
+        backward = true;
         play = true;
         updateSpriteFromCurrentAnimation();
     }
@@ -158,6 +185,7 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
 
     public void stop() {
         play = false;
+        backward = false;
         if (currentAnimation != null) {
             currentAnimation.reset();
             updateSpriteFromCurrentAnimation();
@@ -208,6 +236,59 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
         return new HashMap<>(animations);
     }
 
+    public boolean moveFrame(String name, int currentIndex, int targetIndex) {
+        if (name == null || !animations.containsKey(name)) return false;
+        if (Objects.equals(name, currentAnimationName)) stop();
+
+        Animation animation = animations.get(name);
+        if (animation == null) return false;
+
+        int frameCount = animation.numberOfFrames();
+        if (currentIndex < 0 || currentIndex >= frameCount || targetIndex < 0 || targetIndex >= frameCount || currentIndex == targetIndex) return false;
+        Frame currentFrame = animation.getFrameAt(currentIndex);
+        if (currentFrame == null) return false;
+
+        int animationCurrentFrameIndex = animation.currentFrameIndex();
+        animation.removeFrame(currentIndex);
+        animation.addFrameAt(currentFrame.sprite, currentFrame.frameTime, targetIndex);
+
+        if (animationCurrentFrameIndex == currentIndex) animation.setCurrentFrameIndex(targetIndex);
+        if (Objects.equals(name, currentAnimationName) && !play) updateSpriteFromCurrentAnimation();
+        return true;
+    }
+
+    public boolean moveFrameLeft(String name, int index) {
+        if (index <= 0) return false;
+        return moveFrame(name, index, index - 1);
+    }
+
+    public boolean moveFrameRight(String name, int index) {
+        if (name == null || !animations.containsKey(name)) return false;
+
+        Animation animation = animations.get(name);
+        if (animation == null) return false;
+
+        int frameCount = animation.numberOfFrames();
+        if (index >= frameCount - 1) return false;
+
+        return moveFrame(name, index, index + 1);
+    }
+
+    public void removeFrame(String name, int index) {
+        if (name == null || !animations.containsKey(name)) return;
+        if (Objects.equals(name, currentAnimationName)) stop();
+
+        Animation animation = animations.get(name);
+        if (animation == null) return;
+
+        int frameCount = animation.numberOfFrames();
+        if (index < 0 || index >= frameCount) return;
+
+        animation.removeFrame(index);
+
+        if (Objects.equals(name, currentAnimationName) && !play) updateSpriteFromCurrentAnimation();
+    }
+
     private void updateSpriteFromCurrentAnimation() {
         if (currentAnimation == null) {
             setSprite(null);
@@ -237,12 +318,36 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
     protected void additionalUpdateLogic(float dt) {
         if (currentAnimation == null) return;
 
-        if (play) currentAnimation.update(dt);
+        if (play && backward) {
+            currentAnimation.updateBackward(dt);
+        } else if (play) currentAnimation.update(dt);
+
         updateSpriteFromCurrentAnimation();
     }
 
     @Override
     protected void additionalImGuiLogic() {
-        ImGui.textWrapped("Extra control later");
+        List<String> animationList = animations.keySet().stream().toList();
+        String selectedAni = currentAnimationName;
+        if (ImGui.beginCombo("Animation##Select_Current_Animation", selectedAni == null ? "Select an animation..." : currentAnimationName)) {
+            for (String name : animationList) {
+                if (ImGui.selectable(name, Objects.equals(name, selectedAni))) setCurrentAnimation(name);
+            }
+
+            ImGui.endCombo();
+        }
+
+        ImGui.indent();
+        ImBoolean flipHState = new ImBoolean(isFlipHorizontally());
+        ImBoolean flipVState = new ImBoolean(isFlipVertically());
+        String compositeID = "Flip axis##" + getUUID();
+        ImGui.pushStyleColor(ImGuiCol.Header, 0.0f, 0.0f, 0.0f, 0.0f);
+        boolean open = ImGui.collapsingHeader(compositeID);
+        ImGui.popStyleColor(1);
+        if (open) {
+            if (ImGui.checkbox("Horizontal##" + getUUID(), flipHState)) flipHorizontally(flipHState.get());
+            if (ImGui.checkbox("Vertical##" + getUUID(), flipVState)) flipVertically(flipVState.get());
+        }
+        ImGui.unindent();
     }
 }
