@@ -2,6 +2,7 @@ package render.texture;
 
 import org.joml.Vector2f;
 import org.joml.Vector2i;
+import render.Texture;
 
 import java.util.HashMap;
 import java.util.List;
@@ -20,7 +21,7 @@ public class TileSet {
     private final Vector2i gridSize;
     private final Vector2i startPosition;
     private Sprite tileSetSprite;
-    private final ConcurrentHashMap<Vector2i, Vector2f[]> tiles = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Vector2i, Tile> tiles = new ConcurrentHashMap<>();
 
     private volatile transient boolean tileDirty = true;
 
@@ -40,13 +41,13 @@ public class TileSet {
             return;
         }
 
-        HashMap<Vector2i, Vector2f[]> updates = new HashMap<>(tiles);
-        for (Map.Entry<Vector2i, Vector2f[]> entry : updates.entrySet()) {
+        HashMap<Vector2i, Tile> updates = new HashMap<>(tiles);
+        for (Map.Entry<Vector2i, Tile> entry : updates.entrySet()) {
             Vector2i position = entry.getKey();
+            Tile tile = entry.getValue();
             Vector2f[] newCoordinates = calculateTileTextureCoordinate(position);
             if (newCoordinates == null) newCoordinates = deadTileCoordinates();
-
-            tiles.put(position, newCoordinates);
+            tile.textureCoordinates = newCoordinates;
         }
 
         tileDirty = true;
@@ -61,8 +62,11 @@ public class TileSet {
             return;
         }
 
-        tiles.put(gridPosition, coordinates);
+        Tile tile = new Tile();
+        tile.setCoordinate = gridPosition;
+        tile.textureCoordinates = coordinates;
 
+        tiles.put(gridPosition, tile);
         tileDirty = true;
     }
 
@@ -82,19 +86,29 @@ public class TileSet {
         return tileSetSprite != null ? tileSetSprite.getHeight() : 0.0f;
     }
 
+    public Vector2i getGridSize() {
+        return new Vector2i(gridSize);
+    }
+
+    public Texture getTexture() {
+        if (tileSetSprite == null) return null;
+
+        return tileSetSprite.getTexture();
+    }
+
     public int getTextureID() {
         if (tileSetSprite == null) return -1;
 
         return tileSetSprite.getTextureID();
     }
 
-    public Vector2f[] getTileCoordinate(Vector2i gridPosition) {
-        if (gridPosition == null || gridPosition.x < 0 || gridPosition.y < 0 || !tiles.containsKey(gridPosition)) return deadTileCoordinates();
+    public Tile getTile(Vector2i gridPosition) {
+        if (gridPosition == null || gridPosition.x < 0 || gridPosition.y < 0 || !tiles.containsKey(gridPosition)) return null;
 
         return tiles.get(gridPosition);
     }
 
-    public List<Vector2f[]> getTileCoordinates() {
+    public List<Tile> getTiles() {
         if (tiles.isEmpty()) return List.of();
 
         return tiles.values().stream().toList();
