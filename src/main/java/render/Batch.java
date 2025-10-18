@@ -270,6 +270,7 @@ public class Batch implements Comparable<Batch> {
 
         float xAdd = 0.5f;
         float yAdd = 0.5f;
+        int uID = spriteRenderer.gameObject == null ? 0 : spriteRenderer.gameObject.getUID();
         for (int i = 0; i < 4; i++) {
             switch (i) {
                 case 1 -> yAdd = -0.5f;
@@ -295,7 +296,7 @@ public class Batch implements Comparable<Batch> {
             target[offset + 6] = textureCoordinates[i].x;
             target[offset + 7] = textureCoordinates[i].y;
             target[offset + 8] = ID;
-            target[offset + 9] = spriteRenderer.gameObject.getUID();
+            target[offset + 9] = uID;
 
             offset += VERTEX_SIZE;
         }

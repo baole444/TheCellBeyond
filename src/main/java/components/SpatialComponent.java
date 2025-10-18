@@ -161,10 +161,7 @@ public abstract class SpatialComponent extends Component implements Transformati
         if (effectiveTransform == null) effectiveTransform = new Transform();
 
         if (gameObject instanceof GameObject2D go2D) {
-            if (go2D.isTransformUpdating()
-                    && effectiveTransform != null
-                    && !isTransformDirty
-            ) return;
+            if (go2D.isTransformUpdating()) return;
 
             Transform goTransform = go2D.getGlobalTransform();
             effectiveTransform.copyFrom(goTransform);

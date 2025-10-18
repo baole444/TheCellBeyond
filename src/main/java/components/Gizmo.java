@@ -79,9 +79,9 @@ public class Gizmo extends SpatialComponent implements NotSerializeComponent {
     public void editorUpdate(float dt) {
         if (!isUsed) return;
 
-        // Update onscreen active object.
         activeGameObj = Properties.getActiveGameObject();
-        if (activeGameObj == null) {
+        if (activeGameObj == null || activeGameObj.isRemoved()) {
+            activeGameObj = null;
             setInactive();
             return;
         }

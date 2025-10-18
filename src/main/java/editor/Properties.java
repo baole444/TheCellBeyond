@@ -35,6 +35,12 @@ public class Properties {
             return;
         }
 
+        if (activeGameObject.isRemoved()) {
+            activeGameObject = null;
+            ImGui.end();
+            return;
+        }
+
         float buttonW = ImGui.getContentRegionAvailX();
         float buttonH = BUTTON_RESERVED_HEIGHT * 0.9f;
         if (ImGui.button("Add new Component", buttonW, buttonH)) AddComponentDialog.show(activeGameObject);
@@ -44,6 +50,8 @@ public class Properties {
         renderContextMenu();
         AddComponentDialog.imgui();
         ImGui.end();
+
+        updateActives();
     }
 
     private static void renderContextMenu() {
@@ -136,4 +144,13 @@ public class Properties {
         activeGameObjects.clear();
         activeObjTrueColor.clear();
     }
+
+    private static void updateActives() {
+        List<GameObject> actives = new ArrayList<>(activeGameObjects);
+        for (GameObject go : actives) {
+            if (go.isRemoved()) activeGameObjects.remove(go);
+        }
+
+    }
 }
+

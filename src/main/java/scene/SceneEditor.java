@@ -164,7 +164,7 @@ public class SceneEditor extends SceneInit implements EngineEventListener {
 
             if (ImGui.button(name, prefabButtonSize.x, prefabButtonSize.y)) {
                 GameObject instance = manager.instantiatePrefab(name);
-                if (name != null) {
+                if (instance != null) {
                     levelEditorObject.getFirstComponent(MouseCtrl.class).pickObj(instance);
                 }
             }

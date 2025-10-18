@@ -2,6 +2,7 @@ package editor;
 
 import TheCellBeyond.MouseListener;
 import TheCellBeyond.Window;
+import components.Grid;
 import editor.project.Project;
 import eventviewer.EngineEventCallback;
 import eventviewer.event.Event;
@@ -9,7 +10,10 @@ import eventviewer.event.EventType;
 import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.ImGuiPopupFlags;
+import imgui.flag.ImGuiTableColumnFlags;
+import imgui.flag.ImGuiTableFlags;
 import imgui.flag.ImGuiWindowFlags;
+import imgui.type.ImBoolean;
 import org.joml.Vector2f;
 import render.FrameBuffer;
 
@@ -33,6 +37,11 @@ public class SceneEditorViewport {
         );
 
         ImGui.beginMenuBar();
+        ImGui.beginTable("##ESV_MenuBar_Table_Div", 3, ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.SizingFixedFit);
+        ImGui.tableSetupColumn("##Runtime_switch_column_ESV", ImGuiTableColumnFlags.WidthFixed);
+        ImGui.tableSetupColumn("Scene_name_column_ESV", ImGuiTableColumnFlags.WidthStretch);
+        ImGui.tableSetupColumn("Scene_Editing_Controls_ESV", ImGuiTableColumnFlags.WidthFixed);
+        ImGui.tableNextColumn();
         if (ImGui.menuItem("Play","", isPlaying, !isPlaying)) {
             isPlaying = true;
             EngineEventCallback.emit(null, new Event(EventType.ENGINE_START));
@@ -43,12 +52,18 @@ public class SceneEditorViewport {
             EngineEventCallback.emit(null, new Event(EventType.ENGINE_END));
         }
 
+        ImGui.tableNextColumn();
         float remainWidth = ImGui.getContentRegionAvailX();
         float textWidth = ImGui.calcTextSizeX(currentSceneName);
         float offset = Math.max((remainWidth - textWidth) * 0.5f, 0.0f);
         ImGui.setCursorPosX(ImGui.getCursorPosX() + offset);
         ImGui.text(currentSceneName);
 
+        ImGui.tableNextColumn();
+        ImBoolean snapGrid = new ImBoolean(Grid.showGridLine);
+        if (ImGui.checkbox("Grid snapping##Ctrl_Grid_Snap_nd_Show_ESV", snapGrid)) Grid.showGridLine = snapGrid.get();
+
+        ImGui.endTable();
         ImGui.endMenuBar();
 
         ImVec2 winSize = getMaxViewportSize();

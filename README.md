@@ -16,7 +16,7 @@ A Java-based game editor with project compile ability, code auto-generation, and
 - [ ] Scripting system.
 
 ## Problems need attention:
-- N/A
+- Picking object is unresponsive and cannot be placed on screen.
 
 ## Solved problems:
 - N/A

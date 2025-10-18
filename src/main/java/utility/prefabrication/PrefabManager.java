@@ -162,7 +162,7 @@ public class PrefabManager {
                     if (parent != null) parent.addChild(go);
                 }
 
-                if (go.getChildrenUUIDs() != null && go.getChildrenUUIDs().isEmpty()) {
+                if (go.getChildrenUUIDs() != null && !go.getChildrenUUIDs().isEmpty()) {
                     for (String childUUID : go.getChildrenUUIDs()) {
                         GameObject child = goMap.get(childUUID);
                         if (child != null && child.getParent() == null) go.addChild(child);

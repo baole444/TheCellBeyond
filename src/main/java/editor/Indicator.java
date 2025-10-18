@@ -58,7 +58,7 @@ public class Indicator extends SpriteRenderer implements NotSerializeComponent {
 
     @Override
     public void editorUpdate(float dt) {
-        if (!gameObject.isSerialize()) return;
+        if (gameObject == null || !gameObject.isSerialize()) return;
 
         if (textureUnit == null) {
             initIndicator();

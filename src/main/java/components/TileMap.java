@@ -7,6 +7,7 @@ import render.texture.Tile;
 import render.texture.TileSet;
 import utility.WorldUnit;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,6 +28,11 @@ public class TileMap extends SpatialComponent {
         isTileDirty = true;
     }
 
+    public boolean isTileDirty() {
+        if (tileSet != null && tileSet.requestRendererUpdate()) isTileDirty = true;
+        return isTileDirty;
+    }
+
     public void setTileDirty(boolean needsUpdate) {
         isTileDirty = needsUpdate;
         if (!needsUpdate && tileSet != null) tileSet.rendererUpdated();
@@ -40,6 +46,10 @@ public class TileMap extends SpatialComponent {
 
     public Vector2f getSpriteSizeAsWorldUnit() {
         return WorldUnit.pixelToWorld(getTileSetSize());
+    }
+
+    public HashMap<Vector2i, Tile> getTiles() {
+        return new HashMap<>(tiles);
     }
 
     public TileSet getTileSet() {

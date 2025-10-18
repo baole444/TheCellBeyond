@@ -83,13 +83,7 @@ public class MouseCtrl extends Component implements NotSerializeComponent {
         }
 
         if (imguiWantMouseCapture) return;
-        float targetX = MouseListener.getWorldX() - Settings.GRID_WIDTH / 2.0f; // Might not need to - 0.16f for both
-        float targetY = MouseListener.getWorldY() - Settings.GRID_HEIGHT / 2.0f;
-
-        targetX = Math.round(targetX / Settings.GRID_WIDTH) * Settings.GRID_WIDTH + Settings.GRID_WIDTH / 2.0f;
-        targetY = Math.round(targetY / Settings.GRID_HEIGHT) * Settings.GRID_HEIGHT + Settings.GRID_HEIGHT / 2.0f;
-
-        Vector2f targetPos = new Vector2f(targetX, targetY);
+        Vector2f targetPos = getTargetPos();
 
         if (holdObj instanceof GameObject2D go2D) {
             go2D.setPosition(targetPos);
@@ -99,7 +93,8 @@ public class MouseCtrl extends Component implements NotSerializeComponent {
             }
         }
 
-        if (KeyListener.isKeyPressed(GLFW_KEY_ESCAPE)) {
+        if (KeyListener.isKeyTapped(GLFW_KEY_ESCAPE)) {
+            System.out.println("Esc pressed");
             holdObj.destroy();
             holdObj = null;
             return;
@@ -126,6 +121,22 @@ public class MouseCtrl extends Component implements NotSerializeComponent {
             mouseButtonHeld = true;
             clickInit = clickResetTime;
         }
+    }
+
+    private static Vector2f getTargetPos() {
+        float targetX, targetY;
+
+        if (!Grid.showGridLine) {
+            targetX = MouseListener.getWorldX();
+            targetY = MouseListener.getWorldY();
+        } else {
+            float x = MouseListener.getWorldX() - Settings.GRID_WIDTH / 2.0f;
+            float y = MouseListener.getWorldY() - Settings.GRID_HEIGHT / 2.0f;
+            targetX = Math.round(x / Settings.GRID_WIDTH) * Settings.GRID_WIDTH + Settings.GRID_WIDTH / 2.0f;
+            targetY = Math.round(y / Settings.GRID_HEIGHT) * Settings.GRID_HEIGHT + Settings.GRID_HEIGHT / 2.0f;
+        }
+
+        return new Vector2f(targetX, targetY);
     }
 
     private void onNotHoldingObject() {

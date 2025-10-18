@@ -2,12 +2,18 @@ package render.texture;
 
 import org.joml.Vector2f;
 import org.joml.Vector2i;
+import org.lwjgl.BufferUtils;
+import org.lwjgl.stb.STBImage;
+import org.lwjgl.system.MemoryStack;
 import render.Texture;
+import utility.AssetReference;
+import utility.PathResolver;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -159,5 +165,188 @@ public class TileSet {
                 new Vector2f(0.0f),
                 new Vector2f(0.0f)
         };
+    }
+
+    public void findTiles() {
+        if (tileSetSprite == null) return;
+
+        Texture texture = tileSetSprite.getTexture();
+        if (texture == null || texture.getCanonicalPath() == null) return;
+
+        String canonicalPath = texture.getCanonicalPath();
+        AssetReference assetReference = new AssetReference(canonicalPath);
+        PathResolver resolver = PathResolver.get();
+
+        try (InputStream stream = resolver.getAssetStream(assetReference.getResolvedPath())) {
+            byte[] data = stream.readAllBytes();
+            ByteBuffer buffer = BufferUtils.createByteBuffer(data.length);
+            buffer.put(data);
+            buffer.flip();
+
+            findTilesFromBuffer(buffer);
+        } catch (IOException e) {
+            System.err.println("Failed to find tiles: " + e.getMessage());
+        }
+    }
+
+    private void findTilesFromBuffer(ByteBuffer buffer) {
+        ByteBuffer pixels;
+        int width = (int) tileSetSprite.getWidth();
+        int height = (int) tileSetSprite.getHeight();
+        final int channels = 4;
+
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            IntBuffer w = stack.mallocInt(1);
+            IntBuffer h = stack.mallocInt(1);
+            IntBuffer c = stack.mallocInt(1);
+            pixels = STBImage.stbi_load_from_memory(buffer, w, h, c, channels);
+
+            if (pixels == null) {
+                System.err.println("Failed to read image pixels: " + STBImage.stbi_failure_reason());
+                return;
+            }
+        }
+
+        try {
+            int cellCountX = (width - startPosition.x) / gridSize.x;
+            int cellCountY = (height - startPosition.y) / gridSize.y;
+
+            gridTileSearch(pixels, width, height, cellCountX, cellCountY);
+        } finally {
+            STBImage.stbi_image_free(pixels);
+        }
+    }
+
+    private void gridTileSearch(ByteBuffer pixels, int width, int height, int cellCountX, int cellCountY) {
+        Set<Vector2i> searched = new HashSet<>();
+        List<Vector2i> hitTiles = new ArrayList<>();
+
+        Vector2i startPos = new Vector2i(1);
+        if (startPos.x >= cellCountX || startPos.y >= cellCountY) startPos.set(0);
+
+        neighboringSearch(startPos, pixels, width, height, cellCountX, cellCountY, searched, hitTiles);
+
+        while (!hitTiles.isEmpty()) {
+            List<Vector2i> neighborHitTiles = new ArrayList<>();
+            for (Vector2i tile : hitTiles) neighboringSearch(tile, pixels, width, height, cellCountX, cellCountY, searched, neighborHitTiles);
+            hitTiles = neighborHitTiles;
+        }
+
+        mindlessSearch(startPos, pixels, width, height, cellCountX, cellCountY, searched, hitTiles);
+    }
+
+    private void neighboringSearch(Vector2i centre, ByteBuffer pixels, int w, int h, int countX, int countY, Set<Vector2i> searched, List<Vector2i> hitTiles) {
+        for (int y = -1; y <= 1; y++) {
+           for (int x = -1; x <= 1; x++) {
+               Vector2i coordinate = new Vector2i(centre).add(x, y);
+               if (coordinate.x < 0 || coordinate.x >= countX || coordinate.y < 0 || coordinate.y >= countY) continue;
+
+               if (searched.contains(coordinate)) continue;
+               searched.add(new Vector2i(coordinate));
+
+               if (tiles.containsKey(coordinate)) continue;
+               if (!scanTilePixels(coordinate, pixels, w, h)) continue;
+
+               addTile(new Vector2i(coordinate));
+               hitTiles.add(new Vector2i(coordinate));
+           }
+        }
+    }
+
+    private void mindlessSearch(Vector2i startPosition, ByteBuffer pixels, int w, int h, int countX, int countY, Set<Vector2i> searched, List<Vector2i> hitTiles) {
+        Vector2i coordinate = new Vector2i(startPosition);
+
+        while (coordinate.y < countY) {
+            if (!searched.contains(coordinate)) {
+                searched.add(new Vector2i(coordinate));
+                if (!tiles.containsKey(coordinate) && scanTilePixels(coordinate, pixels, w, h)) {
+                    addTile(new Vector2i(coordinate));
+
+                    hitTiles = new ArrayList<>();
+                    neighboringSearch(coordinate, pixels, w, h, countX, countY, searched, hitTiles);
+
+                    while (!hitTiles.isEmpty()) {
+                        List<Vector2i> newHitTiles = new ArrayList<>();
+                        for (Vector2i grid : hitTiles) neighboringSearch(grid, pixels, w, h, countX, countY, searched, newHitTiles);
+                        hitTiles = newHitTiles;
+                    }
+                }
+            }
+
+            coordinate.x += 2;
+            if (coordinate.x < countX) continue;
+            coordinate.x = startPosition.x;
+            coordinate.y += 2;
+        }
+    }
+
+    private boolean scanTilePixels(Vector2i coordinate, ByteBuffer pixels, int w, int h) {
+        Vector2i start = new Vector2i(startPosition).add(coordinate.x * gridSize.x, coordinate.y * gridSize.y);
+        Vector2i end = new Vector2i(Math.min(start.x + gridSize.x, w), Math.min(start.y + gridSize.y, h));
+        if (end.x > w || end.y > h) return false;
+
+        int width = gridSize.x;
+        int height = gridSize.y;
+        if (width <= 2 || height <= 2) {
+            for (int y = start.y; y < end.y; y++) {
+                for (int x = start.x; x < end.x; x++) if (checkPixelAlpha(pixels, w, x, y)) return true;
+            }
+
+            return false;
+        }
+
+        int outerRing = 0;
+        int innerRing = Math.min(width, height) / 2;
+
+        while (outerRing < innerRing) {
+            if (scanRingPixels(pixels, width, start, end, outerRing)) return true;
+
+            if (scanRingPixels(pixels, width, start, end, innerRing)) return true;
+
+            outerRing++;
+            innerRing--;
+        }
+
+        if (outerRing == innerRing) return scanRingPixels(pixels, width, start, end, outerRing);
+
+        return false;
+    }
+
+    private boolean checkPixelAlpha(ByteBuffer pixels, int w, int x, int y) {
+        int index = (y * w + x) * 4;
+        int alphaIndex = index + 3;
+        int alpha = pixels.get(alphaIndex) & 0xFF;
+        return alpha != 0;
+    }
+
+    private boolean scanRingPixels(ByteBuffer pixels, int width, Vector2i start, Vector2i end, int ring) {
+        int left = start.x + ring;
+        int right = end.x - 1 - ring;
+        int top = start.y + ring;
+        int bottom = end.y - 1 - ring;
+
+        if (left > right || top > bottom) return false;
+
+        for (int x = left; x <= right; x++) {
+            if (checkPixelAlpha(pixels, width, x, top)) return true;
+        }
+
+        if (bottom != top) {
+            for (int x = left; x <= right; x++) {
+                if (checkPixelAlpha(pixels, width, x, bottom)) return true;
+            }
+        }
+
+        for (int y = top + 1; y < bottom; y++) {
+            if (checkPixelAlpha(pixels, width, left, y)) return true;
+        }
+
+        if (right != left) {
+            for (int y = top + 1; y < bottom; y++) {
+                if (checkPixelAlpha(pixels, width, right, y)) return true;
+            }
+        }
+
+        return false;
     }
 }
