@@ -16,10 +16,10 @@ A Java-based game editor with project compile ability, code auto-generation, and
 - [ ] Scripting system.
 
 ## Problems need attention:
-- N/A
+- (NAP) Physic system is likely incompatible with current setup again, maily at physic body and collision shape.
 
 ## Solved problems:
-- Picking object problem is resolved, which was caused by inverted boolean check.
+- N/A
 
 ## Additional maintenance:
 - Update ImGui to [latest release](https://github.com/SpaiR/imgui-java/releases).
