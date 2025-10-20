@@ -16,10 +16,10 @@ A Java-based game editor with project compile ability, code auto-generation, and
 - [ ] Scripting system.
 
 ## Problems need attention:
-- Picking object is unresponsive and cannot be placed on screen.
+- N/A
 
 ## Solved problems:
-- N/A
+- Picking object problem is resolved, which was caused by inverted boolean check.
 
 ## Additional maintenance:
 - Update ImGui to [latest release](https://github.com/SpaiR/imgui-java/releases).

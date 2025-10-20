@@ -5,6 +5,8 @@ import editor.ImGuiLayer;
 import editor.Properties;
 import editor.SceneTree;
 import editor.preference.UserPreference;
+import imgui.ImGui;
+import imgui.flag.ImGuiPopupFlags;
 import org.joml.Math;
 import org.joml.Vector2f;
 import org.joml.Vector2i;
@@ -76,14 +78,14 @@ public class MouseCtrl extends Component implements NotSerializeComponent {
     @Override
     public void editorUpdate(float dt) {
         clickInit -= dt;
-        boolean imguiWantMouseCapture = ImGuiLayer.getWantedCaptureMouse();
 
         if (holdObj == null) {
             onNotHoldingObject();
             return;
         }
 
-        if (imguiWantMouseCapture) return;
+        if (!ImGuiLayer.getWantedCaptureMouse() || ImGui.isPopupOpen("", ImGuiPopupFlags.AnyPopup)) return;
+
         Vector2f targetPos = getTargetPos();
         if (holdObj instanceof GameObject2D go2D) {
             go2D.setPosition(targetPos);
