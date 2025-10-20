@@ -99,7 +99,7 @@ public class ExitToProjectListDialog {
 
         if (current.autoSaveOnExit()) return;
 
-        EditorPreferences update = new EditorPreferences(true, current.autoSaveOnChangeScene());
+        EditorPreferences update = new EditorPreferences(true, current.autoSaveOnChangeScene(), current.showGridLine());
 
         UserPreference.updateEditorPreferences(update);
     }

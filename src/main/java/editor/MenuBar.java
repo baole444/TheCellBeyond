@@ -8,7 +8,6 @@ import eventviewer.event.Event;
 import eventviewer.event.EventType;
 import imgui.ImGui;
 import imgui.internal.flag.ImGuiItemFlags;
-import utility.ExitConfirmDialog;
 
 import java.util.List;
 

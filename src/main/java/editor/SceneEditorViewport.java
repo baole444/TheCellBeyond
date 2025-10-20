@@ -3,6 +3,8 @@ package editor;
 import TheCellBeyond.MouseListener;
 import TheCellBeyond.Window;
 import components.Grid;
+import editor.preference.EditorPreferences;
+import editor.preference.UserPreference;
 import editor.project.Project;
 import eventviewer.EngineEventCallback;
 import eventviewer.event.Event;
@@ -60,8 +62,13 @@ public class SceneEditorViewport {
         ImGui.text(currentSceneName);
 
         ImGui.tableNextColumn();
-        ImBoolean snapGrid = new ImBoolean(Grid.showGridLine);
-        if (ImGui.checkbox("Grid snapping##Ctrl_Grid_Snap_nd_Show_ESV", snapGrid)) Grid.showGridLine = snapGrid.get();
+        ImBoolean snapGrid = new ImBoolean(UserPreference.editorPreferences().showGridLine());
+        if (ImGui.checkbox("Grid snapping##Ctrl_Grid_Snap_nd_Show_ESV", snapGrid)) {
+            boolean enable = snapGrid.get();
+            EditorPreferences currentPrefs = UserPreference.editorPreferences();
+            EditorPreferences newPrefs = new EditorPreferences(currentPrefs.autoSaveOnExit(), currentPrefs.autoSaveOnChangeScene(), enable);
+            UserPreference.updateEditorPreferences(newPrefs);
+        }
 
         ImGui.endTable();
         ImGui.endMenuBar();

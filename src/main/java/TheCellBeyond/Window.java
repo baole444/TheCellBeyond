@@ -29,7 +29,7 @@ import scene.SceneEditor;
 import scene.Scene;
 import scene.SceneInit;
 import utility.AssetsPool;
-import utility.ExitConfirmDialog;
+import editor.dialog.ExitConfirmDialog;
 import utility.Settings;
 
 import java.awt.*;

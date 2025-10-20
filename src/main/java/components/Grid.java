@@ -2,6 +2,7 @@ package components;
 
 import TheCellBeyond.Viewport;
 import TheCellBeyond.Window;
+import editor.preference.UserPreference;
 import org.joml.Math;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
@@ -10,12 +11,13 @@ import render.DebugDraw;
 import utility.Settings;
 
 public class Grid extends Component implements NotSerializeComponent {
-    public static volatile boolean showGridLine = true;
     public static final Vector4f color = new Vector4f(0.5f, 0.5f, 0.0f, 0.6f);
 
     @Override
     public void editorUpdate(float dt) {
-        if (!showGridLine || dt < 0.0f) return;
+        if (dt < 0.0f) return;
+        boolean showGridLine = UserPreference.editorPreferences().showGridLine();
+        if (!showGridLine) return;
         Viewport viewport = Window.getScene().viewport();
         Vector2f viewPos = viewport.position;
         Vector2f projectSize = viewport.getProjectionSize();

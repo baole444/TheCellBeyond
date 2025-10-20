@@ -105,7 +105,7 @@ public class EditEditorPreferencesDialog {
     }
 
     private static void savePreference() {
-        EditorPreferences newPref = new EditorPreferences(autoSaveOnExit.get(), autoSaveOnChangeScene.get());
+        EditorPreferences newPref = new EditorPreferences(autoSaveOnExit.get(), autoSaveOnChangeScene.get(), UserPreference.editorPreferences().showGridLine());
         UserPreference.updateEditorPreferences(newPref);
     }
 }

@@ -118,7 +118,7 @@ public class ConfirmSaveSceneDialog {
 
         if (current.autoSaveOnChangeScene()) return;
 
-        EditorPreferences update = new EditorPreferences(current.autoSaveOnExit(), true);
+        EditorPreferences update = new EditorPreferences(current.autoSaveOnExit(), true, current.showGridLine());
 
         UserPreference.updateEditorPreferences(update);
     }

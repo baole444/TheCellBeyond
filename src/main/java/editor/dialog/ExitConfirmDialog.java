@@ -1,4 +1,4 @@
-package utility;
+package editor.dialog;
 
 import editor.preference.EditorPreferences;
 import editor.preference.UserPreference;
@@ -59,7 +59,7 @@ public class ExitConfirmDialog {
 
         if (current.autoSaveOnExit()) return;
 
-        EditorPreferences update = new EditorPreferences(true, current.autoSaveOnChangeScene());
+        EditorPreferences update = new EditorPreferences(true, current.autoSaveOnChangeScene(), current.showGridLine());
 
         UserPreference.updateEditorPreferences(update);
     }

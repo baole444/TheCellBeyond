@@ -4,6 +4,7 @@ import TheCellBeyond.*;
 import editor.ImGuiLayer;
 import editor.Properties;
 import editor.SceneTree;
+import editor.preference.UserPreference;
 import org.joml.Math;
 import org.joml.Vector2f;
 import org.joml.Vector2i;
@@ -84,7 +85,6 @@ public class MouseCtrl extends Component implements NotSerializeComponent {
 
         if (imguiWantMouseCapture) return;
         Vector2f targetPos = getTargetPos();
-
         if (holdObj instanceof GameObject2D go2D) {
             go2D.setPosition(targetPos);
         } else if (holdObj instanceof GameObject go) {
@@ -94,7 +94,6 @@ public class MouseCtrl extends Component implements NotSerializeComponent {
         }
 
         if (KeyListener.isKeyTapped(GLFW_KEY_ESCAPE)) {
-            System.out.println("Esc pressed");
             holdObj.destroy();
             holdObj = null;
             return;
@@ -126,7 +125,7 @@ public class MouseCtrl extends Component implements NotSerializeComponent {
     private static Vector2f getTargetPos() {
         float targetX, targetY;
 
-        if (!Grid.showGridLine) {
+        if (!UserPreference.editorPreferences().showGridLine()) {
             targetX = MouseListener.getWorldX();
             targetY = MouseListener.getWorldY();
         } else {
