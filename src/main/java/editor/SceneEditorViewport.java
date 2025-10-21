@@ -54,6 +54,9 @@ public class SceneEditorViewport {
             EngineEventCallback.emit(null, new Event(EventType.ENGINE_END));
         }
 
+        ImGui.sameLine();
+        ImGui.text(" ");
+
         ImGui.tableNextColumn();
         float remainWidth = ImGui.getContentRegionAvailX();
         float textWidth = ImGui.calcTextSizeX(currentSceneName);

@@ -3,15 +3,20 @@ package components;
 import TheCellBeyond.Viewport;
 import TheCellBeyond.Window;
 import editor.preference.UserPreference;
+import editor.project.Project;
 import org.joml.Math;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import render.DebugDraw;
 import utility.Settings;
+import utility.WorldUnit;
 
 public class Grid extends Component implements NotSerializeComponent {
-    public static final Vector4f normalGridColor = new Vector4f(0.5f, 0.5f, 0.0f, 0.6f);
-    public static final Vector4f centralLinesColor = new Vector4f(1.0f);
+    private static final Vector4f normalGridColor = new Vector4f(0.5f, 0.5f, 0.0f, 0.35f);
+    private static final Vector4f centralLinesColor = new Vector4f(1.0f);
+    private static final Vector4f verticalBoundColor = new Vector4f(0.5f, 0.5f, 1.0f, 0.75f);
+    private static final Vector4f horizontalBoundColor = new Vector4f(1.0f, 0.0f, 1.0f, 0.75f);
+
     public static final float epsilon = 0.01f;
 
     @Override
@@ -26,28 +31,55 @@ public class Grid extends Component implements NotSerializeComponent {
         float firstY = ((int) Math.floor(viewPos.y / Settings.GRID_HEIGHT)) * Settings.GRID_HEIGHT;
         float height = (int)(projectSize.y * viewport.getZoom()) + Settings.GRID_HEIGHT * 5;
         float width = (int)(projectSize.x * viewport.getZoom()) + Settings.GRID_WIDTH * 5;
+        float gameWindowWidth = WorldUnit.pixelToWorld(Project.preference().gameWindowWidth());
+        float gameWindowHeight = WorldUnit.pixelToWorld(Project.preference().gameWindowHeight());
 
+        if (UserPreference.editorPreferences().showGridLine()) {
+            int countVertical = (int)(projectSize.x * viewport.getZoom() / Settings.GRID_WIDTH) + 2;
+            int countHorizontal = (int)(projectSize.y * viewport.getZoom() / Settings.GRID_HEIGHT) + 2;
+            int maxLines = Math.max(countVertical, countHorizontal);
+
+            drawGrid(firstX, firstY, maxLines, countVertical, countHorizontal, width, height);
+        }
+
+        drawCentralLines(firstX, firstY, width, height);
+        drawGameWindowBound(gameWindowWidth, gameWindowHeight);
+    }
+
+    private void drawCentralLines(float firstX, float firstY, float width, float height) {
         DebugDraw.addLine2(new Vector2f(0.0f, firstY), new Vector2f(0.0f, firstY + height), centralLinesColor);
         DebugDraw.addLine2(new Vector2f(firstX, 0.0f), new Vector2f(firstX + width, 0.0f), centralLinesColor);
+    }
 
-        if (!UserPreference.editorPreferences().showGridLine()) return;
+    private void drawGameWindowBound(float gameWindowWidth, float gameWindowHeight) {
+        DebugDraw.addLine2(new Vector2f(gameWindowWidth, 0.0f), new Vector2f(gameWindowWidth, gameWindowHeight), verticalBoundColor);
+        DebugDraw.addLine2(new Vector2f(0, gameWindowHeight), new Vector2f(gameWindowWidth, gameWindowHeight), horizontalBoundColor);
+    }
 
-        int countVertical = (int)(projectSize.x * viewport.getZoom() / Settings.GRID_WIDTH) + 2;
-        int countHorizontal = (int)(projectSize.y * viewport.getZoom() / Settings.GRID_HEIGHT) + 2;
-        int maxLines = Math.max(countVertical, countHorizontal);
-
-
+    private void drawGrid(float firstX, float firstY, int maxLines, int countVertical, int countHorizontal, float width, float height) {
         for (int i = 0; i < maxLines; i++) {
             float x = firstX + (Settings.GRID_WIDTH * i);
             float y = firstY + (Settings.GRID_HEIGHT * i);
 
-            if (i < countVertical && Math.abs(x) > epsilon) {
+            if (canDrawVerticalLine(i, countVertical, x)) {
                 DebugDraw.addLine2(new Vector2f(x, firstY), new Vector2f(x, firstY + height), normalGridColor);
             }
 
-            if (i < countHorizontal && Math.abs(y) > epsilon) {
+            if (canDrawHorizontalLine(i, countHorizontal, y)) {
                 DebugDraw.addLine2(new Vector2f(firstX, y), new Vector2f(firstX + width, y), normalGridColor);
             }
         }
+    }
+
+    private boolean canDrawVerticalLine(int index, int verticalLineCount, float x) {
+        if (index >= verticalLineCount) return false;
+
+        return Math.abs(x) > epsilon;
+    }
+
+    private boolean canDrawHorizontalLine(int index, int horizontalLineCount, float y) {
+        if (index >= horizontalLineCount) return false;
+
+        return Math.abs(y) > epsilon;
     }
 }
