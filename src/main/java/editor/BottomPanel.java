@@ -49,6 +49,7 @@ public class BottomPanel {
             }
             case TileMap tileSet -> {
                 System.out.println("TileSet editor not yet implemented");
+                TileMapEditor.edit(tileSet);
                 selectedTab = TabName.TileSet;
             }
             case AnimationPlayer animationPlayer -> {

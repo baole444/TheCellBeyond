@@ -2,10 +2,7 @@ package editor.dialog;
 
 import TheCellBeyond.GameObject;
 import TheCellBeyond.Window;
-import components.AnimatedSpriteRenderer;
-import components.Component;
-import components.SpriteRenderer;
-import components.TextRenderer;
+import components.*;
 import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.ImGuiCond;
@@ -31,7 +28,8 @@ public class AddComponentDialog {
     private enum ComponentType {
         Sprite("Sprite", "Allow addition of a sprite for rendering to an object."),
         AnimatedSprite("AnimatedSprite", "Allow addition of sprite-based animations for rendering to an object."),
-        Text("Text", "Allow addition of texts for rendering to an object");
+        Text("Text", "Allow addition of texts for rendering to an object"),
+        TileMap("TileMap", "Allow addition of a grid map that facilitate a tile set for rendering to an object.");
 
         private final String displayLabel;
         private final String description;
@@ -134,6 +132,7 @@ public class AddComponentDialog {
             case Sprite -> c = new SpriteRenderer();
             case AnimatedSprite -> c = new AnimatedSpriteRenderer();
             case Text -> c = new TextRenderer();
+            case TileMap -> c = new TileMap();
             default -> c = null;
         }
 

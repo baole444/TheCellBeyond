@@ -5,6 +5,7 @@ import TheCellBeyond.internal.RenderingSnapshot;
 import components.Component;
 import components.SpriteRenderer;
 import components.TextRenderer;
+import components.TileMap;
 import org.joml.Matrix4f;
 import render.text.TextBatch;
 import render.texture.TextureManager;
@@ -17,11 +18,11 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class Renderer {
     private static volatile Renderer instance;
     public static final int MAX_BATCH_SIZE = 512;
-    private final List<Batch> textureBatches;
+    private final List<TextureBatch> textureBatches;
     private final List<TextBatch> textBatches;
+    private final List<TileBatch> tileBatches;
 
     private final ConcurrentLinkedQueue<RenderingSnapshot> snapshots;
-
     private final List<GameObject> switchZIndexQueue;
 
     private Matrix4f projectionMatrix = null;
@@ -35,29 +36,32 @@ public class Renderer {
     }
 
     private void updateBatchesMatrices() {
-        for (Batch batch : textureBatches) {
-            batch.setProjectionMatrix(projectionMatrix);
-            batch.setViewMatrix(viewMatrix);
+        for (TextureBatch textureBatch : textureBatches) {
+            textureBatch.setProjectionMatrix(projectionMatrix);
+            textureBatch.setViewMatrix(viewMatrix);
         }
 
         for (TextBatch textBatch : textBatches) {
             textBatch.setProjectionMatrix(projectionMatrix);
             textBatch.setViewMatrix(viewMatrix);
         }
+
+        for (TileBatch tileBatch : tileBatches) {
+            tileBatch.setProjectionMatrix(projectionMatrix);
+            tileBatch.setViewMatrix(viewMatrix);
+        }
     }
 
     private Renderer() {
         textureBatches = new ArrayList<>();
         textBatches = new ArrayList<>();
-
+        tileBatches = new ArrayList<>();
         snapshots = new ConcurrentLinkedQueue<>();
-
         switchZIndexQueue = new ArrayList<>();
     }
 
     public static synchronized Renderer get() {
         if (instance == null) instance = new Renderer();
-
         return instance;
     }
 
@@ -76,8 +80,12 @@ public class Renderer {
             state.enableSpriteRendering();
         }
 
-        for (Batch batch : textureBatches) {
-            batch.render();
+        for (TileBatch tileBatch : tileBatches) {
+            tileBatch.render();
+        }
+
+        for (TextureBatch textureBatch : textureBatches) {
+            textureBatch.render();
         }
 
         if (RendererState.isNormalPass()) {
@@ -100,6 +108,11 @@ public class Renderer {
     }
 
     private void addGameObject(GameObject go) {
+        List<TileMap> tms = go.getComponents(TileMap.class);
+        for (TileMap tileMap : tms) {
+            addTileMap(tileMap);
+        }
+
         List<SpriteRenderer> sps = go.getComponents(SpriteRenderer.class);
         for (SpriteRenderer sprite : sps) {
             addSprite(sprite);
@@ -111,32 +124,56 @@ public class Renderer {
         }
     }
 
+    private void addTileMap(TileMap map) {
+        if (map == null) return;
+
+        boolean isAdded = false;
+        for (TileBatch tileBatch : tileBatches) {
+            if (tileBatch.hasMap(map)) return;
+            if (!tileBatch.hasSpace() || tileBatch.zIndex() != map.getzIndex()) continue;
+
+            tileBatch.loadTileMap(map);
+            isAdded = true;
+            break;
+        }
+
+        if (!isAdded) {
+            TileBatch newTileBatch = new TileBatch(map, map.getzIndex(), this);
+            newTileBatch.start();
+
+            if (projectionMatrix != null) newTileBatch.setProjectionMatrix(projectionMatrix);
+            if (viewMatrix != null) newTileBatch.setViewMatrix(viewMatrix);
+
+            tileBatches.add(newTileBatch);
+            Collections.sort(tileBatches);
+        }
+    }
+
     private void addSprite(SpriteRenderer sprite) {
         if (sprite == null) return;
 
         boolean isAdded = false;
-        for (Batch batch: textureBatches) {
-            if (batch.hasSprite(sprite)) return;
+        for (TextureBatch textureBatch : textureBatches) {
+            if (textureBatch.hasSprite(sprite)) return;
+            if (!textureBatch.hasSpace() || textureBatch.zIndex() != sprite.getzIndex()) continue;
 
-            if (batch.hasSpace() && batch.zIndex() == sprite.getzIndex()) {
-                Texture t = sprite.getTexture();
-                if (t == null || (batch.hasTexture(t) || batch.isTextureCapacityValid())) {
-                    batch.loadSprite(sprite);
-                    isAdded = true;
-                    break;
-                }
+            Texture t = sprite.getTexture();
+            if (t == null || textureBatch.hasTexture(t) || textureBatch.isTextureCapacityValid()) {
+                textureBatch.loadSprite(sprite);
+                isAdded = true;
+                break;
             }
         }
 
         if (!isAdded) {
-            Batch newBatch = new Batch(MAX_BATCH_SIZE, sprite.getzIndex(), this);
-            newBatch.start();
+            TextureBatch newTextureBatch = new TextureBatch(MAX_BATCH_SIZE, sprite.getzIndex(), this);
+            newTextureBatch.start();
 
-            if (projectionMatrix != null) newBatch.setProjectionMatrix(projectionMatrix);
-            if (viewMatrix != null) newBatch.setViewMatrix(viewMatrix);
+            if (projectionMatrix != null) newTextureBatch.setProjectionMatrix(projectionMatrix);
+            if (viewMatrix != null) newTextureBatch.setViewMatrix(viewMatrix);
 
-            textureBatches.add(newBatch);
-            newBatch.loadSprite(sprite);
+            textureBatches.add(newTextureBatch);
+            newTextureBatch.loadSprite(sprite);
             Collections.sort(textureBatches);
         }
     }
@@ -148,7 +185,7 @@ public class Renderer {
         int zIndex = text.getzIndex();
 
         for (TextBatch batch : textBatches) {
-            if (batch.hasRoom() && batch.getzIndex() == zIndex) {
+            if (batch.hasSpace() && batch.getzIndex() == zIndex) {
                 batch.add(text);
                 isAdded = true;
                 break;
@@ -170,20 +207,20 @@ public class Renderer {
 
     private void destroyObject(GameObject go) {
         if (go.getFirstComponent(SpriteRenderer.class) != null) {
-            for (Batch batch : textureBatches) {
-                if (batch.removeIfExist(go)) {
-                    return;
-                }
+            for (TextureBatch textureBatch : textureBatches) {
+                if (textureBatch.removeIfExist(go)) break;
             }
         }
 
-        List<TextRenderer> textRenderers = go.getComponents(TextRenderer.class);
-        if (!textRenderers.isEmpty()) {
-            for (TextRenderer t : textRenderers) {
-                if (t == null) continue;
-                for (TextBatch textBatch : textBatches) {
-                    if (textBatch.removeComponent(t)) return;
-                }
+        if (go.getFirstComponent(TextRenderer.class) != null) {
+            for (TextBatch textBatch : textBatches) {
+                if (textBatch.removeIfExist(go)) break;
+            }
+        }
+
+        if (go.getFirstComponent(TileMap.class) != null) {
+            for (TileBatch tileBatch : tileBatches) {
+                if (tileBatch.removeIfExist(go)) break;
             }
         }
     }
@@ -191,9 +228,15 @@ public class Renderer {
     private void removeComponent(Component component) {
         if (component == null) return;
 
+        if (component instanceof TileMap tileMap) {
+            for (TileBatch tileBatch : tileBatches) {
+                if (tileBatch.removeIfExist(tileMap)) return;
+            }
+        }
+
         if (component instanceof SpriteRenderer spriteRenderer) {
-            for (Batch batch : textureBatches) {
-                if (batch.removeIfExist(spriteRenderer)) return;
+            for (TextureBatch textureBatch : textureBatches) {
+                if (textureBatch.removeIfExist(spriteRenderer)) return;
             }
         }
 
@@ -217,9 +260,7 @@ public class Renderer {
         if (snapshot == null) return;
 
         for (Component component : snapshot.removeComponents()) removeComponent(component);
-
         for (GameObject go : snapshot.removeObjects()) destroyObject(go);
-
         for (GameObject go : snapshot.updateObjects()) if (!go.isRemoved()) addGameObject(go);
     }
 }

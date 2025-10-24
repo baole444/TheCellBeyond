@@ -333,6 +333,8 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
             for (String name : animationList) {
                 if (ImGui.selectable(name, Objects.equals(name, selectedAni))) setCurrentAnimation(name);
             }
+            if (!animationList.isEmpty()) ImGui.separator();
+            if (ImGui.selectable("New animation...", false)) newAnimation();
 
             ImGui.endCombo();
         }

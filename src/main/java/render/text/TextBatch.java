@@ -1,5 +1,6 @@
 package render.text;
 
+import TheCellBeyond.GameObject;
 import components.TextRenderer;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
@@ -33,9 +34,7 @@ public class TextBatch implements Comparable<TextBatch> {
     private final Map<TCBFont, List<TextRenderer>> fontGroups = new HashMap<>();
 
     private int vaoID, vboID;
-
-    private boolean hasRoom;
-
+    private boolean hasSpace;
     private static Shader shader;
 
     private Matrix4f projectionMatrix = null;
@@ -53,7 +52,7 @@ public class TextBatch implements Comparable<TextBatch> {
         this.maxBatchSize = maxBatchSize;
         this.zIndex = zIndex;
         this.textRenderers = new ArrayList<>();
-        this.hasRoom = true;
+        this.hasSpace = true;
 
         if (shader == null) {
             shader = AssetsPool.loadShader(Settings.PATH.DEFAULT_FONT_SHADER);
@@ -87,7 +86,7 @@ public class TextBatch implements Comparable<TextBatch> {
 
     public void add(TextRenderer textRenderer) {
         if (textRenderers.size() >= maxBatchSize) {
-            hasRoom = false;
+            hasSpace = false;
             return;
         }
 
@@ -131,8 +130,8 @@ public class TextBatch implements Comparable<TextBatch> {
             vMatrix = viewMatrix;
         } else vMatrix = new Matrix4f().identity();
 
-        shader.loadMat4f("uProject", projMatrix);
-        shader.loadMat4f("uView", vMatrix);
+        instShader.loadMat4f("uProject", projMatrix);
+        instShader.loadMat4f("uView", vMatrix);
 
         glBindVertexArray(vaoID);
         glBindBuffer(GL_ARRAY_BUFFER, vboID);
@@ -298,7 +297,23 @@ public class TextBatch implements Comparable<TextBatch> {
         }
     }
 
+    public boolean removeIfExist(GameObject go) {
+        if (go == null) return false;
+
+        List<TextRenderer> trs = go.getComponents(TextRenderer.class);
+        if (trs.isEmpty()) return false;
+
+        int removed = 0;
+        for (TextRenderer textRenderer : trs) {
+            if (removeComponent(textRenderer)) removed++;
+        }
+
+        return removed > 0;
+    }
+
     public boolean removeComponent(TextRenderer textRenderer) {
+        if (textRenderer == null) return false;
+
         boolean removed = textRenderers.remove(textRenderer);
         if (removed) {
             for (List<TextRenderer> components : fontGroups.values()) {
@@ -308,15 +323,15 @@ public class TextBatch implements Comparable<TextBatch> {
             fontGroups.entrySet().removeIf(entry -> entry.getValue().isEmpty());
 
             if (textRenderers.size() < maxBatchSize) {
-                hasRoom = true;
+                hasSpace = true;
             }
         }
 
         return removed;
     }
 
-    public boolean hasRoom() {
-        return hasRoom;
+    public boolean hasSpace() {
+        return hasSpace;
     }
 
     public int getzIndex() {

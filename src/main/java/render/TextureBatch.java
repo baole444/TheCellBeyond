@@ -17,7 +17,7 @@ import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL30.glBindVertexArray;
 import static org.lwjgl.opengl.GL30.glGenVertexArrays;
 
-public class Batch implements Comparable<Batch> {
+public class TextureBatch implements Comparable<TextureBatch> {
     // Define how much texture each batch can have.
     // By default, is 8, will change on the limitation of the hardware.
     private int MAX_TEX_BATCH = 8;
@@ -25,7 +25,7 @@ public class Batch implements Comparable<Batch> {
     // Vertices
     // |Position| |   Color  | |Coordinate| |TexID|
     // |  f, f  | |f, f, f, f| |   f, f   | |  f  |
-    private final int VERTEX_SIZE = 10;
+    private final int vertexSize = 10;
 
     private final SpriteRenderer[] sprites;
     private int countSprite;
@@ -50,7 +50,7 @@ public class Batch implements Comparable<Batch> {
         this.viewMatrix = viewMatrix;
     }
 
-    public Batch(int maxBatchSize, int zIndex, Renderer renderer) {
+    public TextureBatch(int maxBatchSize, int zIndex, Renderer renderer) {
         int _trueLimit = GL11.glGetInteger(GL_MAX_TEXTURE_IMAGE_UNITS);
         if (MAX_TEX_BATCH > _trueLimit) {
             System.out.println("Encounter texture limit! " + "(Asking " + MAX_TEX_BATCH + "/" + _trueLimit + ")\nSetting new limit...");
@@ -64,7 +64,7 @@ public class Batch implements Comparable<Batch> {
         this.maxBatchSize = maxBatchSize;
 
         // 4 vertices quads
-        vertices = new float[maxBatchSize * 4 * VERTEX_SIZE];
+        vertices = new float[maxBatchSize * 4 * vertexSize];
 
         this.countSprite = 0;
         this.hasSpace = true;
@@ -87,7 +87,7 @@ public class Batch implements Comparable<Batch> {
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW);
 
         // Enable buffer attrib pointer
-        int vertexBytes = VERTEX_SIZE * Float.BYTES;
+        int vertexBytes = vertexSize * Float.BYTES;
         int positionOffset = 0;
         int positionSize = 2;
         glVertexAttribPointer(0, positionSize, GL_FLOAT, false, vertexBytes, positionOffset);
@@ -115,10 +115,9 @@ public class Batch implements Comparable<Batch> {
     }
 
     public void loadSprite(SpriteRenderer spriteRenderer) {
-        // Indexing render object
-        int index = this.countSprite;
-        this.sprites[index] = spriteRenderer;
-        this.countSprite++;
+        int index = countSprite;
+        sprites[index] = spriteRenderer;
+        countSprite++;
 
         if (spriteRenderer.getTexture() != null) {
             if (!textures.contains(spriteRenderer.getTexture())) {
@@ -129,15 +128,15 @@ public class Batch implements Comparable<Batch> {
         // Add property to the vertex array
         genVertexProperties(vertices, index);
 
-        if (countSprite >= this.maxBatchSize) {
-            this.hasSpace = false;
+        if (countSprite >= maxBatchSize) {
+            hasSpace = false;
         }
     }
 
     public void render() {
         for (int i = 0; i < countSprite; i++) {
             SpriteRenderer spr = sprites[i];
-            if (spr.getzIndex() != this.zIndex) {
+            if (spr.getzIndex() != zIndex) {
                 removeIfExist(spr.gameObject);
                 renderer.switchZIndex(spr.gameObject);
                 i--;
@@ -148,7 +147,7 @@ public class Batch implements Comparable<Batch> {
         for (int i = 0; i < countSprite; i++) {
             SpriteRenderer spr = sprites[i];
             if (spr.isSpriteDirty()) {
-                if (spr.getTexture() != null && !textures.contains(spr.getTexture()) && hasSpace) textures.add(spr.getTexture());
+                if (spr.getTexture() != null && !textures.contains(spr.getTexture()) && isTextureCapacityValid()) textures.add(spr.getTexture());
                 dirtyIndex.add(i);
                 spr.setSpriteDirty(false);
             }
@@ -168,11 +167,9 @@ public class Batch implements Comparable<Batch> {
             System.arraycopy(newVertices, 0 , vertices, 0, vertices.length);
         }
 
-        // Shader
         Shader shader = RendererState.getCurrentShader();
         shader.use();
 
-        // Set projection and view matrix
         Matrix4f projMatrix;
         Matrix4f vMatrix;
 
@@ -197,7 +194,7 @@ public class Batch implements Comparable<Batch> {
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
 
-        glDrawElements(GL_TRIANGLES, this.countSprite * 6, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, countSprite * 6, GL_UNSIGNED_INT, 0);
 
         glDisableVertexAttribArray(0);
         glDisableVertexAttribArray(1);
@@ -213,7 +210,7 @@ public class Batch implements Comparable<Batch> {
     private void genVertexProperties(float[] target, int index) {
         SpriteRenderer spriteRenderer = sprites[index];
 
-        int offset = index * 4 * VERTEX_SIZE;
+        int offset = index * 4 * vertexSize;
         Vector4f color = spriteRenderer.getColor();
         Vector2f[] textureCoordinates = spriteRenderer.getTextureCoordinates();
 
@@ -298,7 +295,7 @@ public class Batch implements Comparable<Batch> {
             target[offset + 8] = ID;
             target[offset + 9] = uID;
 
-            offset += VERTEX_SIZE;
+            offset += vertexSize;
         }
     }
 
@@ -413,7 +410,7 @@ public class Batch implements Comparable<Batch> {
     }
 
     public boolean hasSprite(SpriteRenderer spriteRenderer) {
-        if (spriteRenderer == null || spriteRenderer.getUUID() == null) return false;
+        if (spriteRenderer == null || spriteRenderer.getUUID() == null || spriteRenderer.gameObject == null) return false;
 
         String uuid = spriteRenderer.getUUID();
         for (int i = 0; i < countSprite; i++) {
@@ -424,6 +421,8 @@ public class Batch implements Comparable<Batch> {
     }
 
     public boolean hasTexture(Texture t) {
+        if (t == null) return false;
+
         return textures.contains(t);
     }
 
@@ -432,7 +431,7 @@ public class Batch implements Comparable<Batch> {
     }
 
     @Override
-    public int compareTo(Batch o) {
+    public int compareTo(TextureBatch o) {
         return Integer.compare(this.zIndex, o.zIndex());
     }
 }

@@ -20,7 +20,7 @@ import java.util.*;
 
 import static org.lwjgl.glfw.GLFW.*;
 
-public class SpriteFrameEditor {
+class SpriteFrameEditor {
     private static final String CONTROL_SECTION = "##Sprite frame controls";
     private static final float PREVIEW_FRAME_SIZE = 96.0f;
     private static final float INPUT_WIDTH = ImGui.calcTextSizeX("999.999");
@@ -35,7 +35,7 @@ public class SpriteFrameEditor {
     private static final float CONTROL_RESERVE = ImGui.getFrameHeightWithSpacing();
     private static final float padding = 4.0f;
 
-    public static void edit(AnimatedSpriteRenderer animatedSprite) {
+    static void edit(AnimatedSpriteRenderer animatedSprite) {
         if (animatedSprite != editingAnimatedSprite) {
             clearDialogData();
             editingAnimatedSprite = animatedSprite;

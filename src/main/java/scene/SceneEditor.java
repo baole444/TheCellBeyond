@@ -3,7 +3,9 @@ package scene;
 import TheCellBeyond.GameObject;
 import TheCellBeyond.Transform;
 import components.*;
+import editor.EditorIcons;
 import editor.EditorSceneCtrl;
+import editor.ImEditorGui;
 import editor.dialog.AddSpriteSheetDialog;
 import editor.dialog.AddTextureUnitDialog;
 import editor.payload.SpriteDragDropPayload;
@@ -162,7 +164,7 @@ public class SceneEditor extends SceneInit implements EngineEventListener {
         for (String name : prefabNames) {
             PrefabData data = manager.getPrefabData(name);
 
-            if (ImGui.button(name, prefabButtonSize.x, prefabButtonSize.y)) {
+            if (ImGui.button(name, prefabButtonSize.x, 0.0f)) {
                 GameObject instance = manager.instantiatePrefab(name);
                 if (instance != null) {
                     levelEditorObject.getFirstComponent(MouseCtrl.class).pickObj(instance);
@@ -178,26 +180,8 @@ public class SceneEditor extends SceneInit implements EngineEventListener {
             }
 
             ImGui.sameLine();
-
-            ImGui.pushID(name);
-            ImGui.pushStyleColor(ImGuiCol.Button, 0.7f, 0.2f, 0.2f, 1.0f);
-            ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.8f, 0.3f, 0.3f, 1.0f);
-            ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0.7f, 0.2f, 0.2f, 1.0f);
-
-            if (ImGui.button("X", Math.round((float) prefabButtonSize.x / 4), prefabButtonSize.y)) {
-                if (manager.deletePrefab(name)) {
-                    System.out.println("Deleted prefab: " + name);
-                }
-            }
-
-            ImGui.popStyleColor(3);
-            ImGui.popID();
-
-            if (ImGui.isItemHovered()) {
-                ImGui.beginTooltip();
-                ImGui.text("Delete this prefab blueprint");
-                ImGui.endTooltip();
-            }
+            boolean delete = ImEditorGui.iconButton("##delete_prefab_" + name, EditorIcons.Icons.Delete, "Delete '" + name + "' prefab blueprint");
+            if (delete) manager.deletePrefab(name);
 
             ImGui.newLine();
         }
