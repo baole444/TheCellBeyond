@@ -378,4 +378,30 @@ public class ImEditorGui {
 
         return clicked;
     }
+
+    public static boolean iconButton(String id, EditorIcons.EditorIconSprite sprite, String toolTip, float width, float height) {
+        if (width <= 0.0f || height <= 0.0f) {
+            width = height = ImGui.getFontSize();
+        }
+
+        Sprite icon = sprite.getIcon();
+        if (icon == null) return ImGui.button(id);
+        int textureID = icon.getTextureID();
+        Vector2f[] textureCoordinates = icon.getTextureCoordinates();
+
+        ImGui.pushStyleColor(ImGuiCol.Button, 1.0f, 1.0f, 1.0f, 0.0f);
+        boolean clicked = ImGui.imageButton(id, textureID, width, height,
+                textureCoordinates[2].x, textureCoordinates[0].y,
+                textureCoordinates[0].x, textureCoordinates[2].y
+        );
+        ImGui.popStyleColor(1);
+
+        if (ImGui.isItemHovered() && toolTip != null) {
+            ImGui.beginTooltip();
+            ImGui.text(toolTip);
+            ImGui.endTooltip();
+        }
+
+        return clicked;
+    }
 }
