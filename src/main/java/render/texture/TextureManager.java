@@ -2,6 +2,7 @@ package render.texture;
 
 import render.text.GlyphRange;
 import utility.AssetReference;
+import utility.log.EngineLog;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.ConcurrentHashMap;
@@ -11,7 +12,7 @@ import java.util.logging.Logger;
 import static org.lwjgl.opengl.GL11.glDeleteTextures;
 
 public class TextureManager {
-    static final Logger LOGGER = Logger.getLogger(TextureManager.class.getName());
+    static final EngineLog LOGGER = new EngineLog(TextureManager.class);
     private static TextureManager instance;
 
     private record AtlasKey(String canonicalPath, GlyphRange glyphRange) {}
@@ -79,7 +80,7 @@ public class TextureManager {
         commandQueue.offer(command);
         activeHandles.put(handle.getHandleId(), handle);
 
-        LOGGER.fine("Created new handle for: " + canonicalPath);
+        LOGGER.debug("Created new handle for " + canonicalPath);
         return handle;
     }
 
@@ -97,7 +98,7 @@ public class TextureManager {
         commandQueue.offer(command);
         activeHandles.put(handle.getHandleId(), handle);
 
-        LOGGER.fine("Created new atlas handle for: " + assetReference.getCanonicalPath() + " using glyph: " + glyphRange.toString());
+        LOGGER.debug("Created new atlas handle for " + assetReference.getCanonicalPath() + " with glyph " + glyphRange.toString());
         return handle;
     }
 
@@ -107,7 +108,7 @@ public class TextureManager {
         TextureHandle currentHandle = textureHandles.get(canonicalPath);
         if (currentHandle == handle) {
             textureHandles.remove(canonicalPath);
-            LOGGER.fine("Removed texture handle cache for: " + canonicalPath);
+            LOGGER.debug("Removed texture handle cache for " + canonicalPath);
         }
 
         DisposeTextureCommand command = new DisposeTextureCommand(handle);
@@ -121,7 +122,7 @@ public class TextureManager {
         TextureHandle currentHandle = fontAtlasHandles.get(key);
         if (currentHandle == handle) {
             fontAtlasHandles.remove(key);
-            LOGGER.fine("Removed atlas handle cache for: ");
+            LOGGER.debug("Removed atlas handle cache for " + canonicalPath + " with glyph" + glyphRange.toString());
         }
 
         DisposeTextureCommand command = new DisposeTextureCommand(handle);
@@ -145,7 +146,7 @@ public class TextureManager {
             try {
                 command.execute();
             } catch (Exception e) {
-                LOGGER.severe("Failed to execute texture command: " + command + e);
+                LOGGER.error("Failed to execute texture command: " + command + e);
                 if (command instanceof CreateTextureCommand textureCmd) {
                     textureCmd.handle.setError("Command execution failed: " + e.getMessage());
                     continue;

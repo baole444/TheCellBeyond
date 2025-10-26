@@ -1,5 +1,5 @@
 package utility.log;
 
 public interface EngineLogListener {
-    void onNewLog();
+    void onNewLog(LogEntry entry);
 }

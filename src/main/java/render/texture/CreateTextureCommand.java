@@ -59,10 +59,10 @@ class CreateTextureCommand extends TextureCommand {
                 handle.setSize(w, h);
                 handle.setStatus(TextureHandle.Status.READY);
 
-                stbi_image_free(image); //Free memory and prevent memory leak
+                stbi_image_free(image);
                 textureManager.stepCreatedTexture();
 
-                TextureManager.LOGGER.fine("Created texture with id'" + textureId + "' for '" + canonicalPath + "' successfully.");
+                TextureManager.LOGGER.debug("Created texture with id " + textureId + " for " + canonicalPath);
             } else {
                 glDeleteTextures(textureId);
                 handle.setError("Failed to load image data");
@@ -74,7 +74,7 @@ class CreateTextureCommand extends TextureCommand {
             handle.setError("OpenGL texture creation failed: " + e.getMessage());
 
             textureManager.removeTextureHandle(canonicalPath);
-            TextureManager.LOGGER.severe("Failed to create texture for " + canonicalPath + e);
+            TextureManager.LOGGER.error("Failed to create texture for " + canonicalPath + "Error: " + e);
         }
     }
 

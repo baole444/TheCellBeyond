@@ -1,8 +1,8 @@
 package utility.log;
 
+import utility.RingBuffer;
+
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 
 public class EngineLog {
@@ -21,13 +21,7 @@ public class EngineLog {
         }
     }
 
-    public record Entry(LocalDateTime timeStamp, Level level, String source, String message) {
-        public String formatedTimeStamp() {
-            return timeStamp.format(DateTimeFormatter.ofPattern("HH:mm:ss.SSS"));
-        }
-    }
-
-    private static final List<Entry> history = new ArrayList<>(1024);
+    private static final RingBuffer<LogEntry> history = new RingBuffer<>(1024);
     public static final String defaultSource = "TCB/Main";
     public final String source;
 
@@ -60,9 +54,10 @@ public class EngineLog {
         if (level == null || message == null || message.isBlank()) return;
         if (source == null || source.isBlank()) source = defaultSource;
 
-        Entry newEntry = new Entry(LocalDateTime.now(), level, source, message);
+        LogEntry newEntry = new LogEntry(LocalDateTime.now(), level, source, message);
 
         history.add(newEntry);
+        EngineLogCallback.emit(newEntry);
     }
 
     public static void debug(String source, String message) {
@@ -81,23 +76,23 @@ public class EngineLog {
         log(Level.Error, source, message);
     }
 
-    public static List<Entry> logs() {
-        return new ArrayList<>(history);
+    public static List<LogEntry> logs() {
+        return history.toList();
     }
 
-    public static List<Entry> debugLogs() {
+    public static List<LogEntry> debugLogs() {
         return logs().stream().filter(e -> e.level() == Level.Debug).toList();
     }
 
-    public static List<Entry> infoLogs() {
+    public static List<LogEntry> infoLogs() {
         return logs().stream().filter(e -> e.level() == Level.Info).toList();
     }
 
-    public static List<Entry> warningLogs() {
+    public static List<LogEntry> warningLogs() {
         return logs().stream().filter(e -> e.level() == Level.Warning).toList();
     }
 
-    public static List<Entry> errorLogs() {
+    public static List<LogEntry> errorLogs() {
         return logs().stream().filter(e -> e.level() == Level.Error).toList();
     }
 

@@ -1,14 +1,141 @@
 package editor;
 
-import TheCellBeyond.ConsoleStream;
 import imgui.ImGui;
+import imgui.ImVec4;
+import imgui.flag.ImGuiCol;
+import imgui.flag.ImGuiTableColumnFlags;
+import imgui.flag.ImGuiTableFlags;
+import imgui.type.ImBoolean;
+import utility.RingBuffer;
+import utility.log.EngineLog;
+import utility.log.EngineLogCallback;
+import utility.log.EngineLogListener;
+import utility.log.LogEntry;
 
-public class ConsoleOutput {
-    static void imgui() {
-        for (String line : ConsoleStream.get().getLines()) {
-            ImGui.textUnformatted(line);
+import java.util.EnumMap;
+import java.util.List;
+
+public class ConsoleOutput implements EngineLogListener {
+    private static ConsoleOutput instance;
+
+    private static final ImVec4 debugColor = new ImVec4(0.25f, 0.25f, 0.25f, 1.0f);
+    private static final ImVec4 infoColor = new ImVec4(0.75f, 0.75f, 0.75f, 1.0f);
+    private static final ImVec4 warningColor = new ImVec4(0.75f, 0.75f, 0.25f, 1.0f);
+    private static final ImVec4 errorColor = new ImVec4(0.75f, 0.25f, 0.25f, 1.0f);
+
+    private final ImBoolean enableDebug = new ImBoolean(false);
+    private final ImBoolean enableInfo = new ImBoolean(false);
+    private final ImBoolean enableWarning = new ImBoolean(true);
+    private final ImBoolean enableError = new ImBoolean(true);
+    private final EnumMap<EngineLog.Level, ImBoolean> logFilter;
+    private final RingBuffer<LogEntry> entries;
+
+    static {
+        init();
+    }
+
+    private ConsoleOutput() {
+        entries = new RingBuffer<>(1024);
+        logFilter = new EnumMap<>(EngineLog.Level.class);
+        logFilter.put(EngineLog.Level.Debug, enableDebug);
+        logFilter.put(EngineLog.Level.Info, enableInfo);
+        logFilter.put(EngineLog.Level.Warning, enableWarning);
+        logFilter.put(EngineLog.Level.Error, enableError);
+
+        List<LogEntry> backlogs = EngineLog.logs();
+        for (LogEntry entry : backlogs) {
+            entries.add(entry);
         }
 
-        if (ImGui.getScrollY() >= ImGui.getScrollMaxX()) ImGui.setScrollHereY(1.0f);
+        EngineLogCallback.register(this);
+    }
+
+    private static void init() {
+        if (instance != null) {
+            EngineLogCallback.unregister(instance);
+        }
+
+        instance = new ConsoleOutput();
+    }
+
+    static void imgui() {
+        if (instance == null) return;
+        instance.render();
+    }
+
+    private void render() {
+        if (!ImGui.beginTable("##Engine_log_panel", 2, ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.SizingFixedFit, ImGui.getContentRegionAvail())) {
+            ImGui.textDisabled("Failed to load console log table");
+            return;
+        }
+
+        ImGui.tableSetupColumn("##Log_History_Column", ImGuiTableColumnFlags.WidthStretch);
+        ImGui.tableSetupColumn("##Log_Filter_Buttons_Column", ImGuiTableColumnFlags.WidthFixed);
+        ImGui.tableNextColumn();
+        drawLogsRegion();
+
+        ImGui.tableNextColumn();
+        drawLogFilter();
+
+        ImGui.endTable();
+    }
+
+    private void drawLogsRegion() {
+        if (!ImGui.beginChild("##Scrolling_logs")) {
+            ImGui.textDisabled("Cannot initialize region to display logs.");
+            return;
+        }
+
+        List<LogEntry> logs = entries.toList();
+        for (LogEntry entry : logs) {
+            printLog(entry);
+        }
+
+        if (ImGui.getScrollY() >= ImGui.getScrollMaxY() - 1.0f) ImGui.setScrollHereY(1.0f);
+
+        ImGui.endChild();
+    }
+
+    private void drawLogFilter() {
+        ImGui.selectable("Debug##enable_debug_log_history_selectable", enableDebug);
+        ImGui.selectable("Info##enable_info_log_history_selectable", enableInfo);
+        ImGui.selectable("Warning##enable_warning_log_history_selectable", enableWarning);
+        ImGui.selectable("Error##enable_error_log_history_selectable", enableError);
+    }
+
+    private static String formatEntry(LogEntry entry) {
+        if (entry == null) return "NULL LOG ENTRY";
+
+        return "[" + entry.formatedTimeStamp() + "]["
+                + entry.source() + "]["
+                + entry.level().prefix + "]: "
+                + entry.message();
+    }
+
+    private static void printLog(LogEntry entry) {
+        if (instance == null || !instance.isLogLevelEnable(entry)) return;
+        String log = formatEntry(entry);
+        ImVec4 color = switch (entry.level()) {
+            case Debug -> debugColor;
+            case Info -> infoColor;
+            case Warning -> warningColor;
+            case Error -> errorColor;
+        };
+
+        ImGui.pushStyleColor(ImGuiCol.Text, color);
+        ImGui.textWrapped(log);
+        ImGui.popStyleColor(1);
+    }
+
+    private boolean isLogLevelEnable(LogEntry entry) {
+        if (entry == null) return false;
+        EngineLog.Level level = entry.level();
+        return logFilter.get(level).get();
+    }
+
+    @Override
+    public final void onNewLog(LogEntry entry) {
+        if (entry == null) return;
+        entries.add(entry);
     }
 }

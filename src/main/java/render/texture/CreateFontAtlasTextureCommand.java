@@ -47,11 +47,11 @@ class CreateFontAtlasTextureCommand extends TextureCommand {
             handle.setStatus(TextureHandle.Status.READY);
 
             textureManager.stepCreatedTexture();
-            TextureManager.LOGGER.fine("Created texture with id'" + textureId);
+            TextureManager.LOGGER.debug("Created texture with id " + textureId);
         } catch (Exception e) {
             handle.setError("OpenGL texture creation failed: " + e.getMessage());
 
-            TextureManager.LOGGER.severe("Failed to create texture for " + canonicalPath + e);
+            TextureManager.LOGGER.error("Failed to create texture for " + canonicalPath + e);
         }
     }
 

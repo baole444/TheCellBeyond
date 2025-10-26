@@ -31,6 +31,7 @@ import scene.SceneInit;
 import utility.AssetsPool;
 import editor.dialog.ExitConfirmDialog;
 import utility.Settings;
+import utility.log.EngineLog;
 
 import java.awt.*;
 import java.util.List;
@@ -42,6 +43,7 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 public final class Window implements EngineEventListener {
+    private static final EngineLog LOGGER = new EngineLog(Window.class);
     private int width;
     private int height;
     private final String title;
@@ -100,7 +102,7 @@ public final class Window implements EngineEventListener {
     }
 
     public void run() {
-        System.out.println("Starting LWJGL " + Version.getVersion());
+        LOGGER.info("Starting LWJGL " + Version.getVersion());
 
         initWindow();
 
@@ -125,7 +127,7 @@ public final class Window implements EngineEventListener {
         String renderer = glGetString(GL_RENDERER);
         String version = glGetString(GL_VERSION);
 
-        System.out.println("Active GPU: " + renderer + " Driver version: " + version);
+        LOGGER.info("Active GPU: " + renderer + " Driver version: " + version);
 
         endScr();
         glfwSetErrorCallback(null).free();
@@ -137,7 +139,7 @@ public final class Window implements EngineEventListener {
 
         //start GLFW
         if (!glfwInit()) {
-            System.out.println("Unable to start GLFW.");
+            LOGGER.error("Unable to start GLFW.");
             System.exit(-1);
         }
 
@@ -159,9 +161,9 @@ public final class Window implements EngineEventListener {
 
         // Spawn window
         windowPtr = glfwCreateWindow(width, height, title, NULL, NULL);
-        System.out.println("Creating new window, dimension: " + width + " x " + height);
+        LOGGER.info("Creating new window, dimension: " + width + " x " + height);
         if (windowPtr == NULL) {
-            System.out.println("Failed to spawn window.");
+            LOGGER.error("Failed to spawn window.");
             System.exit(-1);
         }
         glfwSetWindowSizeCallback(windowPtr, (window, w, h) -> {
@@ -220,7 +222,7 @@ public final class Window implements EngineEventListener {
         ALCapabilities alCapabilities = AL.createCapabilities(alcCapabilities);
 
         if (!alCapabilities.OpenAL10) {
-            System.out.println("OpenAL10 not supported on this device");
+            LOGGER.warning("OpenAL10 not supported on this device");
             System.exit(-2);
         }
 
@@ -346,26 +348,26 @@ public final class Window implements EngineEventListener {
                 runtimeMode = true;
                 currentScene.saveLevel();
                 Window.changeScene(new SceneEditor());
-                System.out.println("Testing scene started");
+                LOGGER.debug("Test play started.");
             }
             case ENGINE_END -> {
                 runtimeMode = false;
                 Window.changeScene(new SceneEditor());
-                System.out.println("Stopped testing scene");
+                LOGGER.debug("Test play stopped.");
             }
             case LEVEL_LOAD -> {
                 runtimeMode = false;
 
                 Window.changeScene(new SceneEditor());
-                System.out.println("Loading current level...");
+                LOGGER.debug("Loading current level...");
             }
             case LEVEL_SAVE -> {
                 currentScene.saveLevel();
-                System.out.println("Saving current level...");
+                LOGGER.debug("Saving current level...");
             }
             case PROJECT_LOAD -> {
                 String projectPath = object.toString();
-                System.out.println("Loading project file at " + projectPath);
+                LOGGER.info("Loading project file at " + projectPath);
                 Project.loadFromYaml(projectPath);
                 projectLoaded = (Project.currentProject() != null && Project.projectRoot() != null);
 
@@ -402,7 +404,7 @@ public final class Window implements EngineEventListener {
                 }
 
                 Window.changeScene(new SceneEditor());
-                System.out.println("Requested to load Scene: " + sceneName);
+                LOGGER.debug("Requested to load Scene: " + sceneName);
             }
         }
     }
