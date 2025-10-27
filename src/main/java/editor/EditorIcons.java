@@ -8,7 +8,7 @@ public class EditorIcons {
     private static final String PATH = "engine://assets/textures/EditorControls.png";
     private static final int width = 28;
     private static final int height = 28;
-    private static final int iconCount = 12;
+    private static final int iconCount = 16;
     private static SpriteSheet icons;
     private static boolean isInitialized = false;
 
@@ -47,6 +47,24 @@ public class EditorIcons {
         final int index;
 
         SpriteFrameIcons(int index) {
+            this.index = index;
+        }
+
+        @Override
+        public Sprite getIcon() {
+            return icons == null ? null : icons.spriteIndex(index);
+        }
+    }
+
+    public enum LogLevelIcons implements EditorIconSprite {
+        Debug(12),
+        Info(13),
+        Warning(14),
+        Error(15);
+
+        final int index;
+
+        LogLevelIcons(int index) {
             this.index = index;
         }
 

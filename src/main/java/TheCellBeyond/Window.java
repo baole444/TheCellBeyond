@@ -348,12 +348,12 @@ public final class Window implements EngineEventListener {
                 runtimeMode = true;
                 currentScene.saveLevel();
                 Window.changeScene(new SceneEditor());
-                LOGGER.debug("Test play started.");
+                LOGGER.info("Test play started.");
             }
             case ENGINE_END -> {
                 runtimeMode = false;
                 Window.changeScene(new SceneEditor());
-                LOGGER.debug("Test play stopped.");
+                LOGGER.info("Test play stopped.");
             }
             case LEVEL_LOAD -> {
                 runtimeMode = false;

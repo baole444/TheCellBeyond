@@ -48,12 +48,10 @@ public class BottomPanel {
                 selectedTab = TabName.SpriteFrame;
             }
             case TileMap tileSet -> {
-                System.out.println("TileSet editor not yet implemented");
-                TileMapEditor.edit(tileSet);
+                TileSetEditor.edit(tileSet);
                 selectedTab = TabName.TileSet;
             }
             case AnimationPlayer animationPlayer -> {
-                System.out.println("AnimationPlayer editor not yet implemented");
                 selectedTab = TabName.AnimationPlayer;
             }
 

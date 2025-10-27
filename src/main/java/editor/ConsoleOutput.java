@@ -18,10 +18,15 @@ import java.util.List;
 public class ConsoleOutput implements EngineLogListener {
     private static ConsoleOutput instance;
 
-    private static final ImVec4 debugColor = new ImVec4(0.25f, 0.25f, 0.25f, 1.0f);
-    private static final ImVec4 infoColor = new ImVec4(0.75f, 0.75f, 0.75f, 1.0f);
+    private static final ImVec4 debugColor = new ImVec4(0.3f, 0.3f, 0.3f, 1.0f);
+    private static final ImVec4 infoColor = new ImVec4(0.8f, 0.8f, 0.8f, 1.0f);
     private static final ImVec4 warningColor = new ImVec4(0.75f, 0.75f, 0.25f, 1.0f);
     private static final ImVec4 errorColor = new ImVec4(0.75f, 0.25f, 0.25f, 1.0f);
+    private static final float iconSize = 28.0f;
+    private static final String debugId = "Debug##enable_debug_log_history";
+    private static final String infoId = "Info##enable_info_log_history";
+    private static final String warningId = "Warning##enable_warning_log_history";
+    private static final String errorId = "Error##enable_error_log_history";
 
     private final ImBoolean enableDebug = new ImBoolean(false);
     private final ImBoolean enableInfo = new ImBoolean(false);
@@ -97,10 +102,15 @@ public class ConsoleOutput implements EngineLogListener {
     }
 
     private void drawLogFilter() {
-        ImGui.selectable("Debug##enable_debug_log_history_selectable", enableDebug);
-        ImGui.selectable("Info##enable_info_log_history_selectable", enableInfo);
-        ImGui.selectable("Warning##enable_warning_log_history_selectable", enableWarning);
-        ImGui.selectable("Error##enable_error_log_history_selectable", enableError);
+        ImEditorGui.selectableIcon(debugId, EditorIcons.LogLevelIcons.Debug, "Show/hide debug log level", enableDebug, iconSize, iconSize);
+        ImEditorGui.selectableIcon(infoId, EditorIcons.LogLevelIcons.Info, "Show/hide info log level", enableInfo, iconSize, iconSize);
+        ImEditorGui.selectableIcon(warningId, EditorIcons.LogLevelIcons.Warning, "Show/hide warning log level", enableWarning, iconSize, iconSize);
+        ImEditorGui.selectableIcon(errorId, EditorIcons.LogLevelIcons.Error, "Show/hide error log level", enableError, iconSize, iconSize);
+        ImGui.separator();
+        if (ImEditorGui.iconButton("Clear##Clear_log_history", EditorIcons.Icons.Delete, "Click to clear log history", iconSize, iconSize)) {
+            EngineLog.clear();
+            entries.clear();
+        }
     }
 
     private static String formatEntry(LogEntry entry) {

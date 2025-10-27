@@ -1,7 +1,9 @@
 package editor;
 
 import TheCellBeyond.KeyListener;
+import imgui.ImVec2;
 import imgui.flag.*;
+import imgui.type.ImBoolean;
 import render.texture.Sprite;
 import utility.*;
 
@@ -403,5 +405,64 @@ public class ImEditorGui {
         }
 
         return clicked;
+    }
+
+    public static boolean selectableIcon(String id, EditorIcons.EditorIconSprite sprite, String toolTip, boolean selected, float width, float height) {
+        if (width <= 0.0f || height <= 0.0f) {
+            width = height = ImGui.getFontSize();
+        }
+
+        Sprite icon = sprite.getIcon();
+        if (icon == null) {
+            return ImGui.selectable(id, selected, width, height);
+        }
+
+        ImVec2 cursorPos = ImGui.getCursorPos();
+        boolean interact = ImGui.selectable("##" + id + "_Selectable_Icon", selected, width, height);
+        if (ImGui.isItemHovered() && toolTip != null) {
+            ImGui.beginTooltip();
+            ImGui.text(toolTip);
+            ImGui.endTooltip();
+        }
+        ImGui.setCursorPos(cursorPos);
+
+        int textureID = icon.getTextureID();
+        Vector2f[] textureCoordinates = icon.getTextureCoordinates();
+        ImGui.image(textureID, width, height,
+                textureCoordinates[2].x, textureCoordinates[0].y,
+                textureCoordinates[0].x, textureCoordinates[2].y
+        );
+
+        return interact;
+    }
+
+    public static void selectableIcon(String id, EditorIcons.EditorIconSprite sprite, String toolTip, ImBoolean selected, float width, float height) {
+        if (width <= 0.0f || height <= 0.0f) {
+            width = height = ImGui.getFontSize();
+        }
+
+        Sprite icon = sprite.getIcon();
+        if (icon == null) {
+            ImGui.selectable(id, selected, width, height);
+            return;
+        }
+
+        ImVec2 framePadding = ImGui.getStyle().getFramePadding();
+        ImVec2 cursorPos = ImGui.getCursorPos();
+        ImGui.setCursorPos(cursorPos.x + framePadding.x, cursorPos.y + framePadding.y);
+        ImGui.selectable("##" + id + "_Selectable_Icon", selected, width + framePadding.x, height + framePadding.y);
+        if (ImGui.isItemHovered() && toolTip != null) {
+            ImGui.beginTooltip();
+            ImGui.text(toolTip);
+            ImGui.endTooltip();
+        }
+        ImGui.setCursorPos(cursorPos.x + framePadding.x, cursorPos.y + framePadding.y * 1.5f);
+        int textureID = icon.getTextureID();
+        Vector2f[] textureCoordinates = icon.getTextureCoordinates();
+        ImGui.image(textureID, width, height,
+                textureCoordinates[2].x, textureCoordinates[0].y,
+                textureCoordinates[0].x, textureCoordinates[2].y
+        );
+        ImGui.setCursorPosY(ImGui.getCursorPosY() + ImGui.getStyle().getItemSpacingY());
     }
 }

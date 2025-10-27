@@ -39,7 +39,11 @@ public class SceneEditorViewport {
         );
 
         ImGui.beginMenuBar();
-        ImGui.beginTable("##ESV_MenuBar_Table_Div", 3, ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.SizingFixedFit);
+        if (!ImGui.beginTable("##ESV_MenuBar_Table_Div", 3, ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.SizingFixedFit)) {
+            ImGui.endMenuBar();
+            ImGui.end();
+            return;
+        }
         ImGui.tableSetupColumn("##Runtime_switch_column_ESV", ImGuiTableColumnFlags.WidthFixed);
         ImGui.tableSetupColumn("Scene_name_column_ESV", ImGuiTableColumnFlags.WidthStretch);
         ImGui.tableSetupColumn("Scene_Editing_Controls_ESV", ImGuiTableColumnFlags.WidthFixed);
