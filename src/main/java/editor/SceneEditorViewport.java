@@ -36,7 +36,10 @@ public class SceneEditorViewport {
                 | ImGuiWindowFlags.NoScrollWithMouse
                 | ImGuiWindowFlags.MenuBar
                 | ImGuiWindowFlags.NoCollapse
-        )) return;
+        )) {
+            ImGui.end();
+            return;
+        }
 
         if (!ImGui.beginMenuBar()) {
             ImGui.end();

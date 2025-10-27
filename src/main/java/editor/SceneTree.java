@@ -22,7 +22,10 @@ public class SceneTree {
     private static GameObject selectedObject = null;
 
     public static void imgui() {
-        if (!ImGui.begin(WINDOW_ID, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoCollapse)) return;
+        if (!ImGui.begin(WINDOW_ID, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoCollapse)) {
+            ImGui.end();
+            return;
+        }
 
         Scene scene = Window.getScene();
 

@@ -23,7 +23,10 @@ public class Properties {
     private static final List<List<Vector4f>> activeObjTrueColor = new ArrayList<>();
 
     public static void imgui() {
-        if (!ImGui.begin(WINDOW_ID, ImGuiWindowFlags.NoCollapse)) return;
+        if (!ImGui.begin(WINDOW_ID, ImGuiWindowFlags.NoCollapse)) {
+            ImGui.end();
+            return;
+        }
 
         activeGameObject = getActiveGameObject();
 

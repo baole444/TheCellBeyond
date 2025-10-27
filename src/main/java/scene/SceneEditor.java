@@ -84,7 +84,10 @@ public class SceneEditor extends SceneInit implements EngineEventListener {
 
     @Override
     public void imgui() {
-        if (!ImGui.begin(WINDOW_ID, ImGuiWindowFlags.NoCollapse)) return;
+        if (!ImGui.begin(WINDOW_ID, ImGuiWindowFlags.NoCollapse)) {
+            ImGui.end();
+            return;
+        }
         ImGui.text("Resources");
         ImGui.separator();
         if (ImGui.beginTabBar("Resource_TabBar")) {

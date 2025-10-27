@@ -64,10 +64,9 @@ public class StartUpWindow{
                 renderProjectList();
 
                 loaded = (Project.currentProject() != null && Project.projectRoot() != null);
-
-                ImGui.end();
             }
 
+            ImGui.end();
             ImGui.render();
             imGuiLayer.getImGuiGl3().renderDrawData(ImGui.getDrawData());
 
@@ -89,7 +88,6 @@ public class StartUpWindow{
     private static void renderProjectList() {
         float sectionY = ImGui.getContentRegionAvailY() * 0.9f;
         if (!ImGui.beginChild("Project_Section" ,0.0f, sectionY, false)) {
-            ImGui.endChild();
             return;
         }
 
