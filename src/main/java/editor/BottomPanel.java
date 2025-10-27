@@ -65,17 +65,19 @@ public class BottomPanel {
                 new ImVec2(Float.MAX_VALUE, Float.MAX_VALUE)
         );
 
-        ImGui.begin(WINDOW_ID);
+        if (!ImGui.begin(WINDOW_ID)) return;
         float contentReserve = ImGui.getContentRegionAvailY() - TAB_BUTTON_RESERVE - SEPARATOR_RESERVE;
         if (contentReserve > TAB_BUTTON_RESERVE) {
-            ImGui.beginChild("##Multipurpose_tab_region", 0.0f, contentReserve, false);
+            if (!ImGui.beginChild("##Multipurpose_tab_region", 0.0f, contentReserve, false)) {
+                ImGui.end();
+                return;
+            }
             renderTabContent();
             ImGui.endChild();
             ImGui.separator();
         }
 
         renderTabButtons();
-
 
         ImGui.end();
     }
@@ -90,7 +92,7 @@ public class BottomPanel {
     }
 
     private static void renderTabButtons() {
-        ImGui.beginChild("test bottom", 0.0f, 0.0f, ImGuiChildFlags.None, ImGuiWindowFlags.NoScrollbar);
+        if (!ImGui.beginChild("##Editor_Bottom_Panel_Tabs", 0.0f, 0.0f, ImGuiChildFlags.None, ImGuiWindowFlags.NoScrollbar)) return;
         if (!widthCalculated) {
             tabWidth = getMaxTabNameWidth();
             widthCalculated = true;

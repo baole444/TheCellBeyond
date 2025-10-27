@@ -32,13 +32,17 @@ public class SceneEditorViewport {
 
         if (sceneName == null) currentSceneName = "Untitled";
         if (sceneName != null && !currentSceneName.equals(sceneName)) currentSceneName = sceneName;
-        ImGui.begin(WINDOW_ID, ImGuiWindowFlags.NoScrollbar
+        if (!ImGui.begin(WINDOW_ID, ImGuiWindowFlags.NoScrollbar
                 | ImGuiWindowFlags.NoScrollWithMouse
                 | ImGuiWindowFlags.MenuBar
                 | ImGuiWindowFlags.NoCollapse
-        );
+        )) return;
 
-        ImGui.beginMenuBar();
+        if (!ImGui.beginMenuBar()) {
+            ImGui.end();
+            return;
+        }
+
         if (!ImGui.beginTable("##ESV_MenuBar_Table_Div", 3, ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.SizingFixedFit)) {
             ImGui.endMenuBar();
             ImGui.end();
@@ -47,6 +51,7 @@ public class SceneEditorViewport {
         ImGui.tableSetupColumn("##Runtime_switch_column_ESV", ImGuiTableColumnFlags.WidthFixed);
         ImGui.tableSetupColumn("Scene_name_column_ESV", ImGuiTableColumnFlags.WidthStretch);
         ImGui.tableSetupColumn("Scene_Editing_Controls_ESV", ImGuiTableColumnFlags.WidthFixed);
+
         ImGui.tableNextColumn();
         if (ImGui.menuItem("Play","", isPlaying, !isPlaying)) {
             isPlaying = true;

@@ -59,15 +59,14 @@ public class StartUpWindow{
 
             ImGui.setNextWindowPos(width / 2.0f, height / 2.0f, ImGuiCond.Always, 0.5f, 0.5f);
             ImGui.setNextWindowSize(IMGUI_WINDOW_SIZE);
-            ImGui.begin("Welcome to The Cell Beyond Editor", ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse);
+            if (ImGui.begin("Welcome to The Cell Beyond Editor", ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse)) {
+                ImGui.text("Project Manager");
+                renderProjectList();
 
-            ImGui.text("Project Manager");
+                loaded = (Project.currentProject() != null && Project.projectRoot() != null);
 
-            renderProjectList();
-
-            loaded = (Project.currentProject() != null && Project.projectRoot() != null);
-
-            ImGui.end();
+                ImGui.end();
+            }
 
             ImGui.render();
             imGuiLayer.getImGuiGl3().renderDrawData(ImGui.getDrawData());

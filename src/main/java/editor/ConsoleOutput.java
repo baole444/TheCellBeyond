@@ -18,10 +18,10 @@ import java.util.List;
 public class ConsoleOutput implements EngineLogListener {
     private static ConsoleOutput instance;
 
-    private static final ImVec4 debugColor = new ImVec4(0.3f, 0.3f, 0.3f, 1.0f);
-    private static final ImVec4 infoColor = new ImVec4(0.8f, 0.8f, 0.8f, 1.0f);
-    private static final ImVec4 warningColor = new ImVec4(0.75f, 0.75f, 0.25f, 1.0f);
-    private static final ImVec4 errorColor = new ImVec4(0.75f, 0.25f, 0.25f, 1.0f);
+    private static final ImVec4 debugColor = new ImVec4(0.35f, 0.35f, 0.35f, 1.0f);
+    private static final ImVec4 infoColor = new ImVec4(0.85f, 0.85f, 0.85f, 1.0f);
+    private static final ImVec4 warningColor = new ImVec4(0.85f, 0.85f, 0.25f, 1.0f);
+    private static final ImVec4 errorColor = new ImVec4(0.85f, 0.25f, 0.25f, 1.0f);
     private static final float iconSize = 28.0f;
     private static final String debugId = "Debug##enable_debug_log_history";
     private static final String infoId = "Info##enable_info_log_history";

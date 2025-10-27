@@ -46,8 +46,6 @@ public class ExitToProjectList {
         command.add(System.getProperty("java.class.path"));
         command.add(Main.class.getName());
 
-        System.out.println("Restarting with arguments:\n" + String.join(" ", command));
-
         ProcessBuilder processBuilder = new ProcessBuilder(command);
         processBuilder.directory(new File(System.getProperty("user.dir")));
         processBuilder.inheritIO();

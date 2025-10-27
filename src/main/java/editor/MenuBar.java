@@ -13,7 +13,7 @@ import java.util.List;
 
 public class MenuBar {
     public static void imgui() {
-        ImGui.beginMenuBar();
+        if (!ImGui.beginMenuBar()) return;
         ImGui.pushID(ImGuiItemFlags.SelectableDontClosePopup);
         if (ImGui.beginMenu("Editor")) {
             if (ImGui.menuItem("Preferences###Editor_prefs")) EditEditorPreferencesDialog.show();
