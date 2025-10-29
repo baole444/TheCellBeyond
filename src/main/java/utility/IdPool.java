@@ -1,9 +1,12 @@
 package utility;
 
+import utility.log.EngineLog;
+
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class IdPool {
+    private static final EngineLog LOGGER = new EngineLog(IdPool.class);
     // Use for when respect floating point limit is enabled
     private static final int FLOAT_PRECISION_LIMIT = 16777216;
 
@@ -40,8 +43,7 @@ public class IdPool {
         if (id == null) id = nextId.getAndIncrement();
 
         if (isFPLViolated(id)) {
-            System.err.println("ID '" + id + "' is beyond float point precision limit.");
-            System.err.println("Casting this value to float will cause lost of accuracy.");
+            LOGGER.warning("ID '" + id + "' is beyond float point precision limit. \nCasting this value to float will cause lost of accuracy.");
         }
 
         return id;

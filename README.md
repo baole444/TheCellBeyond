@@ -16,7 +16,7 @@ A Java-based game editor with project compile ability, code auto-generation, and
 - [ ] Scripting system.
 
 ## Problems need attention:
-- (NAP) Physic system is likely incompatible with current setup again, maily at physic body and collision shape.
+- (NAP) Physic system is likely incompatible with current setup again, mainly at physic body and collision shape.
 
 ## Solved problems:
 - N/A

@@ -322,7 +322,7 @@ public class AddSpriteSheetDialog {
     }
 
     private static int inputInt(String label, int target, int minValue) {
-        String id = label + "_" + ID_POOL.newId();
+        String id = label + "_" + "ASD" + ID_POOL.newId();
         ImGui.pushID(id);
         final boolean modified;
         final ImInt destination = new ImInt(target);

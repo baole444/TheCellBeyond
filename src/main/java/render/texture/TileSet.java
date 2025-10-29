@@ -47,15 +47,7 @@ public class TileSet {
             return;
         }
 
-        HashMap<Vector2i, Tile> updates = new HashMap<>(tiles);
-        for (Map.Entry<Vector2i, Tile> entry : updates.entrySet()) {
-            Vector2i position = entry.getKey();
-            Tile tile = entry.getValue();
-            Vector2f[] newCoordinates = calculateTileTextureCoordinate(position);
-            if (newCoordinates == null) newCoordinates = deadTileCoordinates();
-            tile.textureCoordinates = newCoordinates;
-        }
-
+        updateTiles();
         tileDirty = true;
     }
 
@@ -96,6 +88,36 @@ public class TileSet {
         return new Vector2i(gridSize);
     }
 
+    public void setGridSize(Vector2i tileSize) {
+        if (tileSize == null) return;
+
+        int x = Math.max(1, tileSize.x);
+        int y = Math.max(1, tileSize.y);
+
+        if (gridSize.x == x && gridSize.y == y) return;
+
+        gridSize.set(x, y);
+        updateTiles();
+        tileDirty = true;
+    }
+
+    public Vector2i getStartPosition() {
+        return new Vector2i(startPosition);
+    }
+
+    public void setStartPosition(Vector2i startOffset) {
+        if (startOffset == null) return;
+
+        int x = Math.max(0, startOffset.x);
+        int y = Math.max(0, startOffset.y);
+
+        if (startPosition.x == x && startPosition.y == y) return;
+
+        startPosition.set(x, y);
+        updateTiles();
+        tileDirty = true;
+    }
+
     public Texture getTexture() {
         if (tileSetSprite == null) return null;
 
@@ -106,6 +128,10 @@ public class TileSet {
         if (tileSetSprite == null) return -1;
 
         return tileSetSprite.getTextureID();
+    }
+
+    public Sprite getTileSetSprite() {
+        return tileSetSprite;
     }
 
     public Tile getTile(Vector2i gridPosition) {
@@ -130,6 +156,19 @@ public class TileSet {
         if (tileSetSprite == null) return false;
 
         return tileSetSprite.requestRendererUpdate() || tileDirty;
+    }
+
+    private void updateTiles() {
+        if (tileSetSprite == null) return;
+
+        HashMap<Vector2i, Tile> updates = new HashMap<>(tiles);
+        for (Map.Entry<Vector2i, Tile> entry : updates.entrySet()) {
+            Vector2i position = entry.getKey();
+            Tile tile = entry.getValue();
+            Vector2f[] newCoordinates = calculateTileTextureCoordinate(position);
+            if (newCoordinates == null) newCoordinates = deadTileCoordinates();
+            tile.textureCoordinates = newCoordinates;
+        }
     }
 
     private Vector2f[] calculateTileTextureCoordinate(Vector2i gridPosition) {
