@@ -18,9 +18,24 @@ import render.texture.TileSet;
 import utility.IdPool;
 
 public class TileSetEditor {
-    private static final IdPool ID_POOL = new IdPool(16777214, true);
+    private enum Mode {
+        Add,
+        Select,
+        Erase
+    }
+
+    private static final float TAB_BUTTON_RESERVE = ImGui.getFrameHeightWithSpacing();
+    private static final float SEPARATOR_RESERVE = ImGui.getStyle().getItemSpacingY();
+    private static final float padding = 4.0f;
+    private static final Mode defaultMode = Mode.Add;
+    private static Mode editingMode;
+    private static final int bgSquareSize = 32;
+    private static final int lightSquareColor = ImGui.getColorU32(0.4f, 0.4f, 0.4f, 0.5f);
+    private static final int darkSquareColor = ImGui.getColorU32(0.2f, 0.2f, 0.2f, 0.5f);
+    private static final IdPool ID_POOL = new IdPool(0, false);
     private static final float tileSetEditPercentage = 0.3f;
     private static final float indentW = 4.0f;
+    private static float zoom = 1.0f;
 
     private static TileMap editingTileMap;
     private static final Vector2i tileSize = new Vector2i(16);
@@ -40,9 +55,11 @@ public class TileSetEditor {
 
     private static void clearDialogData() {
         editingTileMap = null;
+        zoom = 1.0f;
         ID_POOL.reset();
         tileSize.set(16);
         startPosition.set(0);
+        editingMode = defaultMode;
     }
 
     static void imgui() {
@@ -64,6 +81,7 @@ public class TileSetEditor {
         ImGui.tableNextColumn();
         renderTileSetEdit();
         ImGui.tableNextColumn();
+        renderTileSetControl();
         renderTileSetImage();
         ImGui.endTable();
         ID_POOL.reset();
@@ -107,6 +125,10 @@ public class TileSetEditor {
         if (startOffsetChanged.get()) tileSet.setStartPosition(startPosition);
     }
 
+    private static void renderTileSetControl() {
+
+    }
+
     private static void renderTileSetImage() {
         if (editingTileMap == null || editingTileMap.getTileSet() == null) return;
 
@@ -125,12 +147,41 @@ public class TileSetEditor {
         float h = sprite.getHeight();
         Vector2f[] textureCoordinates = sprite.getTextureCoordinates();
 
+        drawTransparentBackground(w, h);
+
         ImGui.image(textureID, w, h,
                 textureCoordinates[2].x, textureCoordinates[0].y,
                 textureCoordinates[0].x, textureCoordinates[2].y
         );
 
         ImGui.endChild();
+    }
+
+    private static void drawTransparentBackground(float width, float height) {
+        ImVec2 cursorPos = ImGui.getCursorScreenPos();
+        ImDrawList drawList = ImGui.getWindowDrawList();
+        float squareSize = bgSquareSize * zoom;
+        int squareXCount = (int) Math.ceil(width / squareSize);
+        int squareYCount = (int) Math.ceil(height / squareSize);
+
+        ImVec2 rectMin = new ImVec2();
+        ImVec2 rectMax = new ImVec2();
+
+        for (int row = 0; row < squareYCount; row++) {
+            for (int column = 0; column < squareXCount; column++) {
+                boolean isLight = (row + column) % 2 == 0;
+                int color = isLight ? lightSquareColor : darkSquareColor;
+
+                float rectX = cursorPos.x + (column * squareSize);
+                float rectY = cursorPos.y + (row * squareSize);
+                float rectW = Math.min(squareSize, width - (column * squareSize));
+                float rectH = Math.min(squareSize, height - (row * squareSize));
+                rectMin.set(rectX, rectY);
+                rectMax.set(rectX + rectW, rectY + rectH);
+
+                drawList.addRectFilled(rectMin, rectMax, color);
+            }
+        }
     }
 
     private static void createNewTileSet() {

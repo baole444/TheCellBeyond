@@ -12,6 +12,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * AnimatedSpriteRenderer hold the hash map of its various animations where their names are the key set.<br>
+ * The frame times is even between frames of an animation and is managed via FPS value
+ * ({@code frame time = 1 / fps}.)<br>
+ * The component facilitates animation playback over time and default animation that autoplay on start.
+ */
 public class AnimatedSpriteRenderer extends SpriteRenderer {
     public static final float DEFAULT_FPS = 5.0f;
     private final ConcurrentHashMap<String, Animation> animations = new ConcurrentHashMap<>();
@@ -23,10 +29,19 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
     private transient boolean play = false;
     private transient boolean backward = false;
 
+    /**
+     * Get the default animation's name in this AnimatedSpriteRenderer.
+     * @return name of the default animation or null if there is none
+     */
     public String defaultAnimation() {
         return defaultAnimation;
     }
 
+    /**
+     * Set the default animation for this AnimatedSpriteRenderer.<br>
+     * Set name to {@code null} will set default animation to null for this component.
+     * @param name the name of an animation to be made default
+     */
     public void setDefaultAnimation(String name) {
         if (name == null) {
             defaultAnimation = null;
@@ -38,6 +53,10 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
         defaultAnimation = name;
     }
 
+    /**
+     * Create a new animation for this AnimatedSpriteRenderer.
+     * This method ensures the uniqueness of the new animation's name.
+     */
     public void newAnimation() {
         String newName = "animation";
 
@@ -58,6 +77,12 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
         animationFPS.put(uniqueName, DEFAULT_FPS);
     }
 
+    /**
+     * Update name of an animation.
+     * The new name must be unique to this AnimatedSpriteRenderer.
+     * @param oldName the current name of the animation
+     * @param newName the new name for the animation
+     */
     public void renameAnimation(String oldName, String newName) {
         if (animations.isEmpty()) return;
         if (oldName == null || newName == null || oldName.isBlank() || newName.isBlank()) return;
@@ -74,6 +99,11 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
         if (Objects.equals(currentAnimationName, oldName)) currentAnimationName = newName;
     }
 
+    /**
+     * Duplicate an existing animation in this AnimatedSpriteRenderer.
+     * This method ensures the uniqueness of the new animation's name.
+     * @param name the name of the animation to duplicate from
+     */
     public void duplicateAnimation(String name) {
         if (name == null) return;
         if (animations.isEmpty()) return;
@@ -94,6 +124,11 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
         animationFPS.put(newName, fps);
     }
 
+    /**
+     * Update the content of an animation in this AnimatedSpriteRenderer.
+     * @param name the name of the animation to be updated
+     * @param animation reference of an animation instance
+     */
     public void updateAnimation(String name, Animation animation) {
         if (name == null || name.isBlank() || animation == null) return;
         animation.start();
@@ -108,6 +143,10 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
         }
     }
 
+    /**
+     * Remove an animation from this AnimatedSpriteRenderer.
+     * @param name the name of the animation to be removed
+     */
     public void removeAnimation(String name) {
         if (name == null || !animations.containsKey(name)) return;
         if (Objects.equals(defaultAnimation, name)) defaultAnimation = null;
@@ -120,12 +159,23 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
         }
     }
 
+    /**
+     * Get the frame rate of an animation in this AnimatedSpriteRenderer.
+     * @param name the name of the animation
+     * @return FPS value of that animation, negative value means animation does not exist
+     */
     public float getAnimationFPS(String name) {
         if (name == null || name.isBlank() || !animationFPS.containsKey(name)) return -1.0f;
 
         return animationFPS.get(name);
     }
 
+    /**
+     * Set the frame rate for an animation in this AnimatedSpriteRenderer.<br>
+     * FPS cannot be lower than {@code 0.01}.
+     * @param fps the frame rate value for the animation
+     * @param name the name of the animation to set the fps
+     */
     public void setFPS(float fps, String name) {
         if (name == null ||animations.isEmpty() || !animations.containsKey(name)) return;
 
@@ -137,18 +187,28 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
         animationFPS.put(name, fps);
     }
 
+    /**
+     * Check the playback status of this AnimatedSpriteRenderer.
+     * @return true if the component is playing an animation
+     */
     public boolean isPlaying() {
         return play;
     }
 
+    /**
+     * Check the reverse playback status of this AnimatedSpriteRenderer.
+     * @return true if the component is playing an animation backward
+     */
     public boolean isBackward() {
         return backward;
     }
 
-    public boolean isPlayingBackward() {
-        return play && backward;
-    }
-
+    /**
+     * Play an animation in this AnimatedSpriteRenderer from the first frame forward.
+     * This will set the specified animation as the current animation with reverse status set to {@code false}.
+     * @param name the name of the animation to play
+     * @see #playBackward(String name) play an animation in reverse
+     */
     public void play(String name) {
         if (name == null || !animations.containsKey(name)) return;
         Animation animation = animations.get(name);
@@ -162,6 +222,12 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
         updateSpriteFromCurrentAnimation();
     }
 
+    /**
+     * Play an animation in this AnimatedSpriteRenderer from the last frame backward.
+     * This will set the specified animation as the current animation with reverse status set to {@code true}.
+     * @param name the name of the animation to play
+     * @see #play(String name) play an animation
+     */
     public void playBackward(String name) {
         if (name == null || !animations.containsKey(name)) return;
         Animation animation = animations.get(name);
@@ -175,14 +241,28 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
         updateSpriteFromCurrentAnimation();
     }
 
+    /**
+     * Pause playback of the current animation in this AnimatedSpriteRenderer.<br>
+     * This does not reset animation frame or reverse playback status.
+     * @see #stop() stop the playback of the current animation
+     */
     public void pause() {
         play = false;
     }
 
+    /**
+     * Continue playback of the current animation in this AnimatedSpriteRenderer.
+     * This does not reset animation frame or reverse playback status.
+     */
     public void resume() {
         if (currentAnimation != null) play = true;
     }
 
+    /**
+     * Stop the playback of the current animation in this AnimatedSpriteRenderer.
+     * This will reset the animation frame and reverse playback status.
+     * @see #pause() pause the playback of the current animation
+     */
     public void stop() {
         play = false;
         backward = false;
@@ -192,6 +272,11 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
         }
     }
 
+    /**
+     * Check the loop status of an animation in this AnimatedSpriteRenderer.
+     * @param name the name of the animation to check
+     * @return true if the animation's loop flag is {@code true}
+     */
     public boolean isAnimationLoop(String name) {
         if (name == null || !animations.containsKey(name)) return false;
 
@@ -201,6 +286,11 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
         return animation.loop;
     }
 
+    /**
+     * Set the loop status of an animation in this AnimatedSpriteRenderer.
+     * @param loop true to enable looping, false to disable it
+     * @param name the name of the animation to update
+     */
     public void setAnimationLoop(boolean loop, String name) {
         if (name == null || !animations.containsKey(name)) return;
 
@@ -208,10 +298,18 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
         if (animation != null) animation.loop = loop;
     }
 
+    /**
+     * Get the name of the current animation.
+     * @return the name of the animation, or null if there is none
+     */
     public String currentAnimationName() {
         return currentAnimationName;
     }
 
+    /**
+     * Set the current animation for playback.
+     * @param name the name of the animation to be made current.
+     */
     public void setCurrentAnimation(String name) {
         if (name == null) {
             stop();
@@ -228,14 +326,30 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
         updateSpriteFromCurrentAnimation();
     }
 
+    /**
+     * Get the instance of the current animation in this AnimatedSpriteRenderer.
+     * @return reference to the instance of the current animation, or null if there is none
+     */
     public Animation currentAnimation() {
         return currentAnimation;
     }
 
+    /**
+     * Get the hash map of this AnimationSpriteRenderer's animations with their name as key set.
+     * @return a new hash map instance of the animations hash map
+     */
     public HashMap<String, Animation> animations() {
         return new HashMap<>(animations);
     }
 
+    /**
+     * Adjust a frame's index (order) of an animation in this AnimatedSpriteRenderer.<br>
+     * The index must be within the bound of the animation's frame list ({@code 0 -> last index}).
+     * @param name the name of the animation to move the frame from
+     * @param currentIndex the index of the frame that need to be moved
+     * @param targetIndex the target index where that frame will be moved to
+     * @return true if frames reordered successfully
+     */
     public boolean moveFrame(String name, int currentIndex, int targetIndex) {
         if (name == null || !animations.containsKey(name)) return false;
         if (Objects.equals(name, currentAnimationName)) stop();
@@ -257,11 +371,24 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
         return true;
     }
 
+    /**
+     * Move a frame of an animation in this AnimatedSpriteRenderer to the left of that frame's index.
+     * @param name the name of the animation to move the frame from
+     * @param index the index of the frame that need to be moved
+     * @return true if frames reordered successfully
+     * @see #moveFrame(String name, int currentIndex, int targetIndex) Reorder a frame in an animation
+     */
     public boolean moveFrameLeft(String name, int index) {
         if (index <= 0) return false;
         return moveFrame(name, index, index - 1);
     }
 
+    /**
+     * Move a frame of an animation in this AnimatedSpriteRenderer to the right of that frame's index.
+     * @param name the name of the animation to move the frame from
+     * @param index the index of the frame that need to be moved
+     * @return true if frames reordered successfully
+     */
     public boolean moveFrameRight(String name, int index) {
         if (name == null || !animations.containsKey(name)) return false;
 
@@ -274,6 +401,11 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
         return moveFrame(name, index, index + 1);
     }
 
+    /**
+     * Remove a frame from an animation in this AnimatedSpriteRenderer.
+     * @param name the name of the animation to remove the frame from
+     * @param index the index of the frame that need to be removed
+     */
     public void removeFrame(String name, int index) {
         if (name == null || !animations.containsKey(name)) return;
         if (Objects.equals(name, currentAnimationName)) stop();

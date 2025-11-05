@@ -138,6 +138,10 @@ public class PathResolver {
     }
 
     private InputStream getEngineAssetStream(String enginePath) throws IOException {
+        if (enginePath == null || enginePath.isBlank()) {
+            throw new IllegalArgumentException("Engine path cannot be null");
+        }
+
         InputStream stream = PathResolver.class.getClassLoader().getResourceAsStream(enginePath);
 
         if (stream == null) {

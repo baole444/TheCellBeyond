@@ -17,7 +17,7 @@ import utility.WorldUnit;
 import java.util.Objects;
 
 /**
- * SpriteRenderer is a component that hold a Sprite, tint color vector and dirty flag which are used by Renderer.<br>
+ * SpriteRenderer hold a Sprite, tint color vector and dirty flag which are used by Renderer.<br>
  * The sprite dirty flag is set when Sprite, tint color or transformation updated.
  * This flag is volatile and clear by the Renderer.
  */
@@ -151,7 +151,7 @@ public class SpriteRenderer extends SpatialComponent {
 
     /**
      * Get the texture of the Sprite.
-     * @return texture reference of the sprite, null if the sprite is null or the texture is null
+     * @return texture reference of the sprite or null if the sprite/texture is null
      */
     public Texture getTexture() {
         return sprite != null ? sprite.getTexture() : null;

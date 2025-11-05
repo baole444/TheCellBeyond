@@ -71,16 +71,18 @@ public class BottomPanel {
         }
 
         float contentReserve = ImGui.getContentRegionAvailY() - TAB_BUTTON_RESERVE - SEPARATOR_RESERVE;
-        if (contentReserve > TAB_BUTTON_RESERVE) {
-            if (!ImGui.beginChild("##Multipurpose_tab_region", 0.0f, contentReserve, false)) {
-                ImGui.end();
-                return;
-            }
-            renderTabContent();
-            ImGui.endChild();
-            ImGui.separator();
+        if (contentReserve <= TAB_BUTTON_RESERVE) {
+            ImGui.end();
+            return;
         }
 
+        if (!ImGui.beginChild("##Multipurpose_tab_region", 0.0f, contentReserve, false)) {
+            ImGui.end();
+            return;
+        }
+        renderTabContent();
+        ImGui.endChild();
+        ImGui.separator();
         renderTabButtons();
 
         ImGui.end();
