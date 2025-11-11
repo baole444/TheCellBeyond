@@ -463,6 +463,5 @@ public class ImEditorGui {
                 textureCoordinates[2].x, textureCoordinates[0].y,
                 textureCoordinates[0].x, textureCoordinates[2].y
         );
-        ImGui.setCursorPosY(ImGui.getCursorPosY() + ImGui.getStyle().getItemSpacingY());
     }
 }

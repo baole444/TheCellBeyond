@@ -8,7 +8,7 @@ public class EditorIcons {
     private static final String PATH = "engine://assets/textures/EditorControls.png";
     private static final int width = 28;
     private static final int height = 28;
-    private static final int iconCount = 16;
+    private static final int iconCount = 20;
     private static SpriteSheet icons;
     private static boolean isInitialized = false;
 
@@ -20,7 +20,11 @@ public class EditorIcons {
         New(0),
         Copy(1),
         Edit(2),
-        Delete(3);
+        Delete(3),
+        Open(4),
+        Select(5),
+        Search(6),
+        Eraser(7);
 
         final int index;
 
@@ -35,14 +39,14 @@ public class EditorIcons {
     }
 
     public enum SpriteFrameIcons implements EditorIconSprite {
-        PlayBackward(4),
-        Stop(5),
-        Play(6),
-        Pause(7),
-        PreviousFrame(8),
-        NextFrame(9),
-        MoveFrameLeft(10),
-        MoveFrameRight(11);
+        PlayBackward(8),
+        Stop(9),
+        Play(10),
+        Pause(11),
+        PreviousFrame(12),
+        NextFrame(13),
+        MoveFrameLeft(14),
+        MoveFrameRight(15);
 
         final int index;
 
@@ -57,10 +61,10 @@ public class EditorIcons {
     }
 
     public enum LogLevelIcons implements EditorIconSprite {
-        Debug(12),
-        Info(13),
-        Warning(14),
-        Error(15);
+        Debug(16),
+        Info(17),
+        Warning(18),
+        Error(19);
 
         final int index;
 

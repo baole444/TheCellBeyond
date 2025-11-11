@@ -52,7 +52,7 @@ public class MouseListener {
             get().isDragging = true;
         }
 
-        get().xPos  = xPos;
+        get().xPos = xPos;
         get().yPos = yPos;
 
         get().worldPastX = get().worldCurrentX;

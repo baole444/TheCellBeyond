@@ -221,7 +221,6 @@ public class TileSet {
             ByteBuffer buffer = BufferUtils.createByteBuffer(data.length);
             buffer.put(data);
             buffer.flip();
-
             findTilesFromBuffer(buffer);
         } catch (IOException e) {
             System.err.println("Failed to find tiles: " + e.getMessage());
@@ -338,15 +337,15 @@ public class TileSet {
         int innerRing = Math.min(width, height) / 2;
 
         while (outerRing < innerRing) {
-            if (scanRingPixels(pixels, width, start, end, outerRing)) return true;
+            if (scanRingPixels(pixels, w, start, end, outerRing)) return true;
 
-            if (scanRingPixels(pixels, width, start, end, innerRing)) return true;
+            if (scanRingPixels(pixels, w, start, end, innerRing)) return true;
 
             outerRing++;
             innerRing--;
         }
 
-        if (outerRing == innerRing) return scanRingPixels(pixels, width, start, end, outerRing);
+        if (outerRing == innerRing) return scanRingPixels(pixels, w, start, end, outerRing);
 
         return false;
     }

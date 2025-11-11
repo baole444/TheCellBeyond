@@ -5,17 +5,19 @@ import editor.payload.SpriteDragDropPayload;
 import imgui.ImDrawList;
 import imgui.ImGui;
 import imgui.ImVec2;
-import imgui.flag.ImGuiChildFlags;
-import imgui.flag.ImGuiTableColumnFlags;
-import imgui.flag.ImGuiTableFlags;
-import imgui.flag.ImGuiWindowFlags;
+import imgui.flag.*;
 import imgui.type.ImBoolean;
+import imgui.type.ImFloat;
 import imgui.type.ImInt;
 import org.joml.Vector2f;
 import org.joml.Vector2i;
 import render.texture.Sprite;
+import render.texture.Tile;
 import render.texture.TileSet;
 import utility.IdPool;
+import utility.log.EngineLog;
+
+import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_1;
 
 public class TileSetEditor {
     private enum Mode {
@@ -24,9 +26,10 @@ public class TileSetEditor {
         Erase
     }
 
-    private static final float TAB_BUTTON_RESERVE = ImGui.getFrameHeightWithSpacing();
-    private static final float SEPARATOR_RESERVE = ImGui.getStyle().getItemSpacingY();
-    private static final float padding = 4.0f;
+    private static final EngineLog LOGGER = new EngineLog(TileSetEditor.class);
+    private static final float modeRegionReserve = ImGui.getFrameHeightWithSpacing();
+    private static final float modeSelectableSize = 20.0f;
+    private static final ImVec2 padding = ImGui.getStyle().getFramePadding();
     private static final Mode defaultMode = Mode.Add;
     private static Mode editingMode;
     private static final int bgSquareSize = 32;
@@ -74,7 +77,7 @@ public class TileSetEditor {
         }
 
         float remainWidth = Math.max(240.0f, ImGui.getContentRegionAvailX() * tileSetEditPercentage);
-        if (!ImGui.beginTable("##TSE_Table_Id", 2, ImGuiTableFlags.BordersV | ImGuiTableFlags.SizingStretchProp, ImGui.getContentRegionAvail())) return;
+        if (!ImGui.beginTable("##TSE_Main_Region_Table", 2, ImGuiTableFlags.BordersV | ImGuiTableFlags.SizingStretchProp, ImGui.getContentRegionAvail())) return;
         ImGui.tableSetupColumn("##TileSetEdit_Column", ImGuiTableColumnFlags.WidthFixed, remainWidth);
         ImGui.tableSetupColumn("##TileSetImage_Column", ImGuiTableColumnFlags.WidthStretch);
 
@@ -126,7 +129,50 @@ public class TileSetEditor {
     }
 
     private static void renderTileSetControl() {
+        if (!ImGui.beginChild("##TileSet_Edit_Mode_Region", 0.0f, modeRegionReserve + modeSelectableSize, ImGuiChildFlags.Border)) return;
 
+        if (!ImGui.beginTable("##TSE_Control_Table", 3,ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.SizingFixedFit)) {
+            ImGui.endChild();
+            return;
+        }
+
+        ImGui.tableSetupColumn("TSE_Modes_Selectable_Column", ImGuiTableColumnFlags.WidthFixed);
+        ImGui.tableSetupColumn("TSE_Search_Tile_Selectable_Column", ImGuiTableColumnFlags.WidthFixed);
+        ImGui.tableSetupColumn("TSE_Zoom_Control_Column", ImGuiTableColumnFlags.WidthStretch);
+
+        ImGui.tableNextColumn();
+        boolean isSelectionMode = editingMode == Mode.Select;
+        if (ImEditorGui.selectableIcon("Selection Mode##TSE_Select_Mode_Selectable", EditorIcons.Icons.Select, "Click to toggle tile selection mode", isSelectionMode, modeSelectableSize, modeSelectableSize)) {
+            editingMode = isSelectionMode ? defaultMode : Mode.Select;
+        }
+
+        ImGui.sameLine();
+
+        boolean isEraseMode = editingMode == Mode.Erase;
+        if (ImEditorGui.selectableIcon("Eraser Mode##TSE_ERaser_Mode_Selectable", EditorIcons.Icons.Eraser, "Click to toggle tile removal mode", isEraseMode, modeSelectableSize, modeSelectableSize)) {
+            editingMode = isEraseMode ? defaultMode : Mode.Erase;
+        }
+
+        ImGui.tableNextColumn();
+        if (ImEditorGui.iconButton("Find tiles##TSE_Find_Tile_Button", EditorIcons.Icons.Search, "Click to find tile automatically", modeSelectableSize, modeSelectableSize)) {
+            TileSet set = editingTileMap.getTileSet();
+            if (set != null) set.findTiles();
+
+        }
+
+        ImGui.tableNextColumn();
+        ImFloat z = new ImFloat(zoom);
+        ImGui.pushItemWidth(ImGui.calcTextSizeX("AAA.AAA"));
+        if (ImGui.inputFloat("##Zoom_level_Direct", z, 0.0f, 0.0f)) zoom = z.get();
+        ImGui.popItemWidth();
+        ImGui.sameLine();
+        float[] val = {zoom};
+        if (ImGui.sliderFloat("Zoom##TSE_Zoom_Control", val, 0.1f, 4.0f)) {
+            zoom = val[0];
+        }
+
+        ImGui.endTable();
+        ImGui.endChild();
     }
 
     private static void renderTileSetImage() {
@@ -137,24 +183,62 @@ public class TileSetEditor {
         Sprite sprite = tileSet.getTileSetSprite();
         if (sprite == null) return;
 
-        if (!ImGui.beginChild("##TileSet_Image_Edit_Region", ImGui.getContentRegionAvail(), ImGuiChildFlags.None, ImGuiWindowFlags.HorizontalScrollbar)) {
-            ImGui.textWrapped("Failed to create region for tile image");
-            return;
-        }
+        if (!ImGui.beginChild("##TileSet_Image_Edit_Region", ImGui.getContentRegionAvail(), ImGuiChildFlags.None, ImGuiWindowFlags.HorizontalScrollbar)) return;
 
         int textureID = sprite.getTextureID();
-        float w = sprite.getWidth();
-        float h = sprite.getHeight();
+        float w = sprite.getWidth() * zoom;
+        float h = sprite.getHeight() * zoom;
         Vector2f[] textureCoordinates = sprite.getTextureCoordinates();
 
         drawTransparentBackground(w, h);
+
+        ImVec2 cursorScreenPos = ImGui.getCursorScreenPos();
 
         ImGui.image(textureID, w, h,
                 textureCoordinates[2].x, textureCoordinates[0].y,
                 textureCoordinates[0].x, textureCoordinates[2].y
         );
 
+        if (ImGui.isItemClicked(GLFW_MOUSE_BUTTON_1)) toggleTile(tileSet, cursorScreenPos, w, h);
+
         ImGui.endChild();
+    }
+
+    private static void toggleTile(TileSet tileSet, ImVec2 cursorScreenPos, float width, float height) {
+        if (editingMode == Mode.Select) return;
+
+        ImVec2 mousePos = ImGui.getMousePos();
+        float relativeX = mousePos.x - cursorScreenPos.x;
+        float relativeY = mousePos.y - cursorScreenPos.y;
+
+        Vector2i gridSize = tileSet.getGridSize();
+        Vector2i startPos = tileSet.getStartPosition();
+        if (relativeX < startPos.x || relativeY < startPos.y || relativeX > width || relativeY > height) return;
+
+        int clickedPixelX = (int) relativeX - startPos.x;
+        int clickedPixelY = (int) relativeY - startPos.y;
+
+        int gridX = clickedPixelX / gridSize.x;
+        int gridY = clickedPixelY / gridSize.y;
+
+        if (gridX < 0 || gridY < 0) return;
+        Vector2i gridCoordinate = new Vector2i(gridX, gridY);
+
+
+        Tile tile = tileSet.getTile(gridCoordinate);
+        if (editingMode == Mode.Erase) {
+            if (tile == null) return;
+            tileSet.removeTile(gridCoordinate);
+            LOGGER.debug("Removed tile (" + gridX + "," + gridY + ") from + " + tileSet);
+            return;
+        }
+
+        if (editingMode == Mode.Add) {
+            if (tile != null) return;
+            tileSet.addTile(gridCoordinate);
+            LOGGER.debug("Added tile (" + gridX + "," + gridY + ") to + " + tileSet);
+        }
+
     }
 
     private static void drawTransparentBackground(float width, float height) {

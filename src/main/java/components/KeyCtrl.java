@@ -18,16 +18,16 @@ import java.util.List;
 import static org.lwjgl.glfw.GLFW.*;
 
 /**
- * A class dedicated to processing key's events for the editor.
- * Handle active objects, duplication, and deletion of objects.
- * Handle Project, Save and Load keybinding
+ * KeyCtrl (Key Control) is an accumulation of editor keybind and shortcuts.
+ * Itself is a non-serialized component that is added to the level editor object.<br>
+ * Note: This will change soon, where this will be refactored into processing key event from the game.
+ * Engine keybind and shortcut processing will be moved to different class.
  */
 public class KeyCtrl extends Component implements NotSerializeComponent {
     @Override
     public void editorUpdate(float dt) {
         GameObject activeGameObj = Properties.getActiveGameObject();
         List<GameObject> activeObjList = Properties.getActiveGameObjects();
-
 
         if (KeyListener.isKeyTapped(GLFW_KEY_D, GLFW_MOD_CONTROL) && activeGameObj != null) {
             GameObject newObj = activeGameObj.copy(true);
