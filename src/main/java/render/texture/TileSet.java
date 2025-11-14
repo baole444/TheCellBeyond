@@ -140,6 +140,12 @@ public class TileSet {
         return tiles.get(gridPosition);
     }
 
+    public HashSet<Vector2i> getTileCoordinates() {
+        if (tiles.isEmpty()) return new HashSet<>();
+
+        return new HashSet<>(tiles.keySet());
+    }
+
     public List<Tile> getTiles() {
         if (tiles.isEmpty()) return List.of();
 
@@ -319,7 +325,10 @@ public class TileSet {
     }
 
     private boolean scanTilePixels(Vector2i coordinate, ByteBuffer pixels, int w, int h) {
-        Vector2i start = new Vector2i(startPosition).add(coordinate.x * gridSize.x, coordinate.y * gridSize.y);
+        int pixelX = startPosition.x + (coordinate.x * gridSize.x);
+        int pixelY = h - startPosition.y - coordinate.y * gridSize.y - gridSize.y;
+
+        Vector2i start = new Vector2i(pixelX, pixelY);
         Vector2i end = new Vector2i(Math.min(start.x + gridSize.x, w), Math.min(start.y + gridSize.y, h));
         if (end.x > w || end.y > h) return false;
 

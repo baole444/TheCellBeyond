@@ -17,6 +17,8 @@ import render.texture.TileSet;
 import utility.IdPool;
 import utility.log.EngineLog;
 
+import java.util.*;
+
 import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_1;
 
 public class TileSetEditor {
@@ -32,9 +34,13 @@ public class TileSetEditor {
     private static final ImVec2 padding = ImGui.getStyle().getFramePadding();
     private static final Mode defaultMode = Mode.Add;
     private static Mode editingMode;
+
     private static final int bgSquareSize = 32;
+    private static final int tileHighlightColor = ImGui.getColorU32(1.0f, 1.0f, 0.0f, 1.0f);
+    private static final int inactiveOverlayColor = ImGui.getColorU32(0.0f, 0.0f, 0.0f, 0.1f);
     private static final int lightSquareColor = ImGui.getColorU32(0.4f, 0.4f, 0.4f, 0.5f);
     private static final int darkSquareColor = ImGui.getColorU32(0.2f, 0.2f, 0.2f, 0.5f);
+
     private static final IdPool ID_POOL = new IdPool(0, false);
     private static final float tileSetEditPercentage = 0.3f;
     private static final float indentW = 4.0f;
@@ -162,8 +168,8 @@ public class TileSetEditor {
 
         ImGui.tableNextColumn();
         ImFloat z = new ImFloat(zoom);
-        ImGui.pushItemWidth(ImGui.calcTextSizeX("AAA.AAA"));
-        if (ImGui.inputFloat("##Zoom_level_Direct", z, 0.0f, 0.0f)) zoom = z.get();
+        ImGui.pushItemWidth(ImGui.calcTextSizeX("+AAA.AAA"));
+        if (ImGui.inputFloat("##Zoom_level_Direct", z, 0.0f, 0.0f)) zoom = Math.max(0.1f, z.get());
         ImGui.popItemWidth();
         ImGui.sameLine();
         float[] val = {zoom};
@@ -191,16 +197,14 @@ public class TileSetEditor {
         Vector2f[] textureCoordinates = sprite.getTextureCoordinates();
 
         drawTransparentBackground(w, h);
-
         ImVec2 cursorScreenPos = ImGui.getCursorScreenPos();
-
         ImGui.image(textureID, w, h,
                 textureCoordinates[2].x, textureCoordinates[0].y,
                 textureCoordinates[0].x, textureCoordinates[2].y
         );
+        drawTileHighLight(tileSet, cursorScreenPos, w, h);
 
         if (ImGui.isItemClicked(GLFW_MOUSE_BUTTON_1)) toggleTile(tileSet, cursorScreenPos, w, h);
-
         ImGui.endChild();
     }
 
@@ -213,13 +217,19 @@ public class TileSetEditor {
 
         Vector2i gridSize = tileSet.getGridSize();
         Vector2i startPos = tileSet.getStartPosition();
-        if (relativeX < startPos.x || relativeY < startPos.y || relativeX > width || relativeY > height) return;
 
-        int clickedPixelX = (int) relativeX - startPos.x;
-        int clickedPixelY = (int) relativeY - startPos.y;
+        float startX = startPos.x * zoom;
+        float startY = startPos.y * zoom;
+        float gridW = gridSize.x * zoom;
+        float gridH = gridSize.y * zoom;
 
-        int gridX = clickedPixelX / gridSize.x;
-        int gridY = clickedPixelY / gridSize.y;
+        if (relativeX < startX || relativeY < startY || relativeX > width || relativeY > height) return;
+
+        float clickedPixelX = relativeX - startX;
+        float clickedPixelY = relativeY - startY;
+
+        int gridX = (int) (clickedPixelX / gridW);
+        int gridY = (int) (clickedPixelY / gridH);
 
         if (gridX < 0 || gridY < 0) return;
         Vector2i gridCoordinate = new Vector2i(gridX, gridY);
@@ -266,6 +276,73 @@ public class TileSetEditor {
                 drawList.addRectFilled(rectMin, rectMax, color);
             }
         }
+    }
+
+    private static void drawTileHighLight(TileSet tileSet, ImVec2 cursorScreenPos, float width, float height) {
+        if (tileSet == null) return;
+
+        List<Tile> tiles = tileSet.getTiles();
+        if (tiles.isEmpty()) return;
+
+        Vector2i gridSize = tileSet.getGridSize();
+        Vector2i startPos = tileSet.getStartPosition();
+        HashSet<Vector2i> tileCoordinates = tileSet.getTileCoordinates();
+
+        if (tileCoordinates.isEmpty()) return;
+
+        ImDrawList drawList = ImGui.getWindowDrawList();
+
+        float gridW = gridSize.x * zoom;
+        float gridH = gridSize.y * zoom;
+        float startX = startPos.x * zoom;
+        float startY = startPos.y * zoom;
+
+        ImVec2 start = new ImVec2();
+        ImVec2 end = new ImVec2();
+
+        for (Vector2i tile : tileCoordinates) {
+            float x = cursorScreenPos.x + startX + tile.x * gridW;
+            float y = cursorScreenPos.y + startY + tile.y * gridH;
+            float right = x + gridW;
+            float bottom = y + gridH;
+
+            boolean hasTop = hasNeighbouringTile(tileCoordinates, new Vector2i(tile.x, tile.y - 1));
+            boolean hasRight = hasNeighbouringTile(tileCoordinates, new Vector2i(tile.x + 1, tile.y));
+            boolean hasBottom = hasNeighbouringTile(tileCoordinates, new Vector2i(tile.x, tile.y + 1));
+            boolean hasLeft = hasNeighbouringTile(tileCoordinates, new Vector2i(tile.x - 1, tile.y));
+
+            if (!hasTop) {
+                start.set(x, y);
+                end.set(right, y);
+                drawList.addLine(start, end, tileHighlightColor);
+            }
+
+            if (!hasRight) {
+                start.set(right, y);
+                end.set(right, bottom);
+                drawList.addLine(start, end, tileHighlightColor);
+            }
+
+            if (!hasBottom) {
+                start.set(x, bottom);
+                end.set(right, bottom);
+                drawList.addLine(start, end, tileHighlightColor);
+            }
+
+            if (!hasLeft) {
+                start.set(x, y);
+                end.set(x, bottom);
+                drawList.addLine(start, end, tileHighlightColor);
+            }
+        }
+    }
+
+    private static boolean hasNeighbouringTile(Set<Vector2i> tiles, Vector2i coordinate) {
+        for (Vector2i tile : tiles) {
+            if (tile.x == coordinate.x && tile.y == coordinate.y) return true;
+        }
+
+        return false;
     }
 
     private static void createNewTileSet() {
