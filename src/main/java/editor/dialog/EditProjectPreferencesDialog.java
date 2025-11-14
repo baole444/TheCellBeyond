@@ -7,6 +7,7 @@ import imgui.ImVec2;
 import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
+import imgui.type.ImFloat;
 import imgui.type.ImInt;
 import imgui.type.ImString;
 import org.joml.Vector2i;
@@ -24,6 +25,7 @@ public class EditProjectPreferencesDialog {
     private static final Vector2i gameWindowSize = new Vector2i(640, 480);
     private static final ImBoolean allowResize = new ImBoolean(false);
     private static final ImBoolean maintainAspectRatio = new ImBoolean(true);
+    private static final ImFloat textureGlobalScale = new ImFloat(1.0f);
 
     private static final float metaYPercentage = 0.85f;
 
@@ -124,6 +126,13 @@ public class EditProjectPreferencesDialog {
         ImGui.beginDisabled();
         ImGui.textWrapped("(maintain the game's intended aspect ratio when window is resized)");
         ImGui.endDisabled();
+        ImGui.spacing();
+
+        ImGui.text("Texture :");
+        ImGui.beginDisabled();
+        ImGui.textWrapped("Settings that affect the appearance of texture, project-wise.");
+        ImGui.endDisabled();
+        textureGlobalScale.set(inputFloat("Global Scaling", textureGlobalScale.get(), 0.01f));
 
         ImGui.endChild();
     }
@@ -142,22 +151,40 @@ public class EditProjectPreferencesDialog {
         return target;
     }
 
+    private static float inputFloat(String label, float target, float minValue) {
+        String id = label + "_" + ID_POOL.newId();
+        ImGui.pushID(id);
+        final boolean modified;
+        final ImFloat destination = new ImFloat(target);
+
+        modified = ImGui.inputFloat(label, destination);
+
+        if (modified) target = Math.max(destination.get(), minValue);
+
+        ImGui.popID();
+        return target;
+    }
+
     private static void loadFromPreference() {
         ProjectPreference preference = Project.preference();
         gameTitle.set(preference.name());
         gameWindowSize.set(preference.gameWindowWidth(), preference.gameWindowHeight());
         allowResize.set(preference.allowResize());
         maintainAspectRatio.set(preference.maintainAspectRatio());
+        textureGlobalScale.set(preference.textureGlobalScale());
     }
 
     private static void savePreference() {
-        if (gameTitle.isEmpty()) gameTitle.set("Untitled");
-        if (gameWindowSize.x < 1) gameWindowSize.set(1, gameWindowSize.y);
-        if (gameWindowSize.y < 1) gameWindowSize.set(gameWindowSize.x, 1);
+        if (gameTitle.isEmpty()) gameTitle.set("Untitled Game");
+
+        int width = Math.max(1, gameWindowSize.x);
+        int height = Math.max(1, gameWindowSize.y);
+        float scale = Math.max(0.01f, textureGlobalScale.get());
 
         Project.updateProjectPreference(gameTitle.get(),
-                gameWindowSize.x, gameWindowSize.y,
-                allowResize.get(), maintainAspectRatio.get()
+                width, height,
+                allowResize.get(), maintainAspectRatio.get(),
+                scale
         );
     }
 }

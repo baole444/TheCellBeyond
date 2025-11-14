@@ -24,19 +24,20 @@ public class Grid extends Component implements NotSerializeComponent {
         if (dt < 0.0f) return;
 
         Viewport viewport = Window.getScene().viewport();
+        float totalZoom = viewport.getZoom() / Project.preference().textureGlobalScale();
         Vector2f viewPos = viewport.position;
         Vector2f projectSize = viewport.getProjectionSize();
 
         float firstX = ((int) Math.floor(viewPos.x / Settings.GRID_WIDTH)) * Settings.GRID_WIDTH;
         float firstY = ((int) Math.floor(viewPos.y / Settings.GRID_HEIGHT)) * Settings.GRID_HEIGHT;
-        float height = (int)(projectSize.y * viewport.getZoom()) + Settings.GRID_HEIGHT * 5;
-        float width = (int)(projectSize.x * viewport.getZoom()) + Settings.GRID_WIDTH * 5;
+        float height = (int)(projectSize.y * totalZoom) + Settings.GRID_HEIGHT * 5;
+        float width = (int)(projectSize.x * totalZoom) + Settings.GRID_WIDTH * 5;
         float gameWindowWidth = WorldUnit.pixelToWorld(Project.preference().gameWindowWidth());
         float gameWindowHeight = WorldUnit.pixelToWorld(Project.preference().gameWindowHeight());
 
         if (UserPreference.editorPreferences().showGridLine()) {
-            int countVertical = (int)(projectSize.x * viewport.getZoom() / Settings.GRID_WIDTH) + 2;
-            int countHorizontal = (int)(projectSize.y * viewport.getZoom() / Settings.GRID_HEIGHT) + 2;
+            int countVertical = (int)(projectSize.x * totalZoom / Settings.GRID_WIDTH) + 2;
+            int countHorizontal = (int)(projectSize.y * totalZoom / Settings.GRID_HEIGHT) + 2;
             int maxLines = Math.max(countVertical, countHorizontal);
 
             drawGrid(firstX, firstY, maxLines, countVertical, countHorizontal, width, height);

@@ -47,6 +47,7 @@ public class Project {
                 preference = CurrentProject.project();
 
                 sanctionRelativePath();
+                sanctionPreference();
                 checkAndAddRequiredDirs();
             }
 
@@ -127,8 +128,12 @@ public class Project {
         return CurrentProject.scenes().get(key);
     }
 
-    public static boolean updateProjectPreference(String name, int windowWidth, int windowHeight, boolean allowResize, boolean maintainAspectRatio) {
-        preference = new ProjectPreference(name, windowWidth, windowHeight, allowResize, maintainAspectRatio);
+    public static boolean updateProjectPreference(String name, int windowWidth, int windowHeight, boolean allowResize, boolean maintainAspectRatio, float textureGlobalScale) {
+        int w = Math.max(1, windowWidth);
+        int h = Math.max(1, windowHeight);
+        float scale = Math.max(0.01f, textureGlobalScale);
+
+        preference = new ProjectPreference(name, w, h, allowResize, maintainAspectRatio, scale);
 
         if (CurrentProject == null) {
             System.err.println("No project loaded");
@@ -376,6 +381,23 @@ public class Project {
         if (modified) {
             System.out.println("Corrected current project's relative paths");
         }
+    }
+
+    private static void sanctionPreference() {
+        if (CurrentProject == null || preference == null) return;
+
+        int w = Math.max(1, preference.gameWindowWidth());
+        int h = Math.max(1, preference.gameWindowHeight());
+        float scale = Math.max(0.01f, preference.textureGlobalScale());
+
+        preference = new ProjectPreference(preference.name(), w, h, preference.allowResize(), preference.maintainAspectRatio(), scale);
+
+        CurrentProject = new ProjectData(CurrentProject.version(),
+                preference, CurrentProject.assets(),
+                CurrentProject.sheets(), CurrentProject.scenes()
+        );
+
+        save();
     }
 
     public static void loadProjectData() {

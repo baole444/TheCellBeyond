@@ -11,7 +11,9 @@ import imgui.flag.ImGuiTableColumnFlags;
 import imgui.flag.ImGuiTableFlags;
 import imgui.flag.ImGuiWindowFlags;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class BottomPanel {
     public static final String WINDOW_ID = "###Editor_Bottom_Panel";
@@ -22,10 +24,12 @@ public class BottomPanel {
     private static float tabWidth;
     private static boolean widthCalculated = false;
     private static TabName selectedTab = TabName.Output;
+    private static TabName workingTab = null;
 
     private enum TabName {
         Output("Output"),
         TileSet("Tile Set"),
+        TileMap("Tile Map"),
         SpriteFrame("Sprite Frame"),
         AnimationPlayer("Animation Player");
 
@@ -40,22 +44,28 @@ public class BottomPanel {
         }
     }
 
+    public static void clear() {
+        selectedTab = TabName.Output;
+        workingTab = null;
+    }
+
     public static void interacted(Component component) {
         if (component == null) return;
         switch (component) {
             case AnimatedSpriteRenderer spriteFrame -> {
                 SpriteFrameEditor.edit(spriteFrame);
-                selectedTab = TabName.SpriteFrame;
+                workingTab = selectedTab = TabName.SpriteFrame;
             }
-            case TileMap tileSet -> {
-                TileSetEditor.edit(tileSet);
-                selectedTab = TabName.TileSet;
+            case TileMap tileMap -> {
+                TileSetEditor.edit(tileMap);
+                TileMapEditor.edit(tileMap);
+                workingTab = selectedTab = TabName.TileSet;
             }
             case AnimationPlayer animationPlayer -> {
-                selectedTab = TabName.AnimationPlayer;
+                workingTab = selectedTab = TabName.AnimationPlayer;
             }
 
-            default -> {}
+            default -> clear();
         }
     }
 
@@ -91,6 +101,7 @@ public class BottomPanel {
     private static void renderTabContent() {
         switch (selectedTab) {
             case TileSet -> TileSetEditor.imgui();
+            case TileMap -> TileMapEditor.imgui();
             case SpriteFrame -> SpriteFrameEditor.imgui();
             case AnimationPlayer -> AnimationPlayerEditor.imgui();
             case null, default -> ConsoleOutput.imgui();
@@ -106,20 +117,21 @@ public class BottomPanel {
             widthCalculated = true;
         }
 
+        List<TabName> workingTabs = getWorkingTabs();
         ImVec2 remainTableSize = ImGui.getContentRegionAvail();
-        if (!ImGui.beginTable(TABLE_ID, TabName.size(), ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.SizingStretchProp, remainTableSize)) {
+        if (!ImGui.beginTable(TABLE_ID, workingTabs.size(), ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.SizingStretchProp, remainTableSize)) {
             ImGui.endChild();
             return;
         }
 
-        for (TabName tab : TabName.values()) {
+        for (TabName tab : workingTabs) {
             String id = "##" + tab.name + " column";
             ImGui.tableSetupColumn(id, ImGuiTableColumnFlags.WidthFixed, tabWidth + padding);
         }
 
         ImVec2 availSpace;
         ImVec2 cursorPos;
-        for (TabName tab : TabName.values()) {
+        for (TabName tab : workingTabs) {
             ImGui.tableNextColumn();
             String id = "##" + tab.name + " tab";
             boolean selected = selectedTab == tab;
@@ -135,6 +147,18 @@ public class BottomPanel {
 
         ImGui.endTable();
         ImGui.endChild();
+    }
+
+    private static List<TabName> getWorkingTabs() {
+        List<TabName> tabs = new ArrayList<>();
+        tabs.add(TabName.Output);
+
+        if (workingTab != null) {
+            tabs.add(workingTab);
+            if (workingTab == TabName.TileSet) tabs.add(TabName.TileMap);
+        }
+
+        return tabs;
     }
 
     private static float getMaxTabNameWidth() {

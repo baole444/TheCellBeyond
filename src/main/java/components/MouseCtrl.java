@@ -1,6 +1,7 @@
 package components;
 
 import TheCellBeyond.*;
+import editor.BottomPanel;
 import editor.ImGuiLayer;
 import editor.Properties;
 import editor.SceneTree;
@@ -155,6 +156,7 @@ public class MouseCtrl extends Component implements NotSerializeComponent {
             } else if (selectedObj == null && !MouseListener.isDragging()) {
                 Properties.clearSelection();
                 SceneTree.clearSelection();
+                BottomPanel.clear();
             }
 
             this.clickInit = clickResetTime;
@@ -165,6 +167,7 @@ public class MouseCtrl extends Component implements NotSerializeComponent {
             if (!isBoxSelectionInit) {
                 Properties.clearSelection();
                 SceneTree.clearSelection();
+                BottomPanel.clear();
                 boxSelectionBegin = MouseListener.getScreen();
                 isBoxSelectionInit = true;
             }

@@ -417,15 +417,16 @@ public class ImEditorGui {
             return ImGui.selectable(id, selected, width, height);
         }
 
+        ImVec2 framePadding = ImGui.getStyle().getFramePadding();
         ImVec2 cursorPos = ImGui.getCursorPos();
-        boolean interact = ImGui.selectable("##" + id + "_Selectable_Icon", selected, width, height);
+        ImGui.setCursorPos(cursorPos.x + framePadding.x, cursorPos.y + framePadding.y);
+        boolean interact = ImGui.selectable("##" + id + "_Selectable_Icon", selected, width + framePadding.x, height + framePadding.y);
         if (ImGui.isItemHovered() && toolTip != null) {
             ImGui.beginTooltip();
             ImGui.text(toolTip);
             ImGui.endTooltip();
         }
-        ImGui.setCursorPos(cursorPos);
-
+        ImGui.setCursorPos(cursorPos.x + framePadding.x, cursorPos.y + framePadding.y * 1.5f);
         int textureID = icon.getTextureID();
         Vector2f[] textureCoordinates = icon.getTextureCoordinates();
         ImGui.image(textureID, width, height,

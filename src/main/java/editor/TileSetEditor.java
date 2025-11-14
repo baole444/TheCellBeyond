@@ -31,15 +31,15 @@ public class TileSetEditor {
     private static final EngineLog LOGGER = new EngineLog(TileSetEditor.class);
     private static final float modeRegionReserve = ImGui.getFrameHeightWithSpacing();
     private static final float modeSelectableSize = 20.0f;
-    private static final ImVec2 padding = ImGui.getStyle().getFramePadding();
     private static final Mode defaultMode = Mode.Add;
     private static Mode editingMode;
 
     private static final int bgSquareSize = 32;
-    private static final int tileHighlightColor = ImGui.getColorU32(1.0f, 1.0f, 0.0f, 1.0f);
-    private static final int inactiveOverlayColor = ImGui.getColorU32(0.0f, 0.0f, 0.0f, 0.1f);
     private static final int lightSquareColor = ImGui.getColorU32(0.4f, 0.4f, 0.4f, 0.5f);
     private static final int darkSquareColor = ImGui.getColorU32(0.2f, 0.2f, 0.2f, 0.5f);
+
+    private static final int tileHighlightColor = ImGui.getColorU32(1.0f, 1.0f, 0.0f, 1.0f);
+    private static final int inactiveOverlayColor = ImGui.getColorU32(0.0f, 0.0f, 0.0f, 0.1f);
 
     private static final IdPool ID_POOL = new IdPool(0, false);
     private static final float tileSetEditPercentage = 0.3f;

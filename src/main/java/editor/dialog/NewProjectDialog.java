@@ -11,6 +11,7 @@ import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiInputTextFlags;
 import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
+import imgui.type.ImFloat;
 import imgui.type.ImInt;
 import imgui.type.ImString;
 import org.joml.Vector2i;
@@ -34,6 +35,7 @@ public class NewProjectDialog {
     private static final Vector2i gameWindowSize = new Vector2i(640, 480);
     private static final ImBoolean allowResize = new ImBoolean(false);
     private static final ImBoolean maintainAspectRatio = new ImBoolean(true);
+    private static final ImFloat globalTextureScale = new ImFloat(1.0f);
 
     private static final float fileYPercentage = 0.15f;
     private static final float metaYPercentage = 0.8f;
@@ -50,6 +52,7 @@ public class NewProjectDialog {
         gameWindowSize.set(640, 480);
         allowResize.set(false);
         maintainAspectRatio.set(true);
+        globalTextureScale.set(1.0f);
     }
 
     public static void imgui() {
@@ -151,8 +154,8 @@ public class NewProjectDialog {
         } else {
             ImGui.newLine();
         }
-
         ImGui.spacing();
+
         ImGui.text("Window size:");
         ImGui.beginDisabled();
         ImGui.textWrapped("Determine the default size of game window");
@@ -171,6 +174,13 @@ public class NewProjectDialog {
         ImGui.beginDisabled();
         ImGui.textWrapped("(maintain the game's intended aspect ratio when window is resized)");
         ImGui.endDisabled();
+        ImGui.spacing();
+
+        ImGui.text("Texture :");
+        ImGui.beginDisabled();
+        ImGui.textWrapped("Settings that affect the appearance of texture, project-wise.");
+        ImGui.endDisabled();
+        globalTextureScale.set(inputFloat("Global Scaling", globalTextureScale.get(), 0.01f));
 
         ImGui.endChild();
     }
@@ -182,7 +192,8 @@ public class NewProjectDialog {
 
         ProjectPreference preference = new ProjectPreference(gameTitle.get(),
                 gameWindowSize.x, gameWindowSize.y,
-                allowResize.get(), maintainAspectRatio.get()
+                allowResize.get(), maintainAspectRatio.get(),
+                globalTextureScale.get()
         );
 
         Path projectRoot = Path.of(selectedDirectoryPath.get());
@@ -201,6 +212,20 @@ public class NewProjectDialog {
         final ImInt destination = new ImInt(target);
 
         modified = ImGui.inputInt(label, destination);
+
+        if (modified) target = Math.max(destination.get(), minValue);
+
+        ImGui.popID();
+        return target;
+    }
+
+    private static float inputFloat(String label, float target, float minValue) {
+        String id = label + "_" + ID_POOL.newId();
+        ImGui.pushID(id);
+        final boolean modified;
+        final ImFloat destination = new ImFloat(target);
+
+        modified = ImGui.inputFloat(label, destination);
 
         if (modified) target = Math.max(destination.get(), minValue);
 

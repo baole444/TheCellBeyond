@@ -18,10 +18,12 @@ public class Viewport {
     private float aspectRatio;
     private Vector2f projectionSize;
     private float zoom = 1.0f;
+    private static float globalScale;
 
     private boolean isDynamic = true;
 
     public Viewport(Vector2f position) {
+        globalScale = Project.preference().textureGlobalScale();
         this.position = position;
         projectionMatrix = new Matrix4f();
         viewMatrix = new Matrix4f();
@@ -70,9 +72,10 @@ public class Viewport {
     }
 
     public void adjustProjection() {
+        globalScale = Project.preference().textureGlobalScale();
         projectionMatrix.identity();
-        projectionMatrix.ortho(0.0f, projectionSize.x * zoom,
-                0.0f, projectionSize.y * zoom,
+        projectionMatrix.ortho(0.0f, projectionSize.x * (zoom / globalScale),
+                0.0f, projectionSize.y * (zoom / globalScale),
                 -16.0f, 1024.0f
         );
         projectionMatrix.invert(inverseProjectionMatrix);

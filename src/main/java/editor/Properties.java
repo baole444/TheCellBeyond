@@ -117,6 +117,7 @@ public class Properties {
 
     public static void setActiveGameObject(GameObject go) {
         if (go != null) {
+            if (go != getActiveGameObject()) BottomPanel.clear();
             clearSelection();
             activeGameObjects.add(go);
         }

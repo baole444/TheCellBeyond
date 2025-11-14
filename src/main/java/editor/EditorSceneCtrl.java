@@ -18,8 +18,8 @@ public class EditorSceneCtrl extends Component {
     private final float scrollSensitivity = 0.1f; // zoom step
     private final Viewport workViewport;
     private Vector2f clickOrigin;
-    private final float MAX_ZOOM = 5.0f;
-    private final float MIN_ZOOM = 0.1f;
+    private final float MAX_ZOOM = 10.0f;
+    private final float MIN_ZOOM = 0.01f;
 
     public EditorSceneCtrl(Viewport workViewport) {
         this.workViewport = workViewport;
