@@ -417,6 +417,7 @@ public class ImEditorGui {
             return ImGui.selectable(id, selected, width, height);
         }
 
+        ImGui.beginGroup();
         ImVec2 framePadding = ImGui.getStyle().getFramePadding();
         ImVec2 cursorPos = ImGui.getCursorPos();
         ImGui.setCursorPos(cursorPos.x + framePadding.x, cursorPos.y + framePadding.y);
@@ -433,7 +434,7 @@ public class ImEditorGui {
                 textureCoordinates[2].x, textureCoordinates[0].y,
                 textureCoordinates[0].x, textureCoordinates[2].y
         );
-
+        ImGui.endGroup();
         return interact;
     }
 
@@ -447,7 +448,7 @@ public class ImEditorGui {
             ImGui.selectable(id, selected, width, height);
             return;
         }
-
+        ImGui.beginGroup();
         ImVec2 framePadding = ImGui.getStyle().getFramePadding();
         ImVec2 cursorPos = ImGui.getCursorPos();
         ImGui.setCursorPos(cursorPos.x + framePadding.x, cursorPos.y + framePadding.y);
@@ -464,5 +465,6 @@ public class ImEditorGui {
                 textureCoordinates[2].x, textureCoordinates[0].y,
                 textureCoordinates[0].x, textureCoordinates[2].y
         );
+        ImGui.endGroup();
     }
 }

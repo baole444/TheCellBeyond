@@ -31,6 +31,7 @@ public class TileSetEditor {
     private static final EngineLog LOGGER = new EngineLog(TileSetEditor.class);
     private static final float modeRegionReserve = ImGui.getFrameHeightWithSpacing();
     private static final float modeSelectableSize = 20.0f;
+
     private static final Mode defaultMode = Mode.Add;
     private static Mode editingMode;
 
@@ -38,7 +39,7 @@ public class TileSetEditor {
     private static final int lightSquareColor = ImGui.getColorU32(0.4f, 0.4f, 0.4f, 0.5f);
     private static final int darkSquareColor = ImGui.getColorU32(0.2f, 0.2f, 0.2f, 0.5f);
 
-    private static final int tileHighlightColor = ImGui.getColorU32(1.0f, 1.0f, 0.0f, 1.0f);
+    private static final int tileHighlightColor = ImGui.getColorU32(1.0f, 1.0f, 0.5f, 0.75f);
     private static final int inactiveOverlayColor = ImGui.getColorU32(0.0f, 0.0f, 0.0f, 0.1f);
 
     private static final IdPool ID_POOL = new IdPool(0, false);
@@ -155,7 +156,7 @@ public class TileSetEditor {
         ImGui.sameLine();
 
         boolean isEraseMode = editingMode == Mode.Erase;
-        if (ImEditorGui.selectableIcon("Eraser Mode##TSE_ERaser_Mode_Selectable", EditorIcons.Icons.Eraser, "Click to toggle tile removal mode", isEraseMode, modeSelectableSize, modeSelectableSize)) {
+        if (ImEditorGui.selectableIcon("Eraser Mode##TSE_Eraser_Mode_Selectable", EditorIcons.Icons.Eraser, "Click to toggle tile removal mode", isEraseMode, modeSelectableSize, modeSelectableSize)) {
             editingMode = isEraseMode ? defaultMode : Mode.Erase;
         }
 
