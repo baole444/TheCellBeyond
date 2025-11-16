@@ -63,7 +63,7 @@ public class TileSetEditor {
         }
     }
 
-    private static void clearDialogData() {
+    static void clearDialogData() {
         editingTileMap = null;
         zoom = 1.0f;
         ID_POOL.reset();

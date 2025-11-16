@@ -372,7 +372,7 @@ class SpriteFrameEditor {
         }
     }
 
-    private static void clearDialogData() {
+    static void clearDialogData() {
         selectedFrame = 0;
         editingName = null;
         editingNameBuffer.clear();

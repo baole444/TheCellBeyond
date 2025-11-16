@@ -65,6 +65,7 @@ public class SceneEditor extends SceneInit implements EngineEventListener {
         levelEditorObject.addComponent(new MouseCtrl());
         levelEditorObject.addComponent(new KeyCtrl());
         levelEditorObject.addComponent(new Grid());
+        levelEditorObject.addComponent(new TileMapGrid());
         levelEditorObject.addComponent(new EditorSceneCtrl(scene.viewport()));
         levelEditorObject.addComponent(new GizmoControl());
 

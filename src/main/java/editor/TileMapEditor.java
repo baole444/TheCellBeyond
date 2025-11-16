@@ -1,6 +1,7 @@
 package editor;
 
 import components.TileMap;
+import components.TileMapGrid;
 import imgui.ImDrawList;
 import imgui.ImGui;
 import imgui.ImVec2;
@@ -44,6 +45,10 @@ public class TileMapEditor {
 
     private static final List<Tile> selectedTiles = new ArrayList<>();
 
+    public static TileMap getEditingTileMap() {
+        return editingTileMap;
+    }
+
     static void edit(TileMap tileMap) {
         if (tileMap != editingTileMap) {
             clearDialogData();
@@ -51,7 +56,9 @@ public class TileMapEditor {
         }
     }
 
-    private static void clearDialogData() {
+    static void clearDialogData() {
+        TileMapGrid.draw = false;
+        editingMode = Mode.Select;
         selectedTiles.clear();
         editingTileMap = null;
         zoom = 1.0f;
@@ -77,6 +84,7 @@ public class TileMapEditor {
             boolean isSelectionMode = editingMode == Mode.Select;
             if (ImEditorGui.selectableIcon("Selection Mode##TME_Select_Mode_Selectable", EditorIcons.Icons.Select, "Click to toggle tile selection mode", isSelectionMode, modeSelectableSize, modeSelectableSize)) {
                 editingMode = Mode.Select;
+                TileMapGrid.draw = false;
             }
 
             ImGui.sameLine();
@@ -84,12 +92,14 @@ public class TileMapEditor {
             boolean isDrawMode = editingMode == Mode.Draw;
             if (ImEditorGui.selectableIcon("Draw Mode##TME_Draw_Mode_Selectable", EditorIcons.Icons.Edit, "Click to toggle tile draw mode", isDrawMode, modeSelectableSize, modeSelectableSize)) {
                 editingMode = isDrawMode ? Mode.Select : Mode.Draw;
+                TileMapGrid.draw = !isDrawMode;
             }
 
             ImGui.tableNextColumn();
             boolean isEraserMode = editingMode == Mode.Erase;
             if (ImEditorGui.selectableIcon("Eraser Mode##TME_Eraser_Mode_Selectable", EditorIcons.Icons.Eraser, "Click to toggle tile eraser mode", isEraserMode, modeSelectableSize, modeSelectableSize)) {
                 editingMode = isEraserMode ? Mode.Select : Mode.Erase;
+                TileMapGrid.draw = !isEraserMode;
             }
 
             ImGui.tableNextColumn();

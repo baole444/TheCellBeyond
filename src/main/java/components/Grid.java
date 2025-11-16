@@ -30,8 +30,8 @@ public class Grid extends Component implements NotSerializeComponent {
 
         float firstX = ((int) Math.floor(viewPos.x / Settings.GRID_WIDTH)) * Settings.GRID_WIDTH;
         float firstY = ((int) Math.floor(viewPos.y / Settings.GRID_HEIGHT)) * Settings.GRID_HEIGHT;
-        float height = (int)(projectSize.y * totalZoom) + Settings.GRID_HEIGHT * 5;
-        float width = (int)(projectSize.x * totalZoom) + Settings.GRID_WIDTH * 5;
+        float width = (int)( projectSize.x * totalZoom) + Settings.GRID_WIDTH * 5;
+        float height = (int) (projectSize.y * totalZoom) + Settings.GRID_HEIGHT * 5;
         float gameWindowWidth = WorldUnit.pixelToWorld(Project.preference().gameWindowWidth());
         float gameWindowHeight = WorldUnit.pixelToWorld(Project.preference().gameWindowHeight());
 

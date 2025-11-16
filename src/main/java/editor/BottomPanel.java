@@ -47,6 +47,9 @@ public class BottomPanel {
     public static void clear() {
         selectedTab = TabName.Output;
         workingTab = null;
+        SpriteFrameEditor.clearDialogData();
+        TileSetEditor.clearDialogData();
+        TileMapEditor.clearDialogData();
     }
 
     public static void interacted(Component component) {
