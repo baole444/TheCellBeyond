@@ -1,10 +1,7 @@
 package components;
 
 import TheCellBeyond.*;
-import editor.BottomPanel;
-import editor.ImGuiLayer;
-import editor.Properties;
-import editor.SceneTree;
+import editor.*;
 import editor.preference.UserPreference;
 import imgui.ImGui;
 import imgui.flag.ImGuiPopupFlags;
@@ -16,6 +13,7 @@ import render.DebugDraw;
 import render.ObjectSelection;
 import scene.Scene;
 import utility.Settings;
+import utility.WorldUnit;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -29,21 +27,12 @@ import static org.lwjgl.glfw.GLFW.*;
 public class MouseCtrl extends Component implements NotSerializeComponent {
     private static final Vector4f resetColor = new Vector4f(1.0f, 1.0f, 1.0f, 1.0f);
     private static final Vector4f pickUpColor = new Vector4f(1f, 1f, 1f, 0.35f);
-    /**
-     * A phantom object, allow preview of the real object's placement.
-     * Is not serialized and is not selectable.
-     */
+
     GameObject holdObj = null;
 
-    /**
-     * Click state registration
-     */
     private boolean mouseButtonHeld = false;
-
     private final float clickResetTime = 0.2f;
     private float clickInit = clickResetTime;
-
-    // check if dragging is already started
     private boolean isBoxSelectionInit = false;
 
     private Vector2f boxSelectionBegin = new Vector2f();
@@ -127,6 +116,32 @@ public class MouseCtrl extends Component implements NotSerializeComponent {
 
     private static Vector2f getTargetPos() {
         float targetX, targetY;
+
+        if (TileMapGrid.draw) {
+            TileMap editingTileMap = TileMapEditor.getEditingTileMap();
+
+            if (editingTileMap != null && editingTileMap.getTileSet() != null) {
+                Vector2f tileMapPos = editingTileMap.getPosition();
+                Vector2i gridSize = editingTileMap.getTileSet().getGridSize();
+
+                float gridWidth = WorldUnit.pixelToWorld(gridSize.x);
+                float gridHeight = WorldUnit.pixelToWorld(gridSize.y);
+
+                float mouseX = MouseListener.getWorldX();
+                float mouseY = MouseListener.getWorldY();
+
+                float relativeX = mouseX - tileMapPos.x;
+                float relativeY = mouseY - tileMapPos.y;
+
+                float gridX = Math.round(relativeX / gridWidth) * gridWidth;
+                float gridY = Math.round(relativeY / gridHeight) * gridHeight;
+
+                targetX = tileMapPos.x + gridX + gridWidth / 2.0f;
+                targetY = tileMapPos.y + gridY + gridHeight / 2.0f;
+
+                return new Vector2f(targetX, targetY);
+            }
+        }
 
         if (!UserPreference.editorPreferences().showGridLine()) {
             targetX = MouseListener.getWorldX();
