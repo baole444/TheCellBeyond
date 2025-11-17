@@ -72,10 +72,16 @@ public abstract class Component {
      * Upon calling destroy, the component will discard its uuid, game object reference, and its name.
      */
     public final void destroy() {
+        additionalDestroyLogic();
         uuid = null;
         gameObject = null;
         componentName = null;
     }
+
+    /**
+     * Override this to add additional logic to the destroy logic of a component.
+     */
+    protected void additionalDestroyLogic() {}
 
     public <T extends Component> T getSibling(Class<T> componentClass) {
         if (gameObject == null) return null;

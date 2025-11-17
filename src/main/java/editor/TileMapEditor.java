@@ -37,7 +37,10 @@ public class TileMapEditor {
     private static final int darkSquareColor = ImGui.getColorU32(0.2f, 0.2f, 0.2f, 0.5f);
 
     private static final int tileHighlightColor = ImGui.getColorU32(1.0f, 1.0f, 0.5f, 0.75f);
+    private static final int selectedTileFillColor = ImGui.getColorU32(0.5f, 1.0f, 1.0f, 0.25f);
     private static final int selectedTileColor = ImGui.getColorU32(0.5f, 1.0f, 1.0f, 1.0f);
+    private static final int firstSelectedTileColor = ImGui.getColorU32(1.0f, 0.5f, 0.5f, 1.0f);
+    private static final int firstSelectedTileFillColor = ImGui.getColorU32(1.0f, 0.5f, 0.5f, 0.25f);
     private static final float selectedThickness = 2.0f;
 
     private static TileMap editingTileMap;
@@ -47,6 +50,10 @@ public class TileMapEditor {
 
     public static TileMap getEditingTileMap() {
         return editingTileMap;
+    }
+
+    public static List<Tile> getSelectedTiles() {
+        return new ArrayList<>(selectedTiles);
     }
 
     static void edit(TileMap tileMap) {
@@ -179,11 +186,10 @@ public class TileMapEditor {
     private static void drawSelectedTiles(TileSet tileSet, ImVec2 cursorScreenPos) {
         if (selectedTiles.isEmpty()) return;
         HashSet<Vector2i> tileCoordinates = new HashSet<>();
-        for (Tile tile : selectedTiles) {
-            if (tile != null && tile.setCoordinate != null) tileCoordinates.add(tile.setCoordinate);
-        }
+        Tile firstTile = selectedTiles.getFirst();
+        if (firstTile == null || firstTile.setCoordinate == null) return;
+        Vector2i firstCoordinate = new Vector2i(firstTile.setCoordinate);
 
-        if (tileCoordinates.isEmpty()) return;
         Vector2i gridSize = tileSet.getGridSize();
         Vector2i startPos = tileSet.getStartPosition();
 
@@ -197,16 +203,35 @@ public class TileMapEditor {
         ImVec2 min = new ImVec2();
         ImVec2 max = new ImVec2();
 
-        for (Vector2i tile: tileCoordinates) {
-            float x = cursorScreenPos.x + startX + tile.x * gridW;
-            float y = cursorScreenPos.y + startY + tile.y * gridH;
-            float right = x + gridW;
-            float bottom = y + gridH;
+        float x, y, right, bottom;
 
-            min.set(x, y);
-            max.set(right, bottom);
-            drawList.addRect(min, max, selectedTileColor, 0.0f, selectedThickness);
+        for (Tile tile : selectedTiles) {
+            if (tile == null || tile.setCoordinate == null || tile.setCoordinate.equals(firstCoordinate)) continue;
+            tileCoordinates.add(tile.setCoordinate);
         }
+        if (!tileCoordinates.isEmpty()) {
+            for (Vector2i tile: tileCoordinates) {
+                x = cursorScreenPos.x + startX + tile.x * gridW;
+                y = cursorScreenPos.y + startY + tile.y * gridH;
+                right = x + gridW;
+                bottom = y + gridH;
+
+                min.set(x, y);
+                max.set(right, bottom);
+                drawList.addRectFilled(min, max, selectedTileFillColor, 0.0f);
+                drawList.addRect(min, max, selectedTileColor, 0.0f, selectedThickness);
+            }
+        }
+
+        x = cursorScreenPos.x + startX + firstCoordinate.x * gridW;
+        y = cursorScreenPos.y + startY + firstCoordinate.y * gridH;
+        right = x + gridW;
+        bottom = y + gridH;
+
+        min.set(x, y);
+        max.set(right, bottom);
+        drawList.addRectFilled(min, max, firstSelectedTileFillColor, 0.0f);
+        drawList.addRect(min, max, firstSelectedTileColor, 0.0f, selectedThickness);
     }
 
     private static void drawTileHighLight(TileSet tileSet, ImVec2 cursorScreenPos) {
