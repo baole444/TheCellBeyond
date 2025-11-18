@@ -29,7 +29,6 @@ import render.texture.SpriteSheet;
 import render.texture.TextureUnit;
 import utility.AssetsPool;
 import utility.PathResolver;
-import utility.Settings;
 import utility.TextureScale;
 import utility.prefabrication.PrefabData;
 import utility.prefabrication.PrefabManager;
@@ -66,7 +65,7 @@ public class SceneEditor extends SceneInit implements EngineEventListener {
         levelEditorObject.addComponent(new KeyCtrl());
         levelEditorObject.addComponent(new Grid());
         levelEditorObject.addComponent(new TileMapGrid());
-        levelEditorObject.addComponent(new TIleDrawPreview());
+        levelEditorObject.addComponent(new TileMapCtrl());
         levelEditorObject.addComponent(new EditorSceneCtrl(scene.viewport()));
         levelEditorObject.addComponent(new GizmoControl());
 

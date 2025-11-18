@@ -1,9 +1,13 @@
 package components;
 
 import TheCellBeyond.GameObject2D;
+import TheCellBeyond.KeyListener;
 import TheCellBeyond.MouseListener;
 import TheCellBeyond.Window;
+import editor.ImGuiLayer;
 import editor.TileMapEditor;
+import imgui.ImGui;
+import imgui.flag.ImGuiPopupFlags;
 import org.joml.Vector2f;
 import org.joml.Vector2i;
 import org.joml.Vector4f;
@@ -15,7 +19,10 @@ import utility.WorldUnit;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TIleDrawPreview extends Component implements NotSerializeComponent {
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
+import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_1;
+
+public class TileMapCtrl extends Component implements NotSerializeComponent {
     private static final Vector4f previewColor = new Vector4f(1.0f, 1.0f, 1.0f, 0.35f);
 
     private GameObject2D holdingObj = null;
@@ -24,6 +31,8 @@ public class TIleDrawPreview extends Component implements NotSerializeComponent 
 
     @Override
     public void editorUpdate(float dt) {
+        if (!ImGuiLayer.getWantedCaptureMouse() || ImGui.isPopupOpen("", ImGuiPopupFlags.AnyPopup)) return;
+
         TileMap editingTileMap = TileMapEditor.getEditingTileMap();
 
         if (editingTileMap == null || !isDrawMode()) {
@@ -54,6 +63,8 @@ public class TIleDrawPreview extends Component implements NotSerializeComponent 
         }
 
         updatePosition(editingTileMap, tileSet, gridPos);
+
+        handleInput(editingTileMap, gridPos, selectedTiles);
     }
 
     private boolean needUpdate(List<Tile> selectedTiles) {
@@ -126,6 +137,34 @@ public class TIleDrawPreview extends Component implements NotSerializeComponent 
         lastGridPosition = new Vector2i(gridPos);
     }
 
+    private void handleInput(TileMap tileMap, Vector2i gridPos, List<Tile> selectedTiles) {
+        if (KeyListener.isKeyTapped(GLFW_KEY_ESCAPE)) {
+            TileMapEditor.clearSelectedTiles();
+            clearData();
+            return;
+        }
+
+        if (selectedTiles.isEmpty()) return;
+        if (MouseListener.isDragging() || !MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_1)) return;
+
+        System.out.println("Placed tile");
+
+        if (selectedTiles.size() == 1) {
+            Tile tile = selectedTiles.getFirst();
+            if (tile == null || tile.setCoordinate == null) return;
+            tileMap.placeTile(gridPos, tile.setCoordinate);
+            return;
+        }
+
+        List<Vector2i> tileSetCoordinates = new ArrayList<>();
+        for (Tile tile : selectedTiles) {
+            if (tile == null || tile.setCoordinate == null) continue;
+            tileSetCoordinates.add(tile.setCoordinate);
+        }
+
+        if (tileSetCoordinates.isEmpty()) return;
+        tileMap.placeTiles(gridPos, tileSetCoordinates);
+    }
 
     private Vector2i calculateGridPos(TileMap tileMap, TileSet tileSet) {
         Vector2f mapPos = tileMap.getPosition();

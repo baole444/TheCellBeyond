@@ -56,6 +56,10 @@ public class TileMapEditor {
         return new ArrayList<>(selectedTiles);
     }
 
+    public static void clearSelectedTiles() {
+        selectedTiles.clear();
+    }
+
     static void edit(TileMap tileMap) {
         if (tileMap != editingTileMap) {
             clearDialogData();
@@ -184,9 +188,10 @@ public class TileMapEditor {
     }
 
     private static void drawSelectedTiles(TileSet tileSet, ImVec2 cursorScreenPos) {
-        if (selectedTiles.isEmpty()) return;
+        List<Tile> tiles = new ArrayList<>(selectedTiles);
+        if (tiles.isEmpty()) return;
         HashSet<Vector2i> tileCoordinates = new HashSet<>();
-        Tile firstTile = selectedTiles.getFirst();
+        Tile firstTile = tiles.getFirst();
         if (firstTile == null || firstTile.setCoordinate == null) return;
         Vector2i firstCoordinate = new Vector2i(firstTile.setCoordinate);
 
@@ -205,7 +210,7 @@ public class TileMapEditor {
 
         float x, y, right, bottom;
 
-        for (Tile tile : selectedTiles) {
+        for (Tile tile : tiles) {
             if (tile == null || tile.setCoordinate == null || tile.setCoordinate.equals(firstCoordinate)) continue;
             tileCoordinates.add(tile.setCoordinate);
         }

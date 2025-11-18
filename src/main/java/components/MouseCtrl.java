@@ -67,6 +67,11 @@ public class MouseCtrl extends Component implements NotSerializeComponent {
 
     @Override
     public void editorUpdate(float dt) {
+        if (TileMapGrid.draw && holdObj != null) {
+            holdObj.destroy();
+            holdObj = null;
+        }
+
         clickInit -= dt;
 
         if (holdObj == null) {
@@ -157,6 +162,8 @@ public class MouseCtrl extends Component implements NotSerializeComponent {
     }
 
     private void onNotHoldingObject() {
+        if (TileMapGrid.draw) return;
+
         ObjectSelection objectSelection = Window.getObjectSelection();
         Scene currentScene = Window.getScene();
         if (!MouseListener.isDragging() && MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_LEFT) && clickInit < 0) {

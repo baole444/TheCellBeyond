@@ -202,7 +202,7 @@ public class TileBatch implements Comparable<TileBatch> {
     }
 
     public void render() {
-        if (tileCount <= 0 || tileMap == null || tileMap.getTileSet() == null) return;
+        if (tileMap == null || tileMap.getTileSet() == null) return;
 
         TileMap map = tileMap;
         if (map.getzIndex() != zIndex) {
