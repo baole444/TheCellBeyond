@@ -147,8 +147,6 @@ public class TileMapCtrl extends Component implements NotSerializeComponent {
         if (selectedTiles.isEmpty()) return;
         if (MouseListener.isDragging() || !MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_1)) return;
 
-        System.out.println("Placed tile");
-
         if (selectedTiles.size() == 1) {
             Tile tile = selectedTiles.getFirst();
             if (tile == null || tile.setCoordinate == null) return;

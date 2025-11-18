@@ -136,8 +136,8 @@ public class TileBatch implements Comparable<TileBatch> {
     }
 
     private Vector2f calculateTilePosition(Vector2f tileMapPosition, Vector2i mapCoordinate, Vector2f gridSizeWorld) {
-        float x = tileMapPosition.x + mapCoordinate.x * gridSizeWorld.x;
-        float y = tileMapPosition.y + mapCoordinate.y * gridSizeWorld.y;
+        float x = tileMapPosition.x + mapCoordinate.x * gridSizeWorld.x + gridSizeWorld.x / 2.0f;
+        float y = tileMapPosition.y + mapCoordinate.y * gridSizeWorld.y + gridSizeWorld.y / 2.0f;
 
         return new Vector2f(x, y);
     }
@@ -151,10 +151,10 @@ public class TileBatch implements Comparable<TileBatch> {
         float yAdd = 0.5f;
 
         Vector2f[] corners = {
-                new Vector2f(position.x - size.x * xAdd, position.y - size.y * yAdd),
-                new Vector2f(position.x + size.x * xAdd, position.y - size.y * yAdd),
-                new Vector2f(position.x + size.x * xAdd, position.y + size.y * yAdd),
-                new Vector2f(position.x - size.x * xAdd, position.y + size.y * yAdd)
+                new Vector2f(position.x + size.x * xAdd, - position.y + size.y * yAdd),
+                new Vector2f(position.x + size.x * xAdd, - position.y - size.y * yAdd),
+                new Vector2f(position.x - size.x * xAdd, - position.y - size.y * yAdd),
+                new Vector2f(position.x - size.x * xAdd, - position.y + size.y * yAdd)
         };
 
         for (int i = 0; i < 4; i++) {
@@ -177,13 +177,13 @@ public class TileBatch implements Comparable<TileBatch> {
         int offset = index * 6;
         int vertexOffset = index * 4;
 
-        indices[offset] = vertexOffset;
-        indices[offset + 1] = vertexOffset + 1;
-        indices[offset + 2] = vertexOffset + 2;
+        indices[offset] = vertexOffset + 3;
+        indices[offset + 1] = vertexOffset + 2;
+        indices[offset + 2] = vertexOffset;
 
         indices[offset + 3] = vertexOffset;
         indices[offset + 4] = vertexOffset + 2;
-        indices[offset + 5] = vertexOffset + 3;
+        indices[offset + 5] = vertexOffset + 1;
     }
 
     private void uploadDrawData() {
