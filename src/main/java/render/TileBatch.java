@@ -137,7 +137,7 @@ public class TileBatch implements Comparable<TileBatch> {
 
     private Vector2f calculateTilePosition(Vector2f tileMapPosition, Vector2i mapCoordinate, Vector2f gridSizeWorld) {
         float x = tileMapPosition.x + mapCoordinate.x * gridSizeWorld.x + gridSizeWorld.x / 2.0f;
-        float y = tileMapPosition.y - mapCoordinate.y * gridSizeWorld.y + gridSizeWorld.y / 2.0f;
+        float y = tileMapPosition.y + mapCoordinate.y * gridSizeWorld.y + gridSizeWorld.y / 2.0f;
 
         return new Vector2f(x, y);
     }

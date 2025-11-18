@@ -84,7 +84,7 @@ public class TileMap extends SpatialComponent {
             if (grid == null) continue;
             Tile tile = tileSet.getTile(grid);
             if (tile == null) continue;
-            Vector2i offset = new Vector2i(grid).sub(firstCoordinate);
+            Vector2i offset = new Vector2i(grid.x - firstCoordinate.x, firstCoordinate.y - grid.y);
 
             tiles.put(new Vector2i(startingMapCoordinate).add(offset), tile);
         }
