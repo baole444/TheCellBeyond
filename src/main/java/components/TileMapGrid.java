@@ -12,7 +12,7 @@ import render.texture.TileSet;
 import utility.WorldUnit;
 
 public class TileMapGrid extends Component implements  NotSerializeComponent {
-    private static final Vector4f gridColor = new Vector4f(0.85f, 0.4f, 0.1f, 0.5f);
+    private static final Vector4f gridColor = new Vector4f(0.85f, 0.4f, 0.1f, 0.4f);
 
     public static volatile boolean draw = false;
 

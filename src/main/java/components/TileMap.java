@@ -91,4 +91,13 @@ public class TileMap extends SpatialComponent {
 
         isTileDirty = true;
     }
+
+    public boolean removeTile(Vector2i mapCoordinate) {
+        if (mapCoordinate == null) return false;
+
+        Tile tile = tiles.remove(mapCoordinate);
+        boolean removed = tile != null;
+        if (removed) isTileDirty = true;
+        return removed;
+    }
 }

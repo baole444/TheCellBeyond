@@ -60,6 +60,11 @@ public class TileMapEditor {
         selectedTiles.clear();
     }
 
+    public static void escapeMode() {
+        editingMode = null;
+        TileMapGrid.draw = false;
+    }
+
     static void edit(TileMap tileMap) {
         if (tileMap != editingTileMap) {
             clearDialogData();
@@ -67,9 +72,27 @@ public class TileMapEditor {
         }
     }
 
+    public static boolean isSelectMode() {
+        if (editingMode == null) return false;
+
+        return editingMode.equals(Mode.Select);
+    }
+
+    public static boolean isDrawMode() {
+        if (editingMode == null) return false;
+
+        return editingMode.equals(Mode.Draw);
+    }
+
+    public static boolean isEraseMode() {
+        if (editingMode == null) return false;
+
+        return editingMode.equals(Mode.Erase);
+    }
+
     static void clearDialogData() {
         TileMapGrid.draw = false;
-        editingMode = Mode.Select;
+        editingMode = null;
         selectedTiles.clear();
         editingTileMap = null;
         zoom = 1.0f;
@@ -94,7 +117,7 @@ public class TileMapEditor {
             ImGui.tableNextColumn();
             boolean isSelectionMode = editingMode == Mode.Select;
             if (ImEditorGui.selectableIcon("Selection Mode##TME_Select_Mode_Selectable", EditorIcons.Icons.Select, "Click to toggle tile selection mode", isSelectionMode, modeSelectableSize, modeSelectableSize)) {
-                editingMode = Mode.Select;
+                editingMode = isSelectionMode ? null : Mode.Select;
                 TileMapGrid.draw = false;
             }
 
@@ -102,14 +125,14 @@ public class TileMapEditor {
 
             boolean isDrawMode = editingMode == Mode.Draw;
             if (ImEditorGui.selectableIcon("Draw Mode##TME_Draw_Mode_Selectable", EditorIcons.Icons.Edit, "Click to toggle tile draw mode", isDrawMode, modeSelectableSize, modeSelectableSize)) {
-                editingMode = isDrawMode ? Mode.Select : Mode.Draw;
+                editingMode = isDrawMode ? null : Mode.Draw;
                 TileMapGrid.draw = !isDrawMode;
             }
 
             ImGui.tableNextColumn();
             boolean isEraserMode = editingMode == Mode.Erase;
             if (ImEditorGui.selectableIcon("Eraser Mode##TME_Eraser_Mode_Selectable", EditorIcons.Icons.Eraser, "Click to toggle tile eraser mode", isEraserMode, modeSelectableSize, modeSelectableSize)) {
-                editingMode = isEraserMode ? Mode.Select : Mode.Erase;
+                editingMode = isEraserMode ? null : Mode.Erase;
                 TileMapGrid.draw = !isEraserMode;
             }
 

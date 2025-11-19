@@ -11,6 +11,7 @@ import imgui.flag.ImGuiPopupFlags;
 import org.joml.Vector2f;
 import org.joml.Vector2i;
 import org.joml.Vector4f;
+import render.DebugDraw;
 import render.texture.Sprite;
 import render.texture.Tile;
 import render.texture.TileSet;
@@ -24,10 +25,12 @@ import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_1;
 
 public class TileMapCtrl extends Component implements NotSerializeComponent {
     private static final Vector4f previewColor = new Vector4f(1.0f, 1.0f, 1.0f, 0.35f);
+    private static final Vector4f eraserColor = new Vector4f(1.0f, 0.25f, 0.25f, 0.75f);
 
     private GameObject2D holdingObj = null;
     private Vector2i lastGridPosition = null;
     private List<Tile> lastSelectedTiles = null;
+    private transient boolean cleared = true;
 
     @Override
     public void editorUpdate(float dt) {
@@ -35,7 +38,7 @@ public class TileMapCtrl extends Component implements NotSerializeComponent {
 
         TileMap editingTileMap = TileMapEditor.getEditingTileMap();
 
-        if (editingTileMap == null || !isDrawMode()) {
+        if (editingTileMap == null) {
             clearData();
             return;
         }
@@ -46,25 +49,34 @@ public class TileMapCtrl extends Component implements NotSerializeComponent {
             return;
         }
 
-        List<Tile> selectedTiles = TileMapEditor.getSelectedTiles();
-        if (selectedTiles.isEmpty()) {
-            clearData();
-            return;
-        }
-
         Vector2i gridPos = calculateGridPos(editingTileMap, tileSet);
         if (gridPos == null) {
             clearData();
             return;
         }
 
-        if (needUpdate(selectedTiles)) {
-            updateHoldingObj(editingTileMap, tileSet, gridPos, selectedTiles);
+        if (TileMapEditor.isDrawMode()) {
+            List<Tile> selectedTiles = TileMapEditor.getSelectedTiles();
+            if (selectedTiles.isEmpty()) {
+                if (KeyListener.isKeyTapped(GLFW_KEY_ESCAPE)) TileMapEditor.escapeMode();
+                clearData();
+                return;
+            }
+
+            if (needUpdate(selectedTiles)) {
+                updateHoldingObj(editingTileMap, tileSet, gridPos, selectedTiles);
+            }
+
+            updatePosition(editingTileMap, tileSet, gridPos);
+            handleDrawInput(editingTileMap, gridPos, selectedTiles);
+            return;
         }
 
-        updatePosition(editingTileMap, tileSet, gridPos);
-
-        handleInput(editingTileMap, gridPos, selectedTiles);
+        if (TileMapEditor.isEraseMode()) {
+            if (holdingObj != null) clearData();
+            drawEraserSquare(editingTileMap, tileSet, gridPos);
+            handleEraseInput(editingTileMap, gridPos);
+        }
     }
 
     private boolean needUpdate(List<Tile> selectedTiles) {
@@ -89,8 +101,8 @@ public class TileMapCtrl extends Component implements NotSerializeComponent {
         Vector2i firstCoordinate = firstTile.setCoordinate;
         if (firstCoordinate == null) return;
 
-        float anchorWorldX = mapPos.x + gridPos.x * gridWorldSize.x;
-        float anchorWorldY = mapPos.y + gridPos.y * gridWorldSize.y;
+        float anchorWorldX = mapPos.x + gridPos.x * gridWorldSize.x + gridWorldSize.x / 2.0f;
+        float anchorWorldY = mapPos.y + gridPos.y * gridWorldSize.y + gridWorldSize.y / 2.0f;
 
         GameObject2D tileObject = new GameObject2D("EditorTilesObject");
         tileObject.setPosition(anchorWorldX, anchorWorldY);
@@ -120,6 +132,7 @@ public class TileMapCtrl extends Component implements NotSerializeComponent {
 
         lastGridPosition = new Vector2i(gridPos);
         lastSelectedTiles = new ArrayList<>(selectedTiles);
+        cleared = false;
     }
 
     private void updatePosition(TileMap tileMap, TileSet tileSet, Vector2i gridPos) {
@@ -137,7 +150,21 @@ public class TileMapCtrl extends Component implements NotSerializeComponent {
         lastGridPosition = new Vector2i(gridPos);
     }
 
-    private void handleInput(TileMap tileMap, Vector2i gridPos, List<Tile> selectedTiles) {
+    private void drawEraserSquare(TileMap tileMap, TileSet tileSet, Vector2i gridPos) {
+        Vector2f mapPos = tileMap.getPosition();
+        Vector2i gridSize = tileSet.getGridSize();
+        Vector2f gridWorldSize = WorldUnit.pixelToWorld(new Vector2f(gridSize.x, gridSize.y));
+
+        float anchorWorldX = mapPos.x + gridPos.x * gridWorldSize.x;
+        float anchorWorldY = mapPos.y + gridPos.y * gridWorldSize.y;
+        Vector2f centre = new Vector2f(anchorWorldX + gridWorldSize.x / 2.0f, anchorWorldY + gridWorldSize.y / 2.0f);
+
+        DebugDraw.addBox2(centre, gridWorldSize, 0.0f, eraserColor);
+        DebugDraw.addLine2(new Vector2f(anchorWorldX, anchorWorldY), new Vector2f(anchorWorldX + gridWorldSize.x, anchorWorldY + gridWorldSize.y), eraserColor);
+        DebugDraw.addLine2(new Vector2f(anchorWorldX, anchorWorldY + gridWorldSize.y), new Vector2f(anchorWorldX + gridWorldSize.x, anchorWorldY), eraserColor);
+    }
+
+    private void handleDrawInput(TileMap tileMap, Vector2i gridPos, List<Tile> selectedTiles) {
         if (KeyListener.isKeyTapped(GLFW_KEY_ESCAPE)) {
             TileMapEditor.clearSelectedTiles();
             clearData();
@@ -145,7 +172,7 @@ public class TileMapCtrl extends Component implements NotSerializeComponent {
         }
 
         if (selectedTiles.isEmpty()) return;
-        if (MouseListener.isDragging() || !MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_1)) return;
+        if (!MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_1)) return;
 
         if (selectedTiles.size() == 1) {
             Tile tile = selectedTiles.getFirst();
@@ -162,6 +189,22 @@ public class TileMapCtrl extends Component implements NotSerializeComponent {
 
         if (tileSetCoordinates.isEmpty()) return;
         tileMap.placeTiles(gridPos, tileSetCoordinates);
+    }
+
+    private void handleEraseInput(TileMap tileMap, Vector2i gridPos) {
+        if (KeyListener.isKeyTapped(GLFW_KEY_ESCAPE)) {
+            TileMapEditor.escapeMode();
+            return;
+        }
+
+        if (!MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_1)) return;
+        if (lastGridPosition != null && lastGridPosition.equals(gridPos)) return;
+
+        boolean removed = tileMap.removeTile(gridPos);
+        if (removed) {
+            lastGridPosition = new Vector2i(gridPos);
+            cleared = false;
+        }
     }
 
     private Vector2i calculateGridPos(TileMap tileMap, TileSet tileSet) {
@@ -185,11 +228,9 @@ public class TileMapCtrl extends Component implements NotSerializeComponent {
         return new Vector2i(x, y);
     }
 
-    private boolean isDrawMode() {
-        return TileMapGrid.draw;
-    }
-
     private void clearData() {
+        if (cleared) return;
+
         if (holdingObj != null && !holdingObj.isRemoved()) {
             holdingObj.destroy();
         }
@@ -197,6 +238,8 @@ public class TileMapCtrl extends Component implements NotSerializeComponent {
         holdingObj = null;
         lastGridPosition = null;
         lastSelectedTiles = null;
+
+        cleared = true;
     }
 
     @Override
