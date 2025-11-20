@@ -10,7 +10,7 @@ import components.Component;
 import components.IsNotSelectable;
 import editor.Indicator;
 import editor.dialog.SaveSceneAsDialog;
-import editor.project.Project;
+import project.Project;
 import imgui.type.ImBoolean;
 import physic2d.Physic2D;
 import render.Renderer;

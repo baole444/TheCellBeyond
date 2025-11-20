@@ -17,7 +17,7 @@ import java.util.List;
 
 public class BottomPanel {
     public static final String WINDOW_ID = "###Editor_Bottom_Panel";
-    private static final String TABLE_ID = "Tab Buttons";
+    private static final String TABLE_ID = "##Bottom Panel Tab Buttons";
     private static final float TAB_BUTTON_RESERVE = ImGui.getFrameHeightWithSpacing();
     private static final float SEPARATOR_RESERVE = ImGui.getStyle().getItemSpacingY();
     private static final float padding = 4.0f;
@@ -37,10 +37,6 @@ public class BottomPanel {
 
         TabName(String name) {
             this.name = name;
-        }
-
-        static int size() {
-            return values().length;
         }
     }
 
@@ -128,7 +124,7 @@ public class BottomPanel {
         }
 
         for (TabName tab : workingTabs) {
-            String id = "##" + tab.name + " column";
+            String id = "##Bottom panel " + tab.name + " column";
             ImGui.tableSetupColumn(id, ImGuiTableColumnFlags.WidthFixed, tabWidth + padding);
         }
 
@@ -136,7 +132,7 @@ public class BottomPanel {
         ImVec2 cursorPos;
         for (TabName tab : workingTabs) {
             ImGui.tableNextColumn();
-            String id = "##" + tab.name + " tab";
+            String id = "##Bottom Panel " + tab.name + " tab selectable";
             boolean selected = selectedTab == tab;
             availSpace = ImGui.getContentRegionAvail();
             cursorPos = ImGui.getCursorPos();

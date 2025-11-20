@@ -3,7 +3,7 @@ package components;
 import TheCellBeyond.Viewport;
 import TheCellBeyond.Window;
 import editor.preference.UserPreference;
-import editor.project.Project;
+import project.Project;
 import org.joml.Math;
 import org.joml.Vector2f;
 import org.joml.Vector4f;

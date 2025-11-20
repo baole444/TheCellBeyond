@@ -8,9 +8,9 @@ import editor.dialog.OpenProjectDialog;
 import editor.dialog.RemoveMissingProjectDialog;
 import editor.preference.RecentProject;
 import editor.preference.UserPreference;
-import editor.project.Project;
-import editor.project.ProjectData;
-import editor.project.ProjectPreference;
+import project.Project;
+import project.ProjectData;
+import project.ProjectPreference;
 import eventviewer.EngineEventCallback;
 import eventviewer.event.Event;
 import eventviewer.event.EventType;
@@ -220,7 +220,8 @@ public class StartUpWindow{
                     System.err.println("Project preference is missing, generating new preference...");
                     selectedProject = new ProjectData(selectedProject.version(),
                             new ProjectPreference(), selectedProject.assets(),
-                            selectedProject.sheets(), selectedProject.scenes()
+                            selectedProject.sheets(), selectedProject.scenes(),
+                            selectedProject.inputActions()
                     );
                 }
             }

@@ -3,8 +3,8 @@ package editor.dialog;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import editor.preference.RecentProject;
-import editor.project.ProjectData;
-import editor.project.ProjectPreference;
+import project.ProjectData;
+import project.ProjectPreference;
 import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.ImGuiCond;
@@ -37,7 +37,7 @@ public class RemoveMissingProjectDialog {
         float pivotXY = 0.5f;
 
         ImGui.setNextWindowPos(centre.x, centre.y, ImGuiCond.Appearing, pivotXY, pivotXY);
-        ImGui.setNextWindowSize(DIALOG_SIZE, ImGuiCond.FirstUseEver);
+        ImGui.setNextWindowSize(DIALOG_SIZE);
 
         if (ImGui.beginPopupModal(POPUP_ID, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)) {
             ImGui.spacing();
@@ -96,7 +96,8 @@ public class RemoveMissingProjectDialog {
                     System.err.println("Project preference is missing, generating new preference...");
                     selectedProject = new ProjectData(selectedProject.version(),
                             new ProjectPreference(), selectedProject.assets(),
-                            selectedProject.sheets(), selectedProject.scenes()
+                            selectedProject.sheets(), selectedProject.scenes(),
+                            selectedProject.inputActions()
                     );
                 }
             }

@@ -34,7 +34,7 @@ public class EditEditorPreferencesDialog {
         float pivotXY = 0.5f;
 
         ImGui.setNextWindowPos(centre.x, centre.y, ImGuiCond.Appearing, pivotXY, pivotXY);
-        ImGui.setNextWindowSize(DIALOG_SIZE, ImGuiCond.FirstUseEver);
+        ImGui.setNextWindowSize(DIALOG_SIZE);
 
 
         if (ImGui.beginPopupModal(POPUP_ID, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)) {

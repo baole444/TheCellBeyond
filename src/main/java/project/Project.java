@@ -1,5 +1,7 @@
-package editor.project;
+package project;
 
+import TheCellBeyond.InputAction;
+import TheCellBeyond.InputKey;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import render.Texture;
@@ -12,10 +14,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class Project {
     private static ProjectData CurrentProject = null;
@@ -40,7 +39,8 @@ public class Project {
                     System.err.println("Project preference is missing, generating new preference...");
                     CurrentProject = new ProjectData(CurrentProject.version(),
                             new ProjectPreference(), CurrentProject.assets(),
-                            CurrentProject.sheets(), CurrentProject.scenes()
+                            CurrentProject.sheets(), CurrentProject.scenes(),
+                            currentProject().inputActions()
                     );
                     save();
                 }
@@ -142,7 +142,8 @@ public class Project {
 
         CurrentProject = new ProjectData(CurrentProject.version(),
                 preference, CurrentProject.assets(),
-                CurrentProject.sheets(), CurrentProject.scenes()
+                CurrentProject.sheets(), CurrentProject.scenes(),
+                CurrentProject.inputActions()
         );
 
         save();
@@ -160,7 +161,8 @@ public class Project {
             assets = new HashMap<>();
             CurrentProject = new ProjectData(
                     CurrentProject.version(), CurrentProject.project(), assets,
-                    CurrentProject.sheets(), CurrentProject.scenes()
+                    CurrentProject.sheets(), CurrentProject.scenes(),
+                    CurrentProject.inputActions()
             );
         }
 
@@ -217,7 +219,8 @@ public class Project {
             sheets = new HashMap<>();
             CurrentProject = new ProjectData(
                     CurrentProject.version(), CurrentProject.project(),
-                    CurrentProject.assets(), sheets, CurrentProject.scenes()
+                    CurrentProject.assets(), sheets, CurrentProject.scenes(),
+                    CurrentProject.inputActions()
             );
         }
 
@@ -284,7 +287,8 @@ public class Project {
         if (scenes == null) {
             scenes = new HashMap<>();
             CurrentProject = new ProjectData(CurrentProject.version(), CurrentProject.project(),
-                    CurrentProject.assets(), CurrentProject.sheets(), scenes
+                    CurrentProject.assets(), CurrentProject.sheets(), scenes,
+                    CurrentProject.inputActions()
             );
         }
 
@@ -303,6 +307,8 @@ public class Project {
             System.err.println("No project or scenes loaded");
             return false;
         }
+
+        if (key == null) return false;
 
         if (!CurrentProject.scenes().containsKey(key)) {
             System.err.println("Scene with key '" + key + "' does not exist");
@@ -323,6 +329,99 @@ public class Project {
         ProjectSceneMap removed = CurrentProject.scenes().remove(key);
         if (removed == null) {
             System.err.println("Scene with key '" + key + "' does not exist");
+            return false;
+        }
+
+        save();
+        return true;
+    }
+
+    public static boolean addInputAction(String actionName, List<Set<InputKey>> keys) {
+        if (CurrentProject == null) {
+            System.err.println("No project loaded");
+            return false;
+        }
+
+        if (actionName == null || actionName.isBlank() || keys == null) return false;
+        String name = actionName.trim();
+        if (name.isEmpty()) return false;
+
+        Map<String, InputAction> actions = CurrentProject.inputActions();
+        if (actions == null) {
+            actions = new HashMap<>();
+            CurrentProject = new ProjectData(CurrentProject.version(), CurrentProject.project(),
+                    CurrentProject.assets(), CurrentProject.sheets(),
+                    CurrentProject.scenes(), actions
+            );
+        }
+
+        if (actions.containsKey(name)) {
+            System.err.println("Input action with named '" + name + "' already exists");
+            return false;
+        }
+
+        InputAction action = new InputAction(name, new ArrayList<>(keys));
+        actions.put(name, action);
+        save();
+        return true;
+    }
+
+    public static boolean updateInputActionKey(String actionName, List<Set<InputKey>> keys) {
+        if (CurrentProject == null || CurrentProject.inputActions() == null) {
+            System.err.println("No project or input actions loaded");
+            return false;
+        }
+
+        if (actionName == null || keys == null) return false;
+        Map<String, InputAction> actions = CurrentProject.inputActions();
+        InputAction action = actions.get(actionName);
+        if (action == null) {
+            System.err.println("Input action with name '" + actionName + "' does not exist");
+            return false;
+        }
+
+        InputAction update = new InputAction(action.name(), keys);
+        actions.put(actionName, update);
+        save();
+
+        return true;
+    }
+
+    public static boolean updateInputActionName(String oldActionName, String newActionName) {
+        if (CurrentProject == null || CurrentProject.inputActions() == null) {
+            System.err.println("No project or input actions loaded");
+            return false;
+        }
+
+        if (oldActionName == null || newActionName == null || oldActionName.isBlank() || newActionName.isBlank()) return false;
+        String oldName = oldActionName.trim();
+        String newName = newActionName.trim();
+        Map<String, InputAction> actions = CurrentProject.inputActions();
+        if (!actions.containsKey(oldName) || actions.containsKey(newName)) return false;
+
+        InputAction oldAction = actions.remove(oldName);
+        if (oldAction == null) return false;
+
+        InputAction newAction = new InputAction(newName, oldAction.keys());
+        actions.put(newName, newAction);
+        save();
+
+        return true;
+    }
+
+    public static boolean removeInputAction(String actionName) {
+        if (CurrentProject == null || CurrentProject.inputActions() == null) {
+            System.err.println("No project or input actions loaded");
+            return false;
+        }
+
+        if (actionName == null || actionName.isBlank()) return false;
+        String name = actionName.trim();
+        if (name.isEmpty()) return false;
+
+        InputAction removed = CurrentProject.inputActions().remove(name);
+        if (removed == null) {
+            System.err.println("Input action with name '" + actionName + "' does not exist");
             return false;
         }
 
@@ -394,7 +493,8 @@ public class Project {
 
         CurrentProject = new ProjectData(CurrentProject.version(),
                 preference, CurrentProject.assets(),
-                CurrentProject.sheets(), CurrentProject.scenes()
+                CurrentProject.sheets(), CurrentProject.scenes(),
+                CurrentProject.inputActions()
         );
 
         save();

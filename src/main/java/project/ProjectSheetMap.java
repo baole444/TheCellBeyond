@@ -1,4 +1,4 @@
-package editor.project;
+package project;
 
 public record ProjectSheetMap(
         String path, int numberOfSprite,

@@ -1,8 +1,8 @@
 package editor.dialog;
 
 import TheCellBeyond.Window;
-import editor.project.Project;
-import editor.project.ProjectSceneMap;
+import project.Project;
+import project.ProjectSceneMap;
 import eventviewer.EngineEventCallback;
 import eventviewer.event.Event;
 import eventviewer.event.EventType;
@@ -12,7 +12,6 @@ import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImString;
-import scene.SceneEditor;
 
 public class NewSceneDialog {
     private static final String POPUP_ID = "Create new scene";
@@ -57,7 +56,7 @@ public class NewSceneDialog {
         float pivotXY = 0.5f;
 
         ImGui.setNextWindowPos(centre.x, centre.y, ImGuiCond.Appearing, pivotXY, pivotXY);
-        ImGui.setNextWindowSize(DIALOG_SIZE, ImGuiCond.FirstUseEver);
+        ImGui.setNextWindowSize(DIALOG_SIZE);
 
         if (ImGui.beginPopupModal(POPUP_ID, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)) {
             ImGui.spacing();

@@ -1,4 +1,6 @@
-package editor.project;
+package project;
+
+import TheCellBeyond.InputAction;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -8,9 +10,10 @@ public record ProjectData(
         String version, ProjectPreference project,
         Map<UUID, ProjectAssetMap> assets,
         Map<String, Map<String, ProjectSheetMap>> sheets,
-        Map<String, ProjectSceneMap> scenes
+        Map<String, ProjectSceneMap> scenes,
+        Map<String, InputAction> inputActions
 ) {
     public ProjectData(String version, ProjectPreference preference) {
-        this(version, preference, new HashMap<>(), new HashMap<>(), new HashMap<>());
+        this(version, preference, new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>());
     }
 }

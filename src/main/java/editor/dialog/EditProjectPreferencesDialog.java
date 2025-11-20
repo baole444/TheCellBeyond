@@ -1,11 +1,10 @@
 package editor.dialog;
 
-import editor.project.Project;
-import editor.project.ProjectPreference;
+import imgui.flag.*;
+import project.Project;
+import project.ProjectPreference;
 import imgui.ImGui;
 import imgui.ImVec2;
-import imgui.flag.ImGuiCond;
-import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
 import imgui.type.ImFloat;
 import imgui.type.ImInt;
@@ -13,13 +12,36 @@ import imgui.type.ImString;
 import org.joml.Vector2i;
 import utility.IdPool;
 
+import java.util.Arrays;
+
 public class EditProjectPreferencesDialog {
+    private enum TabName {
+        General("General"),
+        InputMap("Input Map");
+
+        final String name;
+
+        TabName(String name) {
+            this.name = name;
+        }
+
+        static int size() {
+            return values().length;
+        }
+    }
     private static final IdPool ID_POOL = new IdPool(0, false);
     private static final String POPUP_ID = "Project Preferences";
     private static final String PREFERENCE_ID = "Preference_Editor";
-    private static final ImVec2 DIALOG_SIZE = new ImVec2(720.0f, 400.0f);
+    private static final ImVec2 DIALOG_SIZE = new ImVec2(720.0f, 640.0f);
+
+    private static final float BUTTON_RESERVE = ImGui.getFrameHeightWithSpacing();
+    private static final float SEPARATOR_RESERVE = ImGui.getStyle().getItemSpacingY();
+    private static final float padding = 4.0f;
     private static boolean showDialog = false;
     private static final boolean enableBorder = true;
+    private static float tabWidth;
+    private static boolean widthCalculated = false;
+    private static TabName selectedTab = TabName.General;
 
     private static final ImString gameTitle = new ImString(128);
     private static final Vector2i gameWindowSize = new Vector2i(640, 480);
@@ -27,11 +49,14 @@ public class EditProjectPreferencesDialog {
     private static final ImBoolean maintainAspectRatio = new ImBoolean(true);
     private static final ImFloat textureGlobalScale = new ImFloat(1.0f);
 
-    private static final float metaYPercentage = 0.85f;
-
     public static void show() {
         showDialog = true;
+        resetTab();
         loadFromPreference();
+    }
+
+    private static void resetTab() {
+        selectedTab = TabName.General;
     }
 
     public static void imgui() {
@@ -43,16 +68,21 @@ public class EditProjectPreferencesDialog {
         float pivotXY = 0.5f;
 
         ImGui.setNextWindowPos(centre.x, centre.y, ImGuiCond.Appearing, pivotXY, pivotXY);
-        ImGui.setNextWindowSize(DIALOG_SIZE, ImGuiCond.FirstUseEver);
+        ImGui.setNextWindowSize(DIALOG_SIZE);
 
         if (ImGui.beginPopupModal(POPUP_ID, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)) {
-            ImGui.text("Adjust project's references");
-            renderPreferenceEditor();
+            renderTabButtons();
+            ImGui.separator();
 
             float buttonWidth = 120;
             float buttonHeight = 30;
-            float buttonReserverY = ImGui.getFrameHeightWithSpacing();
-            ImGui.setCursorPosY(ImGui.getWindowHeight() - buttonReserverY - (buttonHeight / 2) - ImGui.getStyle().getWindowPaddingY());
+            float regionHeight = ImGui.getContentRegionAvailY() - BUTTON_RESERVE - SEPARATOR_RESERVE - buttonHeight - padding;
+            if (ImGui.beginChild("##EPPD_Tab_Region", 0.0f, regionHeight, enableBorder)) {
+                renderTabContent();
+                ImGui.endChild();
+            }
+
+            ImGui.setCursorPosY(ImGui.getWindowHeight() - BUTTON_RESERVE - (buttonHeight / 2) - ImGui.getStyle().getWindowPaddingY());
             float buttonPivotX = buttonWidth * 0.5f;
             float availX = ImGui.getContentRegionAvailX();
             float applyX = (availX * 0.15f) - buttonPivotX;
@@ -96,9 +126,14 @@ public class EditProjectPreferencesDialog {
         if (!ImGui.isPopupOpen(POPUP_ID)) showDialog = false;
     }
 
-    private static void renderPreferenceEditor() {
-        int sectionY = (int) (ImGui.getContentRegionAvailY() * metaYPercentage);
-        ImGui.beginChild(PREFERENCE_ID, 0, sectionY, enableBorder);
+    private static void renderTabContent() {
+        switch (selectedTab) {
+            case General -> renderGeneral();
+            case InputMap -> renderInputMap();
+        }
+    }
+
+    private static void renderGeneral() {
         ImGui.text("Title:");
         ImGui.inputTextWithHint("##Game title", "Enter a name for the project...", gameTitle);
         if (gameTitle.isEmpty()) {
@@ -133,7 +168,50 @@ public class EditProjectPreferencesDialog {
         ImGui.textWrapped("Settings that affect the appearance of texture, project-wise.");
         ImGui.endDisabled();
         textureGlobalScale.set(inputFloat("Global Scaling", textureGlobalScale.get(), 0.01f));
+    }
 
+    private static void renderInputMap() {
+        ImGui.text("Coming soon(tm)");
+    }
+
+    private static void renderTabButtons() {
+        if (!ImGui.beginChild("##EPPD_Tabs", 0.0f, BUTTON_RESERVE, ImGuiChildFlags.None, ImGuiWindowFlags.NoScrollbar)) {
+            return;
+        }
+
+        if (!widthCalculated) {
+            tabWidth = getMaxTabNameWidth();
+            widthCalculated = true;
+        }
+
+        ImVec2 remainTableSize = ImGui.getContentRegionAvail();
+        if (!ImGui.beginTable("##EPPD Tab Buttons", TabName.size(), ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.SizingStretchProp, remainTableSize)) {
+            ImGui.endChild();
+            return;
+        }
+
+        for (TabName tab : TabName.values()) {
+            String id = "##EPPD " + tab.name + " column";
+            ImGui.tableSetupColumn(id, ImGuiTableColumnFlags.WidthFixed, tabWidth + padding);
+        }
+
+        ImVec2 availSpace;
+        ImVec2 cursorPos;
+        for (TabName tab : TabName.values()) {
+            ImGui.tableNextColumn();
+            String id = "##EPPD " + tab.name + " tab selectable";
+            boolean selected = selectedTab == tab;
+            availSpace = ImGui.getContentRegionAvail();
+            cursorPos = ImGui.getCursorPos();
+            if (ImGui.selectable(id, selected, availSpace)) selectedTab = tab;
+            float remainWidth = availSpace.x;
+            float textWidth = ImGui.calcTextSizeX(tab.name);
+            float offset = Math.max((remainWidth - textWidth) * 0.5f, 0.0f);
+            ImGui.setCursorPos(cursorPos.x + offset, cursorPos.y);
+            ImGui.text(tab.name);
+        }
+
+        ImGui.endTable();
         ImGui.endChild();
     }
 
@@ -187,4 +265,12 @@ public class EditProjectPreferencesDialog {
                 scale
         );
     }
+
+    private static float getMaxTabNameWidth() {
+        return Arrays.stream(TabName.values())
+                .map(tabName -> ImGui.calcTextSizeX(tabName.name))
+                .max(Float::compare)
+                .orElse(0.0f);
+    }
+
 }

@@ -1,8 +1,8 @@
 package editor.dialog;
 
 import TheCellBeyond.Window;
-import editor.project.Project;
-import editor.project.ProjectSceneMap;
+import project.Project;
+import project.ProjectSceneMap;
 import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.ImGuiCol;
@@ -39,7 +39,7 @@ public class SaveSceneAsDialog {
         float pivotXY = 0.5f;
 
         ImGui.setNextWindowPos(centre.x, centre.y, ImGuiCond.Appearing, pivotXY, pivotXY);
-        ImGui.setNextWindowSize(DIALOG_SIZE, ImGuiCond.FirstUseEver);
+        ImGui.setNextWindowSize(DIALOG_SIZE);
 
         if (ImGui.beginPopupModal(POPUP_ID, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)) {
             ImGui.spacing();

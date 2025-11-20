@@ -2,7 +2,7 @@ package editor;
 
 import TheCellBeyond.Window;
 import editor.dialog.*;
-import editor.project.Project;
+import project.Project;
 import eventviewer.EngineEventCallback;
 import eventviewer.event.Event;
 import eventviewer.event.EventType;

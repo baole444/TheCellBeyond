@@ -1,6 +1,6 @@
 package TheCellBeyond;
 
-import editor.project.Project;
+import project.Project;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;

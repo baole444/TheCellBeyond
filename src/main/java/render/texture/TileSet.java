@@ -301,20 +301,13 @@ public class TileSet {
         Vector2i coordinate = new Vector2i(startPosition);
 
         while (coordinate.y < countY) {
-            if (!searched.contains(coordinate)) {
-                searched.add(new Vector2i(coordinate));
-                if (!tiles.containsKey(coordinate) && scanTilePixels(coordinate, pixels, w, h)) {
-                    addTile(new Vector2i(coordinate));
+            hitTiles = new ArrayList<>();
+            neighboringSearch(coordinate, pixels, w, h, countX, countY, searched, hitTiles);
 
-                    hitTiles = new ArrayList<>();
-                    neighboringSearch(coordinate, pixels, w, h, countX, countY, searched, hitTiles);
-
-                    while (!hitTiles.isEmpty()) {
-                        List<Vector2i> newHitTiles = new ArrayList<>();
-                        for (Vector2i grid : hitTiles) neighboringSearch(grid, pixels, w, h, countX, countY, searched, newHitTiles);
-                        hitTiles = newHitTiles;
-                    }
-                }
+            while (!hitTiles.isEmpty()) {
+                List<Vector2i> newHitTiles = new ArrayList<>();
+                for (Vector2i grid : hitTiles) neighboringSearch(grid, pixels, w, h, countX, countY, searched, newHitTiles);
+                hitTiles = newHitTiles;
             }
 
             coordinate.x += 2;

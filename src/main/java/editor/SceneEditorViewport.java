@@ -2,10 +2,9 @@ package editor;
 
 import TheCellBeyond.MouseListener;
 import TheCellBeyond.Window;
-import components.Grid;
 import editor.preference.EditorPreferences;
 import editor.preference.UserPreference;
-import editor.project.Project;
+import project.Project;
 import eventviewer.EngineEventCallback;
 import eventviewer.event.Event;
 import eventviewer.event.EventType;

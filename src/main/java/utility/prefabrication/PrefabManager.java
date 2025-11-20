@@ -8,7 +8,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import components.Component;
 import components.ComponentSerializer;
-import editor.project.Project;
+import project.Project;
 
 import java.io.FileWriter;
 import java.io.IOException;
