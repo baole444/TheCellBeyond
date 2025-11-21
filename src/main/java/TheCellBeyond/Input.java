@@ -27,10 +27,13 @@ public class Input {
         return false;
     }
 
-    //TODO: Implement tracking in MouseListener and KeyListener
     public static boolean isActionJustReleased(String actionName) {
         InputAction action = getInputAction(actionName);
         if (action == null) return false;
+
+        for (Set<InputKey> combo : action.keys()) {
+            if (isKeyComboJustReleased(combo)) return true;
+        }
 
         return false;
     }
@@ -40,7 +43,7 @@ public class Input {
         for (InputKey input : keys) {
             pressed = switch (input.type()) {
                 case Keyboard -> KeyListener.isKeyPressed(input.code());
-                case Mouse -> MouseListener.mouseButtonDown(input.code());
+                case Mouse -> MouseListener.isButtonPressed(input.code());
             };
 
             if (!pressed) return false;
@@ -53,21 +56,44 @@ public class Input {
         boolean tapped = false;
 
         for (InputKey input : keys) {
-            boolean justPress = switch (input.type()) {
-                case Keyboard ->  KeyListener.isKeyTapped(input.code());
-                case Mouse -> MouseListener.mouseButtonDown(input.code()) && !MouseListener.isDragging();
-            };
-
             boolean pressed = switch (input.type()) {
                 case Keyboard -> KeyListener.isKeyPressed(input.code());
-                case Mouse -> MouseListener.mouseButtonDown(input.code());
+                case Mouse -> MouseListener.isButtonPressed(input.code());
             };
 
             if (!pressed) return false;
-            if (justPress) tapped = true;
+
+            boolean justPressed = switch (input.type()) {
+                case Keyboard ->  KeyListener.isKeyTapped(input.code());
+                case Mouse -> MouseListener.isButtonPressed(input.code()) && !MouseListener.isDragging();
+            };
+
+            if (justPressed) tapped = true;
         }
 
         return tapped;
+    }
+
+    private static boolean isKeyComboJustReleased(Set<InputKey> keys) {
+        boolean released = false;
+
+        for (InputKey input : keys) {
+            boolean pressed = switch (input.type()) {
+                case Keyboard -> KeyListener.isKeyPressed(input.code());
+                case Mouse -> MouseListener.isButtonPressed(input.code());
+            };
+
+            if (pressed) return false;
+
+            boolean justReleased = switch (input.type()) {
+                case Keyboard -> KeyListener.isKeyReleased(input.code());
+                case Mouse -> MouseListener.isButtonReleased(input.code());
+            };
+
+            if (justReleased) released = true;
+        }
+
+        return released;
     }
 
     private static InputAction getInputAction(String action) {

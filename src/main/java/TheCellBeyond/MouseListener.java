@@ -1,24 +1,28 @@
 package TheCellBeyond;
 
+import editor.ImGuiLayer;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
-import scene.Scene;
 
 import java.util.Arrays;
 
-import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
-import static org.lwjgl.glfw.GLFW.GLFW_RELEASE;
+import static org.lwjgl.glfw.GLFW.*;
 
 public class MouseListener {
     private static MouseListener instance;
+
     private double scrollX, scrollY;
     private double xPos, yPos, worldPastX, worldPastY, worldCurrentX, worldCurrentY;
-    private final boolean[] mouseButtonPressed = new boolean[3];
+
+    private final boolean[] buttonPressed = new boolean[GLFW_MOUSE_BUTTON_LAST + 1];
+    private final boolean[] buttonReleased = new boolean[GLFW_MOUSE_BUTTON_LAST + 1];
+
     private boolean isDragging;
-    private int mouseButtonDown = 0;
-    private final Vector2f workViewportPos = new Vector2f();
-    private final Vector2f workViewportSize = new Vector2f();
+    private int countButtonDown = 0;
+
+    private final Vector2f currentViewportPosition = new Vector2f();
+    private final Vector2f currentViewportSize = new Vector2f();
 
     private static boolean startupMode = true;
 
@@ -42,61 +46,47 @@ public class MouseListener {
     }
 
     public static synchronized void mousePosCallback(long window, double xPos, double yPos) {
-        if (!startupMode && Window.getImGuiLayer() != null
-                && Window.getImGuiLayer().getSceneEditorViewPort() != null
-                && !Window.getImGuiLayer().getSceneEditorViewPort().getWantCaptureMouse()) {
+        ImGuiLayer layer = Window.getImGuiLayer();
+        if (!startupMode && layer != null
+                && layer.getSceneEditorViewPort() != null
+                && !layer.getSceneEditorViewPort().getWantCaptureMouse()) {
             clear();
         }
 
-        if (get().mouseButtonDown > 0) {
-            get().isDragging = true;
+        MouseListener listener = get();
+        if (listener == null) return;
+
+        if (listener.countButtonDown > 0) {
+            listener.isDragging = true;
         }
 
-        get().xPos = xPos;
-        get().yPos = yPos;
+        listener.xPos = xPos;
+        listener.yPos = yPos;
 
-        get().worldPastX = get().worldCurrentX;
-        get().worldPastY = get().worldCurrentY;
-    }
-
-    private static void updateWorldCoordinates() {
-        Scene scene = Window.getScene();
-        if (scene == null) return;
-
-        float currentX = getX() - get().workViewportPos.x;
-        currentX = (2.0f * (currentX / get().workViewportSize.x)) - 1.0f;
-
-        float currentY = getY() - get().workViewportPos.y;
-        currentY = (2.0f * (currentY / get().workViewportSize.y)) - 1.0f;
-
-        Viewport camera = scene.viewport();
-
-        if (camera == null) return;
-
-        Vector4f tmp = new Vector4f(currentX, currentY, 0, 1);
-
-        Matrix4f inverseView = new Matrix4f(camera.getInverseViewMatrix());
-        Matrix4f inverseProjection = new Matrix4f(camera.getInverseProjectionMatrix());
-
-        tmp.mul(inverseView.mul(inverseProjection));
-
-        get().worldCurrentX = tmp.x;
-        get().worldCurrentY = tmp.y;
+        listener.worldPastX = listener.worldCurrentX;
+        listener.worldPastY = listener.worldCurrentY;
     }
 
     public static void mouseButtonCallback(long window, int button, int action, int mods) {
+        MouseListener listener = get();
+        if (listener == null) return;
+
         if (action == GLFW_PRESS) {
-            get().mouseButtonDown++;
-
-            if (button < get().mouseButtonPressed.length) {
-                get().mouseButtonPressed[button] = true;
+            listener.countButtonDown++;
+            if (isKeyValid(button)) {
+                listener.buttonPressed[button] = true;
+                listener.buttonReleased[button] = false;
             }
-        } else if (action == GLFW_RELEASE) {
-            get().mouseButtonDown--;
+            return;
+        }
 
-            if (button < get().mouseButtonPressed.length) {
-                get().mouseButtonPressed[button] = false;
-                get().isDragging = false;
+        if (action == GLFW_RELEASE) {
+            listener.countButtonDown--;
+
+            if (isKeyValid(button)) {
+                listener.buttonPressed[button] = false;
+                listener.buttonReleased[button] = true;
+                listener.isDragging = false;
             }
         }
     }
@@ -107,32 +97,42 @@ public class MouseListener {
     }
 
     public static void endFrame() {
-        get().scrollX = 0;
-        get().scrollY = 0;
+        MouseListener listener = get();
+        if (listener == null) return;
+
+        listener.scrollX = 0;
+        listener.scrollY = 0;
+
+        Arrays.fill(listener.buttonReleased, false);
 
         if (!startupMode && Window.getScene() != null) {
-            get().worldPastX = get().worldCurrentX;
-            get().worldPastY = get().worldCurrentY;
+            listener.worldPastX = listener.worldCurrentX;
+            listener.worldPastY = listener.worldCurrentY;
         }
     }
 
     public static void clear() {
-        get().scrollX = 0.0;
-        get().scrollY = 0.0;
-        get().xPos = 0.0;
-        get().yPos = 0.0;
-        get().mouseButtonDown = 0;
-        get().isDragging = false;
-        Arrays.fill(get().mouseButtonPressed, false);
+        MouseListener listener = get();
+        if (listener == null) return;
+
+        listener.scrollX = 0.0;
+        listener.scrollY = 0.0;
+        listener.xPos = 0.0;
+        listener.yPos = 0.0;
+        listener.countButtonDown = 0;
+        listener.isDragging = false;
+        Arrays.fill(listener.buttonPressed, false);
+        Arrays.fill(listener.buttonReleased, false);
     }
 
-    public static Vector2f getCursorTraverse() {
-        if (startupMode) return new Vector2f(0, 0);
+    public static Vector2f getCursorWorldTraverse() {
+        if (startupMode) return new Vector2f(0.0f);
+        MouseListener listener = get();
+        if (listener == null) return new Vector2f(0.0f);
 
-        return new Vector2f(
-                (float)(get().worldPastX - MouseListener.getWorldX()),
-                (float)(get().worldPastY - MouseListener.getWorldY())
-        );
+        float x = (float) (listener.worldPastX - listener.worldCurrentX);
+        float y = (float) (listener.worldPastY - listener.worldCurrentY);
+        return new Vector2f(x, y);
     }
 
     public static float getX() {
@@ -155,62 +155,67 @@ public class MouseListener {
         return get().isDragging;
     }
 
-    public static boolean mouseButtonDown(int button) {
-        if(button < get().mouseButtonPressed.length) {
-            return get().mouseButtonPressed[button];
-        } else {
-            return false;
-        }
+    public static boolean isButtonPressed(int keyCode) {
+        MouseListener listener = get();
+        if (listener == null || !isKeyValid(keyCode)) return false;
+
+        return listener.buttonPressed[keyCode];
     }
 
-    public static float getScreenX() {
-        return getScreen().x;
-    }
-    public static float getScreenY() {
-        return getScreen().y;
+    public static boolean isButtonReleased(int keyCode) {
+        MouseListener listener = get();
+        if (listener == null || !isKeyValid(keyCode)) return false;
+
+        return listener.buttonReleased[keyCode];
     }
 
-    public static Vector2f getScreen() {
+    public static float getScreenPositionX() {
+        return getScreenPosition().x;
+    }
+    public static float getScreenPositionY() {
+        return getScreenPosition().y;
+    }
+
+    public static Vector2f getScreenPosition() {
         if (startupMode) return new Vector2f(getX(), getY());
 
-        float instX = getX() - get().workViewportPos.x;
-        instX = (instX / get().workViewportSize.x) * Window.getWidth();
+        float instX = getX() - get().currentViewportPosition.x;
+        instX = (instX / get().currentViewportSize.x) * Window.getWidth();
 
-        float instY = getY() - get().workViewportPos.y;
-        instY = Window.getHeight() - ((instY / get().workViewportSize.y) * Window.getHeight());
+        float instY = getY() - get().currentViewportPosition.y;
+        instY = Window.getHeight() - ((instY / get().currentViewportSize.y) * Window.getHeight());
 
         return new Vector2f(instX, instY);
     }
 
-    public static void setWorkViewportPos(Vector2f workViewportPos) {
-        get().workViewportPos.set(workViewportPos);
+    public static void setCurrentViewportPosition(Vector2f position) {
+        get().currentViewportPosition.set(position);
     }
 
-    public static void setWorkViewportSize(Vector2f workViewportSize) {
-        get().workViewportSize.set(workViewportSize);
+    public static void setCurrentViewportSize(Vector2f size) {
+        get().currentViewportSize.set(size);
     }
 
-    // Remove the need to recalculate mouse callback each time it is call in a same frame
-    public static float getWorldX() {
+    public static float getWorldPositionX() {
         if (startupMode) return 0.0f;
 
-        return getWorld().x;
+        return getWorldPosition().x;
     }
 
-    public static float getWorldY() {
+    public static float getWorldPositionY() {
         if (startupMode) return 0.0f;
 
-        return getWorld().y;
+        return getWorldPosition().y;
     }
 
-    // raw mouse coordinate to world normalization coordinate
-    public static Vector2f getWorld() {
+
+    public static Vector2f getWorldPosition() {
         if (startupMode || Window.getScene() == null) return new Vector2f(0.0f, 0.0f);
 
-        float currentX = getX() - get().workViewportPos.x;
-        currentX = (2.0f * (currentX / get().workViewportSize.x)) - 1.0f;
-        float currentY = (getY() - get().workViewportPos.y);
-        currentY = (2.0f * (1.0f - (currentY / get().workViewportSize.y))) - 1;
+        float currentX = getX() - get().currentViewportPosition.x;
+        currentX = (2.0f * (currentX / get().currentViewportSize.x)) - 1.0f;
+        float currentY = (getY() - get().currentViewportPosition.y);
+        currentY = (2.0f * (1.0f - (currentY / get().currentViewportSize.y))) - 1;
 
         Viewport camera = Window.getScene().viewport();
 
@@ -223,7 +228,6 @@ public class MouseListener {
 
         tmp.mul(inverseView.mul(inverseProjection));
 
-        // reserved for traverse calculation
         get().worldCurrentX = tmp.x;
         get().worldCurrentY = tmp.y;
 
@@ -233,15 +237,14 @@ public class MouseListener {
     // Screen Coordinate = P * V * M
     // World Coordinate = S * V^-1 * p^-1
 
-
-    public static Vector2f screen2WorldCoord(Vector2f scrCoord) {
+    public static Vector2f screen2WorldCoordinate(Vector2f screenCoordinate) {
         if (startupMode || Window.getScene() == null) return new Vector2f(0.0f, 0.0f);
 
         Vector2f normalization = new Vector2f(
-                scrCoord.x / Window.getWidth(),
-                scrCoord.y / Window.getHeight()
+                screenCoordinate.x / Window.getWidth(),
+                screenCoordinate.y / Window.getHeight()
         );
-        // Shift coordinates range back to -1 > 1
+
         normalization.mul(2f).sub(new Vector2f(1f, 1f));
 
         Viewport viewport = Window.getScene().viewport();
@@ -258,14 +261,14 @@ public class MouseListener {
         return new Vector2f(tmp.x, tmp.y);
     }
 
-    public static Vector2f world2ScreenCoord(Vector2f wCoord) {
+    public static Vector2f world2ScreenCoordinate(Vector2f worldCoordinate) {
         if (startupMode || Window.getScene() == null) return new Vector2f(0.0f, 0.0f);
 
         Viewport viewport = Window.getScene().viewport();
 
         if (viewport == null) return new Vector2f(0.0f, 0.0f);
 
-        Vector4f normalization = new Vector4f(wCoord.x, wCoord.y, 0, 1);
+        Vector4f normalization = new Vector4f(worldCoordinate.x, worldCoordinate.y, 0, 1);
 
         Matrix4f view = new Matrix4f(viewport.getViewMatrix());
         Matrix4f projection = new Matrix4f(viewport.getProjectionMatrix());
@@ -279,5 +282,9 @@ public class MouseListener {
         windowSpace.mul(new Vector2f(Window.getWidth(), Window.getHeight()));
 
         return windowSpace;
+    }
+
+    private static boolean isKeyValid(int keyCode) {
+        return keyCode >= 0 && keyCode <= GLFW_MOUSE_BUTTON_LAST;
     }
 }

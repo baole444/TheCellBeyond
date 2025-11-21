@@ -96,8 +96,8 @@ public class MouseCtrl extends Component implements NotSerializeComponent {
             return;
         }
 
-        if (!MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_LEFT)) {
-            if (!MouseListener.isDragging() && !MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_LEFT) && mouseButtonHeld) {
+        if (!MouseListener.isButtonPressed(GLFW_MOUSE_BUTTON_LEFT)) {
+            if (!MouseListener.isDragging() && !MouseListener.isButtonPressed(GLFW_MOUSE_BUTTON_LEFT) && mouseButtonHeld) {
                 placeObj();
                 mouseButtonHeld = false;
             }
@@ -132,8 +132,8 @@ public class MouseCtrl extends Component implements NotSerializeComponent {
                 float gridWidth = WorldUnit.pixelToWorld(gridSize.x);
                 float gridHeight = WorldUnit.pixelToWorld(gridSize.y);
 
-                float mouseX = MouseListener.getWorldX();
-                float mouseY = MouseListener.getWorldY();
+                float mouseX = MouseListener.getWorldPositionX();
+                float mouseY = MouseListener.getWorldPositionY();
 
                 float relativeX = mouseX - tileMapPos.x;
                 float relativeY = mouseY - tileMapPos.y;
@@ -149,11 +149,11 @@ public class MouseCtrl extends Component implements NotSerializeComponent {
         }
 
         if (!UserPreference.editorPreferences().showGridLine()) {
-            targetX = MouseListener.getWorldX();
-            targetY = MouseListener.getWorldY();
+            targetX = MouseListener.getWorldPositionX();
+            targetY = MouseListener.getWorldPositionY();
         } else {
-            float x = MouseListener.getWorldX() - Settings.GRID_WIDTH / 2.0f;
-            float y = MouseListener.getWorldY() - Settings.GRID_HEIGHT / 2.0f;
+            float x = MouseListener.getWorldPositionX() - Settings.GRID_WIDTH / 2.0f;
+            float y = MouseListener.getWorldPositionY() - Settings.GRID_HEIGHT / 2.0f;
             targetX = Math.round(x / Settings.GRID_WIDTH) * Settings.GRID_WIDTH + Settings.GRID_WIDTH / 2.0f;
             targetY = Math.round(y / Settings.GRID_HEIGHT) * Settings.GRID_HEIGHT + Settings.GRID_HEIGHT / 2.0f;
         }
@@ -166,9 +166,9 @@ public class MouseCtrl extends Component implements NotSerializeComponent {
 
         ObjectSelection objectSelection = Window.getObjectSelection();
         Scene currentScene = Window.getScene();
-        if (!MouseListener.isDragging() && MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_LEFT) && clickInit < 0) {
-            int x = (int) MouseListener.getScreenX();
-            int y = (int) MouseListener.getScreenY();
+        if (!MouseListener.isDragging() && MouseListener.isButtonPressed(GLFW_MOUSE_BUTTON_LEFT) && clickInit < 0) {
+            int x = (int) MouseListener.getScreenPositionX();
+            int y = (int) MouseListener.getScreenPositionY();
 
             int gObjectId = objectSelection.checkPixelAt(x, y);
             GameObject selectedObj = currentScene.getGameObject(gObjectId);
@@ -185,19 +185,19 @@ public class MouseCtrl extends Component implements NotSerializeComponent {
             return;
         }
 
-        if (MouseListener.isDragging() && MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_LEFT)) {
+        if (MouseListener.isDragging() && MouseListener.isButtonPressed(GLFW_MOUSE_BUTTON_LEFT)) {
             if (!isBoxSelectionInit) {
                 Properties.clearSelection();
                 SceneTree.clearSelection();
                 BottomPanel.clear();
-                boxSelectionBegin = MouseListener.getScreen();
+                boxSelectionBegin = MouseListener.getScreenPosition();
                 isBoxSelectionInit = true;
             }
 
-            boxSelectionEnd = MouseListener.getScreen();
+            boxSelectionEnd = MouseListener.getScreenPosition();
 
-            Vector2f boxSelectBeginWorld = MouseListener.screen2WorldCoord(boxSelectionBegin);
-            Vector2f boxSelectEndWorld = MouseListener.screen2WorldCoord(boxSelectionEnd);
+            Vector2f boxSelectBeginWorld = MouseListener.screen2WorldCoordinate(boxSelectionBegin);
+            Vector2f boxSelectEndWorld = MouseListener.screen2WorldCoordinate(boxSelectionEnd);
 
             Vector2f halfSize = (new Vector2f(boxSelectEndWorld).
                     sub(boxSelectBeginWorld)).mul(0.5f);
@@ -255,8 +255,8 @@ public class MouseCtrl extends Component implements NotSerializeComponent {
                 new Vector2f(Settings.GRID_WIDTH, Settings.GRID_HEIGHT)
         );
 
-        Vector2f beginScrFloat = MouseListener.world2ScreenCoord(begin);
-        Vector2f endScrFloat = MouseListener.world2ScreenCoord(end);
+        Vector2f beginScrFloat = MouseListener.world2ScreenCoordinate(begin);
+        Vector2f endScrFloat = MouseListener.world2ScreenCoordinate(end);
 
         // +- 2 to offset the coordinate inside the square border.
         Vector2i beginScr = new Vector2i((int)(beginScrFloat.x) + 2, (int)(beginScrFloat.y) + 2);

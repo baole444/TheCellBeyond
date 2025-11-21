@@ -2,7 +2,6 @@ package components;
 
 import TheCellBeyond.GameObject2D;
 import TheCellBeyond.MouseListener;
-import editor.Properties;
 import org.joml.Vector2f;
 import render.texture.Sprite;
 
@@ -17,7 +16,7 @@ public class GizmoScale extends Gizmo{
     @Override
     public void editorUpdate(float dt) {
         if (activeGameObj != null && activeGameObj instanceof GameObject2D go2D) {
-            Vector2f cursorT = MouseListener.getCursorTraverse();
+            Vector2f cursorT = MouseListener.getCursorWorldTraverse();
             Vector2f currentScale = go2D.getOffsetScale();
 
             float scaleStep = 0.1f;

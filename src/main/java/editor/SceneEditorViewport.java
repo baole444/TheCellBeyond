@@ -104,8 +104,8 @@ public class SceneEditorViewport {
 
         ImGui.image(texID, winSize.x, winSize.y, 0, 1, 1, 0);
 
-        MouseListener.setWorkViewportPos(new Vector2f(leftX, bottomY));
-        MouseListener.setWorkViewportSize(new Vector2f(winSize.x, winSize.y));
+        MouseListener.setCurrentViewportPosition(new Vector2f(leftX, bottomY));
+        MouseListener.setCurrentViewportSize(new Vector2f(winSize.x, winSize.y));
 
         ImGui.end();
     }

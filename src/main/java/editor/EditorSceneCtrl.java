@@ -28,20 +28,20 @@ public class EditorSceneCtrl extends Component {
 
     @Override
     public void editorUpdate(float dt) {
-        if (MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_MIDDLE) && dragInit > 0) {
-            this.clickOrigin = MouseListener.getWorld();
+        if (MouseListener.isButtonPressed(GLFW_MOUSE_BUTTON_MIDDLE) && dragInit > 0) {
+            this.clickOrigin = MouseListener.getWorldPosition();
             dragInit -= dt;
             return;
 
-        } else if (MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_MIDDLE)) {
-            Vector2f cursorPos = MouseListener.getWorld();
+        } else if (MouseListener.isButtonPressed(GLFW_MOUSE_BUTTON_MIDDLE)) {
+            Vector2f cursorPos = MouseListener.getWorldPosition();
             Vector2f delta = new Vector2f(cursorPos).sub(this.clickOrigin);
             workViewport.position.sub(delta.mul(dt).mul(dragSensitivity));
             this.clickOrigin.lerp(cursorPos, dt);
 
         }
 
-        if (dragInit <= 0.0f && !MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_MIDDLE)) {
+        if (dragInit <= 0.0f && !MouseListener.isButtonPressed(GLFW_MOUSE_BUTTON_MIDDLE)) {
             dragInit = 0.032f;
         }
 

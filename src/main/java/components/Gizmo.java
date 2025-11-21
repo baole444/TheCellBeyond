@@ -119,10 +119,10 @@ public class Gizmo extends SpatialComponent implements NotSerializeComponent {
         boolean xAxisHover = isHoverX();
         boolean yAxisHover = isHoverY();
 
-        if ((xAxisHover || xActiveDrag) && MouseListener.isDragging() && MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_RIGHT)) {
+        if ((xAxisHover || xActiveDrag) && MouseListener.isDragging() && MouseListener.isButtonPressed(GLFW_MOUSE_BUTTON_RIGHT)) {
             xActiveDrag = true;
             yActiveDrag = false;
-        } else if ((yAxisHover || yActiveDrag) && MouseListener.isDragging() && MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_RIGHT)) {
+        } else if ((yAxisHover || yActiveDrag) && MouseListener.isDragging() && MouseListener.isButtonPressed(GLFW_MOUSE_BUTTON_RIGHT)) {
             yActiveDrag = true;
             xActiveDrag = false;
         } else {
@@ -142,7 +142,7 @@ public class Gizmo extends SpatialComponent implements NotSerializeComponent {
     }
 
     private boolean isHoverX() {
-        Vector2f cursorPos = MouseListener.getWorld();
+        Vector2f cursorPos = MouseListener.getWorldPosition();
         Vector2f xAxisPos = this.xAxisObj.getPosition();
         if (cursorPos.x <= xAxisPos.x + (gizHeight / 2.0f) &&
                 cursorPos.x >= xAxisPos.x - (gizWidth / 2.0f) &&
@@ -157,7 +157,7 @@ public class Gizmo extends SpatialComponent implements NotSerializeComponent {
     }
 
     private boolean isHoverY() {
-        Vector2f cursorPos = MouseListener.getWorld();
+        Vector2f cursorPos = MouseListener.getWorldPosition();
         Vector2f yAxisPos = this.yAxisObj.getPosition();
         if (cursorPos.x <= yAxisPos.x + (gizWidth / 2.0f) &&
                 cursorPos.x >= yAxisPos.x - (gizWidth / 2.0f) &&

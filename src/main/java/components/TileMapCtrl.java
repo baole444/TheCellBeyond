@@ -172,7 +172,7 @@ public class TileMapCtrl extends Component implements NotSerializeComponent {
         }
 
         if (selectedTiles.isEmpty()) return;
-        if (!MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_1)) return;
+        if (!MouseListener.isButtonPressed(GLFW_MOUSE_BUTTON_1)) return;
 
         if (selectedTiles.size() == 1) {
             Tile tile = selectedTiles.getFirst();
@@ -197,7 +197,7 @@ public class TileMapCtrl extends Component implements NotSerializeComponent {
             return;
         }
 
-        if (!MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_1)) return;
+        if (!MouseListener.isButtonPressed(GLFW_MOUSE_BUTTON_1)) return;
         if (lastGridPosition != null && lastGridPosition.equals(gridPos)) return;
 
         boolean removed = tileMap.removeTile(gridPos);
@@ -216,8 +216,8 @@ public class TileMapCtrl extends Component implements NotSerializeComponent {
         float width = WorldUnit.pixelToWorld(gridSize.x);
         float height = WorldUnit.pixelToWorld(gridSize.y);
 
-        float mouseX = MouseListener.getWorldX();
-        float mouseY = MouseListener.getWorldY();
+        float mouseX = MouseListener.getWorldPositionX();
+        float mouseY = MouseListener.getWorldPositionY();
 
         float relativeX = mouseX - mapPos.x;
         float relativeY = mouseY - mapPos.y;
