@@ -97,7 +97,7 @@ public class RemoveMissingProjectDialog {
                     selectedProject = new ProjectData(selectedProject.version(),
                             new ProjectPreference(), selectedProject.assets(),
                             selectedProject.sheets(), selectedProject.scenes(),
-                            selectedProject.inputActions()
+                            selectedProject.inputActions(), selectedProject.physicLayers()
                     );
                 }
             }

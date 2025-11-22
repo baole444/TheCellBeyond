@@ -11,9 +11,10 @@ public record ProjectData(
         Map<UUID, ProjectAssetMap> assets,
         Map<String, Map<String, ProjectSheetMap>> sheets,
         Map<String, ProjectSceneMap> scenes,
-        Map<String, InputAction> inputActions
+        Map<String, InputAction> inputActions,
+        PhysicLayerName physicLayers
 ) {
     public ProjectData(String version, ProjectPreference preference) {
-        this(version, preference, new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>());
+        this(version, preference, new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new PhysicLayerName());
     }
 }

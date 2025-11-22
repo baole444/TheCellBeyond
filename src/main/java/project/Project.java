@@ -4,6 +4,7 @@ import TheCellBeyond.InputAction;
 import TheCellBeyond.InputKey;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import physic2d.PhysicLayer;
 import render.Texture;
 import render.texture.SpriteSheet;
 import render.texture.TextureUnit;
@@ -40,7 +41,8 @@ public class Project {
                     CurrentProject = new ProjectData(CurrentProject.version(),
                             new ProjectPreference(), CurrentProject.assets(),
                             CurrentProject.sheets(), CurrentProject.scenes(),
-                            currentProject().inputActions()
+                            currentProject().inputActions(),
+                            currentProject().physicLayers()
                     );
                     save();
                 }
@@ -143,7 +145,7 @@ public class Project {
         CurrentProject = new ProjectData(CurrentProject.version(),
                 preference, CurrentProject.assets(),
                 CurrentProject.sheets(), CurrentProject.scenes(),
-                CurrentProject.inputActions()
+                CurrentProject.inputActions(), CurrentProject.physicLayers()
         );
 
         save();
@@ -162,7 +164,7 @@ public class Project {
             CurrentProject = new ProjectData(
                     CurrentProject.version(), CurrentProject.project(), assets,
                     CurrentProject.sheets(), CurrentProject.scenes(),
-                    CurrentProject.inputActions()
+                    CurrentProject.inputActions(), CurrentProject.physicLayers()
             );
         }
 
@@ -220,7 +222,7 @@ public class Project {
             CurrentProject = new ProjectData(
                     CurrentProject.version(), CurrentProject.project(),
                     CurrentProject.assets(), sheets, CurrentProject.scenes(),
-                    CurrentProject.inputActions()
+                    CurrentProject.inputActions(), CurrentProject.physicLayers()
             );
         }
 
@@ -288,7 +290,7 @@ public class Project {
             scenes = new HashMap<>();
             CurrentProject = new ProjectData(CurrentProject.version(), CurrentProject.project(),
                     CurrentProject.assets(), CurrentProject.sheets(), scenes,
-                    CurrentProject.inputActions()
+                    CurrentProject.inputActions(), CurrentProject.physicLayers()
             );
         }
 
@@ -351,7 +353,7 @@ public class Project {
             actions = new HashMap<>();
             CurrentProject = new ProjectData(CurrentProject.version(), CurrentProject.project(),
                     CurrentProject.assets(), CurrentProject.sheets(),
-                    CurrentProject.scenes(), actions
+                    CurrentProject.scenes(), actions, CurrentProject.physicLayers()
             );
         }
 
@@ -429,6 +431,45 @@ public class Project {
         return true;
     }
 
+    public static String getPhysicLayerName(int layerIndex) {
+        if (CurrentProject == null) return "Layer " + layerIndex;
+
+        PhysicLayerName physicLayerName = CurrentProject.physicLayers();
+        if (physicLayerName == null) {
+            physicLayerName = new PhysicLayerName();
+            CurrentProject = new ProjectData(CurrentProject.version(), CurrentProject.project(),
+                    CurrentProject.assets(), CurrentProject.sheets(), CurrentProject.scenes(),
+                    CurrentProject.inputActions(), physicLayerName);
+            save();
+        }
+
+        return CurrentProject.physicLayers().layerName(layerIndex);
+    }
+
+    public static boolean updatePhysicLayerName(int layerIndex, String newName) {
+        if (CurrentProject == null || CurrentProject.physicLayers() == null) {
+            System.err.println("No project or physic layer names loaded");
+            return false;
+        }
+
+        if (!PhysicLayer.isLayerIndexValid(layerIndex)) {
+            System.err.println("Invalid layer index: " + layerIndex);
+            return false;
+        }
+
+        if (newName == null || newName.isBlank()) return false;
+        String name = newName.trim();
+        if (name.isEmpty()) return false;
+        PhysicLayerName update = CurrentProject.physicLayers().updateLayerName(layerIndex, name);
+
+        CurrentProject = new ProjectData(CurrentProject.version(), CurrentProject.project(), CurrentProject.assets(),
+                CurrentProject.sheets(), CurrentProject.scenes(),
+                CurrentProject.inputActions(), update);
+
+        save();
+        return true;
+    }
+
     private static void sanctionRelativePath() {
         if (CurrentProject == null) return;
 
@@ -494,7 +535,7 @@ public class Project {
         CurrentProject = new ProjectData(CurrentProject.version(),
                 preference, CurrentProject.assets(),
                 CurrentProject.sheets(), CurrentProject.scenes(),
-                CurrentProject.inputActions()
+                CurrentProject.inputActions(), CurrentProject.physicLayers()
         );
 
         save();
