@@ -125,7 +125,6 @@ public class StartUpWindow{
             if (ImGui.button("Open...", buttonWidth, buttonHeight)) {
                 Path selectedPath = OpenProjectDialog.openProjectDialog();
 
-                // Check and add if not already existed in the recent project list
                 if (selectedPath != null) {
                     boolean inList = false;
                     for (RecentProject project : recentProjects.values()) {

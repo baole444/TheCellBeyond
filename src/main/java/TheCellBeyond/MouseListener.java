@@ -5,7 +5,9 @@ import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import static org.lwjgl.glfw.GLFW.*;
 
@@ -25,6 +27,7 @@ public class MouseListener {
     private final Vector2f currentViewportSize = new Vector2f();
 
     private static boolean startupMode = true;
+    private final List<Integer> pressedKeyCodes = new ArrayList<>();
 
     private MouseListener() {
         scrollX = 0.0;
@@ -76,6 +79,7 @@ public class MouseListener {
             if (isKeyValid(button)) {
                 listener.buttonPressed[button] = true;
                 listener.buttonReleased[button] = false;
+                listener.pressedKeyCodes.add(button);
             }
             return;
         }
@@ -104,7 +108,7 @@ public class MouseListener {
         listener.scrollY = 0;
 
         Arrays.fill(listener.buttonReleased, false);
-
+        listener.pressedKeyCodes.clear();
         if (!startupMode && Window.getScene() != null) {
             listener.worldPastX = listener.worldCurrentX;
             listener.worldPastY = listener.worldCurrentY;
@@ -123,6 +127,14 @@ public class MouseListener {
         listener.isDragging = false;
         Arrays.fill(listener.buttonPressed, false);
         Arrays.fill(listener.buttonReleased, false);
+        listener.pressedKeyCodes.clear();
+    }
+
+    public static List<Integer> getPressedButtons() {
+        MouseListener listener = get();
+        if (listener == null) return List.of();
+
+        return new ArrayList<>(listener.pressedKeyCodes);
     }
 
     public static Vector2f getCursorWorldTraverse() {

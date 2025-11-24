@@ -6,15 +6,21 @@ import utility.log.EngineLog;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.lwjgl.glfw.GLFW.*;
 
 public class Input {
     private static final HashMap<Integer, String> keyNames = new HashMap<>();
+    private static final HashSet<Integer> modifierKeysCode = new HashSet<>();
 
     static {
+        loadModifierKeyCodes();
+
         boolean success = loadKeyCodeName();
         if (!success) {
             for (int i = GLFW_MOUSE_BUTTON_1; i <= GLFW_MOUSE_BUTTON_LAST; i++) {
@@ -31,6 +37,14 @@ public class Input {
         if (keyCode < 0) return "Unknow key (Code " + keyCode + ")";
 
         return keyNames.get(keyCode);
+    }
+
+    public static HashSet<Integer> getModifierKeysCodes() {
+        return new HashSet<>(modifierKeysCode);
+    }
+
+    public static boolean isModifierKey(int keyCode) {
+        return modifierKeysCode.contains(keyCode);
     }
 
     public static boolean isActionJustPressed(String actionName) {
@@ -129,6 +143,18 @@ public class Input {
         return Project.currentProject().inputActions().get(action);
     }
 
+    private static void loadModifierKeyCodes() {
+        modifierKeysCode.clear();
+        modifierKeysCode.add(GLFW_KEY_LEFT_ALT);
+        modifierKeysCode.add(GLFW_KEY_RIGHT_ALT);
+        modifierKeysCode.add(GLFW_KEY_LEFT_CONTROL);
+        modifierKeysCode.add(GLFW_KEY_RIGHT_CONTROL);
+        modifierKeysCode.add(GLFW_KEY_LEFT_SHIFT);
+        modifierKeysCode.add(GLFW_KEY_RIGHT_SHIFT);
+        modifierKeysCode.add(GLFW_KEY_LEFT_SUPER);
+        modifierKeysCode.add(GLFW_KEY_RIGHT_SUPER);
+    }
+
     private static boolean loadKeyCodeName() {
         boolean success = false;
         try {
@@ -145,6 +171,7 @@ public class Input {
                         .replace("GLFW_MOUSE_BUTTON_", "Mouse ")
                         .replace("_", " ");
 
+                if (friendlyName.length() > 1) friendlyName = toCapitalizeFully(friendlyName.toLowerCase());
                 keyNames.put(val, friendlyName);
                 success = true;
             }
@@ -153,5 +180,11 @@ public class Input {
         }
 
         return success;
+    }
+
+    private static String toCapitalizeFully(String input) {
+        return Arrays.stream(input.split("\\s+"))
+                .map(w -> w.substring(0, 1).toUpperCase() + w.substring(1))
+                .collect(Collectors.joining(" "));
     }
 }

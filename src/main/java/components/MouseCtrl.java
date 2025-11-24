@@ -74,12 +74,12 @@ public class MouseCtrl extends Component implements NotSerializeComponent {
 
         clickInit -= dt;
 
+        if (!ImGuiLayer.editorWantCaptureMouse() || ImGui.isPopupOpen("", ImGuiPopupFlags.AnyPopup)) return;
+
         if (holdObj == null) {
             onNotHoldingObject();
             return;
         }
-
-        if (!ImGuiLayer.getWantedCaptureMouse() || ImGui.isPopupOpen("", ImGuiPopupFlags.AnyPopup)) return;
 
         Vector2f targetPos = getTargetPos();
         if (holdObj instanceof GameObject2D go2D) {

@@ -34,7 +34,7 @@ public class TileMapCtrl extends Component implements NotSerializeComponent {
 
     @Override
     public void editorUpdate(float dt) {
-        if (!ImGuiLayer.getWantedCaptureMouse() || ImGui.isPopupOpen("", ImGuiPopupFlags.AnyPopup)) return;
+        if (!ImGuiLayer.editorWantCaptureMouse() || ImGui.isPopupOpen("", ImGuiPopupFlags.AnyPopup)) return;
 
         TileMap editingTileMap = TileMapEditor.getEditingTileMap();
 

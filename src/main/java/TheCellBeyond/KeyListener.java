@@ -1,6 +1,8 @@
 package TheCellBeyond;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import static org.lwjgl.glfw.GLFW.*;
 
@@ -13,6 +15,7 @@ public class KeyListener {
 
     private final StringBuilder textInput = new StringBuilder();
     private boolean hasTextInput = false;
+    private final List<Integer> tappedKeyCodes = new ArrayList<>();
 
     private KeyListener() {}
     public static KeyListener get() {
@@ -33,6 +36,7 @@ public class KeyListener {
         if (action == GLFW_PRESS) {
             listener.keyPressed[key] = true;
             listener.keyTapped[key] = true;
+            listener.tappedKeyCodes.add(key);
             listener.keyReleased[key] = false;
             return;
         }
@@ -84,6 +88,13 @@ public class KeyListener {
         if (listener == null || !isKeyValid(keyCode)) return false;
 
         return listener.keyTapped[keyCode];
+    }
+
+    public static List<Integer> getTappedKeyCode() {
+        KeyListener listener = get();
+        if (listener == null) return List.of();
+
+        return new ArrayList<>(listener.tappedKeyCodes);
     }
 
     /**
@@ -156,6 +167,7 @@ public class KeyListener {
         Arrays.fill(listener.keyTapped, false);
         Arrays.fill(listener.keyReleased, false);
         listener.mods = 0;
+        listener.tappedKeyCodes.clear();
     }
 
     private static boolean isKeyValid(int keyCode) {

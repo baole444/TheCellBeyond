@@ -10,7 +10,6 @@ import imgui.flag.*;
 import imgui.gl3.ImGuiImplGl3;
 import imgui.glfw.ImGuiImplGlfw;
 import imgui.type.ImBoolean;
-import render.ObjectSelection;
 import scene.Scene;
 import org.joml.Math;
 import utility.AssetReference;
@@ -38,6 +37,8 @@ public class ImGuiLayer {
     private static boolean resetLayout = false;
     private static boolean exitFrameEarly = false;
     private static final AtomicBoolean wantedCaptureMouse = new AtomicBoolean(false);
+    private static final AtomicBoolean wantedCaptureKey = new AtomicBoolean(false);
+    private static final AtomicBoolean prioritizeEngineInputCallback = new AtomicBoolean(false);
 
     public ImGuiLayer(long windowPtr) {
         this.sceneEditorViewport = new SceneEditorViewport();
@@ -50,7 +51,6 @@ public class ImGuiLayer {
         guiFont(io);
         io.setBackendFlags(ImGuiBackendFlags.HasMouseCursors);
 
-
         glfwSetMouseButtonCallback(windowPtr, (w, button, action, mods) -> {
             final boolean[] mouseDown = new boolean[5];
 
@@ -61,25 +61,24 @@ public class ImGuiLayer {
             mouseDown[4] = button == GLFW_MOUSE_BUTTON_5 && action != GLFW_RELEASE;
 
             io.setMouseDown(mouseDown);
-
-            if (!io.getWantCaptureMouse() && mouseDown[1]) {
+            boolean wantCaptureMouse = io.getWantCaptureMouse();
+            if (!wantCaptureMouse && mouseDown[1]) {
                 ImGui.setWindowFocus(null);
             }
-
-            if (!io.getWantCaptureMouse() || sceneEditorViewport.getWantCaptureMouse()) {
+            boolean SEVWantMouse = sceneEditorViewport.getWantCaptureMouse();
+            if (!wantCaptureMouse || SEVWantMouse || prioritizeEngineInputCallback.get()) {
                 MouseListener.mouseButtonCallback(w, button, action, mods);
             }
         });
 
         glfwSetScrollCallback(windowPtr, (w, x, y) -> {
-            if (!io.getWantCaptureMouse() && (Math.abs(x) > 0 || Math.abs(y) > 0)) {
+            boolean wantCaptureMouse = io.getWantCaptureMouse();
+            if (!wantCaptureMouse && (Math.abs(x) > 0 || Math.abs(y) > 0)) {
                 ImGui.setWindowFocus(null);
             }
-
-            if (!io.getWantCaptureMouse() || sceneEditorViewport.getWantCaptureMouse()) {
+            boolean SEVWantMouse = sceneEditorViewport.getWantCaptureMouse();
+            if (!wantCaptureMouse || SEVWantMouse || prioritizeEngineInputCallback.get()) {
                 MouseListener.mouseScrollCallback(w, x, y);
-            } else {
-                MouseListener.clear();
             }
         });
 
@@ -162,6 +161,7 @@ public class ImGuiLayer {
         glClear(GL_COLOR_BUFFER_BIT);
 
         wantedCaptureMouse.set(io.getWantCaptureMouse());
+        wantedCaptureKey.set(io.getWantCaptureKeyboard());
 
         ImGui.render();
         imGuiGl3.renderDrawData(ImGui.getDrawData());
@@ -220,7 +220,15 @@ public class ImGuiLayer {
         resetLayout = true;
     }
 
-    public static boolean getWantedCaptureMouse() {
+    public static boolean editorWantCaptureMouse() {
         return wantedCaptureMouse.get();
+    }
+
+    public static boolean editorWantCaptureKeyboard() {
+        return wantedCaptureMouse.get();
+    }
+
+    public static void prioritizeEngineInputCallback(boolean prioritize) {
+        prioritizeEngineInputCallback.set(prioritize);
     }
 }

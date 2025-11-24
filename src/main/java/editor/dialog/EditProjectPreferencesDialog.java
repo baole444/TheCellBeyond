@@ -1,7 +1,13 @@
 package editor.dialog;
 
+import TheCellBeyond.Input;
+import TheCellBeyond.InputAction;
+import TheCellBeyond.KeyListener;
+import TheCellBeyond.MouseListener;
+import editor.ImGuiLayer;
 import imgui.flag.*;
 import project.Project;
+import project.ProjectData;
 import project.ProjectPreference;
 import imgui.ImGui;
 import imgui.ImVec2;
@@ -12,7 +18,7 @@ import imgui.type.ImString;
 import org.joml.Vector2i;
 import utility.IdPool;
 
-import java.util.Arrays;
+import java.util.*;
 
 public class EditProjectPreferencesDialog {
     private enum TabName {
@@ -29,10 +35,11 @@ public class EditProjectPreferencesDialog {
             return values().length;
         }
     }
+
     private static final IdPool ID_POOL = new IdPool(0, false);
     private static final String POPUP_ID = "Project Preferences";
-    private static final String PREFERENCE_ID = "Preference_Editor";
     private static final ImVec2 DIALOG_SIZE = new ImVec2(720.0f, 640.0f);
+    private static final int transparentColor = ImGui.colorConvertFloat4ToU32(0.0f, 0.0f, 0.0f, 0.0f);
 
     private static final float BUTTON_RESERVE = ImGui.getFrameHeightWithSpacing();
     private static final float SEPARATOR_RESERVE = ImGui.getStyle().getItemSpacingY();
@@ -49,10 +56,20 @@ public class EditProjectPreferencesDialog {
     private static final ImBoolean maintainAspectRatio = new ImBoolean(true);
     private static final ImFloat textureGlobalScale = new ImFloat(1.0f);
 
+    private static final Map<String, InputAction> inputActions = new HashMap<>();
+    private static final ImString actionNameSearchFilter = new ImString(128);
+    private static final List<Integer> actionKeySearchFilter = new ArrayList<>();
+    private static final Set<Integer> currentMods = new HashSet<>();
+    private static boolean filterChanged = true;
+    private static boolean listeningInput = false;
+
+
     public static void show() {
         showDialog = true;
+        clearInputFilter();
         resetTab();
         loadFromPreference();
+        loadInputActions();
     }
 
     private static void resetTab() {
@@ -171,7 +188,112 @@ public class EditProjectPreferencesDialog {
     }
 
     private static void renderInputMap() {
-        ImGui.text("Coming soon(tm)");
+        if (!ImGui.beginTable("EPPD_InputMap_Search", 4, ImGui.getContentRegionAvailX())) return;
+        float columnWidth = (ImGui.getContentRegionAvailX() - ImGui.calcTextSizeX("+X Clear All+")) / 2.0f;
+        ImGui.tableSetupColumn("EPPD_InputMap_Search_Name_Column", ImGuiTableColumnFlags.WidthFixed, columnWidth);
+        ImGui.tableSetupColumn("EPPD_InputMap_Name_Clear_Column", ImGuiTableColumnFlags.WidthFixed);
+        ImGui.tableSetupColumn("EPPD_InputMap_Search_Key_Column", ImGuiTableColumnFlags.WidthFixed, columnWidth * 0.9f);
+        ImGui.tableSetupColumn("EPPD_InputMap_Clear_All_Column", ImGuiTableColumnFlags.WidthFixed);
+
+        ImGui.tableNextColumn();
+        ImGui.pushItemWidth(ImGui.getContentRegionAvailX());
+        if (ImGui.inputTextWithHint("##EPPD_Filter_Action_Name_Input", "Filter by name...", actionNameSearchFilter, ImGuiInputTextFlags.EscapeClearsAll)) filterChanged = true;
+        ImGui.popItemWidth();
+
+        ImGui.tableNextColumn();
+        ImGui.pushStyleColor(ImGuiCol.Button, transparentColor);
+        ImGui.pushStyleColor(ImGuiCol.ButtonHovered, transparentColor);
+        if (ImGui.button("X##EPPD_Clear_Action_Name_Filter")) {
+            actionNameSearchFilter.clear();
+            filterChanged = true;
+        }
+        ImGui.popStyleColor(2);
+
+        ImGui.tableNextColumn();
+        renderInputFilter();
+
+        ImGui.tableNextColumn();
+        if (ImGui.button("Clear All##EPPD_Clear_All_Filter")) clearInputFilter();
+
+        ImGui.endTable();
+    }
+
+    private static void renderInputFilter() {
+        String displayText = getFilterInputKeyName();
+        String hint = listeningInput ? "Listening for input..." : "Filter by input...";
+
+        ImString display = new ImString(displayText, 128);
+        ImGui.pushItemWidth(ImGui.getContentRegionAvailX());
+        ImGui.inputTextWithHint("##EPPD_Filtered_Action_Key_Input", hint, display, ImGuiInputTextFlags.ReadOnly);
+        ImGui.popItemWidth();
+
+        boolean isActive = ImGui.isItemActive();
+        if (isActive && !listeningInput) {
+            ImGuiLayer.prioritizeEngineInputCallback(true);
+            listeningInput = true;
+            currentMods.clear();
+            actionKeySearchFilter.clear();
+        }
+
+        if (!isActive && listeningInput) {
+            ImGuiLayer.prioritizeEngineInputCallback(false);
+            listeningInput = false;
+        }
+
+        if (listeningInput) recordFilterInput();
+    }
+
+    private static String getFilterInputKeyName() {
+        if (actionKeySearchFilter.isEmpty()) return "";
+
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < actionKeySearchFilter.size(); i++) {
+            if (i > 0) builder.append(" + ");
+            int keyCode = actionKeySearchFilter.get(i);
+            String name = Input.getKeyName(keyCode);
+            builder.append(name != null ? name : "Unknown");
+        }
+
+        return builder.toString();
+    }
+
+    private static void recordFilterInput() {
+        Set<Integer> newMods = new HashSet<>();
+        for (int keyCode : Input.getModifierKeysCodes()) {
+            if (KeyListener.isKeyPressed(keyCode)) {
+                newMods.add(keyCode);
+            }
+        }
+
+        for (int keyCode : KeyListener.getTappedKeyCode()) {
+            if (Input.isModifierKey(keyCode)) continue;
+
+            actionKeySearchFilter.clear();
+            actionKeySearchFilter.addAll(newMods);
+            actionKeySearchFilter.add(keyCode);
+            filterChanged = true;
+            return;
+        }
+
+        for (int keyCode : MouseListener.getPressedButtons()) {
+            if (MouseListener.isDragging()) return;
+            actionKeySearchFilter.clear();
+            actionKeySearchFilter.addAll(newMods);
+            actionKeySearchFilter.add(keyCode);
+            filterChanged = true;
+            return;
+        }
+
+        if (!newMods.equals(currentMods)) {
+            currentMods.clear();
+            currentMods.addAll(newMods);
+
+            if (!newMods.isEmpty()) {
+                actionKeySearchFilter.clear();
+                actionKeySearchFilter.addAll(newMods);
+                filterChanged = true;
+            }
+        }
     }
 
     private static void renderTabButtons() {
@@ -197,13 +319,17 @@ public class EditProjectPreferencesDialog {
 
         ImVec2 availSpace;
         ImVec2 cursorPos;
+        TabName pastTab = selectedTab;
         for (TabName tab : TabName.values()) {
             ImGui.tableNextColumn();
             String id = "##EPPD " + tab.name + " tab selectable";
             boolean selected = selectedTab == tab;
             availSpace = ImGui.getContentRegionAvail();
             cursorPos = ImGui.getCursorPos();
-            if (ImGui.selectable(id, selected, availSpace)) selectedTab = tab;
+            if (ImGui.selectable(id, selected, availSpace)) {
+                selectedTab = tab;
+                resetInputMap(pastTab, tab);
+            }
             float remainWidth = availSpace.x;
             float textWidth = ImGui.calcTextSizeX(tab.name);
             float offset = Math.max((remainWidth - textWidth) * 0.5f, 0.0f);
@@ -213,6 +339,29 @@ public class EditProjectPreferencesDialog {
 
         ImGui.endTable();
         ImGui.endChild();
+    }
+
+    private static void resetInputMap(TabName pastTab, TabName selectedTab) {
+        if (pastTab == TabName.InputMap && pastTab == selectedTab) return;
+        if (pastTab != TabName.InputMap && selectedTab == TabName.InputMap) {
+            loadInputActions();
+            clearInputFilter();
+            return;
+        }
+
+        if (pastTab == TabName.InputMap) {
+            clearInputFilter();
+            inputActions.clear();
+        }
+    }
+
+    private static void clearInputFilter() {
+        filterChanged = true;
+        listeningInput = false;
+        ImGuiLayer.prioritizeEngineInputCallback(false);
+        actionKeySearchFilter.clear();
+        actionNameSearchFilter.clear();
+        currentMods.clear();
     }
 
     private static int inputInt(String label, int target, int minValue) {
@@ -252,6 +401,14 @@ public class EditProjectPreferencesDialog {
         textureGlobalScale.set(preference.textureGlobalScale());
     }
 
+    private static void loadInputActions() {
+        ProjectData project = Project.currentProject();
+
+        if (project == null || project.inputActions() == null) return;
+        inputActions.clear();
+        inputActions.putAll(project.inputActions());
+    }
+
     private static void savePreference() {
         if (gameTitle.isEmpty()) gameTitle.set("Untitled Game");
 
@@ -272,5 +429,4 @@ public class EditProjectPreferencesDialog {
                 .max(Float::compare)
                 .orElse(0.0f);
     }
-
 }

@@ -4,7 +4,7 @@ import TheCellBeyond.GameObject;
 import TheCellBeyond.Transform;
 import components.*;
 import editor.EditorIcons;
-import editor.EditorSceneCtrl;
+import components.EditorSceneCtrl;
 import editor.ImEditorGui;
 import editor.dialog.AddSpriteSheetDialog;
 import editor.dialog.AddTextureUnitDialog;
@@ -43,9 +43,11 @@ public class SceneEditor extends SceneInit implements EngineEventListener {
     private GameObject levelEditorObject;
 
     private final Map<String, Map<String, SpriteSheet>> categorizedSpriteSheetList = new HashMap<>();
+    private final Map<String, Map<String, SpriteSheet>> filteredSpriteSheetList = new HashMap<>();
     private final Map<UUID, TextureUnit> textureUnits = new HashMap<>();
 
     private transient final ImString spriteSearchFilter;
+    private transient boolean filterChanged = true;
 
     public SceneEditor() {
         spriteSearchFilter = new ImString(128);
@@ -81,6 +83,7 @@ public class SceneEditor extends SceneInit implements EngineEventListener {
         Project.loadProjectData();
         loadCategorizedSheet();
         loadTextureUnits();
+        filterChanged = true;
     }
 
     @Override
@@ -114,13 +117,16 @@ public class SceneEditor extends SceneInit implements EngineEventListener {
                 float buttonW = 30.0f;
                 float searchW = Math.min(360.0f, ImGui.getContentRegionAvailX() - buttonW - ImGui.getStyle().getItemSpacingX());
                 ImGui.pushItemWidth(searchW);
-                ImGui.inputTextWithHint("##Search", "Enter sheet name...", spriteSearchFilter);
+                if (ImGui.inputTextWithHint("##Search", "Enter sheet name...", spriteSearchFilter)) filterChanged = true;
                 ImGui.popItemWidth();
                 ImGui.sameLine();
                 ImGui.pushStyleColor(ImGuiCol.Button, 0.7f, 0.2f, 0.2f, 1.0f);
                 ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.8f, 0.3f, 0.3f, 1.0f);
                 ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0.7f, 0.2f, 0.2f, 1.0f);
-                if (ImGui.button("X", buttonW, 0.0f)) spriteSearchFilter.clear();
+                if (ImGui.button("X", buttonW, 0.0f)) {
+                    spriteSearchFilter.clear();
+                    filterChanged = true;
+                }
                 ImGui.popStyleColor(3);
                 drawSpriteList();
                 ImGui.endTabItem();
@@ -197,13 +203,13 @@ public class SceneEditor extends SceneInit implements EngineEventListener {
             return;
         }
 
-        Map<String, Map<String, SpriteSheet>> filterCategorizedSheetMap = searchFilter(spriteSearchFilter.get(), categorizedSpriteSheetList);
-        if (filterCategorizedSheetMap.isEmpty()) {
+        searchFilter(spriteSearchFilter.get(), categorizedSpriteSheetList);
+        if (filteredSpriteSheetList.isEmpty()) {
             ImGui.textDisabled("No sheet contains \"" + spriteSearchFilter.get() + "\" in their name");
             return;
         }
         if (ImGui.beginTabBar("Sheet_category_tabBar")) {
-            for (Map.Entry<String, Map<String, SpriteSheet>> categoryEntry : filterCategorizedSheetMap.entrySet()) {
+            for (Map.Entry<String, Map<String, SpriteSheet>> categoryEntry : filteredSpriteSheetList.entrySet()) {
                 String category = categoryEntry.getKey();
                 Map<String, SpriteSheet> sheetMap = categoryEntry.getValue();
 
@@ -344,21 +350,28 @@ public class SceneEditor extends SceneInit implements EngineEventListener {
     }
 
 
-    private Map<String, Map<String, SpriteSheet>> searchFilter(String filterTerm, Map<String, Map<String, SpriteSheet>> categorizedSheets) {
-        if (filterTerm == null || filterTerm.isBlank()) {
-            return new HashMap<>(categorizedSheets);
-        }
+    private void searchFilter(String filterTerm, Map<String, Map<String, SpriteSheet>> categorizedSheets) {
+        if (filterTerm == null || !filterChanged) return;
 
         String sanctioned = filterTerm.trim().toLowerCase();
+        filteredSpriteSheetList.clear();
+        if (sanctioned.isEmpty()) {
+            filteredSpriteSheetList.putAll(categorizedSheets);
+            filterChanged = false;
+            return;
+        }
 
         // Basically this filter the sheet map with matching filter term, then filter out the tab map where there is no sheet map inside.
-        return categorizedSheets.entrySet().stream()
+        filteredSpriteSheetList.putAll(categorizedSheets.entrySet().stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, tab -> tab.getValue().entrySet().stream()
                         .filter(header -> header.getKey().toLowerCase().contains(sanctioned))
                         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
                 ))
                 .entrySet().stream().filter(entry -> !entry.getValue().isEmpty())
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
+        );
+
+        filterChanged = false;
     }
 
     private void loadCategorizedSheet() {

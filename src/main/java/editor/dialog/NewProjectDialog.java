@@ -1,5 +1,7 @@
 package editor.dialog;
 
+import editor.preference.RecentProject;
+import editor.preference.UserPreference;
 import project.Project;
 import project.ProjectPreference;
 import eventviewer.EngineEventCallback;
@@ -201,6 +203,7 @@ public class NewProjectDialog {
 
         if (success) {
             String toYML = projectRoot.resolve("_project.yml").toString();
+            registerRecentProject(preference, toYML);
             EngineEventCallback.emit(toYML, new Event(EventType.PROJECT_LOAD));
         }
     }
@@ -212,7 +215,6 @@ public class NewProjectDialog {
         final ImInt destination = new ImInt(target);
 
         modified = ImGui.inputInt(label, destination);
-
         if (modified) target = Math.max(destination.get(), minValue);
 
         ImGui.popID();
@@ -237,5 +239,10 @@ public class NewProjectDialog {
         Path projectYAML = projectRoot.resolve("_project.yml");
 
         projectAlreadyExist.set(projectYAML.toFile().exists());
+    }
+
+    private static void registerRecentProject(ProjectPreference preference, String ymlPath) {
+        RecentProject project = new RecentProject(preference.name(), ymlPath, null);
+        UserPreference.addRecentProject(project);
     }
 }

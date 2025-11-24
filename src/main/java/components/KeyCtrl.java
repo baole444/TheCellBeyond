@@ -4,10 +4,13 @@ import TheCellBeyond.GameObject;
 import TheCellBeyond.GameObject2D;
 import TheCellBeyond.KeyListener;
 import TheCellBeyond.Window;
+import editor.ImGuiLayer;
 import editor.Properties;
 import eventviewer.EngineEventCallback;
 import eventviewer.event.Event;
 import eventviewer.event.EventType;
+import imgui.ImGui;
+import imgui.flag.ImGuiPopupFlags;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import utility.Settings;
@@ -26,6 +29,8 @@ import static org.lwjgl.glfw.GLFW.*;
 public class KeyCtrl extends Component implements NotSerializeComponent {
     @Override
     public void editorUpdate(float dt) {
+        if (!ImGuiLayer.editorWantCaptureKeyboard() || ImGui.isPopupOpen("", ImGuiPopupFlags.AnyPopup)) return;
+
         GameObject activeGameObj = Properties.getActiveGameObject();
         List<GameObject> activeObjList = Properties.getActiveGameObjects();
 

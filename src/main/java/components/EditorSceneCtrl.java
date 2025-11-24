@@ -1,10 +1,11 @@
-package editor;
+package components;
 
 import TheCellBeyond.KeyListener;
 import TheCellBeyond.MouseListener;
 import TheCellBeyond.Viewport;
-import components.Component;
-import org.joml.Math;
+import editor.ImGuiLayer;
+import imgui.ImGui;
+import imgui.flag.ImGuiPopupFlags;
 import org.joml.Vector2f;
 
 import static org.lwjgl.glfw.GLFW.*;
@@ -28,6 +29,8 @@ public class EditorSceneCtrl extends Component {
 
     @Override
     public void editorUpdate(float dt) {
+        if (!ImGuiLayer.editorWantCaptureMouse() || !ImGuiLayer.editorWantCaptureKeyboard() || ImGui.isPopupOpen("", ImGuiPopupFlags.AnyPopup)) return;
+
         if (MouseListener.isButtonPressed(GLFW_MOUSE_BUTTON_MIDDLE) && dragInit > 0) {
             this.clickOrigin = MouseListener.getWorldPosition();
             dragInit -= dt;
@@ -46,13 +49,13 @@ public class EditorSceneCtrl extends Component {
         }
 
         if (MouseListener.getScrollY() != 0.0f) {
-            float addVal = (float) java.lang.Math.pow(Math.abs(MouseListener.getScrollY()) * scrollSensitivity,
-                    1 / workViewport.getZoom()
-            );
+            float absScroll = Math.abs(MouseListener.getScrollY()) * scrollSensitivity;
+            float addVal = (float) Math.pow(absScroll, 1.0f / workViewport.getZoom());
             addVal *= -Math.signum(MouseListener.getScrollY());
-            if (workViewport.getZoom() + addVal <= MAX_ZOOM && workViewport.getZoom() + addVal >= MIN_ZOOM) {
-                workViewport.addZoom(addVal);
-            }
+            float finalZoom = workViewport.getZoom() + addVal;
+            finalZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, finalZoom));
+            workViewport.setZoom(finalZoom);
+
         }
 
         if (KeyListener.isKeyPressed(GLFW_KEY_Z)) {
@@ -60,7 +63,7 @@ public class EditorSceneCtrl extends Component {
         }
 
         if (isResetZ) {
-                this.workViewport.setZoom(1.0f);
+                workViewport.setZoom(1.0f);
                 isResetZ= false;
         }
 

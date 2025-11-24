@@ -72,7 +72,6 @@ public class OpenProjectDialog {
                     )
             );
 
-            // Check the result, set project file path and free the pointer.
             return checkResult(result, pointerBuffer);
         } catch (Exception e) {
             System.err.println("Error while opening file dialog: " + e.getMessage());
