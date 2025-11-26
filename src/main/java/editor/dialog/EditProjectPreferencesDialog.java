@@ -55,11 +55,9 @@ public class EditProjectPreferencesDialog {
     private static final ImBoolean allowResize = new ImBoolean(false);
     private static final ImBoolean maintainAspectRatio = new ImBoolean(true);
     private static final ImFloat textureGlobalScale = new ImFloat(1.0f);
+    private static boolean projectPreferencesChanged = false;
 
     private static final Map<String, InputAction> inputActions = new HashMap<>();
-    private static final Map<String, InputAction> newInputActions = new HashMap<>();
-    private static final Set<String> removedInputActions = new HashSet<>();
-
     private static final ImString newActionName = new ImString(128);
     private static final ImString actionNameSearchFilter = new ImString(128);
     private static final List<Integer> actionKeySearchFilter = new ArrayList<>();
@@ -70,10 +68,9 @@ public class EditProjectPreferencesDialog {
     private static final Map<String, InputAction> filteredInputActions = new LinkedHashMap<>();
 
     public static void show() {
+        projectPreferencesChanged = false;
         showDialog = true;
         newActionName.clear();
-        newInputActions.clear();
-        removedInputActions.clear();
         clearInputFilter();
         resetTab();
         loadFromPreference();
@@ -84,8 +81,14 @@ public class EditProjectPreferencesDialog {
         selectedTab = TabName.General;
     }
 
+    private static void syncWithProject() {
+        loadFromPreference();
+        loadInputActions();
+    }
+
     public static void imgui() {
         if (!showDialog) return;
+        syncWithProject();
 
         ImGui.openPopup(POPUP_ID);
 
@@ -107,48 +110,30 @@ public class EditProjectPreferencesDialog {
                 ImGui.endChild();
             }
 
-            ImGui.setCursorPosY(ImGui.getWindowHeight() - BUTTON_RESERVE - (buttonHeight / 2) - ImGui.getStyle().getWindowPaddingY());
-            float buttonPivotX = buttonWidth * 0.5f;
-            float availX = ImGui.getContentRegionAvailX();
-            float applyX = (availX * 0.15f) - buttonPivotX;
-            float saveX = (availX * 0.5f) - buttonPivotX;
-            float cancelX = (availX * 0.85f) - buttonPivotX;
-            boolean canModify = gameTitle.isNotEmpty() && gameWindowSize.x > 0 && gameWindowSize.y > 0;
-            ImGui.setCursorPosX(applyX);
-            if (canModify) {
-                if (ImGui.button("Apply", buttonWidth, buttonHeight)) savePreference();
-            } else {
-                ImGui.beginDisabled();
-                ImGui.button("Apply", buttonWidth, buttonHeight);
-                ImGui.endDisabled();
+            if (projectPreferencesChanged) {
+                autoSavePreferences();
+                projectPreferencesChanged = false;
             }
 
-            ImGui.sameLine();
-            ImGui.setCursorPosX(saveX);
-            if (canModify) {
-                if (ImGui.button("Save", buttonWidth, buttonHeight)) {
-                    savePreference();
-                    showDialog = false;
-                    ImGui.closeCurrentPopup();
-                }
-            } else {
-                ImGui.beginDisabled();
-                ImGui.button("Save", buttonWidth, buttonHeight);
-                ImGui.endDisabled();
-            }
-
-            ImGui.sameLine();
-            ImGui.setCursorPosX(cancelX);
-            if (ImGui.button("Cancel", buttonWidth, buttonHeight)) {
-                showDialog = false;
-                ImGui.closeCurrentPopup();
-            }
+            renderCloseButton(buttonWidth, buttonHeight);
 
             ImGui.endPopup();
             ID_POOL.reset();
         }
 
         if (!ImGui.isPopupOpen(POPUP_ID)) showDialog = false;
+    }
+
+    private static void renderCloseButton(float buttonWidth, float buttonHeight) {
+        ImGui.setCursorPosY(ImGui.getWindowHeight() - BUTTON_RESERVE - (buttonHeight / 2) - ImGui.getStyle().getWindowPaddingY());
+        float buttonPivotX = buttonWidth * 0.5f;
+        float availX = ImGui.getContentRegionAvailX();
+        float cancelX = (availX * 0.5f) - buttonPivotX;
+        ImGui.setCursorPosX(cancelX);
+        if (ImGui.button("Close##EPPD_CLose_Dialog", buttonWidth, buttonHeight)) {
+            showDialog = false;
+            ImGui.closeCurrentPopup();
+        }
     }
 
     private static void renderTabContent() {
@@ -207,21 +192,11 @@ public class EditProjectPreferencesDialog {
         if (ImGui.inputTextWithHint("##EPPD_Filter_Action_Name_Input", "Filter by name...", actionNameSearchFilter, ImGuiInputTextFlags.EscapeClearsAll)) filterChanged = true;
         ImGui.popItemWidth();
         ImGui.sameLine();
-        ImGui.beginGroup();
-        ImGui.pushStyleColor(ImGuiCol.Button, transparentColor);
-        ImGui.pushStyleColor(ImGuiCol.ButtonHovered, transparentColor);
-        if (ImGui.button("X##EPPD_Clear_Action_Name_Filter")) {
+        renderClearButton("##EPPD_Clear_Action_Name_Filter", "Clear action name filter", () -> {
             actionNameSearchFilter.clear();
             filterChanged = true;
-        }
-        ImGui.popStyleColor(2);
-        if (ImGui.isItemHovered()) {
-            ImGui.beginTooltip();
-            ImGui.text("Clear action name filter");
-            ImGui.endTooltip();
-        }
+        });
 
-        ImGui.endGroup();
         ImGui.tableNextColumn();
         renderInputFilter();
 
@@ -229,32 +204,24 @@ public class EditProjectPreferencesDialog {
         if (ImGui.button("Clear All##EPPD_Clear_All_Filter", ImGui.getContentRegionAvailX(), 0.0f)) clearInputFilter();
 
         ImGui.endTable();
+
+        ImGui.separator();
         if (!ImGui.beginTable("EPPD_InputMap_New_Action_Table", 2, ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.SizingFixedFit, ImGui.getContentRegionAvailX())) return;
-        ImGui.tableSetupColumn("EPPD_New_Action_Name_Input_Column", ImGuiTableColumnFlags.WidthStretch);
-        ImGui.tableSetupColumn("EPPD_Create_New_Action_Column", ImGuiTableColumnFlags.WidthFixed);
+        ImGui.tableSetupColumn("EPPD_New_Action_Name_Input_Column", ImGuiTableColumnFlags.WidthFixed, columnWidth * 1.9f + ImGui.getStyle().getItemSpacingX());
+        ImGui.tableSetupColumn("EPPD_Create_New_Action_Column", ImGuiTableColumnFlags.WidthStretch);
         ImGui.tableNextColumn();
         ImGui.pushItemWidth(ImGui.getContentRegionAvailX() - ImGui.calcTextSizeX("+X+"));
         ImGui.inputTextWithHint("##EPPD_New_Action_Name_Input", "Create new Action...", newActionName);
         ImGui.popItemWidth();
         ImGui.sameLine();
-        ImGui.beginGroup();
-        ImGui.pushStyleColor(ImGuiCol.Button, transparentColor);
-        ImGui.pushStyleColor(ImGuiCol.ButtonHovered, transparentColor);
-        if (ImGui.button("X##EPPD_Clear_New_Action_Name")) newActionName.clear();
-        ImGui.popStyleColor(2);
-        if (ImGui.isItemHovered()) {
-            ImGui.beginTooltip();
-            ImGui.text("Clear new action name");
-            ImGui.endTooltip();
-        }
-        ImGui.endGroup();
+        renderClearButton("##EPPD_Clear_New_Action_Name", "Clear new action name", newActionName::clear);
 
         boolean canAdd = canCreateNewAction(newActionName.get());
         ImGui.tableNextColumn();
         if (!canAdd) ImGui.beginDisabled();
-        if (ImGui.button("Create New##EPPD_Create_New_Action_Button")) {
-            boolean success =  createNewAction(newActionName.get());
-            if (success) {
+        if (ImGui.button("Create New##EPPD_Create_New_Action_Button", ImGui.getContentRegionAvailX(), 0.0f)) {
+            String actionName = newActionName.get().trim();
+            if (Project.addInputAction(actionName, new ArrayList<>())) {
                 newActionName.clear();
                 filterChanged = true;
             }
@@ -262,16 +229,17 @@ public class EditProjectPreferencesDialog {
         if (!canAdd) ImGui.endDisabled();
         ImGui.endTable();
 
-        if (!ImGui.beginChild("##EPPD_InputAction_List_region", ImGuiChildFlags.None, ImGuiWindowFlags.HorizontalScrollbar)) return;
+        ImGui.separator();
+        if (!ImGui.beginChild("##EPPD_InputAction_List_region", ImGui.getContentRegionAvail(), false)) return;
         renderInputActionList();
         ImGui.endChild();
     }
 
     private static void renderInputActionList() {
-        if (!ImGui.beginTable("EPPD_InPutAction_List_Table", 3, ImGuiTableFlags.SizingFixedFit, ImGui.getContentRegionAvailX())) return;
-        ImGui.tableSetupColumn("EPPD_InputAction_Content_Column", ImGuiTableColumnFlags.WidthStretch);
-        ImGui.tableSetupColumn("EPPD_InputAction_Control_Column", ImGuiTableColumnFlags.WidthFixed);
-        ImGui.tableSetupColumn("EPPD_InputAction_Delete_Column", ImGuiTableColumnFlags.WidthFixed);
+        if (!ImGui.beginTable("##EPPD_InPutAction_List_Table", 3, ImGuiTableFlags.SizingFixedFit, ImGui.getContentRegionAvailX())) return;
+        ImGui.tableSetupColumn("##EPPD_InputAction_Content_Column", ImGuiTableColumnFlags.WidthStretch);
+        ImGui.tableSetupColumn("##EPPD_InputAction_Control_Column", ImGuiTableColumnFlags.WidthFixed);
+        ImGui.tableSetupColumn("##EPPD_InputAction_Delete_Column", ImGuiTableColumnFlags.WidthFixed);
 
         if (filterChanged) updateFilteredInputActions();
 
@@ -292,8 +260,7 @@ public class EditProjectPreferencesDialog {
             ImGui.tableNextColumn();
             String deleteActionId = "Delete##EPPD_Delete_Action_" + actionName;
             if (ImEditorGui.iconButton(deleteActionId, EditorIcons.Icons.Delete, "Delete this action")) {
-                removeInputAction(actionName);
-                filterChanged = true;
+                if (Project.removeInputAction(actionName)) filterChanged = true;
             }
 
             if (!opened) continue;
@@ -316,7 +283,12 @@ public class EditProjectPreferencesDialog {
                 ImGui.tableNextColumn();
                 String deleteComboId = "Delete##EPPD_Delete_KeyCombo_" + actionName + "_" + i;
                 if (ImEditorGui.iconButton(deleteComboId, EditorIcons.Icons.Delete, "Delete this key combo")) {
-
+                    List<Set<InputKey>> update = new ArrayList<>();
+                    for (Set<InputKey> keyCombo : keyCombos) {
+                        if (keyCombo == combo) continue;
+                        update.add(keyCombo);
+                    }
+                    Project.updateInputActionKey(actionName, update);
                 }
             }
         }
@@ -342,22 +314,12 @@ public class EditProjectPreferencesDialog {
         }
 
         ImGui.sameLine();
-        ImGui.beginGroup();
-        ImGui.pushStyleColor(ImGuiCol.Button, transparentColor);
-        ImGui.pushStyleColor(ImGuiCol.ButtonHovered, transparentColor);
-        if (ImGui.button("X##EPPD_Clear_Action_Key_Filter")) {
+        renderClearButton("##EPPD_Clear_Action_Key_Filter", "Clear action key filter", () -> {
             listeningInput = false;
             actionKeySearchFilter.clear();
             currentMods.clear();
             filterChanged = true;
-        }
-        ImGui.popStyleColor(2);
-        if (ImGui.isItemHovered()) {
-            ImGui.beginTooltip();
-            ImGui.text("Clear action key filter");
-            ImGui.endTooltip();
-        }
-        ImGui.endGroup();
+        });
 
         if (!isActive && listeningInput) {
             ImGuiLayer.prioritizeEngineInputCallback(false);
@@ -365,6 +327,20 @@ public class EditProjectPreferencesDialog {
         }
 
         if (listeningInput) recordFilterInput();
+    }
+
+    private static void renderClearButton(String id, String hint, Runnable onClear) {
+        ImGui.beginGroup();
+        ImGui.pushStyleColor(ImGuiCol.Button, transparentColor);
+        ImGui.pushStyleColor(ImGuiCol.ButtonHovered, transparentColor);
+        if (ImGui.button("X" + id)) onClear.run();
+        ImGui.popStyleColor(2);
+        if (ImGui.isItemHovered()) {
+            ImGui.beginTooltip();
+            ImGui.text(hint);
+            ImGui.endTooltip();
+        }
+        ImGui.endGroup();
     }
 
     private static void renderTabButtons() {
@@ -412,6 +388,20 @@ public class EditProjectPreferencesDialog {
         ImGui.endChild();
     }
 
+    private static void autoSavePreferences() {
+        if (gameTitle.isEmpty() || gameWindowSize.x <= 0 || gameWindowSize.y <= 0) return;
+
+        int width = gameWindowSize.x;
+        int height = gameWindowSize.y;
+        float scale = Math.max(0.01f, textureGlobalScale.get());
+
+        Project.updateProjectPreference(gameTitle.get(),
+                width, height,
+                allowResize.get(), maintainAspectRatio.get(),
+                scale
+        );
+    }
+
     private static void updateFilteredInputActions() {
         filteredInputActions.clear();
 
@@ -420,15 +410,6 @@ public class EditProjectPreferencesDialog {
         boolean filterByKey = !actionKeySearchFilter.isEmpty();
 
         for (Map.Entry<String, InputAction> entry : inputActions.entrySet()) {
-            String name = entry.getKey();
-            if (removedInputActions.contains(name)) continue;
-            InputAction action = entry.getValue();
-            if (filterByName && !name.toLowerCase().contains(filterName)) continue;
-            if (filterByKey && !hasFilteredKey(action)) continue;
-            filteredInputActions.put(name, action);
-        }
-
-        for (Map.Entry<String, InputAction> entry : newInputActions.entrySet()) {
             String name = entry.getKey();
             InputAction action = entry.getValue();
             if (filterByName && !name.toLowerCase().contains(filterName)) continue;
@@ -528,29 +509,9 @@ public class EditProjectPreferencesDialog {
 
         if (Project.currentProject() == null) return false;
         Map<String, InputAction> actions = Project.currentProject().inputActions();
-        if (actions == null) return !newInputActions.containsKey(name);
+        if (actions == null) return true;
 
-        return !actions.containsKey(name) && !newInputActions.containsKey(name);
-    }
-
-    private static boolean createNewAction(String newName) {
-        if (!canCreateNewAction(newName)) return false;
-
-        String actionName = newName.trim();
-        newInputActions.put(actionName, new InputAction(actionName, new ArrayList<>()));
-        return true;
-    }
-
-    private static void removeInputAction(String actionName) {
-        if (actionName == null || actionName.isBlank()) return;
-
-        String name = actionName.trim();
-        if (name.isEmpty()) return;
-
-        if (Project.currentProject() == null || Project.currentProject().inputActions() == null) return;
-        Map<String, InputAction> actions = Project.currentProject().inputActions();
-        if (actions.containsKey(name)) removedInputActions.add(name);
-        newInputActions.remove(name);
+        return !actions.containsKey(name);
     }
 
     private static void resetInputMap(TabName pastTab, TabName selectedTab) {
@@ -621,20 +582,6 @@ public class EditProjectPreferencesDialog {
         if (project == null || project.inputActions() == null) return;
         inputActions.clear();
         inputActions.putAll(project.inputActions());
-    }
-
-    private static void savePreference() {
-        if (gameTitle.isEmpty()) gameTitle.set("Untitled Game");
-
-        int width = Math.max(1, gameWindowSize.x);
-        int height = Math.max(1, gameWindowSize.y);
-        float scale = Math.max(0.01f, textureGlobalScale.get());
-
-        Project.updateProjectPreference(gameTitle.get(),
-                width, height,
-                allowResize.get(), maintainAspectRatio.get(),
-                scale
-        );
     }
 
     private static float getMaxTabNameWidth() {
