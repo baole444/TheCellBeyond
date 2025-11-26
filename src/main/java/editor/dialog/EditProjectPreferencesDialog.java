@@ -1,9 +1,8 @@
 package editor.dialog;
 
-import TheCellBeyond.Input;
-import TheCellBeyond.InputAction;
-import TheCellBeyond.KeyListener;
-import TheCellBeyond.MouseListener;
+import TheCellBeyond.*;
+import editor.EditorIcons;
+import editor.ImEditorGui;
 import editor.ImGuiLayer;
 import imgui.flag.*;
 import project.Project;
@@ -19,6 +18,7 @@ import org.joml.Vector2i;
 import utility.IdPool;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class EditProjectPreferencesDialog {
     private enum TabName {
@@ -59,7 +59,7 @@ public class EditProjectPreferencesDialog {
     private static final Map<String, InputAction> inputActions = new HashMap<>();
     private static final Map<String, InputAction> newInputActions = new HashMap<>();
     private static final Set<String> removedInputActions = new HashSet<>();
-    
+
     private static final ImString newActionName = new ImString(128);
     private static final ImString actionNameSearchFilter = new ImString(128);
     private static final List<Integer> actionKeySearchFilter = new ArrayList<>();
@@ -67,6 +67,7 @@ public class EditProjectPreferencesDialog {
     private static boolean filterChanged = true;
     private static boolean listeningInput = false;
 
+    private static final Map<String, InputAction> filteredInputActions = new LinkedHashMap<>();
 
     public static void show() {
         showDialog = true;
@@ -216,7 +217,7 @@ public class EditProjectPreferencesDialog {
         ImGui.popStyleColor(2);
         if (ImGui.isItemHovered()) {
             ImGui.beginTooltip();
-            ImGui.textWrapped("Clear action name filter");
+            ImGui.text("Clear action name filter");
             ImGui.endTooltip();
         }
 
@@ -232,14 +233,31 @@ public class EditProjectPreferencesDialog {
         ImGui.tableSetupColumn("EPPD_New_Action_Name_Input_Column", ImGuiTableColumnFlags.WidthStretch);
         ImGui.tableSetupColumn("EPPD_Create_New_Action_Column", ImGuiTableColumnFlags.WidthFixed);
         ImGui.tableNextColumn();
+        ImGui.pushItemWidth(ImGui.getContentRegionAvailX() - ImGui.calcTextSizeX("+X+"));
         ImGui.inputTextWithHint("##EPPD_New_Action_Name_Input", "Create new Action...", newActionName);
+        ImGui.popItemWidth();
+        ImGui.sameLine();
+        ImGui.beginGroup();
+        ImGui.pushStyleColor(ImGuiCol.Button, transparentColor);
+        ImGui.pushStyleColor(ImGuiCol.ButtonHovered, transparentColor);
+        if (ImGui.button("X##EPPD_Clear_New_Action_Name")) newActionName.clear();
+        ImGui.popStyleColor(2);
+        if (ImGui.isItemHovered()) {
+            ImGui.beginTooltip();
+            ImGui.text("Clear new action name");
+            ImGui.endTooltip();
+        }
+        ImGui.endGroup();
 
         boolean canAdd = canCreateNewAction(newActionName.get());
         ImGui.tableNextColumn();
         if (!canAdd) ImGui.beginDisabled();
         if (ImGui.button("Create New##EPPD_Create_New_Action_Button")) {
             boolean success =  createNewAction(newActionName.get());
-            if (success) newActionName.clear();
+            if (success) {
+                newActionName.clear();
+                filterChanged = true;
+            }
         }
         if (!canAdd) ImGui.endDisabled();
         ImGui.endTable();
@@ -250,10 +268,58 @@ public class EditProjectPreferencesDialog {
     }
 
     private static void renderInputActionList() {
-        if (!ImGui.beginTable("EPPD_InPutAction_List_Table", 2, ImGuiTableFlags.SizingFixedFit, ImGui.getContentRegionAvailX())) return;
+        if (!ImGui.beginTable("EPPD_InPutAction_List_Table", 3, ImGuiTableFlags.SizingFixedFit, ImGui.getContentRegionAvailX())) return;
         ImGui.tableSetupColumn("EPPD_InputAction_Content_Column", ImGuiTableColumnFlags.WidthStretch);
         ImGui.tableSetupColumn("EPPD_InputAction_Control_Column", ImGuiTableColumnFlags.WidthFixed);
+        ImGui.tableSetupColumn("EPPD_InputAction_Delete_Column", ImGuiTableColumnFlags.WidthFixed);
 
+        if (filterChanged) updateFilteredInputActions();
+
+        for (Map.Entry<String, InputAction> entry : filteredInputActions.entrySet()) {
+            String actionName = entry.getKey();
+            InputAction action = entry.getValue();
+
+            ImGui.tableNextColumn();
+            String headerId = actionName + "##EPPD_Action_Header_" + actionName;
+            boolean opened = ImGui.collapsingHeader(headerId);
+
+            ImGui.tableNextColumn();
+            String addId = "Add##EPPD_Add_KeyCombo_" + actionName;
+            if (ImEditorGui.iconButton(addId, EditorIcons.Icons.New, "Add new key combo")) {
+
+            }
+
+            ImGui.tableNextColumn();
+            String deleteActionId = "Delete##EPPD_Delete_Action_" + actionName;
+            if (ImEditorGui.iconButton(deleteActionId, EditorIcons.Icons.Delete, "Delete this action")) {
+                removeInputAction(actionName);
+                filterChanged = true;
+            }
+
+            if (!opened) continue;
+            List<Set<InputKey>> keyCombos = action.keys();
+            if (keyCombos.isEmpty()) continue;
+            for (int i = 0; i < keyCombos.size(); i++) {
+                Set<InputKey> combo = keyCombos.get(i);
+                String displayText = keyCodeComboToString(combo);
+                ImGui.tableNextColumn();
+                ImGui.indent();
+                ImGui.text(displayText);
+                ImGui.unindent();
+
+                ImGui.tableNextColumn();
+                String editId = "Edit##EPPD_Edit_KeyCombo_" + actionName + "_" + i;
+                if (ImEditorGui.iconButton(editId, EditorIcons.Icons.Edit, "Edit this key combo")) {
+
+                }
+
+                ImGui.tableNextColumn();
+                String deleteComboId = "Delete##EPPD_Delete_KeyCombo_" + actionName + "_" + i;
+                if (ImEditorGui.iconButton(deleteComboId, EditorIcons.Icons.Delete, "Delete this key combo")) {
+
+                }
+            }
+        }
 
         ImGui.endTable();
     }
@@ -288,7 +354,7 @@ public class EditProjectPreferencesDialog {
         ImGui.popStyleColor(2);
         if (ImGui.isItemHovered()) {
             ImGui.beginTooltip();
-            ImGui.textWrapped("Clear action key filter");
+            ImGui.text("Clear action key filter");
             ImGui.endTooltip();
         }
         ImGui.endGroup();
@@ -344,6 +410,61 @@ public class EditProjectPreferencesDialog {
 
         ImGui.endTable();
         ImGui.endChild();
+    }
+
+    private static void updateFilteredInputActions() {
+        filteredInputActions.clear();
+
+        String filterName = actionNameSearchFilter.get().toLowerCase().trim();
+        boolean filterByName = !actionNameSearchFilter.isEmpty();
+        boolean filterByKey = !actionKeySearchFilter.isEmpty();
+
+        for (Map.Entry<String, InputAction> entry : inputActions.entrySet()) {
+            String name = entry.getKey();
+            if (removedInputActions.contains(name)) continue;
+            InputAction action = entry.getValue();
+            if (filterByName && !name.toLowerCase().contains(filterName)) continue;
+            if (filterByKey && !hasFilteredKey(action)) continue;
+            filteredInputActions.put(name, action);
+        }
+
+        for (Map.Entry<String, InputAction> entry : newInputActions.entrySet()) {
+            String name = entry.getKey();
+            InputAction action = entry.getValue();
+            if (filterByName && !name.toLowerCase().contains(filterName)) continue;
+            if (filterByKey && !hasFilteredKey(action)) continue;
+            filteredInputActions.put(name, action);
+        }
+
+        filterChanged = false;
+    }
+
+    private static boolean hasFilteredKey(InputAction action) {
+        if (action.keys().isEmpty()) return false;
+        HashSet<Integer> filterKeys = new HashSet<>(actionKeySearchFilter);
+        for (Set<InputKey> keyCombo : action.keys()) {
+            if (keyCombo.isEmpty()) continue;
+            Set<Integer> keyCodes = keyCombo.stream().map(InputKey::code).collect(Collectors.toSet());
+
+            if (filterKeys.equals(keyCodes)) return true;
+        }
+
+        return false;
+    }
+
+    private static String keyCodeComboToString(Set<InputKey> combo) {
+        if (combo.isEmpty()) return "";
+
+        StringBuilder builder = new StringBuilder();
+        int i = 0;
+        for (InputKey key : combo) {
+            if (i > 0) builder.append(" + ");
+            String name = Input.getKeyName(key.code());
+            builder.append(name != null ? name : "Unknown");
+            i++;
+        }
+
+        return builder.toString();
     }
 
     private static String getFilterInputKeyName() {
@@ -405,8 +526,9 @@ public class EditProjectPreferencesDialog {
         String name = newNew.trim();
         if (name.isEmpty()) return false;
 
-        if (Project.currentProject() == null || Project.currentProject().inputActions() == null) return false;
+        if (Project.currentProject() == null) return false;
         Map<String, InputAction> actions = Project.currentProject().inputActions();
+        if (actions == null) return !newInputActions.containsKey(name);
 
         return !actions.containsKey(name) && !newInputActions.containsKey(name);
     }
