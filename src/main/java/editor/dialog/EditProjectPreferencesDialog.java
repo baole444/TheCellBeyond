@@ -57,6 +57,10 @@ public class EditProjectPreferencesDialog {
     private static final ImFloat textureGlobalScale = new ImFloat(1.0f);
 
     private static final Map<String, InputAction> inputActions = new HashMap<>();
+    private static final Map<String, InputAction> newInputActions = new HashMap<>();
+    private static final Set<String> removedInputActions = new HashSet<>();
+    
+    private static final ImString newActionName = new ImString(128);
     private static final ImString actionNameSearchFilter = new ImString(128);
     private static final List<Integer> actionKeySearchFilter = new ArrayList<>();
     private static final Set<Integer> currentMods = new HashSet<>();
@@ -66,6 +70,9 @@ public class EditProjectPreferencesDialog {
 
     public static void show() {
         showDialog = true;
+        newActionName.clear();
+        newInputActions.clear();
+        removedInputActions.clear();
         clearInputFilter();
         resetTab();
         loadFromPreference();
@@ -188,19 +195,18 @@ public class EditProjectPreferencesDialog {
     }
 
     private static void renderInputMap() {
-        if (!ImGui.beginTable("EPPD_InputMap_Search", 4, ImGui.getContentRegionAvailX())) return;
-        float columnWidth = (ImGui.getContentRegionAvailX() - ImGui.calcTextSizeX("+X Clear All+")) / 2.0f;
+        if (!ImGui.beginTable("EPPD_InputMap_Search_Table", 3, ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.SizingFixedFit,ImGui.getContentRegionAvailX())) return;
+        float columnWidth = (ImGui.getContentRegionAvailX() - ImGui.calcTextSizeX("+Clear All+") - padding) / 2.0f;
         ImGui.tableSetupColumn("EPPD_InputMap_Search_Name_Column", ImGuiTableColumnFlags.WidthFixed, columnWidth);
-        ImGui.tableSetupColumn("EPPD_InputMap_Name_Clear_Column", ImGuiTableColumnFlags.WidthFixed);
         ImGui.tableSetupColumn("EPPD_InputMap_Search_Key_Column", ImGuiTableColumnFlags.WidthFixed, columnWidth * 0.9f);
-        ImGui.tableSetupColumn("EPPD_InputMap_Clear_All_Column", ImGuiTableColumnFlags.WidthFixed);
+        ImGui.tableSetupColumn("EPPD_InputMap_Clear_All_Column", ImGuiTableColumnFlags.WidthStretch);
 
         ImGui.tableNextColumn();
-        ImGui.pushItemWidth(ImGui.getContentRegionAvailX());
+        ImGui.pushItemWidth(ImGui.getContentRegionAvailX() - ImGui.calcTextSizeX("+X+"));
         if (ImGui.inputTextWithHint("##EPPD_Filter_Action_Name_Input", "Filter by name...", actionNameSearchFilter, ImGuiInputTextFlags.EscapeClearsAll)) filterChanged = true;
         ImGui.popItemWidth();
-
-        ImGui.tableNextColumn();
+        ImGui.sameLine();
+        ImGui.beginGroup();
         ImGui.pushStyleColor(ImGuiCol.Button, transparentColor);
         ImGui.pushStyleColor(ImGuiCol.ButtonHovered, transparentColor);
         if (ImGui.button("X##EPPD_Clear_Action_Name_Filter")) {
@@ -208,12 +214,46 @@ public class EditProjectPreferencesDialog {
             filterChanged = true;
         }
         ImGui.popStyleColor(2);
+        if (ImGui.isItemHovered()) {
+            ImGui.beginTooltip();
+            ImGui.textWrapped("Clear action name filter");
+            ImGui.endTooltip();
+        }
 
+        ImGui.endGroup();
         ImGui.tableNextColumn();
         renderInputFilter();
 
         ImGui.tableNextColumn();
-        if (ImGui.button("Clear All##EPPD_Clear_All_Filter")) clearInputFilter();
+        if (ImGui.button("Clear All##EPPD_Clear_All_Filter", ImGui.getContentRegionAvailX(), 0.0f)) clearInputFilter();
+
+        ImGui.endTable();
+        if (!ImGui.beginTable("EPPD_InputMap_New_Action_Table", 2, ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.SizingFixedFit, ImGui.getContentRegionAvailX())) return;
+        ImGui.tableSetupColumn("EPPD_New_Action_Name_Input_Column", ImGuiTableColumnFlags.WidthStretch);
+        ImGui.tableSetupColumn("EPPD_Create_New_Action_Column", ImGuiTableColumnFlags.WidthFixed);
+        ImGui.tableNextColumn();
+        ImGui.inputTextWithHint("##EPPD_New_Action_Name_Input", "Create new Action...", newActionName);
+
+        boolean canAdd = canCreateNewAction(newActionName.get());
+        ImGui.tableNextColumn();
+        if (!canAdd) ImGui.beginDisabled();
+        if (ImGui.button("Create New##EPPD_Create_New_Action_Button")) {
+            boolean success =  createNewAction(newActionName.get());
+            if (success) newActionName.clear();
+        }
+        if (!canAdd) ImGui.endDisabled();
+        ImGui.endTable();
+
+        if (!ImGui.beginChild("##EPPD_InputAction_List_region", ImGuiChildFlags.None, ImGuiWindowFlags.HorizontalScrollbar)) return;
+        renderInputActionList();
+        ImGui.endChild();
+    }
+
+    private static void renderInputActionList() {
+        if (!ImGui.beginTable("EPPD_InPutAction_List_Table", 2, ImGuiTableFlags.SizingFixedFit, ImGui.getContentRegionAvailX())) return;
+        ImGui.tableSetupColumn("EPPD_InputAction_Content_Column", ImGuiTableColumnFlags.WidthStretch);
+        ImGui.tableSetupColumn("EPPD_InputAction_Control_Column", ImGuiTableColumnFlags.WidthFixed);
+
 
         ImGui.endTable();
     }
@@ -223,7 +263,7 @@ public class EditProjectPreferencesDialog {
         String hint = listeningInput ? "Listening for input..." : "Filter by input...";
 
         ImString display = new ImString(displayText, 128);
-        ImGui.pushItemWidth(ImGui.getContentRegionAvailX());
+        ImGui.pushItemWidth(ImGui.getContentRegionAvailX() - ImGui.calcTextSizeX("+X+"));
         ImGui.inputTextWithHint("##EPPD_Filtered_Action_Key_Input", hint, display, ImGuiInputTextFlags.ReadOnly);
         ImGui.popItemWidth();
 
@@ -235,12 +275,75 @@ public class EditProjectPreferencesDialog {
             actionKeySearchFilter.clear();
         }
 
+        ImGui.sameLine();
+        ImGui.beginGroup();
+        ImGui.pushStyleColor(ImGuiCol.Button, transparentColor);
+        ImGui.pushStyleColor(ImGuiCol.ButtonHovered, transparentColor);
+        if (ImGui.button("X##EPPD_Clear_Action_Key_Filter")) {
+            listeningInput = false;
+            actionKeySearchFilter.clear();
+            currentMods.clear();
+            filterChanged = true;
+        }
+        ImGui.popStyleColor(2);
+        if (ImGui.isItemHovered()) {
+            ImGui.beginTooltip();
+            ImGui.textWrapped("Clear action key filter");
+            ImGui.endTooltip();
+        }
+        ImGui.endGroup();
+
         if (!isActive && listeningInput) {
             ImGuiLayer.prioritizeEngineInputCallback(false);
             listeningInput = false;
         }
 
         if (listeningInput) recordFilterInput();
+    }
+
+    private static void renderTabButtons() {
+        if (!ImGui.beginChild("##EPPD_Tabs", 0.0f, BUTTON_RESERVE, ImGuiChildFlags.None, ImGuiWindowFlags.NoScrollbar)) {
+            return;
+        }
+
+        if (!widthCalculated) {
+            tabWidth = getMaxTabNameWidth();
+            widthCalculated = true;
+        }
+
+        ImVec2 remainTableSize = ImGui.getContentRegionAvail();
+        if (!ImGui.beginTable("##EPPD Tab Buttons", TabName.size(), ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.SizingStretchProp, remainTableSize)) {
+            ImGui.endChild();
+            return;
+        }
+
+        for (TabName tab : TabName.values()) {
+            String id = "##EPPD " + tab.name + " column";
+            ImGui.tableSetupColumn(id, ImGuiTableColumnFlags.WidthFixed, tabWidth + padding);
+        }
+
+        ImVec2 availSpace;
+        ImVec2 cursorPos;
+        TabName pastTab = selectedTab;
+        for (TabName tab : TabName.values()) {
+            ImGui.tableNextColumn();
+            String id = "##EPPD " + tab.name + " tab selectable";
+            boolean selected = selectedTab == tab;
+            availSpace = ImGui.getContentRegionAvail();
+            cursorPos = ImGui.getCursorPos();
+            if (ImGui.selectable(id, selected, availSpace)) {
+                selectedTab = tab;
+                resetInputMap(pastTab, tab);
+            }
+            float remainWidth = availSpace.x;
+            float textWidth = ImGui.calcTextSizeX(tab.name);
+            float offset = Math.max((remainWidth - textWidth) * 0.5f, 0.0f);
+            ImGui.setCursorPos(cursorPos.x + offset, cursorPos.y);
+            ImGui.text(tab.name);
+        }
+
+        ImGui.endTable();
+        ImGui.endChild();
     }
 
     private static String getFilterInputKeyName() {
@@ -296,54 +399,42 @@ public class EditProjectPreferencesDialog {
         }
     }
 
-    private static void renderTabButtons() {
-        if (!ImGui.beginChild("##EPPD_Tabs", 0.0f, BUTTON_RESERVE, ImGuiChildFlags.None, ImGuiWindowFlags.NoScrollbar)) {
-            return;
-        }
+    private static boolean canCreateNewAction(String newNew) {
+        if (newNew == null || newNew.isBlank()) return false;
 
-        if (!widthCalculated) {
-            tabWidth = getMaxTabNameWidth();
-            widthCalculated = true;
-        }
+        String name = newNew.trim();
+        if (name.isEmpty()) return false;
 
-        ImVec2 remainTableSize = ImGui.getContentRegionAvail();
-        if (!ImGui.beginTable("##EPPD Tab Buttons", TabName.size(), ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.SizingStretchProp, remainTableSize)) {
-            ImGui.endChild();
-            return;
-        }
+        if (Project.currentProject() == null || Project.currentProject().inputActions() == null) return false;
+        Map<String, InputAction> actions = Project.currentProject().inputActions();
 
-        for (TabName tab : TabName.values()) {
-            String id = "##EPPD " + tab.name + " column";
-            ImGui.tableSetupColumn(id, ImGuiTableColumnFlags.WidthFixed, tabWidth + padding);
-        }
+        return !actions.containsKey(name) && !newInputActions.containsKey(name);
+    }
 
-        ImVec2 availSpace;
-        ImVec2 cursorPos;
-        TabName pastTab = selectedTab;
-        for (TabName tab : TabName.values()) {
-            ImGui.tableNextColumn();
-            String id = "##EPPD " + tab.name + " tab selectable";
-            boolean selected = selectedTab == tab;
-            availSpace = ImGui.getContentRegionAvail();
-            cursorPos = ImGui.getCursorPos();
-            if (ImGui.selectable(id, selected, availSpace)) {
-                selectedTab = tab;
-                resetInputMap(pastTab, tab);
-            }
-            float remainWidth = availSpace.x;
-            float textWidth = ImGui.calcTextSizeX(tab.name);
-            float offset = Math.max((remainWidth - textWidth) * 0.5f, 0.0f);
-            ImGui.setCursorPos(cursorPos.x + offset, cursorPos.y);
-            ImGui.text(tab.name);
-        }
+    private static boolean createNewAction(String newName) {
+        if (!canCreateNewAction(newName)) return false;
 
-        ImGui.endTable();
-        ImGui.endChild();
+        String actionName = newName.trim();
+        newInputActions.put(actionName, new InputAction(actionName, new ArrayList<>()));
+        return true;
+    }
+
+    private static void removeInputAction(String actionName) {
+        if (actionName == null || actionName.isBlank()) return;
+
+        String name = actionName.trim();
+        if (name.isEmpty()) return;
+
+        if (Project.currentProject() == null || Project.currentProject().inputActions() == null) return;
+        Map<String, InputAction> actions = Project.currentProject().inputActions();
+        if (actions.containsKey(name)) removedInputActions.add(name);
+        newInputActions.remove(name);
     }
 
     private static void resetInputMap(TabName pastTab, TabName selectedTab) {
         if (pastTab == TabName.InputMap && pastTab == selectedTab) return;
         if (pastTab != TabName.InputMap && selectedTab == TabName.InputMap) {
+            newActionName.clear();
             loadInputActions();
             clearInputFilter();
             return;
@@ -352,6 +443,7 @@ public class EditProjectPreferencesDialog {
         if (pastTab == TabName.InputMap) {
             clearInputFilter();
             inputActions.clear();
+            newActionName.clear();
         }
     }
 
