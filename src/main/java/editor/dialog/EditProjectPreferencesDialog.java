@@ -67,6 +67,9 @@ public class EditProjectPreferencesDialog {
 
     private static final Map<String, InputAction> filteredInputActions = new LinkedHashMap<>();
 
+    private static boolean showListenForInputDialog = false;
+    private static KeyComboCallback pendingCallback = null;
+
     public static void show() {
         projectPreferencesChanged = false;
         showDialog = true;
@@ -86,9 +89,19 @@ public class EditProjectPreferencesDialog {
         loadInputActions();
     }
 
+    static void closeListForInputDialog() {
+        showListenForInputDialog = false;
+        pendingCallback = null;
+    }
+
     public static void imgui() {
         if (!showDialog) return;
         syncWithProject();
+
+        if (showListenForInputDialog) {
+            ListenForInputDialog.imgui();
+            return;
+        }
 
         ImGui.openPopup(POPUP_ID);
 
@@ -254,7 +267,15 @@ public class EditProjectPreferencesDialog {
             ImGui.tableNextColumn();
             String addId = "Add##EPPD_Add_KeyCombo_" + actionName;
             if (ImEditorGui.iconButton(addId, EditorIcons.Icons.New, "Add new key combo")) {
-
+                final String finalName = actionName;
+                pendingCallback = (resultKeyCombo, accepted) -> {
+                    if (!accepted || resultKeyCombo == null || resultKeyCombo.isEmpty()) return;
+                    List<Set<InputKey>> current = new ArrayList<>(action.keys());
+                    current.add(resultKeyCombo);
+                    Project.updateInputActionKey(finalName, current);
+                };
+                showListenForInputDialog = true;
+                ListenForInputDialog.show(pendingCallback);
             }
 
             ImGui.tableNextColumn();
@@ -277,7 +298,16 @@ public class EditProjectPreferencesDialog {
                 ImGui.tableNextColumn();
                 String editId = "Edit##EPPD_Edit_KeyCombo_" + actionName + "_" + i;
                 if (ImEditorGui.iconButton(editId, EditorIcons.Icons.Edit, "Edit this key combo")) {
-
+                    final String finalName = actionName;
+                    final int index = i;
+                    pendingCallback = (resultKeyCombo, accepted) -> {
+                        if (!accepted || resultKeyCombo == null ||  resultKeyCombo.isEmpty()) return;
+                        List<Set<InputKey>> current = new ArrayList<>(keyCombos);
+                        current.set(index, resultKeyCombo);
+                        Project.updateInputActionKey(finalName, current);
+                    };
+                    showListenForInputDialog = true;
+                    ListenForInputDialog.show(pendingCallback, combo);
                 }
 
                 ImGui.tableNextColumn();
@@ -489,16 +519,14 @@ public class EditProjectPreferencesDialog {
             return;
         }
 
-        if (!newMods.equals(currentMods)) {
-            currentMods.clear();
-            currentMods.addAll(newMods);
+        if (newMods.equals(currentMods)) return;
+        currentMods.clear();
+        currentMods.addAll(newMods);
 
-            if (!newMods.isEmpty()) {
-                actionKeySearchFilter.clear();
-                actionKeySearchFilter.addAll(newMods);
-                filterChanged = true;
-            }
-        }
+        if (newMods.isEmpty()) return;
+        actionKeySearchFilter.clear();
+        actionKeySearchFilter.addAll(newMods);
+        filterChanged = true;
     }
 
     private static boolean canCreateNewAction(String newNew) {
@@ -580,6 +608,8 @@ public class EditProjectPreferencesDialog {
         ProjectData project = Project.currentProject();
 
         if (project == null || project.inputActions() == null) return;
+        if (!inputActions.equals(project.inputActions())) filterChanged = true;
+
         inputActions.clear();
         inputActions.putAll(project.inputActions());
     }

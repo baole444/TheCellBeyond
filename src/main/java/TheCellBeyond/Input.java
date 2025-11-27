@@ -47,6 +47,10 @@ public class Input {
         return modifierKeysCode.contains(keyCode);
     }
 
+    public static boolean isMouseButton(int keyCode) {
+        return keyCode >= GLFW_MOUSE_BUTTON_1 && keyCode <= GLFW_MOUSE_BUTTON_LAST;
+    }
+
     public static boolean isActionJustPressed(String actionName) {
         InputAction action = getInputAction(actionName);
         if (action == null) return false;
