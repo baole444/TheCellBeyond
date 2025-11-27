@@ -20,6 +20,8 @@ import utility.IdPool;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.lwjgl.glfw.GLFW.*;
+
 public class EditProjectPreferencesDialog {
     private enum TabName {
         General("General"),
@@ -64,7 +66,8 @@ public class EditProjectPreferencesDialog {
     private static final Set<Integer> currentMods = new HashSet<>();
     private static boolean filterChanged = true;
     private static boolean listeningInput = false;
-
+    private static String editingActionName;
+    private static ImString editingActionNameBuffer = new ImString(128);
     private static final Map<String, InputAction> filteredInputActions = new LinkedHashMap<>();
 
     private static boolean showListenForInputDialog = false;
@@ -261,8 +264,49 @@ public class EditProjectPreferencesDialog {
             InputAction action = entry.getValue();
 
             ImGui.tableNextColumn();
+
+            if (Objects.equals(editingActionName, actionName)) {
+                ImGui.setKeyboardFocusHere();
+                ImGui.inputTextWithHint("##EPPD_Edit_Action_Name_" + actionName, "Enter new name for action...", editingActionNameBuffer);
+
+                if (ImGui.isItemFocused() && ImGui.isKeyPressed(GLFW_KEY_ESCAPE)) {
+                    editingActionNameBuffer.clear();
+                    editingActionName = null;
+                    continue;
+                }
+
+                if ((ImGui.isItemFocused() && ImGui.isKeyPressed(GLFW_KEY_ENTER))) {
+                    String newName = editingActionNameBuffer.get().trim();
+                    if (!newName.isEmpty() && !newName.equals(actionName) && !inputActions.containsKey(newName)) {
+                        if (Project.updateInputActionName(actionName, newName)) {
+                            filterChanged = true;
+                        }
+                    }
+
+                    editingActionNameBuffer.clear();
+                    editingActionName = null;
+                    continue;
+                }
+
+                ImGui.tableNextRow();
+                continue;
+            }
+
             String headerId = actionName + "##EPPD_Action_Header_" + actionName;
             boolean opened = ImGui.collapsingHeader(headerId);
+
+            if (ImGui.isItemHovered() && ImGui.isMouseDoubleClicked(GLFW_MOUSE_BUTTON_1)) {
+                editingActionName = actionName;
+                editingActionNameBuffer.set(actionName);
+                ImGui.tableNextRow();
+                continue;
+            }
+
+            if (ImGui.isItemHovered()) {
+                ImGui.beginTooltip();
+                ImGui.text("Double click to edit action's name");
+                ImGui.endTooltip();
+            }
 
             ImGui.tableNextColumn();
             String addId = "Add##EPPD_Add_KeyCombo_" + actionName;
