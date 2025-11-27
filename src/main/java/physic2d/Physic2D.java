@@ -10,6 +10,7 @@ import org.jbox2d.dynamics.*;
 import org.joml.Math;
 import org.joml.Vector2f;
 import physic2d.components.PhysicBody2D;
+import physic2d.components.RigidBody2D;
 import physic2d.components.collider.BoxCollider2D;
 import physic2d.components.collider.CircleCollider2D;
 import physic2d.components.collider.PillBoxCollider;
@@ -45,14 +46,7 @@ public class Physic2D {
             BodyDef bodyDef = new BodyDef();
             bodyDef.angle = Math.toRadians(initialRot);
             bodyDef.position.set(initialPos.x, initialPos.y);
-
-            bodyDef.angularDamping = physicBody2D.getRollResistance();
-            bodyDef.linearDamping = physicBody2D.getTranslateResistance();
-            bodyDef.fixedRotation = physicBody2D.isAllowRotation();
             bodyDef.userData = physicBody2D.gameObject;
-            bodyDef.bullet = physicBody2D.isNoneStopCollision();
-            bodyDef.gravityScale = physicBody2D.getGravityScale();
-            bodyDef.angularVelocity = physicBody2D.getAngularVelocity();
 
             bodyDef.type = switch (physicBody2D.getPhysicBodyType()) {
                 case Kinematic -> BodyType.KINEMATIC;
@@ -60,8 +54,14 @@ public class Physic2D {
                 case Dynamic -> BodyType.DYNAMIC;
             };
 
+            physicBody2D.configureBodyDef(bodyDef);
+
             Body obj = world.createBody(bodyDef);
-            obj.m_mass = physicBody2D.getMass();
+
+            if (physicBody2D instanceof RigidBody2D rigidBody2D) {
+                obj.m_mass = rigidBody2D.getMass();
+            }
+
             physicBody2D.setPhysicBodyRef(obj);
 
             CircleCollider2D circleCollider2D;

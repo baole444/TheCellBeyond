@@ -4,30 +4,27 @@ import TheCellBeyond.Window;
 import components.SpatialComponent;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
+import org.jbox2d.dynamics.BodyDef;
 import org.joml.Math;
 import org.joml.Vector2f;
 import physic2d.Physic2D;
 import physic2d.PhysicLayer;
 import physic2d.enums.PhysicBodyType;
 
-public class PhysicBody2D extends SpatialComponent {
-    private PhysicBodyType physicBodyType = PhysicBodyType.Dynamic;
-    private Vector2f velocity = new Vector2f();
-    private float rollResistance = 0.8f;
-    private float translateResistance = 0.9f;
-    private float friction = 0.0f;
-    private float angularVelocity = 0.0f;
-    private float gravityScale = 1.0f;
-    private float mass = 0;
+public abstract class PhysicBody2D extends SpatialComponent {
+    protected PhysicBodyType physicBodyType;
+    protected float friction = 0.0f;
     private int collisionLayer = PhysicLayer.layerToBit(0);
     private int collisionMask = PhysicLayer.layerToBit(0);
 
-    private boolean isSensor = false;
-    private boolean allowRotation = false;
-    private boolean isNoneStopCollision = true;
-    private transient Body physicBodyRef = null;
+    protected boolean isSensor = false;
+    protected transient Body physicBodyRef = null;
 
     private transient boolean needFixtureUpdate = false;
+
+    public PhysicBody2D(PhysicBodyType bodyType) {
+        this.physicBodyType = bodyType;
+    }
 
     @Override
     public void update(float dt) {
@@ -46,38 +43,17 @@ public class PhysicBody2D extends SpatialComponent {
 
         additionalUpdateLogic(dt);
     }
+
     public float getFriction() {
-        return this.friction;
-    }
-
-    public float getAngularVelocity() {
-        return this.angularVelocity;
-    }
-
-    public float getGravityScale() {
-        return this.gravityScale;
-    }
-
-    public boolean isSensor() {
-        return isSensor;
+        return friction;
     }
 
     public void setFriction(float friction) {
         this.friction = friction;
     }
 
-    public void setAngularVelocity(float angularVelocity) {
-        this.angularVelocity = angularVelocity;
-        if (physicBodyRef != null) {
-            this.physicBodyRef.setAngularVelocity(angularVelocity);
-        }
-    }
-
-    public void setGravityScale(float gravityScale) {
-        this.gravityScale = gravityScale;
-        if (physicBodyRef != null) {
-            physicBodyRef.setGravityScale(gravityScale);
-        }
+    public boolean isSensor() {
+        return isSensor;
     }
 
     public void setSensor(boolean sensor) {
@@ -87,75 +63,12 @@ public class PhysicBody2D extends SpatialComponent {
         }
     }
 
-    public Vector2f getVelocity() {
-        return velocity;
-    }
-
-    public void addVelocity(Vector2f force) {
-        if (physicBodyRef != null) {
-            physicBodyRef.applyForceToCenter(new Vec2(force.x, force.y));
-        }
-    }
-
-    public void addImpulse(Vector2f impulse) {
-        if (physicBodyRef != null) {
-            physicBodyRef.applyLinearImpulse(new Vec2(impulse.x, impulse.y), physicBodyRef.getWorldCenter());
-        }
-    }
-
-    public void setVelocity(Vector2f velocity) {
-        this.velocity = velocity;
-        if (physicBodyRef != null) {
-            physicBodyRef.setLinearVelocity(new Vec2(velocity.x, velocity.y));
-        }
-    }
-
-    public float getRollResistance() {
-        return rollResistance;
-    }
-
-    public void setRollResistance(float rollResistance) {
-        this.rollResistance = rollResistance;
-    }
-
-    public float getTranslateResistance() {
-        return translateResistance;
-    }
-
-    public void setTranslateResistance(float translateResistance) {
-        this.translateResistance = translateResistance;
-    }
-
-    public float getMass() {
-        return mass;
-    }
-
-    public void setMass(float mass) {
-        this.mass = mass;
-    }
-
     public PhysicBodyType getPhysicBodyType() {
         return physicBodyType;
     }
 
     public void setPhysicBodyType(PhysicBodyType physicBodyType) {
         this.physicBodyType = physicBodyType;
-    }
-
-    public boolean isAllowRotation() {
-        return allowRotation;
-    }
-
-    public void setAllowRotation(boolean allowRotation) {
-        this.allowRotation = allowRotation;
-    }
-
-    public boolean isNoneStopCollision() {
-        return isNoneStopCollision;
-    }
-
-    public void setNoneStopCollision(boolean noneStopCollision) {
-        isNoneStopCollision = noneStopCollision;
     }
 
     public Body getPhysicBodyRef() {
@@ -218,4 +131,6 @@ public class PhysicBody2D extends SpatialComponent {
         physic2D.updateBodyFilters(this);
         needFixtureUpdate = false;
     }
+
+    public abstract void configureBodyDef(BodyDef bodyDef);
 }

@@ -59,25 +59,7 @@ public class Properties {
 
     private static void renderContextMenu() {
         if (ImGui.beginPopupContextWindow("AddComponent")) {
-            if (ImGui.menuItem("Generate Physic body")) {
-                if (activeGameObject.getFirstComponent(PhysicBody2D.class) == null) {
-                    activeGameObject.addComponent(new PhysicBody2D());
-                }
-            }
-
-            if (ImGui.menuItem("Generate Box Collider")) {
-                if ((activeGameObject.getFirstComponent(BoxCollider2D.class) == null) &&
-                        (activeGameObject.getFirstComponent(CircleCollider2D.class) == null)) {
-                    activeGameObject.addComponent(new BoxCollider2D());
-                }
-            }
-
-            if (ImGui.menuItem("Generate Circle Collider")) {
-                if ((activeGameObject.getFirstComponent(CircleCollider2D.class) == null) &&
-                        (activeGameObject.getFirstComponent(BoxCollider2D.class) == null)) {
-                    activeGameObject.addComponent(new CircleCollider2D());
-                }
-            }
+            ImGui.textWrapped("This menu will be rework soon");
             ImGui.endPopup();
         }
     }

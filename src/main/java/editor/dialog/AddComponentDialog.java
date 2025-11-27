@@ -7,6 +7,7 @@ import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiWindowFlags;
+import physic2d.components.RigidBody2D;
 import scene.Scene;
 
 public class AddComponentDialog {
@@ -26,10 +27,11 @@ public class AddComponentDialog {
     // TODO: Need to come up with better solution in the future
     //  to be able to register potential user's custom component type.
     private enum ComponentType {
-        Sprite("Sprite", "Allow addition of a sprite for rendering to an object."),
-        AnimatedSprite("AnimatedSprite", "Allow addition of sprite-based animations for rendering to an object."),
+        Sprite("Sprite", "Allow addition of a sprite for rendering to the object."),
+        AnimatedSprite("AnimatedSprite", "Allow addition of sprite-based animations for rendering to the object."),
         Text("Text", "Allow addition of texts for rendering to an object"),
-        TileMap("TileMap", "Allow addition of a grid map that facilitate a tile set for rendering to an object.");
+        TileMap("TileMap", "Allow addition of a grid map that facilitate a tile set for rendering to the object."),
+        RigidBody2D("RigidBody2D", "Allow addition of a rigid physic body to the object");
 
         private final String displayLabel;
         private final String description;
@@ -133,6 +135,7 @@ public class AddComponentDialog {
             case AnimatedSprite -> c = new AnimatedSpriteRenderer();
             case Text -> c = new TextRenderer();
             case TileMap -> c = new TileMap();
+            case RigidBody2D -> c = new RigidBody2D();
             default -> c = null;
         }
 
