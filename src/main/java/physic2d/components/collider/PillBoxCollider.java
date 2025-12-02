@@ -1,9 +1,7 @@
 package physic2d.components.collider;
 
-import TheCellBeyond.Window;
-import components.SpatialComponent;
+import org.jbox2d.collision.shapes.Shape;
 import org.joml.Vector2f;
-import physic2d.components.PhysicBody2D;
 
 /**
  * A combination of circle colliders forming the cap
@@ -12,24 +10,11 @@ import physic2d.components.PhysicBody2D;
  * This forms a pill-shaped collider, reduce chance of
  * edge catching between collision bodies of other objects.
  */
-public class PillBoxCollider extends SpatialComponent {
-    // The top section
+public class PillBoxCollider extends CollisionShape2D {
     private final transient CircleCollider2D headCircle = new CircleCollider2D();
-
-    // The bottom section
     private final transient CircleCollider2D footCircle = new CircleCollider2D();
+    private final transient BoxCollider2D bodyBox = new BoxCollider2D();
 
-    // The middle section.
-    private final transient BoxCollider2D midBox = new BoxCollider2D();
-
-    // Allow changing size of collision body during runtime.
-    /**
-     * Flag to indicate if Fixture should
-     * be reset on the next frame.
-     */
-    private transient boolean shouldFixtureReset = false;
-
-    // default width and height
     private float width = 0.32f;
     private float height = 0.64f;
 
@@ -37,102 +22,80 @@ public class PillBoxCollider extends SpatialComponent {
     public void start() {
         super.start();
 
-        this.headCircle.gameObject = this.gameObject;
-        this.footCircle.gameObject = this.gameObject;
-        this.midBox.gameObject = this.gameObject;
+        headCircle.gameObject = this.gameObject;
+        footCircle.gameObject = this.gameObject;
+        bodyBox.gameObject = this.gameObject;
+
+        if (physicBody2D != null) {
+            headCircle.setPhysicBody2D(physicBody2D);
+            footCircle.setPhysicBody2D(physicBody2D);
+            bodyBox.setPhysicBody2D(physicBody2D);
+        }
 
         calculateCollider();
-    }
-
-    @Override
-    public void update(float dt) {
-        if (shouldFixtureReset) {
-            resetFixtures();
-        }
     }
 
     @Override
     public void editorUpdate(float dt) {
         headCircle.editorUpdate(dt);
         footCircle.editorUpdate(dt);
-        midBox.editorUpdate(dt);
+        bodyBox.editorUpdate(dt);
 
-        if (shouldFixtureReset) {
-            resetFixtures();
-        }
+        if (needsFixtureReset) resetFixture();
+
     }
 
-    public float getWidth() {
+    public float width() {
         return width;
     }
 
     public void setWidth(float width) {
         this.width = width;
         calculateCollider();
-        resetFixtures();
+        setFixtureNeedReset();
     }
 
-    public float getHeight() {
+    public float height() {
         return height;
     }
 
     public void setHeight(float height) {
         this.height = height;
         calculateCollider();
-        resetFixtures();
+        setFixtureNeedReset();
     }
 
     private void calculateCollider() {
         float radius = width / 4.0f;
-        float boxH = height - 2.0f * radius;
+        float boxH = height - (2.0f * radius);
 
         headCircle.setRadius(radius);
         footCircle.setRadius(radius);
 
-        // Move the top circle up 1/4 of box collider height.
-        headCircle.setLocalPosition(new Vector2f(0, boxH / 4.0f));
+        headCircle.setLocalPosition(new Vector2f(0.0f, boxH / 4.0f));
+        footCircle.setLocalPosition(new Vector2f(0.0f, -boxH / 4.0f));
 
-        // Move the bottom circle down 1/4 of box collider height.
-        footCircle.setLocalPosition(new Vector2f(0, -boxH / 4.0f));
-
-        midBox.setHalfSize(new Vector2f(width / 2.0f, boxH / 2.0f));
-        midBox.setLocalPosition(new Vector2f(0, 0));
+        bodyBox.setHalfSize(new Vector2f(width / 2.0f, boxH / 2.0f));
+        bodyBox.setLocalPosition(new Vector2f());
     }
 
-    public void resetFixtures() {
-        if (Window.getPhysic2D().isLock()) {
-            shouldFixtureReset = true;
-            return;
-        }
-
-        shouldFixtureReset = false;
-
-        if (gameObject != null) {
-            PhysicBody2D physicBody2D = gameObject.getFirstComponent(PhysicBody2D.class);
-
-            if (physicBody2D != null) {
-                Window.getPhysic2D().resetCollider(physicBody2D, this);
-            }
-        }
-    }
-
-    public CircleCollider2D getHeadCircle() {
+    public CircleCollider2D headCircle() {
         return headCircle;
     }
 
-    public CircleCollider2D getFootCircle() {
+    public CircleCollider2D footCircle() {
         return footCircle;
     }
 
-    public BoxCollider2D getMidBox() {
-        return midBox;
+    public BoxCollider2D bodyBox() {
+        return bodyBox;
     }
 
-    public boolean shouldFixtureReset() {
-        return shouldFixtureReset;
+    @Override
+    public Shape createCollisionShape() {
+        return null;
     }
 
-    public void setShouldFixtureReset(boolean shouldFixtureReset) {
-        this.shouldFixtureReset = shouldFixtureReset;
-    }
+    @Override
+    protected void drawDebugShape() {}
 }

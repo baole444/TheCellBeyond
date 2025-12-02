@@ -22,7 +22,7 @@ test {
 dependencies {
     implementation "com.google.code.gson:gson:$google_gson_version"
     implementation fileTree('library') { include '*.jar' }
-    implementation name: 'jbox2d-library'
+    implementation ":jbox2d-library"
 
     // LWJGL
     implementation platform("org.lwjgl:lwjgl-bom:$lwjgl_version")
@@ -44,6 +44,7 @@ dependencies {
     // Test unit
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.2'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 tasks.withType(JavaCompile).configureEach {

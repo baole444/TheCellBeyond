@@ -14,7 +14,7 @@ public class FontTest {
 
     @Test
     public void runSuccess() throws IOException {
-        String correctPath = "assets/fonts/Consola.ttf";
+        String correctPath = "assets/fonts/Caudex.ttf";
         TCBFont font = new TCBFont(correctPath, 16, GlyphRange.ASCII);
 
         assertNotNull(font);
@@ -32,7 +32,7 @@ public class FontTest {
 
     @Test
     public void runSuccessASCII_EXTENDED() throws IOException {
-        String correctPath = "assets/fonts/Consola.ttf";
+        String correctPath = "assets/fonts/NotoSansMono_Regular.ttf";
         TCBFont font = new TCBFont(correctPath, 16, GlyphRange.ASCII_EXTENDED);
 
         assertNotNull(font);

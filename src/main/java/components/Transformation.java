@@ -22,7 +22,7 @@ public interface Transformation {
     void setLocalTransform(Transform transform);
 
     /**
-     * Get the world position for this component
+     * Get the world position of the game object that own this component
      */
-    Vector2f getWorldPosition();
+    Vector2f getObjectWorldPosition();
 }

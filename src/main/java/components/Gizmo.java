@@ -109,7 +109,7 @@ public class Gizmo extends SpatialComponent implements NotSerializeComponent {
         Vector2f targetPos = go2D.getPosition();
         setWorldPosition(targetPos);
 
-        gizmoWorldPos.set(getWorldPosition());
+        gizmoWorldPos.set(getObjectWorldPosition());
 
         xAxisObj.setPosition(new Vector2f(gizmoWorldPos).add(xOffset));
         yAxisObj.setPosition(new Vector2f(gizmoWorldPos).add(yOffset));

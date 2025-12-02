@@ -79,7 +79,7 @@ public abstract class PhysicBody2D extends SpatialComponent {
         this.physicBodyRef = physicBodyRef;
 
         if (physicBodyRef != null) {
-            Vector2f currentPos = getWorldPosition();
+            Vector2f currentPos = getObjectWorldPosition();
             float currentRot = getRotation();
 
             this.physicBodyRef.setTransform(new Vec2(currentPos.x, currentPos.y), Math.toRadians(currentRot));

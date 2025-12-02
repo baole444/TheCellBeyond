@@ -35,7 +35,7 @@ public abstract class SpatialComponent extends Component implements Transformati
     }
 
     @Override
-    public Vector2f getWorldPosition() {
+    public Vector2f getObjectWorldPosition() {
         if (gameObject instanceof GameObject2D go2D) return go2D.getPosition();
 
         return new Vector2f(localTransform.position);
@@ -179,7 +179,6 @@ public abstract class SpatialComponent extends Component implements Transformati
         target.rotation += offset.rotation;
         target.scale.mul(offset.scale);
 
-        // zIndex is absolute
         if (offset.zIndex != 0) target.zIndex = offset.zIndex;
     }
 }
