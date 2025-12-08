@@ -4,6 +4,9 @@ import TheCellBeyond.KeyListener;
 import imgui.ImVec2;
 import imgui.flag.*;
 import imgui.type.ImBoolean;
+import physic2d.Physic2D;
+import physic2d.PhysicLayer;
+import project.Project;
 import render.texture.Sprite;
 import utility.*;
 
@@ -348,14 +351,6 @@ public class ImEditorGui {
         return changed ? out.get() : txt;
     }
 
-    private static String createID(String label, Object caller) {
-        if (caller == null) return label;
-
-        if (caller instanceof String s) return label + "__" + s;
-
-        return label + "__" + System.identityHashCode(caller);
-    }
-
     public static boolean iconButton(String id, EditorIcons.EditorIconSprite sprite, String toolTip) {
         Sprite icon = sprite.getIcon();
         if (icon == null) return ImGui.button(id);
@@ -466,5 +461,57 @@ public class ImEditorGui {
                 textureCoordinates[0].x, textureCoordinates[2].y
         );
         ImGui.endGroup();
+    }
+
+    public static int physicLayerSelectable(String label, int mask, Object caller) {
+        String id = createID(label, caller);
+        ImGui.pushID(id);
+        ImGui.text(label);
+        ImGui.spacing();
+        float cellWidth = ImGui.calcTextSizeX("99") + ImGui.getStyle().getFramePaddingX() * 2.0f;
+        float availWidth = ImGui.getContentRegionAvailX();
+        float spacing = ImGui.getStyle().getItemSpacingX();
+        int maxColumn = Math.min(8, Math.max(1, (int) ((availWidth + spacing) / (cellWidth + spacing))));
+        int layers = Physic2D.MaxLayer;
+        int newMask = mask;
+        float width = maxColumn * (cellWidth + spacing);
+        if (!ImGui.beginTable("##Layers_Toggle_Table" + id, maxColumn, ImGuiTableFlags.Borders | ImGuiTableFlags.SizingFixedFit, new ImVec2(Math.min(width, availWidth), 0.0f))) {
+            ImGui.popID();
+            return mask;
+        }
+
+        for (int i = 0; i < maxColumn; i++) ImGui.tableSetupColumn("Layer_Toggle_Column_" + i + "_" + id, ImGuiTableColumnFlags.WidthFixed, cellWidth);
+        for (int i = 0; i < layers; i++) {
+            ImGui.tableNextColumn();
+            boolean isSelected = PhysicLayer.isLayerInMask(newMask, i);
+            ImGui.beginGroup();
+            String layerIndex = String.valueOf(i);
+            float remainWidth = Math.min(ImGui.getContentRegionAvailX(), cellWidth);
+            float textWidth = ImGui.calcTextSizeX(layerIndex);
+            float offset = Math.max((remainWidth - textWidth) * 0.5f, 0.0f);
+            float cursorX = ImGui.getCursorPosX();
+            if (ImGui.selectable("##Layer_Selectable_" + i + "_" + id, isSelected, remainWidth, ImGui.getTextLineHeightWithSpacing())) newMask = PhysicLayer.toggleLayerInMask(newMask, i);
+            ImGui.sameLine();
+            ImGui.setCursorPosX(cursorX + offset);
+            ImGui.text(layerIndex);
+            ImGui.endGroup();
+            if (ImGui.isItemHovered()) {
+                ImGui.beginTooltip();
+                ImGui.text(Project.getPhysicLayerName(i));
+                ImGui.endTooltip();
+            }
+        }
+
+        ImGui.endTable();
+        ImGui.popID();
+        return newMask;
+    }
+
+    private static String createID(String label, Object caller) {
+        if (caller == null) return label;
+
+        if (caller instanceof String s) return label + "__" + s;
+
+        return label + "__" + System.identityHashCode(caller);
     }
 }

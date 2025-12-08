@@ -5,7 +5,7 @@ plugins {
 group = project.project_group
 version = project.TCB_version
 
-def targetJavaVersion = 21
+def targetJavaVersion = 25
 
 repositories {
     flatDir {

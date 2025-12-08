@@ -2,6 +2,10 @@ package physic2d.components;
 
 import TheCellBeyond.Window;
 import components.SpatialComponent;
+import editor.ImEditorGui;
+import imgui.ImGui;
+import imgui.flag.ImGuiCol;
+import imgui.type.ImBoolean;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.BodyDef;
@@ -42,6 +46,30 @@ public abstract class PhysicBody2D extends SpatialComponent {
         if (needFixtureUpdate) updateFixtureFilter();
 
         additionalUpdateLogic(dt);
+    }
+
+    @Override
+    protected void additionalImGuiLogic() {
+        float friction = ImEditorGui.dragFloatCtrl("Friction", this.friction, this);
+        if (friction != this.friction) setFriction(friction);
+
+        ImBoolean isSensor = new ImBoolean(this.isSensor);
+        if (ImGui.checkbox("Sensor Mode##PhysicBody_isSensor_" + getUUID(), isSensor)) setSensor(isSensor.get());
+        ImGui.indent();
+        ImGui.pushStyleColor(ImGuiCol.Header, 0.0f, 0.0f, 0.0f, 0.0f);
+        boolean open = ImGui.collapsingHeader("Physic Layers##Physic_Layers_" + getUUID());
+        ImGui.popStyleColor(1);
+        if (open) {
+            ImGui.separator();
+            int collisionLayer = ImEditorGui.physicLayerSelectable("Collision Layer", this.collisionLayer, this);
+            ImGui.spacing();
+            int collisionMask = ImEditorGui.physicLayerSelectable("Collision Mask", this.collisionMask, this);
+            setCollisionLayer(collisionLayer);
+            setCollisionMask(collisionMask);
+            ImGui.separator();
+            ImGui.spacing();
+        }
+        ImGui.unindent();
     }
 
     public float getFriction() {
@@ -116,6 +144,18 @@ public abstract class PhysicBody2D extends SpatialComponent {
         int pastVal = collisionMask;
         collisionMask = PhysicLayer.removeLayerFromMask(collisionMask, layerIndex);
         if (pastVal != collisionMask) needFixtureUpdate = true;
+    }
+
+    public void setCollisionMask(int newMasks) {
+        if (newMasks == collisionMask || !PhysicLayer.isMaskValid(newMasks)) return;
+        collisionMask = newMasks;
+        needFixtureUpdate = true;
+    }
+
+    public void setCollisionLayer(int newMasks) {
+        if (newMasks == collisionLayer || !PhysicLayer.isMaskValid(newMasks)) return;
+        collisionLayer = newMasks;
+        needFixtureUpdate = true;
     }
 
     private void updateFixtureFilter() {

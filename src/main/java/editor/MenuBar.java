@@ -22,7 +22,7 @@ public class MenuBar {
         }
 
         if (ImGui.beginMenu("Project")) {
-            if (ImGui.menuItem("Preferences###Project_prefs")) EditProjectPreferencesDialog.show();
+            if (ImGui.menuItem("Preferences###Project_prefs")) EditProjectSettingsDialog.show();
             ImGui.separator();
             if (ImGui.menuItem("Exit to Project List")) ExitToProjectListDialog.show();
 
@@ -62,7 +62,7 @@ public class MenuBar {
         ImGui.popID();
         ImGui.endMenuBar();
 
-        EditProjectPreferencesDialog.imgui();
+        EditProjectSettingsDialog.imgui();
         EditEditorPreferencesDialog.imgui();
         ExitToProjectListDialog.imgui();
         SaveSceneAsDialog.imgui();

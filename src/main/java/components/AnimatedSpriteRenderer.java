@@ -461,7 +461,8 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
     protected void additionalImGuiLogic() {
         List<String> animationList = animations.keySet().stream().toList();
         String selectedAni = currentAnimationName;
-        if (ImGui.beginCombo("Animation##Select_Current_Animation", selectedAni == null ? "Select an animation..." : currentAnimationName)) {
+        ImGui.text("Animation:");
+        if (ImGui.beginCombo("##Select_Current_Animation", selectedAni == null ? "Select an animation..." : currentAnimationName)) {
             for (String name : animationList) {
                 if (ImGui.selectable(name, Objects.equals(name, selectedAni))) setCurrentAnimation(name);
             }

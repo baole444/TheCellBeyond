@@ -185,6 +185,6 @@ class ListenForInputDialog {
         recordedKeys.clear();
         currentMods.clear();
         ImGui.closeCurrentPopup();
-        EditProjectPreferencesDialog.closeListForInputDialog();
+        InputMapTab.closeListForInputDialog();
     }
 }

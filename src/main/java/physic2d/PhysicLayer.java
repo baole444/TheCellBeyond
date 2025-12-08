@@ -27,7 +27,7 @@ public class PhysicLayer {
     }
 
     public static int addLayerToMask(int mask, int layerIndex) {
-        if (isLayerIndexValid(layerIndex)) return mask;
+        if (!isLayerIndexValid(layerIndex)) return mask;
 
         int layerBit = 1 << layerIndex;
         return mask | layerBit;
@@ -78,5 +78,9 @@ public class PhysicLayer {
 
     public static boolean isLayerIndexValid(int index) {
         return index >= 0 && index < Physic2D.MaxLayer;
+    }
+
+    public static boolean isMaskValid(int mask) {
+        return mask >= getEmptyMask() && mask <= getFullMask();
     }
 }

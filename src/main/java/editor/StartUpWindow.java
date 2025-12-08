@@ -64,9 +64,9 @@ public class StartUpWindow{
                 renderProjectList();
 
                 loaded = (Project.currentProject() != null && Project.projectRoot() != null);
+                ImGui.end();
             }
 
-            ImGui.end();
             ImGui.render();
             imGuiLayer.getImGuiGl3().renderDrawData(ImGui.getDrawData());
 
