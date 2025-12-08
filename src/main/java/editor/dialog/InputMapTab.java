@@ -5,10 +5,7 @@ import editor.EditorIcons;
 import editor.ImEditorGui;
 import editor.ImGuiLayer;
 import imgui.ImGui;
-import imgui.flag.ImGuiCol;
-import imgui.flag.ImGuiInputTextFlags;
-import imgui.flag.ImGuiTableColumnFlags;
-import imgui.flag.ImGuiTableFlags;
+import imgui.flag.*;
 import imgui.type.ImString;
 import project.Project;
 import project.ProjectData;
@@ -156,7 +153,7 @@ class InputMapTab {
             if (renderActionNameEdit(actionName)) continue;
 
             String headerId = actionName + "##EPPD_Action_Header_" + actionName;
-            boolean opened = ImGui.collapsingHeader(headerId);
+            boolean opened = ImGui.collapsingHeader(headerId, ImGuiTreeNodeFlags.DefaultOpen);
 
             if (ImGui.isItemHovered() && ImGui.isMouseDoubleClicked(GLFW_MOUSE_BUTTON_1)) {
                 editingActionName = actionName;
