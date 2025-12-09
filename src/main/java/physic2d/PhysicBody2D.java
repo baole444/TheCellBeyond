@@ -1,76 +1,58 @@
-package physic2d.components;
+package physic2d;
 
+import TheCellBeyond.GameObject2D;
 import TheCellBeyond.Window;
-import components.SpatialComponent;
 import editor.ImEditorGui;
 import imgui.ImGui;
 import imgui.flag.ImGuiCol;
+import imgui.flag.ImGuiTreeNodeFlags;
 import imgui.type.ImBoolean;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.BodyDef;
 import org.joml.Math;
 import org.joml.Vector2f;
-import physic2d.Physic2D;
-import physic2d.PhysicLayer;
 import physic2d.enums.PhysicBodyType;
 
-public abstract class PhysicBody2D extends SpatialComponent {
+public abstract class PhysicBody2D extends GameObject2D {
     protected PhysicBodyType physicBodyType;
-    protected float friction = 0.0f;
+
     private int collisionLayer = PhysicLayer.layerToBit(0);
     private int collisionMask = PhysicLayer.layerToBit(0);
 
+    protected float friction = 0.0f;
     protected boolean isSensor = false;
     protected transient Body physicBodyRef = null;
 
     private transient boolean needFixtureUpdate = false;
 
     public PhysicBody2D(PhysicBodyType bodyType) {
-        this.physicBodyType = bodyType;
+        String name = PhysicBody2D.class.getSimpleName();
+        this(name, bodyType);
+    }
+
+    public PhysicBody2D(String name, PhysicBodyType bodyType) {
+        super(name);
+        physicBodyType = bodyType;
     }
 
     @Override
     public void update(float dt) {
-        if (physicBodyRef == null) {
-            additionalUpdateLogic(dt);
-            return;
+        if (physicBodyRef != null) {
+            Vector2f physicPos = new Vector2f(physicBodyRef.getPosition().x, physicBodyRef.getPosition().y);
+            float physicRot = Math.toDegrees(physicBodyRef.getAngle());
+
+            setPosition(physicPos);
+            setRotation(physicRot);
         }
 
-        Vector2f physicPos = new Vector2f(physicBodyRef.getPosition().x, physicBodyRef.getPosition().y);
-        float physicRot = Math.toDegrees(physicBodyRef.getAngle());
-
-        setWorldPosition(physicPos);
-        setWorldRotation(physicRot);
+        super.update(dt);
 
         if (needFixtureUpdate) updateFixtureFilter();
-
-        additionalUpdateLogic(dt);
+        additionalPhysicUpdate(dt);
     }
 
-    @Override
-    protected void additionalImGuiLogic() {
-        float friction = ImEditorGui.dragFloatCtrl("Friction", this.friction, this);
-        if (friction != this.friction) setFriction(friction);
-
-        ImBoolean isSensor = new ImBoolean(this.isSensor);
-        if (ImGui.checkbox("Sensor Mode##PhysicBody_isSensor_" + getUUID(), isSensor)) setSensor(isSensor.get());
-        ImGui.indent();
-        ImGui.pushStyleColor(ImGuiCol.Header, 0.0f, 0.0f, 0.0f, 0.0f);
-        boolean open = ImGui.collapsingHeader("Physic Layers##Physic_Layers_" + getUUID());
-        ImGui.popStyleColor(1);
-        if (open) {
-            ImGui.separator();
-            int collisionLayer = ImEditorGui.physicLayerSelectable("Collision Layer", this.collisionLayer, this);
-            ImGui.spacing();
-            int collisionMask = ImEditorGui.physicLayerSelectable("Collision Mask", this.collisionMask, this);
-            setCollisionLayer(collisionLayer);
-            setCollisionMask(collisionMask);
-            ImGui.separator();
-            ImGui.spacing();
-        }
-        ImGui.unindent();
-    }
+    protected void additionalPhysicUpdate(float dt) {}
 
     public float getFriction() {
         return friction;
@@ -106,12 +88,11 @@ public abstract class PhysicBody2D extends SpatialComponent {
     public void setPhysicBodyRef(Body physicBodyRef) {
         this.physicBodyRef = physicBodyRef;
 
-        if (physicBodyRef != null) {
-            Vector2f currentPos = getObjectWorldPosition();
-            float currentRot = getRotation();
+        if (physicBodyRef == null) return;
+        Vector2f currentPos = getPosition();
+        float currentRot = getRotation();
 
-            this.physicBodyRef.setTransform(new Vec2(currentPos.x, currentPos.y), Math.toRadians(currentRot));
-        }
+        this.physicBodyRef.setTransform(new Vec2(currentPos.x, currentPos.y), Math.toRadians(currentRot));
     }
 
     public int getCollisionLayer() {
@@ -173,4 +154,39 @@ public abstract class PhysicBody2D extends SpatialComponent {
     }
 
     public abstract void configureBodyDef(BodyDef bodyDef);
+
+    public abstract void configureBody();
+
+    @Override
+    protected void additionalImGuiLogic() {
+        ImGui.spacing();
+        boolean openPhysic = ImGui.collapsingHeader("Physic Properties##PhysicBody2D_Properties_Header_" + getUUID(), ImGuiTreeNodeFlags.DefaultOpen);
+        if (!openPhysic) {
+            super.additionalImGuiLogic();
+            return;
+        }
+        ImGui.indent();
+        float friction = ImEditorGui.dragFloatCtrl("Friction", this.friction, this);
+        if (friction != this.friction) setFriction(friction);
+
+        ImBoolean isSensor = new ImBoolean(this.isSensor);
+        if (ImGui.checkbox("Sensor Mode##PhysicBody2D_isSensor_" + getUUID(), isSensor)) setSensor(isSensor.get());
+        ImGui.indent();
+        ImGui.pushStyleColor(ImGuiCol.Header, 0.0f, 0.0f, 0.0f, 0.0f);
+        boolean open = ImGui.collapsingHeader("Physic Layers##Physic_Layers_" + getUUID());
+        ImGui.popStyleColor(1);
+        if (open) {
+            ImGui.separator();
+            int collisionLayer = ImEditorGui.physicLayerSelectable("Collision Layer", this.collisionLayer, this);
+            ImGui.spacing();
+            int collisionMask = ImEditorGui.physicLayerSelectable("Collision Mask", this.collisionMask, this);
+            setCollisionLayer(collisionLayer);
+            setCollisionMask(collisionMask);
+            ImGui.separator();
+            ImGui.spacing();
+        }
+        ImGui.unindent();
+        ImGui.unindent();
+        super.additionalImGuiLogic();
+    }
 }

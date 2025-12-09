@@ -6,10 +6,13 @@ import components.ComponentSerializer;
 import components.Component;
 import components.NotSerializeComponent;
 import editor.BottomPanel;
+import editor.EditorIcons;
 import editor.ImEditorGui;
 import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.ImGuiCol;
+import imgui.flag.ImGuiTableColumnFlags;
+import imgui.flag.ImGuiTableFlags;
 import scene.Scene;
 import utility.IdPool;
 
@@ -22,21 +25,13 @@ import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_1;
 
 public class GameObject {
     private static final IdPool idCounter = new IdPool(1, true);
-
-    // This is auto managed for shader compatibility, not serialized
     private transient int cachedID;
 
     // TODO: refactor this to use UUID class
     private String uuid;
     public String name;
 
-    // During production, this might cause performance impact
-    // when user add component to an object.
-    // During runtime, most of the time will be spent reading this component list,
-    // Thia tradeoff is acceptable.
     private final CopyOnWriteArrayList<Component> components;
-
-    // Cached component that might be used for referencing
     private final transient Map<String, Component> namedComponents = new ConcurrentHashMap<>();
 
     private boolean isSerialize = true;
@@ -50,12 +45,17 @@ public class GameObject {
     private String parentUUID;
     private List<String> childrenUUIDs;
 
+    public GameObject() {
+        String name = GameObject2D.class.getSimpleName();
+        this(name);
+    }
+
     public GameObject(String name) {
         this.name = name;
-        this.components = new CopyOnWriteArrayList<>();
-        this.children = new LinkedHashSet<>();
-        this.uuid = UUID.randomUUID().toString();
-        this.cachedID = idCounter.newId();
+        components = new CopyOnWriteArrayList<>();
+        children = new LinkedHashSet<>();
+        uuid = UUID.randomUUID().toString();
+        cachedID = idCounter.newId();
     }
 
     public GameObject getChild(String childName) {
@@ -335,48 +335,47 @@ public class GameObject {
         isDirty = true;
     }
 
-    public void imgui() {
+    public final void imgui() {
         name = ImEditorGui.inputText("Name", name, this);
         additionalImGuiLogic();
-        ImGui.separator();
-        ImGui.text("Components");
-        float xWidth = ImGui.calcTextSizeX("  X  ");
-        float availX = ImGui.getContentRegionAvailX();
-        float offset = availX - xWidth;
+        ImGui.spacing();
+        boolean openComponent = ImGui.collapsingHeader("Components##GO_Components_Header_" + getUUID());
+        if (!openComponent) {
+            ImGui.spacing();
+            return;
+        }
+        ImGui.indent();
         for (Component c: components) {
             if (c instanceof NotSerializeComponent) continue;
-            ImVec2 currentPos = ImGui.getCursorPos();
-            boolean open;
-            String label = c.getClass().getSimpleName() + "###" + c.getUUID();
-            ImGui.setNextItemAllowOverlap();
+            String uuid = c.getUUID();
+            if (!ImGui.beginTable("##Component_Table_Header_" + uuid, 2, ImGuiTableFlags.SizingFixedFit)) continue;
+            ImGui.tableSetupColumn("Component_Header_Column_" + uuid, ImGuiTableColumnFlags.WidthStretch);
+            ImGui.tableSetupColumn("Component_Delete_Column_" + uuid, ImGuiTableColumnFlags.WidthFixed);
+
+            ImGui.tableNextColumn();
+            String name = c.getComponentName();
+            String label = (name == null || name.isBlank()) ? c.getClass().getSimpleName() : name + "##" + uuid;
             ImGui.pushStyleColor(ImGuiCol.Header, 0.0f, 0.0f, 0.0f, 0.0f);
-            open = (ImGui.collapsingHeader(label));
-            if (ImGui.isItemClicked(GLFW_MOUSE_BUTTON_1)) {
-                BottomPanel.interacted(c);
-            }
+            boolean open = ImGui.collapsingHeader(label);
             ImGui.popStyleColor(1);
+            if (ImGui.isItemClicked(GLFW_MOUSE_BUTTON_1)) BottomPanel.interacted(c);
 
-            ImGui.setCursorPos(currentPos.x + offset, currentPos.y);
-            ImGui.pushStyleColor(ImGuiCol.Button, 0.7f, 0.2f, 0.2f, 1.0f);
-            ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.8f, 0.3f, 0.3f, 1.0f);
-            ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0.7f, 0.2f, 0.2f, 1.0f);
+            ImGui.tableNextColumn();
+            boolean clicked = ImEditorGui.iconButton("Delete##Delete_Component_Button_" + uuid, EditorIcons.Icons.Delete, "Remove this component");
+            ImGui.endTable();
 
-            if (ImGui.button("X##" + "Remove_" + c.getUUID(), xWidth, 0.0f)) removeComponent(c);
-            ImGui.popStyleColor(3);
-
-            if (ImGui.isItemHovered()) {
-                ImGui.beginTooltip();
-                ImGui.text("Delete component");
-                ImGui.endTooltip();
+            if (clicked) {
+                removeComponent(c);
+                continue;
             }
 
-            if (open) {
-                ImGui.separator();
-                c.imgui();
-                ImGui.separator();
-            }
+            if (!open) continue;
+            ImGui.separator();
+            c.imgui();
+            ImGui.separator();
         }
 
+        ImGui.unindent();
         ImGui.spacing();
     }
 

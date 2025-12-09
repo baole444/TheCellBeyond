@@ -1,4 +1,4 @@
-package physic2d.components.collider;
+package physic2d.collider;
 
 import org.jbox2d.collision.shapes.PolygonShape;
 import org.jbox2d.collision.shapes.Shape;

@@ -142,8 +142,8 @@ public class MouseListener {
         MouseListener listener = get();
         if (listener == null) return new Vector2f(0.0f);
 
-        float x = (float) (listener.worldPastX - listener.worldCurrentX);
-        float y = (float) (listener.worldPastY - listener.worldCurrentY);
+        float x = (float) (listener.worldPastX - getWorldPositionX());
+        float y = (float) (listener.worldPastY - getWorldPositionY());
         return new Vector2f(x, y);
     }
 

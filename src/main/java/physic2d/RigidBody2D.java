@@ -1,0 +1,195 @@
+package physic2d;
+
+import editor.ImEditorGui;
+import imgui.ImGui;
+import imgui.flag.ImGuiTreeNodeFlags;
+import imgui.type.ImBoolean;
+import org.jbox2d.common.Vec2;
+import org.jbox2d.dynamics.BodyDef;
+import org.joml.Vector2f;
+import physic2d.enums.PhysicBodyType;
+
+public class RigidBody2D extends PhysicBody2D {
+    private final Vector2f velocity = new Vector2f();
+    private float rollResistance = 0.8f;
+    private float translateResistance = 0.8f;
+    private float angularVelocity = 0.0f;
+    private float gravityScale = 1.0f;
+    private float mass = 0;
+
+    private boolean fixedRotation = false;
+    private boolean bullet = true;
+
+    public RigidBody2D() {
+        this(PhysicBodyType.Dynamic);
+    }
+
+    public RigidBody2D(String name) {
+        this (name, PhysicBodyType.Dynamic);
+    }
+
+    public RigidBody2D(PhysicBodyType bodyType) {
+        String name = RigidBody2D.class.getSimpleName();
+        this(name, bodyType);
+    }
+
+    public RigidBody2D(String name, PhysicBodyType bodyType) {
+        super(name, bodyType);
+    }
+
+    @Override
+    public void configureBodyDef(BodyDef bodyDef) {
+        bodyDef.angularDamping = rollResistance;
+        bodyDef.linearDamping = translateResistance;
+        bodyDef.fixedRotation = fixedRotation;
+        bodyDef.bullet = bullet;
+        bodyDef.gravityScale = gravityScale;
+        bodyDef.angularVelocity = angularVelocity;
+    }
+
+    @Override
+    public void configureBody() {
+        if (physicBodyRef == null) return;
+        physicBodyRef.m_mass = mass;
+        physicBodyRef.setLinearVelocity(new Vec2(velocity.x, velocity.y));
+    }
+
+    @Override
+    protected void additionalPhysicUpdate(float dt) {
+        if (physicBodyRef == null) return;
+        Vec2 v = physicBodyRef.getLinearVelocity();
+        velocity.set(v.x, v.y);
+        angularVelocity = physicBodyRef.getAngularVelocity();
+    }
+
+    public Vector2f getVelocity() {
+        return new Vector2f(velocity);
+    }
+
+    public void addVelocity(Vector2f force) {
+        if (physicBodyRef != null) {
+            physicBodyRef.applyForceToCenter(new Vec2(force.x, force.y));
+        }
+    }
+
+    public void addImpulse(Vector2f impulse) {
+        if (physicBodyRef != null) {
+            physicBodyRef.applyLinearImpulse(new Vec2(impulse.x, impulse.y), physicBodyRef.getWorldCenter());
+        }
+    }
+
+    public void setVelocity(Vector2f velocity) {
+        if (velocity == null) return;
+        this.velocity.set(velocity);
+        if (physicBodyRef != null) physicBodyRef.setLinearVelocity(new Vec2(velocity.x, velocity.y));
+    }
+
+    public float getRollResistance() {
+        return rollResistance;
+    }
+
+    public void setRollResistance(float rollResistance) {
+        this.rollResistance = rollResistance;
+        if (physicBodyRef != null) physicBodyRef.setAngularDamping(rollResistance);
+    }
+
+    public float getTranslateResistance() {
+        return translateResistance;
+    }
+
+    public void setTranslateResistance(float translateResistance) {
+        this.translateResistance = translateResistance;
+        if (physicBodyRef != null) physicBodyRef.setLinearDamping(translateResistance);
+    }
+
+    public float getAngularVelocity() {
+        return angularVelocity;
+    }
+
+    public void setAngularVelocity(float angularVelocity) {
+        this.angularVelocity = angularVelocity;
+        if (physicBodyRef != null) physicBodyRef.setAngularVelocity(angularVelocity);
+    }
+
+    public float getGravityScale() {
+        return gravityScale;
+    }
+
+    public void setGravityScale(float gravityScale) {
+        this.gravityScale = gravityScale;
+        if (physicBodyRef != null) physicBodyRef.setGravityScale(gravityScale);
+    }
+
+    public float getMass() {
+        return mass;
+    }
+
+    public void setMass(float mass) {
+        this.mass = mass;
+        if (physicBodyRef != null) physicBodyRef.m_mass = mass;
+    }
+
+    public boolean isFixedRotation() {
+        return fixedRotation;
+    }
+
+    public void setFixedRotation(boolean fixedRotation) {
+        this.fixedRotation = fixedRotation;
+        if (physicBodyRef != null) physicBodyRef.setFixedRotation(fixedRotation);
+    }
+
+    public boolean isBullet() {
+        return bullet;
+    }
+
+    public void setBullet(boolean bullet) {
+        this.bullet = bullet;
+        if (physicBodyRef != null) physicBodyRef.setBullet(bullet);
+    }
+
+    @Override
+    public RigidBody2D copy() {
+        return copy(false);
+    }
+
+    @Override
+    public RigidBody2D copy(boolean copyHierarchy) {
+        RigidBody2D copy = (RigidBody2D) copySingleObject();
+
+        if (copyHierarchy && !getChildren().isEmpty()) copyDescendants(this, copy);
+
+        return copy;
+    }
+
+    @Override
+    protected void additionalImGuiLogic() {
+        ImGui.spacing();
+        boolean openRigid = ImGui.collapsingHeader("Rigid Body Properties##RigidBody2D_Properties_Header", ImGuiTreeNodeFlags.DefaultOpen);
+        if (!openRigid) {
+            super.additionalImGuiLogic();
+            return;
+        }
+        ImGui.indent();
+        Vector2f vTmp = new Vector2f(velocity);
+        boolean vChanged = ImEditorGui.dragVec2PixelToWorld("Velocity", vTmp, 0.0f, this);
+        float angularV = ImEditorGui.dragFloatCtrl("Angular Velocity", angularVelocity, 0.0f, this);
+        float ms = ImEditorGui.dragFloatCtrl("Mass", mass, 0.0f, this);
+        float rollResist = ImEditorGui.dragFloatCtrl("Roll Resistance", rollResistance, 0.8f, this);
+        float translateResist = ImEditorGui.dragFloatCtrl("Translate Resistance", translateResistance, 0.8f, this);
+        float gravScale = ImEditorGui.dragFloatCtrl("Gravity Scale", gravityScale, 1.0f, this);
+        ImBoolean fixedRot = new ImBoolean(fixedRotation);
+        if (ImGui.checkbox("Fixed Rotation##RigidBody2D_fixedRotation_" + getUUID(), fixedRot)) setFixedRotation(fixedRot.get());
+        ImBoolean b = new ImBoolean(bullet);
+        if (ImGui.checkbox("Bullet##RigidBody2D_bullet_" + getUUID(), b)) setBullet(b.get());
+
+        if (vChanged) setVelocity(vTmp);
+        if (Float.compare(angularV, angularVelocity) != 0) setAngularVelocity(angularV);
+        if (Float.compare(ms, mass) != 0) setMass(mass);
+        if (Float.compare(rollResist, rollResistance) != 0) setRollResistance(rollResist);
+        if (Float.compare(translateResist, translateResistance) != 0) setTranslateResistance(translateResist);
+        if (Float.compare(gravScale, gravityScale) != 0) setGravityScale(gravScale);
+
+        ImGui.unindent();
+        super.additionalImGuiLogic();
+    }
+}

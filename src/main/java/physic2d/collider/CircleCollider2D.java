@@ -1,6 +1,5 @@
-package physic2d.components.collider;
+package physic2d.collider;
 
-import components.SpatialComponent;
 import org.jbox2d.collision.shapes.CircleShape;
 import org.jbox2d.collision.shapes.Shape;
 import org.joml.Vector2f;

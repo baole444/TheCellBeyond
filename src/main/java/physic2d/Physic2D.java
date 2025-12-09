@@ -1,22 +1,16 @@
 package physic2d;
 
 import TheCellBeyond.GameObject;
-import components.Component;
-import org.jbox2d.collision.shapes.CircleShape;
-import org.jbox2d.collision.shapes.PolygonShape;
 import org.jbox2d.collision.shapes.Shape;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.*;
 import org.joml.Math;
 import org.joml.Vector2f;
-import physic2d.components.PhysicBody2D;
-import physic2d.components.RigidBody2D;
-import physic2d.components.collider.BoxCollider2D;
-import physic2d.components.collider.CircleCollider2D;
-import physic2d.components.collider.CollisionShape2D;
-import physic2d.components.collider.PillBoxCollider;
+import physic2d.collider.BoxCollider2D;
+import physic2d.collider.CircleCollider2D;
+import physic2d.collider.CollisionShape2D;
+import physic2d.collider.CapsuleCollider2D;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -38,53 +32,46 @@ public class Physic2D {
     }
 
     public void add(GameObject go) {
-        List<PhysicBody2D> physicBodies = go.getComponents(PhysicBody2D.class);
-        List<CollisionShape2D> collisionShapes = go.getComponents(CollisionShape2D.class);
+        if (!(go instanceof PhysicBody2D physicBody2D)) return;
 
-        for (PhysicBody2D physicBody2D : physicBodies) {
-            if (physicBody2D == null || physicBody2D.getPhysicBodyRef() != null) continue;
+        List<CollisionShape2D> collisionShapes = physicBody2D.getComponents(CollisionShape2D.class);
+        if (physicBody2D.getPhysicBodyRef() != null) return;
 
-            Vector2f initialPos = physicBody2D.getPosition();
-            float initialRot = physicBody2D.getRotation();
+        Vector2f initialPos = physicBody2D.getPosition();
+        float initialRot = physicBody2D.getRotation();
 
-            BodyDef bodyDef = new BodyDef();
-            bodyDef.angle = Math.toRadians(initialRot);
-            bodyDef.position.set(initialPos.x, initialPos.y);
-            bodyDef.userData = physicBody2D.gameObject;
+        BodyDef bodyDef = new BodyDef();
+        bodyDef.angle = Math.toRadians(initialRot);
+        bodyDef.position.set(initialPos.x, initialPos.y);
+        bodyDef.userData = physicBody2D;
 
-            bodyDef.type = switch (physicBody2D.getPhysicBodyType()) {
-                case Kinematic -> BodyType.KINEMATIC;
-                case Static -> BodyType.STATIC;
-                case Dynamic -> BodyType.DYNAMIC;
-            };
+        bodyDef.type = switch (physicBody2D.getPhysicBodyType()) {
+            case Kinematic -> BodyType.KINEMATIC;
+            case Static -> BodyType.STATIC;
+            case Dynamic -> BodyType.DYNAMIC;
+        };
 
-            physicBody2D.configureBodyDef(bodyDef);
-            Body obj = world.createBody(bodyDef);
+        physicBody2D.configureBodyDef(bodyDef);
+        Body obj = world.createBody(bodyDef);
+        physicBody2D.setPhysicBodyRef(obj);
+        physicBody2D.configureBody();
 
-            if (physicBody2D instanceof RigidBody2D rigidBody2D) {
-                obj.m_mass = rigidBody2D.getMass();
-            }
-
-            physicBody2D.setPhysicBodyRef(obj);
-            for (CollisionShape2D shape : collisionShapes) {
-                if (!shape.hasPhysicBody() || shape.getPhysicBody2D() != physicBody2D) continue;
-                switch (shape) {
-                    case BoxCollider2D boxCollider2D -> addBoxCollider2D(physicBody2D, boxCollider2D);
-                    case CircleCollider2D circleCollider2D -> addCircleCollider2D(physicBody2D, circleCollider2D);
-                    case PillBoxCollider pillBoxCollider -> addPillBoxCollider(physicBody2D, pillBoxCollider);
-                    default -> {}
-                }
+        for (CollisionShape2D shape : collisionShapes) {
+            if (!shape.hasPhysicBody() || shape.getPhysicBody2D() != physicBody2D) continue;
+            switch (shape) {
+                case BoxCollider2D boxCollider2D -> addBoxCollider2D(physicBody2D, boxCollider2D);
+                case CircleCollider2D circleCollider2D -> addCircleCollider2D(physicBody2D, circleCollider2D);
+                case CapsuleCollider2D capsuleCollider2D -> addCapsuleCollider(physicBody2D, capsuleCollider2D);
+                default -> {}
             }
         }
     }
 
     public void destroyObject(GameObject go) {
-        PhysicBody2D physicBody2D = go.getFirstComponent(PhysicBody2D.class);
-        if (physicBody2D != null) {
-            if (physicBody2D.getPhysicBodyRef() != null) {
-                world.destroyBody(physicBody2D.getPhysicBodyRef());
-                physicBody2D.setPhysicBodyRef(null);
-            }
+        if (!(go instanceof PhysicBody2D physicBody2D)) return;
+        if (physicBody2D.getPhysicBodyRef() != null) {
+            world.destroyBody(physicBody2D.getPhysicBodyRef());
+            physicBody2D.setPhysicBodyRef(null);
         }
     }
 
@@ -102,7 +89,7 @@ public class Physic2D {
         fixtureDef.shape = shape;
         fixtureDef.density = 1.0f;
         fixtureDef.friction = physicBody2D.getFriction();
-        fixtureDef.userData = physicBody2D.gameObject;
+        fixtureDef.userData = physicBody2D;
         fixtureDef.isSensor = physicBody2D.isSensor();
         fixtureDef.filter.categoryBits = physicBody2D.getCollisionLayer();
         fixtureDef.filter.maskBits = physicBody2D.getCollisionMask();
@@ -141,13 +128,13 @@ public class Physic2D {
         createFixture(physicBody2D, body, shape);
     }
 
-    public void addPillBoxCollider(PhysicBody2D physicBody2D, PillBoxCollider pillBoxCollider) {
+    public void addCapsuleCollider(PhysicBody2D physicBody2D, CapsuleCollider2D capsuleCollider2D) {
         Body body = physicBody2D.getPhysicBodyRef();
         if (body == null) return;
 
-        addBoxCollider2D(physicBody2D, pillBoxCollider.bodyBox());
-        addCircleCollider2D(physicBody2D, pillBoxCollider.headCircle());
-        addCircleCollider2D(physicBody2D, pillBoxCollider.footCircle());
+        addBoxCollider2D(physicBody2D, capsuleCollider2D.bodyBox());
+        addCircleCollider2D(physicBody2D, capsuleCollider2D.headCircle());
+        addCircleCollider2D(physicBody2D, capsuleCollider2D.footCircle());
     }
 
     public void resetCollider(PhysicBody2D physicBody2D, CollisionShape2D collisionShape2D) {
@@ -162,7 +149,7 @@ public class Physic2D {
         switch (collisionShape2D) {
             case BoxCollider2D boxCollider2D -> addBoxCollider2D(physicBody2D, boxCollider2D);
             case CircleCollider2D circleCollider2D -> addCircleCollider2D(physicBody2D, circleCollider2D);
-            case PillBoxCollider pillBoxCollider -> addPillBoxCollider(physicBody2D, pillBoxCollider);
+            case CapsuleCollider2D capsuleCollider2D -> addCapsuleCollider(physicBody2D, capsuleCollider2D);
             default -> {}
         }
 

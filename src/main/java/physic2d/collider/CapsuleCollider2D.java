@@ -1,4 +1,4 @@
-package physic2d.components.collider;
+package physic2d.collider;
 
 import org.jbox2d.collision.shapes.Shape;
 import org.joml.Vector2f;
@@ -10,7 +10,7 @@ import org.joml.Vector2f;
  * This forms a pill-shaped collider, reduce chance of
  * edge catching between collision bodies of other objects.
  */
-public class PillBoxCollider extends CollisionShape2D {
+public class CapsuleCollider2D extends CollisionShape2D {
     private final transient CircleCollider2D headCircle = new CircleCollider2D();
     private final transient CircleCollider2D footCircle = new CircleCollider2D();
     private final transient BoxCollider2D bodyBox = new BoxCollider2D();

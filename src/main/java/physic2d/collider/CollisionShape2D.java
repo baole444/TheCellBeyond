@@ -1,4 +1,4 @@
-package physic2d.components.collider;
+package physic2d.collider;
 
 import TheCellBeyond.GameObject2D;
 import TheCellBeyond.Window;
@@ -6,7 +6,7 @@ import components.Component;
 import org.jbox2d.collision.shapes.Shape;
 import org.joml.Vector2f;
 import physic2d.Physic2D;
-import physic2d.components.PhysicBody2D;
+import physic2d.PhysicBody2D;
 
 public abstract class CollisionShape2D extends Component {
     protected PhysicBody2D physicBody2D = null;

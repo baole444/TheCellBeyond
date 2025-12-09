@@ -15,9 +15,13 @@ import imgui.type.ImString;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 
-public class ImEditorGui {
-    private static final float defaultWidth = 70.0f;
+import java.util.HashMap;
 
+public class ImEditorGui {
+    private record ShortenLabelKey(String text, float width) {}
+
+    private static final HashMap<ShortenLabelKey, String> shortenLabels = new HashMap<>();
+    private static final float defaultWidth = 80.0f;
     private static final Vector2f tmpPixelVector = new Vector2f();
 
     public static boolean dragVec2PixelToWorld(String label, Vector2f source, float resetVal, Object caller) {
@@ -31,7 +35,7 @@ public class ImEditorGui {
         ImGui.tableSetupColumn("##content_" + label + id, ImGuiTableColumnFlags.WidthStretch);
         ImGui.tableNextColumn();
         float labelSpace = ImGui.getContentRegionAvailX();
-        ImGui.text(label);
+        ImGui.text(shortenLabel(label, labelSpace));
         if (ImGui.isItemHovered() && labelSpace <= ImGui.calcTextSizeX(label)) {
             ImGui.beginTooltip();
             ImGui.text(label);
@@ -77,7 +81,7 @@ public class ImEditorGui {
         ImGui.pushItemWidth(dragRemains);
         ImGui.sameLine();
         float[] valY = {tmpPixelVector.y};
-        if (ImGui.dragFloat("##dragY", valY, 0.1f)) {
+        if (ImGui.dragFloat("##dragY", valY, 1.0f)) {
             tmpPixelVector.y = valY[0];
             changed = true;
         }
@@ -105,7 +109,7 @@ public class ImEditorGui {
         ImGui.tableSetupColumn("##content_" + label + id, ImGuiTableColumnFlags.WidthStretch);
         ImGui.tableNextColumn();
         float labelSpace = ImGui.getContentRegionAvailX();
-        ImGui.text(label);
+        ImGui.text(shortenLabel(label, labelSpace));
         if (ImGui.isItemHovered() && labelSpace <= ImGui.calcTextSizeX(label)) {
             ImGui.beginTooltip();
             ImGui.text(label);
@@ -130,7 +134,7 @@ public class ImEditorGui {
         ImGui.pushItemWidth(dragRemains);
         ImGui.sameLine();
         float[] valX = {out.x};
-        if (ImGui.dragFloat("##dragX", valX, 1.0f)) {
+        if (ImGui.dragFloat("##dragX", valX, 0.1f)) {
             out.x = valX[0];
             changed = true;
         }
@@ -167,6 +171,10 @@ public class ImEditorGui {
     }
 
     public static float dragFloatCtrl(String label, float val, Object caller) {
+        return dragFloatCtrl(label, val, 0.0f, caller);
+    }
+
+    public static float dragFloatCtrl(String label, float val, float resetVal, Object caller) {
         String id = createID(label, caller);
         float[] valA = {val};
 
@@ -178,7 +186,7 @@ public class ImEditorGui {
         ImGui.tableSetupColumn("##content_" + label + id, ImGuiTableColumnFlags.WidthStretch);
         ImGui.tableNextColumn();
         float labelSpace = ImGui.getContentRegionAvailX();
-        ImGui.text(label);
+        ImGui.text(shortenLabel(label, labelSpace));
         if (ImGui.isItemHovered() && labelSpace <= ImGui.calcTextSizeX(label)) {
             ImGui.beginTooltip();
             ImGui.text(label);
@@ -191,7 +199,7 @@ public class ImEditorGui {
         ImGui.pushStyleColor(ImGuiCol.Button, 0.7f, 0.2f, 0.2f, 1.0f);
         ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.8f, 0.3f, 0.3f, 1.0f);
         ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0.7f, 0.2f, 0.2f, 1.0f);
-        if (ImGui.button("Reset##Reset_" + id)) val = 0.0f;
+        if (ImGui.button("Reset##Reset_" + id)) val = resetVal;
         ImGui.popStyleColor(3);
         ImGui.sameLine();
 
@@ -218,7 +226,7 @@ public class ImEditorGui {
         ImGui.tableSetupColumn("##content_" + label + id, ImGuiTableColumnFlags.WidthStretch);
         ImGui.tableNextColumn();
         float labelSpace = ImGui.getContentRegionAvailX();
-        ImGui.text(label);
+        ImGui.text(shortenLabel(label, labelSpace));
         if (ImGui.isItemHovered() && labelSpace <= ImGui.calcTextSizeX(label)) {
             ImGui.beginTooltip();
             ImGui.text(label);
@@ -258,7 +266,7 @@ public class ImEditorGui {
         ImGui.tableSetupColumn("##content_" + label + id, ImGuiTableColumnFlags.WidthStretch);
         ImGui.tableNextColumn();
         float labelSpace = ImGui.getContentRegionAvailX();
-        ImGui.text(label);
+        ImGui.text(shortenLabel(label, labelSpace));
         if (ImGui.isItemHovered() && labelSpace <= ImGui.calcTextSizeX(label)) {
             ImGui.beginTooltip();
             ImGui.text(label);
@@ -291,7 +299,7 @@ public class ImEditorGui {
         ImGui.tableSetupColumn("##content_" + label + id, ImGuiTableColumnFlags.WidthStretch);
         ImGui.tableNextColumn();
         float labelSpace = ImGui.getContentRegionAvailX();
-        ImGui.text(label);
+        ImGui.text(shortenLabel(label, labelSpace));
         if (ImGui.isItemHovered() && labelSpace <= ImGui.calcTextSizeX(label)) {
             ImGui.beginTooltip();
             ImGui.text(label);
@@ -326,7 +334,7 @@ public class ImEditorGui {
         ImGui.tableSetupColumn("##content_" + label + id, ImGuiTableColumnFlags.WidthStretch);
         ImGui.tableNextColumn();
         float labelSpace = ImGui.getContentRegionAvailX();
-        ImGui.text(label);
+        ImGui.text(shortenLabel(label, labelSpace));
         if (ImGui.isItemHovered() && labelSpace <= ImGui.calcTextSizeX(label)) {
             ImGui.beginTooltip();
             ImGui.text(label);
@@ -505,6 +513,49 @@ public class ImEditorGui {
         ImGui.endTable();
         ImGui.popID();
         return newMask;
+    }
+
+    private static String shortenLabel(String label, float availableWidth) {
+        if (label == null || label.isBlank()) return label;
+
+        ShortenLabelKey cachedKey = new ShortenLabelKey(label, availableWidth);
+        String result = shortenLabels.get(cachedKey);
+        if (result != null) return result;
+
+        float fullWidth = ImGui.calcTextSizeX(label);
+        if (fullWidth <= availableWidth) {
+            shortenLabels.put(cachedKey, label);
+            return label;
+        }
+
+        String dots = "...";
+        float dWidth = ImGui.calcTextSizeX(dots);
+
+        if (dWidth >= availableWidth) {
+            shortenLabels.put(cachedKey, dots);
+            return dots;
+        }
+
+        float targetW = availableWidth - dWidth;
+        int l = 0;
+        int r = label.length();
+        int bestFit = 0;
+        while (l <= r) {
+            int mid = (l + r) / 2;
+            String sub = label.substring(0, mid);
+            float sWidth = ImGui.calcTextSizeX(sub);
+
+            if (sWidth < targetW) {
+                bestFit = mid;
+                l = mid + 1;
+            } else {
+                r = mid - 1;
+            }
+        }
+
+        result = bestFit == 0 ? dots : label.substring(0, bestFit) + dots;
+        shortenLabels.put(cachedKey, result);
+        return result;
     }
 
     private static String createID(String label, Object caller) {

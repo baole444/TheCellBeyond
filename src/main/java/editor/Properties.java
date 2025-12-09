@@ -6,11 +6,6 @@ import editor.dialog.AddComponentDialog;
 import imgui.ImGui;
 import imgui.flag.ImGuiWindowFlags;
 import org.joml.Vector4f;
-import physic2d.components.PhysicBody2D;
-import physic2d.components.collider.BoxCollider2D;
-import physic2d.components.collider.CircleCollider2D;
-import render.ObjectSelection;
-import render.texture.Sprite;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,7 +54,7 @@ public class Properties {
 
     private static void renderContextMenu() {
         if (ImGui.beginPopupContextWindow("AddComponent")) {
-            ImGui.textWrapped("This menu will be rework soon");
+            ImGui.text("This menu will be rework soon");
             ImGui.endPopup();
         }
     }

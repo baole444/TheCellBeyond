@@ -2,6 +2,7 @@ package TheCellBeyond;
 
 import components.*;
 import imgui.ImGui;
+import imgui.flag.ImGuiTreeNodeFlags;
 import org.joml.Matrix3x2f;
 import org.joml.Vector2f;
 
@@ -19,6 +20,11 @@ public class GameObject2D extends GameObject {
     private transient final Matrix3x2f localMatrix = new Matrix3x2f();
     private transient final Matrix3x2f globalMatrix = new Matrix3x2f();
     private transient final Matrix3x2f tmpMatrix = new Matrix3x2f();
+
+    public GameObject2D() {
+        String name = GameObject2D.class.getSimpleName();
+        this(name);
+    }
 
     public GameObject2D(String name) {
         super(name);
@@ -247,14 +253,15 @@ public class GameObject2D extends GameObject {
     }
 
     @Override
-    public void imgui() {
-        super.imgui();
+    protected void additionalImGuiLogic() {
         ImGui.spacing();
-        ImGui.text("Position");
-        Transform editing = new Transform(localTransform);
-        localTransform.imgui();
-        if (!editing.equals(localTransform)) {
-            setTransformDirty();
+        boolean openTransform = ImGui.collapsingHeader("Transform##Transform_GO2D_Properties_" + getUUID(), ImGuiTreeNodeFlags.DefaultOpen);
+        if (openTransform) {
+            Transform editing = new Transform(localTransform);
+            ImGui.indent();
+            localTransform.imgui();
+            ImGui.unindent();
+            if (!editing.equals(localTransform)) setTransformDirty();
         }
     }
 }
