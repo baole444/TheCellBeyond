@@ -82,7 +82,7 @@ public abstract class SpatialComponent extends Component implements Transformati
         return localTransform.rotation;
     }
 
-    public int getLocalzIndex() {
+    public int getLocalZIndex() {
         return localTransform.zIndex;
     }
 
@@ -103,7 +103,7 @@ public abstract class SpatialComponent extends Component implements Transformati
         setTransformDirty();
     }
 
-    public void setLocalzIndex(int zIndex) {
+    public void setLocalZIndex(int zIndex) {
         localTransform.zIndex = zIndex;
         setTransformDirty();
     }
@@ -178,7 +178,12 @@ public abstract class SpatialComponent extends Component implements Transformati
         target.position.add(offset.position);
         target.rotation += offset.rotation;
         target.scale.mul(offset.scale);
+        target.relativeZIndex = offset.relativeZIndex;
 
-        if (offset.zIndex != 0) target.zIndex = offset.zIndex;
+        if (offset.relativeZIndex) {
+            target.zIndex += offset.zIndex;
+            return;
+        }
+        target.zIndex = offset.zIndex;
     }
 }

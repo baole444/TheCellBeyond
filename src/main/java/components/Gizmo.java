@@ -63,7 +63,7 @@ public class Gizmo extends SpatialComponent implements NotSerializeComponent {
         go2D.addComponent(new IsNotSelectable());
 
         SpriteRenderer renderer = new SpriteRenderer();
-        renderer.setLocalzIndex(100);
+        renderer.setLocalZIndex(100);
         renderer.setSprite(sprite);
 
         go2D.addComponent(renderer);

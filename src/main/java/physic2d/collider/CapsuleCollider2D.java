@@ -1,5 +1,8 @@
 package physic2d.collider;
 
+import editor.ImEditorGui;
+import imgui.ImGui;
+import imgui.flag.ImGuiTreeNodeFlags;
 import org.jbox2d.collision.shapes.Shape;
 import org.joml.Vector2f;
 
@@ -19,18 +22,15 @@ public class CapsuleCollider2D extends CollisionShape2D {
     private float height = 0.64f;
 
     @Override
-    public void start() {
-        super.start();
-
+    protected void additionalStartLogic() {
+        super.additionalStartLogic();
         headCircle.gameObject = this.gameObject;
         footCircle.gameObject = this.gameObject;
         bodyBox.gameObject = this.gameObject;
 
-        if (physicBody2D != null) {
-            headCircle.setPhysicBody2D(physicBody2D);
-            footCircle.setPhysicBody2D(physicBody2D);
-            bodyBox.setPhysicBody2D(physicBody2D);
-        }
+        headCircle.start();
+        footCircle.start();
+        bodyBox.start();
 
         calculateCollider();
     }
@@ -50,7 +50,7 @@ public class CapsuleCollider2D extends CollisionShape2D {
     }
 
     public void setWidth(float width) {
-        this.width = width;
+        this.width = Math.max(width, MinimumShapeDimension);
         calculateCollider();
         setFixtureNeedReset();
     }
@@ -60,7 +60,7 @@ public class CapsuleCollider2D extends CollisionShape2D {
     }
 
     public void setHeight(float height) {
-        this.height = height;
+        this.height = Math.max(height, MinimumShapeDimension);
         calculateCollider();
         setFixtureNeedReset();
     }
@@ -98,4 +98,20 @@ public class CapsuleCollider2D extends CollisionShape2D {
 
     @Override
     protected void drawDebugShape() {}
+
+    @Override
+    protected void additionalImGuiLogic() {
+        ImGui.spacing();
+        boolean openCapsule = ImGui.collapsingHeader("CapsuleCollier2D##CapsuleCollider2D_Properties_Header_" + getUUID(), ImGuiTreeNodeFlags.DefaultOpen);
+        if (!openCapsule) {
+            super.additionalImGuiLogic();
+            return;
+        }
+        ImGui.indent();
+        float w = ImEditorGui.dragFloatCtrl("Width", width, 0.32f, this);
+        float h = ImEditorGui.dragFloatCtrl("Height", height, 0.64f, this);
+        if (Float.compare(w, width) != 0) setWidth(w);
+        if (Float.compare(h, height) != 0) setHeight(h);
+        ImGui.unindent();
+    }
 }

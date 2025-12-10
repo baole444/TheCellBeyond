@@ -160,7 +160,7 @@ public abstract class PhysicBody2D extends GameObject2D {
     @Override
     protected void additionalImGuiLogic() {
         ImGui.spacing();
-        boolean openPhysic = ImGui.collapsingHeader("Physic Properties##PhysicBody2D_Properties_Header_" + getUUID(), ImGuiTreeNodeFlags.DefaultOpen);
+        boolean openPhysic = ImGui.collapsingHeader("PhysicBody2D##PhysicBody2D_Properties_Header_" + getUUID(), ImGuiTreeNodeFlags.DefaultOpen);
         if (!openPhysic) {
             super.additionalImGuiLogic();
             return;

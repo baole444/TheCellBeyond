@@ -181,6 +181,14 @@ public class GameObject2D extends GameObject {
 
             globalTransform.scale.set(scaleX, scaleY);
 
+            globalTransform.relativeZIndex = localTransform.relativeZIndex;
+            if (localTransform.relativeZIndex) {
+                if (parent2D != null) globalTransform.zIndex = parent2D.globalTransform.zIndex + localTransform.zIndex;
+                else globalTransform.zIndex = localTransform.zIndex;
+            } else {
+                globalTransform.zIndex = localTransform.zIndex;
+            }
+
             isTransformDirty = false;
 
             updateSpatialComponents();

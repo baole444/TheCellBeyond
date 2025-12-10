@@ -164,7 +164,7 @@ public class RigidBody2D extends PhysicBody2D {
     @Override
     protected void additionalImGuiLogic() {
         ImGui.spacing();
-        boolean openRigid = ImGui.collapsingHeader("Rigid Body Properties##RigidBody2D_Properties_Header", ImGuiTreeNodeFlags.DefaultOpen);
+        boolean openRigid = ImGui.collapsingHeader("RigidBody2D##RigidBody2D_Properties_Header", ImGuiTreeNodeFlags.DefaultOpen);
         if (!openRigid) {
             super.additionalImGuiLogic();
             return;
@@ -184,7 +184,7 @@ public class RigidBody2D extends PhysicBody2D {
 
         if (vChanged) setVelocity(vTmp);
         if (Float.compare(angularV, angularVelocity) != 0) setAngularVelocity(angularV);
-        if (Float.compare(ms, mass) != 0) setMass(mass);
+        if (Float.compare(ms, mass) != 0) setMass(ms);
         if (Float.compare(rollResist, rollResistance) != 0) setRollResistance(rollResist);
         if (Float.compare(translateResist, translateResistance) != 0) setTranslateResistance(translateResist);
         if (Float.compare(gravScale, gravityScale) != 0) setGravityScale(gravScale);

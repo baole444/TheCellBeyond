@@ -10,6 +10,7 @@ import physic2d.collider.BoxCollider2D;
 import physic2d.collider.CircleCollider2D;
 import physic2d.collider.CollisionShape2D;
 import physic2d.collider.CapsuleCollider2D;
+import utility.log.EngineLog;
 
 import java.util.List;
 
@@ -17,6 +18,8 @@ import java.util.List;
  * <a href="https://box2d.org">Reference Box2D code (C code)</a>
  */
 public class Physic2D {
+    public static final EngineLog LOGGER = new EngineLog(Physic2D.class);
+
     public static final int MaxLayer = 16;
     public static final float PhysicDeltaRate = 1.0f / 60.0f;
     public static final int MaxVelocityPass = 5;
@@ -58,12 +61,7 @@ public class Physic2D {
 
         for (CollisionShape2D shape : collisionShapes) {
             if (!shape.hasPhysicBody() || shape.getPhysicBody2D() != physicBody2D) continue;
-            switch (shape) {
-                case BoxCollider2D boxCollider2D -> addBoxCollider2D(physicBody2D, boxCollider2D);
-                case CircleCollider2D circleCollider2D -> addCircleCollider2D(physicBody2D, circleCollider2D);
-                case CapsuleCollider2D capsuleCollider2D -> addCapsuleCollider(physicBody2D, capsuleCollider2D);
-                default -> {}
-            }
+            addCollider2D(physicBody2D, shape);
         }
     }
 
@@ -113,7 +111,7 @@ public class Physic2D {
         }
     }
 
-    public void addBoxCollider2D(PhysicBody2D physicBody2D, BoxCollider2D boxCollider2D) {
+    private void addBoxCollider2D(PhysicBody2D physicBody2D, BoxCollider2D boxCollider2D) {
         Body body = physicBody2D.getPhysicBodyRef();
         if (body == null) return;
 
@@ -121,14 +119,14 @@ public class Physic2D {
         createFixture(physicBody2D, body, shape);
     }
 
-    public void addCircleCollider2D(PhysicBody2D physicBody2D, CircleCollider2D circleCollider2D) {
+    private void addCircleCollider2D(PhysicBody2D physicBody2D, CircleCollider2D circleCollider2D) {
         Body body = physicBody2D.getPhysicBodyRef();
         if (body == null) return;
         Shape shape = circleCollider2D.createCollisionShape();
         createFixture(physicBody2D, body, shape);
     }
 
-    public void addCapsuleCollider(PhysicBody2D physicBody2D, CapsuleCollider2D capsuleCollider2D) {
+    private void addCapsuleCollider(PhysicBody2D physicBody2D, CapsuleCollider2D capsuleCollider2D) {
         Body body = physicBody2D.getPhysicBodyRef();
         if (body == null) return;
 
@@ -137,23 +135,35 @@ public class Physic2D {
         addCircleCollider2D(physicBody2D, capsuleCollider2D.footCircle());
     }
 
+    public void addCollider2D(PhysicBody2D physicBody2D, CollisionShape2D collisionShape2D) {
+        try {
+            switch (collisionShape2D) {
+                case BoxCollider2D boxCollider2D -> addBoxCollider2D(physicBody2D, boxCollider2D);
+                case CircleCollider2D circleCollider2D -> addCircleCollider2D(physicBody2D, circleCollider2D);
+                case CapsuleCollider2D capsuleCollider2D -> addCapsuleCollider(physicBody2D, capsuleCollider2D);
+                default -> {}
+            }
+        } catch (Exception e) {
+            LOGGER.error(String.format("Failed to add collider %s of %s : %s", collisionShape2D.getComponentName(), physicBody2D.name, e.getMessage()));
+        }
+
+    }
+
     public void resetCollider(PhysicBody2D physicBody2D, CollisionShape2D collisionShape2D) {
-        Body body = physicBody2D.getPhysicBodyRef();
-        if (body == null) return;
+        try {
+            Body body = physicBody2D.getPhysicBodyRef();
+            if (body == null) return;
 
-        int size = fixtureListSize(body);
-        for (int i = 0; i < size; i++) {
-            body.destroyFixture(body.getFixtureList());
+            int size = fixtureListSize(body);
+            for (int i = 0; i < size; i++) {
+                body.destroyFixture(body.getFixtureList());
+            }
+            addCollider2D(physicBody2D, collisionShape2D);
+            body.resetMassData();
+        } catch (Exception e) {
+            LOGGER.error(String.format("Failed to reset collider %s of %s : %s", collisionShape2D.getComponentName(), physicBody2D.name, e.getMessage()));
         }
 
-        switch (collisionShape2D) {
-            case BoxCollider2D boxCollider2D -> addBoxCollider2D(physicBody2D, boxCollider2D);
-            case CircleCollider2D circleCollider2D -> addCircleCollider2D(physicBody2D, circleCollider2D);
-            case CapsuleCollider2D capsuleCollider2D -> addCapsuleCollider(physicBody2D, capsuleCollider2D);
-            default -> {}
-        }
-
-        body.resetMassData();
     }
 
     public RayCastInfo rayCastInfo(GameObject originObject, Vector2f origin, Vector2f target) {

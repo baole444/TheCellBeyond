@@ -9,10 +9,10 @@ import editor.BottomPanel;
 import editor.EditorIcons;
 import editor.ImEditorGui;
 import imgui.ImGui;
-import imgui.ImVec2;
 import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiTableColumnFlags;
 import imgui.flag.ImGuiTableFlags;
+import imgui.flag.ImGuiTreeNodeFlags;
 import scene.Scene;
 import utility.IdPool;
 
@@ -339,7 +339,7 @@ public class GameObject {
         name = ImEditorGui.inputText("Name", name, this);
         additionalImGuiLogic();
         ImGui.spacing();
-        boolean openComponent = ImGui.collapsingHeader("Components##GO_Components_Header_" + getUUID());
+        boolean openComponent = ImGui.collapsingHeader("Components##GO_Components_Header_" + getUUID(), ImGuiTreeNodeFlags.DefaultOpen);
         if (!openComponent) {
             ImGui.spacing();
             return;
