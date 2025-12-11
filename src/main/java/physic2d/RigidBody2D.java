@@ -172,10 +172,10 @@ public class RigidBody2D extends PhysicBody2D {
         ImGui.indent();
         Vector2f vTmp = new Vector2f(velocity);
         boolean vChanged = ImEditorGui.dragVec2PixelToWorld("Velocity", vTmp, 0.0f, this);
-        float angularV = ImEditorGui.dragFloatCtrl("Angular Velocity", angularVelocity, 0.0f, this);
-        float ms = ImEditorGui.dragFloatCtrl("Mass", mass, 0.0f, this);
-        float rollResist = ImEditorGui.dragFloatCtrl("Roll Resistance", rollResistance, 0.8f, this);
-        float translateResist = ImEditorGui.dragFloatCtrl("Translate Resistance", translateResistance, 0.8f, this);
+        float angularV = ImEditorGui.dragFloatCtrl("Angular Velocity", angularVelocity, 0.0f, 1.0f,this);
+        float ms = ImEditorGui.dragFloatCtrl("Mass", mass, 0.0f, this, 0.0f);
+        float rollResist = ImEditorGui.dragFloatCtrl("Roll Resistance", rollResistance, 0.8f, this, 0.0f);
+        float translateResist = ImEditorGui.dragFloatCtrl("Translate Resistance", translateResistance, 0.8f, this, 0.0f);
         float gravScale = ImEditorGui.dragFloatCtrl("Gravity Scale", gravityScale, 1.0f, this);
         ImBoolean fixedRot = new ImBoolean(fixedRotation);
         if (ImGui.checkbox("Fixed Rotation##RigidBody2D_fixedRotation_" + getUUID(), fixedRot)) setFixedRotation(fixedRot.get());

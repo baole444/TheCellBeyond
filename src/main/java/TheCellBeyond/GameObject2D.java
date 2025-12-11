@@ -263,7 +263,7 @@ public class GameObject2D extends GameObject {
     @Override
     protected void additionalImGuiLogic() {
         ImGui.spacing();
-        boolean openTransform = ImGui.collapsingHeader("Transform##Transform_GO2D_Properties_" + getUUID(), ImGuiTreeNodeFlags.DefaultOpen);
+        boolean openTransform = ImGui.collapsingHeader("GameObject2D##Transform_GO2D_Properties_" + getUUID(), ImGuiTreeNodeFlags.DefaultOpen);
         if (openTransform) {
             Transform editing = new Transform(localTransform);
             ImGui.indent();

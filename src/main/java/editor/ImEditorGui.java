@@ -25,6 +25,10 @@ public class ImEditorGui {
     private static final Vector2f tmpPixelVector = new Vector2f();
 
     public static boolean dragVec2PixelToWorld(String label, Vector2f source, float resetVal, Object caller) {
+        return dragVec2PixelToWorld(label, source, resetVal, resetVal, caller);
+    }
+
+    public static boolean dragVec2PixelToWorld(String label, Vector2f source, float resetX, float resetY, Object caller) {
         String id = createID(label, caller);
         ImGui.pushID(id);
 
@@ -54,7 +58,7 @@ public class ImEditorGui {
         ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.8f, 0.3f, 0.3f, 1.0f);
         ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0.7f, 0.2f, 0.2f, 1.0f);
         if (ImGui.button("X##Reset_X_" + id, resetWidth, 0.0f)) {
-            tmpPixelVector.x = resetVal;
+            tmpPixelVector.x = resetX;
             changed = true;
         }
         ImGui.popStyleColor(3);
@@ -74,7 +78,7 @@ public class ImEditorGui {
         ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.3f, 0.8f, 0.3f, 1.0f);
         ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0.2f, 0.7f, 0.2f, 1.0f);
         if (ImGui.button("Y##Reset_Y_" + id, resetWidth, 0.0f)) {
-            tmpPixelVector.y = resetVal;
+            tmpPixelVector.y = resetY;
             changed = true;
         }
         ImGui.popStyleColor(3);
@@ -98,6 +102,14 @@ public class ImEditorGui {
     }
 
     public static boolean dragVec2Ctrl(String label, Vector2f source, float resetVal, Object caller) {
+        return dragVec2Ctrl(label, source, resetVal, resetVal, 0.1f, caller);
+    }
+
+    public static boolean dragVec2Ctrl(String label, Vector2f source, float resetVal, float dragStep, Object caller) {
+        return dragVec2Ctrl(label, source, resetVal, resetVal, dragStep, caller);
+    }
+
+    public static boolean dragVec2Ctrl(String label, Vector2f source, float resetX, float resetY, float dragSpeed, Object caller) {
         String id = createID(label, caller);
         Vector2f out = new Vector2f(source);
 
@@ -127,14 +139,14 @@ public class ImEditorGui {
         ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.8f, 0.3f, 0.3f, 1.0f);
         ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0.7f, 0.2f, 0.2f, 1.0f);
         if (ImGui.button("X##Reset_X_" + id, resetWidth, 0.0f)) {
-            out.x = resetVal;
+            out.x = resetX;
             changed = true;
         }
         ImGui.popStyleColor(3);
         ImGui.pushItemWidth(dragRemains);
         ImGui.sameLine();
         float[] valX = {out.x};
-        if (ImGui.dragFloat("##dragX", valX, 0.1f)) {
+        if (ImGui.dragFloat("##dragX", valX, dragSpeed)) {
             out.x = valX[0];
             changed = true;
         }
@@ -147,14 +159,14 @@ public class ImEditorGui {
         ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.3f, 0.8f, 0.3f, 1.0f);
         ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0.2f, 0.7f, 0.2f, 1.0f);
         if (ImGui.button("Y##Reset_Y_" + id, resetWidth, 0.0f)) {
-            out.y = resetVal;
+            out.y = resetY;
             changed = true;
         }
         ImGui.popStyleColor(3);
         ImGui.pushItemWidth(dragRemains);
         ImGui.sameLine();
         float[] valY = {out.y};
-        if (ImGui.dragFloat("##dragY", valY, 0.1f)) {
+        if (ImGui.dragFloat("##dragY", valY, dragSpeed)) {
             out.y = valY[0];
             changed = true;
         }
@@ -171,10 +183,30 @@ public class ImEditorGui {
     }
 
     public static float dragFloatCtrl(String label, float val, Object caller) {
-        return dragFloatCtrl(label, val, 0.0f, caller);
+        return dragFloatCtrl(label, val, 0.0f, 0.01f, caller, 0.0f, 0.0f);
     }
 
     public static float dragFloatCtrl(String label, float val, float resetVal, Object caller) {
+        return dragFloatCtrl(label, val, resetVal, 0.01f, caller, 0.0f, 0.0f);
+    }
+
+    public static float dragFloatCtrl(String label, float val, Object caller, float dragSpeed) {
+        return dragFloatCtrl(label, val, 0.0f, dragSpeed, caller, 0.0f, 0.0f);
+    }
+
+    public static float dragFloatCtrl(String label, float val, float resetVal, float dragSpeed, Object caller) {
+        return dragFloatCtrl(label, val, resetVal, dragSpeed, caller, 0.0f, 0.0f);
+    }
+
+    public static float dragFloatCtrl(String label, float val, float resetVal, Object caller, float minVal) {
+        return dragFloatCtrl(label, val, resetVal, 0.01f, caller, minVal, Float.MAX_VALUE);
+    }
+
+    public static float dragFloatCtrl(String label, float val, float resetVal, float dragSpeed, Object caller, float minVal) {
+        return dragFloatCtrl(label, val, resetVal, dragSpeed, caller, minVal, Float.MAX_VALUE);
+    }
+
+    public static float dragFloatCtrl(String label, float val, float resetVal, float dragSpeed, Object caller, float minVal, float maxVal) {
         String id = createID(label, caller);
         float[] valA = {val};
 
@@ -204,7 +236,7 @@ public class ImEditorGui {
         ImGui.sameLine();
 
         ImGui.pushItemWidth(ImGui.getContentRegionAvailX());
-        boolean changed = ImGui.dragFloat("##dragFloat", valA, 1.0f);
+        boolean changed = ImGui.dragFloat("##dragFloat", valA, dragSpeed, minVal, maxVal);
         ImGui.popItemWidth();
 
         ImGui.popStyleVar();

@@ -3,6 +3,7 @@ package components;
 import TheCellBeyond.Window;
 import imgui.ImGui;
 import imgui.flag.ImGuiCol;
+import imgui.flag.ImGuiTreeNodeFlags;
 import imgui.type.ImBoolean;
 import render.texture.Sprite;
 
@@ -459,27 +460,34 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
 
     @Override
     protected void additionalImGuiLogic() {
+        ImGui.spacing();
+        boolean openAnimatedSprite = ImGui.collapsingHeader("AnimatedSpriteRenderer##Animated_Sprite_Renderer_Properties_Header", ImGuiTreeNodeFlags.DefaultOpen);
+        if (!openAnimatedSprite) {
+            return;
+        }
+        ImGui.indent();
         List<String> animationList = animations.keySet().stream().toList();
         String selectedAni = currentAnimationName;
         ImGui.text("Animation:");
-        if (ImGui.beginCombo("##Select_Current_Animation", selectedAni == null ? "Select an animation..." : currentAnimationName)) {
+        if (ImGui.beginCombo("##Select_Current_AnimatedSprite_Animation_Combo_" + getUUID(), selectedAni == null ? "Select an animation..." : currentAnimationName)) {
             for (String name : animationList) {
-                if (ImGui.selectable(name, Objects.equals(name, selectedAni))) setCurrentAnimation(name);
+                String label = name + "##Select_" + name + "_AnimatedSprite_Selectable_" + getUUID();
+                if (ImGui.selectable(label, Objects.equals(name, selectedAni))) setCurrentAnimation(name);
             }
             if (!animationList.isEmpty()) ImGui.separator();
-            if (ImGui.selectable("New animation...", false)) newAnimation();
+            if (ImGui.selectable("New animation...##New_Animation_AnimatedSprite_Selectable_" + getUUID(), false)) newAnimation();
 
             ImGui.endCombo();
         }
 
-        ImGui.indent();
+        ImGui.spacing();
         ImBoolean flipHState = new ImBoolean(isFlipHorizontally());
         ImBoolean flipVState = new ImBoolean(isFlipVertically());
-        String compositeID = "Flip axis##" + getUUID();
+        String compositeID = "Flip axis##Flip_Axis_AnimatedSprite_Header" + getUUID();
         ImGui.pushStyleColor(ImGuiCol.Header, 0.0f, 0.0f, 0.0f, 0.0f);
-        boolean open = ImGui.collapsingHeader(compositeID);
+        boolean openFlip = ImGui.collapsingHeader(compositeID);
         ImGui.popStyleColor(1);
-        if (open) {
+        if (openFlip) {
             if (ImGui.checkbox("Horizontal##" + getUUID(), flipHState)) flipHorizontally(flipHState.get());
             if (ImGui.checkbox("Vertical##" + getUUID(), flipVState)) flipVertically(flipVState.get());
         }

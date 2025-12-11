@@ -52,7 +52,7 @@ public class CircleCollider2D extends CollisionShape2D {
             return;
         }
         ImGui.indent();
-        float r = ImEditorGui.dragFloatCtrl("Radius", radius, 0.16f, this);
+        float r = ImEditorGui.dragFloatCtrl("Radius", radius, 0.16f, this, MinimumShapeDimension);
         if (Float.compare(r, radius) != 0) setRadius(r);
         ImGui.unindent();
         super.additionalImGuiLogic();

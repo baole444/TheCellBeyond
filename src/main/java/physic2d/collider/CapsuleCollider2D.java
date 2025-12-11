@@ -108,8 +108,8 @@ public class CapsuleCollider2D extends CollisionShape2D {
             return;
         }
         ImGui.indent();
-        float w = ImEditorGui.dragFloatCtrl("Width", width, 0.32f, this);
-        float h = ImEditorGui.dragFloatCtrl("Height", height, 0.64f, this);
+        float w = ImEditorGui.dragFloatCtrl("Width", width, 0.32f, this, MinimumShapeDimension);
+        float h = ImEditorGui.dragFloatCtrl("Height", height, 0.64f, this, MinimumShapeDimension);
         if (Float.compare(w, width) != 0) setWidth(w);
         if (Float.compare(h, height) != 0) setHeight(h);
         ImGui.unindent();
