@@ -60,10 +60,6 @@ public class AddSpriteSheetDialog {
     private static void resetDialogData() {
         ID_POOL.reset();
         selectedFilePath.clear();
-        if (previewTexture != null) {
-            previewTexture.dispose();
-            previewTexture = null;
-        }
         previewScale = 1.0f;
         sheetName.clear();
         category.clear();
@@ -71,6 +67,17 @@ public class AddSpriteSheetDialog {
         spriteSize.set(16);
         spriteSpacing.zero();
         spriteStartPosition.zero();
+        clearPreviewTexture();
+    }
+
+    private static void clearPreviewTexture() {
+        if (previewTexture == null) return;
+        String path = previewTexture.getCanonicalPath();
+        if (path != null) {
+            PathResolver resolver = PathResolver.get();
+            if (!resolver.isPathInsideProject(path)) previewTexture.dispose();
+        }
+        previewTexture = null;
     }
 
     public static void imgui() {
@@ -311,8 +318,7 @@ public class AddSpriteSheetDialog {
 
     private static void loadPreviewTexture(String filePath) {
         try {
-            if (previewTexture != null) previewTexture.dispose();
-
+            clearPreviewTexture();
             previewTexture = new Texture();
             previewTexture.init(filePath);
         } catch (Exception e) {

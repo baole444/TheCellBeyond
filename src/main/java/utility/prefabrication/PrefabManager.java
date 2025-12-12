@@ -70,7 +70,6 @@ public class PrefabManager {
                 }
             } else {
                 GameObject prefabRoot = gameObject.copy(false);
-                prefabRoot.setChildrenUUIDs(new ArrayList<>());
                 prefabRoot.prepareForSerialization();
                 gosToPrefab.add(prefabRoot);
             }

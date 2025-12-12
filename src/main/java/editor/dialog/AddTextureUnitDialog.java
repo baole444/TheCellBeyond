@@ -213,8 +213,7 @@ public class AddTextureUnitDialog {
         }
 
         try {
-            if (previewTexture != null) previewTexture.dispose();
-
+            clearPreviewTexture();
             previewTexture = new Texture();
             previewTexture.init(filePath);
         } catch (Exception e) {
@@ -292,6 +291,17 @@ public class AddTextureUnitDialog {
         ogW.set(0);
         height.set(0);
         ogH.set(0);
+        clearPreviewTexture();
+    }
+
+    private static void clearPreviewTexture() {
+        if (previewTexture == null) return;
+        String path = previewTexture.getCanonicalPath();
+        if (path != null) {
+            PathResolver resolver = PathResolver.get();
+            if (!resolver.isPathInsideProject(path)) previewTexture.dispose();
+        }
+        previewTexture = null;
     }
 
     private static void resetImportSizeToDefault() {

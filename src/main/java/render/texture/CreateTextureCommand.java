@@ -24,7 +24,7 @@ class CreateTextureCommand extends TextureCommand {
     void execute() {
         TextureManager textureManager = TextureManager.get();
         handle.setStatus(TextureHandle.Status.LOADING);
-        String canonicalPath = assetReference.getCanonicalPath();
+        String canonicalPath = assetReference.canonicalPath();
 
         try {
             int textureId = glGenTextures();
@@ -80,7 +80,7 @@ class CreateTextureCommand extends TextureCommand {
 
     @Override
     public String toString() {
-        return "CreateTextureCommand{path=" + assetReference.getCanonicalPath() +
+        return "CreateTextureCommand{path=" + assetReference.canonicalPath() +
                 ", handle=" + handle.getHandleId() +
                 "}";
     }

@@ -8,12 +8,15 @@ import java.nio.file.Paths;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Unified path resolver, separated engine's and project's assets.
+ * Unified path resolver, separated engine, project or external assets.
  * <p>
- * <b>Path formats:</b>
- * <li> <i><u>engine://path/to/asset</u></i> - Engine assets (using classpath's resource directory.)</li>
- * <li> <i><u>project://path/to/asset</u></i> - Project assets (loaded from project directory.)</li>
- * <li> <i><u>relative/path/to/asset</u></i> - Legacy relative path, assume it as project's asset.</li>
+ * <b>Unified Path Formats:</b>
+ * <ul>
+ *      <li> <i><u>engine://path/to/asset</u></i> - Engine assets (using classpath's resource directory.)</li>
+ *      <li> <i><u>project://path/to/asset</u></i> - Project assets (loaded from project directory).</li>
+ *      <li> <i><u>relative/path/to/asset</u></i> - Legacy relative path, assume it is project asset.</li>
+ *      <li> <i><u>/dir/path/to/asset</u></i> - Potential absolute path, can be resolved as external or project asset</li>
+ * </ul>
  */
 public class PathResolver {
     private static final String ENGINE_PREFIX = "engine://";
@@ -24,10 +27,38 @@ public class PathResolver {
 
     private static volatile PathResolver instance;
 
+    /**
+     * Asset classification, base on the path that leads to the asset's file on the system.
+     */
     public enum AssetType {
-        ENGINE, PROJECT
+        /**
+         * Assets stored in the engine's classpath, compiled with the engine.
+         * Used for default shader programs, fonts, textures and sounds.
+         */
+        ENGINE,
+
+        /**
+         * Assets stored within the user project's root directory.
+         * Often is the case for most of user's imported resources.
+         */
+        PROJECT,
+
+        /**
+         * Assets or files stored outside the engine's classpath or the user project's root directory.
+         * Often is the case for temporary imported resources or configurations
+         * stored in operating system's designated directory, for example {@code AppData} on Windows.
+         */
+        EXTERNAL
     }
 
+    /**
+     * A record of the asset's path, resolved to follow unified path format.
+     * @param originalPath the path that needed resolving
+     * @param resolvedPath the result of resolving the original path
+     * @param type the type of the asset path
+     * @param isAbsolute is the original path absolute
+     * @see AssetReference Wrap a path to unified path automatically
+     */
     public record AssetPath(String originalPath, String resolvedPath, AssetType type, boolean isAbsolute) {
         @Override
         public String toString() {
@@ -51,10 +82,18 @@ public class PathResolver {
         this.projectRoot = projectRoot;
     }
 
+    /**
+     * Initialize {@link PathResolver} using the given path to user project.
+     * @param projectRoot the absolute path that leads to the user project's root directory
+     */
     public static void initialize(String projectRoot) {
         instance = new PathResolver(projectRoot);
     }
 
+    /**
+     * Get the instance of {@link PathResolver}.
+     * @return the current or new instance if there is none yet
+     */
     public static synchronized PathResolver get() {
         if (instance == null) {
             throw new IllegalStateException("PathResolver not initialized. Please call initialize() first.");
@@ -63,10 +102,12 @@ public class PathResolver {
     }
 
     /**
-     * Parse and resolve if it is an engine, or a project asset.
+     * Parse and resolve the given path, then cache it for subsequence resolve request.
+     * @param path the relative or absolute path that need resolving
+     * @return an existing or new record of {@link AssetPath}
      */
     public AssetPath resolvePath(String path) {
-        if (path == null || path.isEmpty()) {
+        if (path == null || path.isBlank()) {
             throw new IllegalArgumentException("Path cannot be null or empty");
         }
 
@@ -80,33 +121,32 @@ public class PathResolver {
         return resolved;
     }
 
-    // Resolve the path into engine or project asset base on its starting prefix or lacks of it.
+    /**
+     * Resolve the path into engine, project or external asset base on its starting prefix or the lack of it.
+     */
     private AssetPath parseAndResolve(String path) {
         if (path.startsWith(ENGINE_PREFIX)) {
             String enginePath = path.substring(ENGINE_PREFIX.length());
-
             return new AssetPath(path, enginePath, AssetType.ENGINE, true);
-        } else if (path.startsWith(PROJECT_PREFIX)) {
+        }
+
+        if (path.startsWith(PROJECT_PREFIX)) {
             String projectPath = path.substring(PROJECT_PREFIX.length());
             String absPath = resolveProjectPathToAbsolute(projectPath);
-
             return new AssetPath(path, absPath, AssetType.PROJECT, true);
-        } else {
-            if (isKnownEngineAsset(path)) {
-                return new AssetPath(path, path, AssetType.ENGINE, false);
-            } else {
-                String abs = resolveProjectPathToAbsolute(path);
-
-                return new AssetPath(path, abs, AssetType.PROJECT, false);
-            }
         }
-    }
 
-    private boolean isKnownEngineAsset(String path) {
-        return path.startsWith("assets/shaders/") ||
-                path.startsWith("assets/fonts/") ||
-                path.startsWith("assets/textures/Gizmo.png") ||
-                path.equals("assets/textures/TCB icon.png");
+        Path inputPath = Paths.get(path);
+        if (inputPath.isAbsolute()) {
+            Path normalized = inputPath.toAbsolutePath().normalize();
+            if (projectRoot == null) return new AssetPath(path, normalized.toString(), AssetType.EXTERNAL, true);
+
+            Path root = Paths.get(projectRoot).toAbsolutePath().normalize();
+            if (normalized.startsWith(root)) return new AssetPath(path, normalized.toString(), AssetType.PROJECT, true);
+        }
+
+        String abs = resolveProjectPathToAbsolute(path);
+        return new AssetPath(path, abs, AssetType.PROJECT, false);
     }
 
     private String resolveProjectPathToAbsolute(String relativePath) {
@@ -126,7 +166,7 @@ public class PathResolver {
             case ENGINE -> {
                 return getEngineAssetStream(assetPath.resolvedPath());
             }
-            case PROJECT -> {
+            case PROJECT, EXTERNAL -> {
                 return getProjectAssetStream(assetPath.resolvedPath());
             }
             default -> throw new IllegalArgumentException("Unknown asset type: " + assetPath.type());
@@ -161,14 +201,17 @@ public class PathResolver {
     }
 
     /**
-     * Check to see if the assets exist within the project or the engine's scope.
+     * Check if a file or asset exists within the project, engine's scope or externally.
+     * @param assetPath The {@link AssetPath} to check
+     * @return true if the asset or file exist.
+     * @see PathResolver#isPathInsideProject(String path) Check if a path is of AssetType Project
      */
     public boolean exists(AssetPath assetPath) {
         switch (assetPath.type()) {
             case ENGINE -> {
                 return PathResolver.class.getClassLoader().getResource(assetPath.resolvedPath()) != null;
             }
-            case PROJECT -> {
+            case PROJECT, EXTERNAL -> {
                 return Files.exists(Paths.get(assetPath.resolvedPath()));
             }
             default -> {
@@ -178,10 +221,31 @@ public class PathResolver {
     }
 
     /**
-     * Check to see if the assets exist within the project or the engine's scope.
+     * Check if a file or asset exists within the project, engine's scope or externally.
+     * @param path the relative or absolute path to check
+     * @return true if the asset or file exist
+     * @see PathResolver#isPathInsideProject(String path) Check if a path is of AssetType Project
      */
     public boolean exists(String path) {
+        if (path == null || path.isBlank()) return false;
         return exists(resolvePath(path));
+    }
+
+    /**
+     * Check if a file or asset path located inside the project directory.
+     * @param path the relative or absolute path to check
+     * @return true if the path resolved as {@link AssetType#PROJECT}
+     * @see PathResolver#exists(String path) Check if a file or asset exists
+     */
+    public boolean isPathInsideProject(String path) {
+        if (path == null || path.isBlank()) return false;
+
+        try {
+            AssetPath assetPath = resolvePath(path);
+            return assetPath.type() == AssetType.PROJECT;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     /**
@@ -209,14 +273,14 @@ public class PathResolver {
 
         switch (assetPath.type()) {
             case ENGINE -> {
-                if (assetPath.isAbsolute()) {
-                    return assetPath.originalPath();
-                } else {
-                    return ENGINE_PREFIX + assetPath.resolvedPath();
-                }
+                if (assetPath.isAbsolute()) return assetPath.originalPath();
+                return ENGINE_PREFIX + assetPath.resolvedPath();
             }
             case PROJECT -> {
                 return toProjectRelativePath(assetPath.resolvedPath());
+            }
+            case EXTERNAL -> {
+                return assetPath.resolvedPath();
             }
             default -> {
                 return path;
@@ -224,10 +288,17 @@ public class PathResolver {
         }
     }
 
+    /**
+     * Clear the cached resolved paths.
+     */
     public void clearCache() {
         pathCache.clear();
     }
 
+    /**
+     * Get the path that is the project root
+     * @return
+     */
     public String getProjectRoot() {
         return projectRoot;
     }

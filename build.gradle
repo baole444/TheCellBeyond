@@ -5,7 +5,7 @@ plugins {
 group = project.project_group
 version = project.TCB_version
 
-def targetJavaVersion = 25
+int targetJavaVersion = 25
 
 repositories {
     flatDir {
@@ -42,8 +42,8 @@ dependencies {
     implementation "io.github.spair:imgui-java-natives-windows:$imgui_version"
 
     // Test unit
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.2'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.2'
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
@@ -55,5 +55,12 @@ tasks.withType(JavaCompile).configureEach {
     it.options.encoding = "UTF-8"
     if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
         it.options.release.set(targetJavaVersion)
+    }
+}
+
+tasks.withType(Javadoc).configureEach {
+    it.options.encoding = "UTF-8"
+    if (targetJavaVersion >= 18) {
+        it.options.addStringOption('-snippet-path', 'src/snippet-files')
     }
 }

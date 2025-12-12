@@ -222,7 +222,7 @@ public class TileSet {
         AssetReference assetReference = new AssetReference(canonicalPath);
         PathResolver resolver = PathResolver.get();
 
-        try (InputStream stream = resolver.getAssetStream(assetReference.getResolvedPath())) {
+        try (InputStream stream = resolver.getAssetStream(assetReference.resolvedPath())) {
             byte[] data = stream.readAllBytes();
             ByteBuffer buffer = BufferUtils.createByteBuffer(data.length);
             buffer.put(data);

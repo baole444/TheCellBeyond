@@ -8,13 +8,18 @@ import org.joml.Vector2f;
 import java.util.UUID;
 
 /**
- * Component is an extension for a {@link GameObject} that it is mounted to.<br>
- * It is the leaf of the scene hierarchy, only affected by the immediate object it belongs to.<br>
+ * Component is an extension for {@link GameObject}.
+ * <p>
+ * It is the leaf of the scene hierarchy, only affected by the immediate object it belongs to.
+ * </p>
  * Component can reference each other by name or by hierarchy path.
  */
 public abstract class Component {
     private String uuid;
 
+    /**
+     * The owning {@link GameObject} of this component.
+     */
     public transient GameObject gameObject;
 
     private String componentName;
@@ -108,7 +113,7 @@ public abstract class Component {
 
     public Component getComponentByPath(String path) {
         if (gameObject == null || path == null) return null;
-        return gameObject.resolveComponentPath(path);
+        return gameObject.resolveHierarchyPathAsComponent(path);
     }
 
     /**
@@ -147,10 +152,16 @@ public abstract class Component {
         return componentName;
     }
 
+    /**
+     * Set a custom name for this component.<br>
+     * If the name is {@code null} or blank, this remove the custom name of the component instead.
+     * @param name the name to update with, nullable
+     */
     public void setComponentName(String name) {
+        if (name != null && name.isBlank()) name = null;
         componentName = name;
-        if (gameObject != null) {
-            gameObject.onComponentNameChanged(this, name);
-        }
+
+        if (gameObject != null) gameObject.onComponentNameChanged(this, name);
+
     }
 }

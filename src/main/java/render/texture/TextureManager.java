@@ -7,7 +7,6 @@ import utility.log.EngineLog;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.logging.Logger;
 
 import static org.lwjgl.opengl.GL11.glDeleteTextures;
 
@@ -67,7 +66,7 @@ public class TextureManager {
      * This prevents creating multiple OpenGL textures on the same asset.
      */
     public TextureHandle getTextureHandle(ByteBuffer imageData, AssetReference assetReference) {
-        String canonicalPath = assetReference.getCanonicalPath();
+        String canonicalPath = assetReference.canonicalPath();
 
         TextureHandle currentHandle = textureHandles.get(canonicalPath);
         if (currentHandle != null) return currentHandle;
@@ -85,7 +84,7 @@ public class TextureManager {
     }
 
     public TextureHandle getFontAtlasHandle(ByteBuffer atlasData, AssetReference assetReference, GlyphRange glyphRange, int width, int height, int channels) {
-        AtlasKey key = new AtlasKey(assetReference.getCanonicalPath(), glyphRange);
+        AtlasKey key = new AtlasKey(assetReference.canonicalPath(), glyphRange);
 
         TextureHandle currentHandle = fontAtlasHandles.get(key);
         if (currentHandle != null) return currentHandle;
@@ -98,7 +97,7 @@ public class TextureManager {
         commandQueue.offer(command);
         activeHandles.put(handle.getHandleId(), handle);
 
-        LOGGER.debug("Created new atlas handle for " + assetReference.getCanonicalPath() + " with glyph " + glyphRange.toString());
+        LOGGER.debug("Created new atlas handle for " + assetReference.canonicalPath() + " with glyph " + glyphRange.toString());
         return handle;
     }
 

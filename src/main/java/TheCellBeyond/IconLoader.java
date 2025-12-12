@@ -14,7 +14,7 @@ import static org.lwjgl.stb.STBImage.*;
 
 public record IconLoader(int width, int height, ByteBuffer icon, AssetReference assetReference) {
     public String getFilePath() {
-        return assetReference != null ? assetReference.getCanonicalPath() : null;
+        return assetReference != null ? assetReference.canonicalPath() : null;
     }
 
     public static IconLoader loadIcon(String filepath) {
@@ -27,7 +27,7 @@ public record IconLoader(int width, int height, ByteBuffer icon, AssetReference 
         AssetReference assetRef = new AssetReference(filepath);
         PathResolver resolver = PathResolver.get();
 
-        try (InputStream stream = resolver.getAssetStream(assetRef.getResolvedPath())) {
+        try (InputStream stream = resolver.getAssetStream(assetRef.resolvedPath())) {
             byte[] data = stream.readAllBytes();
             ByteBuffer buffer = BufferUtils.createByteBuffer(data.length);
             buffer.put(data);
@@ -35,7 +35,7 @@ public record IconLoader(int width, int height, ByteBuffer icon, AssetReference 
 
             return loadFromBuffer(buffer, assetRef);
         } catch (IOException e) {
-            System.err.println("Failed to load icon: '" + assetRef.getCanonicalPath() + "': " + e.getMessage());
+            System.err.println("Failed to load icon: '" + assetRef.canonicalPath() + "': " + e.getMessage());
             return null;
         }
     }
@@ -54,7 +54,7 @@ public record IconLoader(int width, int height, ByteBuffer icon, AssetReference 
             icon = stbi_load_from_memory(buffer, w, h, channels, 4);
 
             if (icon == null) {
-                System.err.println("Texture failed to load! '" + assetReference.getCanonicalPath() + "'");
+                System.err.println("Texture failed to load! '" + assetReference.canonicalPath() + "'");
             }
 
             width = w.get();

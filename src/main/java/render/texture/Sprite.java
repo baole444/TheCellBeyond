@@ -4,7 +4,6 @@ import org.joml.Vector2f;
 import render.Texture;
 import utility.AssetReference;
 import utility.AssetsPool;
-import utility.WorldUnit;
 
 /**
  * Sprite store the canonical path to the texture image, the texture UV coordinates and the size of the sprite.<br>
@@ -54,7 +53,7 @@ public class Sprite {
         }
 
         AssetReference assetReference = new AssetReference(textureCanonicalPath);
-        this.textureCanonicalPath = assetReference.getCanonicalPath();
+        this.textureCanonicalPath = assetReference.canonicalPath();
         AssetsPool.loadTexture(this.textureCanonicalPath);
     }
 

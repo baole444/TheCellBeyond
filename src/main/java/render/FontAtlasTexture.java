@@ -105,7 +105,7 @@ public class FontAtlasTexture {
     }
 
     public String getCanonicalPath() {
-        return assetReference != null ? assetReference.getCanonicalPath() : null;
+        return assetReference != null ? assetReference.canonicalPath() : null;
     }
 
     public void dispose() {

@@ -1,17 +1,16 @@
 package components;
 
-import TheCellBeyond.Window;
-import editor.Properties;
 import render.texture.Sprite;
 import render.texture.SpriteSheet;
 import utility.AssetsPool;
+import utility.Settings;
 
 /**
  * A class dedicated to handling Editor's gizmo system.
  * Handle gizmo's type and keybindings.
  */
 public class GizmoControl extends Component {
-    private static final String PATH = "engine://assets/textures/Gizmo.png";
+    private static final String PATH = Settings.TexturePath.Gizmo;
     private transient SpriteSheet gizmo;
     private transient boolean isInitialized = false;
     private static int isGizUse = 0;

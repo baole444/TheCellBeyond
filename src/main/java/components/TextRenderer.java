@@ -4,7 +4,6 @@ import TheCellBeyond.Window;
 import editor.ImEditorGui;
 import imgui.ImGui;
 import org.joml.Vector2f;
-import org.joml.Vector3f;
 import org.joml.Vector4f;
 import render.DebugDraw;
 import render.text.*;
@@ -41,7 +40,7 @@ public class TextRenderer extends SpatialComponent implements FontStatusCallback
 
     public TextRenderer() {
         this.text = "Text renderer";
-        this.assetReference = new AssetReference(Settings.PATH.NOTO_SANS_MONO);
+        this.assetReference = new AssetReference(Settings.FontPath.NotoSansMono);
         this.point = 12;
         this.color = new Vector4f(1.0f, 1.0f, 1.0f, 1.0f);
     }
@@ -159,14 +158,14 @@ public class TextRenderer extends SpatialComponent implements FontStatusCallback
         String textInput = ImEditorGui.inputTextWithIME("Text", text, 1024, this);
         setText(textInput);
 
-        String currentPath = assetReference != null ? assetReference.getCanonicalPath() : "";
+        String currentPath = assetReference != null ? assetReference.canonicalPath() : "";
 
         String fontPathInput = ImEditorGui.inputText("Font Path", currentPath, this);
         if (!fontPathInput.equals(currentPath)) {
             PathResolver resolver = PathResolver.get();
             AssetReference newRef = new AssetReference(fontPathInput);
 
-            if (resolver.exists(newRef.getResolvedPath())) {
+            if (resolver.exists(newRef.resolvedPath())) {
                 this.assetReference = newRef;
                 this.pendingRequest = false;
                 requestLoadFont();
@@ -257,7 +256,7 @@ public class TextRenderer extends SpatialComponent implements FontStatusCallback
     }
 
     public String getFontPath() {
-        return assetReference != null ? assetReference.getCanonicalPath() : "";
+        return assetReference != null ? assetReference.canonicalPath() : "";
     }
 
     public void setFontPath(String fontPathInput) {
@@ -267,7 +266,7 @@ public class TextRenderer extends SpatialComponent implements FontStatusCallback
 
         if (!Objects.equals(newRef, assetReference)) {
             PathResolver resolver = PathResolver.get();
-            if (resolver.exists(newRef.getResolvedPath())) {
+            if (resolver.exists(newRef.resolvedPath())) {
                 this.assetReference = newRef;
                 this.pendingRequest = false;
                 requestLoadFont();

@@ -16,15 +16,10 @@ import static org.lwjgl.opengl.GL20.glGetShaderInfoLog;
 
 public class Shader {
     private int shaderProgramID;
-
     private boolean isInUse = false;
-
     private String vertexSrc;
-
     private String fragmentSrc;
-
     private final AssetReference assetReference;
-
     private boolean isCompiled = false;
 
     public Shader(String filepath) {
@@ -36,7 +31,7 @@ public class Shader {
     private void loadShaderSource() {
         PathResolver resolver = PathResolver.get();
 
-        try (InputStream stream = resolver.getAssetStream(assetReference.getResolvedPath())) {
+        try (InputStream stream = resolver.getAssetStream(assetReference.resolvedPath())) {
             String src = new String(stream.readAllBytes());
             parseShaderSource(src);
         } catch (IOException e) {
@@ -149,7 +144,7 @@ public class Shader {
     }
 
     public String getFilePath() {
-        return assetReference != null ? assetReference.getCanonicalPath() : null;
+        return assetReference != null ? assetReference.canonicalPath() : null;
     }
 
     /**
@@ -157,7 +152,7 @@ public class Shader {
      * Note: OpenGL shader program ID is not reusable as it is context-specific.
      */
     public Shader copy() {
-        return new Shader(assetReference.getCanonicalPath());
+        return new Shader(assetReference.canonicalPath());
     }
 
     public void reload() {
@@ -174,7 +169,7 @@ public class Shader {
 
     public boolean exists() {
         PathResolver resolver = PathResolver.get();
-        return resolver.exists(assetReference.getResolvedPath());
+        return resolver.exists(assetReference.resolvedPath());
     }
 
     public void loadMat4f(String var, Matrix4f mat4) {

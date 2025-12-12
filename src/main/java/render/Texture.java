@@ -33,7 +33,7 @@ public class Texture {
     private void loadTextureData() {
         PathResolver resolver = PathResolver.get();
 
-        try (InputStream stream = resolver.getAssetStream(assetReference.getResolvedPath())) {
+        try (InputStream stream = resolver.getAssetStream(assetReference.resolvedPath())) {
             byte[] data = stream.readAllBytes();
             ByteBuffer buffer = BufferUtils.createByteBuffer(data.length);
             buffer.put(data);
@@ -41,7 +41,7 @@ public class Texture {
 
             this.handle = TextureManager.get().getTextureHandle(buffer, assetReference);
         } catch (IOException e) {
-            System.err.println("Failed to load texture: " + assetReference.getCanonicalPath());
+            System.err.println("Failed to load texture: " + assetReference.canonicalPath());
             System.err.println("Cause: " + e.getMessage());
         }
     }
@@ -118,7 +118,7 @@ public class Texture {
     }
 
     public String getCanonicalPath() {
-        return assetReference != null ? assetReference.getCanonicalPath() : null;
+        return assetReference != null ? assetReference.canonicalPath() : null;
     }
 
     public void dispose() {
@@ -143,7 +143,7 @@ public class Texture {
 
     public Texture copy() {
         Texture copy = new Texture();
-        if (this.assetReference != null) copy.init(assetReference.getCanonicalPath());
+        if (this.assetReference != null) copy.init(assetReference.canonicalPath());
         return copy;
     }
 
@@ -180,7 +180,7 @@ public class Texture {
     public String toString() {
         StringBuilder builder = new StringBuilder("Texture{");
         if (assetReference != null) {
-            builder.append("path=").append(assetReference.getCanonicalPath()).append("', ");
+            builder.append("path=").append(assetReference.canonicalPath()).append("', ");
         }
 
         builder.append("size=").append(getWidth()).append("x").append(getHeight());

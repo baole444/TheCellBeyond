@@ -48,18 +48,18 @@ public final class Window implements EngineEventListener {
     private int height;
     private final String title;
 
-    private long windowPtr; //windows pointer
+    private long windowPtr;
     public float r, g, b, a;
-    private static Window window = null; // start with no window
+    private static Window window = null;
     private static Scene currentScene;
     private static String currentSceneName;
-    private boolean runtimeMode = false; //Run without editor (release) or not
+    private boolean runtimeMode = false;
 
     private ImGuiLayer imGuiLayer;
     private FrameBuffer frameBuffer;
     private ObjectSelection objectSelection;
 
-    private final IconLoader iconFile = IconLoader.loadIcon("assets/textures/TCB icon.png");
+    private final IconLoader iconFile = IconLoader.loadIcon(Settings.TexturePath.TCBIcon);
 
     private boolean shouldClose;
     private boolean forceClose = false;
@@ -78,7 +78,7 @@ public final class Window implements EngineEventListener {
         r = 0.027f;
         g = 0.122f;
         b = 0.067f;
-        a = 1;
+        a = 1.0f;
     }
 
     public static void changeScene(SceneInit sceneInit) {
@@ -289,9 +289,9 @@ public final class Window implements EngineEventListener {
         float endTime;
         float dt = -1.0f;
 
-        Shader defaultShader = AssetsPool.loadShader(Settings.PATH.DEFAULT_TEXTURE_SHADER);
-        Shader objectSelectShader = AssetsPool.loadShader(Settings.PATH.OBJECT_SELECTION_SHADER);
-        Shader debugLineShader = AssetsPool.loadShader(Settings.PATH.DEBUG_LINE2_SHADER);
+        Shader defaultShader = AssetsPool.loadShader(Settings.ShaderPath.DefaultTextureShader);
+        Shader objectSelectShader = AssetsPool.loadShader(Settings.ShaderPath.ObjectSelectionShader);
+        Shader debugLineShader = AssetsPool.loadShader(Settings.ShaderPath.DebugLine2Shader);
         DebugDraw.init(debugLineShader);
         RendererState rendererState = RendererState.get();
 

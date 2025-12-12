@@ -23,7 +23,7 @@ public record FontRequest(AssetReference fontAsset, float point, GlyphRange glyp
     @Override
     public String toString() {
         return "FontRequest{" +
-                "Path='" + (fontAsset != null ? fontAsset.getCanonicalPath() : "null") + "'" +
+                "Path='" + (fontAsset != null ? fontAsset.canonicalPath() : "null") + "'" +
                 ", Size=" + point +
                 ", glyph=" + glyphRange.getDescription() +
                 "}";

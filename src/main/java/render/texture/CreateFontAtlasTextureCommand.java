@@ -29,7 +29,7 @@ class CreateFontAtlasTextureCommand extends TextureCommand {
     void execute() {
         TextureManager textureManager = TextureManager.get();
         handle.setStatus(TextureHandle.Status.LOADING);
-        String canonicalPath = assetReference.getCanonicalPath();
+        String canonicalPath = assetReference.canonicalPath();
 
         try {
             int textureId = glGenTextures();
@@ -57,7 +57,7 @@ class CreateFontAtlasTextureCommand extends TextureCommand {
 
     @Override
     public String toString() {
-        return "CreateFontAtlasTextureCommand{path=" + assetReference.getCanonicalPath() +
+        return "CreateFontAtlasTextureCommand{path=" + assetReference.canonicalPath() +
                 ", handle=" + handle.getHandleId() +
                 "}";
     }

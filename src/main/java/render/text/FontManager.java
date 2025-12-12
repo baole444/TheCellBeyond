@@ -83,7 +83,7 @@ public class FontManager {
             AssetReference assetRef = request.fontAsset();
             PathResolver resolver = PathResolver.get();
 
-            try (InputStream stream = resolver.getAssetStream(assetRef.getResolvedPath())) {
+            try (InputStream stream = resolver.getAssetStream(assetRef.resolvedPath())) {
                 byte[] fontData = stream.readAllBytes();
                 ByteBuffer fontBuffer = BufferUtils.createByteBuffer(fontData.length);
                 fontBuffer.put(fontData);
@@ -108,9 +108,9 @@ public class FontManager {
     }
 
     private boolean resizeable(TCBFont font, FontRequest request) {
-        if (font.getCanonicalPath() == null || request.fontAsset().getCanonicalPath() == null) return false;
+        if (font.getCanonicalPath() == null || request.fontAsset().canonicalPath() == null) return false;
 
-        return Objects.equals(font.getCanonicalPath(), request.fontAsset().getCanonicalPath())
+        return Objects.equals(font.getCanonicalPath(), request.fontAsset().canonicalPath())
                 && Objects.equals(font.getGlyphRange(), request.glyphRange())
                 && font.getFontSizePixel() != request.getPixelSize();
     }

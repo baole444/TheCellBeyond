@@ -55,7 +55,7 @@ public class TextBatch implements Comparable<TextBatch> {
         this.hasSpace = true;
 
         if (shader == null) {
-            shader = AssetsPool.loadShader(Settings.PATH.DEFAULT_FONT_SHADER);
+            shader = AssetsPool.loadShader(Settings.ShaderPath.DefaultFontShader);
         }
     }
 

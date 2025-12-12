@@ -116,7 +116,7 @@ public class ImGuiLayer {
         fontConfig.setGlyphRanges(glyphRangesBuilder.buildRanges());
 
         // Get font data
-        AssetReference assetReference = new AssetReference(Settings.PATH.NOTO_SANS_MONO);
+        AssetReference assetReference = new AssetReference(Settings.FontPath.NotoSansMono);
         PathResolver resolver;
 
         if (!PathResolver.isInitialized()) {
@@ -124,11 +124,11 @@ public class ImGuiLayer {
         }
         resolver = PathResolver.get();
 
-        try (InputStream stream = resolver.getAssetStream(assetReference.getResolvedPath())) {
+        try (InputStream stream = resolver.getAssetStream(assetReference.resolvedPath())) {
             byte[] fontData = stream.readAllBytes();
             fontAtlas.addFontFromMemoryTTF(fontData, FontPT.pointToPixel(12), fontConfig);
         } catch (IOException e) {
-            System.err.println("ImGui failed to read font from '" + assetReference.getCanonicalPath() + "'");
+            System.err.println("ImGui failed to read font from '" + assetReference.canonicalPath() + "'");
             fontAtlas.addFontDefault();
         }
 

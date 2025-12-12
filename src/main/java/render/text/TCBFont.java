@@ -111,7 +111,7 @@ public class TCBFont {
         this.glyphRange = glyphRange;
 
         // Load font file
-        try (InputStream stream = resolver.getAssetStream(assetReference.getResolvedPath())) {
+        try (InputStream stream = resolver.getAssetStream(assetReference.resolvedPath())) {
             byte[] data = stream.readAllBytes();
             ByteBuffer fontBuffer = BufferUtils.createByteBuffer(data.length);
             fontBuffer.put(data);
@@ -156,7 +156,7 @@ public class TCBFont {
                 updateCharInfo(face, c);
             }
         } catch (Exception e) {
-            FontManager.LOGGER.log(Level.WARNING, "Failed to complete font size update for " + assetReference.getCanonicalPath() + " to " + fontSizePixel, e);
+            FontManager.LOGGER.log(Level.WARNING, "Failed to complete font size update for " + assetReference.canonicalPath() + " to " + fontSizePixel, e);
         } finally {
             if (ftFace != 0) {
                 FT_Done_Face(FT_Face.create(ftFace));
@@ -195,7 +195,7 @@ public class TCBFont {
     private void verifyFontFile() throws IOException {
         PathResolver resolver = PathResolver.get();
 
-        if (!resolver.exists(assetReference.getResolvedPath())) throw new IOException("Font file does not exist at: '" + assetReference.getCanonicalPath() + "'");
+        if (!resolver.exists(assetReference.resolvedPath())) throw new IOException("Font file does not exist at: '" + assetReference.canonicalPath() + "'");
     }
 
     private void generateSingleRangeAtlas() {
@@ -425,9 +425,9 @@ public class TCBFont {
     }
 
     public int getTextureID() {
-        if (assetReference == null || assetReference.getCanonicalPath() == null) return -1;
+        if (assetReference == null || assetReference.canonicalPath() == null) return -1;
 
-        FontAtlasTexture texture = AssetsPool.loadFontAtlasTexture(assetReference.getCanonicalPath(), glyphRange, atlasWidth, atlasHeight, colorChannelCount);
+        FontAtlasTexture texture = AssetsPool.loadFontAtlasTexture(assetReference.canonicalPath(), glyphRange, atlasWidth, atlasHeight, colorChannelCount);
         return texture.getID();
     }
 
@@ -448,7 +448,7 @@ public class TCBFont {
     }
 
     public String getCanonicalPath() {
-        return assetReference != null ? assetReference.getCanonicalPath() : null;
+        return assetReference != null ? assetReference.canonicalPath() : null;
     }
 
     public GlyphRange getGlyphRange() {
