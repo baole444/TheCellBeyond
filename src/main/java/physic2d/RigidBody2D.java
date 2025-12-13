@@ -1,5 +1,6 @@
 package physic2d;
 
+import TheCellBeyond.Window;
 import editor.ImEditorGui;
 import imgui.ImGui;
 import imgui.flag.ImGuiTreeNodeFlags;
@@ -10,7 +11,7 @@ import org.joml.Vector2f;
 import physic2d.enums.PhysicBodyType;
 
 public class RigidBody2D extends PhysicBody2D {
-    private final Vector2f velocity = new Vector2f();
+    private final Vector2f initialVelocity = new Vector2f();
     private float rollResistance = 0.8f;
     private float translateResistance = 0.8f;
     private float angularVelocity = 0.0f;
@@ -19,6 +20,8 @@ public class RigidBody2D extends PhysicBody2D {
 
     private boolean fixedRotation = false;
     private boolean bullet = true;
+
+    private transient final Vector2f currentVelocity = new Vector2f();
 
     public RigidBody2D() {
         this(PhysicBodyType.Dynamic);
@@ -51,22 +54,34 @@ public class RigidBody2D extends PhysicBody2D {
     public void configureBody() {
         if (physicBodyRef == null) return;
         physicBodyRef.m_mass = mass;
-        physicBodyRef.setLinearVelocity(new Vec2(velocity.x, velocity.y));
+        physicBodyRef.setLinearVelocity(new Vec2(initialVelocity.x, initialVelocity.y));
     }
 
     @Override
     protected void additionalPhysicUpdate(float dt) {
         if (physicBodyRef == null) return;
         Vec2 v = physicBodyRef.getLinearVelocity();
-        velocity.set(v.x, v.y);
+        currentVelocity.set(v.x, v.y);
         angularVelocity = physicBodyRef.getAngularVelocity();
     }
 
-    public Vector2f getVelocity() {
-        return new Vector2f(velocity);
+    /**
+     * Add force to the center by converting the movement vector
+     * @param velocity the velocity vector to add (unit: m/s)
+     */
+    @Override
+    public void addMovement(Vector2f velocity) {
+        if (physicBodyRef == null) return;
+        float mFactor = mass > 0.0f ? mass : 1.0f;
+        Vector2f force = new Vector2f(velocity).mul(mFactor);
+        addForceToCenter(force);
     }
 
-    public void addVelocity(Vector2f force) {
+    public Vector2f getInitialVelocity() {
+        return new Vector2f(initialVelocity);
+    }
+
+    public void addForceToCenter(Vector2f force) {
         if (physicBodyRef != null) {
             physicBodyRef.applyForceToCenter(new Vec2(force.x, force.y));
         }
@@ -78,10 +93,10 @@ public class RigidBody2D extends PhysicBody2D {
         }
     }
 
-    public void setVelocity(Vector2f velocity) {
-        if (velocity == null) return;
-        this.velocity.set(velocity);
-        if (physicBodyRef != null) physicBodyRef.setLinearVelocity(new Vec2(velocity.x, velocity.y));
+    public void setInitialVelocity(Vector2f initialVelocity) {
+        if (initialVelocity == null) return;
+        this.initialVelocity.set(initialVelocity);
+        if (physicBodyRef != null) physicBodyRef.setLinearVelocity(new Vec2(initialVelocity.x, initialVelocity.y));
     }
 
     public float getRollResistance() {
@@ -170,7 +185,7 @@ public class RigidBody2D extends PhysicBody2D {
             return;
         }
         ImGui.indent();
-        Vector2f vTmp = new Vector2f(velocity);
+        Vector2f vTmp = new Vector2f(initialVelocity);
         boolean vChanged = ImEditorGui.dragVec2PixelToWorld("Velocity", vTmp, 0.0f, this);
         float angularV = ImEditorGui.dragFloatCtrl("Angular Velocity", angularVelocity, 0.0f, 1.0f,this);
         float ms = ImEditorGui.dragFloatCtrl("Mass", mass, 0.0f, this, 0.0f);
@@ -182,7 +197,7 @@ public class RigidBody2D extends PhysicBody2D {
         ImBoolean b = new ImBoolean(bullet);
         if (ImGui.checkbox("Bullet##RigidBody2D_bullet_" + getUUID(), b)) setBullet(b.get());
 
-        if (vChanged) setVelocity(vTmp);
+        if (vChanged) setInitialVelocity(vTmp);
         if (Float.compare(angularV, angularVelocity) != 0) setAngularVelocity(angularV);
         if (Float.compare(ms, mass) != 0) setMass(ms);
         if (Float.compare(rollResist, rollResistance) != 0) setRollResistance(rollResist);

@@ -75,7 +75,7 @@ public class Physic2D {
 
     public void update(float dt) {
         physicDt += dt;
-        if (physicDt >= 0.0f) {
+        while (physicDt >= PhysicDeltaRate) {
             physicDt -= PhysicDeltaRate;
             world.step(PhysicDeltaRate, MaxVelocityPass, MaxPositionPass);
         }

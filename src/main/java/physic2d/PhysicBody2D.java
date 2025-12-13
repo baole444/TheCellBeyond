@@ -157,6 +157,15 @@ public abstract class PhysicBody2D extends GameObject2D {
 
     public abstract void configureBody();
 
+    /**
+     * Add movement velocity to this physic body using the given vector.
+     * Depends on the body type, the values might be processed differently.
+     * <p>
+     * <b>Note:</b> various built-in APIs treat this as adding values on top of existing movement values.
+     * @param velocity the velocity vector to add (unit: m/s)
+     */
+    public void addMovement(Vector2f velocity) {}
+
     @Override
     protected void additionalImGuiLogic() {
         ImGui.spacing();

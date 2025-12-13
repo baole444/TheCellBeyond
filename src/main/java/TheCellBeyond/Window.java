@@ -298,7 +298,7 @@ public final class Window implements EngineEventListener {
         while (!glfwWindowShouldClose(windowPtr)) {
             glfwPollEvents(); //poll events
 
-            if (dt >= 0) {
+            if (dt >= 0.0f) {
                 rendererState.setRenderPass(RendererState.RenderPass.SELECTION);
                 rendererState.setShader(objectSelectShader);
                 objectSelection.useWrite();

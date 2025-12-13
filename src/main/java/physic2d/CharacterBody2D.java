@@ -54,6 +54,11 @@ public class CharacterBody2D extends PhysicBody2D {
         resetMotionState();
     }
 
+    @Override
+    public void addMovement(Vector2f velocity) {
+        velocity.add(velocity);
+    }
+
     public Vector2f upDirection() {
         return new Vector2f(UpDirection);
     }
