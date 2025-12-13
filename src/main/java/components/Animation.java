@@ -24,7 +24,7 @@ public class Animation {
     public Animation() {}
 
     /**
-     * Create a new animation with the given sequence of frames.
+     * Create a new {@link Animation} with the given sequence of {@link Frame}.
      * @param frames the list of frames
      */
     public Animation(List<Frame> frames) {
@@ -33,6 +33,10 @@ public class Animation {
         updateDuration();
     }
 
+    /**
+     * Create a new {@link Animation} from the given animation.
+     * @param animation the animation to copy from
+     */
     public Animation(Animation animation) {
         frames.addAll(animation.frames);
         speedMultiplier = animation.speedMultiplier;
@@ -272,6 +276,9 @@ public class Animation {
         frameIndex = low;
     }
 
+    /**
+     * Update this animation duration base on its frames' time.
+     */
     private void updateDuration() {
         animationDuration = 0.0f;
         for (Frame frame : frames) {
@@ -280,6 +287,10 @@ public class Animation {
         }
     }
 
+    /**
+     * Update this animation duration base on its frame's time from the given frame index.
+     * @param startIndex the frame index to start updating the duration
+     */
     private void updateDurationFrom(int startIndex) {
         if (frames.isEmpty()) return;
         startIndex = Math.max(0, startIndex);

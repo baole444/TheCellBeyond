@@ -626,7 +626,7 @@ public class GameObject {
     protected void additionalUpdateLogic(float dt) {}
 
     /**
-     * Initialize this game objects state when it is first added to the {@link Scene}.
+     * Initialize this game object's state when it is first added to the {@link Scene}.
      * <p>
      * This is called by the {@link Scene} on its starting logic or when this game object is added to a running scene.
      */

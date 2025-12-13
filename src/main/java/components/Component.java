@@ -29,8 +29,11 @@ public abstract class Component {
     }
 
     /**
-     * Override this to fully customize the start logic of a component.
-     * @see Component#additionalStartLogic() Add additional startup logic
+     * Initialize the component's state when its {@link GameObject} started.
+     * <p>
+     * Called by the owning game object {@link GameObject#start()} logic.
+     * Override this to fully customize the start logic of this component.
+     * @see Component#additionalStartLogic() Add additional component startup logic
      */
     public void start() {
         additionalStartLogic();
@@ -84,7 +87,9 @@ public abstract class Component {
     }
 
     /**
-     * Override this to add additional logic to the destroy logic of a component.
+     * Optional hook for additional destroy (clean up) logic of a component.
+     * <p>
+     * This is useful for when there are external states that need to be aware of this component's destruction.
      */
     protected void additionalDestroyLogic() {}
 

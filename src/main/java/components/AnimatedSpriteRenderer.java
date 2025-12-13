@@ -14,9 +14,12 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * AnimatedSpriteRenderer hold the hash map of its various animations where their names are the key set.<br>
+ * AnimatedSpriteRenderer hold the hash map of its various animations where their names are the key set.
+ * <p>
  * The frame times is even between frames of an animation and is managed via FPS value
- * ({@code frame time = 1 / fps}.)<br>
+ * ({@code frame time = 1 / fps}).
+ * </p>
+ * <p>
  * The component facilitates animation playback over time and default animation that autoplay on start.
  */
 public class AnimatedSpriteRenderer extends SpriteRenderer {
