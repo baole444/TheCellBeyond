@@ -22,91 +22,13 @@ public class ImEditorGui {
 
     private static final HashMap<ShortenLabelKey, String> shortenLabels = new HashMap<>();
     private static final float defaultWidth = 80.0f;
-    private static final Vector2f tmpPixelVector = new Vector2f();
-
-    public static boolean dragVec2PixelToWorld(String label, Vector2f source, float resetVal, Object caller) {
-        return dragVec2PixelToWorld(label, source, resetVal, resetVal, caller);
-    }
-
-    public static boolean dragVec2PixelToWorld(String label, Vector2f source, float resetX, float resetY, Object caller) {
-        String id = createID(label, caller);
-        ImGui.pushID(id);
-
-        if (!ImGui.beginTable("##Table_" + id, 2, ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.SizingStretchProp, ImGui.getContentRegionAvailX())) {
-            return false;
-        }
-        ImGui.tableSetupColumn("##label_" + label + id, ImGuiTableColumnFlags.WidthFixed, defaultWidth);
-        ImGui.tableSetupColumn("##content_" + label + id, ImGuiTableColumnFlags.WidthStretch);
-        ImGui.tableNextColumn();
-        float labelSpace = ImGui.getContentRegionAvailX();
-        ImGui.text(shortenLabel(label, labelSpace));
-        if (ImGui.isItemHovered() && labelSpace <= ImGui.calcTextSizeX(label)) {
-            ImGui.beginTooltip();
-            ImGui.text(label);
-            ImGui.endTooltip();
-        }
-        ImGui.tableNextColumn();
-
-        float resetWidth = ImGui.calcTextSizeX(" X ");
-        float dragRemains = (ImGui.getContentRegionAvailX() - resetWidth) / 2.0f;
-        boolean changed = false;
-        WorldUnit.worldToPixel(source, tmpPixelVector);
-        ImGui.pushStyleVar(ImGuiStyleVar.ItemSpacing, 0, 0);
-
-        ImGui.pushID("x");
-        ImGui.pushStyleColor(ImGuiCol.Button, 0.7f, 0.2f, 0.2f, 1.0f);
-        ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.8f, 0.3f, 0.3f, 1.0f);
-        ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0.7f, 0.2f, 0.2f, 1.0f);
-        if (ImGui.button("X##Reset_X_" + id, resetWidth, 0.0f)) {
-            tmpPixelVector.x = resetX;
-            changed = true;
-        }
-        ImGui.popStyleColor(3);
-        ImGui.pushItemWidth(dragRemains);
-        ImGui.sameLine();
-        float[] valX = {tmpPixelVector.x};
-        if (ImGui.dragFloat("##dragX", valX, 1.0f)) {
-            tmpPixelVector.x = valX[0];
-            changed = true;
-        }
-        ImGui.popItemWidth();
-        ImGui.popID();
-        ImGui.sameLine();
-
-        ImGui.pushID("y");
-        ImGui.pushStyleColor(ImGuiCol.Button, 0.2f, 0.7f, 0.2f, 1.0f);
-        ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.3f, 0.8f, 0.3f, 1.0f);
-        ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0.2f, 0.7f, 0.2f, 1.0f);
-        if (ImGui.button("Y##Reset_Y_" + id, resetWidth, 0.0f)) {
-            tmpPixelVector.y = resetY;
-            changed = true;
-        }
-        ImGui.popStyleColor(3);
-        ImGui.pushItemWidth(dragRemains);
-        ImGui.sameLine();
-        float[] valY = {tmpPixelVector.y};
-        if (ImGui.dragFloat("##dragY", valY, 1.0f)) {
-            tmpPixelVector.y = valY[0];
-            changed = true;
-        }
-        ImGui.popItemWidth();
-        ImGui.popID();
-
-        if (changed) WorldUnit.pixelToWorld(tmpPixelVector, source);
-
-        ImGui.popStyleVar();
-        ImGui.endTable();
-        ImGui.popID();
-
-        return changed;
-    }
 
     public static boolean dragVec2Ctrl(String label, Vector2f source, float resetVal, Object caller) {
         return dragVec2Ctrl(label, source, resetVal, resetVal, 0.1f, caller);
     }
 
-    public static boolean dragVec2Ctrl(String label, Vector2f source, float resetVal, float dragStep, Object caller) {
-        return dragVec2Ctrl(label, source, resetVal, resetVal, dragStep, caller);
+    public static boolean dragVec2Ctrl(String label, Vector2f source, float resetVal, float dragSpeed, Object caller) {
+        return dragVec2Ctrl(label, source, resetVal, resetVal, dragSpeed, caller);
     }
 
     public static boolean dragVec2Ctrl(String label, Vector2f source, float resetX, float resetY, float dragSpeed, Object caller) {

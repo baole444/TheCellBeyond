@@ -3,17 +3,7 @@ package components;
 import org.joml.Vector2f;
 
 public class ControllerDirection {
-    public String name;
-    private final Vector2f directionVector = ControllerDirection.zero();
-
-    public Vector2f directionVector() {
-        return directionVector;
-    }
-
-    public void directionVector(Vector2f direction) {
-        if (direction == null) return;
-        directionVector.set(direction).normalize();
-    }
+    public final Vector2f directionVector = ControllerDirection.zero();
 
     public static Vector2f zero() {
         return new Vector2f(0.0f, 0.0f);

@@ -222,7 +222,7 @@ public final class Window implements EngineEventListener {
         ALCapabilities alCapabilities = AL.createCapabilities(alcCapabilities);
 
         if (!alCapabilities.OpenAL10) {
-            LOGGER.warning("OpenAL10 not supported on this device");
+            LOGGER.warning("OpenAL10 is not supported on this device");
             System.exit(-2);
         }
 

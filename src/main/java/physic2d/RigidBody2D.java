@@ -186,7 +186,7 @@ public class RigidBody2D extends PhysicBody2D {
         }
         ImGui.indent();
         Vector2f vTmp = new Vector2f(initialVelocity);
-        boolean vChanged = ImEditorGui.dragVec2PixelToWorld("Velocity", vTmp, 0.0f, this);
+        boolean vChanged = ImEditorGui.dragVec2Ctrl("Velocity", vTmp, 0.0f, this);
         float angularV = ImEditorGui.dragFloatCtrl("Angular Velocity", angularVelocity, 0.0f, 1.0f,this);
         float ms = ImEditorGui.dragFloatCtrl("Mass", mass, 0.0f, this, 0.0f);
         float rollResist = ImEditorGui.dragFloatCtrl("Roll Resistance", rollResistance, 0.8f, this, 0.0f);

@@ -142,7 +142,7 @@ public class Input {
         return released;
     }
 
-    private static InputAction getInputAction(String action) {
+    public static InputAction getInputAction(String action) {
         if (Project.currentProject() == null) return null;
         return Project.currentProject().inputActions().get(action);
     }

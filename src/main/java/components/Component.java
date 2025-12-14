@@ -5,6 +5,8 @@ import editor.ImEditorGui;
 import imgui.ImGui;
 import org.jbox2d.dynamics.contacts.Contact;
 import org.joml.Vector2f;
+import utility.log.EngineLog;
+
 import java.util.UUID;
 
 /**
@@ -15,6 +17,12 @@ import java.util.UUID;
  * Component can reference each other by name or by hierarchy path.
  */
 public abstract class Component {
+
+    /**
+     * Logger for components.
+     */
+    protected static final EngineLog LOGGER = new EngineLog(Component.class);
+
     private String uuid;
 
     /**

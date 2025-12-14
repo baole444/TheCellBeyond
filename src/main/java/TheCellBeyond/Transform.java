@@ -67,7 +67,7 @@ public class Transform extends Component {
         ImGui.popStyleColor(1);
         if (open) {
             ImGui.separator();
-            ImEditorGui.dragVec2PixelToWorld("Position", position, 0.0f, this);
+            ImEditorGui.dragVec2Ctrl("Position", position, 0.0f, this);
             ImEditorGui.dragVec2Ctrl("Scale", scale, 1.0f, this);
             rotation = ImEditorGui.dragFloatCtrl("Rotation", rotation, this);
             zIndex = ImEditorGui.dragIntCtrl("Z-Index", zIndex, this);

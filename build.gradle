@@ -39,7 +39,7 @@ dependencies {
     // SpaiR-imgui
     implementation "io.github.spair:imgui-java-binding:$imgui_version"
     implementation "io.github.spair:imgui-java-lwjgl3:$imgui_version"
-    implementation "io.github.spair:imgui-java-natives-windows:$imgui_version"
+    implementation "io.github.spair:imgui-java-$imguiNatives:$imgui_version"
 
     // Test unit
     testImplementation platform('org.junit:junit-bom:5.10.0')
