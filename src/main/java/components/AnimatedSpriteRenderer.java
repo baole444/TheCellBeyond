@@ -86,21 +86,25 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
      * The new name must be unique to this AnimatedSpriteRenderer.
      * @param oldName the current name of the animation
      * @param newName the new name for the animation
+     * @return true if renamed successfully
      */
-    public void renameAnimation(String oldName, String newName) {
-        if (animations.isEmpty()) return;
-        if (oldName == null || newName == null || oldName.isBlank() || newName.isBlank()) return;
-        if (!animations.containsKey(oldName) || animations.containsKey(newName)) return;
+    public boolean renameAnimation(String oldName, String newName) {
+        if (animations.isEmpty()) return false;
+        if (oldName == null || newName == null || oldName.isBlank() || newName.isBlank()) return false;
+        newName = newName.trim();
+        if (!animations.containsKey(oldName) || animations.containsKey(newName)) return false;
 
         Animation animation = animations.remove(oldName);
         float fps = animationFPS.remove(oldName);
-        if (animation == null) return;
+        if (animation == null) return false;
 
         animations.put(newName, animation);
         animationFPS.put(newName, fps);
 
         if (Objects.equals(defaultAnimation, oldName)) defaultAnimation = newName;
         if (Objects.equals(currentAnimationName, oldName)) currentAnimationName = newName;
+
+        return true;
     }
 
     /**
@@ -109,9 +113,8 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
      * @param name the name of the animation to duplicate from
      */
     public void duplicateAnimation(String name) {
-        if (name == null) return;
-        if (animations.isEmpty()) return;
-        if (!animations.containsKey(name)) return;
+        if (name == null || name.isBlank()) return;
+        if (animations.isEmpty() || !animations.containsKey(name)) return;
 
         Animation animation = animations.get(name);
         float fps = animationFPS.get(name);
@@ -465,9 +468,8 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
     protected void additionalImGuiLogic() {
         ImGui.spacing();
         boolean openAnimatedSprite = ImGui.collapsingHeader("AnimatedSpriteRenderer##Animated_Sprite_Renderer_Properties_Header", ImGuiTreeNodeFlags.DefaultOpen);
-        if (!openAnimatedSprite) {
-            return;
-        }
+        if (!openAnimatedSprite) return;
+
         ImGui.indent();
         List<String> animationList = animations.keySet().stream().toList();
         String selectedAni = currentAnimationName;
@@ -491,8 +493,8 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
         boolean openFlip = ImGui.collapsingHeader(compositeID);
         ImGui.popStyleColor(1);
         if (openFlip) {
-            if (ImGui.checkbox("Horizontal##" + getUUID(), flipHState)) flipHorizontally(flipHState.get());
-            if (ImGui.checkbox("Vertical##" + getUUID(), flipVState)) flipVertically(flipVState.get());
+            if (ImGui.checkbox("Horizontal##HorizontalFlip_" + getUUID(), flipHState)) flipHorizontally(flipHState.get());
+            if (ImGui.checkbox("Vertical##VerticalFlip_" + getUUID(), flipVState)) flipVertically(flipVState.get());
         }
         ImGui.unindent();
     }

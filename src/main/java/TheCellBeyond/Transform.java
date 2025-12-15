@@ -6,6 +6,7 @@ import imgui.ImGui;
 import imgui.flag.ImGuiCol;
 import imgui.type.ImBoolean;
 import org.joml.Vector2f;
+import utility.WorldUnit;
 
 public class Transform extends Component {
     public Vector2f position;
@@ -67,7 +68,7 @@ public class Transform extends Component {
         ImGui.popStyleColor(1);
         if (open) {
             ImGui.separator();
-            ImEditorGui.dragVec2Ctrl("Position", position, 0.0f, this);
+            ImEditorGui.dragVec2Ctrl("Position", position, 0.0f, WorldUnit.getWorldUnitsPerPixel(), this);
             ImEditorGui.dragVec2Ctrl("Scale", scale, 1.0f, this);
             rotation = ImEditorGui.dragFloatCtrl("Rotation", rotation, this);
             zIndex = ImEditorGui.dragIntCtrl("Z-Index", zIndex, this);

@@ -38,6 +38,7 @@ public abstract class CollisionShape2D extends SpatialComponent {
 
         if (needsFixtureReset) resetFixture();
         additionalUpdateLogic(dt);
+        drawDebugShape();
     }
 
     @Override

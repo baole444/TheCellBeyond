@@ -32,6 +32,7 @@ class SpriteFrameEditor {
     private static final ImString editingNameBuffer = new ImString(512);
 
     private static final float animationListXPercentage = 0.25f;
+    private static final float animationListWidth = 120.0f;
     private static final float CONTROL_RESERVE = ImGui.getFrameHeightWithSpacing();
     private static final float padding = 4.0f;
 
@@ -64,18 +65,18 @@ class SpriteFrameEditor {
 
         if (!ImGui.beginTable("##SFE_Table_Id", 2, ImGuiTableFlags.NoBordersInBody | ImGuiTableFlags.SizingStretchProp, ImGui.getContentRegionAvail())) return;
 
-        float remainWidth = Math.max(120.0f, ImGui.getContentRegionAvailX() * animationListXPercentage);
-        ImGui.tableSetupColumn("##AnimationList_Column", ImGuiTableColumnFlags.WidthFixed, remainWidth);
-        ImGui.tableSetupColumn("##AnimationFrames_Column", ImGuiTableColumnFlags.WidthStretch);
+        float remainWidth = Math.max(animationListWidth, ImGui.getContentRegionAvailX() * animationListXPercentage);
+        ImGui.tableSetupColumn("##SFE_AnimationList_Column", ImGuiTableColumnFlags.WidthFixed, remainWidth);
+        ImGui.tableSetupColumn("##SFE_AnimationFrames_Column", ImGuiTableColumnFlags.WidthStretch);
 
         ImGui.tableNextColumn();
-        if (ImGui.beginChild("##AnimationList", ImGui.getContentRegionAvail(), true)) {
+        if (ImGui.beginChild("##SFE_AnimationList", ImGui.getContentRegionAvail(), true)) {
             renderAnimationList();
             ImGui.endChild();
         }
 
         ImGui.tableNextColumn();
-        if (ImGui.beginChild("##AnimationFrames", ImGui.getContentRegionAvail(), true)) {
+        if (ImGui.beginChild("##SFE_AnimationFrames", ImGui.getContentRegionAvail(), true)) {
             if (selectedName == null) {
                 ImGui.beginDisabled();
                 ImGui.textWrapped("Select an animation on the left panel or create a new animation to start editing its frames");
@@ -244,29 +245,7 @@ class SpriteFrameEditor {
                 }
             }
 
-            if (Objects.equals(editingName, entry.getKey())) {
-                ImGui.setCursorPos(cursorPos);
-                ImGui.setKeyboardFocusHere();
-                ImGui.inputText("##" + "Edit_" + entry.getKey(), editingNameBuffer);
-                if (ImGui.isItemFocused() && ImGui.isKeyPressed(GLFW_KEY_ESCAPE)) {
-                    editingNameBuffer.clear();
-                    editingName = null;
-                    ImGui.spacing();
-                    continue;
-                }
-
-                if ((ImGui.isItemFocused() && ImGui.isKeyPressed(GLFW_KEY_ENTER)) || !isSelected) {
-                    editingAnimatedSprite.renameAnimation(entry.getKey(), editingNameBuffer.get());
-                    selectedName = editingNameBuffer.get();
-                    editingNameBuffer.clear();
-                    editingName = null;
-                    ImGui.spacing();
-                    continue;
-                }
-
-                ImGui.spacing();
-                continue;
-            }
+            if (renderAnimationNameEdit(entry.getKey(), cursorPos, isSelected)) continue;
 
             if (ImGui.isItemHovered() && ImGui.isMouseDoubleClicked(GLFW_MOUSE_BUTTON_1)) {
                 editingName = entry.getKey();
@@ -337,6 +316,32 @@ class SpriteFrameEditor {
             consumedWidth = 0.0f;
             ImGui.spacing();
         }
+    }
+
+    private static boolean renderAnimationNameEdit(String name, ImVec2 cursorPos, boolean isSelected) {
+        if (!Objects.equals(editingName, name)) return false;
+        ImGui.setCursorPos(cursorPos);
+        ImGui.setKeyboardFocusHere();
+        ImGui.inputText("##SFC_" + "Edit_" + name, editingNameBuffer);
+        if (ImGui.isItemFocused() && ImGui.isKeyPressed(GLFW_KEY_ESCAPE)) {
+            editingNameBuffer.clear();
+            editingName = null;
+            ImGui.spacing();
+            return true;
+        }
+
+        if ((ImGui.isItemFocused() && ImGui.isKeyPressed(GLFW_KEY_ENTER)) || !isSelected) {
+            String newName = editingNameBuffer.get().trim();
+            boolean success = editingAnimatedSprite.renameAnimation(name, newName);
+            if (success) selectedName = newName;
+            editingNameBuffer.clear();
+            editingName = null;
+            ImGui.spacing();
+            return true;
+        }
+
+        ImGui.spacing();
+        return true;
     }
 
     private static void spriteDragDropPayload() {

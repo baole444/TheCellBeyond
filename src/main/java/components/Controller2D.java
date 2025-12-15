@@ -3,10 +3,14 @@ package components;
 import TheCellBeyond.GameObject2D;
 import TheCellBeyond.Input;
 import TheCellBeyond.InputAction;
+import editor.ImEditorGui;
+import imgui.ImGui;
+import imgui.flag.ImGuiTreeNodeFlags;
+import imgui.type.ImBoolean;
 import org.joml.Vector2f;
 import physic2d.PhysicBody2D;
 
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -16,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * The movement is applied base on {@link ControllerDirection}s and their bound {@link InputAction}s.
  * @see ControlMode Controller2D's control modes
  */
-public class Controller2D extends Component {
+public final class Controller2D extends Component {
 
     /**
      * ControlMode define how the controller apply movement.
@@ -66,7 +70,7 @@ public class Controller2D extends Component {
      */
     public boolean normalizeDiagonalSpeed = true;
 
-    private final ConcurrentHashMap<ControllerBinding, HashSet<InputAction>> controllerActionBindings = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, ControllerBinding> controllerBindings = new ConcurrentHashMap<>();
 
     /**
      * The control mode of this controller.
@@ -107,7 +111,7 @@ public class Controller2D extends Component {
     }
 
     @Override
-    protected void additionalUpdateLogic(float dt) {
+    public void update(float dt) {
         if (controlMode == ControlMode.Incompatible) return;
 
         Vector2f finalDirection = getCombinedDirection(dt);
@@ -144,67 +148,116 @@ public class Controller2D extends Component {
         controlMode = mode;
     }
 
+    public void newBinding() {
+        String newName = "binding";
+
+        if (controllerBindings.isEmpty()) {
+            controllerBindings.put(newName, new ControllerBinding());
+            return;
+        }
+
+        String uniqueName = newName;
+        int i = controllerBindings.size();
+        if (controllerBindings.containsKey(uniqueName)) {
+            uniqueName = newName + "_" + i;
+            i++;
+        }
+
+        controllerBindings.put(uniqueName, new ControllerBinding());
+    }
+
+    public boolean renameBinding(String oldName, String newName) {
+        if (controllerBindings.isEmpty()) return false;
+        if (oldName == null || newName == null || oldName.isBlank() || newName.isBlank()) return false;
+        newName = newName.trim();
+        if (!controllerBindings.containsKey(oldName) || controllerBindings.containsKey(newName)) return false;
+
+        ControllerBinding binding = controllerBindings.remove(oldName);
+        if (binding == null) return false;
+
+        controllerBindings.put(newName, binding);
+        return true;
+    }
+
+    public void duplicateBinding(String name) {
+        if (name == null || name.isBlank()) return;
+        if (controllerBindings.isEmpty() || !controllerBindings.containsKey(name)) return;
+
+        ControllerBinding binding = controllerBindings.get(name);
+        if (binding == null) return;
+
+        String newName = name + "_copy";
+        int i = 1;
+        while (controllerBindings.containsKey(newName)) {
+            newName = name + "_copy" + i;
+            i++;
+        }
+
+        controllerBindings.put(newName, new ControllerBinding(binding));
+    }
+
     public void bindAction(String bindingName, String actionName) {
         if (bindingName == null || actionName == null) return;
 
-        InputAction inputAction = Input.getInputAction(actionName);
-        if (inputAction == null) return;
-        ControllerBinding binding = null;
-        for (Map.Entry<ControllerBinding, HashSet<InputAction>> entry : controllerActionBindings.entrySet()) {
-            ControllerBinding controllerBinding = entry.getKey();
-            if (!controllerBinding.name.equals(bindingName)) continue;
-            binding = controllerBinding;
+        ControllerBinding binding = controllerBindings.get(bindingName);
+        if (binding == null) return;
+
+        if (Input.getInputAction(actionName) == null) {
+            LOGGER.warning(String.format("Input action '%s' does not exist", actionName));
+            return;
         }
 
-        if (binding == null) return;
-        bindAction(binding, inputAction);
+        binding.boundActionNames.add(actionName);
     }
 
-    public void bindAction(ControllerBinding binding, InputAction action) {
-        if (binding == null || action == null) return;
-        controllerActionBindings.computeIfAbsent(binding, k -> new HashSet<>()).add(action);
+    public ControllerBinding getBinding(String bindingName) {
+        if (bindingName == null || bindingName.isBlank()) return null;
+        return controllerBindings.get(bindingName);
+    }
+
+    public boolean removeBinding(String bindingName) {
+        if (bindingName == null) return false;
+        return controllerBindings.remove(bindingName) != null;
     }
 
     public void unbindAction(String bindingName, String actionName) {
-        if (bindingName == null || actionName == null) return;
+        if (bindingName == null || bindingName.isBlank() || actionName == null) return;
 
-        InputAction inputAction = Input.getInputAction(actionName);
-        if (inputAction == null) return;
-        ControllerBinding binding = null;
-        for (Map.Entry<ControllerBinding, HashSet<InputAction>> entry : controllerActionBindings.entrySet()) {
-            ControllerBinding controllerBinding = entry.getKey();
-            if (!controllerBinding.name.equals(bindingName)) continue;
-            binding = controllerBinding;
-        }
-
+        ControllerBinding binding = controllerBindings.get(bindingName);
         if (binding == null) return;
-        unbindAction(binding, inputAction);
+
+        binding.boundActionNames.remove(actionName);
     }
 
-    public void unbindAction(ControllerBinding binding, InputAction action) {
-        if (binding == null || action == null) return;
+    public void clearBindingAction(String bindingName) {
+        if (bindingName == null || bindingName.isBlank()) return;
 
-        HashSet<InputAction> actions = controllerActionBindings.get(binding);
-        if (actions == null || actions.isEmpty()) return;
-        actions.remove(action);
+        ControllerBinding binding = controllerBindings.get(bindingName);
+        if (binding == null) return;
+
+        binding.boundActionNames.clear();
+    }
+
+    public HashMap<String, ControllerBinding> getBindings() {
+        return new HashMap<>(controllerBindings);
     }
 
     private Vector2f getCombinedDirection(float dt) {
         Vector2f combinedDirection = new Vector2f();
-        if (controllerActionBindings.isEmpty()) return combinedDirection;
-        for (Map.Entry<ControllerBinding, HashSet<InputAction>> entry : controllerActionBindings.entrySet()) {
-            ControllerBinding controllerBinding = entry.getKey();
-            HashSet<InputAction> actions = entry.getValue();
+        if (controllerBindings.isEmpty()) return combinedDirection;
+
+        for (Map.Entry<String, ControllerBinding> entry : controllerBindings.entrySet()) {
+            ControllerBinding binding = entry.getValue();
 
             boolean isPressed = false;
-            for (InputAction action : actions) {
-                if (!Input.isActionPresses(action.name())) continue;
+            for (String name : binding.boundActionNames) {
+                if (!Input.isActionPresses(name)) continue;
                 isPressed = true;
                 break;
             }
 
-            if (!controllerBinding.isActive(isPressed, dt)) continue;
-            combinedDirection.add(controllerBinding.directionVector());
+            if (!binding.isActive(isPressed, dt)) continue;
+            combinedDirection.add(binding.directionVector());
 
             if (oneActionPerFrame) break;
         }
@@ -234,5 +287,50 @@ public class Controller2D extends Component {
         if (!isGameObjectPhysicCompatible || physicBody2D == null) return;
         physicBody2D.addMovement(movementVelocity);
     }
-}
 
+    @Override
+    protected void additionalImGuiLogic() {
+        ImGui.spacing();
+        boolean openController = ImGui.collapsingHeader("Controller2D##Controler2D_Properties_Header", ImGuiTreeNodeFlags.DefaultOpen);
+        if (!openController) return;
+
+        ImGui.indent();
+        ControlMode current = controlMode;
+        ImGui.text("Control Mode:");
+        if (ImGui.beginCombo("##Select_Controller_Control_Mode_Combo_" + getUUID(), current.name())) {
+            if (!isGameObjectSpatialCompatible && !isGameObjectPhysicCompatible) {
+                ImGui.textWrapped(gameObject.name + " is not compatible with this controller");
+            } else {
+                for (ControlMode mode : ControlMode.values()) {
+                    if (mode == ControlMode.Incompatible) continue;
+                    String label = mode.name() + "##Select_" + mode.name() + "_ControlMode_Selectable_" + getUUID();
+                    if (ImGui.selectable(label, mode == controlMode)) controlMode(mode);
+                }
+            }
+            ImGui.endCombo();
+        }
+
+        ImGui.spacing();
+        float speed = ImEditorGui.dragFloatCtrl("Movement Speed", movementSpeed, 0.0f, 0.1f, this);
+        if (Float.compare(speed, movementSpeed) != 0) movementSpeed = speed;
+
+        ImBoolean oneAction = new ImBoolean(oneActionPerFrame);
+        ImBoolean normalizeDiagonal = new ImBoolean(normalizeDiagonalSpeed);
+        if (ImGui.checkbox("Single Action##AllowOneActionPerFrame_" + getUUID(), oneAction)) oneActionPerFrame = oneAction.get();
+        if (ImGui.isItemHovered()) {
+            ImGui.beginTooltip();
+            ImGui.text("If enabled, one 1 action/binding will be process each frame.");
+            ImGui.textWrapped("For example, binding \"Move Up\" and \"Move Down\" are both press in the same frame." +
+                    " If only 1 action is allowed, the controller will process whatever binding is active first.");
+            ImGui.endTooltip();
+        }
+        if (ImGui.checkbox("Normalize Diagonal Movement##NormalizeDiagonalMovement_" + getUUID(), normalizeDiagonal)) normalizeDiagonalSpeed = normalizeDiagonal.get();
+        if (ImGui.isItemHovered()) {
+            ImGui.beginTooltip();
+            ImGui.text("If enabled, diagonal movement will be normalized.");
+            ImGui.textWrapped("This prevent faster movement when moving diagonally due to vector combination.");
+            ImGui.endTooltip();
+        }
+        ImGui.unindent();
+    }
+}

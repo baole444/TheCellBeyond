@@ -59,6 +59,11 @@ public class EditProjectSettingsDialog {
         syncWithProject();
     }
 
+    public static void showToInputMap() {
+        show();
+        selectedTab = TabName.InputMap;
+    }
+
     static IdPool ID_POOL() {
         return ID_POOL;
     }

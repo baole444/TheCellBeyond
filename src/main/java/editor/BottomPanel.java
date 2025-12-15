@@ -1,9 +1,6 @@
 package editor;
 
-import components.AnimatedSpriteRenderer;
-import components.AnimationPlayer;
-import components.Component;
-import components.TileMap;
+import components.*;
 import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.ImGuiChildFlags;
@@ -28,6 +25,7 @@ public class BottomPanel {
 
     private enum TabName {
         Output("Output"),
+        ControllerBinding("Controller Binding"),
         TileSet("Tile Set"),
         TileMap("Tile Map"),
         SpriteFrame("Sprite Frame"),
@@ -51,6 +49,10 @@ public class BottomPanel {
     public static void interacted(Component component) {
         if (component == null) return;
         switch (component) {
+            case Controller2D controller2D -> {
+                ControllerBindingEditor.edit(controller2D);
+                workingTab = selectedTab = TabName.ControllerBinding;
+            }
             case AnimatedSpriteRenderer spriteFrame -> {
                 SpriteFrameEditor.edit(spriteFrame);
                 workingTab = selectedTab = TabName.SpriteFrame;
@@ -99,6 +101,7 @@ public class BottomPanel {
 
     private static void renderTabContent() {
         switch (selectedTab) {
+            case ControllerBinding -> ControllerBindingEditor.imgui();
             case TileSet -> TileSetEditor.imgui();
             case TileMap -> TileMapEditor.imgui();
             case SpriteFrame -> SpriteFrameEditor.imgui();

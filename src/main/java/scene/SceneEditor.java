@@ -112,7 +112,7 @@ public class SceneEditor extends SceneInit implements EngineEventListener {
                 float buttonW = 30.0f;
                 float searchW = Math.min(360.0f, ImGui.getContentRegionAvailX() - buttonW - ImGui.getStyle().getItemSpacingX());
                 ImGui.pushItemWidth(searchW);
-                if (ImGui.inputTextWithHint("##Search", "Enter sheet name...", spriteSearchFilter)) filterChanged = true;
+                if (ImGui.inputTextWithHint("##SE_SpriteSheetSearch", "Enter sheet name...", spriteSearchFilter)) filterChanged = true;
                 ImGui.popItemWidth();
                 ImGui.sameLine();
                 ImGui.pushStyleColor(ImGuiCol.Button, 0.7f, 0.2f, 0.2f, 1.0f);

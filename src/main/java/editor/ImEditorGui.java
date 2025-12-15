@@ -52,7 +52,7 @@ public class ImEditorGui {
         ImGui.tableNextColumn();
 
         float resetWidth = ImGui.calcTextSizeX(" X ");
-        float dragRemains = (ImGui.getContentRegionAvailX() - resetWidth) / 2.0f;
+        float dragRemains = (ImGui.getContentRegionAvailX() - resetWidth * 2.0f) / 2.0f;
         boolean changed = false;
         ImGui.pushStyleVar(ImGuiStyleVar.ItemSpacing, 0, 0);
 

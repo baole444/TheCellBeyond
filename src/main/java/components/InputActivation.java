@@ -25,7 +25,7 @@ public class InputActivation {
      * <p>
      * Immediate activation mode is not affected by this.
      */
-    public float requiredHoldTime = 0.0f;
+    private float requiredHoldTime = 0.0f;
 
     /**
      * Tracking of current hold action.

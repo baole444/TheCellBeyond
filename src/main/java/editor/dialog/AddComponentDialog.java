@@ -39,7 +39,8 @@ public class AddComponentDialog {
         CircleCollider2D("CircleCollider2D", "Add a circle shape for detecting collision to the object. " +
                 "The object type must inherit PhysicBody2D for physic collision to work."),
         CapsuleCollider2D("CapsuleCollider2D", "Add a capsule/pillbox-like shape for detecting collision to the object." +
-                "The object type must inherit PhysicBody2D for physic collision to work.");
+                "The object type must inherit PhysicBody2D for physic collision to work."),
+        Controller2D("Controller2D", "Movement control, experimental component");
 
         private final String displayLabel;
         private final String description;
@@ -146,6 +147,7 @@ public class AddComponentDialog {
             case BoxCollider2D -> c = new BoxCollider2D();
             case CircleCollider2D -> c = new CircleCollider2D();
             case CapsuleCollider2D -> c = new CapsuleCollider2D();
+            case Controller2D -> c = new Controller2D();
             default -> c = null;
         }
 

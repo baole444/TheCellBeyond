@@ -2,27 +2,32 @@ package components;
 
 import org.joml.Vector2f;
 
+import java.util.HashSet;
+
 public class ControllerBinding {
-    public String name;
     public final ControllerDirection direction;
     public final InputActivation activation;
+    public final HashSet<String> boundActionNames = new HashSet<>();
 
-    public ControllerBinding(String name) {
-        this.name = name;
+    public ControllerBinding() {
         direction = new ControllerDirection();
         activation = new InputActivation();
     }
 
-    public ControllerBinding(String name, ControllerDirection direction) {
-        this.name = name;
+    public ControllerBinding(ControllerDirection direction) {
         this.direction = direction;
         activation = new InputActivation();
     }
 
-    public ControllerBinding(String name, ControllerDirection direction, InputActivation activation) {
-        this.name = name;
+    public ControllerBinding(ControllerDirection direction, InputActivation activation) {
         this.direction = direction;
         this.activation = activation;
+    }
+
+    public ControllerBinding(ControllerBinding binding) {
+        direction = new ControllerDirection(binding.direction);
+        activation = binding.activation;
+        boundActionNames.addAll(binding.boundActionNames);
     }
 
     public boolean isActive(boolean isPressed, float dt) {
@@ -30,7 +35,11 @@ public class ControllerBinding {
     }
 
     public Vector2f directionVector() {
-        return direction.directionVector;
+        return direction.directionVector();
+    }
+
+    public InputActivation.ActivationMode activationMode() {
+        return activation.activationMode();
     }
 
     public void reset() {
