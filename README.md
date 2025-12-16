@@ -16,7 +16,7 @@ A Java-based game editor with project compile ability, code auto-generation, and
 - [ ] Scripting system.
 
 ## Problems need attention:
-- (NAP) Physic system is likely incompatible with current setup again, mainly at physic body and collision shape.
+- Saving while in test run (runtime mode) will cause override on scene's file.
 
 ## Solved problems:
 - N/A
@@ -26,7 +26,7 @@ A Java-based game editor with project compile ability, code auto-generation, and
 - Maintain compatibility of the project loading system.
 
 ## Current work:
-- [ ] Tile Map and Tile Set API.
+- [ ] Implement API for StateEngine
 - [ ] Implement API for Sound effect.
 - 
 ### Finished work:
@@ -34,6 +34,7 @@ This is a list of finished work and is now in maintaining state:
 <details>
     <summary>Past works</summary>
 
+- [X] Tile Map and Tile Set API.
 - [X] Project system.
 - [X] Unified Path System.
 - [X] GameObject hierarchy structure.
