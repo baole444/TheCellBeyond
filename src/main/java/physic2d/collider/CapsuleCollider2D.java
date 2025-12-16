@@ -65,14 +65,14 @@ public class CapsuleCollider2D extends CollisionShape2D {
     }
 
     private void calculateCollider() {
-        float radius = width / 4.0f;
+        float radius = width / 2.0f;
         float boxH = height - (2.0f * radius);
 
         headCircle.setRadius(radius);
         footCircle.setRadius(radius);
 
-        headCircle.setLocalPosition(new Vector2f(0.0f, boxH / 4.0f));
-        footCircle.setLocalPosition(new Vector2f(0.0f, -boxH / 4.0f));
+        headCircle.setLocalPosition(new Vector2f(0.0f, boxH / 2.0f));
+        footCircle.setLocalPosition(new Vector2f(0.0f, -boxH / 2.0f));
 
         bodyBox.setHalfSize(new Vector2f(width / 2.0f, boxH / 2.0f));
         bodyBox.setLocalPosition(new Vector2f());

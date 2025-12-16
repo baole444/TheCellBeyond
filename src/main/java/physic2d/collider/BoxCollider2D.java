@@ -43,8 +43,8 @@ public class BoxCollider2D extends CollisionShape2D {
     @Override
     protected void drawDebugShape() {
         if (gameObject == null) return;
-        float margin = Settings.polygonRadius;
-        DebugDraw.addBox2(getPosition(), getEffectiveHalfSize().add(margin, margin), getRotation());
+
+        DebugDraw.addBox2(getPosition(), getEffectiveHalfSize().mul(2.0f), getRotation());
     }
 
     @Override

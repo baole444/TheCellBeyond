@@ -40,8 +40,7 @@ public class CircleCollider2D extends CollisionShape2D {
     @Override
     protected void drawDebugShape() {
         if (gameObject == null) return;
-        float margin = Settings.polygonRadius;
-        float radius = getEffectiveRadius() + margin;
+        float radius = getEffectiveRadius();
         DebugDraw.addCircle(getPosition(), radius);
     }
 
