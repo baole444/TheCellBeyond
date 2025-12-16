@@ -1,7 +1,10 @@
 package components;
 
+import java.util.HashSet;
+
 public class State {
-    public String name;
+    public final HashSet<String> stateFilters = new HashSet<>();
+    public boolean filterAsBlackList = true;
 
     public void onStateEnter() {}
 

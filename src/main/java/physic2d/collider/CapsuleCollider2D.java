@@ -36,12 +36,33 @@ public class CapsuleCollider2D extends CollisionShape2D {
     }
 
     @Override
+    protected void additionalUpdateLogic(float dt) {
+        updateNestColliderTransform();
+    }
+
+    @Override
     public void editorUpdate(float dt) {
+        updateNestColliderTransform();
+
         headCircle.editorUpdate(dt);
         footCircle.editorUpdate(dt);
         bodyBox.editorUpdate(dt);
 
         if (needsFixtureReset) resetFixture();
+    }
+
+    @Override
+    protected void additionalDirtyFlagLogic() {
+        super.additionalDirtyFlagLogic();
+        headCircle.setTransformDirty();
+        bodyBox.setTransformDirty();
+        footCircle.setTransformDirty();
+    }
+
+    private void updateNestColliderTransform() {
+        headCircle.getEffectiveTransform();
+        footCircle.getEffectiveTransform();
+        bodyBox.getEffectiveTransform();
     }
 
     public float width() {
