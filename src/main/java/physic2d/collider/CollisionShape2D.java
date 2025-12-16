@@ -7,7 +7,7 @@ import physic2d.Physic2D;
 import physic2d.PhysicBody2D;
 
 public abstract class CollisionShape2D extends SpatialComponent {
-    public static final float MinimumShapeDimension = 0.01f;
+    public static final float MinimumShapeDimension = 0.001f;
     protected transient PhysicBody2D physicBody2D = null;
     protected transient boolean needsFixtureReset = false;
 
@@ -15,7 +15,8 @@ public abstract class CollisionShape2D extends SpatialComponent {
     protected void additionalStartLogic() {
         if (gameObject instanceof PhysicBody2D body2D) {
             physicBody2D = body2D;
-            setFixtureNeedReset();
+            needsFixtureReset = true;
+            resetFixture();
         }
     }
 
@@ -36,7 +37,6 @@ public abstract class CollisionShape2D extends SpatialComponent {
             return;
         }
 
-        if (needsFixtureReset) resetFixture();
         additionalUpdateLogic(dt);
         drawDebugShape();
     }
@@ -44,6 +44,7 @@ public abstract class CollisionShape2D extends SpatialComponent {
     @Override
     public void editorUpdate(float dt) {
         drawDebugShape();
+        if (needsFixtureReset) resetFixture();
         additionalUpdateLogic(dt);
     }
 

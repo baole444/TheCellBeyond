@@ -42,7 +42,6 @@ public class CapsuleCollider2D extends CollisionShape2D {
         bodyBox.editorUpdate(dt);
 
         if (needsFixtureReset) resetFixture();
-
     }
 
     public float width() {
@@ -97,7 +96,9 @@ public class CapsuleCollider2D extends CollisionShape2D {
     }
 
     @Override
-    protected void drawDebugShape() {}
+    protected void drawDebugShape() {
+
+    }
 
     @Override
     protected void additionalImGuiLogic() {
