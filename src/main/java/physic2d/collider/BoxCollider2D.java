@@ -5,6 +5,7 @@ import imgui.ImGui;
 import imgui.flag.ImGuiTreeNodeFlags;
 import org.jbox2d.collision.shapes.PolygonShape;
 import org.jbox2d.collision.shapes.Shape;
+import org.jbox2d.common.Settings;
 import org.jbox2d.common.Vec2;
 import org.joml.Vector2f;
 import render.DebugDraw;
@@ -42,7 +43,8 @@ public class BoxCollider2D extends CollisionShape2D {
     @Override
     protected void drawDebugShape() {
         if (gameObject == null) return;
-        DebugDraw.addBox2(getPosition(), getEffectiveHalfSize(), getRotation());
+        float margin = Settings.polygonRadius;
+        DebugDraw.addBox2(getPosition(), getEffectiveHalfSize().add(margin, margin), getRotation());
     }
 
     @Override

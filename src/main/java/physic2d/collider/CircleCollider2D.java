@@ -5,6 +5,7 @@ import imgui.ImGui;
 import imgui.flag.ImGuiTreeNodeFlags;
 import org.jbox2d.collision.shapes.CircleShape;
 import org.jbox2d.collision.shapes.Shape;
+import org.jbox2d.common.Settings;
 import org.joml.Vector2f;
 import render.DebugDraw;
 
@@ -39,7 +40,8 @@ public class CircleCollider2D extends CollisionShape2D {
     @Override
     protected void drawDebugShape() {
         if (gameObject == null) return;
-        float radius = getEffectiveRadius();
+        float margin = Settings.polygonRadius;
+        float radius = getEffectiveRadius() + margin;
         DebugDraw.addCircle(getPosition(), radius);
     }
 

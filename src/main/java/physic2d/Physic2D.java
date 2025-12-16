@@ -87,6 +87,7 @@ public class Physic2D {
         fixtureDef.shape = shape;
         fixtureDef.density = 1.0f;
         fixtureDef.friction = physicBody2D.getFriction();
+        fixtureDef.restitution = 0.0f;
         fixtureDef.userData = physicBody2D;
         fixtureDef.isSensor = physicBody2D.isSensor();
         fixtureDef.filter.categoryBits = physicBody2D.getCollisionLayer();

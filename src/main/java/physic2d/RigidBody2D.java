@@ -5,6 +5,7 @@ import editor.ImEditorGui;
 import imgui.ImGui;
 import imgui.flag.ImGuiTreeNodeFlags;
 import imgui.type.ImBoolean;
+import org.jbox2d.collision.shapes.MassData;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.BodyDef;
 import org.joml.Vector2f;
@@ -16,7 +17,7 @@ public class RigidBody2D extends PhysicBody2D {
     private float translateResistance = 0.8f;
     private float angularVelocity = 0.0f;
     private float gravityScale = 1.0f;
-    private float mass = 0;
+    private float mass = 0.1f;
 
     private boolean fixedRotation = false;
     private boolean bullet = true;
@@ -53,7 +54,7 @@ public class RigidBody2D extends PhysicBody2D {
     @Override
     public void configureBody() {
         if (physicBodyRef == null) return;
-        physicBodyRef.m_mass = mass;
+        setMass(mass);
         physicBodyRef.setLinearVelocity(new Vec2(initialVelocity.x, initialVelocity.y));
     }
 
@@ -140,8 +141,14 @@ public class RigidBody2D extends PhysicBody2D {
     }
 
     public void setMass(float mass) {
+        mass = Math.max(0.001f, mass);
         this.mass = mass;
-        if (physicBodyRef != null) physicBodyRef.m_mass = mass;
+        if (physicBodyRef != null) {
+            MassData massData = new MassData();
+            physicBodyRef.getMassData(massData);
+            massData.mass = mass;
+            physicBodyRef.setMassData(massData);
+        }
     }
 
     public boolean isFixedRotation() {
