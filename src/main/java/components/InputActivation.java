@@ -1,7 +1,6 @@
 package components;
 
 public class InputActivation {
-
     /**
      * Input activation mode
      */
@@ -15,7 +14,12 @@ public class InputActivation {
          * Input is activated after the required hold time is meet.
          * Interruption while holding will reset the activation process.
          */
-        Hold
+        Hold,
+
+        /**
+         * Input is activated within the frame when it was pressed.
+         */
+        Tap
     }
 
     private ActivationMode activationMode = ActivationMode.Immediate;
@@ -31,6 +35,11 @@ public class InputActivation {
      * Tracking of current hold action.
      */
     private transient float currentHoldTime = 0.0f;
+
+    /**
+     * Tracking of tap action.
+     */
+    private transient boolean inputConsumed = false;
 
     public ActivationMode activationMode() {
         return activationMode;
@@ -58,14 +67,27 @@ public class InputActivation {
      */
     public boolean isActivated(boolean isPressed, float dt) {
         if (!isPressed) {
-            currentHoldTime = 0.0f;
+            reset();
             return false;
         }
 
-        if (activationMode == ActivationMode.Immediate) return true;
-
-        currentHoldTime += dt;
-        return currentHoldTime >= requiredHoldTime;
+        switch (activationMode) {
+            case Immediate -> {
+                return true;
+            }
+            case Hold -> {
+                currentHoldTime += dt;
+                return currentHoldTime >= requiredHoldTime;
+            }
+            case Tap -> {
+                if (inputConsumed) return false;
+                inputConsumed = true;
+                return true;
+            }
+            default -> {
+                return false;
+            }
+        }
     }
 
     /**
@@ -78,10 +100,21 @@ public class InputActivation {
     public float activationProgress(boolean isPressed) {
         if (!isPressed) return 0.0f;
 
-        if (activationMode == ActivationMode.Immediate) return 1.0f;
-
-        if (requiredHoldTime <= 0.0f) return 1.0f;
-        return Math.min(1.0f, currentHoldTime / requiredHoldTime);
+        switch (activationMode) {
+            case Immediate -> {
+                return 1.0f;
+            }
+            case Hold -> {
+                if (requiredHoldTime <= 0.0f) return 1.0f;
+                return Math.min(1.0f, currentHoldTime / requiredHoldTime);
+            }
+            case Tap -> {
+                return inputConsumed ? 0.0f : 1.0f;
+            }
+            default -> {
+                return 0.0f;
+            }
+        }
     }
 
     /**
@@ -89,5 +122,6 @@ public class InputActivation {
      */
     public void reset() {
         currentHoldTime = 0.0f;
+        inputConsumed = false;
     }
 }

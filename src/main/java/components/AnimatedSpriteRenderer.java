@@ -60,14 +60,15 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
     /**
      * Create a new animation for this AnimatedSpriteRenderer.
      * This method ensures the uniqueness of the new animation's name.
+     * @return name of the new animation
      */
-    public void newAnimation() {
+    public String newAnimation() {
         String newName = "animation";
 
         if (animations.isEmpty()) {
             animations.put(newName, new Animation());
             animationFPS.put(newName, DEFAULT_FPS);
-            return;
+            return newName;
         }
 
         String uniqueName = newName;
@@ -79,6 +80,8 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
 
         animations.put(uniqueName, new Animation());
         animationFPS.put(uniqueName, DEFAULT_FPS);
+
+        return uniqueName;
     }
 
     /**
@@ -111,14 +114,15 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
      * Duplicate an existing animation in this AnimatedSpriteRenderer.
      * This method ensures the uniqueness of the new animation's name.
      * @param name the name of the animation to duplicate from
+     * @return name of the new duplicate animation, or null if duplication failed
      */
-    public void duplicateAnimation(String name) {
-        if (name == null || name.isBlank()) return;
-        if (animations.isEmpty() || !animations.containsKey(name)) return;
+    public String duplicateAnimation(String name) {
+        if (name == null || name.isBlank()) return null;
+        if (animations.isEmpty() || !animations.containsKey(name)) return null;
 
         Animation animation = animations.get(name);
         float fps = animationFPS.get(name);
-        if (animation == null) return;
+        if (animation == null) return null;
 
         String newName = name + "_copy";
         int i = 1;
@@ -129,6 +133,8 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
 
         animations.put(newName, new Animation(animation));
         animationFPS.put(newName, fps);
+
+        return newName;
     }
 
     /**
