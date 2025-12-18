@@ -362,6 +362,10 @@ public final class Window implements EngineEventListener {
                 LOGGER.debug("Loading current level...");
             }
             case LEVEL_SAVE -> {
+                if (runtimeMode) {
+                    LOGGER.warning("Saving scene data structure in runtime mode is forbidden!");
+                    return;
+                }
                 currentScene.saveLevel();
                 LOGGER.debug("Saving current level...");
             }

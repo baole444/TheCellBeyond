@@ -27,15 +27,13 @@ public class AssetsPool {
         PathResolver resolver = PathResolver.get();
         String canonicalPath = resolver.toCanonicalPath(path);
 
-        if (shaders.containsKey(canonicalPath)) {
-            return shaders.get(canonicalPath);
-        } else {
-            Shader shader = new Shader(canonicalPath);
-            shader.compile();
-            shaders.put(canonicalPath, shader);
+        if (shaders.containsKey(canonicalPath)) return shaders.get(canonicalPath);
 
-            return shader;
-        }
+        Shader shader = new Shader(canonicalPath);
+        shader.compile();
+        shaders.put(canonicalPath, shader);
+
+        return shader;
     }
 
     public static Shader getShader (String path) {
@@ -73,9 +71,7 @@ public class AssetsPool {
 
         Texture currentTexture = textures.get(canonicalPath);
 
-        if (currentTexture != null) {
-            return currentTexture;
-        }
+        if (currentTexture != null) return currentTexture;
 
         Texture texture = new Texture();
         texture.init(canonicalPath);
@@ -91,9 +87,7 @@ public class AssetsPool {
         AtlasKey key = new AtlasKey(canonicalPath, glyphRange);
         FontAtlasTexture currentTexture = fontAtlasTextures.get(key);
 
-        if (currentTexture != null) {
-            return currentTexture;
-        }
+        if (currentTexture != null) return currentTexture;
 
         FontAtlasTexture texture = new FontAtlasTexture();
         texture.init(canonicalPath, glyphRange, width, height, channels);
@@ -121,9 +115,7 @@ public class AssetsPool {
         PathResolver resolver = PathResolver.get();
         String canonicalPath = resolver.toCanonicalPath(path);
 
-        if (!textureUnits.containsKey(canonicalPath)) {
-            System.err.println("Failed to load '" + canonicalPath + "', no asset added.");
-        }
+        if (!textureUnits.containsKey(canonicalPath)) System.err.println("Failed to load '" + canonicalPath + "', no asset added.");
 
         return textureUnits.getOrDefault(canonicalPath, null);
     }
@@ -158,27 +150,22 @@ public class AssetsPool {
         PathResolver resolver = PathResolver.get();
         String canonicalPath = resolver.toCanonicalPath(path);
 
-        if (sounds.containsKey(canonicalPath)) {
-            return sounds.get(canonicalPath);
-        } else {
-            PathResolver.AssetPath assetPath = resolver.resolvePath(path);
+        if (sounds.containsKey(canonicalPath)) return sounds.get(canonicalPath);
 
-            Sound sound = new Sound(assetPath.resolvedPath(), isLoop);
-            sounds.put(canonicalPath, sound);
-            return sound;
-        }
+        PathResolver.AssetPath assetPath = resolver.resolvePath(path);
+
+        Sound sound = new Sound(assetPath.resolvedPath(), isLoop);
+        sounds.put(canonicalPath, sound);
+        return sound;
     }
 
     public static Sound loadSound(String path) {
         PathResolver resolver = PathResolver.get();
         String canonicalPath = resolver.toCanonicalPath(path);
 
-        if (sounds.containsKey(canonicalPath)) {
-            return sounds.get(canonicalPath);
-        } else {
-            System.err.println("Failed to load '" + canonicalPath + "'");
-        }
+        if (sounds.containsKey(canonicalPath)) return sounds.get(canonicalPath);
 
+        System.err.println("Failed to load '" + canonicalPath + "'");
         return null;
     }
 

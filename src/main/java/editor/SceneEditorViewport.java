@@ -2,6 +2,7 @@ package editor;
 
 import TheCellBeyond.MouseListener;
 import TheCellBeyond.Window;
+import editor.dialog.SaveSceneAsDialog;
 import editor.preference.EditorPreferences;
 import editor.preference.UserPreference;
 import project.Project;
@@ -56,8 +57,15 @@ public class SceneEditorViewport {
 
         ImGui.tableNextColumn();
         if (ImGui.menuItem("Play","", isPlaying, !isPlaying)) {
-            isPlaying = true;
-            EngineEventCallback.emit(null, new Event(EventType.ENGINE_START));
+            if (Window.getCurrentSceneName() == null) {
+                SaveSceneAsDialog.show(() -> {
+                    isPlaying = true;
+                    EngineEventCallback.emit(null, new Event(EventType.ENGINE_START));
+                });
+            } else {
+                isPlaying = true;
+                EngineEventCallback.emit(null, new Event(EventType.ENGINE_START));
+            }
         }
 
         if (ImGui.menuItem("Stop","", !isPlaying, isPlaying)) {

@@ -331,7 +331,7 @@ public class Scene {
             FileWriter writer = new FileWriter(resolvedPath);
             List<GameObject> serializeList = new ArrayList<>();
             for (GameObject obj : sceneData.gameObjectByUUIDs().values()) {
-                if (obj.isSerialize() && Project.currentProject() != null && Project.projectRoot() != null && currentSceneName != null) {
+                if (obj.isSerialize() && Project.currentProject() != null && Project.projectRoot() != null) {
                     obj.prepareForSerialization();
                     serializeList.add(obj);
                 }

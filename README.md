@@ -16,11 +16,11 @@ A Java-based game editor with project compile ability, code auto-generation, and
 - [ ] Scripting system.
 
 ## Problems need attention:
-- Saving while in test run (runtime mode) will cause override on scene's file.
-- Upon creating a new project, create an object and press play immediately without creating the first scene, popup failed to prevent entering runtime mode, cause lost of scene data.
+- N/A
 
 ## Solved problems:
-- N/A
+- Saving while in test run (runtime mode) will cause override on scene's file.
+- Upon creating a new project, create an object and press play immediately without creating the first scene, popup failed to prevent entering runtime mode, cause lost of scene data.
 
 ## Additional maintenance:
 - Update ImGui to [latest release](https://github.com/SpaiR/imgui-java/releases).
