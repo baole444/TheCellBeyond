@@ -1,6 +1,6 @@
 package physic2d;
 
-import TheCellBeyond.Window;
+import TheCellBeyond.internal.LogicServer;
 import editor.ImEditorGui;
 import imgui.ImGui;
 import imgui.flag.ImGuiTreeNodeFlags;
@@ -173,7 +173,7 @@ public class CharacterBody2D extends PhysicBody2D {
         Vector2f currentPos = getPosition();
         Vector2f targetPos = new Vector2f(currentPos).add(motion);
 
-        RayCastInfo rayCast = Window.getPhysic2D().rayCastInfo(this, currentPos, targetPos);
+        RayCastInfo rayCast = LogicServer.physic2D().rayCastInfo(this, currentPos, targetPos);
         if (!rayCast.hit || rayCast.contactedObject == null) return motion;
 
         float fraction = rayCast.rayVectorFraction;
@@ -248,7 +248,7 @@ public class CharacterBody2D extends PhysicBody2D {
         Vector2f safeDistance = new Vector2f(UpDirection).mul(-safeMargin * 2.0f);
         Vector2f targetPos = new Vector2f(pos).add(safeDistance);
 
-        RayCastInfo rayCast = Window.getPhysic2D().rayCastInfo(this, pos, targetPos);
+        RayCastInfo rayCast = LogicServer.physic2D().rayCastInfo(this, pos, targetPos);
         if (rayCast.hit && isFloorNormal(rayCast.normalDirection)) {
             isOnFloor = true;
             floorNormal.set(rayCast.normalDirection);
@@ -263,7 +263,7 @@ public class CharacterBody2D extends PhysicBody2D {
         Vector2f snapDistance = new Vector2f(UpDirection).mul(-floorSnapDistance);
         Vector2f targetPos = new Vector2f(currentPos).add(snapDistance);
 
-        RayCastInfo rayCast = Window.getPhysic2D().rayCastInfo(this, currentPos, targetPos);
+        RayCastInfo rayCast = LogicServer.physic2D().rayCastInfo(this, currentPos, targetPos);
         if (!rayCast.hit || !isFloorNormal(rayCast.normalDirection)) return;
 
         Vector2f snapMotion = new Vector2f(snapDistance).mul(rayCast.rayVectorFraction);

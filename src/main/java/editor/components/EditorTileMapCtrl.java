@@ -3,7 +3,7 @@ package editor.components;
 import TheCellBeyond.GameObject2D;
 import TheCellBeyond.KeyListener;
 import TheCellBeyond.MouseListener;
-import TheCellBeyond.Window;
+import TheCellBeyond.internal.LogicServer;
 import components.*;
 import editor.ImGuiLayer;
 import editor.TileMapEditor;
@@ -128,7 +128,7 @@ public class EditorTileMapCtrl extends Component implements NotSerializeComponen
             tileObject.addComponent(spriteRenderer);
         }
 
-        Window.getScene().queueForObjectAddition(tileObject);
+        LogicServer.currentScene().queueForObjectAddition(tileObject);
         holdingObj = tileObject;
 
         lastGridPosition = new Vector2i(gridPos);

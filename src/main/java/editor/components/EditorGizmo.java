@@ -1,6 +1,7 @@
 package editor.components;
 
 import TheCellBeyond.*;
+import TheCellBeyond.internal.LogicServer;
 import components.*;
 import editor.Properties;
 import org.joml.Vector2f;
@@ -52,8 +53,8 @@ public class EditorGizmo extends SpatialComponent implements NotSerializeCompone
         xAxisSpr = xAxisObj.getFirstComponent(SpriteRenderer.class);
         yAxisSpr = yAxisObj.getFirstComponent(SpriteRenderer.class);
 
-        Window.getScene().queueForObjectAddition(xAxisObj);
-        Window.getScene().queueForObjectAddition(yAxisObj);
+        LogicServer.currentScene().queueForObjectAddition(xAxisObj);
+        LogicServer.currentScene().queueForObjectAddition(yAxisObj);
     }
 
     private GameObject2D createGizmoObject(String name, Sprite sprite) {

@@ -2,6 +2,7 @@ package scene;
 
 import TheCellBeyond.*;
 import TheCellBeyond.internal.DataSnapshot;
+import TheCellBeyond.internal.LogicServer;
 import TheCellBeyond.internal.RenderingSnapshot;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -312,7 +313,7 @@ public class Scene {
     }
 
     public void saveLevel() {
-        String currentSceneName = Window.getCurrentSceneName();
+        String currentSceneName = LogicServer.currentSceneName();
         if (currentSceneName == null) {
             SaveSceneAsDialog.show(this::saveLevel);
             return;
@@ -347,7 +348,7 @@ public class Scene {
     }
 
     public void loadLevel() {
-        String currentSceneName = Window.getCurrentSceneName();
+        String currentSceneName = LogicServer.currentSceneName();
 
         if (currentSceneName == null) return;
 

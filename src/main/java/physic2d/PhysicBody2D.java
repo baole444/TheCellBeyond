@@ -1,7 +1,7 @@
 package physic2d;
 
 import TheCellBeyond.GameObject2D;
-import TheCellBeyond.Window;
+import TheCellBeyond.internal.LogicServer;
 import editor.ImEditorGui;
 import imgui.ImGui;
 import imgui.flag.ImGuiCol;
@@ -69,7 +69,7 @@ public abstract class PhysicBody2D extends GameObject2D {
     public void setSensor(boolean sensor) {
         this.isSensor = sensor;
         if (physicBodyRef != null) {
-            Window.getPhysic2D().setIsSensor(this, sensor);
+            LogicServer.physic2D().setIsSensor(this, sensor);
         }
     }
 
@@ -142,7 +142,7 @@ public abstract class PhysicBody2D extends GameObject2D {
     private void updateFixtureFilter() {
         if (!needFixtureUpdate) return;
 
-        Physic2D physic2D = Window.getPhysic2D();
+        Physic2D physic2D = LogicServer.physic2D();
         if (physic2D == null || physic2D.isLock()) return;
         if (physicBodyRef == null) {
             needFixtureUpdate = false;

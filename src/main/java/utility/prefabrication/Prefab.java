@@ -1,7 +1,7 @@
 package utility.prefabrication;
 
 import TheCellBeyond.GameObject;
-import TheCellBeyond.Window;
+import TheCellBeyond.internal.LogicServer;
 
 public class Prefab {
     /**
@@ -20,8 +20,8 @@ public class Prefab {
      */
     public static GameObject instantiateToScene(String prefabName) {
         GameObject instance = PrefabManager.get().instantiatePrefab(prefabName);
-        if (instance != null && Window.getScene() != null) {
-            Window.getScene().queueForObjectAddition(instance);
+        if (instance != null && LogicServer.currentScene() != null) {
+            LogicServer.currentScene().queueForObjectAddition(instance);
         }
 
         return instance;

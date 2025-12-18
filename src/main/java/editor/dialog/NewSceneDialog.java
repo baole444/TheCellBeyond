@@ -1,11 +1,11 @@
 package editor.dialog;
 
-import TheCellBeyond.Window;
+import TheCellBeyond.internal.LogicServer;
 import project.Project;
 import project.ProjectSceneMap;
 import eventviewer.EngineEventCallback;
 import eventviewer.event.Event;
-import eventviewer.event.EventType;
+import eventviewer.event.EditorEvent;
 import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.ImGuiCol;
@@ -37,7 +37,7 @@ public class NewSceneDialog {
         if (!showDialog) return;
 
         if (saveCurrentScene) {
-            String currentSceneName = Window.getCurrentSceneName();
+            String currentSceneName = LogicServer.currentSceneName();
             if (currentSceneName != null && Project.getSceneNames().contains(currentSceneName)) {
                 ConfirmSaveSceneDialog.show(() -> {
                     saveCurrentScene = false;
@@ -152,8 +152,8 @@ public class NewSceneDialog {
             return;
         }
 
-        Window.setCurrentSceneName(name);
-        EngineEventCallback.emit(name, new Event(EventType.SCENE_LOAD));
+        LogicServer.currentSceneName(name);
+        EngineEventCallback.emit(name, new Event(EditorEvent.LoadSceneData));
 
         showDialog = false;
         ImGui.closeCurrentPopup();

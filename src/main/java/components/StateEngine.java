@@ -1,6 +1,6 @@
 package components;
 
-import TheCellBeyond.Window;
+import TheCellBeyond.internal.LogicServer;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -20,7 +20,7 @@ public class StateEngine extends Component {
 
     @Override
     protected void onStarting() {
-        if (!Window.get().isRuntimeMode()) return;
+        if (!LogicServer.runtimeMode()) return;
 
         initialize();
     }
@@ -124,7 +124,7 @@ public class StateEngine extends Component {
     }
 
     public boolean removeState(String stateName) {
-        if (Window.get().isRuntimeMode()) {
+        if (LogicServer.runtimeMode()) {
             LOGGER.warning("State removal is forbidden while test running the scene!");
             return false;
         }

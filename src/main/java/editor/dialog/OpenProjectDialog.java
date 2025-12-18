@@ -1,9 +1,6 @@
 package editor.dialog;
 
 import TheCellBeyond.Window;
-import eventviewer.EngineEventCallback;
-import eventviewer.event.Event;
-import eventviewer.event.EventType;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.Platform;

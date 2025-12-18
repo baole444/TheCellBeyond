@@ -3,7 +3,7 @@ package editor.components;
 import TheCellBeyond.GameObject;
 import TheCellBeyond.GameObject2D;
 import TheCellBeyond.KeyListener;
-import TheCellBeyond.Window;
+import TheCellBeyond.internal.LogicServer;
 import components.Component;
 import components.NotSerializeComponent;
 import components.SpriteRenderer;
@@ -11,7 +11,7 @@ import editor.ImGuiLayer;
 import editor.Properties;
 import eventviewer.EngineEventCallback;
 import eventviewer.event.Event;
-import eventviewer.event.EventType;
+import eventviewer.event.EditorEvent;
 import imgui.ImGui;
 import imgui.flag.ImGuiPopupFlags;
 import org.joml.Vector2f;
@@ -39,7 +39,7 @@ public class EditorKeyCtrl extends Component implements NotSerializeComponent {
 
         if (KeyListener.isKeyTapped(GLFW_KEY_D, GLFW_MOD_CONTROL) && activeGameObj != null) {
             GameObject newObj = activeGameObj.copy(true);
-            Window.getScene().queueForObjectAddition(newObj);
+            LogicServer.currentScene().queueForObjectAddition(newObj);
 
             if (newObj instanceof GameObject2D go2D) {
                 Vector2f currentPos = go2D.getOffsetPosition();
@@ -62,7 +62,7 @@ public class EditorKeyCtrl extends Component implements NotSerializeComponent {
                     if (sprite != null) sprite.setColor(colors.get(j));
                 }
 
-                Window.getScene().queueForObjectAddition(copy);
+                LogicServer.currentScene().queueForObjectAddition(copy);
                 Properties.addActiveGameObject(copy);
             }
         } else if (KeyListener.isKeyPressed(GLFW_KEY_DELETE)) {
@@ -82,11 +82,11 @@ public class EditorKeyCtrl extends Component implements NotSerializeComponent {
 
         // Make keybinding of Ctrl + S = Save file | Ctrl + O = open file
         if (KeyListener.isKeyTapped(GLFW_KEY_S, GLFW_MOD_CONTROL)) {
-            EngineEventCallback.emit(null, new Event(EventType.LEVEL_SAVE));
+            EngineEventCallback.emit(null, new Event(EditorEvent.SaveEditingScene));
         }
 
         if (KeyListener.isKeyTapped(GLFW_KEY_O, GLFW_MOD_CONTROL)) {
-            EngineEventCallback.emit(null, new Event(EventType.LEVEL_LOAD));
+            EngineEventCallback.emit(null, new Event(EditorEvent.LoadEditingScene));
         }
     }
 }

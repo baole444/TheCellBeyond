@@ -1,11 +1,11 @@
 package editor;
 
-import TheCellBeyond.Window;
+import TheCellBeyond.internal.LogicServer;
 import editor.dialog.*;
 import project.Project;
 import eventviewer.EngineEventCallback;
 import eventviewer.event.Event;
-import eventviewer.event.EventType;
+import eventviewer.event.EditorEvent;
 import imgui.ImGui;
 import imgui.internal.flag.ImGuiItemFlags;
 
@@ -31,11 +31,11 @@ public class MenuBar {
 
         if (ImGui.beginMenu("Scenes")){
             if (ImGui.menuItem("Save current Scene", "Ctrl+S")) {
-                EngineEventCallback.emit(null, new Event(EventType.LEVEL_SAVE));
+                EngineEventCallback.emit(null, new Event(EditorEvent.SaveEditingScene));
             }
 
             if (ImGui.menuItem("Create new Scene")) {
-                boolean requireSave = Project.getSceneNames().contains(Window.getCurrentSceneName());
+                boolean requireSave = Project.getSceneNames().contains(LogicServer.currentSceneName());
                 NewSceneDialog.show(requireSave);
             }
             ImGui.separator();
@@ -43,12 +43,12 @@ public class MenuBar {
                 List<String> sceneNameList = Project.getSceneNames();
                 for (String name : sceneNameList) {
                     if (ImGui.menuItem(name)) {
-                        String sceneName = Window.getCurrentSceneName();
+                        String sceneName = LogicServer.currentSceneName();
 
                         if (sceneName != null && !sceneName.equals(name) && Project.getSceneNames().contains(sceneName)) {
-                            ConfirmSaveSceneDialog.show(() -> EngineEventCallback.emit(name, new Event(EventType.SCENE_LOAD)));
+                            ConfirmSaveSceneDialog.show(() -> EngineEventCallback.emit(name, new Event(EditorEvent.LoadSceneData)));
                         } else {
-                            EngineEventCallback.emit(name, new Event(EventType.SCENE_LOAD));
+                            EngineEventCallback.emit(name, new Event(EditorEvent.LoadSceneData));
                         }
                     }
                 }

@@ -1,13 +1,12 @@
 package editor.dialog;
 
 import TheCellBeyond.GameObject;
-import TheCellBeyond.Window;
+import TheCellBeyond.internal.LogicServer;
 import components.*;
 import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiWindowFlags;
-import physic2d.RigidBody2D;
 import physic2d.collider.BoxCollider2D;
 import physic2d.collider.CapsuleCollider2D;
 import physic2d.collider.CircleCollider2D;
@@ -135,7 +134,7 @@ public class AddComponentDialog {
     }
 
     private static void addComponent(ComponentType type) {
-        Scene scene = Window.getScene();
+        Scene scene = LogicServer.currentScene();
         if (scene == null || selectedObject == null) return;
 
         Component c;

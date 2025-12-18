@@ -2,7 +2,7 @@ package editor.dialog;
 
 import TheCellBeyond.GameObject;
 import TheCellBeyond.GameObject2D;
-import TheCellBeyond.Window;
+import TheCellBeyond.internal.LogicServer;
 import editor.Properties;
 import imgui.ImGui;
 import imgui.ImVec2;
@@ -131,7 +131,7 @@ public class AddObjectDialog {
     }
 
     private static void createObject(ObjectType type) {
-        Scene scene = Window.getScene();
+        Scene scene = LogicServer.currentScene();
         if (scene == null) return;
 
         GameObject newObject;

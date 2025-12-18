@@ -1,7 +1,7 @@
 package editor.components;
 
 import TheCellBeyond.Viewport;
-import TheCellBeyond.Window;
+import TheCellBeyond.internal.LogicServer;
 import components.Component;
 import components.NotSerializeComponent;
 import editor.preference.UserPreference;
@@ -25,7 +25,7 @@ public class EditorGrid extends Component implements NotSerializeComponent {
     public void editorUpdate(float dt) {
         if (dt < 0.0f) return;
 
-        Viewport viewport = Window.getScene().viewport();
+        Viewport viewport = LogicServer.currentScene().viewport();
         float totalZoom = viewport.getZoom() / Project.preference().textureGlobalScale();
         Vector2f viewPos = viewport.position;
         Vector2f projectSize = viewport.getProjectionSize();

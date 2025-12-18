@@ -1,5 +1,6 @@
 package TheCellBeyond;
 
+import TheCellBeyond.internal.LogicServer;
 import editor.ImGuiLayer;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
@@ -109,7 +110,7 @@ public class MouseListener {
 
         Arrays.fill(listener.buttonReleased, false);
         listener.pressedKeyCodes.clear();
-        if (!startupMode && Window.getScene() != null) {
+        if (!startupMode && LogicServer.currentScene() != null) {
             listener.worldPastX = listener.worldCurrentX;
             listener.worldPastY = listener.worldCurrentY;
         }
@@ -222,14 +223,14 @@ public class MouseListener {
 
 
     public static Vector2f getWorldPosition() {
-        if (startupMode || Window.getScene() == null) return new Vector2f(0.0f, 0.0f);
+        if (startupMode || LogicServer.currentScene() == null) return new Vector2f(0.0f, 0.0f);
 
         float currentX = getX() - get().currentViewportPosition.x;
         currentX = (2.0f * (currentX / get().currentViewportSize.x)) - 1.0f;
         float currentY = (getY() - get().currentViewportPosition.y);
         currentY = (2.0f * (1.0f - (currentY / get().currentViewportSize.y))) - 1;
 
-        Viewport camera = Window.getScene().viewport();
+        Viewport camera = LogicServer.currentScene().viewport();
 
         if (camera == null) return new Vector2f(0.0f, 0.0f);
 
@@ -250,7 +251,7 @@ public class MouseListener {
     // World Coordinate = S * V^-1 * p^-1
 
     public static Vector2f screen2WorldCoordinate(Vector2f screenCoordinate) {
-        if (startupMode || Window.getScene() == null) return new Vector2f(0.0f, 0.0f);
+        if (startupMode || LogicServer.currentScene() == null) return new Vector2f(0.0f, 0.0f);
 
         Vector2f normalization = new Vector2f(
                 screenCoordinate.x / Window.getWidth(),
@@ -259,7 +260,7 @@ public class MouseListener {
 
         normalization.mul(2f).sub(new Vector2f(1f, 1f));
 
-        Viewport viewport = Window.getScene().viewport();
+        Viewport viewport = LogicServer.currentScene().viewport();
 
         if (viewport == null) return new Vector2f(0.0f, 0.0f);
 
@@ -274,9 +275,9 @@ public class MouseListener {
     }
 
     public static Vector2f world2ScreenCoordinate(Vector2f worldCoordinate) {
-        if (startupMode || Window.getScene() == null) return new Vector2f(0.0f, 0.0f);
+        if (startupMode || LogicServer.currentScene() == null) return new Vector2f(0.0f, 0.0f);
 
-        Viewport viewport = Window.getScene().viewport();
+        Viewport viewport = LogicServer.currentScene().viewport();
 
         if (viewport == null) return new Vector2f(0.0f, 0.0f);
 

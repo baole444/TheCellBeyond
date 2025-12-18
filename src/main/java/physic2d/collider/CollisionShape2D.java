@@ -1,6 +1,6 @@
 package physic2d.collider;
 
-import TheCellBeyond.Window;
+import TheCellBeyond.internal.LogicServer;
 import components.SpatialComponent;
 import org.jbox2d.collision.shapes.Shape;
 import physic2d.Physic2D;
@@ -56,7 +56,7 @@ public abstract class CollisionShape2D extends SpatialComponent {
     }
 
     public void resetFixture() {
-        Physic2D physic2D = Window.getPhysic2D();
+        Physic2D physic2D = LogicServer.physic2D();
         if (physic2D == null || physic2D.isLock()) {
             needsFixtureReset = true;
             return;

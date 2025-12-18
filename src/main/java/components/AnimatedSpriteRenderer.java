@@ -1,6 +1,6 @@
 package components;
 
-import TheCellBeyond.Window;
+import TheCellBeyond.internal.LogicServer;
 import imgui.ImGui;
 import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiTreeNodeFlags;
@@ -456,7 +456,7 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
             entry.getValue().start();
         }
 
-        if (Window.get().isRuntimeMode()) play(defaultAnimation);
+        if (LogicServer.runtimeMode()) play(defaultAnimation);
     }
 
     @Override

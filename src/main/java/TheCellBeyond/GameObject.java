@@ -1,5 +1,6 @@
 package TheCellBeyond;
 
+import TheCellBeyond.internal.LogicServer;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import components.ComponentSerializer;
@@ -501,7 +502,7 @@ public class GameObject {
      * @see #removeComponent(Component) Remove a component from this game object
      */
     public <T extends Component> void removeComponents(Class<T> componentClass) {
-        Scene scene = Window.getScene();
+        Scene scene = LogicServer.currentScene();
         for (Component component : components) {
             if (component == null || !componentClass.isAssignableFrom(component.getClass())) continue;
             if (scene != null) scene.queueForComponentRemoval(component);
@@ -519,7 +520,7 @@ public class GameObject {
         if (!removed) return false;
 
         if (component.getComponentName() != null) namedComponents.remove(component.getComponentName());
-        Scene scene = Window.getScene();
+        Scene scene = LogicServer.currentScene();
         if (scene != null) scene.queueForComponentRemoval(component);
 
         setDirty(true);

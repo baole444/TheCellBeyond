@@ -16,7 +16,7 @@ import project.ProjectSheetMap;
 import eventviewer.EngineEventCallback;
 import eventviewer.EngineEventListener;
 import eventviewer.event.Event;
-import eventviewer.event.EventType;
+import eventviewer.event.EditorEvent;
 import imgui.ImGui;
 import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiTabItemFlags;
@@ -415,6 +415,6 @@ public class SceneEditor extends SceneInit implements EngineEventListener {
 
     @Override
     public void onEventEmit(Object object, Event event) {
-        if (event.type == EventType.SCENE_RELOAD_RESOURCE) reloadResource();
+        if (event.type == EditorEvent.ReloadSceneResource) reloadResource();
     }
 }

@@ -1,13 +1,13 @@
 package eventviewer.event;
 
 public class Event {
-    public EventType type;
+    public EditorEvent type;
 
-    public Event(EventType type) {
+    public Event(EditorEvent type) {
         this.type = type;
     }
 
     public Event() {
-        this.type = EventType.UserEvent;
+        this.type = EditorEvent.UserEvent;
     }
 }

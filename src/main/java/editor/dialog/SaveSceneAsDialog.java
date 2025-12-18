@@ -1,6 +1,6 @@
 package editor.dialog;
 
-import TheCellBeyond.Window;
+import TheCellBeyond.internal.LogicServer;
 import project.Project;
 import project.ProjectSceneMap;
 import imgui.ImGui;
@@ -135,7 +135,7 @@ public class SaveSceneAsDialog {
             return;
         }
 
-        Window.setCurrentSceneName(name);
+        LogicServer.currentSceneName(name);
 
         if (onSaveCallback != null) {
             Runnable callback = onSaveCallback;

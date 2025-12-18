@@ -6,7 +6,7 @@ import editor.preference.EditorPreferences;
 import editor.preference.UserPreference;
 import eventviewer.EngineEventCallback;
 import eventviewer.event.Event;
-import eventviewer.event.EventType;
+import eventviewer.event.EditorEvent;
 import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.ImGuiCond;
@@ -29,7 +29,7 @@ public class ExitToProjectListDialog {
         if (!showDialog) return;
 
         if (isAutoSaveOnExit) {
-            EngineEventCallback.emit(null, new Event(EventType.LEVEL_SAVE));
+            EngineEventCallback.emit(null, new Event(EditorEvent.SaveEditingScene));
             Window.get().forceClose();
             showDialog = false;
             return;
@@ -64,7 +64,7 @@ public class ExitToProjectListDialog {
             if (ImGui.button("Save", buttonWidth, 0)) {
                 if (enableSaveOnExit.get()) setAutoSaveOn();
                 ExitToProjectList.get().toProjectList(true);
-                EngineEventCallback.emit(null, new Event(EventType.LEVEL_SAVE));
+                EngineEventCallback.emit(null, new Event(EditorEvent.SaveEditingScene));
                 Window.get().forceClose();
                 showDialog = false;
                 ImGui.closeCurrentPopup();

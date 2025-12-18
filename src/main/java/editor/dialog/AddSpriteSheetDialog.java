@@ -4,7 +4,7 @@ import project.Project;
 import project.ProjectSheetMap;
 import eventviewer.EngineEventCallback;
 import eventviewer.event.Event;
-import eventviewer.event.EventType;
+import eventviewer.event.EditorEvent;
 import imgui.ImDrawList;
 import imgui.ImGui;
 import imgui.ImVec2;
@@ -387,7 +387,7 @@ public class AddSpriteSheetDialog {
             boolean success = Project.addSheet(cat, name, sheetMap);
             if (success) {
                 System.out.println("New sheet '" + sheetName.get() + "' added to project");
-                EngineEventCallback.emit(null, new Event(EventType.SCENE_RELOAD_RESOURCE));
+                EngineEventCallback.emit(null, new Event(EditorEvent.ReloadSceneResource));
             }
 
             showDialog = false;

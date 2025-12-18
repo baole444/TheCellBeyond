@@ -1,7 +1,7 @@
 package editor.components;
 
 import TheCellBeyond.Viewport;
-import TheCellBeyond.Window;
+import TheCellBeyond.internal.LogicServer;
 import components.Component;
 import components.NotSerializeComponent;
 import components.TileMap;
@@ -33,7 +33,7 @@ public class EditorTileMapGrid extends Component implements NotSerializeComponen
         if (gridSize.x <= 0 || gridSize.y <= 0) return;
         Vector2f gridWorldSize = WorldUnit.pixelToWorld(new Vector2f(gridSize.x, gridSize.y));
 
-        Viewport viewport = Window.getScene().viewport();
+        Viewport viewport = LogicServer.currentScene().viewport();
         float totalZoom = viewport.getZoom() / Project.preference().textureGlobalScale();
         Vector2f viewPos = viewport.position;
         Vector2f projectSize = viewport.getProjectionSize();

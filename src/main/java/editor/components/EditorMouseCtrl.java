@@ -1,6 +1,7 @@
 package editor.components;
 
 import TheCellBeyond.*;
+import TheCellBeyond.internal.LogicServer;
 import components.*;
 import editor.*;
 import editor.preference.UserPreference;
@@ -49,7 +50,7 @@ public class EditorMouseCtrl extends Component implements NotSerializeComponent 
         holdObj.addComponent(new IsNotSelectable());
         holdObj.setNotSerialize();
 
-        Window.getScene().queueForObjectAddition(obj);
+        LogicServer.currentScene().queueForObjectAddition(obj);
     }
 
     public void placeObj() {
@@ -63,7 +64,7 @@ public class EditorMouseCtrl extends Component implements NotSerializeComponent 
         newObj.removeComponents(IsNotSelectable.class);
         newObj.setSerialize(true);
 
-        Window.getScene().queueForObjectAddition(newObj);
+        LogicServer.currentScene().queueForObjectAddition(newObj);
     }
 
     @Override
@@ -166,7 +167,7 @@ public class EditorMouseCtrl extends Component implements NotSerializeComponent 
         if (EditorTileMapGrid.draw) return;
 
         ObjectSelection objectSelection = Window.getObjectSelection();
-        Scene currentScene = Window.getScene();
+        Scene currentScene = LogicServer.currentScene();
         if (!MouseListener.isDragging() && MouseListener.isButtonPressed(GLFW_MOUSE_BUTTON_LEFT) && clickInit < 0) {
             int x = (int) MouseListener.getScreenPositionX();
             int y = (int) MouseListener.getScreenPositionY();
@@ -245,7 +246,7 @@ public class EditorMouseCtrl extends Component implements NotSerializeComponent 
         for (Integer objId : uniqueGOIds) {
             if (objId < 0) continue;
 
-            GameObject selectedObj = Window.getScene().getGameObject(objId);
+            GameObject selectedObj = LogicServer.currentScene().getGameObject(objId);
             if (selectedObj != null && selectedObj.getFirstComponent(IsNotSelectable.class) == null) Properties.addActiveGameObject(selectedObj);
         }
     }
@@ -268,7 +269,7 @@ public class EditorMouseCtrl extends Component implements NotSerializeComponent 
         for (float gameObjId : gameObjIds) {
             if (gameObjId <= 0) continue;
 
-            GameObject selectedObj = Window.getScene().getGameObject((int) gameObjId);
+            GameObject selectedObj = LogicServer.currentScene().getGameObject((int) gameObjId);
             if (selectedObj.getFirstComponent(IsNotSelectable.class) == null) {
                 return true;
             }

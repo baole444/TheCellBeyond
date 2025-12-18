@@ -1,5 +1,6 @@
 package TheCellBeyond;
 
+import TheCellBeyond.internal.LogicServer;
 import project.Project;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
@@ -35,7 +36,7 @@ public class Viewport {
 
         aspectRatio = (float) Window.getWidth() / Window.getHeight();
         sceneScale = WorldUnit.pixelToWorld(Window.getHeight());
-        if (Window.get().isRuntimeMode()) {
+        if (LogicServer.runtimeMode()) {
             isDynamic = false;
             aspectRatio = Window.getTargetAspectRatio();
             sceneScale = WorldUnit.pixelToWorld(Project.preference().gameWindowHeight());

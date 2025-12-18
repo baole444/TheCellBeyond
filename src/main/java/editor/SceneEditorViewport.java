@@ -2,13 +2,14 @@ package editor;
 
 import TheCellBeyond.MouseListener;
 import TheCellBeyond.Window;
+import TheCellBeyond.internal.LogicServer;
 import editor.dialog.SaveSceneAsDialog;
 import editor.preference.EditorPreferences;
 import editor.preference.UserPreference;
 import project.Project;
 import eventviewer.EngineEventCallback;
 import eventviewer.event.Event;
-import eventviewer.event.EventType;
+import eventviewer.event.EditorEvent;
 import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.ImGuiPopupFlags;
@@ -28,7 +29,7 @@ public class SceneEditorViewport {
     public transient float currentHeight;
 
     public void imgui() {
-        String sceneName = Window.getCurrentSceneName();
+        String sceneName = LogicServer.currentSceneName();
 
         if (sceneName == null) currentSceneName = "Untitled";
         if (sceneName != null && !currentSceneName.equals(sceneName)) currentSceneName = sceneName;
@@ -57,20 +58,20 @@ public class SceneEditorViewport {
 
         ImGui.tableNextColumn();
         if (ImGui.menuItem("Play","", isPlaying, !isPlaying)) {
-            if (Window.getCurrentSceneName() == null) {
+            if (LogicServer.currentSceneName() == null) {
                 SaveSceneAsDialog.show(() -> {
                     isPlaying = true;
-                    EngineEventCallback.emit(null, new Event(EventType.ENGINE_START));
+                    EngineEventCallback.emit(null, new Event(EditorEvent.EngineStart));
                 });
             } else {
                 isPlaying = true;
-                EngineEventCallback.emit(null, new Event(EventType.ENGINE_START));
+                EngineEventCallback.emit(null, new Event(EditorEvent.EngineStart));
             }
         }
 
         if (ImGui.menuItem("Stop","", !isPlaying, isPlaying)) {
             isPlaying = false;
-            EngineEventCallback.emit(null, new Event(EventType.ENGINE_END));
+            EngineEventCallback.emit(null, new Event(EditorEvent.EngineStop));
         }
 
         ImGui.sameLine();
@@ -130,7 +131,7 @@ public class SceneEditorViewport {
     private ImVec2 getMaxViewportSize() {
         ImVec2 winSize = ImGui.getContentRegionAvail();
         FrameBuffer fb = Window.getFrameBuffer();
-        float aspectRatio = Window.get().isRuntimeMode() ?
+        float aspectRatio = LogicServer.runtimeMode() ?
                 Project.getGameAspectRatio() :
                 (float) fb.getWidth() / fb.getHeight();
 
@@ -146,8 +147,8 @@ public class SceneEditorViewport {
             currentHeight = usableHeight;
         }
 
-        if (!Window.get().isRuntimeMode()) {
-            Window.getScene().viewport().adjustSceneScale(usableHeight);
+        if (!LogicServer.runtimeMode()) {
+            LogicServer.currentScene().viewport().adjustSceneScale(usableHeight);
         }
 
         return new ImVec2(usableWidth, usableHeight);

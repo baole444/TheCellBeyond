@@ -1,7 +1,7 @@
 package editor;
 
 import TheCellBeyond.GameObject;
-import TheCellBeyond.Window;
+import TheCellBeyond.internal.LogicServer;
 import editor.dialog.AddObjectDialog;
 import imgui.ImGui;
 import imgui.flag.ImGuiMouseButton;
@@ -27,7 +27,7 @@ public class SceneTree {
             return;
         }
 
-        Scene scene = Window.getScene();
+        Scene scene = LogicServer.currentScene();
 
         if (scene == null) {
             ImGui.text("No scene loaded");
