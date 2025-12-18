@@ -3,7 +3,6 @@ package editor.preference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.MapType;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import components.Grid;
 
 import java.io.File;
 import java.io.IOException;

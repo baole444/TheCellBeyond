@@ -1,6 +1,7 @@
-package components;
+package editor.components;
 
 import TheCellBeyond.*;
+import components.*;
 import editor.*;
 import editor.preference.UserPreference;
 import imgui.ImGui;
@@ -24,7 +25,7 @@ import static org.lwjgl.glfw.GLFW.*;
  * A class dedicated to processing mouse's events for the editor.
  * Handle object's position and placement.
  */
-public class MouseCtrl extends Component implements NotSerializeComponent {
+public class EditorMouseCtrl extends Component implements NotSerializeComponent {
     private static final Vector4f resetColor = new Vector4f(1.0f, 1.0f, 1.0f, 1.0f);
     private static final Vector4f pickUpColor = new Vector4f(1f, 1f, 1f, 0.35f);
 
@@ -67,7 +68,7 @@ public class MouseCtrl extends Component implements NotSerializeComponent {
 
     @Override
     public void editorUpdate(float dt) {
-        if (TileMapGrid.draw && holdObj != null) {
+        if (EditorTileMapGrid.draw && holdObj != null) {
             holdObj.destroy();
             holdObj = null;
         }
@@ -122,7 +123,7 @@ public class MouseCtrl extends Component implements NotSerializeComponent {
     private static Vector2f getTargetPos() {
         float targetX, targetY;
 
-        if (TileMapGrid.draw) {
+        if (EditorTileMapGrid.draw) {
             TileMap editingTileMap = TileMapEditor.getEditingTileMap();
 
             if (editingTileMap != null && editingTileMap.getTileSet() != null) {
@@ -162,7 +163,7 @@ public class MouseCtrl extends Component implements NotSerializeComponent {
     }
 
     private void onNotHoldingObject() {
-        if (TileMapGrid.draw) return;
+        if (EditorTileMapGrid.draw) return;
 
         ObjectSelection objectSelection = Window.getObjectSelection();
         Scene currentScene = Window.getScene();

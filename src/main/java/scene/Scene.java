@@ -8,7 +8,7 @@ import com.google.gson.GsonBuilder;
 import components.ComponentSerializer;
 import components.Component;
 import components.IsNotSelectable;
-import editor.Indicator;
+import editor.components.EditorObjectIndicator;
 import editor.dialog.SaveSceneAsDialog;
 import project.Project;
 import imgui.type.ImBoolean;
@@ -76,7 +76,7 @@ public class Scene {
         }
     }
 
-    public Component getComponentByUUID(String uuid) {
+    public Component getComponentByUUID(UUID uuid) {
         return sceneData.componentsByUUID().get(uuid);
     }
 
@@ -107,11 +107,11 @@ public class Scene {
 
         if (go.isSerialize() &&
                 go.getFirstComponent(IsNotSelectable.class) == null &&
-                go.getFirstComponent(Indicator.class) == null &&
+                go.getFirstComponent(EditorObjectIndicator.class) == null &&
                 go instanceof GameObject2D
         ) {
-            Indicator indicator = new Indicator();
-            go.addComponent(indicator);
+            EditorObjectIndicator editorObjectIndicator = new EditorObjectIndicator();
+            go.addComponent(editorObjectIndicator);
         }
 
         if (isSceneOn.get()) {
@@ -235,7 +235,7 @@ public class Scene {
         }
     }
 
-    public Map<String, GameObject> getGameObjects() {
+    public Map<UUID, GameObject> getGameObjects() {
         return sceneData.gameObjectByUUIDs();
     }
 
@@ -248,14 +248,13 @@ public class Scene {
     }
 
     public GameObject getGameObject(int id) {
-        String uuid = sceneData.cachedIDs().get(id);
-
+        UUID uuid = sceneData.cachedIDs().get(id);
         if (uuid != null) return sceneData.gameObjectByUUIDs().get(uuid);
 
         return null;
     }
 
-    public GameObject getGameObject(String objectUUID) {
+    public GameObject getGameObject(UUID objectUUID) {
         return sceneData.gameObjectByUUIDs().get(objectUUID);
     }
 

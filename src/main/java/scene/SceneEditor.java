@@ -4,7 +4,7 @@ import TheCellBeyond.GameObject;
 import TheCellBeyond.Transform;
 import components.*;
 import editor.EditorIcons;
-import components.EditorSceneCtrl;
+import editor.components.*;
 import editor.ImEditorGui;
 import editor.dialog.AddSpriteSheetDialog;
 import editor.dialog.AddTextureUnitDialog;
@@ -62,9 +62,9 @@ public class SceneEditor extends SceneInit implements EngineEventListener {
         levelEditorObject = new GameObject("EditorObject");
         levelEditorObject.setNotSerialize();
         levelEditorObject.addComponents(new IsNotSelectable(), new Transform(),
-                new MouseCtrl(), new KeyCtrl(), new Grid(),
-                new TileMapGrid(), new TileMapCtrl(),
-                new EditorSceneCtrl(scene.viewport()), new GizmoControl()
+                new EditorMouseCtrl(), new EditorKeyCtrl(), new EditorGrid(),
+                new EditorTileMapGrid(), new EditorTileMapCtrl(),
+                new EditorSceneCtrl(scene.viewport()), new EditorGizmoCtrl()
         );
         scene.queueForObjectAddition(levelEditorObject);
     }
@@ -172,7 +172,7 @@ public class SceneEditor extends SceneInit implements EngineEventListener {
             if (ImGui.button(name, prefabButtonSize.x, 0.0f)) {
                 GameObject instance = manager.instantiatePrefab(name);
                 if (instance != null) {
-                    levelEditorObject.getFirstComponent(MouseCtrl.class).pickObj(instance);
+                    levelEditorObject.getFirstComponent(EditorMouseCtrl.class).pickObj(instance);
                 }
             }
 

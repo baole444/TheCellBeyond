@@ -1,9 +1,12 @@
-package components;
+package editor.components;
 
 import TheCellBeyond.GameObject;
 import TheCellBeyond.GameObject2D;
 import TheCellBeyond.KeyListener;
 import TheCellBeyond.Window;
+import components.Component;
+import components.NotSerializeComponent;
+import components.SpriteRenderer;
 import editor.ImGuiLayer;
 import editor.Properties;
 import eventviewer.EngineEventCallback;
@@ -21,12 +24,12 @@ import java.util.List;
 import static org.lwjgl.glfw.GLFW.*;
 
 /**
- * KeyCtrl (Key Control) is an accumulation of editor keybind and shortcuts.
+ * EditorKeyCtrl (Key Control) is an accumulation of editor keybind and shortcuts.
  * Itself is a non-serialized component that is added to the level editor object.<br>
  * Note: This will change soon, where this will be refactored into processing key event from the game.
  * Engine keybind and shortcut processing will be moved to different class.
  */
-public class KeyCtrl extends Component implements NotSerializeComponent {
+public class EditorKeyCtrl extends Component implements NotSerializeComponent {
     @Override
     public void editorUpdate(float dt) {
         if (!ImGuiLayer.editorWantCaptureKeyboard() || ImGui.isPopupOpen("", ImGuiPopupFlags.AnyPopup)) return;
@@ -72,9 +75,9 @@ public class KeyCtrl extends Component implements NotSerializeComponent {
 
         // Make keybinding of Shift + S = scale | Shift + T = translate
         if (KeyListener.isKeyTapped(GLFW_KEY_T, GLFW_MOD_SHIFT)) {
-            GizmoControl.setIsGizUse(0);
+            EditorGizmoCtrl.setGizmoType(EditorGizmoType.Translate);
         } else if (KeyListener.isKeyTapped(GLFW_KEY_S, GLFW_MOD_SHIFT)) {
-            GizmoControl.setIsGizUse(1);
+            EditorGizmoCtrl.setGizmoType(EditorGizmoType.Scale);
         }
 
         // Make keybinding of Ctrl + S = Save file | Ctrl + O = open file

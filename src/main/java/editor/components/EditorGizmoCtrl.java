@@ -1,22 +1,33 @@
-package components;
+package editor.components;
 
+import components.Component;
 import render.texture.Sprite;
 import render.texture.SpriteSheet;
 import utility.AssetsPool;
 import utility.Settings;
 
 /**
- * A class dedicated to handling Editor's gizmo system.
- * Handle gizmo's type and keybindings.
+ * EditorGizmoCtrl manage {@link EditorGizmo}'s appearance and how the gizmo function.
  */
-public class GizmoControl extends Component {
+public class EditorGizmoCtrl extends Component {
     private static final String PATH = Settings.TexturePath.Gizmo;
+    private static int isGizUse = 0;
+    private static EditorGizmoType gizmoType = EditorGizmoType.Translate;
+
     private transient SpriteSheet gizmo;
     private transient boolean isInitialized = false;
-    private static int isGizUse = 0;
+
+    public static EditorGizmoType getGizmoType() {
+        return gizmoType;
+    }
+
+    public static void setGizmoType(EditorGizmoType gizmoType) {
+        if (gizmoType == null) return;
+        EditorGizmoCtrl.gizmoType = gizmoType;
+    }
 
     @Override
-    protected void additionalStartLogic() {
+    protected void onStarting() {
         initGizmoSprite();
     }
 
@@ -36,7 +47,7 @@ public class GizmoControl extends Component {
             gizmo = AssetsPool.loadSpriteSheet(PATH);
             completeInit();
         } catch (Exception e) {
-            System.err.println("Failed to initialize Gizmo texture: " + e.getMessage());
+            System.err.println("Failed to initialize EditorGizmo texture: " + e.getMessage());
         }
     }
 
@@ -48,18 +59,10 @@ public class GizmoControl extends Component {
 
         if (gizmoMove == null || gizmoScale == null) return;
 
-        gameObject.addComponent(new GizmoMove(gizmoMove));
-        gameObject.addComponent(new GizmoScale(gizmoScale));
+        gameObject.addComponent(new EditorGizmoMove(gizmoMove));
+        gameObject.addComponent(new EditorGizmoScale(gizmoScale));
 
         isInitialized = true;
-    }
-
-    public static int getIsGizUse() {
-        return isGizUse;
-    }
-
-    public static void setIsGizUse(int val) {
-        isGizUse = val;
     }
 
     @Override
@@ -74,15 +77,15 @@ public class GizmoControl extends Component {
             return;
         }
 
-        if (isGizUse == 0) {
-            gameObject.getFirstComponent(GizmoMove.class).use();
+        if (gizmoType == EditorGizmoType.Translate) {
+            gameObject.getFirstComponent(EditorGizmoMove.class).use();
+            gameObject.getFirstComponent(EditorGizmoScale.class).stopUse();
+            return;
+        }
 
-            gameObject.getFirstComponent(GizmoScale.class).stopUse();
-
-        } else if (isGizUse == 1) {
-            gameObject.getFirstComponent(GizmoMove.class).stopUse();
-
-            gameObject.getFirstComponent(GizmoScale.class).use();
+        if (gizmoType == EditorGizmoType.Scale) {
+            gameObject.getFirstComponent(EditorGizmoMove.class).stopUse();
+            gameObject.getFirstComponent(EditorGizmoScale.class).use();
         }
     }
 }

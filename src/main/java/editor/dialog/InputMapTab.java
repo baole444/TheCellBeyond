@@ -132,7 +132,10 @@ class InputMapTab {
         ImGui.endTable();
 
         ImGui.separator();
-        if (!ImGui.beginChild("##EPPD_InputAction_List_region", ImGui.getContentRegionAvail(), false)) return;
+        if (!ImGui.beginChild("##EPPD_InputAction_List_region", ImGui.getContentRegionAvail(), false)) {
+            ImGui.endChild();
+            return;
+        }
         renderInputActionList();
         ImGui.endChild();
     }

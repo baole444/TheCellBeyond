@@ -106,7 +106,10 @@ public class AddTextureUnitDialog {
         ImGui.text("Click \"Browse Files\" to select an image");
 
         int sectionY = (int) (ImGui.getTextLineHeightWithSpacing() + ImGui.getStyle().getFramePaddingY());
-        if (!ImGui.beginChild(FILE_SELECTION_ID, 0, sectionY, !enableBorder)) return;
+        if (!ImGui.beginChild(FILE_SELECTION_ID, 0, sectionY, !enableBorder)) {
+            ImGui.endChild();
+            return;
+        }
 
         int browseButtonW = 120;
         ImGui.pushItemWidth(ImGui.getContentRegionAvailX() - browseButtonW - ImGui.getStyle().getItemSpacingX());
@@ -129,17 +132,22 @@ public class AddTextureUnitDialog {
 
     private static void renderPreviewSection() {
         float sectionY = DIALOG_SIZE.y * imagePreviewYPercentage;
-        if (!ImGui.beginChild(PREVIEW_IMAGE_ID, 0.0f, sectionY, enableBorder)) return;
+        if (!ImGui.beginChild(PREVIEW_IMAGE_ID, 0.0f, sectionY, enableBorder)) {
+            ImGui.endChild();
+            return;
+        }
         renderPreviewImage();
         ImGui.endChild();
 
         sectionY = ImGui.getStyle().getFramePaddingY() * 4.0f + ImGui.getTextLineHeightWithSpacing() * 2.0f + ImGui.getStyle().getItemSpacingY() * 4.0f;
-        if (!ImGui.beginChild(META_ID, 0.0f, sectionY, enableBorder)) return;
+        if (!ImGui.beginChild(META_ID, 0.0f, sectionY, enableBorder)) {
+            ImGui.endChild();
+            return;
+        }
 
         if (ImGui.checkbox("Adjust import size", customSize)) {
             if (!customSize.get()) resetImportSizeToDefault();
         }
-
 
         boolean adjustSize = customSize.get();
 

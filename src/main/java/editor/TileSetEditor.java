@@ -107,7 +107,7 @@ public class TileSetEditor {
         }
 
         if (!ImGui.beginChild("##TileSet_Params_Edit_Region")) {
-            ImGui.textWrapped("Failed to create region for tile set params");
+            ImGui.endChild();
             return;
         }
 
@@ -136,7 +136,10 @@ public class TileSetEditor {
     }
 
     private static void renderTileSetControl() {
-        if (!ImGui.beginChild("##TileSet_Edit_Mode_Region", 0.0f, modeRegionReserve + modeSelectableSize, ImGuiChildFlags.Border)) return;
+        if (!ImGui.beginChild("##TileSet_Edit_Mode_Region", 0.0f, modeRegionReserve + modeSelectableSize, ImGuiChildFlags.Border)) {
+            ImGui.endChild();
+            return;
+        }
 
         if (!ImGui.beginTable("##TSE_Control_Table", 3,ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.SizingFixedFit)) {
             ImGui.endChild();
@@ -190,7 +193,10 @@ public class TileSetEditor {
         Sprite sprite = tileSet.getTileSetSprite();
         if (sprite == null) return;
 
-        if (!ImGui.beginChild("##TileSet_Image_Edit_Region", ImGui.getContentRegionAvail(), ImGuiChildFlags.None, ImGuiWindowFlags.HorizontalScrollbar)) return;
+        if (!ImGui.beginChild("##TileSet_Image_Edit_Region", ImGui.getContentRegionAvail(), ImGuiChildFlags.None, ImGuiWindowFlags.HorizontalScrollbar)) {
+            ImGui.endChild();
+            return;
+        }
 
         int textureID = sprite.getTextureID();
         float w = sprite.getWidth() * zoom;
@@ -347,7 +353,11 @@ public class TileSetEditor {
     }
 
     private static void createNewTileSet() {
-        if (!ImGui.beginChild("##Drag_Drop_Tile_Set_Region", ImGui.getContentRegionAvail())) return;
+        if (!ImGui.beginChild("##Drag_Drop_Tile_Set_Region", ImGui.getContentRegionAvail())) {
+            ImGui.endChild();
+            return;
+        }
+
         ImGui.beginDisabled();
         ImGui.textWrapped("Drag and drop an image or sprite here to create new tile set");
         ImGui.endDisabled();

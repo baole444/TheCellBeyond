@@ -3,6 +3,7 @@ package components;
 import com.google.gson.*;
 
 import java.lang.reflect.Type;
+import java.util.UUID;
 
 public class ComponentSerializer implements JsonSerializer<Component>,
         JsonDeserializer<Component> {
@@ -17,7 +18,7 @@ public class ComponentSerializer implements JsonSerializer<Component>,
             Component component = context.deserialize(element, Class.forName(type));
 
             if (jsonObject.has("uuid")) {
-                component.setUUID(jsonObject.get("uuid").getAsString());
+                component.setUUID(context.deserialize(jsonObject.get("uuid"), UUID.class));
             }
 
             if (jsonObject.has("componentName")) {
@@ -40,7 +41,7 @@ public class ComponentSerializer implements JsonSerializer<Component>,
                 )
         );
 
-        result.add("uuid", new JsonPrimitive(component.getUUID()));
+        result.add("uuid", context.serialize(component.getUUID()));
 
         if (component.getComponentName() != null && !component.getComponentName().isEmpty()) {
             result.add("componentName", new JsonPrimitive(component.getComponentName()));

@@ -136,7 +136,10 @@ public class AddSpriteSheetDialog {
         ImGui.text("Click \"Browse Files\" to select an image");
 
         int sectionY = (int) (ImGui.getTextLineHeightWithSpacing() + ImGui.getStyle().getFramePaddingY());
-        if (!ImGui.beginChild(FILE_SELECTION_ID, 0, sectionY, !enableBorder)) return;
+        if (!ImGui.beginChild(FILE_SELECTION_ID, 0, sectionY, !enableBorder)) {
+            ImGui.endChild();
+            return;
+        }
 
         int browseButtonW = 120;
         ImGui.pushItemWidth(ImGui.getContentRegionAvailX() - browseButtonW - ImGui.getStyle().getItemSpacingX());
@@ -160,7 +163,10 @@ public class AddSpriteSheetDialog {
 
     private static void renderPreviewSection() {
         int sectionY = (int) (DIALOG_SIZE.y * previewYPercentage);
-        if (!ImGui.beginChild(PREVIEW_SHEET_ID, 0, sectionY, enableBorder)) return;
+        if (!ImGui.beginChild(PREVIEW_SHEET_ID, 0, sectionY, enableBorder)) {
+            ImGui.endChild();
+            return;
+        }
         renderPreviewImage();
         ImGui.endChild();
     }
@@ -280,7 +286,10 @@ public class AddSpriteSheetDialog {
 
     private static void renderSpritePropertiesEditor() {
         int ySection =(int) (ImGui.getTextLineHeightWithSpacing() * 6 + ImGui.getStyle().getFramePaddingY() * 5 + ImGui.getStyle().getItemSpacingY() * 11);
-        if (!ImGui.beginChild(META_ID, 0, ySection, enableBorder)) return;
+        if (!ImGui.beginChild(META_ID, 0, ySection, enableBorder)) {
+            ImGui.endChild();
+            return;
+        }
 
         numberOfSprite = inputInt("Number of sprites", numberOfSprite, 1);
         ImGui.separator();

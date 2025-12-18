@@ -68,12 +68,11 @@ public class GameObject {
      */
     private transient int cachedID;
 
-    // TODO: refactor this to use UUID class
     /**
-     * The UUID string of this game object.
+     * The identifier UUID of this game object.
      * @see UUID
      */
-    private String uuid;
+    private UUID uuid;
 
     /**
      * The name of this game object.
@@ -121,14 +120,14 @@ public class GameObject {
     private final transient LinkedHashSet<GameObject> children;
 
     /**
-     * The UUID string of the parent object of this game object.
+     * The identifier UUID of this game object's parent object.
      */
-    private String parentUUID;
+    private UUID parentUUID;
 
     /**
      * The list of UUID string of the child objects this game object has.
      */
-    private final List<String> childrenUUIDs;
+    private final List<UUID> childrenUUIDs;
 
     /**
      * Create a new {@link GameObject}
@@ -147,7 +146,7 @@ public class GameObject {
         components = new CopyOnWriteArrayList<>();
         children = new LinkedHashSet<>();
         childrenUUIDs = new ArrayList<>();
-        uuid = UUID.randomUUID().toString();
+        uuid = UUID.randomUUID();
         cachedID = idCounter.newId();
     }
 
@@ -371,8 +370,8 @@ public class GameObject {
      * {@snippet lang = "java":
      * import components.AnimatedSpriteRenderer;
      * import components.SpriteRenderer;
-     * public class Main() {
-     *     public static void main(String[] args) {
+     * public class Game() {
+     *     public static void run() {
      *         GameObject object = newGameObject();
      *         SpriteRenderer spriteRenderer = object.getFirstComponent(SpriteRenderer.class);
      *         if (spriteRenderer instanceof AnimatedSpriteRenderer) {
@@ -423,8 +422,8 @@ public class GameObject {
      * import components.SpatialComponent;
      * import components.SpriteRenderer;
      * import components.TextRenderer;
-     * public class Main() {
-     *     public static void main(String[] args) {
+     * public class Game() {
+     *     public static void run() {
      *         GameObject object = newGameObject();
      *         List<SpatialComponent> spatialComponents = getSpatialComponents(object); // size = 3
      *     }
@@ -473,8 +472,8 @@ public class GameObject {
      * import physic2d.collider.CapsuleCollider2D;
      * import physic2d.collider.CircleCollider2D;
      * import physic2d.collider.CollisionShape2D;
-     * public class Main() {
-     *     public static void main(String[] args) {
+     * public class Game() {
+     *     public static void run(String[] args) {
      *         GameObject object = newGameObject(); // 5 components
      *         object.removeComponents(CollisionShape2D.class); // 3 components will be removed
      *         List<Component> components = object.getComponents(); // size = 2
@@ -538,7 +537,7 @@ public class GameObject {
 
         GameObject otherOwner = component.gameObject;
         if (otherOwner != null && otherOwner != this) return;
-        if (component.getUUID() == null) component.setUUID(UUID.randomUUID().toString());
+        if (component.getUUID() == null) component.setUUID(UUID.randomUUID());
 
         components.add(component);
         component.gameObject = this;
@@ -585,15 +584,20 @@ public class GameObject {
      * Called once per iteration of the game's loop by the Engine.
      * This method is used instead of {@link #update(float)} when in editor mode
      * (not play testing the game or scene).
-     * <p>
-     * <i>
-     * Unless for the purpose of implement custom game loop logic, do not call this manually,
-     * as it can cause unwanted logic step.
-     * </i>
      * @param dt delta time
+     * @apiNote
+     * Incorrect use of this method might cause damage to the scene data.
+     * In most cases, a game object does not require execution of its logic when the scene is being edited.<br>
+     * All logic executed <b><u>should not</u></b> affect serialized data in an unrecoverable way,
+     * especially related to removal logic.
+     * <p>
+     * Unless for the purpose of implement custom game loop logic, do not call this manually,
+     * as it can cause unwanted editor logic step.
+     * </p>
+     * If this must be called, ensure that, for an instance of {@link GameObject}, this is only called once.
      */
     public void editorUpdate(float dt) {
-        additionalUpdateLogic(dt);
+        onUpdate(dt);
 
         for (Component component : components) {
             component.editorUpdate(dt);
@@ -604,15 +608,19 @@ public class GameObject {
      * Step the logic of this game object by the given delta time.
      * <p>
      * Called once per iteration of the game's loop by the Engine.
-     * <p>
-     * <i>
-     * Unless for the purpose of implement custom game loop logic, do not call this manually,
-     * as it can cause unwanted logic step.
-     * </i>
+     * This first executes the logic in {@link #onUpdate(float)},
+     * then iterates the component list and executes {@link Component#update(float)}
+     * </p>
+     * Unless there is a very specific use case, it is suggested to override {@link #onUpdate(float)} instead of this.
      * @param dt delta time
+     * @apiNote
+     * Unless for the purpose of implement custom game loop logic, <b><u>do not</u></b> call this manually,
+     * as it can cause unwanted logic step.
+     * <p>
+     * If this must be called, ensure that, for an instance of {@link GameObject}, this is only called once.
      */
     public void update(float dt) {
-        additionalUpdateLogic(dt);
+        onUpdate(dt);
 
         for (Component component : components) {
             component.update(dt);
@@ -623,7 +631,7 @@ public class GameObject {
      * Optional hook for additional game object's logic before updating its components.
      * @param dt delta time
      */
-    protected void additionalUpdateLogic(float dt) {}
+    protected void onUpdate(float dt) {}
 
     /**
      * Initialize this game object's state when it is first added to the {@link Scene}.
@@ -661,7 +669,7 @@ public class GameObject {
         ImGui.indent();
         for (Component c: components) {
             if (c instanceof NotSerializeComponent) continue;
-            String uuid = c.getUUID();
+            UUID uuid = c.getUUID();
             if (!ImGui.beginTable("##Component_Table_Header_" + uuid, 2, ImGuiTableFlags.SizingFixedFit)) continue;
             ImGui.tableSetupColumn("Component_Header_Column_" + uuid, ImGuiTableColumnFlags.WidthStretch);
             ImGui.tableSetupColumn("Component_Delete_Column_" + uuid, ImGuiTableColumnFlags.WidthFixed);
@@ -732,7 +740,6 @@ public class GameObject {
      * <p>
      * The copy process use serialization, ensure all subclasses of {@link GameObject} are supported.
      * </p>
-     * <p>
      * The newly created object is a root object.
      * @return a new {@link GameObject}
      */
@@ -746,7 +753,6 @@ public class GameObject {
      * <p>
      * The copy process use serialization, ensure all subclasses of {@link GameObject} are supported.
      * </p>
-     * <p>
      * The newly created object is a root object.
      * @param copyHierarchy option to copy the hierarchy branch from this object
      * @return a new {@link GameObject}
@@ -781,10 +787,10 @@ public class GameObject {
     }
 
     /**
-     * Get the UUID uses for identify this game object.
-     * @return the UUID string
+     * Get the UUID uses to identify this game object.
+     * @return the UUID
      */
-    public String getUUID() {
+    public UUID getUUID() {
         return uuid;
     }
 
@@ -829,9 +835,9 @@ public class GameObject {
 
     /**
      * Get the parent object's UUID of this game object.
-     * @return the UUID string of the parent object
+     * @return the UUID of the parent object
      */
-    public String getParentUUID() {
+    public UUID getParentUUID() {
         return parentUUID;
     }
 
@@ -847,7 +853,7 @@ public class GameObject {
      * Get the UUID of this game object's child objects.
      * @return a copy of this game object's children's UUID
      */
-    public List<String> getChildrenUUIDs() {
+    public List<UUID> getChildrenUUIDs() {
         return new ArrayList<>(childrenUUIDs);
     }
 
@@ -879,7 +885,7 @@ public class GameObject {
 
         if (childrenUUIDs == null) return;
         children.clear();
-        for (String childUUID : childrenUUIDs) {
+        for (UUID childUUID : childrenUUIDs) {
             GameObject childGO = scene.getGameObject(childUUID);
             if (childGO == null) continue;
             children.add(childGO);
@@ -911,7 +917,7 @@ public class GameObject {
         String oJson = gson.toJson(this);
         GameObject obj = gson.fromJson(oJson, GameObject.class);
 
-        obj.uuid = UUID.randomUUID().toString();
+        obj.uuid = UUID.randomUUID();
         obj.cachedID = idCounter.newId();
 
         obj.parent = null;
@@ -920,7 +926,7 @@ public class GameObject {
         obj.childrenUUIDs.clear();
 
         for (Component c : obj.getComponents()) {
-            c.setUUID(UUID.randomUUID().toString());
+            c.setUUID(UUID.randomUUID());
             if (c.getComponentName() == null || c.getComponentName().isEmpty()) continue;
             obj.namedComponents.put(c.getComponentName(), c);
         }

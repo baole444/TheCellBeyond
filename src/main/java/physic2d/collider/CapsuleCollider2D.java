@@ -22,8 +22,8 @@ public class CapsuleCollider2D extends CollisionShape2D {
     private float height = 0.64f;
 
     @Override
-    protected void additionalStartLogic() {
-        super.additionalStartLogic();
+    protected void onStarting() {
+        super.onStarting();
         headCircle.gameObject = this.gameObject;
         footCircle.gameObject = this.gameObject;
         bodyBox.gameObject = this.gameObject;
@@ -36,27 +36,29 @@ public class CapsuleCollider2D extends CollisionShape2D {
     }
 
     @Override
-    protected void additionalUpdateLogic(float dt) {
+    protected void onUpdate(float dt) {
         updateNestColliderTransform();
+        headCircle.update(dt);
+        footCircle.update(dt);
+        bodyBox.update(dt);
+        super.onUpdate(dt);
     }
 
     @Override
-    public void editorUpdate(float dt) {
+    protected void onEditorUpdate(float dt) {
         updateNestColliderTransform();
-
         headCircle.editorUpdate(dt);
         footCircle.editorUpdate(dt);
         bodyBox.editorUpdate(dt);
-
-        if (needsFixtureReset) resetFixture();
+        super.onEditorUpdate(dt);
     }
 
     @Override
     protected void additionalDirtyFlagLogic() {
-        super.additionalDirtyFlagLogic();
         headCircle.setTransformDirty();
         bodyBox.setTransformDirty();
         footCircle.setTransformDirty();
+        super.additionalDirtyFlagLogic();
     }
 
     private void updateNestColliderTransform() {
@@ -117,9 +119,7 @@ public class CapsuleCollider2D extends CollisionShape2D {
     }
 
     @Override
-    protected void drawDebugShape() {
-
-    }
+    protected void drawDebugShape() {}
 
     @Override
     protected void additionalImGuiLogic() {

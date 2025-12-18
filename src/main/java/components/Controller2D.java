@@ -84,7 +84,7 @@ public final class Controller2D extends Component {
 
 
     @Override
-    protected void additionalStartLogic() {
+    protected void onStarting() {
         if (gameObject == null) return;
         if (gameObject instanceof GameObject2D go2D) {
             gameObject2D = go2D;
@@ -105,7 +105,7 @@ public final class Controller2D extends Component {
     }
 
     @Override
-    protected void additionalDestroyLogic() {
+    protected void onDestroy() {
         gameObject2D = null;
         physicBody2D = null;
     }

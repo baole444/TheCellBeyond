@@ -1,4 +1,4 @@
-package components;
+package editor.components;
 
 import TheCellBeyond.GameObject2D;
 import TheCellBeyond.MouseListener;
@@ -6,10 +6,10 @@ import org.joml.Vector2f;
 import render.texture.Sprite;
 
 /**
- * Gizmo used for scaling an object in the editor
+ * EditorGizmo used for scaling an object in the editor.
  */
-public class GizmoScale extends Gizmo{
-    public GizmoScale(Sprite boxSprite) {
+public class EditorGizmoScale extends EditorGizmo {
+    public EditorGizmoScale(Sprite boxSprite) {
         super("scale_", boxSprite);
     }
 

@@ -15,10 +15,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
@@ -80,7 +77,7 @@ public class PrefabManager {
             prefabJson.addProperty(PREFAB_NAME, prefabName);
             prefabJson.addProperty(INCLUDE_CHILD, includeChildren);
             prefabJson.addProperty(TIMESTAMP, System.currentTimeMillis());
-            prefabJson.addProperty(ROOT_UUID, gosToPrefab.getFirst().getUUID());
+            prefabJson.addProperty(ROOT_UUID, gosToPrefab.getFirst().getUUID().toString());
 
             JsonElement objectData = gson.toJsonTree(gosToPrefab);
 
@@ -150,7 +147,7 @@ public class PrefabManager {
                 System.err.println("No valid GameObject found in prefab: '" + prefabName + "'");
             }
 
-            Map<String, GameObject> goMap = new HashMap<>();
+            Map<UUID, GameObject> goMap = new HashMap<>();
             for (GameObject go : gameObjects) {
                 goMap.put(go.getUUID(), go);
             }
@@ -162,15 +159,15 @@ public class PrefabManager {
                 }
 
                 if (go.getChildrenUUIDs() != null && !go.getChildrenUUIDs().isEmpty()) {
-                    for (String childUUID : go.getChildrenUUIDs()) {
+                    for (UUID childUUID : go.getChildrenUUIDs()) {
                         GameObject child = goMap.get(childUUID);
                         if (child != null && child.getParent() == null) go.addChild(child);
                     }
                 }
             }
 
-            String rootUUID = prefabJson.get(ROOT_UUID).getAsString();
-            GameObject root = goMap.get(rootUUID);
+            JsonElement rootUUID = prefabJson.get(ROOT_UUID);
+            GameObject root = goMap.get(UUID.fromString(rootUUID.getAsString()));
 
             if (root == null) {
                 System.err.println("Root object of prefab not found");

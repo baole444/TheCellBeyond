@@ -59,7 +59,7 @@ public class RigidBody2D extends PhysicBody2D {
     }
 
     @Override
-    protected void additionalPhysicUpdate(float dt) {
+    protected void physicUpdate(float dt) {
         if (physicBodyRef == null) return;
         Vec2 v = physicBodyRef.getLinearVelocity();
         currentVelocity.set(v.x, v.y);

@@ -1,7 +1,7 @@
 package editor;
 
 import components.TileMap;
-import components.TileMapGrid;
+import editor.components.EditorTileMapGrid;
 import imgui.ImDrawList;
 import imgui.ImGui;
 import imgui.ImVec2;
@@ -62,7 +62,7 @@ public class TileMapEditor {
 
     public static void escapeMode() {
         editingMode = null;
-        TileMapGrid.draw = false;
+        EditorTileMapGrid.draw = false;
     }
 
     static void edit(TileMap tileMap) {
@@ -91,7 +91,7 @@ public class TileMapEditor {
     }
 
     static void clearDialogData() {
-        TileMapGrid.draw = false;
+        EditorTileMapGrid.draw = false;
         editingMode = null;
         selectedTiles.clear();
         editingTileMap = null;
@@ -109,7 +109,11 @@ public class TileMapEditor {
             return;
         }
 
-        if (!ImGui.beginChild("##TME_Controller_Region", 0.0f, modeRegionReserve + modeSelectableSize, true)) return;
+        if (!ImGui.beginChild("##TME_Controller_Region", 0.0f, modeRegionReserve + modeSelectableSize, true)) {
+            ImGui.endChild();
+            return;
+        }
+
         if (ImGui.beginTable("##TME_Mode_Table", 3, ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.SizingFixedFit)) {
             ImGui.tableSetupColumn("##TME_Select_Draw_Selectable_Column", ImGuiTableColumnFlags.WidthFixed);
             ImGui.tableSetupColumn("##TME_Erase_selectable_Column", ImGuiTableColumnFlags.WidthFixed);
@@ -118,7 +122,7 @@ public class TileMapEditor {
             boolean isSelectionMode = editingMode == Mode.Select;
             if (ImEditorGui.selectableIcon("Selection Mode##TME_Select_Mode_Selectable", EditorIcons.Icons.Select, "Click to toggle tile selection mode", isSelectionMode, modeSelectableSize, modeSelectableSize)) {
                 editingMode = isSelectionMode ? null : Mode.Select;
-                TileMapGrid.draw = false;
+                EditorTileMapGrid.draw = false;
             }
 
             ImGui.sameLine();
@@ -126,14 +130,14 @@ public class TileMapEditor {
             boolean isDrawMode = editingMode == Mode.Draw;
             if (ImEditorGui.selectableIcon("Draw Mode##TME_Draw_Mode_Selectable", EditorIcons.Icons.Edit, "Click to toggle tile draw mode", isDrawMode, modeSelectableSize, modeSelectableSize)) {
                 editingMode = isDrawMode ? null : Mode.Draw;
-                TileMapGrid.draw = !isDrawMode;
+                EditorTileMapGrid.draw = !isDrawMode;
             }
 
             ImGui.tableNextColumn();
             boolean isEraserMode = editingMode == Mode.Erase;
             if (ImEditorGui.selectableIcon("Eraser Mode##TME_Eraser_Mode_Selectable", EditorIcons.Icons.Eraser, "Click to toggle tile eraser mode", isEraserMode, modeSelectableSize, modeSelectableSize)) {
                 editingMode = isEraserMode ? null : Mode.Erase;
-                TileMapGrid.draw = !isEraserMode;
+                EditorTileMapGrid.draw = !isEraserMode;
             }
 
             ImGui.tableNextColumn();
@@ -151,8 +155,7 @@ public class TileMapEditor {
         }
         ImGui.endChild();
 
-        if (!ImGui.beginChild("##TME_Image_Region", ImGuiChildFlags.Border, ImGuiWindowFlags.HorizontalScrollbar)) return;
-        renderTileSetImage();
+        if (ImGui.beginChild("##TME_Image_Region", ImGuiChildFlags.Border, ImGuiWindowFlags.HorizontalScrollbar)) renderTileSetImage();
         ImGui.endChild();
     }
 
@@ -164,7 +167,10 @@ public class TileMapEditor {
         Sprite sprite = tileSet.getTileSetSprite();
         if (sprite == null) return;
 
-        if (!ImGui.beginChild("##TileSet_Image_Edit_Region", ImGui.getContentRegionAvail(), ImGuiChildFlags.None, ImGuiWindowFlags.HorizontalScrollbar)) return;
+        if (!ImGui.beginChild("##TileSet_Image_Edit_Region", ImGui.getContentRegionAvail(), ImGuiChildFlags.None, ImGuiWindowFlags.HorizontalScrollbar)) {
+            ImGui.endChild();
+            return;
+        }
 
         int textureID = sprite.getTextureID();
         float w = sprite.getWidth() * zoom;

@@ -49,7 +49,7 @@ public class CharacterBody2D extends PhysicBody2D {
     public void configureBody() {}
 
     @Override
-    protected void additionalPhysicUpdate(float dt) {
+    protected void physicUpdate(float dt) {
         if (physicBodyRef == null) return;
         resetMotionState();
     }

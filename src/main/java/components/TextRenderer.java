@@ -128,24 +128,25 @@ public class TextRenderer extends SpatialComponent implements FontStatusCallback
     }
 
     @Override
-    protected void additionalStartLogic() {
+    protected void onStarting() {
         requestLoadFont();
     }
 
     @Override
-    protected void additionalUpdateLogic(float dt) {
+    protected void onUpdate(float dt) {
         if (font == null
                 || !assetReference.equals(currentRequest.fontAsset())
                 || point != currentRequest.point()
                 || !glyphRangeName.equals(currentRequest.glyphRange().name())
-        ) {
-            requestLoadFont();
-            return;
-        }
+        ) requestLoadFont();
+        super.onUpdate(dt);
+    }
 
-        if (Window.get().isRuntimeMode()) return;
+    @Override
+    protected void onEditorUpdate(float dt) {
         Vector2f pos = new Vector2f(getEffectiveTransform().position);
         DebugDraw.addLine2(pos, new Vector2f(pos).add(textDimensions.x, 0), new Vector4f(0.8f, 0.2f, 0.2f, 1.0f), 1);
+        super.onEditorUpdate(dt);
     }
 
     @Override

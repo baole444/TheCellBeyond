@@ -67,15 +67,11 @@ class ControllerBindingEditor {
         ImGui.tableSetupColumn("##CBE_BindingList_Column", ImGuiTableColumnFlags.WidthFixed, remainWidth);
         ImGui.tableSetupColumn("##CBE_BindingConfigs_Column", ImGuiTableColumnFlags.WidthStretch);
         ImGui.tableNextColumn();
-        if (ImGui.beginChild(CONTROL_SECTION, 0, CONTROL_RESERVE + padding, false)) {
-            renderControllerControl();
-            ImGui.endChild();
-        }
+        if (ImGui.beginChild(CONTROL_SECTION, 0, CONTROL_RESERVE + padding, false)) renderControllerControl();
+        ImGui.endChild();
 
-        if (ImGui.beginChild("##CBE_BindingList", ImGui.getContentRegionAvail(), true)) {
-            renderBindingList();
-            ImGui.endChild();
-        }
+        if (ImGui.beginChild("##CBE_BindingList", ImGui.getContentRegionAvail(), true)) renderBindingList();
+        ImGui.endChild();
 
         ImGui.tableNextColumn();
         if (ImGui.beginChild("##CBE_BindingConfigs", ImGui.getContentRegionAvail(), true)) {
@@ -86,9 +82,9 @@ class ControllerBindingEditor {
             } else {
                 renderBindingContent();
             }
-
-            ImGui.endChild();
         }
+
+        ImGui.endChild();
 
         ImGui.endTable();
     }
@@ -182,7 +178,10 @@ class ControllerBindingEditor {
             return;
         }
 
-        if (!ImGui.beginChild("#CBE_Binding_Properties_Region", ImGui.getContentRegionAvail(), true)) return;
+        if (!ImGui.beginChild("#CBE_Binding_Properties_Region", ImGui.getContentRegionAvail(), true)) {
+            ImGui.endChild();
+            return;
+        }
         Vector2f dir = new Vector2f(binding.directionVector());
         if (ImEditorGui.dragVec2Ctrl("Direction", dir, 0.0f, 0.1f, binding)) binding.direction.set(dir);
         if (ImGui.beginCombo("##Set_Direction_Using_Common_Direction_Combo_CBE", "Use common direction")) {
@@ -226,7 +225,11 @@ class ControllerBindingEditor {
         renderInputActionSelectionCombo(binding);
 
         ImGui.spacing();
-        if (!ImGui.beginChild("##CBE_Bound_Action_List_Display_Region", ImGui.getContentRegionAvail(), true)) return;
+        if (!ImGui.beginChild("##CBE_Bound_Action_List_Display_Region", ImGui.getContentRegionAvail(), true)) {
+            ImGui.endChild();
+            return;
+        }
+
         if (binding.boundActionNames.isEmpty()) {
             ImGui.beginDisabled();
             ImGui.textWrapped("No Input Action bound to this Controller Binding yet");
@@ -303,8 +306,9 @@ class ControllerBindingEditor {
                 String label = name + "##CBE_Select_InputAction_" + name + "_Selectable";
                 if (ImGui.selectable(label)) binding.boundActionNames.add(name);
             }
-            ImGui.endChild();
         }
+
+        ImGui.endChild();
 
         if (ImGui.button("Edit Input Map##CBE_Nav_To_InputMap_Button", ImGui.getContentRegionAvailX(), 0.0f)) wantToEditInputMap = true;
 

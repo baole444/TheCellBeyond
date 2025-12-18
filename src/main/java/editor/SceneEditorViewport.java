@@ -77,7 +77,7 @@ public class SceneEditorViewport {
 
         ImGui.tableNextColumn();
         ImBoolean snapGrid = new ImBoolean(UserPreference.editorPreferences().showGridLine());
-        if (ImGui.checkbox("Grid snapping##Ctrl_Grid_Snap_nd_Show_ESV", snapGrid)) {
+        if (ImGui.checkbox("EditorGrid snapping##Ctrl_Grid_Snap_nd_Show_ESV", snapGrid)) {
             boolean enable = snapGrid.get();
             EditorPreferences currentPrefs = UserPreference.editorPreferences();
             EditorPreferences newPrefs = new EditorPreferences(currentPrefs.autoSaveOnExit(), currentPrefs.autoSaveOnChangeScene(), enable);

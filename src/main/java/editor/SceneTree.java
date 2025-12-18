@@ -74,7 +74,7 @@ public class SceneTree {
     }
 
     private static void renderTree(GameObject go, Scene scene) {
-        ImGui.pushID(go.getUUID());
+        ImGui.pushID(go.getUUID().toString());
 
         int flags = ImGuiTreeNodeFlags.OpenOnArrow
                 | ImGuiTreeNodeFlags.SpanAvailWidth

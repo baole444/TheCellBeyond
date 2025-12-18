@@ -19,16 +19,14 @@ public class StateEngine extends Component {
     private transient boolean initialized = false;
 
     @Override
-    protected void additionalStartLogic() {
+    protected void onStarting() {
         if (!Window.get().isRuntimeMode()) return;
 
         initialize();
     }
 
     @Override
-    protected void additionalUpdateLogic(float dt) {
-        if (!Window.get().isRuntimeMode()) return;
-
+    protected void onUpdate(float dt) {
         if (!initialized) initialize();
 
         if (enableAutoStateTransition) autoStateTransition();

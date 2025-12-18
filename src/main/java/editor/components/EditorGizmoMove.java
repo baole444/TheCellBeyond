@@ -1,4 +1,4 @@
-package components;
+package editor.components;
 
 import TheCellBeyond.GameObject2D;
 import TheCellBeyond.MouseListener;
@@ -6,10 +6,10 @@ import org.joml.Vector2f;
 import render.texture.Sprite;
 
 /**
- * Gizmo used for moving an object around in the editor.
+ * EditorGizmo used for moving an object around in the editor.
  */
-public class GizmoMove extends Gizmo {
-    public GizmoMove(Sprite arrowSprite) {
+public class EditorGizmoMove extends EditorGizmo {
+    public EditorGizmoMove(Sprite arrowSprite) {
         super("translate_", arrowSprite);
     }
 

@@ -28,7 +28,7 @@ import java.util.UUID;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 
-public class StartUpWindow{
+public class StartupWindow {
     private static final String TABLE_ID = "Project Manager";
     private static final ImVec2 IMGUI_WINDOW_SIZE = new ImVec2(960, 720);
     private static final float projectListXPercentage = 0.75f;
@@ -59,14 +59,15 @@ public class StartUpWindow{
 
             ImGui.setNextWindowPos(width / 2.0f, height / 2.0f, ImGuiCond.Always, 0.5f, 0.5f);
             ImGui.setNextWindowSize(IMGUI_WINDOW_SIZE);
-            if (ImGui.begin("Welcome to The Cell Beyond Editor", ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse)) {
-                ImGui.text("Project Manager");
-                renderProjectList();
-
-                loaded = (Project.currentProject() != null && Project.projectRoot() != null);
+            if (!ImGui.begin("Welcome to The Cell Beyond Editor", ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse)) {
                 ImGui.end();
+                continue;
             }
 
+            ImGui.text("Project Manager");
+            renderProjectList();
+
+            ImGui.end();
             ImGui.render();
             imGuiLayer.getImGuiGl3().renderDrawData(ImGui.getDrawData());
 
@@ -78,6 +79,7 @@ public class StartUpWindow{
             }
 
             glfwSwapBuffers(windowPtr);
+            loaded = (Project.currentProject() != null && Project.projectRoot() != null);
         }
 
         recentProjects.clear();
@@ -88,72 +90,23 @@ public class StartUpWindow{
     private static void renderProjectList() {
         float sectionY = ImGui.getContentRegionAvailY() * 0.9f;
         if (!ImGui.beginChild("Project_Section" ,0.0f, sectionY, false)) {
+            ImGui.endChild();
             return;
         }
 
         ImVec2 remainTableSize = ImGui.getContentRegionAvail();
-
         if (!ImGui.beginTable(TABLE_ID, 2, ImGuiTableFlags.NoBordersInBody | ImGuiTableFlags.SizingStretchProp, remainTableSize)) {
             ImGui.endChild();
             return;
         }
-
         ImGui.tableSetupColumn("##Project_List_Column", ImGuiTableColumnFlags.WidthFixed, ImGui.getContentRegionAvailX() * projectListXPercentage);
         ImGui.tableSetupColumn("##Button_Control_Column", ImGuiTableColumnFlags.WidthStretch);
 
         ImGui.tableNextColumn();
-        if (ImGui.beginChild("Project_List_Child", 0.0f, 0.0f, true)) {
-            renderSelectableList();
-            ImGui.endChild();
-        }
+        renderSelectableList();
 
         ImGui.tableNextColumn();
-        if (ImGui.beginChild("Button_Child", 0.0f, 0.0f, false)) {
-            float buttonWidth = ImGui.getContentRegionAvailX();
-            float buttonHeight = 30;
-
-            if (selectedProject != null) {
-                if (ImGui.button("Start Edit", buttonWidth, buttonHeight)) startEditing();
-            } else {
-                ImGui.beginDisabled();
-                ImGui.button("Start Edit", buttonWidth, buttonHeight);
-                ImGui.endDisabled();
-            }
-
-            ImGui.spacing();
-
-            if (ImGui.button("Open...", buttonWidth, buttonHeight)) {
-                Path selectedPath = OpenProjectDialog.openProjectDialog();
-
-                if (selectedPath != null) {
-                    boolean inList = false;
-                    for (RecentProject project : recentProjects.values()) {
-                        if (!project.path().equals(selectedPath.toString())) continue;
-                        inList = true;
-                        break;
-                    }
-
-                    if (!inList) {
-                        ProjectData data = getFromYaml(selectedPath.toString());
-                        if (data != null) {
-                            RecentProject recentProject = new RecentProject(data.project().name(), selectedPath.toString(), null);
-                            UserPreference.addRecentProject(recentProject);
-                        }
-                    }
-
-                    EngineEventCallback.emit(selectedPath.toString(), new Event(EventType.PROJECT_LOAD));
-                }
-            }
-            ImGui.spacing();
-            ImGui.separator();
-            ImGui.spacing();
-            ImGui.pushStyleColor(ImGuiCol.Button, 0.2f, 0.7f, 0.2f, 1.0f);
-            ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.3f, 0.8f, 0.3f, 1.0f);
-            ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0.2f, 0.7f, 0.2f, 1.0f);
-            if (ImGui.button("New Project", buttonWidth, buttonHeight)) NewProjectDialog.show();
-            ImGui.popStyleColor(3);
-            ImGui.endChild();
-        }
+        renderButtonRegion();
 
         ImGui.endTable();
         ImGui.endChild();
@@ -161,11 +114,67 @@ public class StartUpWindow{
         RemoveMissingProjectDialog.imgui();
     }
 
+    private static void renderButtonRegion() {
+        if (!ImGui.beginChild("Button_Child", 0.0f, 0.0f, false)) {
+            ImGui.endChild();
+            return;
+        }
+        float buttonWidth = ImGui.getContentRegionAvailX();
+        float buttonHeight = 30;
+
+        if (selectedProject != null) {
+            if (ImGui.button("Start Edit", buttonWidth, buttonHeight)) startEditing();
+        } else {
+            ImGui.beginDisabled();
+            ImGui.button("Start Edit", buttonWidth, buttonHeight);
+            ImGui.endDisabled();
+        }
+
+        ImGui.spacing();
+
+        if (ImGui.button("Open...", buttonWidth, buttonHeight)) {
+            Path selectedPath = OpenProjectDialog.openProjectDialog();
+
+            if (selectedPath != null) {
+                boolean inList = false;
+                for (RecentProject project : recentProjects.values()) {
+                    if (!project.path().equals(selectedPath.toString())) continue;
+                    inList = true;
+                    break;
+                }
+
+                if (!inList) {
+                    ProjectData data = getFromYaml(selectedPath.toString());
+                    if (data != null) {
+                        RecentProject recentProject = new RecentProject(data.project().name(), selectedPath.toString(), null);
+                        UserPreference.addRecentProject(recentProject);
+                    }
+                }
+
+                EngineEventCallback.emit(selectedPath.toString(), new Event(EventType.PROJECT_LOAD));
+            }
+        }
+        ImGui.spacing();
+        ImGui.separator();
+        ImGui.spacing();
+        ImGui.pushStyleColor(ImGuiCol.Button, 0.2f, 0.7f, 0.2f, 1.0f);
+        ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.3f, 0.8f, 0.3f, 1.0f);
+        ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0.2f, 0.7f, 0.2f, 1.0f);
+        if (ImGui.button("New Project", buttonWidth, buttonHeight)) NewProjectDialog.show();
+        ImGui.popStyleColor(3);
+        ImGui.endChild();
+    }
+
     private static void renderSelectableList() {
+        if (!ImGui.beginChild("Project_List_Child", 0.0f, 0.0f, true)) {
+            ImGui.endChild();
+            return;
+        }
         if (recentProjects.isEmpty()) {
             ImGui.beginDisabled();
             ImGui.textWrapped("No recent project opened. Click \"Open...\" to open a project.");
             ImGui.endDisabled();
+            ImGui.endChild();
             return;
         }
 
@@ -205,6 +214,7 @@ public class StartUpWindow{
             ImGui.separator();
             ImGui.spacing();
         }
+        ImGui.endChild();
     }
 
     private static ProjectData getFromYaml(String path) {

@@ -1,7 +1,9 @@
-package components;
+package editor.components;
 
 import TheCellBeyond.Viewport;
 import TheCellBeyond.Window;
+import components.Component;
+import components.NotSerializeComponent;
 import editor.preference.UserPreference;
 import project.Project;
 import org.joml.Math;
@@ -11,7 +13,7 @@ import render.DebugDraw;
 import utility.Settings;
 import utility.WorldUnit;
 
-public class Grid extends Component implements NotSerializeComponent {
+public class EditorGrid extends Component implements NotSerializeComponent {
     private static final Vector4f normalGridColor = new Vector4f(0.5f, 0.5f, 0.35f, 0.35f);
     private static final Vector4f centralLinesColor = new Vector4f(1.0f);
     private static final Vector4f verticalBoundColor = new Vector4f(0.5f, 0.5f, 1.0f, 0.75f);

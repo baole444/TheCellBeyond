@@ -1,8 +1,9 @@
-package components;
+package editor.components;
 
 import TheCellBeyond.KeyListener;
 import TheCellBeyond.MouseListener;
 import TheCellBeyond.Viewport;
+import components.Component;
 import editor.ImGuiLayer;
 import imgui.ImGui;
 import imgui.flag.ImGuiPopupFlags;

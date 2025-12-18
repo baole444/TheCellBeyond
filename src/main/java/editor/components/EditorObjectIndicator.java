@@ -1,24 +1,25 @@
-package editor;
+package editor.components;
 
 import TheCellBeyond.GameObject2D;
+import TheCellBeyond.Viewport;
 import components.NotSerializeComponent;
 import components.SpriteRenderer;
 import org.joml.Vector4f;
 import render.texture.Sprite;
-import render.texture.SpriteSheet;
 import render.texture.TextureUnit;
 import utility.AssetsPool;
+import utility.Settings;
 
-public class Indicator extends SpriteRenderer implements NotSerializeComponent {
-    private static final String PATH = "engine://assets/textures/indicator.png";
+public class EditorObjectIndicator extends SpriteRenderer implements NotSerializeComponent {
+    private static final String PATH = Settings.TexturePath.ObjectIndicator;
 
     private transient TextureUnit textureUnit;
     private transient boolean isInitialized = false;
     private transient boolean active = false;
 
     @Override
-    protected void additionalStartLogic() {
-        super.additionalStartLogic();
+    protected void onStarting() {
+        super.onStarting();
         initIndicator();
     }
 
@@ -40,7 +41,7 @@ public class Indicator extends SpriteRenderer implements NotSerializeComponent {
             setActive();
             completeInit();
         } catch (Exception e) {
-            System.err.println("Failed to initialize Indicator: " + e.getMessage());
+            System.err.println("Failed to initialize EditorObjectIndicator: " + e.getMessage());
         }
     }
 
@@ -48,10 +49,11 @@ public class Indicator extends SpriteRenderer implements NotSerializeComponent {
         if (textureUnit == null) return;
 
         Sprite sprite = textureUnit.getSprite();
-
         if (sprite == null) return;
-
         setSprite(sprite);
+
+        setLocalZIndex(Viewport.farZIndex);
+        localTransform.relativeZIndex = false;
 
         isInitialized = true;
     }
@@ -80,8 +82,9 @@ public class Indicator extends SpriteRenderer implements NotSerializeComponent {
         if (active) setInactive();
     }
 
-    // It shouldn't be edited in the properties windows too.
-    // Override imgui to do nothing to prevent this
+    /**
+     * Prevent editing indicator's properties.
+     */
     @Override
     public void imgui() {}
 

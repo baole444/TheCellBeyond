@@ -3,7 +3,7 @@ package render;
 import TheCellBeyond.GameObject;
 import components.Component;
 import components.SpriteRenderer;
-import editor.Indicator;
+import editor.components.EditorObjectIndicator;
 import org.joml.Math;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
@@ -256,7 +256,7 @@ public class TextureBatch implements Comparable<TextureBatch> {
         Vector2f scale = spriteRenderer.getScale();
         float rotation = spriteRenderer.getRotation();
         boolean isTransformed = rotation != 0.0f || !scale.equals(new Vector2f(1.0f, 1.0f));
-        boolean isIndicator = spriteRenderer instanceof Indicator;
+        boolean isIndicator = spriteRenderer instanceof EditorObjectIndicator;
 
         Matrix4f transformMatrix = new Matrix4f().identity();
         if (!isIndicator && isTransformed) {
@@ -412,7 +412,7 @@ public class TextureBatch implements Comparable<TextureBatch> {
     public boolean hasSprite(SpriteRenderer spriteRenderer) {
         if (spriteRenderer == null || spriteRenderer.getUUID() == null || spriteRenderer.gameObject == null) return false;
 
-        String uuid = spriteRenderer.getUUID();
+        UUID uuid = spriteRenderer.getUUID();
         for (int i = 0; i < countSprite; i++) {
             if (sprites[i] != null && sprites[i].getUUID().equals(uuid)) return true;
         }

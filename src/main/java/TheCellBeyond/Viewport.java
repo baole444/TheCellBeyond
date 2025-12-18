@@ -8,6 +8,9 @@ import render.FrameBuffer;
 import utility.WorldUnit;
 
 public class Viewport {
+    public static final int nearZIndex = -16;
+    public static final int farZIndex = 1024;
+
     public Vector2f position;
     private final Matrix4f projectionMatrix;
     private final Matrix4f viewMatrix;
@@ -76,7 +79,7 @@ public class Viewport {
         projectionMatrix.identity();
         projectionMatrix.ortho(0.0f, projectionSize.x * (zoom / globalScale),
                 0.0f, projectionSize.y * (zoom / globalScale),
-                -16.0f, 1024.0f
+                nearZIndex, farZIndex
         );
         projectionMatrix.invert(inverseProjectionMatrix);
     }

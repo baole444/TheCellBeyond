@@ -59,7 +59,10 @@ class SpriteFrameEditor {
             selectedFrame = 0;
         }
 
-        if (!ImGui.beginChild(CONTROL_SECTION, 0, CONTROL_RESERVE + padding, false)) return;
+        if (!ImGui.beginChild(CONTROL_SECTION, 0, CONTROL_RESERVE + padding, false)) {
+            ImGui.endChild();
+            return;
+        }
         renderAnimationControl();
         ImGui.endChild();
 
@@ -87,9 +90,9 @@ class SpriteFrameEditor {
                 ImGui.endDisabled();
                 renderFrameList();
             }
-
-            ImGui.endChild();
         }
+
+        ImGui.endChild();
         spriteDragDropPayload();
 
         ImGui.endTable();

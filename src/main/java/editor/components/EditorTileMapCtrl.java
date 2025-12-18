@@ -1,9 +1,10 @@
-package components;
+package editor.components;
 
 import TheCellBeyond.GameObject2D;
 import TheCellBeyond.KeyListener;
 import TheCellBeyond.MouseListener;
 import TheCellBeyond.Window;
+import components.*;
 import editor.ImGuiLayer;
 import editor.TileMapEditor;
 import imgui.ImGui;
@@ -23,7 +24,7 @@ import java.util.List;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
 import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_1;
 
-public class TileMapCtrl extends Component implements NotSerializeComponent {
+public class EditorTileMapCtrl extends Component implements NotSerializeComponent {
     private static final Vector4f previewColor = new Vector4f(1.0f, 1.0f, 1.0f, 0.35f);
     private static final Vector4f eraserColor = new Vector4f(1.0f, 0.25f, 0.25f, 0.75f);
 
@@ -243,7 +244,7 @@ public class TileMapCtrl extends Component implements NotSerializeComponent {
     }
 
     @Override
-    protected void additionalDestroyLogic() {
+    protected void onDestroy() {
         clearData();
     }
 

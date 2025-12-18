@@ -6,18 +6,15 @@ import components.Component;
 import org.joml.Vector2f;
 import physic2d.Physic2D;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public record DataSnapshot(
         Viewport viewport,
-        HashMap<Integer, String> cachedIDs,
-        HashMap<String, GameObject> gameObjectByUUIDs,
+        HashMap<Integer, UUID> cachedIDs,
+        HashMap<UUID, GameObject> gameObjectByUUIDs,
         List<GameObject> rootGameObjects,
-        Map<String, Component> componentsByUUID,
+        Map<UUID, Component> componentsByUUID,
         Physic2D physic2D,
         AtomicBoolean updated,
         List<GameObject> pendingObjectRemove,

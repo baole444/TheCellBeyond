@@ -28,7 +28,7 @@ public class Settings {
     public static class TexturePath {
         public static final String TextureClassPath = "engine://assets/textures";
         public static final String EditorControls = TextureClassPath + pathJoint + "EditorControls.png";
-        public static final String Gizmo = TextureClassPath + pathJoint + "Gizmo.png";
+        public static final String Gizmo = TextureClassPath + pathJoint + "EditorGizmo.png";
         public static final String ObjectIndicator = TextureClassPath + pathJoint + "indicator.png";
         public static final String TCBIcon = TextureClassPath + pathJoint + "TCB icon.png";
     }

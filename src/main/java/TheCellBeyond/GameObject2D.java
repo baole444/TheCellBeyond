@@ -211,7 +211,6 @@ public class GameObject2D extends GameObject {
         } finally {
             isNotifyingComponent = false;
         }
-
     }
 
     public Matrix3x2f getLocalMatrix() {

@@ -1,6 +1,7 @@
-package components;
+package editor.components;
 
 import TheCellBeyond.*;
+import components.*;
 import editor.Properties;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
@@ -10,10 +11,11 @@ import utility.WorldUnit;
 import static org.lwjgl.glfw.GLFW.*;
 
 /**
- * A class dedicated to handle gizmo selection and activity, so as its position and appearance.
- * For handling gizmo's type and movement, see {@link GizmoControl}.
+ * EditorGizmo is an Editor's component, use to display moving arrows or scale arrows.
+ * It will appear at the position of the editing game object (if the object exists in the spatial logic world).
+ * @see EditorGizmoCtrl Handling gizmo's type and movement
  */
-public class Gizmo extends SpatialComponent implements NotSerializeComponent {
+public class EditorGizmo extends SpatialComponent implements NotSerializeComponent {
     private final Vector4f resetColor = new Vector4f(0, 0, 0 , 0);
     private final Vector4f xAxisColor = new Vector4f(0.7f, 0.2f, 0.2f, 1.0f);
     private final Vector4f xHover = new Vector4f(0.85f, 0.35f, 0.35f, 1.0f);
@@ -39,10 +41,10 @@ public class Gizmo extends SpatialComponent implements NotSerializeComponent {
 
     private transient final Vector2f gizmoWorldPos = new Vector2f();
 
-    // Create Gizmo, position, and color.
-    // Mark Gizmo arrow is not a selectable object.
+    // Create EditorGizmo, position, and color.
+    // Mark EditorGizmo arrow is not a selectable object.
     // Push gizmo to the scene.
-    public Gizmo(String type, Sprite arrowSprite) {
+    public EditorGizmo(String type, Sprite arrowSprite) {
         xAxisObj = createGizmoObject(type + "gizmoX", arrowSprite);
         yAxisObj = createGizmoObject(type + "gizmoY", arrowSprite);
         xAxisObj.rotate(90);
@@ -75,6 +77,10 @@ public class Gizmo extends SpatialComponent implements NotSerializeComponent {
         setInactive();
     }
 
+    /**
+     * Sync the gizmo with the editing game object from {@link Properties}.
+     * @param dt delta time
+     */
     @Override
     public void editorUpdate(float dt) {
         if (!isUsed) return;
@@ -93,7 +99,6 @@ public class Gizmo extends SpatialComponent implements NotSerializeComponent {
         }
 
         setActive();
-
         updatePosition();
         handleInteraction();
     }

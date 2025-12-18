@@ -3,7 +3,7 @@ package TheCellBeyond;
 import editor.ImGuiLayer;
 import editor.Properties;
 import editor.SceneTree;
-import editor.StartUpWindow;
+import editor.StartupWindow;
 import editor.preference.RecentProject;
 import editor.preference.UserPreference;
 import project.Project;
@@ -107,7 +107,7 @@ public final class Window implements EngineEventListener {
         initWindow();
 
         if (!projectLoaded) {
-            StartUpWindow.show(windowPtr, imGuiLayer, width, height);
+            StartupWindow.show(windowPtr, imGuiLayer, width, height);
 
             projectLoaded = (Project.currentProject() != null && Project.projectRoot() != null);
 

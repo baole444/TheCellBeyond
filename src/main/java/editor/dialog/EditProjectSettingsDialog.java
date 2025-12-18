@@ -138,6 +138,7 @@ public class EditProjectSettingsDialog {
 
     private static void renderTabButtons() {
         if (!ImGui.beginChild("##EPPD_Tabs", 0.0f, BUTTON_RESERVE, ImGuiChildFlags.None, ImGuiWindowFlags.NoScrollbar)) {
+            ImGui.endChild();
             return;
         }
 

@@ -446,7 +446,7 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
     }
 
     @Override
-    protected void additionalStartLogic() {
+    protected void onStarting() {
         if (currentAnimationName == null && defaultAnimation != null) {
             currentAnimationName = defaultAnimation;
             currentAnimation = animations.get(defaultAnimation);
@@ -460,7 +460,7 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
     }
 
     @Override
-    protected void additionalUpdateLogic(float dt) {
+    protected void onUpdate(float dt) {
         if (currentAnimation == null) return;
 
         if (play && backward) {
@@ -468,6 +468,11 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
         } else if (play) currentAnimation.update(dt);
 
         updateSpriteFromCurrentAnimation();
+    }
+
+    @Override
+    protected void onEditorUpdate(float dt) {
+        onUpdate(dt);
     }
 
     @Override

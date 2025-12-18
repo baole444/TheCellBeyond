@@ -88,6 +88,7 @@ public class ConsoleOutput implements EngineLogListener {
     private void drawLogsRegion() {
         if (!ImGui.beginChild("##Scrolling_logs")) {
             ImGui.textDisabled("Cannot initialize region to display logs.");
+            ImGui.endChild();
             return;
         }
 

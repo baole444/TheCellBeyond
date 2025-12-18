@@ -17,6 +17,7 @@ A Java-based game editor with project compile ability, code auto-generation, and
 
 ## Problems need attention:
 - Saving while in test run (runtime mode) will cause override on scene's file.
+- Upon creating a new project, create an object and press play immediately without creating the first scene, popup failed to prevent entering runtime mode, cause lost of scene data.
 
 ## Solved problems:
 - N/A
@@ -26,9 +27,8 @@ A Java-based game editor with project compile ability, code auto-generation, and
 - Maintain compatibility of the project loading system.
 
 ## Current work:
-- [ ] Implement API for StateEngine
 - [ ] Implement API for Sound effect.
-- 
+
 ### Finished work:
 This is a list of finished work and is now in maintaining state:
 <details>
@@ -45,6 +45,7 @@ This is a list of finished work and is now in maintaining state:
 - [X] Reimplementation of object properties panel and component addition/deletion workflow
 - [X] Add a way to save a project.
 - [X] Dynamically loaded assets.
+- [X] Implement API for StateEngine
 
 </details>
 

@@ -4,6 +4,7 @@ import TheCellBeyond.GameObject;
 import editor.ImEditorGui;
 import imgui.ImGui;
 import org.jbox2d.dynamics.contacts.Contact;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2f;
 import utility.log.EngineLog;
 
@@ -15,66 +16,158 @@ import java.util.UUID;
  * It is the leaf of the scene hierarchy, only affected by the immediate object it belongs to.
  * </p>
  * Component can reference each other by name or by hierarchy path.
+ * <p>
+ * If a component A contains nested component member B and C.
+ * Exposing B and C to A's owning {@link GameObject} is not always desired.
+ * In this situation, A need to chain B and C's logic into its own life cycle.
+ * </p>
+ * Example for nested component scenario:
+ * {@snippet lang = java:
+ * public class A extends Component {
+ *     public static class B extends Component {
+ *         // B component's logic
+ *     }
+ *
+ *     public static class C extends Component {
+ *         // C component's logic
+ *     }
+ *
+ *     private C nestedC = new C();
+ *     private B nestedB = new B();
+ *
+ *     @Override
+ *     protected void onStartLogic() {
+ *         nestedB.gameObject = this.gameObject;
+ *         nestedC.gameObject = this.gameObject;
+ *         nestedB.start();
+ *         nestedC.start();
+ *         super.onStarting();
+ *     }
+ *
+ *     @Override
+ *     protected void onUpdate(float dt) {
+ *         nestedB.update(dt);
+ *         nestedC.update(dt);
+ *         super.onUpdate();
+ *     }
+ *
+ *     @Override
+ *     protected void onDestroy() {
+ *         nestedB.destroy();
+ *         nestedC.destroy();
+ *         super.onDestroy();
+ *     }
+ * }
+ *}
  */
 public abstract class Component {
-
     /**
      * Logger for components.
      */
     protected static final EngineLog LOGGER = new EngineLog(Component.class);
 
-    private String uuid;
+    /**
+     * Get the UUID uses to identify this component.
+     */
+    private UUID uuid;
 
     /**
      * The owning {@link GameObject} of this component.
      */
     public transient GameObject gameObject;
 
-    private String componentName;
+    /**
+     * Custom name of this component.
+     * Named component is cached in scene's data for faster access.
+     */
+    private String componentName = null;
 
     public Component() {
-        this.uuid = UUID.randomUUID().toString();
+        uuid = UUID.randomUUID();
     }
 
     /**
      * Initialize the component's state when its {@link GameObject} started.
+     * If a component is added to an already running game object, it will be automatically started.
      * <p>
-     * Called by the owning game object {@link GameObject#start()} logic.
-     * Override this to fully customize the start logic of this component.
-     * @see Component#additionalStartLogic() Add additional component startup logic
+     * Mainly called by the owning game object {@link GameObject#start()} logic.
+     * </p>
+     * Unless there is a very specific use case, it is suggested to override {@link #onStarting()} instead of this.
+     * @see Component#onStarting() Add additional component startup logic
      */
     public void start() {
-        additionalStartLogic();
+        onStarting();
     }
 
     /**
-     * Override this to add additional logic to the startup logic of a component.
+     * Optional hook for additional component's start logic. Suggested override flow:
+     * {@snippet lang = java:
+     * public class CustomComponent extends Component {
+     *     @Override
+     *     protected void onStartLogic() {
+     *         customSubclassLogic();
+     *         super.onStarting();
+     *     }
+     *
+     *     private void customSubclassLogic() {
+     *         // do custom component's logic
+     *     }
+     * }
+     *}
      */
-    protected void additionalStartLogic() {}
+    protected void onStarting() {}
 
     /**
-     * Override this to fully customize the update logic of a component while in editor mode.
-     * @param dt delta time.
-     * @see Component#additionalUpdateLogic(float) Add additional update logic
+     * Step the editor logic of this component by the given delta time.
+     * <p>
+     * Called once per iteration of the game's loop by the owning game object {@link GameObject#editorUpdate(float)}.
+     * This method is used instead of {@link #update(float)} when in editor mode
+     * (not play testing the game or scene).
+     * @param dt delta time
+     * @see #onEditorUpdate(float) Add optional editor update hook
+     * @apiNote
+     * Incorrect use of this method might cause damage to the scene data.
+     * In most cases, a component does not require execution of its logic when the scene is being edited.<br>
+     * All logic executed <b><u>should not</u></b> affect serialized data in an unrecoverable way,
+     * especially related to removal logic.
+     * <p>
+     * Unless for the purpose of implement custom game loop logic, do not call this manually,
+     * as it can cause unwanted editor logic step.
+     * </p>
+     * If this must be called, ensure that, for an instance of {@link Component}, this is only called once.
      */
     public void editorUpdate(float dt) {
-        additionalUpdateLogic(dt);
+        onEditorUpdate(dt);
     }
 
     /**
-     * Override this to fully customize the update logic of a component while in runtime(product) mode.
-     * @param dt delta time.
-     * @see Component#additionalUpdateLogic(float) Add additional update logic
+     * Optional hook for additional component's editor logic.
+     * @param dt delta time
+     */
+    protected void onEditorUpdate(float dt) {}
+
+    /**
+     * Step the logic of this component by the given delta time.
+     * <p>
+     * Called once per iteration of the game's loop by the owning game object {@link GameObject#update(float)}.
+     * </p>
+     * @param dt delta time
+     * @see #onUpdate(float) Add optional update hook
+     * @apiNote
+     * Unless for the purpose of implement custom game loop logic, <b><u>do not</u></b> call this manually,
+     * as it can cause unwanted logic step.
+     * <p>
+     * If this must be called, ensure that, for an instance of {@link Component}, this is only called once.
      */
     public void update(float dt) {
-        additionalUpdateLogic(dt);
+        onUpdate(dt);
     }
 
     /**
-     * Override this to add additional logic to the update logic of a component for both editor and runtime mode.
-     * @param dt delta time.
+     * Optional hook for additional component's logic.
+     * @param dt delta time
      */
-    protected void additionalUpdateLogic(float dt) {}
+    protected void onUpdate(float dt) {}
 
     public void startCollision(GameObject targetObj, Contact contact, Vector2f hitNormalization) {}
 
@@ -88,7 +181,7 @@ public abstract class Component {
      * Upon calling destroy, the component will discard its uuid, game object reference, and its name.
      */
     public final void destroy() {
-        additionalDestroyLogic();
+        onDestroy();
         uuid = null;
         gameObject = null;
         componentName = null;
@@ -99,7 +192,7 @@ public abstract class Component {
      * <p>
      * This is useful for when there are external states that need to be aware of this component's destruction.
      */
-    protected void additionalDestroyLogic() {}
+    protected void onDestroy() {}
 
     public <T extends Component> T getSibling(Class<T> componentClass) {
         if (gameObject == null) return null;
@@ -145,32 +238,48 @@ public abstract class Component {
     }
 
     /**
-     * Override this to add additional field(s) exported to the properties window.
+     * Additional component's properties export.
      */
     protected void additionalImGuiLogic() {}
 
-    public String getUUID() {
-        if (uuid == null) {
-            uuid = UUID.randomUUID().toString();
-        }
-
+    /**
+     * Get the UUID uses for identify this component.
+     * @return the UUID
+     */
+    public UUID getUUID() {
         return uuid;
     }
 
-    public void setUUID(String uuid) {
+    /**
+     * Set the identifier UUID of this component.
+     * @param uuid the UUID to set
+     * @apiNote
+     * <p>
+     * API intended for internal usage only.
+     * </p>
+     * Do not use this method to refresh, or change component UUID.
+     * Doing so will cause inconsistency with the scene data structure and potential data corruption.
+     */
+    public void setUUID(UUID uuid) {
         this.uuid = uuid;
     }
 
+    /**
+     * Get the custom name of this component.
+     * @return the name string, or null if it doesn't have one
+     */
+    @Nullable
     public String getComponentName() {
         return componentName;
     }
 
     /**
-     * Set a custom name for this component.<br>
+     * Set a custom name for this component.
+     * <p>
      * If the name is {@code null} or blank, this remove the custom name of the component instead.
      * @param name the name to update with, nullable
      */
-    public void setComponentName(String name) {
+    public void setComponentName(@Nullable String name) {
         if (name != null && name.isBlank()) name = null;
         componentName = name;
 

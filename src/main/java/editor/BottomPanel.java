@@ -88,6 +88,7 @@ public class BottomPanel {
         }
 
         if (!ImGui.beginChild("##Multipurpose_tab_region", 0.0f, contentReserve, false)) {
+            ImGui.endChild();
             ImGui.end();
             return;
         }
@@ -112,6 +113,7 @@ public class BottomPanel {
 
     private static void renderTabButtons() {
         if (!ImGui.beginChild("##Editor_Bottom_Panel_Tabs", 0.0f, 0.0f, ImGuiChildFlags.None, ImGuiWindowFlags.NoScrollbar)) {
+            ImGui.endChild();
             return;
         }
         if (!widthCalculated) {
