@@ -31,10 +31,15 @@ public class AddObjectDialog {
     private enum ObjectType {
         GameObject("GameObject", "A plain game object, the base of other object types. " +
                 "It support data serialization, object hierarchy tree and mounting components."),
+
         GameObject2D("GameObject2D", "A 2D game object, the base of all 2D-related object types. " +
                 "It exists in the logic spatial world and can supports transformation."),
+
+        StaticBody2D("StaticBody2D", "A 2D static physic object. It exists in both logic spatial and physic world. The object is immovable."),
+
         RigidBody2D("RigidBody2D", "A 2D rigid physic object with full physic simulation. " +
                 "It exists in both logic spatial and physic world. The transformation of the object is the result of physic simulation via applied forces."),
+
         CharacterBody2D("CharacterBody2D", "A specialized 2D physic object that is not affected by physics at all, but it affects other physic objects in its path. " +
                 "It is used to provide API to move objects in a specific way, as is often the case with user-controlled characters or logic driven NPCs.");
 

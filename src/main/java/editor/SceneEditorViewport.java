@@ -29,7 +29,7 @@ public class SceneEditorViewport implements EngineEventListener {
     public transient float currentWidth;
     public transient float currentHeight;
 
-    public SceneEditorViewport() {
+    SceneEditorViewport() {
         EngineEventCallback.register(this);
     }
 
