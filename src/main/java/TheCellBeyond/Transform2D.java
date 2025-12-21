@@ -19,7 +19,7 @@ import utility.WorldUnit;
  * <ul>
  *     <li> Origin: bottom-left corner</li>
  *     <li> X-axis: increase to the right</li>
- *     <li> Y-axis: increate upward</li>
+ *     <li> Y-axis: increase upward</li>
  *     <li> Rotation: positive angle rotate clockwise as viewed on screen
  *     (0 = right, 90 = down, 180 = left, 270 = up)
  *     </li>
@@ -78,7 +78,7 @@ public class Transform2D extends Component {
     }
 
     /**
-     * Create a new {@link Transform2D} and initialize its components with the given position and scale
+     * Create a new {@link Transform2D} and initialize its components with the given position and scale.
      * @param position the positon vector to initialize with
      * @param scale the scale vector to initialize with
      */

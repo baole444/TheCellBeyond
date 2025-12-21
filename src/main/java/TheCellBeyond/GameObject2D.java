@@ -96,7 +96,7 @@ public class GameObject2D extends GameObject {
      * @return the local position vector
      * @see #position(float, float) set the local position for this 2D object
      * @apiNote
-     * Update the value returned by this method will not trigger the transform dirty flag.
+     * Directly modify the vector returned by this method will not trigger the transform dirty flag.
      */
     public Vector2f position() {
         return localTransform2D.position;
@@ -136,7 +136,7 @@ public class GameObject2D extends GameObject {
      * @return the global position vector
      * @see #globalPosition(float, float) Set the global position for this 2D object
      * @apiNote
-     * Update the value returned by this method will not trigger the transform dirty flag.
+     * Directly modify the vector returned by this method will not trigger the transform dirty flag.
      */
     public Vector2f globalPosition() {
         updateGlobalTransform();
@@ -240,7 +240,7 @@ public class GameObject2D extends GameObject {
      * @return the local scale vector
      * @see #scale(float, float) Set the local scale for this 2D object
      * @apiNote
-     * Update the value returned by this method will not trigger the transform dirty flag.
+     * Directly modify the vector returned by this method will not trigger the transform dirty flag.
      */
     public Vector2f scale() {
         return localTransform2D.scale;
@@ -280,7 +280,7 @@ public class GameObject2D extends GameObject {
      * @return the global scale vector
      * @see #globalScale(float, float) Set the global scale for this 2D object
      * @apiNote
-     * Update the value returned by this method will not trigger the transform dirty flag.
+     * Directly modify the vector returned by this method will not trigger the transform dirty flag.
      */
     public Vector2f globalScale() {
         updateGlobalTransform();
@@ -323,7 +323,7 @@ public class GameObject2D extends GameObject {
                 return;
             }
 
-            localTransform2D.scale.set(x, y).div(x, y);
+            localTransform2D.scale.set(x, y).div(parentScale);
         }
 
         setTransformDirty();
@@ -407,7 +407,8 @@ public class GameObject2D extends GameObject {
      *        |_This object
      * }
      * <br>
-     * This method will return 2D object {@code B}
+     * This method will return 2D object {@code B}, object {@code C} was skipped
+     * since it is not the correct {@link GameObject2D} type or its subclasses.
      * @return the nearest ancestor of type {@link GameObject2D} or its subclasses
      */
     public GameObject2D getParent2D() {
