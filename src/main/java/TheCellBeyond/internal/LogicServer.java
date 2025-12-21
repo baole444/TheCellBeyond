@@ -7,6 +7,7 @@ import editor.preference.RecentProject;
 import editor.preference.UserPreference;
 import eventviewer.EngineEventCallback;
 import eventviewer.EngineEventListener;
+import eventviewer.event.EditorEvent;
 import eventviewer.event.Event;
 import physic2d.Physic2D;
 import project.Project;
@@ -24,6 +25,8 @@ public class LogicServer implements EngineEventListener {
     private static Scene currentScene;
     private static String currentSceneName;
     private static boolean runtimeMode = false;
+
+    private static boolean runtimeCrashed = false;
 
     static {
         instance = new LogicServer();
@@ -66,12 +69,44 @@ public class LogicServer implements EngineEventListener {
     }
 
     public static void loop(float dt)  {
+        if (runtimeCrashed) return;
+
         if (runtimeMode) {
-            currentScene.update(dt);
+            try {
+                currentScene.update(dt);
+            } catch (Exception e) {
+                runtimeCrashed = true;
+                LOGGER.warning("Test play stopped due to exception");
+                logCrash(e);
+                EngineEventCallback.emit(null, new Event(EditorEvent.RuntimeCrashed));
+            }
+
             return;
         }
 
         currentScene.editorUpdate(dt);
+    }
+
+    private static void logCrash(Exception e) {
+        LOGGER.error("Runtime exception occurred:");
+        LOGGER.error(String.format("Message: %s", e.getMessage()));
+
+        int stackCount = 0;
+        for (StackTraceElement element : e.getStackTrace()) {
+            String className = element.getClassName();
+
+            if (className.startsWith("java.") || className.startsWith("sun.") || className.startsWith("javax.") || className.startsWith("jdk.")) continue;
+
+            LOGGER.error(String.format("    at %s", element));
+            stackCount++;
+
+            if (className.equals(LogicServer.class.getCanonicalName()) && element.getMethodName().equals("loop")) break;
+
+            if (stackCount >= 15) {
+                LOGGER.error("    ... (more folded frames)");
+                break;
+            }
+        }
     }
 
     @Override
@@ -87,6 +122,11 @@ public class LogicServer implements EngineEventListener {
                 runtimeMode = false;
                 changeScene(new SceneEditor());
                 LOGGER.info("Test play stopped.");
+            }
+            case RuntimeCrashed -> {
+                runtimeMode = false;
+                runtimeCrashed = false;
+                changeScene(new SceneEditor());
             }
             case LoadEditingScene -> {
                 runtimeMode = false;

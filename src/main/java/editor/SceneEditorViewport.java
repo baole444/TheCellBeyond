@@ -6,6 +6,7 @@ import TheCellBeyond.internal.LogicServer;
 import editor.dialog.SaveSceneAsDialog;
 import editor.preference.EditorPreferences;
 import editor.preference.UserPreference;
+import eventviewer.EngineEventListener;
 import project.Project;
 import eventviewer.EngineEventCallback;
 import eventviewer.event.Event;
@@ -20,13 +21,17 @@ import imgui.type.ImBoolean;
 import org.joml.Vector2f;
 import render.FrameBuffer;
 
-public class SceneEditorViewport {
+public class SceneEditorViewport implements EngineEventListener {
     public static volatile String WINDOW_ID = "2D Scene###Editor_Scene_Viewport";
     private float leftX, rightX, topY, bottomY;
     private boolean isPlaying = false;
     private String currentSceneName = "New scene";
     public transient float currentWidth;
     public transient float currentHeight;
+
+    public SceneEditorViewport() {
+        EngineEventCallback.register(this);
+    }
 
     public void imgui() {
         String sceneName = LogicServer.currentSceneName();
@@ -162,5 +167,13 @@ public class SceneEditorViewport {
         float portY = (winSize.y / 2.0f) - (usableSize.y / 2.0f);
 
         return new ImVec2(portX + ImGui.getCursorPosX(), portY + ImGui.getCursorPosY());
+    }
+
+    @Override
+    public void onEventEmit(Object object, Event event) {
+        switch (event.type) {
+            case EngineStop, RuntimeCrashed -> isPlaying = false;
+            case EngineStart -> isPlaying = true;
+        }
     }
 }
