@@ -1,28 +1,31 @@
 package components;
 
-import TheCellBeyond.Transform;
+import TheCellBeyond.Transform2D;
 import org.joml.Vector2f;
 
 public interface Transformation {
 
     /**
-     * Get component's local transform
+     * Get the local transform of this transformation interface.
+     * @return the local transform
      */
-    Transform getLocalTransform();
+    Transform2D getLocalTransform();
 
     /**
-     * Get component's final transform (local transform with the Object's transform)
+     * Get the global transform of this transformation interface.
+     * @return the global transform
      */
-    Transform getEffectiveTransform();
+    Transform2D getEffectiveTransform();
 
     /**
-     * Set the component's local transform
-     * @param transform the transform that will be used as offset for this component
+     * Set the values for the local transform of this transformation interface.
+     * @param transform2D the transform to update with
      */
-    void setLocalTransform(Transform transform);
+    void setLocalTransform(Transform2D transform2D);
 
     /**
-     * Get the world position of the game object that own this component
+     * Get the global position from the owning 2D object of this interface.
+     * @return the global positon vector
      */
     Vector2f getObjectWorldPosition();
 }

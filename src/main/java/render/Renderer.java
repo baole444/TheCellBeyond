@@ -130,7 +130,7 @@ public class Renderer {
         boolean isAdded = false;
         for (TileBatch tileBatch : tileBatches) {
             if (tileBatch.hasMap(map)) return;
-            if (!tileBatch.hasSpace() || tileBatch.zIndex() != map.getzIndex()) continue;
+            if (!tileBatch.hasSpace() || tileBatch.zIndex() != map.globalZIndex()) continue;
 
             tileBatch.loadTileMap(map);
             isAdded = true;
@@ -138,7 +138,7 @@ public class Renderer {
         }
 
         if (!isAdded) {
-            TileBatch newTileBatch = new TileBatch(map, map.getzIndex(), this);
+            TileBatch newTileBatch = new TileBatch(map, map.globalZIndex(), this);
             newTileBatch.start();
 
             if (projectionMatrix != null) newTileBatch.setProjectionMatrix(projectionMatrix);
@@ -155,7 +155,7 @@ public class Renderer {
         boolean isAdded = false;
         for (TextureBatch textureBatch : textureBatches) {
             if (textureBatch.hasSprite(sprite)) return;
-            if (!textureBatch.hasSpace() || textureBatch.zIndex() != sprite.getzIndex()) continue;
+            if (!textureBatch.hasSpace() || textureBatch.zIndex() != sprite.globalZIndex()) continue;
 
             Texture t = sprite.getTexture();
             if (t == null || textureBatch.hasTexture(t) || textureBatch.isTextureCapacityValid()) {
@@ -166,7 +166,7 @@ public class Renderer {
         }
 
         if (!isAdded) {
-            TextureBatch newTextureBatch = new TextureBatch(MAX_BATCH_SIZE, sprite.getzIndex(), this);
+            TextureBatch newTextureBatch = new TextureBatch(MAX_BATCH_SIZE, sprite.globalZIndex(), this);
             newTextureBatch.start();
 
             if (projectionMatrix != null) newTextureBatch.setProjectionMatrix(projectionMatrix);
@@ -182,7 +182,7 @@ public class Renderer {
         if (text == null) return;
 
         boolean isAdded = false;
-        int zIndex = text.getzIndex();
+        int zIndex = text.globalZIndex();
 
         for (TextBatch batch : textBatches) {
             if (batch.hasSpace() && batch.getzIndex() == zIndex) {

@@ -16,6 +16,7 @@ import imgui.flag.ImGuiTableFlags;
 import imgui.flag.ImGuiTreeNodeFlags;
 import scene.Scene;
 import utility.IdPool;
+import utility.log.EngineLog;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -53,9 +54,13 @@ import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_1;
  * </ul>
  * <p>
  * <b>Inherited by:</b> {@link GameObject2D}
- * </p>
  */
 public class GameObject {
+    /**
+     * Logger for game objects.
+     */
+    protected static final EngineLog LOGGER = new EngineLog(GameObject.class);
+
     /**
      * Unique ID distributor for {@link GameObject}, managed the {@link #cachedID} of each object.
      */
@@ -131,7 +136,7 @@ public class GameObject {
     private final List<UUID> childrenUUIDs;
 
     /**
-     * Create a new {@link GameObject}
+     * Create a new {@link GameObject}.
      */
     public GameObject() {
         String name = GameObject2D.class.getSimpleName();
@@ -393,7 +398,6 @@ public class GameObject {
      * }
      * Because {@link components.AnimatedSpriteRenderer} is subclass of {@link components.SpriteRenderer},
      * The returned component is the same as the {@code animatedSpriteRenderer} created and added in {@code newGameObject} method.
-     * <br>
      * </p>
      * @param componentClass the class of the component
      * @return the first {@link Component} of type {@code T} or its subclasses

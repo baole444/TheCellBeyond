@@ -40,8 +40,8 @@ public class Physic2D {
         List<CollisionShape2D> collisionShapes = physicBody2D.getComponents(CollisionShape2D.class);
         if (physicBody2D.getPhysicBodyRef() != null) return;
 
-        Vector2f initialPos = physicBody2D.getPosition();
-        float initialRot = physicBody2D.getRotation();
+        Vector2f initialPos = physicBody2D.globalPosition();
+        float initialRot = physicBody2D.globalRotation();
 
         BodyDef bodyDef = new BodyDef();
         bodyDef.angle = Math.toRadians(initialRot);

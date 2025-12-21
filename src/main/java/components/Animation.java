@@ -12,6 +12,10 @@ import java.util.List;
 public class Animation {
     private final List<Frame> frames = new ArrayList<>();
     private float speedMultiplier = 1.0f;
+
+    /**
+     * Should this animation repeat when the frame sequence reach its end.
+     */
     public boolean loop = false;
 
     private transient int frameIndex = 0;

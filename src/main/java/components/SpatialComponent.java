@@ -1,13 +1,13 @@
 package components;
 
 import TheCellBeyond.GameObject2D;
-import TheCellBeyond.Transform;
+import TheCellBeyond.Transform2D;
 import imgui.ImGui;
 import org.joml.Vector2f;
 
 public abstract class SpatialComponent extends Component implements Transformation {
-    protected final Transform localTransform = new Transform();
-    private transient Transform effectiveTransform = null;
+    protected final Transform2D localTransform2D = new Transform2D();
+    private transient Transform2D effectiveTransform2D = null;
     private transient boolean isTransformDirty = true;
 
     @Override
@@ -17,105 +17,112 @@ public abstract class SpatialComponent extends Component implements Transformati
     }
 
     @Override
-    public Transform getLocalTransform() {
-        return localTransform;
+    public Transform2D getLocalTransform() {
+        return localTransform2D;
     }
 
     @Override
-    public Transform getEffectiveTransform() {
+    public Transform2D getEffectiveTransform() {
         updateEffectiveTransform();
 
-        return effectiveTransform;
+        return effectiveTransform2D;
     }
 
     @Override
-    public void setLocalTransform(Transform transform) {
-        this.localTransform.copyFrom(transform);
+    public void setLocalTransform(Transform2D transform2D) {
+        this.localTransform2D.copy(transform2D);
         setTransformDirty();
     }
 
     @Override
     public Vector2f getObjectWorldPosition() {
-        if (gameObject instanceof GameObject2D go2D) return go2D.getPosition();
+        if (gameObject instanceof GameObject2D go2D) return go2D.globalPosition();
 
-        return new Vector2f(localTransform.position);
+        return new Vector2f(localTransform2D.position);
     }
 
     @Override
     public void imgui() {
         super.imgui();
-        Transform editing = new Transform(localTransform);
+        Transform2D editing = new Transform2D(localTransform2D);
         ImGui.indent();
-        localTransform.imgui();
+        localTransform2D.imgui();
         ImGui.unindent();
-        if (!editing.equals(localTransform)) setTransformDirty();
+        if (!editing.equals(localTransform2D)) setTransformDirty();
     }
 
     // Get effective (final) transform
-    public Vector2f getPosition() {
-        return new Vector2f(getEffectiveTransform().position);
+    public Vector2f globalPosition() {
+        return getEffectiveTransform().position;
     }
 
-    public Vector2f getScale() {
-        return new Vector2f(getEffectiveTransform().scale);
+    public Vector2f globalScale() {
+        return getEffectiveTransform().scale;
     }
 
-    public float getRotation() {
+    public float globalRotation() {
         return getEffectiveTransform().rotation;
     }
 
-    public int getzIndex() {
+    public int globalZIndex() {
         return getEffectiveTransform().zIndex;
     }
 
     // Get local (offset) transform
-
-    public Vector2f getLocalPosition() {
-        return new Vector2f(localTransform.position);
+    public Vector2f position() {
+        return localTransform2D.position;
     }
 
-    public Vector2f getLocalScale() {
-        return new Vector2f(localTransform.scale);
+    public Vector2f scale() {
+        return localTransform2D.scale;
     }
 
-    public float getLocalRotation() {
-        return localTransform.rotation;
+    public float rotation() {
+        return localTransform2D.rotation;
     }
 
-    public int getLocalZIndex() {
-        return localTransform.zIndex;
+    public int zIndex() {
+        return localTransform2D.zIndex;
     }
 
     // Set local (offset) transform
+    public void position(Vector2f position) {
+        if (position == null) return;
+        position(position.x, position.y);
+    }
 
-    public void setLocalPosition(Vector2f position) {
-        localTransform.position.set(position);
+    public void position(float x, float y) {
+        localTransform2D.position.set(x, y);
         setTransformDirty();
     }
 
-    public void setLocalScale(Vector2f scale) {
-        localTransform.scale.set(scale);
+    public void scale(Vector2f scale) {
+        if (scale == null) return;
+        scale(scale.x, scale.y);
+    }
+
+    public void scale(float x, float y) {
+        localTransform2D.scale.set(x, y);
         setTransformDirty();
     }
 
-    public void setLocalRotation(float rotation) {
-        localTransform.rotation = rotation;
+    public void rotation(float rotation) {
+        localTransform2D.rotation = rotation;
         setTransformDirty();
     }
 
-    public void setLocalZIndex(int zIndex) {
-        localTransform.zIndex = zIndex;
+    public void zIndex(int zIndex) {
+        localTransform2D.zIndex = zIndex;
         setTransformDirty();
     }
 
     // Set world transform (Update local transform base on world transform and object transform)
-
     public void setWorldPosition(Vector2f worldPosition) {
         if (gameObject instanceof GameObject2D go2D) {
-            Vector2f goPosition = go2D.getPosition();
-            localTransform.position.set(worldPosition).sub(goPosition);
+            Vector2f goPosition = go2D.globalPosition();
+            localTransform2D.position.set(worldPosition).sub(goPosition);
         } else {
-            localTransform.position.set(worldPosition);
+            localTransform2D.position.set(worldPosition);
         }
 
         setTransformDirty();
@@ -123,15 +130,15 @@ public abstract class SpatialComponent extends Component implements Transformati
 
     public void setWorldScale(Vector2f worldScale) {
         if (gameObject instanceof GameObject2D go2D) {
-            Vector2f goScale = go2D.getScale();
+            Vector2f goScale = go2D.globalScale();
 
             if (goScale.x != 0 && goScale.y != 0) {
-                localTransform.scale.set(worldScale).div(goScale);
+                localTransform2D.scale.set(worldScale).div(goScale);
             } else {
-                localTransform.scale.set(worldScale);
+                localTransform2D.scale.set(worldScale);
             }
         } else {
-            localTransform.scale.set(worldScale);
+            localTransform2D.scale.set(worldScale);
         }
 
         setTransformDirty();
@@ -139,10 +146,10 @@ public abstract class SpatialComponent extends Component implements Transformati
 
     public void setWorldRotation(float worldRotation) {
         if (gameObject instanceof GameObject2D go2D) {
-            float goRotation = go2D.getRotation();
-            localTransform.rotation = worldRotation - goRotation;
+            float goRotation = go2D.globalRotation();
+            localTransform2D.rotation = worldRotation - goRotation;
         } else {
-            localTransform.rotation = worldRotation;
+            localTransform2D.rotation = worldRotation;
         }
 
         setTransformDirty();
@@ -156,25 +163,25 @@ public abstract class SpatialComponent extends Component implements Transformati
     protected void additionalDirtyFlagLogic() {}
 
     private void updateEffectiveTransform() {
-        if (!isTransformDirty && effectiveTransform != null) return;
+        if (!isTransformDirty && effectiveTransform2D != null) return;
 
-        if (effectiveTransform == null) effectiveTransform = new Transform();
+        if (effectiveTransform2D == null) effectiveTransform2D = new Transform2D();
 
         if (gameObject instanceof GameObject2D go2D) {
             if (go2D.isTransformUpdating()) return;
 
-            Transform goTransform = go2D.getGlobalTransform();
-            effectiveTransform.copyFrom(goTransform);
+            Transform2D goTransform2D = go2D.globalTransform();
+            effectiveTransform2D.copy(goTransform2D);
 
-            addTransforms(effectiveTransform, localTransform);
+            addTransforms(effectiveTransform2D, localTransform2D);
         } else {
-            effectiveTransform.copyFrom(localTransform);
+            effectiveTransform2D.copy(localTransform2D);
         }
 
         isTransformDirty = false;
     }
 
-    private void addTransforms(Transform target, Transform offset) {
+    private void addTransforms(Transform2D target, Transform2D offset) {
         target.position.add(offset.position);
         target.rotation += offset.rotation;
         target.scale.mul(offset.scale);

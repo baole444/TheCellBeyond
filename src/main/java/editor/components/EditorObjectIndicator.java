@@ -52,8 +52,8 @@ public class EditorObjectIndicator extends SpriteRenderer implements NotSerializ
         if (sprite == null) return;
         setSprite(sprite);
 
-        setLocalZIndex(Viewport.farZIndex);
-        localTransform.relativeZIndex = false;
+        zIndex(Viewport.farZIndex);
+        localTransform2D.relativeZIndex = false;
 
         isInitialized = true;
     }

@@ -5,6 +5,7 @@ import editor.Properties;
 import editor.SceneTree;
 import editor.preference.RecentProject;
 import editor.preference.UserPreference;
+import eventviewer.EngineEventCallback;
 import eventviewer.EngineEventListener;
 import eventviewer.event.Event;
 import physic2d.Physic2D;
@@ -18,10 +19,19 @@ import utility.log.EngineLog;
 import java.util.List;
 
 public class LogicServer implements EngineEventListener {
+    private static final LogicServer instance;
     private static final EngineLog LOGGER = new EngineLog(LogicServer.class);
     private static Scene currentScene;
     private static String currentSceneName;
     private static boolean runtimeMode = false;
+
+    static {
+        instance = new LogicServer();
+    }
+
+    private LogicServer() {
+        EngineEventCallback.register(this);
+    }
 
     public static void changeScene(SceneInit sceneInit) {
         if (currentScene != null) currentScene.destroy();

@@ -136,7 +136,7 @@ public class TextureBatch implements Comparable<TextureBatch> {
     public void render() {
         for (int i = 0; i < countSprite; i++) {
             SpriteRenderer spr = sprites[i];
-            if (spr.getzIndex() != zIndex) {
+            if (spr.globalZIndex() != zIndex) {
                 removeIfExist(spr.gameObject);
                 renderer.switchZIndex(spr.gameObject);
                 i--;
@@ -252,9 +252,9 @@ public class TextureBatch implements Comparable<TextureBatch> {
         }
 
         Vector2f worldSize = spriteRenderer.getSpriteSizeAsWorldUnit();
-        Vector2f pos = spriteRenderer.getPosition();
-        Vector2f scale = spriteRenderer.getScale();
-        float rotation = spriteRenderer.getRotation();
+        Vector2f pos = spriteRenderer.globalPosition();
+        Vector2f scale = spriteRenderer.globalScale();
+        float rotation = spriteRenderer.globalRotation();
         boolean isTransformed = rotation != 0.0f || !scale.equals(new Vector2f(1.0f, 1.0f));
         boolean isIndicator = spriteRenderer instanceof EditorObjectIndicator;
 

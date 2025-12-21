@@ -5,7 +5,6 @@ import imgui.ImGui;
 import imgui.flag.ImGuiTreeNodeFlags;
 import org.jbox2d.collision.shapes.CircleShape;
 import org.jbox2d.collision.shapes.Shape;
-import org.jbox2d.common.Settings;
 import org.joml.Vector2f;
 import render.DebugDraw;
 
@@ -22,7 +21,7 @@ public class CircleCollider2D extends CollisionShape2D {
     }
 
     public float getEffectiveRadius() {
-        Vector2f scale = getScale();
+        Vector2f scale = globalScale();
         float effectiveR = radius * ((scale.x + scale.y) / 2.0f);
         return Math.max(effectiveR, MinimumShapeDimension);
     }
@@ -32,7 +31,7 @@ public class CircleCollider2D extends CollisionShape2D {
         CircleShape shape = new CircleShape();
         float radius = getEffectiveRadius();
         shape.setRadius(radius);
-        Vector2f localPos = getLocalPosition();
+        Vector2f localPos = position();
         shape.m_p.set(localPos.x, localPos.y);
         return shape;
     }
@@ -41,7 +40,7 @@ public class CircleCollider2D extends CollisionShape2D {
     protected void drawDebugShape() {
         if (gameObject == null) return;
         float radius = getEffectiveRadius();
-        DebugDraw.addCircle(getPosition(), radius);
+        DebugDraw.addCircle(globalPosition(), radius);
     }
 
     @Override

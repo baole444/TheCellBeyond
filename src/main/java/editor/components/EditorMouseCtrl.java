@@ -85,7 +85,7 @@ public class EditorMouseCtrl extends Component implements NotSerializeComponent 
 
         Vector2f targetPos = getTargetPos();
         if (holdObj instanceof GameObject2D go2D) {
-            go2D.setPosition(targetPos);
+            go2D.position(targetPos);
         } else if (holdObj instanceof GameObject go) {
             for (Component c : go.getComponents()) {
                 if (c instanceof SpatialComponent sC) sC.setWorldPosition(targetPos);
@@ -128,7 +128,7 @@ public class EditorMouseCtrl extends Component implements NotSerializeComponent 
             TileMap editingTileMap = TileMapEditor.getEditingTileMap();
 
             if (editingTileMap != null && editingTileMap.getTileSet() != null) {
-                Vector2f tileMapPos = editingTileMap.getPosition();
+                Vector2f tileMapPos = editingTileMap.globalPosition();
                 Vector2i gridSize = editingTileMap.getTileSet().getGridSize();
 
                 float gridWidth = WorldUnit.pixelToWorld(gridSize.x);

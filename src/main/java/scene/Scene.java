@@ -181,7 +181,7 @@ public class Scene {
 
     public boolean reparentObject(GameObject child, GameObject newParent) {
         if (child == null) return false;
-        if (newParent != null && (child == newParent || child.isAncestor(newParent))) {
+        if (newParent != null && (child == newParent || newParent.isAncestor(child))) {
             return false;
         }
 

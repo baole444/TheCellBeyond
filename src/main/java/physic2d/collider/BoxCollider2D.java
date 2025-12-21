@@ -5,7 +5,6 @@ import imgui.ImGui;
 import imgui.flag.ImGuiTreeNodeFlags;
 import org.jbox2d.collision.shapes.PolygonShape;
 import org.jbox2d.collision.shapes.Shape;
-import org.jbox2d.common.Settings;
 import org.jbox2d.common.Vec2;
 import org.joml.Vector2f;
 import render.DebugDraw;
@@ -25,7 +24,7 @@ public class BoxCollider2D extends CollisionShape2D {
     }
 
     public Vector2f getEffectiveHalfSize() {
-        Vector2f effectiveHalfSize = new Vector2f(halfSize).mul(getScale());
+        Vector2f effectiveHalfSize = new Vector2f(halfSize).mul(globalScale());
         effectiveHalfSize.x = Math.max(effectiveHalfSize.x, MinimumShapeDimension);
         effectiveHalfSize.y = Math.max(effectiveHalfSize.y, MinimumShapeDimension);
         return effectiveHalfSize;
@@ -35,8 +34,8 @@ public class BoxCollider2D extends CollisionShape2D {
     public Shape createCollisionShape() {
         PolygonShape shape = new PolygonShape();
         Vector2f effectiveHalfSize = getEffectiveHalfSize();
-        Vector2f localPos = getLocalPosition();
-        shape.setAsBox(effectiveHalfSize.x, effectiveHalfSize.y, new Vec2(localPos.x, localPos.y), (float) Math.toRadians(getLocalRotation()));
+        Vector2f localPos = position();
+        shape.setAsBox(effectiveHalfSize.x, effectiveHalfSize.y, new Vec2(localPos.x, localPos.y), (float) Math.toRadians(rotation()));
         return shape;
     }
 
@@ -44,7 +43,7 @@ public class BoxCollider2D extends CollisionShape2D {
     protected void drawDebugShape() {
         if (gameObject == null) return;
 
-        DebugDraw.addBox2(getPosition(), getEffectiveHalfSize().mul(2.0f), getRotation());
+        DebugDraw.addBox2(globalPosition(), getEffectiveHalfSize().mul(2.0f), globalRotation());
     }
 
     @Override

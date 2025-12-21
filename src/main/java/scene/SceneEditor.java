@@ -1,7 +1,7 @@
 package scene;
 
 import TheCellBeyond.GameObject;
-import TheCellBeyond.Transform;
+import TheCellBeyond.Transform2D;
 import components.*;
 import editor.EditorIcons;
 import editor.components.*;
@@ -61,7 +61,7 @@ public class SceneEditor extends SceneInit implements EngineEventListener {
 
         levelEditorObject = new GameObject("EditorObject");
         levelEditorObject.setNotSerialize();
-        levelEditorObject.addComponents(new IsNotSelectable(), new Transform(),
+        levelEditorObject.addComponents(new IsNotSelectable(), new Transform2D(),
                 new EditorMouseCtrl(), new EditorKeyCtrl(), new EditorGrid(),
                 new EditorTileMapGrid(), new EditorTileMapCtrl(),
                 new EditorSceneCtrl(scene.viewport()), new EditorGizmoCtrl()

@@ -21,6 +21,8 @@ import java.util.UUID;
  * Exposing B and C to A's owning {@link GameObject} is not always desired.
  * In this situation, A need to chain B and C's logic into its own life cycle.
  * </p>
+ * <b>Inherited by:</b> {@link SpatialComponent}, {@link TheCellBeyond.Transform2D}, {@link Controller2D}, {@link StateEngine}
+ * <p>
  * Example for nested component scenario:
  * {@snippet lang = java:
  * public class A extends Component {
@@ -223,8 +225,7 @@ public abstract class Component {
     }
 
     /**
-     * Override this to fully customize the exported field(s) in the properties window.
-     * @see Component#additionalImGuiLogic() Add additional field export logic
+     * Export this component's properties for editing in the Editor UI.
      */
     public void imgui() {
         if (componentName == null) {

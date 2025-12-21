@@ -170,7 +170,7 @@ public class CharacterBody2D extends PhysicBody2D {
         if (slideCollisionCount >= MaxCollisionSlide || motion.lengthSquared() < safeMargin * safeMargin) return new Vector2f();
 
         slideCollisionCount++;
-        Vector2f currentPos = getPosition();
+        Vector2f currentPos = globalPosition();
         Vector2f targetPos = new Vector2f(currentPos).add(motion);
 
         RayCastInfo rayCast = LogicServer.physic2D().rayCastInfo(this, currentPos, targetPos);
@@ -244,7 +244,7 @@ public class CharacterBody2D extends PhysicBody2D {
         if (motionMode != MotionMode.Grounded) return;
         if (physicBodyRef == null) return;
 
-        Vector2f pos = getPosition();
+        Vector2f pos = globalPosition();
         Vector2f safeDistance = new Vector2f(UpDirection).mul(-safeMargin * 2.0f);
         Vector2f targetPos = new Vector2f(pos).add(safeDistance);
 
@@ -259,7 +259,7 @@ public class CharacterBody2D extends PhysicBody2D {
         if (motionMode != MotionMode.Grounded) return;
         if (physicBodyRef == null || floorSnapDistance <= 0.0f) return;
 
-        Vector2f currentPos = getPosition();
+        Vector2f currentPos = globalPosition();
         Vector2f snapDistance = new Vector2f(UpDirection).mul(-floorSnapDistance);
         Vector2f targetPos = new Vector2f(currentPos).add(snapDistance);
 

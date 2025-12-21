@@ -15,11 +15,11 @@ import utility.WorldUnit;
 
 public class EditorGrid extends Component implements NotSerializeComponent {
     private static final Vector4f normalGridColor = new Vector4f(0.5f, 0.5f, 0.35f, 0.35f);
-    private static final Vector4f centralLinesColor = new Vector4f(1.0f);
+    private static final Vector4f centralLinesColor = new Vector4f(0.75f);
     private static final Vector4f verticalBoundColor = new Vector4f(0.5f, 0.5f, 1.0f, 0.75f);
     private static final Vector4f horizontalBoundColor = new Vector4f(1.0f, 0.0f, 1.0f, 0.75f);
 
-    public static final float epsilon = 0.01f;
+    public static final float minimumGap = 0.01f;
 
     @Override
     public void editorUpdate(float dt) {
@@ -77,12 +77,12 @@ public class EditorGrid extends Component implements NotSerializeComponent {
     private boolean canDrawVerticalLine(int index, int verticalLineCount, float x) {
         if (index >= verticalLineCount) return false;
 
-        return Math.abs(x) > epsilon;
+        return Math.abs(x) > minimumGap;
     }
 
     private boolean canDrawHorizontalLine(int index, int horizontalLineCount, float y) {
         if (index >= horizontalLineCount) return false;
 
-        return Math.abs(y) > epsilon;
+        return Math.abs(y) > minimumGap;
     }
 }

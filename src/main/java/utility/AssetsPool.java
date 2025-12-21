@@ -13,6 +13,17 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * AssetsPool caches assets that loaded into the Engine. These include:
+ * <ul>
+ *     <li> Shader: the shader programs for rendering</li>
+ *     <li> Texture: the textures of imported images</li>
+ *     <li> Font Atlas: the textures of imported fonts</li>
+ *     <li> Sprite sheet: the sheet of sprites cut from textures</li>
+ *     <li> Texture unit: standalone sprites</li>
+ *     <li> Sound: the sound object of imported audio</li>
+ * </ul>
+ */
 public class AssetsPool {
     private record AtlasKey(String canonicalPath, GlyphRange glyphRange) {}
 
@@ -22,6 +33,11 @@ public class AssetsPool {
     private static final Map<String, SpriteSheet> spritesheets = new ConcurrentHashMap<>();
     private static final Map<String, TextureUnit> textureUnits = new ConcurrentHashMap<>();
     private static final Map<String, Sound> sounds = new ConcurrentHashMap<>();
+
+    /**
+     * AssetsPool is a utility class, no instance allowed.
+     */
+    private AssetsPool() {}
 
     public static Shader loadShader(String path) {
         PathResolver resolver = PathResolver.get();

@@ -42,8 +42,8 @@ public abstract class PhysicBody2D extends GameObject2D {
             Vector2f physicPos = new Vector2f(physicBodyRef.getPosition().x, physicBodyRef.getPosition().y);
             float physicRot = Math.toDegrees(physicBodyRef.getAngle());
 
-            setPosition(physicPos);
-            setRotation(physicRot);
+            position(physicPos);
+            rotation(physicRot);
         }
 
         super.update(dt);
@@ -89,8 +89,8 @@ public abstract class PhysicBody2D extends GameObject2D {
         this.physicBodyRef = physicBodyRef;
 
         if (physicBodyRef == null) return;
-        Vector2f currentPos = getPosition();
-        float currentRot = getRotation();
+        Vector2f currentPos = globalPosition();
+        float currentRot = globalRotation();
 
         this.physicBodyRef.setTransform(new Vec2(currentPos.x, currentPos.y), Math.toRadians(currentRot));
     }

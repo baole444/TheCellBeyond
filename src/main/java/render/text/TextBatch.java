@@ -180,7 +180,7 @@ public class TextBatch implements Comparable<TextBatch> {
             String text = textRenderer.getText();
             if (text.isEmpty()) continue;
 
-            Vector2f positon = textRenderer.getPosition();
+            Vector2f positon = textRenderer.globalPosition();
             Vector4f color;
             if (RendererState.isSelectionPass()) {
                 color = new Vector4f(1.0f, 1.0f, 1.0f, 1.0f);

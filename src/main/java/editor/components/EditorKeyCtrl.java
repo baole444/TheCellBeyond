@@ -42,7 +42,7 @@ public class EditorKeyCtrl extends Component implements NotSerializeComponent {
             LogicServer.currentScene().queueForObjectAddition(newObj);
 
             if (newObj instanceof GameObject2D go2D) {
-                Vector2f currentPos = go2D.getOffsetPosition();
+                Vector2f currentPos = go2D.position();
                 currentPos.add(Settings.GRID_WIDTH / 2.0f, Settings.GRID_HEIGHT / 2.0f);
             }
 

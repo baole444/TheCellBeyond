@@ -11,7 +11,6 @@ import utility.Settings;
  */
 public class EditorGizmoCtrl extends Component {
     private static final String PATH = Settings.TexturePath.Gizmo;
-    private static int isGizUse = 0;
     private static EditorGizmoType gizmoType = EditorGizmoType.Translate;
 
     private transient SpriteSheet gizmo;

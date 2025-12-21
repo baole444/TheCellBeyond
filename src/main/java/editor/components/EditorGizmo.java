@@ -66,7 +66,7 @@ public class EditorGizmo extends SpatialComponent implements NotSerializeCompone
         go2D.addComponent(new IsNotSelectable());
 
         SpriteRenderer renderer = new SpriteRenderer();
-        renderer.setLocalZIndex(100);
+        renderer.zIndex(100);
         renderer.setSprite(sprite);
 
         go2D.addComponent(renderer);
@@ -112,13 +112,13 @@ public class EditorGizmo extends SpatialComponent implements NotSerializeCompone
             return;
         }
 
-        Vector2f targetPos = go2D.getPosition();
+        Vector2f targetPos = go2D.globalPosition();
         setWorldPosition(targetPos);
 
         gizmoWorldPos.set(getObjectWorldPosition());
 
-        xAxisObj.setPosition(new Vector2f(gizmoWorldPos).add(xOffset));
-        yAxisObj.setPosition(new Vector2f(gizmoWorldPos).add(yOffset));
+        xAxisObj.position(new Vector2f(gizmoWorldPos).add(xOffset));
+        yAxisObj.position(new Vector2f(gizmoWorldPos).add(yOffset));
     }
 
     private void handleInteraction() {
@@ -149,7 +149,7 @@ public class EditorGizmo extends SpatialComponent implements NotSerializeCompone
 
     private boolean isHoverX() {
         Vector2f cursorPos = MouseListener.getWorldPosition();
-        Vector2f xAxisPos = this.xAxisObj.getPosition();
+        Vector2f xAxisPos = this.xAxisObj.globalPosition();
         if (cursorPos.x <= xAxisPos.x + (gizHeight / 2.0f) &&
                 cursorPos.x >= xAxisPos.x - (gizWidth / 2.0f) &&
                 cursorPos.y >= xAxisPos.y - (gizHeight / 2.0f) &&
@@ -164,7 +164,7 @@ public class EditorGizmo extends SpatialComponent implements NotSerializeCompone
 
     private boolean isHoverY() {
         Vector2f cursorPos = MouseListener.getWorldPosition();
-        Vector2f yAxisPos = this.yAxisObj.getPosition();
+        Vector2f yAxisPos = this.yAxisObj.globalPosition();
         if (cursorPos.x <= yAxisPos.x + (gizWidth / 2.0f) &&
                 cursorPos.x >= yAxisPos.x - (gizWidth / 2.0f) &&
                 cursorPos.y <= yAxisPos.y + (gizHeight / 2.0f) &&

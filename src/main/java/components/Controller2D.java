@@ -274,8 +274,8 @@ public final class Controller2D extends Component {
         if (!isGameObjectSpatialCompatible || gameObject2D == null) return;
 
         Vector2f displacement = new Vector2f(movementVelocity).mul(dt);
-        Vector2f currentPos = gameObject2D.getPosition();
-        gameObject2D.setPosition(currentPos.x + displacement.x, currentPos.y + displacement.y);
+        Vector2f currentPos = gameObject2D.globalPosition();
+        gameObject2D.position(currentPos.x + displacement.x, currentPos.y + displacement.y);
     }
 
     /**

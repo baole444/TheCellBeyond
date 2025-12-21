@@ -8,11 +8,13 @@ import imgui.flag.ImGuiMouseButton;
 import imgui.flag.ImGuiTreeNodeFlags;
 import imgui.flag.ImGuiWindowFlags;
 import scene.Scene;
+import utility.log.EngineLog;
 import utility.prefabrication.PrefabManager;
 
 import java.util.List;
 
 public class SceneTree {
+    private static final EngineLog LOGGER = new EngineLog(SceneTree.class);
     public static final String WINDOW_ID = "Scene Tree###Editor_Current_Scene_Tree";
     private static final String GROUPING_PAYLOAD = "Object_Grouping_Payload";
     private static final String SCENE_TREE_ID = "Scene_Tree_Section";
@@ -45,13 +47,7 @@ public class SceneTree {
 
         float availHeight = ImGui.getContentRegionAvailY() - BUTTON_RESERVED_HEIGHT * 1.1f;
         ImGui.beginChild(SCENE_TREE_ID, ImGuiWindowFlags.None, availHeight, enableBorder);
-        if (rootGameObjects.isEmpty()) {
-            ImGui.text("Scene is empty");
-        } else {
-            for (GameObject go : rootGameObjects) {
-                if (go.isSerialize()) renderTree(go, scene);
-            }
-        }
+        renderHierarchyTree(rootGameObjects, scene);
 
         if (ImGui.isWindowHovered()
                 && !ImGui.isAnyItemHovered()
@@ -64,13 +60,36 @@ public class SceneTree {
         }
         ImGui.endChild();
 
+        beginToRootDragDrop(scene);
+
         AddObjectDialog.imgui();
 
         ImGui.end();
     }
 
-    public static void clearSelection() {
-        selectedObject = null;
+    private static void beginToRootDragDrop(Scene scene) {
+        if (!ImGui.beginDragDropTarget()) return;
+
+        Object payload = ImGui.acceptDragDropPayload(GROUPING_PAYLOAD);
+
+        if (payload instanceof GameObject dropGo) {
+            if (scene.reparentObject(dropGo, null)) {
+                LOGGER.info(String.format("Moved '%s' to scene's root level", dropGo.name));
+            }
+        }
+
+        ImGui.endDragDropTarget();
+    }
+
+    private static void renderHierarchyTree(List<GameObject> rootGameObjects, Scene scene) {
+        if (rootGameObjects.isEmpty()) {
+            ImGui.text("Scene is empty");
+            return;
+        }
+
+        for (GameObject go : rootGameObjects) {
+            if (go.isSerialize()) renderTree(go, scene);
+        }
     }
 
     private static void renderTree(GameObject go, Scene scene) {
@@ -100,51 +119,51 @@ public class SceneTree {
 
         if (ImGui.beginDragDropSource()) {
             ImGui.setDragDropPayload(GROUPING_PAYLOAD, go);
+            ImGui.text("Name: " + go.name);
+            ImGui.text("Type: " + go.getClass().getSimpleName());
+            ImGui.text("UUID: " + go.getUUID().toString());
+
             ImGui.endDragDropSource();
         }
 
-        if (ImGui.beginDragDropTarget()) {
-            Object payload = ImGui.acceptDragDropPayload(GROUPING_PAYLOAD);
+        beginReparentDragDrop(go, scene);
 
-            if (payload instanceof GameObject dropGO) {
-                if (scene.reparentObject(dropGO, go)) {
-                    System.out.println("Reparented '" + dropGO.name + "' to '" + go.name + "'");
-                } else {
-                    System.out.println("Cannot reparented '" + dropGO.name + "' to '" + go.name + "'");
-                }
-            }
-
-            ImGui.endDragDropTarget();
+        if (!nodeOpen || children.isEmpty()) {
+            ImGui.popID();
+            return;
         }
 
-        if (go.getParent() == null && ImGui.beginDragDropTarget()) {
-            Object payload = ImGui.acceptDragDropPayload(GROUPING_PAYLOAD);
-
-            if (payload instanceof GameObject dropGO) {
-                if (scene.reparentObject(dropGO, null)) {
-                    System.out.println("Reparented '" + dropGO.name + "' to root");
-                }
-            }
-
-            ImGui.endDragDropTarget();
+        for (GameObject child : children) {
+            if (child.isSerialize()) renderTree(child, scene);
         }
 
-        if (nodeOpen && !children.isEmpty()) {
-            for (GameObject child : children) {
-                if (child.isSerialize()) {
-                    renderTree(child, scene);
-                }
-            }
-            ImGui.treePop();
-        }
+        ImGui.treePop();
 
         ImGui.popID();
     }
 
-    private static void renderContextMenu(GameObject go, Scene scene) {
-        if (ImGui.beginPopupContextItem()) {
-            if (go == null || scene == null) return;
+    private static void beginReparentDragDrop(GameObject go, Scene scene) {
+        if (!ImGui.beginDragDropTarget()) return;
 
+        Object payload = ImGui.acceptDragDropPayload(GROUPING_PAYLOAD);
+
+        if (!(payload instanceof GameObject dropGo)) {
+            ImGui.endDragDropTarget();
+            return;
+        }
+
+        if (scene.reparentObject(dropGo, go)) {
+            LOGGER.info(String.format("Reparented '%s' to '%s'", dropGo.name, go.name));
+        } else {
+            LOGGER.warning(String.format("Reparented '%s' to '%s' is not allowed!", dropGo.name, go.name));
+        }
+
+        ImGui.endDragDropTarget();
+    }
+
+    private static void renderContextMenu(GameObject go, Scene scene) {
+        if (go == null || scene == null) return;
+        if (ImGui.beginPopupContextItem()) {
             if (ImGui.menuItem("Delete")) {
                 go.destroy();
             }
@@ -198,5 +217,9 @@ public class SceneTree {
         }
 
         System.err.println("Failed to save prefab: " + prefabName);
+    }
+
+    public static void clearSelection() {
+        selectedObject = null;
     }
 }

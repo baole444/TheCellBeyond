@@ -94,11 +94,11 @@ public class CapsuleCollider2D extends CollisionShape2D {
         headCircle.setRadius(radius);
         footCircle.setRadius(radius);
 
-        headCircle.setLocalPosition(new Vector2f(0.0f, boxH / 2.0f));
-        footCircle.setLocalPosition(new Vector2f(0.0f, -boxH / 2.0f));
+        headCircle.position(new Vector2f(0.0f, boxH / 2.0f));
+        footCircle.position(new Vector2f(0.0f, -boxH / 2.0f));
 
         bodyBox.setHalfSize(new Vector2f(width / 2.0f, boxH / 2.0f));
-        bodyBox.setLocalPosition(new Vector2f());
+        bodyBox.position(new Vector2f());
     }
 
     public CircleCollider2D headCircle() {

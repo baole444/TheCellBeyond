@@ -38,7 +38,7 @@ public class EditorTileMapGrid extends Component implements NotSerializeComponen
         Vector2f viewPos = viewport.position;
         Vector2f projectSize = viewport.getProjectionSize();
 
-        Vector2f tileMapPos = editingTileMap.getPosition();
+        Vector2f tileMapPos = editingTileMap.globalPosition();
 
         float firstX = (int) Math.floor((viewPos.x - tileMapPos.x) / gridWorldSize.x) * gridWorldSize.x + tileMapPos.x;
         float firstY = (int) Math.floor((viewPos.y - tileMapPos.y) / gridWorldSize.y) * gridWorldSize.y + tileMapPos.y;

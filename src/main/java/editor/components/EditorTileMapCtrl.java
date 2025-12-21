@@ -94,7 +94,7 @@ public class EditorTileMapCtrl extends Component implements NotSerializeComponen
         clearData();
         if (selectedTiles.isEmpty()) return;
 
-        Vector2f mapPos = tileMap.getPosition();
+        Vector2f mapPos = tileMap.globalPosition();
         Vector2i gridSize = tileSet.getGridSize();
         Vector2f gridWorldSize = WorldUnit.pixelToWorld(new Vector2f(gridSize.x, gridSize.y));
 
@@ -106,7 +106,7 @@ public class EditorTileMapCtrl extends Component implements NotSerializeComponen
         float anchorWorldY = mapPos.y + gridPos.y * gridWorldSize.y + gridWorldSize.y / 2.0f;
 
         GameObject2D tileObject = new GameObject2D("EditorTilesObject");
-        tileObject.setPosition(anchorWorldX, anchorWorldY);
+        tileObject.position(anchorWorldX, anchorWorldY);
         tileObject.addComponent(new IsNotSelectable());
         tileObject.setNotSerialize();
 
@@ -123,7 +123,7 @@ public class EditorTileMapCtrl extends Component implements NotSerializeComponen
             spriteRenderer.setColor(previewColor);
 
             Vector2f localOffset = new Vector2f(offset.x * gridWorldSize.x, -offset.y * gridWorldSize.y);
-            spriteRenderer.setLocalPosition(localOffset);
+            spriteRenderer.position(localOffset);
 
             tileObject.addComponent(spriteRenderer);
         }
@@ -140,19 +140,19 @@ public class EditorTileMapCtrl extends Component implements NotSerializeComponen
         if (lastGridPosition != null && lastGridPosition.equals(gridPos)) return;
         if (holdingObj == null || holdingObj.isRemoved()) return;
 
-        Vector2f mapPos = tileMap.getPosition();
+        Vector2f mapPos = tileMap.globalPosition();
         Vector2i gridSize = tileSet.getGridSize();
         Vector2f gridWorldSize = WorldUnit.pixelToWorld(new Vector2f(gridSize.x, gridSize.y));
 
         float anchorWorldX = mapPos.x + gridPos.x * gridWorldSize.x + gridWorldSize.x / 2.0f;
         float anchorWorldY = mapPos.y + gridPos.y * gridWorldSize.y + gridWorldSize.y / 2.0f;
 
-        holdingObj.setPosition(anchorWorldX, anchorWorldY);
+        holdingObj.position(anchorWorldX, anchorWorldY);
         lastGridPosition = new Vector2i(gridPos);
     }
 
     private void drawEraserSquare(TileMap tileMap, TileSet tileSet, Vector2i gridPos) {
-        Vector2f mapPos = tileMap.getPosition();
+        Vector2f mapPos = tileMap.globalPosition();
         Vector2i gridSize = tileSet.getGridSize();
         Vector2f gridWorldSize = WorldUnit.pixelToWorld(new Vector2f(gridSize.x, gridSize.y));
 
@@ -209,7 +209,7 @@ public class EditorTileMapCtrl extends Component implements NotSerializeComponen
     }
 
     private Vector2i calculateGridPos(TileMap tileMap, TileSet tileSet) {
-        Vector2f mapPos = tileMap.getPosition();
+        Vector2f mapPos = tileMap.globalPosition();
         Vector2i gridSize = tileSet.getGridSize();
 
         if (gridSize.x <= 0 || gridSize.y <= 0) return null;

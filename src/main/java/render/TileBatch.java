@@ -110,7 +110,7 @@ public class TileBatch implements Comparable<TileBatch> {
         indices = new int[tileCount * 6];
 
         TileSet tileSet = tileMap.getTileSet();
-        Vector2f tileMapPosition = tileMap.getPosition();
+        Vector2f tileMapPosition = tileMap.globalPosition();
         Vector2i gridSize = tileSet.getGridSize();
         Vector2f gridSizeWorld = WorldUnit.pixelToWorld(new Vector2f(gridSize));
         Vector4f color = new Vector4f(1.0f);
@@ -205,7 +205,7 @@ public class TileBatch implements Comparable<TileBatch> {
         if (tileMap == null || tileMap.getTileSet() == null) return;
 
         TileMap map = tileMap;
-        if (map.getzIndex() != zIndex) {
+        if (map.globalZIndex() != zIndex) {
             removeIfExist(map.gameObject);
             renderer.switchZIndex(map.gameObject);
             return;

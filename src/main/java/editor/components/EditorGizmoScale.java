@@ -17,17 +17,17 @@ public class EditorGizmoScale extends EditorGizmo {
     public void editorUpdate(float dt) {
         if (activeGameObj != null && activeGameObj instanceof GameObject2D go2D) {
             Vector2f cursorT = MouseListener.getCursorWorldTraverse();
-            Vector2f currentScale = go2D.getOffsetScale();
+            Vector2f currentScale = go2D.scale();
 
             float scaleStep = 0.1f;
             if (xActiveDrag && !yActiveDrag) {
                 float scaleX = currentScale.x - (cursorT.x * scaleStep);
                 scaleX = Math.max(scaleX, 0.01f);
 
-                go2D.setScale(new Vector2f(scaleX, currentScale.y));
+                go2D.scale(new Vector2f(scaleX, currentScale.y));
             } else if (yActiveDrag) {
                 float scaleY = currentScale.y - (cursorT.y * scaleStep);
-                go2D.setScale(new Vector2f(currentScale.x, scaleY));
+                go2D.scale(new Vector2f(currentScale.x, scaleY));
             }
         }
 
