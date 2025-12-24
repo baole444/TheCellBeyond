@@ -194,13 +194,17 @@ public class SceneEditor extends SceneInit implements EngineEventListener {
 
     private void drawSpriteList() {
         if (categorizedSpriteSheetList.isEmpty()) {
-            ImGui.textDisabled("No sprite sheet added, click \"Add\" to import new sheet");
+            ImGui.beginDisabled();
+            ImGui.textWrapped("No sprite sheet added, click \"Add\" to import new sheet");
+            ImGui.endDisabled();
             return;
         }
 
         searchFilter(spriteSearchFilter.get(), categorizedSpriteSheetList);
         if (filteredSpriteSheetList.isEmpty()) {
-            ImGui.textDisabled("No sheet contains \"" + spriteSearchFilter.get() + "\" in their name");
+            ImGui.beginDisabled();
+            ImGui.textWrapped("No sheet contains \"" + spriteSearchFilter.get() + "\" in their name");
+            ImGui.endDisabled();
             return;
         }
         if (ImGui.beginTabBar("Sheet_category_tabBar")) {
@@ -229,7 +233,9 @@ public class SceneEditor extends SceneInit implements EngineEventListener {
 
     private void drawAssetsTextureUnit() {
         if (textureUnits.isEmpty()) {
-            ImGui.textDisabled("No texture unit added, click \"Add\" to import new unit");
+            ImGui.beginDisabled();
+            ImGui.textWrapped("No texture unit added, click \"Add\" to import new unit");
+            ImGui.endDisabled();
             return;
         }
 

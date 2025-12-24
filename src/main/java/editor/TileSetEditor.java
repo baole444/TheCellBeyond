@@ -6,15 +6,14 @@ import imgui.ImDrawList;
 import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.*;
-import imgui.type.ImBoolean;
 import imgui.type.ImFloat;
-import imgui.type.ImInt;
 import org.joml.Vector2f;
 import org.joml.Vector2i;
 import render.texture.Sprite;
 import render.texture.Tile;
 import render.texture.TileSet;
 import utility.IdPool;
+import utility.TextureScale;
 import utility.log.EngineLog;
 
 import java.util.*;
@@ -43,8 +42,7 @@ public class TileSetEditor {
     private static final int inactiveOverlayColor = ImGui.getColorU32(0.0f, 0.0f, 0.0f, 0.1f);
 
     private static final IdPool ID_POOL = new IdPool(0, false);
-    private static final float tileSetEditPercentage = 0.3f;
-    private static final float indentW = 4.0f;
+    private static final float tileSetEditPercentage = 0.24f;
     private static float zoom = 1.0f;
 
     private static TileMap editingTileMap;
@@ -83,56 +81,122 @@ public class TileSetEditor {
             return;
         }
 
-        float remainWidth = Math.max(240.0f, ImGui.getContentRegionAvailX() * tileSetEditPercentage);
-        if (!ImGui.beginTable("##TSE_Main_Region_Table", 2, ImGuiTableFlags.BordersV | ImGuiTableFlags.SizingStretchProp, ImGui.getContentRegionAvail())) return;
-        ImGui.tableSetupColumn("##TileSetEdit_Column", ImGuiTableColumnFlags.WidthFixed, remainWidth);
-        ImGui.tableSetupColumn("##TileSetImage_Column", ImGuiTableColumnFlags.WidthStretch);
+        float remainWidth = Math.max(120.0f, ImGui.getContentRegionAvailX() * tileSetEditPercentage);
+        if (!ImGui.beginTable("##TSE_Main_Region_Table", 3, ImGuiTableFlags.SizingStretchProp, ImGui.getContentRegionAvail())) return;
+        ImGui.tableSetupColumn("##TSE_TileSet_SpriteList_Column", ImGuiTableColumnFlags.WidthFixed, remainWidth);
+        ImGui.tableSetupColumn("##TSE_TileSet_Properties_Column", ImGuiTableColumnFlags.WidthFixed, remainWidth);
+        ImGui.tableSetupColumn("##TSE_TileSet_Image_Column", ImGuiTableColumnFlags.WidthStretch);
 
         ImGui.tableNextColumn();
-        renderTileSetEdit();
+        renderTileSetSpriteList();
+
+        ImGui.tableNextColumn();
+        renderTileSetProperties();
+
         ImGui.tableNextColumn();
         renderTileSetControl();
         renderTileSetImage();
+
         ImGui.endTable();
         ID_POOL.reset();
     }
 
-    private static void renderTileSetEdit() {
+    private static void renderTileSetSpriteList() {
         if (editingTileMap == null) return;
 
-        TileSet tileSet = editingTileMap.getTileSet();
-        if (tileSet == null) {
-            createNewTileSet();
-            return;
-        }
-
-        if (!ImGui.beginChild("##TileSet_Params_Edit_Region")) {
+        if (!ImGui.beginChild("##TSE_TileSet_Sprite_List_Region", ImGui.getContentRegionAvail(), ImGuiChildFlags.Border)) {
             ImGui.endChild();
             return;
         }
 
-        tileSize.set(tileSet.getGridSize());
-        startPosition.set(tileSet.getStartPosition());
+        TileSet tileSet = editingTileMap.getTileSet();
+        if (tileSet == null) {
+            if (ImGui.button("Create new Tile set", ImGui.getContentRegionAvailX(), 0.0f)) editingTileMap.setTileSet(new TileSet());
+            ImGui.endChild();
+            return;
+        }
 
-        ImGui.text("Tile size:");
-        ImGui.indent(indentW);
-        ImBoolean sizeChanged = new ImBoolean(false);
-        tileSize.x = inputInt("Width", tileSize.x, 1, sizeChanged);
-        tileSize.y = inputInt("Height", tileSize.y, 1, sizeChanged);
-        ImGui.unindent(indentW);
+        Sprite mainSprite = tileSet.getTileSetSprite();
+        if (mainSprite == null) {
+            ImGui.beginDisabled();
+            ImGui.textWrapped("Drag and drop sprite here to add it to the Tile set");
+            ImGui.endDisabled();
+            ImGui.endChild();
+            setTileSetSprite();
+            return;
+        }
 
-        ImGui.separator();
-        ImGui.text("Start position offset:");
-        ImGui.indent(indentW);
-        ImBoolean startOffsetChanged = new ImBoolean(false);
-        startPosition.x = inputInt("X offset", startPosition.x, 0, startOffsetChanged);
-        startPosition.y = inputInt("Y offset", startPosition.y, 0, startOffsetChanged);
-        ImGui.unindent(indentW);
-
+        if (!ImGui.beginTable("##TSE_TileSet_Sprite_List_Selectable_Layout", 2, ImGuiTableFlags.SizingStretchProp)) {
+            ImGui.endChild();
+            return;
+        }
+        ImGui.tableSetupColumn("TSE_TileSet_Sprite_Selectable_Column", ImGuiTableColumnFlags.WidthStretch);
+        ImGui.tableSetupColumn("TSE_TileSet_Remove_Sprite_Button_Column", ImGuiTableColumnFlags.WidthFixed);
+        ImGui.tableNextColumn();
+        ImGui.beginGroup();
+        ImVec2 cursorPos = ImGui.getCursorPos();
+        float maxHeight = ImGui.getTextLineHeight() * 3.0f;
+        ImGui.selectable("##TSE_Main_TileSet_Sprite_Selectable", false, ImGui.getContentRegionAvailX(), maxHeight);
+        int textureId = mainSprite.getTextureID();
+        float sWidth = mainSprite.getWidth();
+        float sHeight = mainSprite.getHeight();
+        Vector2f scaledSize = TextureScale.calculateFitSquare(sWidth, sHeight, maxHeight);
+        Vector2f[] textureCoordinates = mainSprite.getTextureCoordinates();
+        ImGui.setCursorPos(cursorPos);
+        ImGui.image(textureId, scaledSize.x, scaledSize.y,
+                textureCoordinates[2].x, textureCoordinates[0].y,
+                textureCoordinates[0].x, textureCoordinates[2].y
+        );
+        ImGui.setCursorPos(cursorPos.x + maxHeight + 2.0f, cursorPos.y + Math.max(0.0f, (maxHeight - ImGui.getTextLineHeight() * 2.0f)));
+        String path = mainSprite.getTexture().getCanonicalPath();
+        path = path == null ? "Unknow texture" : path.substring(path.lastIndexOf("/") + 1);
+        ImGui.text(path);
+        ImGui.endGroup();
+        ImGui.tableNextColumn();
+        ImGui.setCursorPosY(ImGui.getCursorPosY() + (maxHeight - ImGui.getTextLineHeight() * 2.0f));
+        if (ImEditorGui.iconButton("Delete##TSE_Main_TileSet_Sprite_Delete_Button", EditorIcons.Icons.Delete, "Delete this Sprite from Tile set")) tileSet.setTileSetSprite(null);
+        ImGui.endTable();
         ImGui.endChild();
+    }
 
-        if (sizeChanged.get()) tileSet.setGridSize(tileSize);
-        if (startOffsetChanged.get()) tileSet.setStartPosition(startPosition);
+    private static void setTileSetSprite() {
+        if (!ImGui.beginDragDropTarget()) return;
+        if (ImGui.isWindowHovered()) {
+            ImDrawList drawList = ImGui.getWindowDrawList();
+            ImVec2 min = ImGui.getItemRectMin();
+            ImVec2 max = ImGui.getItemRectMax();
+            drawList.addRect(min, max, ImGui.colorConvertFloat4ToU32(0.2f, 0.7f, 0.2f, 0.8f), 0 , 0 , 2);
+        }
+
+        Object payLoad = ImGui.acceptDragDropPayload(SpriteDragDropPayload.getPayloadType());
+
+        if (payLoad == null) {
+            ImGui.endDragDropTarget();
+            return;
+        }
+
+        Sprite dropSprite = SpriteDragDropPayload.getPayload();
+        if (dropSprite == null || editingTileMap == null) {
+            ImGui.endDragDropTarget();
+            return;
+        }
+
+        TileSet tileSet = editingTileMap.getTileSet();
+        if (tileSet == null) LOGGER.error("Internal state error: TileSet is null");
+        else tileSet.setTileSetSprite(dropSprite);
+
+        ImGui.endDragDropTarget();
+    }
+
+    private static void renderTileSetProperties() {
+        if (editingTileMap == null || editingTileMap.getTileSet() == null || editingTileMap.getTileSet().getTileSetSprite() == null) return;
+        if (!ImGui.beginChild("##TSE_TileSet_Properties_Region", ImGui.getContentRegionAvail(), ImGuiChildFlags.Border)) {
+            ImGui.endChild();
+            return;
+        }
+
+        ImGui.text("TileSet Properties Placeholder");
+        ImGui.endChild();
     }
 
     private static void renderTileSetControl() {
@@ -167,18 +231,44 @@ public class TileSetEditor {
         if (ImEditorGui.iconButton("Find tiles##TSE_Find_Tile_Button", EditorIcons.Icons.Search, "Click to find tile automatically", modeSelectableSize, modeSelectableSize)) {
             TileSet set = editingTileMap.getTileSet();
             if (set != null) set.findTiles();
-
         }
 
         ImGui.tableNextColumn();
-        ImFloat z = new ImFloat(zoom);
-        ImGui.pushItemWidth(ImGui.calcTextSizeX("+AAA.AAA"));
-        if (ImGui.inputFloat("##Zoom_level_Direct", z, 0.0f, 0.0f)) zoom = Math.max(0.1f, z.get());
-        ImGui.popItemWidth();
-        ImGui.sameLine();
-        float[] val = {zoom};
-        if (ImGui.sliderFloat("Zoom##TSE_Zoom_Control", val, 0.1f, 4.0f)) {
-            zoom = val[0];
+        if (ImGui.beginTable("##TSE_TileSet_Sprite_Zoom_Control_Layout", 4, ImGuiTableFlags.SizingFixedFit)) {
+            ImGui.tableSetupColumn("##TSE_TileSet_Sprite_Zoom_Control_Label_Column", ImGuiTableColumnFlags.WidthFixed);
+            ImGui.tableSetupColumn("##TSE_TileSet_Sprite_Zoom_Control_Input_Column", ImGuiTableColumnFlags.WidthFixed);
+            ImGui.tableSetupColumn("##TSE_TilSet_Sprite_Zoom_Control_Slider_Column", ImGuiTableColumnFlags.WidthStretch);
+            ImGui.tableSetupColumn("##TSE_TileSet_Sprite_Zoom_Control_Reset_Column", ImGuiTableColumnFlags.WidthFixed);
+
+            ImGui.tableNextColumn();
+            ImGui.setCursorPosY(ImGui.getCursorPosY() + (ImGui.getFrameHeightWithSpacing() - ImGui.getTextLineHeightWithSpacing()) / 2.0f);
+            ImGui.text("Zoom:");
+
+            ImGui.tableNextColumn();
+            ImFloat z = new ImFloat(zoom);
+            ImGui.setNextItemWidth(ImGui.calcTextSizeX("+AAA.AAA"));
+            if (ImGui.inputFloat("##TSE_Zoom_level_Direct_Input", z, 0.0f, 0.0f)) zoom = Math.max(0.1f, Math.min(4.0f, z.get()));
+            if (ImGui.isItemHovered()) {
+                ImGui.beginTooltip();
+                ImGui.text("Enter the zoom level (1.0 -> 4.0)");
+                ImGui.endTooltip();
+            }
+
+            ImGui.tableNextColumn();
+            float[] val = {zoom};
+            ImGui.setNextItemWidth(ImGui.getContentRegionAvailX());
+            if (ImGui.sliderFloat("##TSE_Zoom_level_Slider_Control", val, 0.1f, 4.0f)) {
+                zoom = val[0];
+            }
+            if (ImGui.isItemHovered()) {
+                ImGui.beginTooltip();
+                ImGui.text("Slide the bar to change zoom level");
+                ImGui.endTooltip();
+            }
+
+            ImGui.tableNextColumn();
+            if (ImEditorGui.iconButton("##TSE_Zoom_level_Control_Reset_Button", EditorIcons.Icons.Reset, "Reset zoom to 1.0")) zoom = 1.0f;
+            ImGui.endTable();
         }
 
         ImGui.endTable();
@@ -350,61 +440,5 @@ public class TileSetEditor {
         }
 
         return false;
-    }
-
-    private static void createNewTileSet() {
-        if (!ImGui.beginChild("##Drag_Drop_Tile_Set_Region", ImGui.getContentRegionAvail())) {
-            ImGui.endChild();
-            return;
-        }
-
-        ImGui.beginDisabled();
-        ImGui.textWrapped("Drag and drop an image or sprite here to create new tile set");
-        ImGui.endDisabled();
-        ImGui.endChild();
-
-        if (ImGui.beginDragDropTarget()) {
-            if (ImGui.isWindowHovered()) {
-                ImDrawList drawList = ImGui.getWindowDrawList();
-                ImVec2 min = ImGui.getItemRectMin();
-                ImVec2 max = ImGui.getItemRectMax();
-                drawList.addRect(min, max, ImGui.colorConvertFloat4ToU32(0.2f, 0.7f, 0.2f, 0.8f), 0 , 0 , 2);
-            }
-
-            Object payLoad = ImGui.acceptDragDropPayload(SpriteDragDropPayload.getPayloadType());
-
-            if (payLoad == null) {
-                ImGui.endDragDropTarget();
-                return;
-            }
-
-            Sprite dropSprite = SpriteDragDropPayload.getPayload();
-            if (dropSprite != null) {
-                Vector2i gridSize = new Vector2i(16);
-                Vector2i startPosition = new Vector2i();
-
-                TileSet tileSet = new TileSet(gridSize, startPosition, dropSprite);
-                if (editingTileMap != null) editingTileMap.setTileSet(tileSet);
-            }
-
-            ImGui.endDragDropTarget();
-        }
-    }
-
-    private static int inputInt(String label, int target, int minValue, ImBoolean trackingFlag) {
-        String id = label + "_" + "TSE" + ID_POOL.newId();
-        ImGui.pushID(id);
-        final boolean modified;
-        final ImInt destination = new ImInt(target);
-
-        modified = ImGui.inputInt(label, destination, 0, 0);
-
-        if (modified) {
-            target = Math.max(destination.get(), minValue);
-            trackingFlag.set(true);
-        }
-
-        ImGui.popID();
-        return target;
     }
 }

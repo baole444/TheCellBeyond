@@ -169,6 +169,18 @@ public class ImEditorGui {
     }
 
     public static int dragIntCtrl(String label, int val, Object caller) {
+        return dragIntCtrl(label, val, 0, caller , 0 ,0);
+    }
+
+    public static int dragIntCtrl(String label, int val, int resetVal, Object caller) {
+        return dragIntCtrl(label, val, resetVal, caller , 0 ,0);
+    }
+
+    public static int dragIntCtrl(String label, int val, int resetVal, Object caller, int min) {
+        return dragIntCtrl(label, val, resetVal, caller , min ,Integer.MAX_VALUE);
+    }
+
+    public static int dragIntCtrl(String label, int val, int resetVal, Object caller, int min, int max) {
         String id = createID(label, caller);
         int[] valA = {val};
 
@@ -193,12 +205,12 @@ public class ImEditorGui {
         ImGui.pushStyleColor(ImGuiCol.Button, 0.7f, 0.2f, 0.2f, 1.0f);
         ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.8f, 0.3f, 0.3f, 1.0f);
         ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0.7f, 0.2f, 0.2f, 1.0f);
-        if (ImGui.button("Reset##Reset_" + id)) val = 0;
+        if (ImGui.button("Reset##Reset_" + id)) val = resetVal;
         ImGui.popStyleColor(3);
         ImGui.sameLine();
 
         ImGui.pushItemWidth(ImGui.getContentRegionAvailX());
-        boolean changed = ImGui.dragInt("##dragInt" + id, valA, 1);
+        boolean changed = ImGui.dragInt("##dragInt" + id, valA, 1, min, max);
         ImGui.popItemWidth();
 
         ImGui.popStyleVar();
@@ -378,7 +390,7 @@ public class ImEditorGui {
         ImVec2 framePadding = ImGui.getStyle().getFramePadding();
         ImVec2 cursorPos = ImGui.getCursorPos();
         ImGui.setCursorPos(cursorPos.x + framePadding.x, cursorPos.y + framePadding.y);
-        boolean interact = ImGui.selectable("##" + id + "_Selectable_Icon", selected, width + framePadding.x, height + framePadding.y);
+        boolean interact = ImGui.selectable("##" + id + "_Selectable_Icon", selected, width, height + framePadding.y);
         if (ImGui.isItemHovered() && toolTip != null) {
             ImGui.beginTooltip();
             ImGui.text(toolTip);
@@ -409,7 +421,7 @@ public class ImEditorGui {
         ImVec2 framePadding = ImGui.getStyle().getFramePadding();
         ImVec2 cursorPos = ImGui.getCursorPos();
         ImGui.setCursorPos(cursorPos.x + framePadding.x, cursorPos.y + framePadding.y);
-        ImGui.selectable("##" + id + "_Selectable_Icon", selected, width + framePadding.x, height + framePadding.y);
+        ImGui.selectable("##" + id + "_Selectable_Icon", selected, width, height + framePadding.y);
         if (ImGui.isItemHovered() && toolTip != null) {
             ImGui.beginTooltip();
             ImGui.text(toolTip);

@@ -9,7 +9,7 @@ public class EditorIcons {
     private static final String PATH = Settings.TexturePath.EditorControls;
     private static final int width = 28;
     private static final int height = 28;
-    private static final int iconCount = 20;
+    private static final int iconCount = 24;
     private static SpriteSheet icons;
     private static boolean isInitialized = false;
 
@@ -22,10 +22,14 @@ public class EditorIcons {
         Copy(1),
         Edit(2),
         Delete(3),
-        Open(4),
-        Select(5),
-        Search(6),
-        Eraser(7);
+        Remove(4),
+        Add(5),
+        Edit2(6),
+        Reset(7),
+        Open(8),
+        Select(9),
+        Search(10),
+        Eraser(11);
 
         final int index;
 
@@ -40,14 +44,14 @@ public class EditorIcons {
     }
 
     public enum SpriteFrameIcons implements EditorIconSprite {
-        PlayBackward(8),
-        Stop(9),
-        Play(10),
-        Pause(11),
-        PreviousFrame(12),
-        NextFrame(13),
-        MoveFrameLeft(14),
-        MoveFrameRight(15);
+        PlayBackward(12),
+        Stop(13),
+        Play(14),
+        Pause(15),
+        PreviousFrame(16),
+        NextFrame(17),
+        MoveFrameLeft(18),
+        MoveFrameRight(19);
 
         final int index;
 
@@ -62,10 +66,10 @@ public class EditorIcons {
     }
 
     public enum LogLevelIcons implements EditorIconSprite {
-        Debug(16),
-        Info(17),
-        Warning(18),
-        Error(19);
+        Debug(20),
+        Info(21),
+        Warning(22),
+        Error(23);
 
         final int index;
 

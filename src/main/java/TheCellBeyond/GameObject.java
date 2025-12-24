@@ -676,8 +676,8 @@ public class GameObject {
             if (c instanceof NotSerializeComponent) continue;
             UUID uuid = c.getUUID();
             if (!ImGui.beginTable("##Component_Table_Header_" + uuid, 2, ImGuiTableFlags.SizingFixedFit)) continue;
-            ImGui.tableSetupColumn("Component_Header_Column_" + uuid, ImGuiTableColumnFlags.WidthStretch);
-            ImGui.tableSetupColumn("Component_Delete_Column_" + uuid, ImGuiTableColumnFlags.WidthFixed);
+            ImGui.tableSetupColumn("##Component_Header_Column_" + uuid, ImGuiTableColumnFlags.WidthStretch);
+            ImGui.tableSetupColumn("##Component_Delete_Column_" + uuid, ImGuiTableColumnFlags.WidthFixed);
 
             ImGui.tableNextColumn();
             String name = c.getComponentName();

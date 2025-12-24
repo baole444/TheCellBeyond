@@ -5,9 +5,11 @@ import org.joml.Vector2i;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.stb.STBImage;
 import org.lwjgl.system.MemoryStack;
+import physic2d.PhysicLayer;
 import render.Texture;
 import utility.AssetReference;
 import utility.PathResolver;
+import utility.log.EngineLog;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,16 +26,22 @@ import java.util.concurrent.ConcurrentHashMap;
  * If the sprite that it is holding is null, TileSet will disable its dirty flag.
  */
 public class TileSet {
-    private final Vector2i gridSize;
-    private final Vector2i startPosition;
-    private Sprite tileSetSprite;
+    private static final EngineLog LOGGER = new EngineLog(TileSet.class);
+
+    private final Vector2i gridSize = new Vector2i(16);
+    private final Vector2i startPosition = new Vector2i();
+    private Sprite tileSetSprite = null;
     private final ConcurrentHashMap<Vector2i, Tile> tiles = new ConcurrentHashMap<>();
+    private int collisionLayer = PhysicLayer.layerToBit(0);
+    private int collisionMask = PhysicLayer.layerToBit(0);
 
     private volatile transient boolean tileDirty = true;
 
+    public TileSet() {}
+
     public TileSet(Vector2i gridSize, Vector2i startPosition, Sprite tileSetSprite) {
-        this.gridSize = new Vector2i(gridSize);
-        this.startPosition = new Vector2i(startPosition);
+        this.gridSize.set(Math.max(1, gridSize.x), Math.max(1, gridSize.y));
+        this.startPosition.set(Math.max(0, startPosition.x), Math.max(0, startPosition.y));
         this.tileSetSprite = tileSetSprite;
     }
 
@@ -259,6 +267,50 @@ public class TileSet {
         } finally {
             STBImage.stbi_image_free(pixels);
         }
+    }
+
+    public int getCollisionLayer() {
+        return collisionLayer;
+    }
+
+    public void addCollisionLayer(int layerIndex) {
+        collisionLayer = PhysicLayer.addLayerToMask(collisionLayer, layerIndex);
+    }
+
+    public void removeCollisionLayer(int layerIndex) {
+        collisionLayer = PhysicLayer.removeLayerFromMask(collisionLayer, layerIndex);
+    }
+
+    public int getCollisionMask() {
+        return collisionMask;
+    }
+
+    public void addCollisionMask(int layerIndex) {
+        collisionMask = PhysicLayer.addLayerToMask(collisionMask, layerIndex);
+    }
+
+    public void removeCollisionMask(int layerIndex) {
+        collisionMask = PhysicLayer.removeLayerFromMask(collisionMask, layerIndex);
+    }
+
+    public void setCollisionMask(int newMasks) {
+        if (!PhysicLayer.isMaskValid(newMasks)) return;
+        collisionMask = newMasks;
+    }
+
+    public void setCollisionLayer(int newMasks) {
+        if (!PhysicLayer.isMaskValid(newMasks)) return;
+        collisionLayer = newMasks;
+    }
+
+    public void resetDefault() {
+        startPosition.zero();
+        gridSize.set(16);
+        tiles.clear();
+        tileSetSprite = null;
+        collisionLayer = PhysicLayer.layerToBit(0);
+        collisionMask = PhysicLayer.layerToBit(0);
+        tileDirty = false;
     }
 
     private void gridTileSearch(ByteBuffer pixels, int width, int height, int cellCountX, int cellCountY) {

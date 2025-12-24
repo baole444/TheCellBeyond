@@ -114,10 +114,11 @@ public class TileMapEditor {
             return;
         }
 
-        if (ImGui.beginTable("##TME_Mode_Table", 3, ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.SizingFixedFit)) {
-            ImGui.tableSetupColumn("##TME_Select_Draw_Selectable_Column", ImGuiTableColumnFlags.WidthFixed);
-            ImGui.tableSetupColumn("##TME_Erase_selectable_Column", ImGuiTableColumnFlags.WidthFixed);
-            ImGui.tableSetupColumn("##TME_Zoom_Column", ImGuiTableColumnFlags.WidthStretch);
+        if (ImGui.beginTable("##TME_Mode_Table", 4, ImGuiTableFlags.SizingFixedFit)) {
+            ImGui.tableSetupColumn("##TME_Select_Mode_Selectable_Column", ImGuiTableColumnFlags.WidthFixed);
+            ImGui.tableSetupColumn("##TME_Draw_Mode_Selectable_Column");
+            ImGui.tableSetupColumn("##TME_Erase_Mode_selectable_Column", ImGuiTableColumnFlags.WidthFixed);
+            ImGui.tableSetupColumn("##TME_Zoom_Mode_Column", ImGuiTableColumnFlags.WidthStretch);
             ImGui.tableNextColumn();
             boolean isSelectionMode = editingMode == Mode.Select;
             if (ImEditorGui.selectableIcon("Selection Mode##TME_Select_Mode_Selectable", EditorIcons.Icons.Select, "Click to toggle tile selection mode", isSelectionMode, modeSelectableSize, modeSelectableSize)) {
@@ -125,10 +126,9 @@ public class TileMapEditor {
                 EditorTileMapGrid.draw = false;
             }
 
-            ImGui.sameLine();
-
+            ImGui.tableNextColumn();
             boolean isDrawMode = editingMode == Mode.Draw;
-            if (ImEditorGui.selectableIcon("Draw Mode##TME_Draw_Mode_Selectable", EditorIcons.Icons.Edit, "Click to toggle tile draw mode", isDrawMode, modeSelectableSize, modeSelectableSize)) {
+            if (ImEditorGui.selectableIcon("Draw Mode##TME_Draw_Mode_Selectable", EditorIcons.Icons.Edit2, "Click to toggle tile draw mode", isDrawMode, modeSelectableSize, modeSelectableSize)) {
                 editingMode = isDrawMode ? null : Mode.Draw;
                 EditorTileMapGrid.draw = !isDrawMode;
             }

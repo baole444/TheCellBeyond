@@ -182,7 +182,7 @@ public abstract class PhysicBody2D extends GameObject2D {
         if (ImGui.checkbox("Sensor Mode##PhysicBody2D_isSensor_" + getUUID(), isSensor)) setSensor(isSensor.get());
         ImGui.indent();
         ImGui.pushStyleColor(ImGuiCol.Header, 0.0f, 0.0f, 0.0f, 0.0f);
-        boolean open = ImGui.collapsingHeader("Physic Layers##Physic_Layers_" + getUUID());
+        boolean open = ImGui.collapsingHeader("Physic Layers##Physic_Body_Physic_Layers_" + getUUID());
         ImGui.popStyleColor(1);
         if (open) {
             ImGui.separator();
