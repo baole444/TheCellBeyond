@@ -23,6 +23,15 @@ public class ImEditorGui {
     private static final HashMap<ShortenLabelKey, String> shortenLabels = new HashMap<>();
     private static final float defaultWidth = 80.0f;
 
+    public static void textCenterAlign(String label) {
+        if (label == null) return;
+        float remainWidth = ImGui.getContentRegionAvailX();
+        float textWidth = ImGui.calcTextSizeX(label);
+        float offset = Math.max((remainWidth - textWidth) * 0.5f, 0.0f);
+        ImGui.setCursorPosX(ImGui.getCursorPosX() + offset);
+        ImGui.text(label);
+    }
+
     public static boolean dragVec2Ctrl(String label, Vector2f source, float resetVal, Object caller) {
         return dragVec2Ctrl(label, source, resetVal, resetVal, 0.1f, caller);
     }

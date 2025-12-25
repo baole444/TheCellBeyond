@@ -80,16 +80,16 @@ public class TileSetEditor {
         }
 
         float remainWidth = Math.max(120.0f, ImGui.getContentRegionAvailX() * tileSetEditPercentage);
-        if (!ImGui.beginTable("##TSE_Main_Region_Table", 3, ImGuiTableFlags.SizingStretchProp, ImGui.getContentRegionAvail())) return;
+        if (!ImGui.beginTable("##TSE_Main_Region_Layout", 3, ImGuiTableFlags.SizingStretchProp, ImGui.getContentRegionAvail())) return;
         ImGui.tableSetupColumn("##TSE_TileSet_SpriteList_Column", ImGuiTableColumnFlags.WidthFixed, remainWidth);
-        ImGui.tableSetupColumn("##TSE_TileSet_Properties_Column", ImGuiTableColumnFlags.WidthFixed, remainWidth);
+        ImGui.tableSetupColumn("##TSE_TileSet_Tile_Properties_Column", ImGuiTableColumnFlags.WidthFixed, remainWidth);
         ImGui.tableSetupColumn("##TSE_TileSet_Image_Column", ImGuiTableColumnFlags.WidthStretch);
 
         ImGui.tableNextColumn();
         renderTileSetSpriteList();
 
         ImGui.tableNextColumn();
-        renderTileSetProperties();
+        renderTileProperties();
 
         ImGui.tableNextColumn();
         renderTileSetControl();
@@ -151,7 +151,10 @@ public class TileSetEditor {
         ImGui.endGroup();
         ImGui.tableNextColumn();
         ImGui.setCursorPosY(ImGui.getCursorPosY() + (maxHeight - ImGui.getTextLineHeight() * 2.0f));
-        if (ImEditorGui.iconButton("Delete##TSE_Main_TileSet_Sprite_Delete_Button", EditorIcons.Icons.Delete, "Delete this Sprite from Tile set")) tileSet.setTileSetSprite(null);
+        if (ImEditorGui.iconButton("Delete##TSE_Main_TileSet_Sprite_Delete_Button", EditorIcons.Icons.Delete, "Delete this Sprite from Tile set")) {
+            selectedTiles.clear();
+            tileSet.setTileSetSprite(null);
+        }
         ImGui.endTable();
         ImGui.endChild();
     }
@@ -185,14 +188,40 @@ public class TileSetEditor {
         ImGui.endDragDropTarget();
     }
 
-    private static void renderTileSetProperties() {
+    private static void renderTileProperties() {
         if (editingTileMap == null || editingTileMap.getTileSet() == null || editingTileMap.getTileSet().getTileSetSprite() == null) return;
-        if (!ImGui.beginChild("##TSE_TileSet_Properties_Region", ImGui.getContentRegionAvail(), ImGuiChildFlags.Border)) {
+        if (!ImGui.beginChild("##TSE_Tile_Properties_Region", ImGui.getContentRegionAvail(), ImGuiChildFlags.Border)) {
             ImGui.endChild();
             return;
         }
 
-        ImGui.text("TileSet Properties Placeholder");
+        ImEditorGui.textCenterAlign("Tile Properties");
+        ImGui.separator();
+        ImGui.spacing();
+
+        if (selectedTiles.isEmpty()) {
+            ImGui.textWrapped("Select one or more tiles to edit their properties");
+            ImGui.endChild();
+            return;
+        }
+
+        Tile firstTile = selectedTiles.getFirst();
+        if (firstTile == null) {
+            ImGui.endChild();
+            return;
+        }
+
+        boolean openPhysic = ImGui.collapsingHeader("Physics##TSE_TileSet_Tile_Physics_Header_" + editingTileMap.getUUID());
+
+        if (!openPhysic) {
+            ImGui.endChild();
+            return;
+        }
+
+        ImGui.indent();
+
+        ImGui.unindent();
+
         ImGui.endChild();
     }
 
@@ -216,18 +245,21 @@ public class TileSetEditor {
         boolean isSelectionMode = editingMode == Mode.Select;
         if (ImEditorGui.selectableIcon("Selection Mode##TSE_Select_Mode_Selectable", EditorIcons.Icons.Select, "Click to toggle tile selection mode", isSelectionMode, modeSelectableSize, modeSelectableSize)) {
             editingMode = isSelectionMode ? defaultMode : Mode.Select;
+            selectedTiles.clear();
         }
 
         ImGui.tableNextColumn();
         boolean isEraseMode = editingMode == Mode.Erase;
         if (ImEditorGui.selectableIcon("Eraser Mode##TSE_Eraser_Mode_Selectable", EditorIcons.Icons.Eraser, "Click to toggle tile removal mode", isEraseMode, modeSelectableSize, modeSelectableSize)) {
             editingMode = isEraseMode ? defaultMode : Mode.Erase;
+            selectedTiles.clear();
         }
 
         ImGui.tableNextColumn();
         if (ImEditorGui.iconButton("Find tiles##TSE_Find_Tile_Button", EditorIcons.Icons.Search, "Click to find tile automatically", modeSelectableSize, modeSelectableSize)) {
             TileSet set = editingTileMap.getTileSet();
             if (set != null) set.findTiles();
+            selectedTiles.clear();
         }
 
         ImGui.tableNextColumn();

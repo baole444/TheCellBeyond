@@ -83,11 +83,7 @@ public class SceneEditorViewport implements EngineEventListener {
         ImGui.text(" ");
 
         ImGui.tableNextColumn();
-        float remainWidth = ImGui.getContentRegionAvailX();
-        float textWidth = ImGui.calcTextSizeX(currentSceneName);
-        float offset = Math.max((remainWidth - textWidth) * 0.5f, 0.0f);
-        ImGui.setCursorPosX(ImGui.getCursorPosX() + offset);
-        ImGui.text(currentSceneName);
+        ImEditorGui.textCenterAlign(currentSceneName);
 
         ImGui.tableNextColumn();
         ImBoolean snapGrid = new ImBoolean(UserPreference.editorPreferences().showGridLine());
