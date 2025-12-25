@@ -17,7 +17,7 @@ import utility.WorldUnit;
 public class EditorTileMapGrid extends Component implements NotSerializeComponent {
     private static final Vector4f gridColor = new Vector4f(0.85f, 0.4f, 0.1f, 0.4f);
 
-    public static volatile boolean draw = false;
+    private static volatile boolean draw = false;
 
     @Override
     public void editorUpdate(float dt) {
@@ -55,5 +55,24 @@ public class EditorTileMapGrid extends Component implements NotSerializeComponen
             DebugDraw.addLine2(new Vector2f(x, firstY), new Vector2f(x, firstY + height), gridColor);
             DebugDraw.addLine2(new Vector2f(firstX, y), new Vector2f(firstX + width, y), gridColor);
         }
+    }
+
+    public static boolean draw() {
+        return draw;
+    }
+
+    public static void draw(boolean draw) {
+        if (draw) show();
+        else hide();
+    }
+
+    public static void show() {
+        draw = true;
+        EditorGrid.givePriority(EditorTileMapGrid.class);
+    }
+
+    public static void hide() {
+        draw = false;
+        EditorGrid.releasePriority(EditorTileMapGrid.class);
     }
 }

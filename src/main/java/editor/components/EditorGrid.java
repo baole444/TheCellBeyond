@@ -13,6 +13,8 @@ import render.DebugDraw;
 import utility.Settings;
 import utility.WorldUnit;
 
+import java.util.HashSet;
+
 public class EditorGrid extends Component implements NotSerializeComponent {
     private static final Vector4f normalGridColor = new Vector4f(0.5f, 0.5f, 0.35f, 0.35f);
     private static final Vector4f centralLinesColor = new Vector4f(0.75f);
@@ -20,6 +22,8 @@ public class EditorGrid extends Component implements NotSerializeComponent {
     private static final Vector4f horizontalBoundColor = new Vector4f(1.0f, 0.0f, 1.0f, 0.75f);
 
     public static final float minimumGap = 0.01f;
+
+    private static final HashSet<Class<?>> prioritizing = new HashSet<>();
 
     @Override
     public void editorUpdate(float dt) {
@@ -37,7 +41,7 @@ public class EditorGrid extends Component implements NotSerializeComponent {
         float gameWindowWidth = WorldUnit.pixelToWorld(Project.preference().gameWindowWidth());
         float gameWindowHeight = WorldUnit.pixelToWorld(Project.preference().gameWindowHeight());
 
-        if (UserPreference.editorPreferences().showGridLine()) {
+        if (UserPreference.editorPreferences().showGridLine() && prioritizing.isEmpty()) {
             int countVertical = (int)(projectSize.x * totalZoom / Settings.GRID_WIDTH) + 2;
             int countHorizontal = (int)(projectSize.y * totalZoom / Settings.GRID_HEIGHT) + 2;
             int maxLines = Math.max(countVertical, countHorizontal);
@@ -84,5 +88,21 @@ public class EditorGrid extends Component implements NotSerializeComponent {
         if (index >= horizontalLineCount) return false;
 
         return Math.abs(y) > minimumGap;
+    }
+
+    /**
+     * Take grid rendering priority from this editor grid.
+     * @param receiver the class that want to take priority over this
+     */
+    public static void givePriority(Class<?> receiver) {
+        prioritizing.add(receiver);
+    }
+
+    /**
+     * Release priority and give it back to this editor grid.
+     * @param releaser the class that took priority and now want to give it back
+     */
+    public static void releasePriority(Class<?> releaser) {
+        prioritizing.remove(releaser);
     }
 }

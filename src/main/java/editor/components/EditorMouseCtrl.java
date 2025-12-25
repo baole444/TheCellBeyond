@@ -69,7 +69,7 @@ public class EditorMouseCtrl extends Component implements NotSerializeComponent 
 
     @Override
     public void editorUpdate(float dt) {
-        if (EditorTileMapGrid.draw && holdObj != null) {
+        if (EditorTileMapGrid.draw() && holdObj != null) {
             holdObj.destroy();
             holdObj = null;
         }
@@ -124,7 +124,7 @@ public class EditorMouseCtrl extends Component implements NotSerializeComponent 
     private static Vector2f getTargetPos() {
         float targetX, targetY;
 
-        if (EditorTileMapGrid.draw) {
+        if (EditorTileMapGrid.draw()) {
             TileMap editingTileMap = TileMapEditor.getEditingTileMap();
 
             if (editingTileMap != null && editingTileMap.getTileSet() != null) {
@@ -164,7 +164,7 @@ public class EditorMouseCtrl extends Component implements NotSerializeComponent 
     }
 
     private void onNotHoldingObject() {
-        if (EditorTileMapGrid.draw) return;
+        if (EditorTileMapGrid.draw()) return;
 
         ObjectSelection objectSelection = Window.getObjectSelection();
         Scene currentScene = LogicServer.currentScene();

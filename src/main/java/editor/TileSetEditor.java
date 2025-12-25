@@ -12,7 +12,6 @@ import org.joml.Vector2i;
 import render.texture.Sprite;
 import render.texture.Tile;
 import render.texture.TileSet;
-import utility.IdPool;
 import utility.TextureScale;
 import utility.log.EngineLog;
 
@@ -39,34 +38,33 @@ public class TileSetEditor {
     private static final int darkSquareColor = ImGui.getColorU32(0.2f, 0.2f, 0.2f, 0.5f);
 
     private static final int tileHighlightColor = ImGui.getColorU32(1.0f, 1.0f, 0.5f, 0.75f);
-    private static final int inactiveOverlayColor = ImGui.getColorU32(0.0f, 0.0f, 0.0f, 0.1f);
+    private static final int selectedTileFillColor = ImGui.getColorU32(0.5f, 1.0f, 1.0f, 0.25f);
+    private static final int selectedTileColor = ImGui.getColorU32(0.5f, 1.0f, 1.0f, 1.0f);
+    private static final int firstSelectedTileColor = ImGui.getColorU32(1.0f, 0.5f, 0.5f, 1.0f);
+    private static final int firstSelectedTileFillColor = ImGui.getColorU32(1.0f, 0.5f, 0.5f, 0.25f);
+    private static final float selectedThickness = 2.0f;
 
-    private static final IdPool ID_POOL = new IdPool(0, false);
     private static final float tileSetEditPercentage = 0.24f;
     private static float zoom = 1.0f;
 
     private static TileMap editingTileMap;
-    private static final Vector2i tileSize = new Vector2i(16);
-    private static final Vector2i startPosition = new Vector2i();
+
+    private static final List<Tile> selectedTiles = new ArrayList<>();
+    private static boolean isBoxSelection = false;
+    private static Vector2i selectionStart = null;
+    private static Vector2i selectionEnd = null;
 
     static void edit(TileMap tileMap) {
         if (tileMap != editingTileMap) {
             clearDialogData();
             editingTileMap = tileMap;
-            TileSet tileSet = tileMap.getTileSet();
-            if (tileSet != null) {
-                tileSize.set(tileSet.getGridSize());
-                startPosition.set(tileSet.getStartPosition());
-            }
         }
     }
 
     static void clearDialogData() {
+        selectedTiles.clear();
         editingTileMap = null;
         zoom = 1.0f;
-        ID_POOL.reset();
-        tileSize.set(16);
-        startPosition.set(0);
         editingMode = defaultMode;
     }
 
@@ -98,7 +96,6 @@ public class TileSetEditor {
         renderTileSetImage();
 
         ImGui.endTable();
-        ID_POOL.reset();
     }
 
     private static void renderTileSetSpriteList() {
@@ -205,12 +202,13 @@ public class TileSetEditor {
             return;
         }
 
-        if (!ImGui.beginTable("##TSE_Control_Table", 3,ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.SizingFixedFit)) {
+        if (!ImGui.beginTable("##TSE_Control_Table", 4, ImGuiTableFlags.SizingFixedFit)) {
             ImGui.endChild();
             return;
         }
 
-        ImGui.tableSetupColumn("TSE_Modes_Selectable_Column", ImGuiTableColumnFlags.WidthFixed);
+        ImGui.tableSetupColumn("TSE_Select_Mode_Selectable_Column", ImGuiTableColumnFlags.WidthFixed);
+        ImGui.tableSetupColumn("TSE_Remove_Mode_Selectable_Column", ImGuiTableColumnFlags.WidthFixed);
         ImGui.tableSetupColumn("TSE_Search_Tile_Selectable_Column", ImGuiTableColumnFlags.WidthFixed);
         ImGui.tableSetupColumn("TSE_Zoom_Control_Column", ImGuiTableColumnFlags.WidthStretch);
 
@@ -220,8 +218,7 @@ public class TileSetEditor {
             editingMode = isSelectionMode ? defaultMode : Mode.Select;
         }
 
-        ImGui.sameLine();
-
+        ImGui.tableNextColumn();
         boolean isEraseMode = editingMode == Mode.Erase;
         if (ImEditorGui.selectableIcon("Eraser Mode##TSE_Eraser_Mode_Selectable", EditorIcons.Icons.Eraser, "Click to toggle tile removal mode", isEraseMode, modeSelectableSize, modeSelectableSize)) {
             editingMode = isEraseMode ? defaultMode : Mode.Erase;
@@ -299,13 +296,14 @@ public class TileSetEditor {
                 textureCoordinates[2].x, textureCoordinates[0].y,
                 textureCoordinates[0].x, textureCoordinates[2].y
         );
-        drawTileHighLight(tileSet, cursorScreenPos, w, h);
-
-        if (ImGui.isItemClicked(GLFW_MOUSE_BUTTON_1)) toggleTile(tileSet, cursorScreenPos, w, h);
+        drawTileHighLight(tileSet, cursorScreenPos);
+        drawSelectedTiles(tileSet, cursorScreenPos);
+        if (ImGui.isItemClicked(GLFW_MOUSE_BUTTON_1)) toggleTileInTileSet(tileSet, cursorScreenPos, w, h);
+        handleTileSelection(tileSet, cursorScreenPos, w, h);
         ImGui.endChild();
     }
 
-    private static void toggleTile(TileSet tileSet, ImVec2 cursorScreenPos, float width, float height) {
+    private static void toggleTileInTileSet(TileSet tileSet, ImVec2 cursorScreenPos, float width, float height) {
         if (editingMode == Mode.Select) return;
 
         ImVec2 mousePos = ImGui.getMousePos();
@@ -375,7 +373,59 @@ public class TileSetEditor {
         }
     }
 
-    private static void drawTileHighLight(TileSet tileSet, ImVec2 cursorScreenPos, float width, float height) {
+    private static void drawSelectedTiles(TileSet tileSet, ImVec2 cursorScreenPos) {
+        List<Tile> tiles = new ArrayList<>(selectedTiles);
+        if (tiles.isEmpty()) return;
+        HashSet<Vector2i> tileCoordinates = new HashSet<>();
+        Tile firstTile = tiles.getFirst();
+        if (firstTile == null || firstTile.setCoordinate == null) return;
+        Vector2i firstCoordinate = new Vector2i(firstTile.setCoordinate);
+
+        Vector2i gridSize = tileSet.getGridSize();
+        Vector2i startPos = tileSet.getStartPosition();
+
+        ImDrawList drawList = ImGui.getWindowDrawList();
+
+        float gridW = gridSize.x * zoom;
+        float gridH = gridSize.y * zoom;
+        float startX = startPos.x * zoom;
+        float startY = startPos.y * zoom;
+
+        ImVec2 min = new ImVec2();
+        ImVec2 max = new ImVec2();
+
+        float x, y, right, bottom;
+
+        for (Tile tile : tiles) {
+            if (tile == null || tile.setCoordinate == null || tile.setCoordinate.equals(firstCoordinate)) continue;
+            tileCoordinates.add(tile.setCoordinate);
+        }
+        if (!tileCoordinates.isEmpty()) {
+            for (Vector2i tile: tileCoordinates) {
+                x = cursorScreenPos.x + startX + tile.x * gridW;
+                y = cursorScreenPos.y + startY + tile.y * gridH;
+                right = x + gridW;
+                bottom = y + gridH;
+
+                min.set(x, y);
+                max.set(right, bottom);
+                drawList.addRectFilled(min, max, selectedTileFillColor, 0.0f);
+                drawList.addRect(min, max, selectedTileColor, 0.0f, selectedThickness);
+            }
+        }
+
+        x = cursorScreenPos.x + startX + firstCoordinate.x * gridW;
+        y = cursorScreenPos.y + startY + firstCoordinate.y * gridH;
+        right = x + gridW;
+        bottom = y + gridH;
+
+        min.set(x, y);
+        max.set(right, bottom);
+        drawList.addRectFilled(min, max, firstSelectedTileFillColor, 0.0f);
+        drawList.addRect(min, max, firstSelectedTileColor, 0.0f, selectedThickness);
+    }
+
+    private static void drawTileHighLight(TileSet tileSet, ImVec2 cursorScreenPos) {
         if (tileSet == null) return;
 
         List<Tile> tiles = tileSet.getTiles();
@@ -440,5 +490,113 @@ public class TileSetEditor {
         }
 
         return false;
+    }
+
+    private static void handleTileSelection(TileSet tileSet, ImVec2 cursorScreenPos, float width, float height) {
+        if (editingMode != Mode.Select) return;
+
+        boolean isItemHovered = ImGui.isItemHovered();
+        boolean isMouseDown = ImGui.isMouseDown(GLFW_MOUSE_BUTTON_1);
+        boolean isMouseClick = ImGui.isMouseClicked(GLFW_MOUSE_BUTTON_1);
+        boolean isShift = ImGui.getIO().getKeyShift();
+        boolean isControl = ImGui.getIO().getKeyCtrl();
+
+        if (handleBoxSelectionShortcut(tileSet, cursorScreenPos, width, height, isItemHovered, isMouseClick, isShift, isControl)) return;
+
+        if (isItemHovered && isMouseClick && !isShift) {
+            selectedTiles.clear();
+            isBoxSelection = true;
+            selectionStart = getGridCoordinate(tileSet, cursorScreenPos, width, height);
+            selectionEnd = selectionStart;
+
+            if (selectionStart != null) selectTiles(tileSet, selectionStart, selectionEnd);
+        }
+
+        if (isBoxSelection && isMouseDown) {
+            Vector2i current = getGridCoordinate(tileSet, cursorScreenPos, width, height);
+            if (current != null && !current.equals(selectionEnd)) {
+                selectionEnd = current;
+                selectedTiles.clear();
+                selectTiles(tileSet, selectionStart, selectionEnd);
+            }
+        }
+
+        if (!isMouseDown && isBoxSelection) {
+            isBoxSelection = false;
+            selectionStart = null;
+            selectionEnd = null;
+        }
+    }
+
+    private static boolean handleBoxSelectionShortcut(TileSet tileSet, ImVec2 cursorScreenPos, float width, float height, boolean isItemHovered, boolean isMouseClick, boolean isShift, boolean isControl) {
+        if (!isItemHovered || !isMouseClick) return false;
+        if (!isShift && !isControl) return false;
+
+        if (isShift && !isControl) {
+            Vector2i clicked = getGridCoordinate(tileSet, cursorScreenPos, width, height);
+            if (clicked == null) return true;
+
+            if (!selectedTiles.isEmpty()) {
+                Tile first = selectedTiles.getFirst();
+                Vector2i coordinate = first.setCoordinate;
+                selectedTiles.clear();
+                selectTiles(tileSet, coordinate, clicked);
+            } else {
+                Tile tile = tileSet.getTile(clicked);
+                if (tile != null) selectedTiles.add(tile);
+            }
+            return true;
+        }
+
+        if (isShift) return false;
+
+        Vector2i clicked = getGridCoordinate(tileSet, cursorScreenPos, width, height);
+        if (clicked == null) return true;
+
+        Tile tile = tileSet.getTile(clicked);
+        if (tile == null) return true;
+
+        if (!selectedTiles.remove(tile)) selectedTiles.add(tile);
+        return true;
+    }
+
+    private static Vector2i getGridCoordinate(TileSet tileSet, ImVec2 cursorScreenPos, float width, float height) {
+        ImVec2 mousePos = ImGui.getMousePos();
+        float relativeX = mousePos.x - cursorScreenPos.x;
+        float relativeY = mousePos.y - cursorScreenPos.y;
+
+        Vector2i gridSize = tileSet.getGridSize();
+        Vector2i startPos = tileSet.getStartPosition();
+
+        float startX = startPos.x * zoom;
+        float startY = startPos.y * zoom;
+        float gridW = gridSize.x * zoom;
+        float gridH = gridSize.y * zoom;
+
+        if (relativeX < startX || relativeY < startY || relativeX > width || relativeY > height) return null;
+
+        float clickedPixelX = relativeX - startX;
+        float clickedPixelY = relativeY - startY;
+
+        int gridX = (int) (clickedPixelX / gridW);
+        int gridY = (int) (clickedPixelY / gridH);
+
+        if (gridX < 0 || gridY < 0) return null;
+        return new Vector2i(gridX, gridY);
+    }
+
+    private static void selectTiles(TileSet tileSet, Vector2i start, Vector2i end) {
+        int minX = Math.min(start.x, end.x);
+        int minY = Math.min(start.y, end.y);
+        int maxX = Math.max(start.x, end.x);
+        int maxY = Math.max(start.y, end.y);
+
+        Vector2i coordinate = new Vector2i();
+        for (int y = minY; y <= maxY; y++) {
+            for (int x = minX; x <= maxX; x++) {
+                Tile tile = tileSet.getTile(coordinate.set(x, y));
+                if (tile != null && !selectedTiles.contains(tile)) selectedTiles.add(tile);
+            }
+        }
     }
 }
