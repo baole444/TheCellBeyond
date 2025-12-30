@@ -33,32 +33,40 @@ public class ImEditorGui {
     }
 
     public static boolean dragVec2Ctrl(String label, Vector2f source, float resetVal, Object caller) {
-        return dragVec2Ctrl(label, source, resetVal, resetVal, 0.1f, caller);
+        return dragVec2Ctrl(label, source, resetVal, resetVal, 0.1f, caller, 0.0f, 0.0f);
     }
 
     public static boolean dragVec2Ctrl(String label, Vector2f source, float resetVal, float dragSpeed, Object caller) {
-        return dragVec2Ctrl(label, source, resetVal, resetVal, dragSpeed, caller);
+        return dragVec2Ctrl(label, source, resetVal, resetVal, dragSpeed, caller, 0.0f, 0.0f);
     }
 
     public static boolean dragVec2Ctrl(String label, Vector2f source, float resetX, float resetY, float dragSpeed, Object caller) {
+        return dragVec2Ctrl(label, source, resetX, resetY, dragSpeed, caller, 0.0f, 0.0f);
+    }
+
+    public static boolean dragVec2Ctrl(String label, Vector2f source, float resetX, float resetY, float dragSpeed, Object caller, float minVal, float maxVal) {
         String id = createID(label, caller);
         Vector2f out = new Vector2f(source);
 
+        boolean useLabel = label != null && !label.isBlank();
         ImGui.pushID(id);
-        if (!ImGui.beginTable("##Table_" + id, 2, ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.SizingStretchProp, ImGui.getContentRegionAvailX())) {
-            return false;
+        if (useLabel) {
+            if (!ImGui.beginTable("##Table_" + id, 2, ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.SizingStretchProp, ImGui.getContentRegionAvailX())) {
+                ImGui.popID();
+                return false;
+            }
+            ImGui.tableSetupColumn("##label_" + label + id, ImGuiTableColumnFlags.WidthFixed, defaultWidth);
+            ImGui.tableSetupColumn("##content_" + label + id, ImGuiTableColumnFlags.WidthStretch);
+            ImGui.tableNextColumn();
+            float labelSpace = ImGui.getContentRegionAvailX();
+            ImGui.text(shortenLabel(label, labelSpace));
+            if (ImGui.isItemHovered() && labelSpace <= ImGui.calcTextSizeX(label)) {
+                ImGui.beginTooltip();
+                ImGui.text(label);
+                ImGui.endTooltip();
+            }
+            ImGui.tableNextColumn();
         }
-        ImGui.tableSetupColumn("##label_" + label + id, ImGuiTableColumnFlags.WidthFixed, defaultWidth);
-        ImGui.tableSetupColumn("##content_" + label + id, ImGuiTableColumnFlags.WidthStretch);
-        ImGui.tableNextColumn();
-        float labelSpace = ImGui.getContentRegionAvailX();
-        ImGui.text(shortenLabel(label, labelSpace));
-        if (ImGui.isItemHovered() && labelSpace <= ImGui.calcTextSizeX(label)) {
-            ImGui.beginTooltip();
-            ImGui.text(label);
-            ImGui.endTooltip();
-        }
-        ImGui.tableNextColumn();
 
         float resetWidth = ImGui.calcTextSizeX(" X ");
         float dragRemains = (ImGui.getContentRegionAvailX() - resetWidth * 2.0f) / 2.0f;
@@ -77,7 +85,7 @@ public class ImEditorGui {
         ImGui.pushItemWidth(dragRemains);
         ImGui.sameLine();
         float[] valX = {out.x};
-        if (ImGui.dragFloat("##dragX", valX, dragSpeed)) {
+        if (ImGui.dragFloat("##dragX", valX, dragSpeed, minVal, maxVal)) {
             out.x = valX[0];
             changed = true;
         }
@@ -97,7 +105,7 @@ public class ImEditorGui {
         ImGui.pushItemWidth(dragRemains);
         ImGui.sameLine();
         float[] valY = {out.y};
-        if (ImGui.dragFloat("##dragY", valY, dragSpeed)) {
+        if (ImGui.dragFloat("##dragY", valY, dragSpeed, minVal, maxVal)) {
             out.y = valY[0];
             changed = true;
         }
@@ -107,7 +115,8 @@ public class ImEditorGui {
         if (changed) source.set(out.x, out.y);
 
         ImGui.popStyleVar();
-        ImGui.endTable();
+
+        if (useLabel) ImGui.endTable();
         ImGui.popID();
 
         return changed;
@@ -141,21 +150,25 @@ public class ImEditorGui {
         String id = createID(label, caller);
         float[] valA = {val};
 
+        boolean useLabel = label != null && !label.isBlank();
         ImGui.pushID(id);
-        if (!ImGui.beginTable("##Table_" + id, 2, ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.SizingStretchProp, ImGui.getContentRegionAvailX())) {
-            return val;
+        if (useLabel) {
+            if (!ImGui.beginTable("##Table_" + id, 2, ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.SizingStretchProp, ImGui.getContentRegionAvailX())) {
+                ImGui.popID();
+                return val;
+            }
+            ImGui.tableSetupColumn("##label_" + label + id, ImGuiTableColumnFlags.WidthFixed, defaultWidth);
+            ImGui.tableSetupColumn("##content_" + label + id, ImGuiTableColumnFlags.WidthStretch);
+            ImGui.tableNextColumn();
+            float labelSpace = ImGui.getContentRegionAvailX();
+            ImGui.text(shortenLabel(label, labelSpace));
+            if (ImGui.isItemHovered() && labelSpace <= ImGui.calcTextSizeX(label)) {
+                ImGui.beginTooltip();
+                ImGui.text(label);
+                ImGui.endTooltip();
+            }
+            ImGui.tableNextColumn();
         }
-        ImGui.tableSetupColumn("##label_" + label + id, ImGuiTableColumnFlags.WidthFixed, defaultWidth);
-        ImGui.tableSetupColumn("##content_" + label + id, ImGuiTableColumnFlags.WidthStretch);
-        ImGui.tableNextColumn();
-        float labelSpace = ImGui.getContentRegionAvailX();
-        ImGui.text(shortenLabel(label, labelSpace));
-        if (ImGui.isItemHovered() && labelSpace <= ImGui.calcTextSizeX(label)) {
-            ImGui.beginTooltip();
-            ImGui.text(label);
-            ImGui.endTooltip();
-        }
-        ImGui.tableNextColumn();
 
         ImGui.pushStyleVar(ImGuiStyleVar.ItemSpacing, 0, 0);
 
@@ -171,7 +184,7 @@ public class ImEditorGui {
         ImGui.popItemWidth();
 
         ImGui.popStyleVar();
-        ImGui.endTable();
+        if (useLabel) ImGui.endTable();
         ImGui.popID();
 
         return changed ? valA[0] : val;
@@ -193,21 +206,25 @@ public class ImEditorGui {
         String id = createID(label, caller);
         int[] valA = {val};
 
+        boolean useLabel = label != null && !label.isBlank();
         ImGui.pushID(id);
-        if (!ImGui.beginTable("##Table_" + id, 2, ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.SizingStretchProp, ImGui.getContentRegionAvailX())) {
-            return val;
+        if (useLabel) {
+            if (!ImGui.beginTable("##Table_" + id, 2, ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.SizingStretchProp, ImGui.getContentRegionAvailX())) {
+                ImGui.popID();
+                return val;
+            }
+            ImGui.tableSetupColumn("##label_" + label + id, ImGuiTableColumnFlags.WidthFixed, defaultWidth);
+            ImGui.tableSetupColumn("##content_" + label + id, ImGuiTableColumnFlags.WidthStretch);
+            ImGui.tableNextColumn();
+            float labelSpace = ImGui.getContentRegionAvailX();
+            ImGui.text(shortenLabel(label, labelSpace));
+            if (ImGui.isItemHovered() && labelSpace <= ImGui.calcTextSizeX(label)) {
+                ImGui.beginTooltip();
+                ImGui.text(label);
+                ImGui.endTooltip();
+            }
+            ImGui.tableNextColumn();
         }
-        ImGui.tableSetupColumn("##label_" + label + id, ImGuiTableColumnFlags.WidthFixed, defaultWidth);
-        ImGui.tableSetupColumn("##content_" + label + id, ImGuiTableColumnFlags.WidthStretch);
-        ImGui.tableNextColumn();
-        float labelSpace = ImGui.getContentRegionAvailX();
-        ImGui.text(shortenLabel(label, labelSpace));
-        if (ImGui.isItemHovered() && labelSpace <= ImGui.calcTextSizeX(label)) {
-            ImGui.beginTooltip();
-            ImGui.text(label);
-            ImGui.endTooltip();
-        }
-        ImGui.tableNextColumn();
 
         ImGui.pushStyleVar(ImGuiStyleVar.ItemSpacing, 0, 0);
 
@@ -223,7 +240,7 @@ public class ImEditorGui {
         ImGui.popItemWidth();
 
         ImGui.popStyleVar();
-        ImGui.endTable();
+        if (useLabel) ImGui.endTable();
         ImGui.popID();
 
         return changed ? valA[0] : val;
@@ -233,21 +250,25 @@ public class ImEditorGui {
         String id = createID(label, caller);
         float[] color = {val.x, val.y, val.z, val.w};
 
+        boolean useLabel = label != null && !label.isBlank();
         ImGui.pushID(id);
-        if (!ImGui.beginTable("##Table_" + id, 2, ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.SizingStretchProp, ImGui.getContentRegionAvailX())) {
-            return false;
+        if (useLabel) {
+            if (!ImGui.beginTable("##Table_" + id, 2, ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.SizingStretchProp, ImGui.getContentRegionAvailX())) {
+                ImGui.popID();
+                return false;
+            }
+            ImGui.tableSetupColumn("##label_" + label + id, ImGuiTableColumnFlags.WidthFixed, defaultWidth);
+            ImGui.tableSetupColumn("##content_" + label + id, ImGuiTableColumnFlags.WidthStretch);
+            ImGui.tableNextColumn();
+            float labelSpace = ImGui.getContentRegionAvailX();
+            ImGui.text(shortenLabel(label, labelSpace));
+            if (ImGui.isItemHovered() && labelSpace <= ImGui.calcTextSizeX(label)) {
+                ImGui.beginTooltip();
+                ImGui.text(label);
+                ImGui.endTooltip();
+            }
+            ImGui.tableNextColumn();
         }
-        ImGui.tableSetupColumn("##label_" + label + id, ImGuiTableColumnFlags.WidthFixed, defaultWidth);
-        ImGui.tableSetupColumn("##content_" + label + id, ImGuiTableColumnFlags.WidthStretch);
-        ImGui.tableNextColumn();
-        float labelSpace = ImGui.getContentRegionAvailX();
-        ImGui.text(shortenLabel(label, labelSpace));
-        if (ImGui.isItemHovered() && labelSpace <= ImGui.calcTextSizeX(label)) {
-            ImGui.beginTooltip();
-            ImGui.text(label);
-            ImGui.endTooltip();
-        }
-        ImGui.tableNextColumn();
 
         ImGui.pushItemWidth(ImGui.getContentRegionAvailX());
         boolean changed = ImGui.colorEdit4("##color" + id, color);
@@ -255,7 +276,7 @@ public class ImEditorGui {
 
         if (changed) val.set(color[0], color[1], color[2], color[3]);
 
-        ImGui.endTable();
+        if (useLabel) ImGui.endTable();
         ImGui.popID();
 
         return changed;
@@ -265,28 +286,32 @@ public class ImEditorGui {
         String id = createID(label, caller);
         ImString out = new ImString(txt, 256);
 
+        boolean useLabel = label != null && !label.isBlank();
         ImGui.pushID(id);
-        if (!ImGui.beginTable("##Table_" + id, 2, ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.SizingStretchProp, ImGui.getContentRegionAvailX())) {
-            return txt;
-        }
+        if (useLabel) {
+            if (!ImGui.beginTable("##Table_" + id, 2, ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.SizingStretchProp, ImGui.getContentRegionAvailX())) {
+                ImGui.popID();
+                return txt;
+            }
 
-        ImGui.tableSetupColumn("##label_" + label + id, ImGuiTableColumnFlags.WidthFixed, defaultWidth);
-        ImGui.tableSetupColumn("##content_" + label + id, ImGuiTableColumnFlags.WidthStretch);
-        ImGui.tableNextColumn();
-        float labelSpace = ImGui.getContentRegionAvailX();
-        ImGui.text(shortenLabel(label, labelSpace));
-        if (ImGui.isItemHovered() && labelSpace <= ImGui.calcTextSizeX(label)) {
-            ImGui.beginTooltip();
-            ImGui.text(label);
-            ImGui.endTooltip();
+            ImGui.tableSetupColumn("##label_" + label + id, ImGuiTableColumnFlags.WidthFixed, defaultWidth);
+            ImGui.tableSetupColumn("##content_" + label + id, ImGuiTableColumnFlags.WidthStretch);
+            ImGui.tableNextColumn();
+            float labelSpace = ImGui.getContentRegionAvailX();
+            ImGui.text(shortenLabel(label, labelSpace));
+            if (ImGui.isItemHovered() && labelSpace <= ImGui.calcTextSizeX(label)) {
+                ImGui.beginTooltip();
+                ImGui.text(label);
+                ImGui.endTooltip();
+            }
+            ImGui.tableNextColumn();
         }
-        ImGui.tableNextColumn();
 
         ImGui.pushItemWidth(ImGui.getContentRegionAvailX());
         boolean changed = ImGui.inputText("##" + label + id, out);
         ImGui.popItemWidth();
 
-        ImGui.endTable();
+        if (useLabel) ImGui.endTable();
         ImGui.popID();
 
         return changed ? out.get() : txt;
@@ -301,21 +326,25 @@ public class ImEditorGui {
                 | ImGuiInputTextFlags.CallbackCompletion
                 | ImGuiInputTextFlags.CallbackCharFilter;
 
+        boolean useLabel = label != null && !label.isBlank();
         ImGui.pushID(id);
-        if (!ImGui.beginTable("##Table_" + id, 2, ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.SizingStretchProp, ImGui.getContentRegionAvailX())) {
-            return txt;
+        if (useLabel) {
+            if (!ImGui.beginTable("##Table_" + id, 2, ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.SizingStretchProp, ImGui.getContentRegionAvailX())) {
+                ImGui.popID();
+                return txt;
+            }
+            ImGui.tableSetupColumn("##label_" + label + id, ImGuiTableColumnFlags.WidthFixed, defaultWidth);
+            ImGui.tableSetupColumn("##content_" + label + id, ImGuiTableColumnFlags.WidthStretch);
+            ImGui.tableNextColumn();
+            float labelSpace = ImGui.getContentRegionAvailX();
+            ImGui.text(shortenLabel(label, labelSpace));
+            if (ImGui.isItemHovered() && labelSpace <= ImGui.calcTextSizeX(label)) {
+                ImGui.beginTooltip();
+                ImGui.text(label);
+                ImGui.endTooltip();
+            }
+            ImGui.tableNextColumn();
         }
-        ImGui.tableSetupColumn("##label_" + label + id, ImGuiTableColumnFlags.WidthFixed, defaultWidth);
-        ImGui.tableSetupColumn("##content_" + label + id, ImGuiTableColumnFlags.WidthStretch);
-        ImGui.tableNextColumn();
-        float labelSpace = ImGui.getContentRegionAvailX();
-        ImGui.text(shortenLabel(label, labelSpace));
-        if (ImGui.isItemHovered() && labelSpace <= ImGui.calcTextSizeX(label)) {
-            ImGui.beginTooltip();
-            ImGui.text(label);
-            ImGui.endTooltip();
-        }
-        ImGui.tableNextColumn();
 
         if (KeyListener.hasTextInput()) {
             String IMEInput = KeyListener.getTextInput();
@@ -328,7 +357,7 @@ public class ImEditorGui {
         boolean changed = ImGui.inputText("##" + label + id, out, flags);
         ImGui.popItemWidth();
 
-        ImGui.endTable();
+        if (useLabel) ImGui.endTable();
         ImGui.popID();
 
         return changed ? out.get() : txt;
@@ -386,6 +415,8 @@ public class ImEditorGui {
     }
 
     public static boolean selectableIcon(String id, EditorIcons.EditorIconSprite sprite, String toolTip, boolean selected, float width, float height) {
+        if (id == null || id.isBlank()) return false;
+
         if (width <= 0.0f || height <= 0.0f) {
             width = height = ImGui.getFontSize();
         }
@@ -417,33 +448,9 @@ public class ImEditorGui {
     }
 
     public static void selectableIcon(String id, EditorIcons.EditorIconSprite sprite, String toolTip, ImBoolean selected, float width, float height) {
-        if (width <= 0.0f || height <= 0.0f) {
-            width = height = ImGui.getFontSize();
-        }
-
-        Sprite icon = sprite.getIcon();
-        if (icon == null) {
-            ImGui.selectable(id, selected, width, height);
-            return;
-        }
-        ImGui.beginGroup();
-        ImVec2 framePadding = ImGui.getStyle().getFramePadding();
-        ImVec2 cursorPos = ImGui.getCursorPos();
-        ImGui.setCursorPos(cursorPos.x + framePadding.x, cursorPos.y + framePadding.y);
-        ImGui.selectable("##" + id + "_Selectable_Icon", selected, width, height + framePadding.y);
-        if (ImGui.isItemHovered() && toolTip != null) {
-            ImGui.beginTooltip();
-            ImGui.text(toolTip);
-            ImGui.endTooltip();
-        }
-        ImGui.setCursorPos(cursorPos.x + framePadding.x, cursorPos.y + framePadding.y * 1.5f);
-        int textureID = icon.getTextureID();
-        Vector2f[] textureCoordinates = icon.getTextureCoordinates();
-        ImGui.image(textureID, width, height,
-                textureCoordinates[2].x, textureCoordinates[0].y,
-                textureCoordinates[0].x, textureCoordinates[2].y
-        );
-        ImGui.endGroup();
+        if (id == null || sprite == null || selected == null) return;
+        boolean before = selected.get();
+        if (selectableIcon(id, sprite, toolTip, selected.get(), width, height)) selected.set(before);
     }
 
     public static int physicLayerSelectable(String label, int mask, Object caller) {
@@ -503,12 +510,12 @@ public class ImEditorGui {
             return label;
         }
 
-        String dots = "...";
-        float dWidth = ImGui.calcTextSizeX(dots);
+        String space = " ";
+        float dWidth = ImGui.calcTextSizeX(space);
 
         if (dWidth >= availableWidth) {
-            shortenLabels.put(cachedKey, dots);
-            return dots;
+            shortenLabels.put(cachedKey, space);
+            return space;
         }
 
         float targetW = availableWidth - dWidth;
@@ -528,7 +535,7 @@ public class ImEditorGui {
             }
         }
 
-        result = bestFit == 0 ? dots : label.substring(0, bestFit) + dots;
+        result = bestFit == 0 ? space : label.substring(0, bestFit) + space;
         shortenLabels.put(cachedKey, result);
         return result;
     }
@@ -539,5 +546,30 @@ public class ImEditorGui {
         if (caller instanceof String s) return label + "__" + s;
 
         return label + "__" + System.identityHashCode(caller);
+    }
+
+    /**
+     * Get the minimum width required by the given label and system default limit.
+     * <p>
+     * For labels with ID string behind it ({@code label##label_id}), the ID part is ignored.
+     * @param label the label string that needed to be allocated
+     * @return the width value to fit the label text
+     */
+    public static float allocateLabelWidth(String label) {
+        return allocateLabelWidth(label, defaultWidth);
+    }
+
+    /**
+     * Get the minimum width required by the given label and allocation limit.
+     * <p>
+     * For labels with ID string behind it ({@code label##label_id}), the ID part is ignored.
+     * @param label the label string that needed to be allocated
+     * @param maxWidth maximum width that can be allocated
+     * @return the width value to fit the label text
+     */
+    public static float allocateLabelWidth(String label, float maxWidth) {
+        if (label == null) return 1.0f;
+        float widthPadding = ImGui.calcTextSizeX(label, true) + 1.0f;
+        return Math.min(widthPadding, Math.max(0.0f, maxWidth));
     }
 }

@@ -1,5 +1,8 @@
 package physic2d;
 
+import project.Project;
+import project.ProjectData;
+
 import java.util.List;
 
 public class PhysicLayer {
@@ -82,5 +85,12 @@ public class PhysicLayer {
 
     public static boolean isMaskValid(int mask) {
         return mask >= getEmptyMask() && mask <= getFullMask();
+    }
+
+    public static String layerName(int index) {
+        ProjectData data = Project.currentProject();
+        if (data == null || data.physicLayers() == null) return String.valueOf(index);
+
+        return data.physicLayers().layerName(index);
     }
 }

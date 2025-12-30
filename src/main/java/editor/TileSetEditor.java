@@ -218,10 +218,7 @@ public class TileSetEditor {
             return;
         }
 
-        ImGui.indent();
-
-        ImGui.unindent();
-
+        TileCollisionShapeEditor.renderLayerCollisionShape(editingTileMap.getTileSet(), firstTile);
         ImGui.endChild();
     }
 
