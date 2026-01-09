@@ -459,14 +459,14 @@ public class TileMapEditor {
     }
 
     private static void selectTiles(TileSet tileSet, Vector2i start, Vector2i end) {
-        int minX = Math.min(start.x, end.x);
-        int minY = Math.min(start.y, end.y);
-        int maxX = Math.max(start.x, end.x);
-        int maxY = Math.max(start.y, end.y);
+        int xStep = start.x <= end.x ? 1 : -1;
+        int yStep = start.y <= end.y ? 1 : -1;
+        boolean xL2R = xStep > 0;
+        boolean yL2R = yStep > 0;
 
         Vector2i coordinate = new Vector2i();
-        for (int y = minY; y <= maxY; y++) {
-            for (int x = minX; x <= maxX; x++) {
+        for (int y = start.y; yL2R ? y <= end.y : y >= end.y; y += yStep) {
+            for (int x = start.x; xL2R ? x <= end.x : x >= end.x; x += xStep) {
                 Tile tile = tileSet.getTile(coordinate.set(x, y));
                 if (tile != null && !selectedTiles.contains(tile)) selectedTiles.add(tile);
             }

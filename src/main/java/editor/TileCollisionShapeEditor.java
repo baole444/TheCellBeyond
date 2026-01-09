@@ -3,6 +3,7 @@ package editor;
 import imgui.ImDrawList;
 import imgui.ImGui;
 import imgui.ImVec2;
+import imgui.flag.ImDrawListFlags;
 import imgui.flag.ImGuiTableColumnFlags;
 import imgui.flag.ImGuiTableFlags;
 import org.joml.Vector2f;
@@ -19,9 +20,31 @@ import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_2;
 
 class TileCollisionShapeEditor {
     private enum Mode {
-        AddPolygon,
-        EditPolygon,
-        RemovePolygon,
+        AddPolygon(() -> {
+            ImGui.text("Left click to add new nodes or insert node to edge.");
+            ImGui.spacing();
+            ImGui.text("When there are at least 3 nodes,");
+            ImGui.text("polygon can be close by clicking on the first node.");
+        }),
+
+        EditPolygon(() -> ImGui.text("Click and drag on a node to edit its position.")),
+
+        RemovePolygon(() -> {
+            ImGui.text("Left click on a node to remove it.");
+            ImGui.text("* If there are less than 3 nodes remain, the remaining nodes will be removed.");
+            ImGui.spacing();
+            ImGui.text("Right click on any node to remove the entire polygon.");
+        });
+
+        final Runnable instruction;
+
+        Mode(Runnable instruction) {
+            this.instruction = instruction;
+        }
+
+        Runnable instruction() {
+            return instruction;
+        }
     }
 
     private static final float tilePreviewSize = 80.0f;
@@ -50,6 +73,8 @@ class TileCollisionShapeEditor {
     private static int hoveringEdge = -1;
     private static boolean draggingNewNode = false;
     private static final List<Vector2f> pendingNodes = new ArrayList<>();
+    private static final List<Tile> editingTiles = new ArrayList<>();
+    private static boolean edited = false;
 
     private static void resetData() {
         editingMode = null;
@@ -57,17 +82,23 @@ class TileCollisionShapeEditor {
         draggingNodeIndex = -1;
         hoveringEdge = -1;
         pendingNodes.clear();
+        editingTiles.clear();
         draggingNewNode = false;
+        edited = false;
     }
 
-    static void renderLayerCollisionShape(TileSet tileset, Tile tile) {
-        if (tileset == null || tile == null) {
+    static void renderLayerCollisionShape(TileSet tileset, Tile tile, List<Tile> selectedTiles) {
+        if (editingTile != null && (tileset == null || tile == null)) {
             resetData();
             return;
         }
 
-        if (editingTile != tile) resetData();
-        editingTile = tile;
+        if (editingTile != tile) {
+            resetData();
+            editingTile = tile;
+        }
+        editingTiles.clear();
+        editingTiles.addAll(selectedTiles);
 
         if (!ImGui.beginTable("##TSE_TCSE_Collision_Shape_Editor_Mode_layout", 4, ImGuiTableFlags.SizingFixedFit)) return;
         ImGui.tableSetupColumn("##TSE_TCSE_Collision_Shape_Add_Node_Mode_Column", ImGuiTableColumnFlags.WidthFixed);
@@ -118,10 +149,29 @@ class TileCollisionShapeEditor {
         ImGui.spacing();
         renderTilePreview(tileset.getTextureID(), tile, tileset.getGridSize());
         ImGui.spacing();
+
+        if (editingMode != null) {
+            ImGui.spacing();
+            ImGui.indent();
+            ImGui.textDisabled("(?) Hover for Instruction.");
+            boolean hovered = ImGui.isItemHovered();
+            ImGui.unindent();
+            if (hovered) {
+                ImGui.beginTooltip();
+                editingMode.instruction().run();
+                ImGui.endTooltip();
+            }
+            ImGui.spacing();
+        }
+
         ImGui.indent();
         boolean polyOpen = ImGui.collapsingHeader("Polygon##TSE_TCSE_Collision_Node_Coordinates_Header_");
         if (!polyOpen) {
             ImGui.unindent();
+            if (edited) {
+                updateSelectedTiles();
+                edited = false;
+            }
             return;
         }
 
@@ -130,6 +180,10 @@ class TileCollisionShapeEditor {
             ImGui.textWrapped("This tile has no collision shape");
             ImGui.endDisabled();
             ImGui.unindent();
+            if (edited) {
+                updateSelectedTiles();
+                edited = false;
+            }
             return;
         }
 
@@ -137,7 +191,15 @@ class TileCollisionShapeEditor {
         for (Vector2f node : nodes) {
             Vector2f tmp = new Vector2f(node);
             ImEditorGui.dragVec2Ctrl("", tmp, 0.0f, 0.0f, 0.01f, node, 0.0f, 1.0f);
-            if (!tmp.equals(node)) node.set(Math.max(0.0f, Math.min(1.0f, tmp.x)), Math.max(0.0f, Math.min(1.0f, tmp.y)));
+            if (!tmp.equals(node)) {
+                node.set(Math.max(0.0f, Math.min(1.0f, tmp.x)), Math.max(0.0f, Math.min(1.0f, tmp.y)));
+                edited = true;
+            }
+        }
+
+        if (edited) {
+            updateSelectedTiles();
+            edited = false;
         }
     }
 
@@ -174,6 +236,7 @@ class TileCollisionShapeEditor {
                 new Vector2f(1.0f),
                 new Vector2f(0.0f, 1.0f)
         };
+        edited = true;
     }
 
     private static void drawTileBackground(Vector2f size) {
@@ -202,8 +265,10 @@ class TileCollisionShapeEditor {
         }
 
         if (screenNodes.size() >= 3) {
-            ImVec2[] points = screenNodes.toArray(new ImVec2[0]);
-            drawList.addConcavePolyFilled(points, points.length, PolygonFillColor);
+            drawList.removeFlags(ImDrawListFlags.AntiAliasedFill);
+            List<int[]> triangles = triangulatePolygon(screenNodes);
+            for (int[] tri : triangles) drawList.addTriangleFilled(screenNodes.get(tri[0]), screenNodes.get(tri[1]), screenNodes.get(tri[2]), PolygonFillColor);
+            drawList.addFlags(ImDrawListFlags.AntiAliasedFill);
         }
 
         for (int i = 0; i < screenNodes.size(); i++) {
@@ -286,6 +351,7 @@ class TileCollisionShapeEditor {
 
         if (isMouseDown && draggingNodeIndex >= 0 && draggingNodeIndex < nodes.length) {
             nodes[draggingNodeIndex].set(getNormal(mousePos, screenCursorPos, size));
+            edited = true;
         }
 
         if (!isMouseDown) draggingNodeIndex = -1;
@@ -307,11 +373,13 @@ class TileCollisionShapeEditor {
             if (!inNodeRadius(size, screenCursorPos, mousePos, nodes[i])) continue;
             if (rightClick) {
                 tile.collisionPolygonNodes = null;
+                edited = true;
                 return;
             }
 
             if (nodes.length <= MinNode) {
                 tile.collisionPolygonNodes = null;
+                edited = true;
                 return;
             }
 
@@ -322,6 +390,7 @@ class TileCollisionShapeEditor {
                 newNodes[index++] = nodes[j];
             }
             tile.collisionPolygonNodes = newNodes;
+            edited = true;
             return;
         }
     }
@@ -338,7 +407,7 @@ class TileCollisionShapeEditor {
         }
 
         if (draggingNewNode && isMouseDown && !pendingNodes.isEmpty()) pendingNodes.getLast().set(normal);
-        if (isMouseRelease && draggingNewNode) draggingNewNode = false;
+        if (isMouseRelease) draggingNewNode = false;
     }
 
     private static boolean closingPolygon(Vector2f size, ImVec2 screenCursorPos, ImVec2 mousePos) {
@@ -353,6 +422,7 @@ class TileCollisionShapeEditor {
     private static void addPendingNodes() {
         if (editingTile == null || pendingNodes.size() < MinNode) return;
         editingTile.collisionPolygonNodes = pendingNodes.toArray(Vector2f[]::new);
+        edited = true;
         pendingNodes.clear();
     }
 
@@ -395,6 +465,7 @@ class TileCollisionShapeEditor {
             System.arraycopy(currentNodes, edgeIndex + 1, newNodes, edgeIndex + 1 + 1, currentNodes.length - (edgeIndex + 1));
         }
         tile.collisionPolygonNodes = newNodes;
+        edited = true;
         hoveringEdge = -1;
     }
 
@@ -454,5 +525,102 @@ class TileCollisionShapeEditor {
         float dy = mousePos.y - y;
         float dSqr = dx * dx + dy * dy;
         return dSqr <= NodeRadius * NodeRadius;
+    }
+
+    private static List<int[]> triangulatePolygon(List<ImVec2> vertices) {
+        List<int[]> triangles = new ArrayList<>();
+        if (vertices == null || vertices.size() < 3) return triangles;
+
+        boolean clockwise = polygonClockwise(vertices);
+        List<Integer> indices = new ArrayList<>();
+        for (int i = 0; i < vertices.size(); i++) {
+            indices.add(i);
+        }
+
+        int tries = 0;
+        int maxTrial = vertices.size() * 2;
+        while(indices.size() > 3 && tries < maxTrial) {
+            boolean earFound = false;
+            for (int i = 0; i < indices.size(); i++) {
+                int past = indices.get((i - 1 + indices.size()) % indices.size());
+                int current = indices.get(i);
+                int next = indices.get((i + 1) % indices.size());
+                if (!isEar(vertices, indices, past, current, next, clockwise)) continue;
+                triangles.add(new int[]{past, current, next});
+                indices.remove(i);
+                earFound = true;
+                tries = 0;
+                break;
+            }
+
+            if (!earFound) tries++;
+        }
+
+        if (indices.size() == 3) triangles.add(new int[]{indices.get(0), indices.get(1), indices.get(2)});
+
+        return triangles;
+    }
+
+    private static boolean isEar(List<ImVec2> vertices, List<Integer> indices, int past, int current, int next, boolean clockwise) {
+        ImVec2 i = vertices.get(past);
+        ImVec2 i1 = vertices.get(current);
+        ImVec2 i2 = vertices.get(next);
+
+        if (!isConvex(i, i1, i2, clockwise)) return false;
+
+        for (int index : indices) {
+            if (index == past || index == current || index == next) continue;
+
+            ImVec2 p = vertices.get(index);
+            if (pointInTriangle(p, i, i1, i2)) return false;
+        }
+
+        return true;
+    }
+
+    private static boolean isConvex(ImVec2 a, ImVec2 b, ImVec2 c, boolean clockwise) {
+        float cross = crossProduct(a, b, c);
+        return clockwise ? cross < 0.0f : cross > 0.0f;
+    }
+
+    private static float crossProduct(ImVec2 a, ImVec2 b, ImVec2 c) {
+        return (b.x - a.x) * (c.y - b.y) - (b.y - a.y) * (c.x - b.x);
+    }
+
+    private static boolean pointInTriangle(ImVec2 p, ImVec2 a, ImVec2 b, ImVec2 c) {
+        float deno = (b.y - c.y) * (a.x - c.x) + (c.x - b.x) * (a.y - c.y);
+        if (Math.abs(deno) < 0.00001f) return false;
+
+        float alpha = ((b.y - c.y) * (p.x - c.x) + (c.x - b.x) * (p.y - c.y)) / deno;
+        float beta = ((c.y - a.y) * (p.x - c.x) + (a.x - c.x) * (p.y - c.y)) / deno;
+        float gamma = 1.0f - alpha - beta;
+        return alpha > 0.0f && beta > 0.0f && gamma > 0.0f;
+    }
+
+    private static boolean polygonClockwise(List<ImVec2> vertices) {
+        float sum = 0.0f;
+        for (int i = 0; i < vertices.size(); i++) {
+            ImVec2 v1 = vertices.get(i);
+            ImVec2 v2 = vertices.get((i + 1) % vertices.size());
+            sum += (v2.x - v1.x) * (v2.y + v1.y);
+        }
+
+        return sum > 0.0f;
+    }
+
+    private static void updateSelectedTiles() {
+        if (editingTile == null || editingTiles.size() <= 1) return;
+        Vector2f[] sourceNodes = editingTile.collisionPolygonNodes;
+        for (Tile tile : editingTiles) {
+            if (tile == editingTile) continue;
+            tile.collisionPolygonNodes = copyNodes(sourceNodes);
+        }
+    }
+
+    private static Vector2f[] copyNodes(Vector2f[] source) {
+        if (source == null) return null;
+        Vector2f[] copy = new Vector2f[source.length];
+        for (int i = 0; i < source.length; i++) copy[i] = new Vector2f(source[i]);
+        return copy;
     }
 }

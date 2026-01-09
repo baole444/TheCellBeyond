@@ -1,3 +1,5 @@
+import org.gradle.internal.os.OperatingSystem
+
 plugins {
     id 'java'
 }
@@ -6,6 +8,24 @@ group = project.project_group
 version = project.TCB_version
 
 int targetJavaVersion = 25
+
+switch (OperatingSystem.current()) {
+    case OperatingSystem.LINUX:
+        project.ext.lwjglNatives = lwjgl_linux
+        project.ext.imguiNatives = imgui_linux
+        def osArch = System.getProperty("os.arch")
+        if (osArch.startsWith("arm") || osArch.startsWith("aarch64")) {
+            project.ext.lwjglNatives += osArch.contains("64") || osArch.startsWith("armv8") ? "-arm64" : "-arm32"
+        } else if (osArch.startsWith("ppc")) {
+            project.ext.lwjglNatives += "-ppc64le"
+        } else if (osArch.startsWith("riscv")) {
+            project.ext.lwjglNatives += "-riscv64"
+        }
+        break
+    case OperatingSystem.WINDOWS:
+        project.ext.lwjglNatives = lwjgl_window
+        project.ext.imguiNatives = imgui_window
+}
 
 repositories {
     flatDir {
@@ -29,7 +49,7 @@ dependencies {
 
     ['', '-assimp', '-glfw', '-nfd', '-openal', '-opengl', '-stb', '-msdfgen', '-freetype'].each {
         implementation "org.lwjgl:lwjgl$it"
-        implementation "org.lwjgl:lwjgl$it::$lwjglNatives"
+        implementation "org.lwjgl:lwjgl$it::$project.ext.lwjglNatives"
     }
 
     implementation "org.joml:joml:${joml_version}"
@@ -39,7 +59,7 @@ dependencies {
     // SpaiR-imgui
     implementation "io.github.spair:imgui-java-binding:$imgui_version"
     implementation "io.github.spair:imgui-java-lwjgl3:$imgui_version"
-    implementation "io.github.spair:imgui-java-$imguiNatives:$imgui_version"
+    implementation "io.github.spair:imgui-java-$project.ext.imguiNatives:$imgui_version"
 
     // Test unit
     testImplementation platform('org.junit:junit-bom:5.10.0')
