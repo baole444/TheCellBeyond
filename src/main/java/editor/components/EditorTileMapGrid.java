@@ -4,7 +4,7 @@ import TheCellBeyond.Viewport;
 import TheCellBeyond.internal.LogicServer;
 import components.Component;
 import components.NotSerializeComponent;
-import components.TileMap;
+import TheCellBeyond.TileMap;
 import editor.TileMapEditor;
 import project.Project;
 import org.joml.Vector2f;

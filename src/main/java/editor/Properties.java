@@ -24,7 +24,7 @@ public class Properties {
         }
 
         activeGameObject = getActiveGameObject();
-
+        BottomPanel.interact(activeGameObject);
         if (activeGameObject == null) {
             ImGui.beginDisabled();
             ImGui.textWrapped("Select an object in the Scene tree or in the scene to edit its properties");

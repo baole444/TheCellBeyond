@@ -18,8 +18,7 @@ public class EditorObjectIndicator extends SpriteRenderer implements NotSerializ
     private transient boolean active = false;
 
     @Override
-    protected void onStarting() {
-        super.onStarting();
+    protected void onEditorStartLogic() {
         initIndicator();
     }
 

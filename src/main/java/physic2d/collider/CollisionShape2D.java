@@ -12,12 +12,13 @@ public abstract class CollisionShape2D extends SpatialComponent {
     protected transient boolean needsFixtureReset = false;
 
     @Override
-    protected void onStarting() {
-        if (gameObject instanceof PhysicBody2D body2D) {
-            physicBody2D = body2D;
-            needsFixtureReset = true;
-            resetFixture();
-        }
+    protected void onStartLogic() {
+        init();
+    }
+
+    @Override
+    protected void onEditorStartLogic() {
+        init();
     }
 
     @Override
@@ -70,4 +71,11 @@ public abstract class CollisionShape2D extends SpatialComponent {
     public abstract Shape createCollisionShape();
 
     protected abstract void drawDebugShape();
+
+    private void init() {
+        if (!(gameObject instanceof PhysicBody2D body2D)) return;
+        physicBody2D = body2D;
+        needsFixtureReset = true;
+        resetFixture();
+    }
 }

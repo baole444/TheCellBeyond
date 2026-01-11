@@ -45,7 +45,8 @@ public class LogicServer implements EngineEventListener {
         currentScene = new Scene(sceneInit);
         currentScene.loadLevel();
         currentScene.init();
-        currentScene.start();
+        if (runtimeMode) currentScene.start();
+        else currentScene.editorStart();
     }
 
     public static Scene currentScene() {

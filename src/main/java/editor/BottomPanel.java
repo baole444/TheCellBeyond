@@ -1,5 +1,7 @@
 package editor;
 
+import TheCellBeyond.GameObject;
+import TheCellBeyond.TileMap;
 import components.*;
 import imgui.ImGui;
 import imgui.ImVec2;
@@ -22,6 +24,7 @@ public class BottomPanel {
     private static boolean widthCalculated = false;
     private static TabName selectedTab = TabName.Output;
     private static TabName workingTab = null;
+    private static GameObject currentObject = null;
 
     private enum TabName {
         Output("Output"),
@@ -41,6 +44,7 @@ public class BottomPanel {
     public static void clear() {
         selectedTab = TabName.Output;
         workingTab = null;
+        currentObject = null;
         SpriteFrameEditor.clearDialogData();
         TileSetEditor.clearDialogData();
         TileMapEditor.clearDialogData();
@@ -57,16 +61,28 @@ public class BottomPanel {
                 SpriteFrameEditor.edit(spriteFrame);
                 workingTab = selectedTab = TabName.SpriteFrame;
             }
-            case TileMap tileMap -> {
-                TileSetEditor.edit(tileMap);
-                TileMapEditor.edit(tileMap);
-                workingTab = selectedTab = TabName.TileSet;
-            }
             case AnimationPlayer animationPlayer -> {
                 workingTab = selectedTab = TabName.AnimationPlayer;
             }
 
             default -> clear();
+        }
+    }
+
+    public static void interact(GameObject go) {
+        if (go == null) {
+            clear();
+            return;
+        }
+
+        if (go == currentObject) return;
+        clear();
+        currentObject = go;
+
+        if (go instanceof TileMap tileMap) {
+            TileSetEditor.edit(tileMap);
+            TileMapEditor.edit(tileMap);
+            workingTab = selectedTab = TabName.TileSet;
         }
     }
 

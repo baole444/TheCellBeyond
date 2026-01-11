@@ -65,6 +65,17 @@ public class Scene {
         isSceneOn.set(true);
     }
 
+    public void editorStart() {
+        updateQueues();
+
+        for (GameObject go : sceneData.gameObjectByUUIDs().values()) {
+            go.editorStart();
+            cacheComponents(go);
+        }
+
+        isSceneOn.set(true);
+    }
+
     private void cacheComponents(GameObject go) {
         for (Component c : go.getComponents()) {
             sceneData.componentsByUUID().put(c.getUUID(), c);

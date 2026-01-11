@@ -446,17 +446,14 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
     }
 
     @Override
-    protected void onStarting() {
-        if (currentAnimationName == null && defaultAnimation != null) {
-            currentAnimationName = defaultAnimation;
-            currentAnimation = animations.get(defaultAnimation);
-        }
+    protected void onStartLogic() {
+        init();
+        play(defaultAnimation);
+    }
 
-        for (Map.Entry<String, Animation> entry : animations.entrySet()) {
-            entry.getValue().start();
-        }
-
-        if (LogicServer.runtimeMode()) play(defaultAnimation);
+    @Override
+    protected void onEditorStartLogic() {
+        init();
     }
 
     @Override
@@ -508,5 +505,16 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
             if (ImGui.checkbox("Vertical##VerticalFlip_" + getUUID(), flipVState)) flipVertically(flipVState.get());
         }
         ImGui.unindent();
+    }
+
+    private void init() {
+        if (currentAnimationName == null && defaultAnimation != null) {
+            currentAnimationName = defaultAnimation;
+            currentAnimation = animations.get(defaultAnimation);
+        }
+
+        for (Map.Entry<String, Animation> entry : animations.entrySet()) {
+            entry.getValue().start();
+        }
     }
 }

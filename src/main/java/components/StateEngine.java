@@ -19,9 +19,7 @@ public class StateEngine extends Component {
     private transient boolean initialized = false;
 
     @Override
-    protected void onStarting() {
-        if (!LogicServer.runtimeMode()) return;
-
+    protected void onStartLogic() {
         initialize();
     }
 

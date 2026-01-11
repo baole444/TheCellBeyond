@@ -1,6 +1,6 @@
 package editor;
 
-import components.TileMap;
+import TheCellBeyond.TileMap;
 import editor.components.EditorTileMapGrid;
 import imgui.ImDrawList;
 import imgui.ImGui;
@@ -107,7 +107,7 @@ public class TileMapEditor {
             return;
         }
 
-        if (editingTileMap.gameObject == null || editingTileMap.gameObject.isRemoved() || editingTileMap.getUUID() == null) {
+        if (editingTileMap.isRemoved() || editingTileMap.getUUID() == null) {
             clearDialogData();
             return;
         }

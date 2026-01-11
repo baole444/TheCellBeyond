@@ -17,6 +17,12 @@ public abstract class SpatialComponent extends Component implements Transformati
     }
 
     @Override
+    public void editorStart() {
+        super.editorStart();
+        setTransformDirty();
+    }
+
+    @Override
     public Transform2D getLocalTransform() {
         return localTransform2D;
     }

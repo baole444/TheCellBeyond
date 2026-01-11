@@ -128,7 +128,12 @@ public class TextRenderer extends SpatialComponent implements FontStatusCallback
     }
 
     @Override
-    protected void onStarting() {
+    protected void onStartLogic() {
+        requestLoadFont();
+    }
+
+    @Override
+    protected void onEditorStartLogic() {
         requestLoadFont();
     }
 

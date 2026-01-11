@@ -84,7 +84,7 @@ public final class Controller2D extends Component {
 
 
     @Override
-    protected void onStarting() {
+    protected void onStartLogic() {
         if (gameObject == null) return;
         if (gameObject instanceof GameObject2D go2D) {
             gameObject2D = go2D;
@@ -102,6 +102,11 @@ public final class Controller2D extends Component {
         }
 
         if (!isGameObjectPhysicCompatible) controlMode = ControlMode.SpatialLogic;
+    }
+
+    @Override
+    protected void onEditorStartLogic() {
+        onStartLogic();
     }
 
     @Override

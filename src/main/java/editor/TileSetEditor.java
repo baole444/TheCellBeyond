@@ -1,6 +1,6 @@
 package editor;
 
-import components.TileMap;
+import TheCellBeyond.TileMap;
 import editor.payload.SpriteDragDropPayload;
 import imgui.ImDrawList;
 import imgui.ImGui;
@@ -74,7 +74,7 @@ public class TileSetEditor {
             return;
         }
 
-        if (editingTileMap.gameObject == null || editingTileMap.gameObject.isRemoved() || editingTileMap.getUUID() == null) {
+        if (editingTileMap.isRemoved() || editingTileMap.getUUID() == null) {
             clearDialogData();
             return;
         }

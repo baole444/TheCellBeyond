@@ -26,7 +26,7 @@ public class EditorGizmoCtrl extends Component {
     }
 
     @Override
-    protected void onStarting() {
+    protected void onEditorStartLogic() {
         initGizmoSprite();
     }
 
@@ -65,7 +65,7 @@ public class EditorGizmoCtrl extends Component {
     }
 
     @Override
-    public void editorUpdate(float dt) {
+    public void onEditorUpdate(float dt) {
         if (gizmo == null) {
             initGizmoSprite();
             return;

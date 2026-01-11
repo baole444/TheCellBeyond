@@ -30,15 +30,20 @@ public class AddComponentDialog {
     //  to be able to register potential user's custom component type.
     private enum ComponentType {
         SpriteRenderer("SpriteRenderer", "Add sprite rendering to the object."),
+
         AnimatedSprite("AnimatedSprite", "Add sprite-based animations rendering to the object."),
+
         Text("Text", "Add texts rendering to the object."),
-        TileMap("TileMap", "Add tile map rendering with tile set to the object."),
+
         BoxCollider2D("BoxCollider2D", "Add a rectangle shape for detecting collision to the object. " +
                 "The object type must inherit PhysicBody2D for physic collision to work."),
+
         CircleCollider2D("CircleCollider2D", "Add a circle shape for detecting collision to the object. " +
                 "The object type must inherit PhysicBody2D for physic collision to work."),
+
         CapsuleCollider2D("CapsuleCollider2D", "Add a capsule/pillbox-like shape for detecting collision to the object." +
                 "The object type must inherit PhysicBody2D for physic collision to work."),
+
         Controller2D("Controller2D", "Movement control, experimental component");
 
         private final String displayLabel;
@@ -142,7 +147,6 @@ public class AddComponentDialog {
             case SpriteRenderer -> c = new SpriteRenderer();
             case AnimatedSprite -> c = new AnimatedSpriteRenderer();
             case Text -> c = new TextRenderer();
-            case TileMap -> c = new TileMap();
             case BoxCollider2D -> c = new BoxCollider2D();
             case CircleCollider2D -> c = new CircleCollider2D();
             case CapsuleCollider2D -> c = new CapsuleCollider2D();

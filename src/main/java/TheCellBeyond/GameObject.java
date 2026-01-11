@@ -647,9 +647,7 @@ public class GameObject {
         onStartLogic();
         isStarted = true;
 
-        for (Component component : components) {
-            component.start();
-        }
+        for (Component component : components) component.start();
 
         isDirty = true;
     }
@@ -658,6 +656,26 @@ public class GameObject {
      * Optional hook for additional game object's start logic before starting its components.
      */
     protected void onStartLogic() {}
+
+    /**
+     * Initialize this game object's editor state when it is first added to the {@link Scene}.
+     * <p>
+     * This is called by the {@link Scene} on its editor starting logic or when this game object is added to a running scene.
+     * @apiNote Do not use this method, unless there are specific initialization for the game object
+     * that need to be reflected in editor mode.
+     */
+    public final void editorStart() {
+        onEditorStartLogic();
+        isStarted = true;
+
+        for (Component component : components) component.editorStart();
+
+        isDirty = true;
+    }
+
+    protected void onEditorStartLogic() {
+
+    }
 
     /**
      * Export this game object's properties for editing in the Editor UI.
@@ -718,6 +736,7 @@ public class GameObject {
      * The destroyed objects are removed from the scene and cannot be added back.
      */
     public void destroy() {
+        onDestroy();
         isRemoved = true;
 
         if (parent != null) parent.removeChild(this);
@@ -739,6 +758,11 @@ public class GameObject {
             cachedID = -1;
         }
     }
+
+    /**
+     * Optional hook for additional game object's logic before it is destroyed.
+     */
+    protected void onDestroy() {}
 
     /**
      * Create a new {@link GameObject} from this game object and its components without the hierarchy.

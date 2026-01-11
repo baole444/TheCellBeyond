@@ -22,8 +22,7 @@ public class CapsuleCollider2D extends CollisionShape2D {
     private float height = 0.64f;
 
     @Override
-    protected void onStarting() {
-        super.onStarting();
+    protected void onStartLogic() {
         headCircle.gameObject = this.gameObject;
         footCircle.gameObject = this.gameObject;
         bodyBox.gameObject = this.gameObject;
@@ -31,6 +30,19 @@ public class CapsuleCollider2D extends CollisionShape2D {
         headCircle.start();
         footCircle.start();
         bodyBox.start();
+
+        calculateCollider();
+    }
+
+    @Override
+    protected void onEditorStartLogic() {
+        headCircle.gameObject = this.gameObject;
+        footCircle.gameObject = this.gameObject;
+        bodyBox.gameObject = this.gameObject;
+
+        headCircle.editorStart();
+        footCircle.editorStart();
+        bodyBox.editorStart();
 
         calculateCollider();
     }

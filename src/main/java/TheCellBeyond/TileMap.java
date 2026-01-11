@@ -1,4 +1,4 @@
-package components;
+package TheCellBeyond;
 
 import editor.EditorIcons;
 import editor.ImEditorGui;
@@ -9,6 +9,7 @@ import imgui.flag.ImGuiTreeNodeFlags;
 import imgui.type.ImBoolean;
 import org.joml.Vector2f;
 import org.joml.Vector2i;
+import physic2d.PhysicBody2D;
 import render.texture.Tile;
 import render.texture.TileSet;
 import utility.WorldUnit;
@@ -18,17 +19,41 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class TileMap extends SpatialComponent {
+public class TileMap extends GameObject2D {
     private volatile TileSet tileSet;
     private final ConcurrentHashMap<Vector2i, Tile> tiles = new ConcurrentHashMap<>();
     public boolean enableCollision = true;
     public boolean useKinematicBody = false;
 
     private volatile transient boolean isTileDirty = true;
+    private transient PhysicBody2D physicBody2D = null;
+    private transient boolean physicBodyDirty = false;
 
     @Override
-    protected void additionalDirtyFlagLogic() {
-        isTileDirty = true;
+    protected void onStartLogic() {
+        initPhysicBody();
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (physicBody2D != null) {
+            physicBody2D.destroy();
+            physicBody2D = null;
+        }
+    }
+
+    private void initPhysicBody() {}
+
+    public TileMap() {
+        super(TileMap.class.getSimpleName());
+    }
+
+    public TileMap(String name) {
+        super(name);
+    }
+
+    public PhysicBody2D physicBody2D() {
+        return physicBody2D;
     }
 
     public boolean isTileDirty() {
@@ -118,10 +143,25 @@ public class TileMap extends SpatialComponent {
     }
 
     @Override
+    public TileMap copy() {
+        return copy(false);
+    }
+
+    @Override
+    public TileMap copy(boolean copyHierarchy) {
+        TileMap copy = (TileMap) copySingleObject();
+        if (copyHierarchy && !getChildren().isEmpty()) copyDescendants(this, copy);
+        return copy;
+    }
+
+    @Override
     protected void additionalImGuiLogic() {
         ImGui.spacing();
         boolean openMap = ImGui.collapsingHeader("TileMap##TileMap_Properties_Header_" + getUUID(), ImGuiTreeNodeFlags.DefaultOpen);
-        if (!openMap) return;
+        if (!openMap) {
+            super.additionalImGuiLogic();
+            return;
+        }
 
         ImBoolean enableCollision = new ImBoolean(this.enableCollision);
         if (ImGui.checkbox("Enable Collision##TileMap_Enable_Collision_" + getUUID(), enableCollision)) this.enableCollision = enableCollision.get();
@@ -164,12 +204,14 @@ public class TileMap extends SpatialComponent {
         }
         if (!openSet) {
             ImGui.unindent();
+            super.additionalImGuiLogic();
             return;
         }
 
         if (tileSet == null) {
             if (ImGui.button("Create new Tile set", ImGui.getContentRegionAvailX(), 0.0f)) setTileSet(new TileSet());
             ImGui.unindent();
+            super.additionalImGuiLogic();
             return;
         }
 
@@ -199,5 +241,8 @@ public class TileMap extends SpatialComponent {
         ImGui.separator();
         ImGui.spacing();
         ImGui.unindent();
+        super.additionalImGuiLogic();
     }
+
+
 }

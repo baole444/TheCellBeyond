@@ -43,7 +43,7 @@ import java.util.UUID;
  *         nestedC.gameObject = this.gameObject;
  *         nestedB.start();
  *         nestedC.start();
- *         super.onStarting();
+ *         super.onStartLogic();
  *     }
  *
  *     @Override
@@ -92,13 +92,13 @@ public abstract class Component {
      * Initialize the component's state when its {@link GameObject} started.
      * If a component is added to an already running game object, it will be automatically started.
      * <p>
-     * Mainly called by the owning game object {@link GameObject#start()} logic.
+     * Mainly called by the owning game object {@link GameObject#()} logic.
      * </p>
-     * Unless there is a very specific use case, it is suggested to override {@link #onStarting()} instead of this.
-     * @see Component#onStarting() Add additional component startup logic
+     * Unless there is a very specific use case, it is suggested to override {@link #onStartLogic()} instead of this.
+     * @see Component#onStartLogic() Add additional component startup logic
      */
     public void start() {
-        onStarting();
+        onStartLogic();
     }
 
     /**
@@ -108,7 +108,7 @@ public abstract class Component {
      *     @Override
      *     protected void onStartLogic() {
      *         customSubclassLogic();
-     *         super.onStarting();
+     *         super.onStartLogic();
      *     }
      *
      *     private void customSubclassLogic() {
@@ -116,8 +116,36 @@ public abstract class Component {
      *     }
      * }
      *}
+     * @apiNote
+     * Call to {@code super.onStartLogic} can be omitted if the class that implement this method
+     * is direct subclass of {@link Component}, or the super class does not have override for this method.
+     * <p>
+     * The position for when to call {@code super.onStartLogic()} may depend on if the implemented logic need to go first,
+     * or after the super's implementation.
      */
-    protected void onStarting() {}
+    protected void onStartLogic() {}
+
+    /**
+     * Initialize the component's state when its {@link GameObject} started in editor.
+     * If a component is added to an already running game object, it will be automatically started.
+     * <p>
+     * Mainly called by the owning game object {@link GameObject#editorStart()} logic.
+     * </p>
+     * Unless there is a very specific use case, it is suggested to override {@link #onEditorStartLogic()} instead of this.
+     * @see Component#onEditorStartLogic()  Add additional component startup logic
+     * @apiNote Do not use this method, unless there are specific initialization for the component
+     * that need to be reflected in editor mode.
+     */
+    public void editorStart() {
+        onEditorStartLogic();
+    }
+
+    /**
+     * Optional hook for additional component's start logic while in editor mode.
+     * <p>
+     * Unless there is specific changes that need to reflect in editor, do not use this method.
+     */
+    protected void onEditorStartLogic() {}
 
     /**
      * Step the editor logic of this component by the given delta time.

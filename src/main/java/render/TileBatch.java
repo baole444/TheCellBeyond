@@ -2,7 +2,7 @@ package render;
 
 import TheCellBeyond.GameObject;
 import components.Component;
-import components.TileMap;
+import TheCellBeyond.TileMap;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector2i;
@@ -145,7 +145,7 @@ public class TileBatch implements Comparable<TileBatch> {
     private void genVertexProperties(int index, Vector2f position, Vector2f size,Vector2f[] textureCoordinate, Vector4f color) {
         int offset = index * 4 * vertexSize;
         float textureID = 1.0f;
-        float objectID = tileMap.gameObject != null ? tileMap.gameObject.getUID() : 0.0f;
+        float objectID = tileMap!= null ? tileMap.getUID() : 0.0f;
 
         float xAdd = 0.5f;
         float yAdd = 0.5f;
@@ -206,8 +206,8 @@ public class TileBatch implements Comparable<TileBatch> {
 
         TileMap map = tileMap;
         if (map.globalZIndex() != zIndex) {
-            removeIfExist(map.gameObject);
-            renderer.switchZIndex(map.gameObject);
+            removeIfExist(map);
+            renderer.switchZIndex(map);
             return;
         }
 
@@ -261,34 +261,10 @@ public class TileBatch implements Comparable<TileBatch> {
     public boolean removeIfExist(GameObject go) {
         if (tileMap == null) return false;
 
-        List<TileMap> tms = go.getComponents(TileMap.class);
-        if (tms.isEmpty()) return false;
-
-        boolean removed = false;
-        for (TileMap map : tms) {
-            if (map == tileMap) {
-                tileMap = null;
-                removed = true;
-                tileCount = 0;
-                break;
-            }
-        }
-
-        return removed;
-    }
-
-    public boolean removeIfExist(Component component) {
-        if (component == null) return false;
-
-        if (component instanceof TileMap map) {
-            if (map == tileMap) {
-                tileMap = null;
-                tileCount = 0;
-                return true;
-            }
-        }
-
-        return false;
+        if (!(go instanceof  TileMap map) || map != tileMap) return false;
+        tileMap = null;
+        tileCount = 0;
+        return true;
     }
 
     public int zIndex() {
@@ -300,7 +276,7 @@ public class TileBatch implements Comparable<TileBatch> {
     }
 
     public boolean hasMap(TileMap tileMap) {
-        if (tileMap == null || tileMap.getUUID() == null || tileMap.gameObject == null) return false;
+        if (tileMap == null || tileMap.getUUID() == null) return false;
 
         return this.tileMap != null && this.tileMap.getUUID().equals(tileMap.getUUID());
     }

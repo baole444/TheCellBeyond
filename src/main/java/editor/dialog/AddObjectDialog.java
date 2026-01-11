@@ -3,6 +3,7 @@ package editor.dialog;
 import TheCellBeyond.GameObject;
 import TheCellBeyond.GameObject2D;
 import TheCellBeyond.internal.LogicServer;
+import TheCellBeyond.TileMap;
 import editor.Properties;
 import imgui.ImGui;
 import imgui.ImVec2;
@@ -10,6 +11,7 @@ import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiWindowFlags;
 import physic2d.CharacterBody2D;
 import physic2d.RigidBody2D;
+import physic2d.StaticBody2D;
 import scene.Scene;
 
 public class AddObjectDialog {
@@ -41,7 +43,9 @@ public class AddObjectDialog {
                 "It exists in both logic spatial and physic world. The transformation of the object is the result of physic simulation via applied forces."),
 
         CharacterBody2D("CharacterBody2D", "A specialized 2D physic object that is not affected by physics at all, but it affects other physic objects in its path. " +
-                "It is used to provide API to move objects in a specific way, as is often the case with user-controlled characters or logic driven NPCs.");
+                "It is used to provide API to move objects in a specific way, as is often the case with user-controlled characters or logic driven NPCs."),
+
+        TileMap("TileMap", "A 2D tile map object. Tile map can have static or kinematic physic body and physic collision defined by tiles in the map's tile set.");
 
         private final String displayLabel;
         private final String description;
@@ -143,8 +147,11 @@ public class AddObjectDialog {
         switch (type) {
             case GameObject2D -> newObject = new GameObject2D(type.label());
             case GameObject -> newObject = new GameObject(type.label());
+            case StaticBody2D -> newObject = new StaticBody2D(type.label());
             case RigidBody2D -> newObject = new RigidBody2D(type.label());
             case CharacterBody2D -> newObject = new CharacterBody2D(type.label());
+            case TileMap -> newObject = new TileMap(type.label());
+
             default -> newObject = null;
         }
 

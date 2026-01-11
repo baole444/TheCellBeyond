@@ -3,6 +3,7 @@ package editor.components;
 import TheCellBeyond.GameObject2D;
 import TheCellBeyond.KeyListener;
 import TheCellBeyond.MouseListener;
+import TheCellBeyond.TileMap;
 import TheCellBeyond.internal.LogicServer;
 import components.*;
 import editor.ImGuiLayer;
