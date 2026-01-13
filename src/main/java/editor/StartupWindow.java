@@ -12,7 +12,6 @@ import project.Project;
 import project.ProjectData;
 import project.ProjectPreference;
 import eventviewer.EngineEventCallback;
-import eventviewer.event.Event;
 import eventviewer.event.EditorEvent;
 import imgui.ImGui;
 import imgui.ImVec2;
@@ -151,7 +150,7 @@ public class StartupWindow {
                     }
                 }
 
-                EngineEventCallback.emit(selectedPath.toString(), new Event(EditorEvent.LoadProject));
+                EngineEventCallback.emit(selectedPath.toString(), new EditorEvent(EditorEvent.Type.LoadProjectFromDisk));
             }
         }
         ImGui.spacing();
@@ -244,7 +243,7 @@ public class StartupWindow {
 
     private static void startEditing() {
         if (selectedProject.isPresentedAtPath()) {
-            EngineEventCallback.emit(selectedProject.path(), new Event(EditorEvent.LoadProject));
+            EngineEventCallback.emit(selectedProject.path(), new EditorEvent(EditorEvent.Type.LoadProjectFromDisk));
             return;
         }
 

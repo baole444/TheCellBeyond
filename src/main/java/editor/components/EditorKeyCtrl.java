@@ -10,7 +10,6 @@ import components.SpriteRenderer;
 import editor.ImGuiLayer;
 import editor.Properties;
 import eventviewer.EngineEventCallback;
-import eventviewer.event.Event;
 import eventviewer.event.EditorEvent;
 import imgui.ImGui;
 import imgui.flag.ImGuiPopupFlags;
@@ -82,11 +81,11 @@ public class EditorKeyCtrl extends Component implements NotSerializeComponent {
 
         // Make keybinding of Ctrl + S = Save file | Ctrl + O = open file
         if (KeyListener.isKeyTapped(GLFW_KEY_S, GLFW_MOD_CONTROL)) {
-            EngineEventCallback.emit(null, new Event(EditorEvent.SaveEditingScene));
+            EngineEventCallback.emit(null, new EditorEvent(EditorEvent.Type.SaveEditingSceneToDisk));
         }
 
         if (KeyListener.isKeyTapped(GLFW_KEY_O, GLFW_MOD_CONTROL)) {
-            EngineEventCallback.emit(null, new Event(EditorEvent.LoadEditingScene));
+            EngineEventCallback.emit(null, new EditorEvent(EditorEvent.Type.LoadEditingSceneFromDisk));
         }
     }
 }

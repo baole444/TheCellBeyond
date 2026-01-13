@@ -4,7 +4,6 @@ import TheCellBeyond.internal.LogicServer;
 import editor.dialog.*;
 import project.Project;
 import eventviewer.EngineEventCallback;
-import eventviewer.event.Event;
 import eventviewer.event.EditorEvent;
 import imgui.ImGui;
 import imgui.internal.flag.ImGuiItemFlags;
@@ -31,7 +30,7 @@ public class MenuBar {
 
         if (ImGui.beginMenu("Scenes")){
             if (ImGui.menuItem("Save current Scene", "Ctrl+S")) {
-                EngineEventCallback.emit(null, new Event(EditorEvent.SaveEditingScene));
+                EngineEventCallback.emit(null, new EditorEvent(EditorEvent.Type.SaveEditingSceneToDisk));
             }
 
             if (ImGui.menuItem("Create new Scene")) {
@@ -46,9 +45,9 @@ public class MenuBar {
                         String sceneName = LogicServer.currentSceneName();
 
                         if (sceneName != null && !sceneName.equals(name) && Project.getSceneNames().contains(sceneName)) {
-                            ConfirmSaveSceneDialog.show(() -> EngineEventCallback.emit(name, new Event(EditorEvent.LoadSceneData)));
+                            ConfirmSaveSceneDialog.show(() -> EngineEventCallback.emit(name, new EditorEvent(EditorEvent.Type.LoadEditingSceneFromDisk)));
                         } else {
-                            EngineEventCallback.emit(name, new Event(EditorEvent.LoadSceneData));
+                            EngineEventCallback.emit(name, new EditorEvent(EditorEvent.Type.LoadEditingSceneFromDisk));
                         }
                     }
                 }

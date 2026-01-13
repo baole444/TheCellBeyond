@@ -8,13 +8,14 @@ import editor.preference.UserPreference;
 import eventviewer.EngineEventCallback;
 import eventviewer.EngineEventListener;
 import eventviewer.event.EditorEvent;
+import eventviewer.event.RuntimeEvent;
 import eventviewer.event.Event;
 import physic2d.Physic2D;
 import project.Project;
 import project.ProjectPreference;
 import scene.Scene;
 import scene.SceneEditor;
-import scene.SceneInit;
+import scene.SceneLoader;
 import utility.log.EngineLog;
 
 import java.util.List;
@@ -36,13 +37,13 @@ public class LogicServer implements EngineEventListener {
         EngineEventCallback.register(this);
     }
 
-    public static void changeScene(SceneInit sceneInit) {
+    public static void changeScene(SceneLoader sceneLoader) {
         if (currentScene != null) currentScene.destroy();
 
         Properties.clearSelection();
         SceneTree.clearSelection();
 
-        currentScene = new Scene(sceneInit);
+        currentScene = new Scene(sceneLoader);
         currentScene.loadLevel();
         currentScene.init();
         if (runtimeMode) currentScene.start();
@@ -79,7 +80,7 @@ public class LogicServer implements EngineEventListener {
                 runtimeCrashed = true;
                 LOGGER.warning("Test play stopped due to exception");
                 logCrash(e);
-                EngineEventCallback.emit(null, new Event(EditorEvent.RuntimeCrashed));
+                EngineEventCallback.emit(null, new RuntimeEvent(RuntimeEvent.Type.RuntimeCrashed));
             }
 
             return;
@@ -112,29 +113,34 @@ public class LogicServer implements EngineEventListener {
 
     @Override
     public void onEventEmit(Object object, Event event) {
+        if (event instanceof EditorEvent editorEvent) handleEditorEvent(object, editorEvent);
+        if (event instanceof RuntimeEvent runtimeEvent) handleRuntimeEvent(object, runtimeEvent);
+    }
+
+    private void handleRuntimeEvent(Object object, RuntimeEvent event) {
         switch (event.type) {
-            case EngineStart -> {
+            case RuntimeEvent.Type.RuntimeStarted -> {
                 runtimeMode = true;
                 currentScene.saveLevel();
                 changeScene(new SceneEditor());
                 LOGGER.info("Test play started.");
             }
-            case EngineStop -> {
+            case RuntimeEvent.Type.RuntimeStopped -> {
                 runtimeMode = false;
                 changeScene(new SceneEditor());
                 LOGGER.info("Test play stopped.");
             }
-            case RuntimeCrashed -> {
+            case RuntimeEvent.Type.RuntimeCrashed -> {
                 runtimeMode = false;
                 runtimeCrashed = false;
                 changeScene(new SceneEditor());
             }
-            case LoadEditingScene -> {
-                runtimeMode = false;
-                changeScene(new SceneEditor());
-                LOGGER.debug("Loading current level...");
-            }
-            case SaveEditingScene -> {
+        }
+    }
+
+    private void handleEditorEvent(Object object, EditorEvent event) {
+        switch (event.type) {
+            case SaveEditingSceneToDisk -> {
                 if (runtimeMode) {
                     LOGGER.warning("Saving scene data structure in runtime mode is forbidden!");
                     return;
@@ -142,7 +148,7 @@ public class LogicServer implements EngineEventListener {
                 currentScene.saveLevel();
                 LOGGER.debug("Saving current level...");
             }
-            case LoadProject -> {
+            case LoadProjectFromDisk -> {
                 String projectPath = object.toString();
                 LOGGER.info("Loading project file at " + projectPath);
                 Project.loadFromYaml(projectPath);
@@ -166,10 +172,10 @@ public class LogicServer implements EngineEventListener {
                 currentSceneName(lastOpenScene);
                 changeScene(new SceneEditor());
             }
-            case LoadSceneData -> {
-                LogicServer.runtimeMode = false;
+            case LoadEditingSceneFromDisk -> {
+                runtimeMode = false;
                 String sceneName = (String) object;
-                LogicServer.currentSceneName(sceneName);
+                currentSceneName(sceneName);
                 String path = Project.projectYMLPath();
                 if (path != null) {
                     ProjectPreference preference = Project.preference();
@@ -177,7 +183,7 @@ public class LogicServer implements EngineEventListener {
                     UserPreference.updateRecentProject(update);
                 }
 
-                LogicServer.changeScene(new SceneEditor());
+                changeScene(new SceneEditor());
                 LOGGER.debug("Requested to load Scene: " + sceneName);
             }
         }

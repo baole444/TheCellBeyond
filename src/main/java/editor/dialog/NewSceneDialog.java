@@ -4,7 +4,6 @@ import TheCellBeyond.internal.LogicServer;
 import project.Project;
 import project.ProjectSceneMap;
 import eventviewer.EngineEventCallback;
-import eventviewer.event.Event;
 import eventviewer.event.EditorEvent;
 import imgui.ImGui;
 import imgui.ImVec2;
@@ -153,7 +152,7 @@ public class NewSceneDialog {
         }
 
         LogicServer.currentSceneName(name);
-        EngineEventCallback.emit(name, new Event(EditorEvent.LoadSceneData));
+        EngineEventCallback.emit(name, new EditorEvent(EditorEvent.Type.LoadEditingSceneFromDisk));
 
         showDialog = false;
         ImGui.closeCurrentPopup();

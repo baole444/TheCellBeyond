@@ -13,7 +13,6 @@ import java.util.List;
 public class Properties {
     public static final String WINDOW_ID = "Inspector###Object_Properties";
     private static final int BUTTON_RESERVED_HEIGHT = 36;
-    private static GameObject activeGameObject = null;
     private static final List<GameObject> activeGameObjects = new ArrayList<>();
     private static final List<List<Vector4f>> activeObjTrueColor = new ArrayList<>();
 
@@ -23,7 +22,7 @@ public class Properties {
             return;
         }
 
-        activeGameObject = getActiveGameObject();
+        GameObject activeGameObject = getActiveGameObject();
         BottomPanel.interact(activeGameObject);
         if (activeGameObject == null) {
             ImGui.beginDisabled();
@@ -34,7 +33,6 @@ public class Properties {
         }
 
         if (activeGameObject.isRemoved()) {
-            activeGameObject = null;
             ImGui.end();
             return;
         }

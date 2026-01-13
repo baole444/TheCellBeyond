@@ -6,6 +6,11 @@ import components.Component;
 import components.SpriteRenderer;
 import components.TextRenderer;
 import TheCellBeyond.TileMap;
+import eventviewer.EngineEventCallback;
+import eventviewer.EngineEventListener;
+import eventviewer.event.EditorEvent;
+import eventviewer.event.Event;
+import eventviewer.event.SceneEvent;
 import org.joml.Matrix4f;
 import render.text.TextBatch;
 import render.texture.TextureManager;
@@ -15,7 +20,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-public class Renderer {
+public class Renderer implements EngineEventListener {
     private static volatile Renderer instance;
     public static final int MAX_BATCH_SIZE = 512;
     private final List<TextureBatch> textureBatches;
@@ -58,6 +63,8 @@ public class Renderer {
         tileBatches = new ArrayList<>();
         snapshots = new ConcurrentLinkedQueue<>();
         switchZIndexQueue = new ArrayList<>();
+
+        EngineEventCallback.register(this);
     }
 
     public static synchronized Renderer get() {
@@ -252,5 +259,14 @@ public class Renderer {
         for (Component component : snapshot.removeComponents()) removeComponent(component);
         for (GameObject go : snapshot.removeObjects()) destroyObject(go);
         for (GameObject go : snapshot.updateObjects()) if (!go.isRemoved()) addGameObject(go);
+    }
+
+    @Override
+    public void onEventEmit(Object object, Event event) {
+        if (!(event instanceof SceneEvent sceneEvent)) return;
+        switch(sceneEvent.type) {
+            case SceneEntered -> {}
+            case SceneLeaved -> {}
+        }
     }
 }

@@ -3,7 +3,6 @@ package editor.dialog;
 import editor.preference.EditorPreferences;
 import editor.preference.UserPreference;
 import eventviewer.EngineEventCallback;
-import eventviewer.event.Event;
 import eventviewer.event.EditorEvent;
 import imgui.ImGui;
 import imgui.ImVec2;
@@ -35,7 +34,7 @@ public class ConfirmSaveSceneDialog {
         if (!showDialog) return;
 
         if (isAutoSaveOnSceneChange) {
-            EngineEventCallback.emit(null, new Event(EditorEvent.SaveEditingScene));
+            EngineEventCallback.emit(null, new EditorEvent(EditorEvent.Type.SaveEditingSceneToDisk));
             closeConfirmation();
             return;
         }
@@ -68,7 +67,7 @@ public class ConfirmSaveSceneDialog {
             ImGui.setCursorPosX(saveX);
             if (ImGui.button("Save", buttonWidth, 0)) {
                 if (enableSaveOnChangeScene.get()) setAutoSaveOn();
-                EngineEventCallback.emit(null, new Event(EditorEvent.SaveEditingScene));
+                EngineEventCallback.emit(null, new EditorEvent(EditorEvent.Type.SaveEditingSceneToDisk));
                 closeConfirmation();
             }
 

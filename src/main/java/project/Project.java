@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import eventviewer.EngineEventCallback;
 import eventviewer.event.EditorEvent;
-import eventviewer.event.Event;
 import physic2d.PhysicLayer;
 import render.Texture;
 import render.texture.SpriteSheet;
@@ -55,7 +54,7 @@ public class Project {
                 sanctionPreference();
                 checkAndAddRequiredDirs();
             }
-            EngineEventCallback.emit(null, new Event(EditorEvent.ProjectLoaded));
+            EngineEventCallback.emit(null, new EditorEvent(EditorEvent.Type.ProjectLoaded));
             return CurrentProject;
         } catch (IOException e) {
             System.err.println("Failed to load project file: " + e.getMessage());

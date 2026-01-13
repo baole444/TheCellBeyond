@@ -1,19 +1,19 @@
 package eventviewer.event;
 
-public enum EditorEvent {
-    EngineStart,
-    EngineStop,
-    RuntimeCrashed,
+public class EditorEvent extends Event {
+    public enum Type {
+        LoadProjectFromDisk,
+        ProjectLoaded,
 
-    SaveEditingScene,
-    LoadEditingScene,
+        CreateNewScene,
+        SaveEditingSceneToDisk,
+        LoadEditingSceneFromDisk,
+        ReloadSceneResource,
+    }
 
-    LoadProject,
-    ProjectLoaded,
+    public final Type type;
 
-    CreateNewScene,
-    LoadSceneData,
-    ReloadSceneResource,
-
-    UserEvent,
+    public EditorEvent(Type type) {
+        this.type = type;
+    }
 }

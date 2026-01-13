@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 
 public class Scene {
     private final Renderer renderer;
-    private final SceneInit sceneInit;
+    private final SceneLoader sceneLoader;
     private transient final ImBoolean isSceneOn;
     private final DataSnapshot sceneData;
 
@@ -35,8 +35,8 @@ public class Scene {
     private final List<Component> removedComponents;
     private final HashMap<GameObject, GameObject> addedGameObjectWithParents;
 
-    public Scene(SceneInit sceneInit) {
-        this.sceneInit = sceneInit;
+    public Scene(SceneLoader sceneLoader) {
+        this.sceneLoader = sceneLoader;
         renderer = Renderer.get();
 
         sceneData = new DataSnapshot();
@@ -49,8 +49,8 @@ public class Scene {
     }
 
     public void init() {
-        sceneInit.loadResource(this);
-        sceneInit.init(this);
+        sceneLoader.loadResource(this);
+        sceneLoader.onSceneEntered(this);
     }
 
     public void start() {
@@ -220,7 +220,7 @@ public class Scene {
         addedGameObjectWithParents.clear();
         sceneData.componentsByUUID().clear();
         Renderer.clearData();
-        sceneInit.dispose();
+        sceneLoader.onSceneEnd();
     }
 
     private void updateQueues() {
@@ -316,7 +316,7 @@ public class Scene {
     }
 
     public void imgui() {
-        sceneInit.imgui();
+        sceneLoader.imgui();
     }
 
     public Physic2D getPhysic2D() {

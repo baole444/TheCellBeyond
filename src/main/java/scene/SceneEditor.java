@@ -9,13 +9,13 @@ import editor.ImEditorGui;
 import editor.dialog.AddSpriteSheetDialog;
 import editor.dialog.AddTextureUnitDialog;
 import editor.payload.SpriteDragDropPayload;
+import eventviewer.event.Event;
 import project.Project;
 import project.ProjectAssetMap;
 import project.ProjectData;
 import project.ProjectSheetMap;
 import eventviewer.EngineEventCallback;
 import eventviewer.EngineEventListener;
-import eventviewer.event.Event;
 import eventviewer.event.EditorEvent;
 import imgui.ImGui;
 import imgui.flag.ImGuiCol;
@@ -36,7 +36,7 @@ import utility.prefabrication.PrefabManager;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class SceneEditor extends SceneInit implements EngineEventListener {
+public class SceneEditor extends SceneLoader implements EngineEventListener {
     public static final String WINDOW_ID = "Resources###Editor_Project_Resource";
 
     private final Vector2i prefabButtonSize = new Vector2i(200, 30);
@@ -55,7 +55,7 @@ public class SceneEditor extends SceneInit implements EngineEventListener {
     }
 
     @Override
-    public void init(Scene scene) {
+    public void onSceneEntered(Scene scene) {
         loadCategorizedSheet();
         loadTextureUnits();
 
@@ -415,12 +415,13 @@ public class SceneEditor extends SceneInit implements EngineEventListener {
     }
 
     @Override
-    void dispose() {
-        EngineEventCallback.unregister(this);
+    public void onSceneEnd() {
+        dispose();
     }
 
     @Override
     public void onEventEmit(Object object, Event event) {
-        if (event.type == EditorEvent.ReloadSceneResource) reloadResource();
+        if (!(event instanceof EditorEvent editorEvent)) return;
+        if (editorEvent.type == EditorEvent.Type.ReloadSceneResource) reloadResource();
     }
 }

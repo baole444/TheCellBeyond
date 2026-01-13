@@ -7,9 +7,11 @@ import editor.dialog.SaveSceneAsDialog;
 import editor.preference.EditorPreferences;
 import editor.preference.UserPreference;
 import eventviewer.EngineEventListener;
+import eventviewer.event.RuntimeEvent;
+import eventviewer.event.Event;
+import eventviewer.event.SceneEvent;
 import project.Project;
 import eventviewer.EngineEventCallback;
-import eventviewer.event.Event;
 import eventviewer.event.EditorEvent;
 import imgui.ImGui;
 import imgui.ImVec2;
@@ -66,17 +68,17 @@ public class SceneEditorViewport implements EngineEventListener {
             if (LogicServer.currentSceneName() == null) {
                 SaveSceneAsDialog.show(() -> {
                     isPlaying = true;
-                    EngineEventCallback.emit(null, new Event(EditorEvent.EngineStart));
+                    EngineEventCallback.emit(null, new RuntimeEvent(RuntimeEvent.Type.RuntimeStarted));
                 });
             } else {
                 isPlaying = true;
-                EngineEventCallback.emit(null, new Event(EditorEvent.EngineStart));
+                EngineEventCallback.emit(null, new RuntimeEvent(RuntimeEvent.Type.RuntimeStarted));
             }
         }
 
         if (ImGui.menuItem("Stop","", !isPlaying, isPlaying)) {
             isPlaying = false;
-            EngineEventCallback.emit(null, new Event(EditorEvent.EngineStop));
+            EngineEventCallback.emit(null, new RuntimeEvent(RuntimeEvent.Type.RuntimeStopped));
         }
 
         ImGui.sameLine();
@@ -167,9 +169,10 @@ public class SceneEditorViewport implements EngineEventListener {
 
     @Override
     public void onEventEmit(Object object, Event event) {
-        switch (event.type) {
-            case EngineStop, RuntimeCrashed -> isPlaying = false;
-            case EngineStart -> isPlaying = true;
+        if (!(event instanceof RuntimeEvent runtimeEvent)) return;
+        switch (runtimeEvent.type) {
+            case RuntimeStopped, RuntimeCrashed -> isPlaying = false;
+            case RuntimeStarted -> isPlaying = true;
         }
     }
 }

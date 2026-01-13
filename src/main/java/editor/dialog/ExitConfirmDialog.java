@@ -3,7 +3,6 @@ package editor.dialog;
 import editor.preference.EditorPreferences;
 import editor.preference.UserPreference;
 import eventviewer.EngineEventCallback;
-import eventviewer.event.Event;
 import eventviewer.event.EditorEvent;
 
 import javax.swing.*;
@@ -45,7 +44,7 @@ public class ExitConfirmDialog {
             setAutoSaveOn();
         }
         if (confirm == 0) {
-            EngineEventCallback.emit(null, new Event(EditorEvent.SaveEditingScene));
+            EngineEventCallback.emit(null, new EditorEvent(EditorEvent.Type.SaveEditingSceneToDisk));
             return true;
         } else return confirm == 1;
     }

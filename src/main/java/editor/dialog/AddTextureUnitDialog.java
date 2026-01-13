@@ -3,7 +3,6 @@ package editor.dialog;
 import project.Project;
 import project.ProjectAssetMap;
 import eventviewer.EngineEventCallback;
-import eventviewer.event.Event;
 import eventviewer.event.EditorEvent;
 import imgui.ImGui;
 import imgui.ImVec2;
@@ -259,7 +258,7 @@ public class AddTextureUnitDialog {
             boolean success = Project.addAsset(UUID.randomUUID(), assetMap);
             if (success) {
                 System.out.println("New asset added to project");
-                EngineEventCallback.emit(null, new Event(EditorEvent.ReloadSceneResource));
+                EngineEventCallback.emit(null, new EditorEvent(EditorEvent.Type.ReloadSceneResource));
             }
 
             showDialog = false;

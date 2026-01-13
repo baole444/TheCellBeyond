@@ -5,7 +5,6 @@ import editor.preference.UserPreference;
 import project.Project;
 import project.ProjectPreference;
 import eventviewer.EngineEventCallback;
-import eventviewer.event.Event;
 import eventviewer.event.EditorEvent;
 import imgui.ImGui;
 import imgui.ImVec2;
@@ -204,7 +203,7 @@ public class NewProjectDialog {
         if (success) {
             String toYML = projectRoot.resolve("_project.yml").toString();
             registerRecentProject(preference, toYML);
-            EngineEventCallback.emit(toYML, new Event(EditorEvent.LoadProject));
+            EngineEventCallback.emit(toYML, new EditorEvent(EditorEvent.Type.LoadProjectFromDisk));
         }
     }
 

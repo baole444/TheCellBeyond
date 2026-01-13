@@ -4,11 +4,11 @@ import TheCellBeyond.internal.LogicServer;
 import editor.ImGuiLayer;
 import editor.StartupWindow;
 import editor.preference.UserPreference;
-import eventviewer.event.EditorEvent;
+import eventviewer.event.Event;
 import project.Project;
 import eventviewer.EngineEventCallback;
 import eventviewer.EngineEventListener;
-import eventviewer.event.Event;
+import eventviewer.event.EditorEvent;
 import imgui.ImGui;
 import org.joml.Vector2i;
 import org.lwjgl.Version;
@@ -22,7 +22,6 @@ import org.lwjgl.openal.ALCapabilities;
 import org.lwjgl.opengl.GL;
 import render.*;
 import render.text.FontManager;
-import scene.SceneEditor;
 import utility.AssetsPool;
 import editor.dialog.ExitConfirmDialog;
 import utility.Settings;
@@ -238,6 +237,7 @@ public final class Window implements EngineEventListener {
         FontManager.get().dispose();
         AssetsPool.clearCache();
         RendererState.cleanup();
+        EngineEventCallback.dispose();
 
         imGuiLayer.getImGuiGl3().shutdown();
         imGuiLayer.getImGuiGlfw().shutdown();
@@ -308,7 +308,8 @@ public final class Window implements EngineEventListener {
 
     @Override
     public void onEventEmit(Object object, Event event) {
-        if (event.type != EditorEvent.ProjectLoaded) return;
+        if (!(event instanceof EditorEvent editorEvent)) return;
+        if (editorEvent.type != EditorEvent.Type.ProjectLoaded) return;
         projectLoaded = Project.currentProject() != null && Project.projectRoot() != null;
         if (!projectLoaded) return;
         String projectDetail = " - [" + Project.preference().name() + "] [" + Project.projectRoot() + "]";
