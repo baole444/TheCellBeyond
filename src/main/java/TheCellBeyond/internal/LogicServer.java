@@ -99,13 +99,13 @@ public class LogicServer implements EngineEventListener {
 
             if (className.startsWith("java.") || className.startsWith("sun.") || className.startsWith("javax.") || className.startsWith("jdk.")) continue;
 
-            LOGGER.error(String.format("    at %s", element));
+            LOGGER.error(String.format("\tat %s", element));
             stackCount++;
 
             if (className.equals(LogicServer.class.getCanonicalName()) && element.getMethodName().equals("loop")) break;
 
             if (stackCount >= 15) {
-                LOGGER.error("    ... (more folded frames)");
+                LOGGER.error("\t... (more folded frames)");
                 break;
             }
         }

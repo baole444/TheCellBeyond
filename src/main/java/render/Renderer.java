@@ -1,6 +1,7 @@
 package render;
 
 import TheCellBeyond.GameObject;
+import TheCellBeyond.Viewport;
 import TheCellBeyond.internal.RenderingSnapshot;
 import components.Component;
 import components.SpriteRenderer;
@@ -8,17 +9,18 @@ import components.TextRenderer;
 import TheCellBeyond.TileMap;
 import eventviewer.EngineEventCallback;
 import eventviewer.EngineEventListener;
-import eventviewer.event.EditorEvent;
 import eventviewer.event.Event;
 import eventviewer.event.SceneEvent;
 import org.joml.Matrix4f;
 import render.text.TextBatch;
 import render.texture.TextureManager;
+import scene.Scene;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Renderer implements EngineEventListener {
     private static volatile Renderer instance;
@@ -30,14 +32,28 @@ public class Renderer implements EngineEventListener {
     private final ConcurrentLinkedQueue<RenderingSnapshot> snapshots;
     private final List<GameObject> switchZIndexQueue;
 
-    private Matrix4f projectionMatrix = null;
-    private Matrix4f viewMatrix = null;
+    private final Matrix4f projectionMatrix = new Matrix4f().identity();
+    private final Matrix4f viewMatrix = new Matrix4f().identity();
+
+    private Scene currentScene;
+    private final AtomicBoolean awaitClearingRenderData = new AtomicBoolean(false);
+
+    public static void init() {
+        if (instance == null) instance = new Renderer();
+    }
 
     public void setMatrices(Matrix4f projectionMatrix, Matrix4f viewMatrix) {
-        this.projectionMatrix = projectionMatrix;
-        this.viewMatrix = viewMatrix;
+        boolean changes = false;
+        if (projectionMatrix != null && !projectionMatrix.equals(this.projectionMatrix)) {
+            this.projectionMatrix.set(projectionMatrix);
+            changes = true;
+        }
+        if (viewMatrix != null && !viewMatrix.equals(this.projectionMatrix)) {
+            changes = true;
+            this.viewMatrix.set(viewMatrix);
+        }
 
-        updateBatchesMatrices();
+        if (changes) updateBatchesMatrices();
     }
 
     private void updateBatchesMatrices() {
@@ -68,19 +84,13 @@ public class Renderer implements EngineEventListener {
     }
 
     public static synchronized Renderer get() {
-        if (instance == null) instance = new Renderer();
         return instance;
     }
 
-    public static synchronized void clearData() {
-        instance = null;
-    }
-
     public void render() {
+        adjustViewport();
         TextureManager.get().processCommands();
-
         RendererState state = RendererState.get();
-
         processSnapshot();
 
         if (RendererState.isNormalPass()) {
@@ -104,6 +114,12 @@ public class Renderer implements EngineEventListener {
         }
 
         adjustZIndex();
+    }
+
+    private void adjustViewport() {
+        if (currentScene == null) return;
+        Viewport viewport = currentScene.viewport();
+        setMatrices(viewport.getProjectionMatrix(), viewport.getViewMatrix());
     }
 
     public void queueSnapshot(RenderingSnapshot snapshot) {
@@ -253,6 +269,12 @@ public class Renderer implements EngineEventListener {
     }
 
     private void processSnapshot() {
+        if (awaitClearingRenderData.get()) {
+            clearRenderData();
+            awaitClearingRenderData.set(false);
+            return;
+        }
+
         RenderingSnapshot snapshot = snapshots.poll();
         if (snapshot == null) return;
 
@@ -265,8 +287,30 @@ public class Renderer implements EngineEventListener {
     public void onEventEmit(Object object, Event event) {
         if (!(event instanceof SceneEvent sceneEvent)) return;
         switch(sceneEvent.type) {
-            case SceneEntered -> {}
-            case SceneLeaved -> {}
+            case SceneEntered -> onSceneStart(sceneEvent.scene);
+            case SceneLeaved -> onSceneLeave(sceneEvent.scene);
         }
+    }
+
+    private void onSceneStart(Scene scene) {
+        if (scene == null) return;
+        awaitClearingRenderData.set(true);
+        currentScene = scene;
+    }
+
+    private void onSceneLeave(Scene scene) {
+        if (scene == null || currentScene != scene) return;
+        awaitClearingRenderData.set(true);
+        currentScene = null;
+    }
+
+    private void clearRenderData() {
+        projectionMatrix.identity();
+        viewMatrix.identity();
+        textureBatches.clear();
+        tileBatches.clear();
+        textBatches.clear();
+        snapshots.clear();
+        switchZIndexQueue.clear();
     }
 }

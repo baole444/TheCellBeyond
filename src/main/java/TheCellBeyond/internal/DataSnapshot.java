@@ -5,6 +5,7 @@ import TheCellBeyond.Viewport;
 import components.Component;
 import org.joml.Vector2f;
 import physic2d.Physic2D;
+import scene.Scene;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;

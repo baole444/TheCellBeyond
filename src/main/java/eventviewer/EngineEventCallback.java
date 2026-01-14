@@ -15,6 +15,10 @@ public class EngineEventCallback {
         engineEventListeners.remove(listener);
     }
 
+    public static void emit(Event event) {
+        emit(null, event);
+    }
+
     public static void emit(Object object, Event event) {
         for (EngineEventListener engineEventListener : engineEventListeners) {
             if (engineEventListener == null) {

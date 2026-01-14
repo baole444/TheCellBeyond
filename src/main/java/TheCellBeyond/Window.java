@@ -73,18 +73,14 @@ public final class Window implements EngineEventListener {
     }
 
     public static Window get() {
-        if (Window.window == null) {
-            Window.window = new Window();
-        }
-
+        if (Window.window == null) Window.window = new Window();
         return Window.window;
     }
 
     public void run() {
         LOGGER.info("Starting LWJGL " + Version.getVersion());
-
         initWindow();
-
+        Renderer.init();
         if (!projectLoaded) {
             StartupWindow.show(windowPtr, imGuiLayer, width, height);
 
@@ -105,7 +101,6 @@ public final class Window implements EngineEventListener {
 
         String renderer = glGetString(GL_RENDERER);
         String version = glGetString(GL_VERSION);
-
         LOGGER.info("Active GPU: " + renderer + " Driver version: " + version);
 
         endScr();
@@ -274,7 +269,7 @@ public final class Window implements EngineEventListener {
                 glViewport(0, 0, frameBuffer.getWidth(), frameBuffer.getHeight());
                 glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-                LogicServer.currentScene().render();
+                Renderer.get().render();
                 objectSelection.detachWrite();
 
                 rendererState.setRenderPass(RendererState.RenderPass.NORMAL);
@@ -286,7 +281,7 @@ public final class Window implements EngineEventListener {
                 glClear(GL_COLOR_BUFFER_BIT);
 
                 LogicServer.loop(dt);
-                LogicServer.currentScene().render();
+                Renderer.get().render();
                 DebugDraw.draw();
 
                 frameBuffer.detach();

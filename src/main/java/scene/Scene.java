@@ -11,6 +11,8 @@ import components.Component;
 import components.IsNotSelectable;
 import editor.components.EditorObjectIndicator;
 import editor.dialog.SaveSceneAsDialog;
+import eventviewer.EngineEventCallback;
+import eventviewer.event.SceneEvent;
 import project.Project;
 import imgui.type.ImBoolean;
 import physic2d.Physic2D;
@@ -25,7 +27,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class Scene {
-    private final Renderer renderer;
     private final SceneLoader sceneLoader;
     private transient final ImBoolean isSceneOn;
     private final DataSnapshot sceneData;
@@ -37,10 +38,7 @@ public class Scene {
 
     public Scene(SceneLoader sceneLoader) {
         this.sceneLoader = sceneLoader;
-        renderer = Renderer.get();
-
         sceneData = new DataSnapshot();
-
         addedGameObjects  = new ArrayList<>();
         removedGameObjects = new ArrayList<>();
         removedComponents = new ArrayList<>();
@@ -54,6 +52,7 @@ public class Scene {
     }
 
     public void start() {
+        EngineEventCallback.emit(new SceneEvent(SceneEvent.Type.SceneEntered, this));
         updateQueues();
 
         for (GameObject go : sceneData.gameObjectByUUIDs().values()) {
@@ -66,6 +65,7 @@ public class Scene {
     }
 
     public void editorStart() {
+        EngineEventCallback.emit(new SceneEvent(SceneEvent.Type.SceneEntered, this));
         updateQueues();
 
         for (GameObject go : sceneData.gameObjectByUUIDs().values()) {
@@ -208,18 +208,11 @@ public class Scene {
     }
 
     public synchronized void destroy() {
+        EngineEventCallback.emit(new SceneEvent(SceneEvent.Type.SceneLeaved, this));
         for (GameObject go : sceneData.gameObjectByUUIDs().values()) {
             go.destroy();
         }
 
-        sceneData.gameObjectByUUIDs().clear();
-        sceneData.rootGameObjects().clear();
-        removedGameObjects.clear();
-        removedComponents.clear();
-        addedGameObjects.clear();
-        addedGameObjectWithParents.clear();
-        sceneData.componentsByUUID().clear();
-        Renderer.clearData();
         sceneLoader.onSceneEnd();
     }
 
@@ -284,7 +277,7 @@ public class Scene {
         sceneData.updated().set(true);
 
         RenderingSnapshot snapshot = sceneData.extractRenderData();
-        if (snapshot != null) renderer.queueSnapshot(snapshot);
+        if (snapshot != null) Renderer.get().queueSnapshot(snapshot);
     }
 
     public void update(float dt) {
@@ -302,13 +295,7 @@ public class Scene {
         sceneData.updated().set(true);
 
         RenderingSnapshot snapshot = sceneData.extractRenderData();
-        if (snapshot != null) renderer.queueSnapshot(snapshot);
-    }
-
-    public void render() {
-        Viewport viewport = viewport();
-        renderer.setMatrices(viewport.getProjectionMatrix(), viewport.getViewMatrix());
-        renderer.render();
+        if (snapshot != null) Renderer.get().queueSnapshot(snapshot);
     }
 
     public Viewport viewport() {
