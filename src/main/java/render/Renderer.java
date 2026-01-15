@@ -2,7 +2,7 @@ package render;
 
 import TheCellBeyond.GameObject;
 import TheCellBeyond.Viewport;
-import TheCellBeyond.internal.RenderingSnapshot;
+import TheCellBeyond.internal.RenderUpdateSnapshot;
 import components.Component;
 import components.SpriteRenderer;
 import components.TextRenderer;
@@ -25,12 +25,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class Renderer implements EngineEventListener {
     private static volatile Renderer instance;
     public static final int MAX_BATCH_SIZE = 512;
-    private final List<TextureBatch> textureBatches;
-    private final List<TextBatch> textBatches;
-    private final List<TileBatch> tileBatches;
+    private final List<TextureBatch> textureBatches = new ArrayList<>();
+    private final List<TextBatch> textBatches = new ArrayList<>();
+    private final List<TileBatch> tileBatches = new ArrayList<>();
+    private final List<GameObject> switchZIndexQueue = new ArrayList<>();
 
-    private final ConcurrentLinkedQueue<RenderingSnapshot> snapshots;
-    private final List<GameObject> switchZIndexQueue;
+    private final ConcurrentLinkedQueue<RenderUpdateSnapshot> updateSnapshots = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<Runnable> pendingOperations = new ConcurrentLinkedQueue<>();
 
     private final Matrix4f projectionMatrix = new Matrix4f().identity();
     private final Matrix4f viewMatrix = new Matrix4f().identity();
@@ -40,6 +41,14 @@ public class Renderer implements EngineEventListener {
 
     public static void init() {
         if (instance == null) instance = new Renderer();
+    }
+
+    private Renderer() {
+        EngineEventCallback.register(this);
+    }
+
+    public static synchronized Renderer get() {
+        return instance;
     }
 
     public void setMatrices(Matrix4f projectionMatrix, Matrix4f viewMatrix) {
@@ -73,24 +82,11 @@ public class Renderer implements EngineEventListener {
         }
     }
 
-    private Renderer() {
-        textureBatches = new ArrayList<>();
-        textBatches = new ArrayList<>();
-        tileBatches = new ArrayList<>();
-        snapshots = new ConcurrentLinkedQueue<>();
-        switchZIndexQueue = new ArrayList<>();
-
-        EngineEventCallback.register(this);
-    }
-
-    public static synchronized Renderer get() {
-        return instance;
-    }
-
     public void render() {
         adjustViewport();
         TextureManager.get().processCommands();
         RendererState state = RendererState.get();
+        processOperation();
         processSnapshot();
 
         if (RendererState.isNormalPass()) {
@@ -120,10 +116,6 @@ public class Renderer implements EngineEventListener {
         if (currentScene == null) return;
         Viewport viewport = currentScene.viewport();
         setMatrices(viewport.getProjectionMatrix(), viewport.getViewMatrix());
-    }
-
-    public void queueSnapshot(RenderingSnapshot snapshot) {
-        if (snapshot != null) snapshots.offer(snapshot);
     }
 
     void switchZIndex(GameObject go) {
@@ -268,6 +260,11 @@ public class Renderer implements EngineEventListener {
         for (GameObject go : updateList) if (!go.isRemoved()) addGameObject(go);
     }
 
+    private void processOperation() {
+        Runnable operation;
+        while ((operation = pendingOperations.poll()) != null) operation.run();
+    }
+
     private void processSnapshot() {
         if (awaitClearingRenderData.get()) {
             clearRenderData();
@@ -275,11 +272,8 @@ public class Renderer implements EngineEventListener {
             return;
         }
 
-        RenderingSnapshot snapshot = snapshots.poll();
+        RenderUpdateSnapshot snapshot = updateSnapshots.poll();
         if (snapshot == null) return;
-
-        for (Component component : snapshot.removeComponents()) removeComponent(component);
-        for (GameObject go : snapshot.removeObjects()) destroyObject(go);
         for (GameObject go : snapshot.updateObjects()) if (!go.isRemoved()) addGameObject(go);
     }
 
@@ -290,6 +284,7 @@ public class Renderer implements EngineEventListener {
             case SceneEntered -> onSceneStart(sceneEvent.scene);
             case SceneLeaved -> onSceneLeave(sceneEvent.scene);
             case ObjectAdded -> onObjectAdded(sceneEvent.scene, sceneEvent.params);
+            case ObjectUpdated -> onObjectUpdated(sceneEvent.scene, sceneEvent.params);
             case ObjectRemoved -> onObjectRemoved(sceneEvent.scene, sceneEvent.params);
             case ComponentRemoved -> onComponentRemoved(sceneEvent.scene, sceneEvent.params);
         }
@@ -311,21 +306,28 @@ public class Renderer implements EngineEventListener {
         if (scene != currentScene) return;
         if (params.isEmpty()) return;
         Object param = params.getFirst();
-        if (param instanceof GameObject go) addGameObject(go);
+        if (param instanceof GameObject go) pendingOperations.offer(() -> addGameObject(go));
+    }
+
+    private void onObjectUpdated(Scene scene, List<Object> params) {
+        if (scene != currentScene) return;
+        if (params.isEmpty()) return;
+        Object param = params.getFirst();
+        if (param instanceof RenderUpdateSnapshot snapshot) updateSnapshots.offer(snapshot);
     }
 
     private void onObjectRemoved(Scene scene, List<Object> params) {
         if (scene != currentScene) return;
         if (params.isEmpty()) return;
         Object param = params.getFirst();
-        if (param instanceof GameObject go) destroyObject(go);
+        if (param instanceof GameObject go) pendingOperations.offer(() -> destroyObject(go));
     }
 
     private void onComponentRemoved(Scene scene, List<Object> params) {
         if (scene != currentScene) return;
         if (params.isEmpty()) return;
         Object param = params.getFirst();
-        if (param instanceof Component component) removeComponent(component);
+        if (param instanceof Component component) pendingOperations.offer(() -> removeComponent(component));
     }
 
     private void clearRenderData() {
@@ -334,7 +336,7 @@ public class Renderer implements EngineEventListener {
         textureBatches.clear();
         tileBatches.clear();
         textBatches.clear();
-        snapshots.clear();
+        updateSnapshots.clear();
         switchZIndexQueue.clear();
     }
 }

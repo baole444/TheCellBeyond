@@ -9,6 +9,7 @@ public class SceneEvent extends Event {
         SceneEntered,
         SceneLeaved,
         ObjectAdded,
+        ObjectUpdated,
         ObjectRemoved,
         ComponentRemoved,
     }

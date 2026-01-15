@@ -3,7 +3,7 @@ package scene;
 import TheCellBeyond.*;
 import TheCellBeyond.internal.DataSnapshot;
 import TheCellBeyond.internal.LogicServer;
-import TheCellBeyond.internal.RenderingSnapshot;
+import TheCellBeyond.internal.RenderUpdateSnapshot;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import components.ComponentSerializer;
@@ -16,7 +16,6 @@ import eventviewer.event.SceneEvent;
 import project.Project;
 import imgui.type.ImBoolean;
 import physic2d.Physic2D;
-import render.Renderer;
 import utility.PathResolver;
 
 import java.io.FileWriter;
@@ -163,7 +162,6 @@ public class Scene {
         if (component == null) return;
 
         sceneData.componentsByUUID().remove(component.getUUID());
-        sceneData.markComponentForRemove(component);
         component.destroy();
 
         EngineEventCallback.emit(new SceneEvent(SceneEvent.Type.ComponentRemoved, this, component));
@@ -182,14 +180,12 @@ public class Scene {
         for (GameObject descendant : descendants) {
             sceneData.cachedIDs().remove(descendant.getUID());
             sceneData.gameObjectByUUIDs().remove(descendant.getUUID());
-            sceneData.markObjectForRemove(descendant);
             sceneData.physic2D().destroyObject(descendant);
             uncacheComponents(descendant);
         }
 
         sceneData.cachedIDs().remove(go.getUID());
         sceneData.gameObjectByUUIDs().remove(go.getUUID());
-        sceneData.markObjectForRemove(go);
         sceneData.physic2D().destroyObject(go);
         uncacheComponents(go);
 
@@ -275,15 +271,14 @@ public class Scene {
 
         for (GameObject go : sceneData.gameObjectByUUIDs().values()) {
             go.editorUpdate(dt);
-
             if (go.isRemoved()) queueObjectForRemoval(go);
         }
 
         updateQueues();
         sceneData.updated().set(true);
 
-        RenderingSnapshot snapshot = sceneData.extractRenderData();
-        if (snapshot != null) Renderer.get().queueSnapshot(snapshot);
+        RenderUpdateSnapshot snapshot = sceneData.extractRenderData();
+        if (snapshot != null) EngineEventCallback.emit(new SceneEvent(SceneEvent.Type.ObjectUpdated, this, snapshot));
     }
 
     public void update(float dt) {
@@ -293,15 +288,14 @@ public class Scene {
 
         for (GameObject go : sceneData.gameObjectByUUIDs().values()) {
             go.update(dt);
-
             if (go.isRemoved()) queueObjectForRemoval(go);
         }
 
         updateQueues();
         sceneData.updated().set(true);
 
-        RenderingSnapshot snapshot = sceneData.extractRenderData();
-        if (snapshot != null) Renderer.get().queueSnapshot(snapshot);
+        RenderUpdateSnapshot snapshot = sceneData.extractRenderData();
+        if (snapshot != null) EngineEventCallback.emit(new SceneEvent(SceneEvent.Type.ObjectUpdated, this, snapshot));
     }
 
     public Viewport viewport() {
