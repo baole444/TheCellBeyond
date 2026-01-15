@@ -450,7 +450,7 @@ public class ImEditorGui {
     public static void selectableIcon(String id, EditorIcons.EditorIconSprite sprite, String toolTip, ImBoolean selected, float width, float height) {
         if (id == null || sprite == null || selected == null) return;
         boolean before = selected.get();
-        if (selectableIcon(id, sprite, toolTip, selected.get(), width, height)) selected.set(before);
+        if (selectableIcon(id, sprite, toolTip, selected.get(), width, height)) selected.set(!before);
     }
 
     public static int physicLayerSelectable(String label, int mask, Object caller) {

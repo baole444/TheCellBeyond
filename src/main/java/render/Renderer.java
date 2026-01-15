@@ -289,6 +289,9 @@ public class Renderer implements EngineEventListener {
         switch(sceneEvent.type) {
             case SceneEntered -> onSceneStart(sceneEvent.scene);
             case SceneLeaved -> onSceneLeave(sceneEvent.scene);
+            case ObjectAdded -> onObjectAdded(sceneEvent.scene, sceneEvent.params);
+            case ObjectRemoved -> onObjectRemoved(sceneEvent.scene, sceneEvent.params);
+            case ComponentRemoved -> onComponentRemoved(sceneEvent.scene, sceneEvent.params);
         }
     }
 
@@ -302,6 +305,27 @@ public class Renderer implements EngineEventListener {
         if (scene == null || currentScene != scene) return;
         awaitClearingRenderData.set(true);
         currentScene = null;
+    }
+
+    private void onObjectAdded(Scene scene, List<Object> params) {
+        if (scene != currentScene) return;
+        if (params.isEmpty()) return;
+        Object param = params.getFirst();
+        if (param instanceof GameObject go) addGameObject(go);
+    }
+
+    private void onObjectRemoved(Scene scene, List<Object> params) {
+        if (scene != currentScene) return;
+        if (params.isEmpty()) return;
+        Object param = params.getFirst();
+        if (param instanceof GameObject go) destroyObject(go);
+    }
+
+    private void onComponentRemoved(Scene scene, List<Object> params) {
+        if (scene != currentScene) return;
+        if (params.isEmpty()) return;
+        Object param = params.getFirst();
+        if (param instanceof Component component) removeComponent(component);
     }
 
     private void clearRenderData() {

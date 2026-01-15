@@ -7,7 +7,10 @@ import java.util.List;
 public class SceneEvent extends Event {
     public enum Type {
         SceneEntered,
-        SceneLeaved
+        SceneLeaved,
+        ObjectAdded,
+        ObjectRemoved,
+        ComponentRemoved,
     }
 
     public final Type type;

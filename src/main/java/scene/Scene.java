@@ -135,6 +135,8 @@ public class Scene {
         for (GameObject child : go.getChildren()) {
             if (!sceneData.gameObjectByUUIDs().containsKey(child.getUUID())) queueForObjectAddition(child, go);
         }
+
+        EngineEventCallback.emit(new SceneEvent(SceneEvent.Type.ObjectAdded, this, go));
     }
 
     public void queueForObjectAddition(GameObject go) {
@@ -163,6 +165,8 @@ public class Scene {
         sceneData.componentsByUUID().remove(component.getUUID());
         sceneData.markComponentForRemove(component);
         component.destroy();
+
+        EngineEventCallback.emit(new SceneEvent(SceneEvent.Type.ComponentRemoved, this, component));
     }
 
     private void removeObjFromScene(GameObject go) {
@@ -188,6 +192,8 @@ public class Scene {
         sceneData.markObjectForRemove(go);
         sceneData.physic2D().destroyObject(go);
         uncacheComponents(go);
+
+        EngineEventCallback.emit(new SceneEvent(SceneEvent.Type.ObjectRemoved, this , go));
     }
 
     public boolean reparentObject(GameObject child, GameObject newParent) {
