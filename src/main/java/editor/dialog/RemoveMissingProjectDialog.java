@@ -1,7 +1,5 @@
 package editor.dialog;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import editor.preference.RecentProject;
 import project.ProjectData;
 import project.ProjectPreference;
@@ -9,6 +7,9 @@ import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiWindowFlags;
+import tools.jackson.core.exc.JacksonIOException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.dataformat.yaml.YAMLFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -103,7 +104,7 @@ public class RemoveMissingProjectDialog {
             }
 
             return selectedProject;
-        } catch (IOException e) {
+        } catch (JacksonIOException e) {
             System.err.println("Failed to load project file: " + e.getMessage());
             return null;
         }

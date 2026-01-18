@@ -1,6 +1,5 @@
 package physic2d;
 
-import TheCellBeyond.Window;
 import editor.ImEditorGui;
 import imgui.ImGui;
 import imgui.flag.ImGuiTreeNodeFlags;
@@ -48,7 +47,7 @@ public class RigidBody2D extends PhysicBody2D {
         bodyDef.fixedRotation = fixedRotation;
         bodyDef.bullet = bullet;
         bodyDef.gravityScale = gravityScale;
-        bodyDef.angularVelocity = angularVelocity;
+        bodyDef.angularVelocity = (float) Math.toRadians(angularVelocity);
     }
 
     @Override
@@ -63,7 +62,7 @@ public class RigidBody2D extends PhysicBody2D {
         if (physicBodyRef == null) return;
         Vec2 v = physicBodyRef.getLinearVelocity();
         currentVelocity.set(v.x, v.y);
-        angularVelocity = physicBodyRef.getAngularVelocity();
+        angularVelocity = (float) Math.toDegrees(physicBodyRef.getAngularVelocity());
     }
 
     /**
@@ -122,9 +121,9 @@ public class RigidBody2D extends PhysicBody2D {
         return angularVelocity;
     }
 
-    public void setAngularVelocity(float angularVelocity) {
-        this.angularVelocity = angularVelocity;
-        if (physicBodyRef != null) physicBodyRef.setAngularVelocity(angularVelocity);
+    public void setAngularVelocity(float degree) {
+        this.angularVelocity = degree;
+        if (physicBodyRef != null) physicBodyRef.setAngularVelocity((float) Math.toRadians(degree));
     }
 
     public float getGravityScale() {
@@ -151,20 +150,20 @@ public class RigidBody2D extends PhysicBody2D {
         }
     }
 
-    public boolean isFixedRotation() {
+    public boolean fixedRotation() {
         return fixedRotation;
     }
 
-    public void setFixedRotation(boolean fixedRotation) {
+    public void fixedRotation(boolean fixedRotation) {
         this.fixedRotation = fixedRotation;
         if (physicBodyRef != null) physicBodyRef.setFixedRotation(fixedRotation);
     }
 
-    public boolean isBullet() {
+    public boolean bullet() {
         return bullet;
     }
 
-    public void setBullet(boolean bullet) {
+    public void bullet(boolean bullet) {
         this.bullet = bullet;
         if (physicBodyRef != null) physicBodyRef.setBullet(bullet);
     }
@@ -177,9 +176,7 @@ public class RigidBody2D extends PhysicBody2D {
     @Override
     public RigidBody2D copy(boolean copyHierarchy) {
         RigidBody2D copy = (RigidBody2D) copySingleObject();
-
         if (copyHierarchy && !getChildren().isEmpty()) copyDescendants(this, copy);
-
         return copy;
     }
 
@@ -200,9 +197,9 @@ public class RigidBody2D extends PhysicBody2D {
         float translateResist = ImEditorGui.dragFloatCtrl("Translate Resistance", translateResistance, 0.8f, this, 0.0f);
         float gravScale = ImEditorGui.dragFloatCtrl("Gravity Scale", gravityScale, 1.0f, this);
         ImBoolean fixedRot = new ImBoolean(fixedRotation);
-        if (ImGui.checkbox("Fixed Rotation##RigidBody2D_fixedRotation_" + getUUID(), fixedRot)) setFixedRotation(fixedRot.get());
+        if (ImGui.checkbox("Fixed Rotation##RigidBody2D_fixedRotation_" + getUUID(), fixedRot)) fixedRotation(fixedRot.get());
         ImBoolean b = new ImBoolean(bullet);
-        if (ImGui.checkbox("Bullet##RigidBody2D_bullet_" + getUUID(), b)) setBullet(b.get());
+        if (ImGui.checkbox("Bullet##RigidBody2D_bullet_" + getUUID(), b)) bullet(b.get());
 
         if (vChanged) setInitialVelocity(vTmp);
         if (Float.compare(angularV, angularVelocity) != 0) setAngularVelocity(angularV);

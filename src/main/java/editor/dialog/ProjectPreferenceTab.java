@@ -1,5 +1,6 @@
 package editor.dialog;
 
+import editor.ImEditorGui;
 import imgui.ImGui;
 import imgui.flag.*;
 import imgui.type.ImBoolean;
@@ -7,7 +8,9 @@ import imgui.type.ImFloat;
 import imgui.type.ImInt;
 import imgui.type.ImString;
 import org.joml.Vector2i;
+import org.joml.Vector4f;
 import physic2d.Physic2D;
+import project.ClearColor;
 import project.Project;
 import project.ProjectPreference;
 
@@ -17,6 +20,8 @@ class ProjectPreferenceTab {
     private static final ImBoolean allowResize = new ImBoolean(false);
     private static final ImBoolean maintainAspectRatio = new ImBoolean(true);
     private static final ImFloat textureGlobalScale = new ImFloat(1.0f);
+    private static final Vector4f clearColor = new Vector4f(0.027f, 0.122f, 0.067f, 1.0f);
+
     private static boolean projectPreferencesChanged = false;
 
     static void reloadPreferenceData() {
@@ -27,20 +32,17 @@ class ProjectPreferenceTab {
         allowResize.set(preference.allowResize());
         maintainAspectRatio.set(preference.maintainAspectRatio());
         textureGlobalScale.set(preference.textureGlobalScale());
+        clearColor.set(preference.clearColor().toVector());
     }
 
     static void autoSavePreferences() {
         if (!projectPreferencesChanged) return;
         if (gameTitle.isEmpty() || gameWindowSize.x <= 0 || gameWindowSize.y <= 0) return;
 
-        int width = gameWindowSize.x;
-        int height = gameWindowSize.y;
-        float scale = Math.max(0.01f, textureGlobalScale.get());
-
-        boolean success =Project.updateProjectPreference(gameTitle.get(),
-                width, height,
+        boolean success = Project.updateProjectPreference(gameTitle.get(),
+                gameWindowSize.x, gameWindowSize.y,
                 allowResize.get(), maintainAspectRatio.get(),
-                scale
+                textureGlobalScale.get(), new ClearColor(clearColor)
         );
 
         if (success) projectPreferencesChanged = false;
@@ -106,6 +108,9 @@ class ProjectPreferenceTab {
         ImGui.beginDisabled();
         ImGui.textWrapped("Maintain the game's intended aspect ratio when window is resized");
         ImGui.endDisabled();
+
+        ImGui.spacing();
+        if (ImEditorGui.colorCtrl("Clear color", clearColor, ProjectPreferenceTab.class)) projectPreferencesChanged = true;
         ImGui.unindent();
         ImGui.separator();
     }

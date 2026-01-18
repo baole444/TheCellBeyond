@@ -54,7 +54,7 @@ dependencies {
 
     implementation "org.joml:joml:${joml_version}"
     implementation "com.code-disaster.steamworks4j:steamworks4j:${steamworks4j_version}"
-    implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:$jacksonYaml_version"
+    implementation "tools.jackson.dataformat:jackson-dataformat-yaml:$jacksonYaml_version"
 
     // SpaiR-imgui
     implementation "io.github.spair:imgui-java-binding:$imgui_version"

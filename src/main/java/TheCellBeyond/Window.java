@@ -5,6 +5,8 @@ import editor.ImGuiLayer;
 import editor.StartupWindow;
 import editor.preference.UserPreference;
 import eventviewer.event.Event;
+import org.joml.Vector4f;
+import project.ClearColor;
 import project.Project;
 import eventviewer.EngineEventCallback;
 import eventviewer.EngineEventListener;
@@ -20,6 +22,7 @@ import org.lwjgl.openal.ALC;
 import org.lwjgl.openal.ALCCapabilities;
 import org.lwjgl.openal.ALCapabilities;
 import org.lwjgl.opengl.GL;
+import project.ProjectPreference;
 import render.*;
 import render.text.FontManager;
 import utility.AssetsPool;
@@ -44,6 +47,7 @@ public final class Window implements EngineEventListener {
 
     private long windowPtr;
     public float r, g, b, a;
+    public boolean overrideClearColor = false;
     private static Window window = null;
 
     private ImGuiLayer imGuiLayer;
@@ -277,7 +281,13 @@ public final class Window implements EngineEventListener {
 
                 DebugDraw.startFrame();
                 frameBuffer.use();
-                glClearColor(r, g, b, a);
+                if (overrideClearColor) {
+                    glClearColor(r, g, b, a);
+                } else {
+                    Vector4f clearColor = Project.preference().clearColor().toVector();
+                    glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
+                }
+
                 glClear(GL_COLOR_BUFFER_BIT);
 
                 LogicServer.loop(dt);
@@ -307,6 +317,13 @@ public final class Window implements EngineEventListener {
         if (editorEvent.type != EditorEvent.Type.ProjectLoaded) return;
         projectLoaded = Project.currentProject() != null && Project.projectRoot() != null;
         if (!projectLoaded) return;
+
+        ClearColor clearColor = Project.preference().clearColor();
+        r = clearColor.r();
+        g = clearColor.g();
+        b = clearColor.b();
+        a = clearColor.a();
+
         String projectDetail = " - [" + Project.preference().name() + "] [" + Project.projectRoot() + "]";
         glfwSetWindowTitle(windowPtr, this.title + projectDetail);
     }

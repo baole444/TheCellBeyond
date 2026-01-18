@@ -1,8 +1,6 @@
 package editor;
 
 import TheCellBeyond.MouseListener;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import editor.dialog.NewProjectDialog;
 import editor.dialog.OpenProjectDialog;
 import editor.dialog.RemoveMissingProjectDialog;
@@ -16,6 +14,9 @@ import eventviewer.event.EditorEvent;
 import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.*;
+import tools.jackson.core.exc.JacksonIOException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.dataformat.yaml.YAMLFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -235,7 +236,7 @@ public class StartupWindow {
             }
 
             return selectedProject;
-        } catch (IOException e) {
+        } catch (JacksonIOException e) {
             System.err.println("Failed to load project file: " + e.getMessage());
             return null;
         }

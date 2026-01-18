@@ -28,6 +28,7 @@ public class ExitToProjectListDialog {
         if (!showDialog) return;
 
         if (isAutoSaveOnExit) {
+            ExitToProjectList.get().toProjectList(true);
             EngineEventCallback.emit(null, new EditorEvent(EditorEvent.Type.SaveEditingSceneToDisk));
             Window.get().forceClose();
             showDialog = false;

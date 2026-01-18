@@ -22,6 +22,7 @@ public abstract class PhysicBody2D extends GameObject2D {
 
     protected float friction = 0.0f;
     protected boolean isSensor = false;
+    protected boolean isActive = true;
     protected transient Body physicBodyRef = null;
 
     private transient boolean needFixtureUpdate = false;
@@ -66,11 +67,20 @@ public abstract class PhysicBody2D extends GameObject2D {
         return isSensor;
     }
 
+    public boolean isActive() {
+        return isActive;
+    }
+
     public void setSensor(boolean sensor) {
         this.isSensor = sensor;
         if (physicBodyRef != null) {
             LogicServer.physic2D().setIsSensor(this, sensor);
         }
+    }
+
+    public void setActive(boolean active) {
+        isActive = active;
+        if (physicBodyRef != null) physicBodyRef.setActive(active);
     }
 
     public PhysicBodyType getPhysicBodyType() {
@@ -93,6 +103,7 @@ public abstract class PhysicBody2D extends GameObject2D {
         float currentRot = globalRotation();
 
         this.physicBodyRef.setTransform(new Vec2(currentPos.x, currentPos.y), Math.toRadians(currentRot));
+        this.physicBodyRef.setActive(isActive);
     }
 
     public int getCollisionLayer() {
@@ -178,8 +189,12 @@ public abstract class PhysicBody2D extends GameObject2D {
         float friction = ImEditorGui.dragFloatCtrl("Friction", this.friction, this);
         if (friction != this.friction) setFriction(friction);
 
-        ImBoolean isSensor = new ImBoolean(this.isSensor);
-        if (ImGui.checkbox("Sensor Mode##PhysicBody2D_isSensor_" + getUUID(), isSensor)) setSensor(isSensor.get());
+        ImBoolean sensor = new ImBoolean(isSensor);
+        if (ImGui.checkbox("Sensor Mode##PhysicBody2D_isSensor_" + getUUID(), sensor)) setSensor(sensor.get());
+
+        ImBoolean active = new ImBoolean(isActive);
+        if (ImGui.checkbox("Active##PhysicBody2D_isActive_" + getUUID(), active)) setActive(active.get());
+
         ImGui.indent();
         ImGui.pushStyleColor(ImGuiCol.Header, 0.0f, 0.0f, 0.0f, 0.0f);
         boolean open = ImGui.collapsingHeader("Physic Layers##Physic_Body_Physic_Layers_" + getUUID());

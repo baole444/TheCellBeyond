@@ -145,13 +145,9 @@ public class FrameBuffer {
             renderAction.run();
             return;
         }
-
         use();
-
-        renderAction.run(); // execute render codes
-
+        renderAction.run();
         detach();
-
         renderToScreen();
     }
 

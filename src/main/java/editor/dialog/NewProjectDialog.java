@@ -2,6 +2,7 @@ package editor.dialog;
 
 import editor.preference.RecentProject;
 import editor.preference.UserPreference;
+import project.ClearColor;
 import project.Project;
 import project.ProjectPreference;
 import eventviewer.EngineEventCallback;
@@ -194,7 +195,7 @@ public class NewProjectDialog {
         ProjectPreference preference = new ProjectPreference(gameTitle.get(),
                 gameWindowSize.x, gameWindowSize.y,
                 allowResize.get(), maintainAspectRatio.get(),
-                globalTextureScale.get()
+                globalTextureScale.get(), new ClearColor()
         );
 
         Path projectRoot = Path.of(selectedDirectoryPath.get());

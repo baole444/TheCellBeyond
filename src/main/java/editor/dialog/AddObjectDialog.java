@@ -10,6 +10,7 @@ import imgui.ImVec2;
 import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiWindowFlags;
 import physic2d.CharacterBody2D;
+import physic2d.KinematicBody2D;
 import physic2d.RigidBody2D;
 import physic2d.StaticBody2D;
 import scene.Scene;
@@ -41,6 +42,8 @@ public class AddObjectDialog {
 
         RigidBody2D("RigidBody2D", "A 2D rigid physic object with full physic simulation. " +
                 "It exists in both logic spatial and physic world. The transformation of the object is the result of physic simulation via applied forces."),
+
+        KinematicBody2D("KinematicBody2D", "A 2D physic object suitable for scripted movement, control via velocity. It is not affected by physic at all."),
 
         CharacterBody2D("CharacterBody2D", "A specialized 2D physic object that is not affected by physics at all, but it affects other physic objects in its path. " +
                 "It is used to provide API to move objects in a specific way, as is often the case with user-controlled characters or logic driven NPCs."),
@@ -149,6 +152,7 @@ public class AddObjectDialog {
             case GameObject -> newObject = new GameObject(type.label());
             case StaticBody2D -> newObject = new StaticBody2D(type.label());
             case RigidBody2D -> newObject = new RigidBody2D(type.label());
+            case KinematicBody2D -> newObject = new KinematicBody2D(type.label());
             case CharacterBody2D -> newObject = new CharacterBody2D(type.label());
             case TileMap -> newObject = new TileMap(type.label());
 

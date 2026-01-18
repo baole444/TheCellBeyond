@@ -1,8 +1,9 @@
 package editor.preference;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.MapType;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.core.exc.JacksonIOException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.type.MapType;
+import tools.jackson.dataformat.yaml.YAMLFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -61,7 +62,7 @@ public class UserPreference {
                 MapType mapType = YAML_MAPPER.getTypeFactory().constructMapType(HashMap.class, UUID.class, RecentProject.class);
                 recentProjects.clear();
                 recentProjects.putAll(YAML_MAPPER.readValue(recents.toFile(), mapType));
-            } catch (IOException e) {
+            } catch (JacksonIOException e) {
                 System.err.println("Failed to load recent projects");
             }
         }
@@ -74,7 +75,7 @@ public class UserPreference {
         if (Files.exists(config)) {
             try {
                 editorPreferences = YAML_MAPPER.readValue(config.toFile(), EditorPreferences.class);
-            } catch (IOException e) {
+            } catch (JacksonIOException e) {
                 System.err.println("Failed to load editor preferences");
             }
         }
@@ -146,7 +147,7 @@ public class UserPreference {
 
         try {
             YAML_MAPPER.writerWithDefaultPrettyPrinter().writeValue(recents.toFile(), recentProjects);
-        } catch (IOException e) {
+        } catch (JacksonIOException e) {
             System.err.println("Failed to save recent projects");
         }
     }
@@ -175,7 +176,7 @@ public class UserPreference {
 
         try {
             YAML_MAPPER.writerWithDefaultPrettyPrinter().writeValue(config.toFile(), editorPreferences);
-        } catch (IOException e) {
+        } catch (JacksonIOException e) {
             System.err.println("Failed to save editor preferences");
         }
     }

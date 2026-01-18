@@ -2,14 +2,15 @@ package project;
 
 import TheCellBeyond.InputAction;
 import TheCellBeyond.InputKey;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import eventviewer.EngineEventCallback;
 import eventviewer.event.EditorEvent;
 import physic2d.PhysicLayer;
 import render.Texture;
 import render.texture.SpriteSheet;
 import render.texture.TextureUnit;
+import tools.jackson.core.exc.JacksonIOException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.dataformat.yaml.YAMLFactory;
 import utility.AssetsPool;
 import utility.PathResolver;
 
@@ -51,12 +52,11 @@ public class Project {
                 preference = CurrentProject.project();
 
                 sanctionRelativePath();
-                sanctionPreference();
                 checkAndAddRequiredDirs();
             }
             EngineEventCallback.emit(null, new EditorEvent(EditorEvent.Type.ProjectLoaded));
             return CurrentProject;
-        } catch (IOException e) {
+        } catch (JacksonIOException e) {
             System.err.println("Failed to load project file: " + e.getMessage());
             return null;
         }
@@ -68,7 +68,7 @@ public class Project {
                 YAML_MAPPER.writeValue(new File(path), CurrentProject);
                 _projectYmlPath = path;
             }
-        } catch (IOException e) {
+        } catch (JacksonIOException e) {
             System.err.println("Failed to save project file: " + e.getMessage());
         }
     }
@@ -103,7 +103,7 @@ public class Project {
 
         try {
             YAML_MAPPER.writeValue(potentialProject.toFile(), newProject);
-        } catch (IOException e) {
+        } catch (JacksonIOException e) {
             System.err.println("Failed to create new project");
             return false;
         }
@@ -132,12 +132,8 @@ public class Project {
         return CurrentProject.scenes().get(key);
     }
 
-    public static boolean updateProjectPreference(String name, int windowWidth, int windowHeight, boolean allowResize, boolean maintainAspectRatio, float textureGlobalScale) {
-        int w = Math.max(1, windowWidth);
-        int h = Math.max(1, windowHeight);
-        float scale = Math.max(0.01f, textureGlobalScale);
-
-        preference = new ProjectPreference(name, w, h, allowResize, maintainAspectRatio, scale);
+    public static boolean updateProjectPreference(String name, int windowWidth, int windowHeight, boolean allowResize, boolean maintainAspectRatio, float textureGlobalScale, ClearColor clearColor) {
+        preference = new ProjectPreference(name, windowWidth, windowHeight, allowResize, maintainAspectRatio, textureGlobalScale, clearColor);
 
         if (CurrentProject == null) {
             System.err.println("No project loaded");
@@ -523,24 +519,6 @@ public class Project {
         if (modified) {
             System.out.println("Corrected current project's relative paths");
         }
-    }
-
-    private static void sanctionPreference() {
-        if (CurrentProject == null || preference == null) return;
-
-        int w = Math.max(1, preference.gameWindowWidth());
-        int h = Math.max(1, preference.gameWindowHeight());
-        float scale = Math.max(0.01f, preference.textureGlobalScale());
-
-        preference = new ProjectPreference(preference.name(), w, h, preference.allowResize(), preference.maintainAspectRatio(), scale);
-
-        CurrentProject = new ProjectData(CurrentProject.version(),
-                preference, CurrentProject.assets(),
-                CurrentProject.sheets(), CurrentProject.scenes(),
-                CurrentProject.inputActions(), CurrentProject.physicLayers()
-        );
-
-        save();
     }
 
     public static void loadProjectData() {
