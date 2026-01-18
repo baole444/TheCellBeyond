@@ -1,5 +1,6 @@
 package TheCellBeyond;
 
+import components.IsNotSelectable;
 import editor.EditorIcons;
 import editor.ImEditorGui;
 import imgui.ImGui;
@@ -9,7 +10,9 @@ import imgui.flag.ImGuiTreeNodeFlags;
 import imgui.type.ImBoolean;
 import org.joml.Vector2f;
 import org.joml.Vector2i;
+import physic2d.KinematicBody2D;
 import physic2d.PhysicBody2D;
+import physic2d.StaticBody2D;
 import render.texture.Tile;
 import render.texture.TileSet;
 import utility.WorldUnit;
@@ -36,13 +39,21 @@ public class TileMap extends GameObject2D {
 
     @Override
     protected void onDestroy() {
-        if (physicBody2D != null) {
-            physicBody2D.destroy();
-            physicBody2D = null;
-        }
+        if (physicBody2D == null) return;
+        physicBody2D.destroy();
+        physicBody2D = null;
     }
 
-    private void initPhysicBody() {}
+    private void initPhysicBody() {
+        if (!enableCollision) return;
+        if (physicBody2D != null) return;
+
+        String physicName = "TileMap_PhysicBody_" + getUUID().toString();
+        physicBody2D = useKinematicBody ? new KinematicBody2D(physicName) : new StaticBody2D(physicName);
+        physicBody2D.setNotSerialize();
+        physicBody2D.addComponent(new IsNotSelectable());
+        addChild(physicBody2D);
+    }
 
     public TileMap() {
         super(TileMap.class.getSimpleName());
@@ -243,6 +254,4 @@ public class TileMap extends GameObject2D {
         ImGui.unindent();
         super.additionalImGuiLogic();
     }
-
-
 }
