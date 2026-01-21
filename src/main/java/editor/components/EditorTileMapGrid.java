@@ -26,10 +26,10 @@ public class EditorTileMapGrid extends Component implements NotSerializeComponen
         TileMap editingTileMap = TileMapEditor.getEditingTileMap();
         if (editingTileMap == null) return;
 
-        TileSet tileSet = editingTileMap.getTileSet();
+        TileSet tileSet = editingTileMap.tileSet();
         if (tileSet == null) return;
 
-        Vector2i gridSize = tileSet.getGridSize();
+        Vector2i gridSize = tileSet.gridSize();
         if (gridSize.x <= 0 || gridSize.y <= 0) return;
         Vector2f gridWorldSize = WorldUnit.pixelToWorld(new Vector2f(gridSize.x, gridSize.y));
 

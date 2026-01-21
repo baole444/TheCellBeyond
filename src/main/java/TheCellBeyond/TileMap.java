@@ -1,5 +1,6 @@
 package TheCellBeyond;
 
+import TheCellBeyond.internal.LogicServer;
 import components.IsNotSelectable;
 import editor.EditorIcons;
 import editor.ImEditorGui;
@@ -13,8 +14,10 @@ import org.joml.Vector2i;
 import physic2d.KinematicBody2D;
 import physic2d.PhysicBody2D;
 import physic2d.StaticBody2D;
+import physic2d.collider.TileCollider2D;
 import render.texture.Tile;
 import render.texture.TileSet;
+import scene.Scene;
 import utility.WorldUnit;
 
 import java.util.HashMap;
@@ -33,7 +36,7 @@ public class TileMap extends GameObject2D {
     private transient boolean physicBodyDirty = false;
 
     @Override
-    protected void onStartLogic() {
+    protected void onStart() {
         initPhysicBody();
     }
 
@@ -51,8 +54,15 @@ public class TileMap extends GameObject2D {
         String physicName = "TileMap_PhysicBody_" + getUUID().toString();
         physicBody2D = useKinematicBody ? new KinematicBody2D(physicName) : new StaticBody2D(physicName);
         physicBody2D.setNotSerialize();
-        physicBody2D.addComponent(new IsNotSelectable());
+        physicBody2D.addComponents(new IsNotSelectable(), new TileCollider2D());
+        physicBody2D.setFriction(1.0f);
+        if (tileSet != null) {
+            physicBody2D.setCollisionLayer(tileSet.getCollisionLayer());
+            physicBody2D.setCollisionMask(tileSet.getCollisionMask());
+        }
         addChild(physicBody2D);
+        Scene scene = LogicServer.currentScene();
+        if (scene != null) scene.queueForObjectAddition(physicBody2D, this);
     }
 
     public TileMap() {
@@ -80,22 +90,22 @@ public class TileMap extends GameObject2D {
     public Vector2f getTileSetSize() {
         if (tileSet == null) return new Vector2f(1.0f);
 
-        return new Vector2f(tileSet.getWidth(), tileSet.getHeight());
+        return new Vector2f(tileSet.width(), tileSet.height());
     }
 
     public Vector2f getSpriteSizeAsWorldUnit() {
         return WorldUnit.pixelToWorld(getTileSetSize());
     }
 
-    public HashMap<Vector2i, Tile> getTiles() {
+    public HashMap<Vector2i, Tile> tiles() {
         return new HashMap<>(tiles);
     }
 
-    public TileSet getTileSet() {
+    public TileSet tileSet() {
         return tileSet;
     }
 
-    public void setTileSet(TileSet tileSet) {
+    public void tileSet(TileSet tileSet) {
         if (Objects.equals(this.tileSet, tileSet)) return;
         this.tileSet = tileSet;
         tiles.clear();
@@ -105,7 +115,7 @@ public class TileMap extends GameObject2D {
     public void placeTile(Vector2i mapCoordinate, Vector2i tileSetCoordinate) {
         if (tileSet == null || mapCoordinate == null || tileSetCoordinate == null) return;
 
-        Tile tile = tileSet.getTile(tileSetCoordinate);
+        Tile tile = tileSet.tile(tileSetCoordinate);
         if (tile == null) return;
 
         tiles.put(mapCoordinate, tile);
@@ -121,7 +131,7 @@ public class TileMap extends GameObject2D {
 
         for (Vector2i grid : tileSetCoordinates) {
             if (grid == null) continue;
-            Tile tile = tileSet.getTile(grid);
+            Tile tile = tileSet.tile(grid);
             if (tile == null) continue;
             Vector2i offset = new Vector2i(grid.x - firstCoordinate.x, firstCoordinate.y - grid.y);
 
@@ -150,6 +160,11 @@ public class TileMap extends GameObject2D {
         if (tileSet == null) return;
         tiles.clear();
         tileSet.resetDefault();
+        isTileDirty = true;
+    }
+
+    @Override
+    protected void onTransformDirty() {
         isTileDirty = true;
     }
 
@@ -220,24 +235,24 @@ public class TileMap extends GameObject2D {
         }
 
         if (tileSet == null) {
-            if (ImGui.button("Create new Tile set", ImGui.getContentRegionAvailX(), 0.0f)) setTileSet(new TileSet());
+            if (ImGui.button("Create new Tile set", ImGui.getContentRegionAvailX(), 0.0f)) tileSet(new TileSet());
             ImGui.unindent();
             super.additionalImGuiLogic();
             return;
         }
 
         ImGui.text("Tile size:");
-        Vector2i size = tileSet.getGridSize();
+        Vector2i size = tileSet.gridSize();
         int x = ImEditorGui.dragIntCtrl("With", size.x, 16, tileSet, 1);
         int y = ImEditorGui.dragIntCtrl("Height", size.y, 16, tileSet, 1);
-        if (x != size.x || y != size.y) tileSet.setGridSize(size.set(x, y));
+        if (x != size.x || y != size.y) tileSet.gridSize(size.set(x, y));
 
         ImGui.separator();
         ImGui.text("Start position offset:");
-        Vector2i startOffset = tileSet.getStartPosition();
+        Vector2i startOffset = tileSet.startPosition();
         int xF = ImEditorGui.dragIntCtrl("X offset", startOffset.x, 0, tileSet, 0);
         int yF = ImEditorGui.dragIntCtrl("Y offset", startOffset.y, 0, tileSet, 0);
-        if (xF != startOffset.x || yF != startOffset.y) tileSet.setStartPosition(startOffset.set(xF, yF));
+        if (xF != startOffset.x || yF != startOffset.y) tileSet.startPosition(startOffset.set(xF, yF));
 
         ImGui.separator();
         ImGui.text("Physic layers");

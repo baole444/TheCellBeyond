@@ -26,7 +26,7 @@ public class EditorGizmoCtrl extends Component {
     }
 
     @Override
-    protected void onEditorStartLogic() {
+    protected void onEditorStart() {
         initGizmoSprite();
     }
 

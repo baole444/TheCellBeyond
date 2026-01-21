@@ -190,11 +190,11 @@ public class TileMapEditor {
     }
 
     private static void renderTileSetImage() {
-        if (editingTileMap == null || editingTileMap.getTileSet() == null) return;
+        if (editingTileMap == null || editingTileMap.tileSet() == null) return;
 
-        TileSet tileSet = editingTileMap.getTileSet();
-        if (tileSet.getTextureID() <= -1) return;
-        Sprite sprite = tileSet.getTileSetSprite();
+        TileSet tileSet = editingTileMap.tileSet();
+        if (tileSet.textureID() <= -1) return;
+        Sprite sprite = tileSet.tileSetSprite();
         if (sprite == null) return;
 
         if (!ImGui.beginChild("##TileSet_Image_Edit_Region", ImGui.getContentRegionAvail(), ImGuiChildFlags.None, ImGuiWindowFlags.HorizontalScrollbar)) {
@@ -254,8 +254,8 @@ public class TileMapEditor {
         if (firstTile == null || firstTile.setCoordinate == null) return;
         Vector2i firstCoordinate = new Vector2i(firstTile.setCoordinate);
 
-        Vector2i gridSize = tileSet.getGridSize();
-        Vector2i startPos = tileSet.getStartPosition();
+        Vector2i gridSize = tileSet.gridSize();
+        Vector2i startPos = tileSet.startPosition();
 
         ImDrawList drawList = ImGui.getWindowDrawList();
 
@@ -301,11 +301,11 @@ public class TileMapEditor {
     private static void drawTileHighLight(TileSet tileSet, ImVec2 cursorScreenPos) {
         if (tileSet == null) return;
 
-        List<Tile> tiles = tileSet.getTiles();
+        List<Tile> tiles = tileSet.tiles();
         if (tiles.isEmpty()) return;
 
-        Vector2i gridSize = tileSet.getGridSize();
-        Vector2i startPos = tileSet.getStartPosition();
+        Vector2i gridSize = tileSet.gridSize();
+        Vector2i startPos = tileSet.startPosition();
         HashSet<Vector2i> tileCoordinates = tileSet.getTileCoordinates();
 
         if (tileCoordinates.isEmpty()) return;
@@ -415,7 +415,7 @@ public class TileMapEditor {
                 selectedTiles.clear();
                 selectTiles(tileSet, coordinate, clicked);
             } else {
-                Tile tile = tileSet.getTile(clicked);
+                Tile tile = tileSet.tile(clicked);
                 if (tile != null) selectedTiles.add(tile);
             }
             return true;
@@ -426,7 +426,7 @@ public class TileMapEditor {
         Vector2i clicked = getGridCoordinate(tileSet, cursorScreenPos, width, height);
         if (clicked == null) return true;
 
-        Tile tile = tileSet.getTile(clicked);
+        Tile tile = tileSet.tile(clicked);
         if (tile == null) return true;
 
         if (!selectedTiles.remove(tile)) selectedTiles.add(tile);
@@ -438,8 +438,8 @@ public class TileMapEditor {
         float relativeX = mousePos.x - cursorScreenPos.x;
         float relativeY = mousePos.y - cursorScreenPos.y;
 
-        Vector2i gridSize = tileSet.getGridSize();
-        Vector2i startPos = tileSet.getStartPosition();
+        Vector2i gridSize = tileSet.gridSize();
+        Vector2i startPos = tileSet.startPosition();
 
         float startX = startPos.x * zoom;
         float startY = startPos.y * zoom;
@@ -467,7 +467,7 @@ public class TileMapEditor {
         Vector2i coordinate = new Vector2i();
         for (int y = start.y; yL2R ? y <= end.y : y >= end.y; y += yStep) {
             for (int x = start.x; xL2R ? x <= end.x : x >= end.x; x += xStep) {
-                Tile tile = tileSet.getTile(coordinate.set(x, y));
+                Tile tile = tileSet.tile(coordinate.set(x, y));
                 if (tile != null && !selectedTiles.contains(tile)) selectedTiles.add(tile);
             }
         }

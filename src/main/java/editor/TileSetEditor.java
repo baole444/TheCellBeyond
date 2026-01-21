@@ -106,14 +106,14 @@ public class TileSetEditor {
             return;
         }
 
-        TileSet tileSet = editingTileMap.getTileSet();
+        TileSet tileSet = editingTileMap.tileSet();
         if (tileSet == null) {
-            if (ImGui.button("Create new Tile set", ImGui.getContentRegionAvailX(), 0.0f)) editingTileMap.setTileSet(new TileSet());
+            if (ImGui.button("Create new Tile set", ImGui.getContentRegionAvailX(), 0.0f)) editingTileMap.tileSet(new TileSet());
             ImGui.endChild();
             return;
         }
 
-        Sprite mainSprite = tileSet.getTileSetSprite();
+        Sprite mainSprite = tileSet.tileSetSprite();
         if (mainSprite == null) {
             ImGui.beginDisabled();
             ImGui.textWrapped("Drag and drop sprite here to add it to the Tile set");
@@ -153,7 +153,7 @@ public class TileSetEditor {
         ImGui.setCursorPosY(ImGui.getCursorPosY() + (maxHeight - ImGui.getTextLineHeight() * 2.0f));
         if (ImEditorGui.iconButton("Delete##TSE_Main_TileSet_Sprite_Delete_Button", EditorIcons.Icons.Delete, "Delete this Sprite from Tile set")) {
             selectedTiles.clear();
-            tileSet.setTileSetSprite(null);
+            tileSet.tileSetSprite(null);
         }
         ImGui.endTable();
         ImGui.endChild();
@@ -181,15 +181,15 @@ public class TileSetEditor {
             return;
         }
 
-        TileSet tileSet = editingTileMap.getTileSet();
+        TileSet tileSet = editingTileMap.tileSet();
         if (tileSet == null) LOGGER.error("Internal state error: TileSet is null");
-        else tileSet.setTileSetSprite(dropSprite);
+        else tileSet.tileSetSprite(dropSprite);
 
         ImGui.endDragDropTarget();
     }
 
     private static void renderTileProperties() {
-        if (editingTileMap == null || editingTileMap.getTileSet() == null || editingTileMap.getTileSet().getTileSetSprite() == null) return;
+        if (editingTileMap == null || editingTileMap.tileSet() == null || editingTileMap.tileSet().tileSetSprite() == null) return;
         if (!ImGui.beginChild("##TSE_Tile_Properties_Region", ImGui.getContentRegionAvail(), ImGuiChildFlags.Border)) {
             ImGui.endChild();
             return;
@@ -226,7 +226,7 @@ public class TileSetEditor {
             return;
         }
 
-        TileCollisionShapeEditor.renderLayerCollisionShape(editingTileMap.getTileSet(), firstTile, selectedTiles);
+        TileCollisionShapeEditor.renderLayerCollisionShape(editingTileMap.tileSet(), firstTile, selectedTiles);
         ImGui.endChild();
         ImGui.endChild();
     }
@@ -263,7 +263,7 @@ public class TileSetEditor {
 
         ImGui.tableNextColumn();
         if (ImEditorGui.iconButton("Find tiles##TSE_Find_Tile_Button", EditorIcons.Icons.Search, "Click to find tile automatically", modeSelectableSize, modeSelectableSize)) {
-            TileSet set = editingTileMap.getTileSet();
+            TileSet set = editingTileMap.tileSet();
             if (set != null) set.findTiles();
             selectedTiles.clear();
         }
@@ -311,11 +311,11 @@ public class TileSetEditor {
     }
 
     private static void renderTileSetImage() {
-        if (editingTileMap == null || editingTileMap.getTileSet() == null) return;
+        if (editingTileMap == null || editingTileMap.tileSet() == null) return;
 
-        TileSet tileSet = editingTileMap.getTileSet();
-        if (tileSet.getTextureID() <= -1) return;
-        Sprite sprite = tileSet.getTileSetSprite();
+        TileSet tileSet = editingTileMap.tileSet();
+        if (tileSet.textureID() <= -1) return;
+        Sprite sprite = tileSet.tileSetSprite();
         if (sprite == null) return;
 
         if (!ImGui.beginChild("##TileSet_Image_Edit_Region", ImGui.getContentRegionAvail(), ImGuiChildFlags.None, ImGuiWindowFlags.HorizontalScrollbar)) {
@@ -348,8 +348,8 @@ public class TileSetEditor {
         float relativeX = mousePos.x - cursorScreenPos.x;
         float relativeY = mousePos.y - cursorScreenPos.y;
 
-        Vector2i gridSize = tileSet.getGridSize();
-        Vector2i startPos = tileSet.getStartPosition();
+        Vector2i gridSize = tileSet.gridSize();
+        Vector2i startPos = tileSet.startPosition();
 
         float startX = startPos.x * zoom;
         float startY = startPos.y * zoom;
@@ -368,7 +368,7 @@ public class TileSetEditor {
         Vector2i gridCoordinate = new Vector2i(gridX, gridY);
 
 
-        Tile tile = tileSet.getTile(gridCoordinate);
+        Tile tile = tileSet.tile(gridCoordinate);
         if (editingMode == Mode.Erase) {
             if (tile == null) return;
             tileSet.removeTile(gridCoordinate);
@@ -419,8 +419,8 @@ public class TileSetEditor {
         if (firstTile == null || firstTile.setCoordinate == null) return;
         Vector2i firstCoordinate = new Vector2i(firstTile.setCoordinate);
 
-        Vector2i gridSize = tileSet.getGridSize();
-        Vector2i startPos = tileSet.getStartPosition();
+        Vector2i gridSize = tileSet.gridSize();
+        Vector2i startPos = tileSet.startPosition();
 
         ImDrawList drawList = ImGui.getWindowDrawList();
 
@@ -466,11 +466,11 @@ public class TileSetEditor {
     private static void drawTileHighLight(TileSet tileSet, ImVec2 cursorScreenPos) {
         if (tileSet == null) return;
 
-        List<Tile> tiles = tileSet.getTiles();
+        List<Tile> tiles = tileSet.tiles();
         if (tiles.isEmpty()) return;
 
-        Vector2i gridSize = tileSet.getGridSize();
-        Vector2i startPos = tileSet.getStartPosition();
+        Vector2i gridSize = tileSet.gridSize();
+        Vector2i startPos = tileSet.startPosition();
         HashSet<Vector2i> tileCoordinates = tileSet.getTileCoordinates();
 
         if (tileCoordinates.isEmpty()) return;
@@ -580,7 +580,7 @@ public class TileSetEditor {
                 selectedTiles.clear();
                 selectTiles(tileSet, coordinate, clicked);
             } else {
-                Tile tile = tileSet.getTile(clicked);
+                Tile tile = tileSet.tile(clicked);
                 if (tile != null) selectedTiles.add(tile);
             }
             return true;
@@ -591,7 +591,7 @@ public class TileSetEditor {
         Vector2i clicked = getGridCoordinate(tileSet, cursorScreenPos, width, height);
         if (clicked == null) return true;
 
-        Tile tile = tileSet.getTile(clicked);
+        Tile tile = tileSet.tile(clicked);
         if (tile == null) return true;
 
         if (!selectedTiles.remove(tile)) selectedTiles.add(tile);
@@ -603,8 +603,8 @@ public class TileSetEditor {
         float relativeX = mousePos.x - cursorScreenPos.x;
         float relativeY = mousePos.y - cursorScreenPos.y;
 
-        Vector2i gridSize = tileSet.getGridSize();
-        Vector2i startPos = tileSet.getStartPosition();
+        Vector2i gridSize = tileSet.gridSize();
+        Vector2i startPos = tileSet.startPosition();
 
         float startX = startPos.x * zoom;
         float startY = startPos.y * zoom;
@@ -632,7 +632,7 @@ public class TileSetEditor {
         Vector2i coordinate = new Vector2i();
         for (int y = start.y; yL2R ? y <= end.y : y >= end.y; y += yStep) {
             for (int x = start.x; xL2R ? x <= end.x : x >= end.x; x += xStep) {
-                Tile tile = tileSet.getTile(coordinate.set(x, y));
+                Tile tile = tileSet.tile(coordinate.set(x, y));
                 if (tile != null && !selectedTiles.contains(tile)) selectedTiles.add(tile);
             }
         }

@@ -414,7 +414,7 @@ public class TextureBatch implements Comparable<TextureBatch> {
 
         UUID uuid = spriteRenderer.getUUID();
         for (int i = 0; i < countSprite; i++) {
-            if (sprites[i] != null && sprites[i].getUUID().equals(uuid)) return true;
+            if (sprites[i] != null && uuid.equals(sprites[i].getUUID())) return true;
         }
 
         return false;

@@ -45,7 +45,7 @@ public class EditorTileMapCtrl extends Component implements NotSerializeComponen
             return;
         }
 
-        TileSet tileSet = editingTileMap.getTileSet();
+        TileSet tileSet = editingTileMap.tileSet();
         if (tileSet == null) {
             clearData();
             return;
@@ -96,7 +96,7 @@ public class EditorTileMapCtrl extends Component implements NotSerializeComponen
         if (selectedTiles.isEmpty()) return;
 
         Vector2f mapPos = tileMap.globalPosition();
-        Vector2i gridSize = tileSet.getGridSize();
+        Vector2i gridSize = tileSet.gridSize();
         Vector2f gridWorldSize = WorldUnit.pixelToWorld(new Vector2f(gridSize.x, gridSize.y));
 
         Tile firstTile = selectedTiles.getFirst();
@@ -116,7 +116,7 @@ public class EditorTileMapCtrl extends Component implements NotSerializeComponen
             Vector2i offset = new Vector2i(tile.setCoordinate).sub(firstCoordinate);
             SpriteRenderer spriteRenderer = new SpriteRenderer();
             Sprite sprite = new Sprite();
-            sprite.setTexture(tileSet.getTexture());
+            sprite.setTexture(tileSet.texture());
             sprite.setTextureCoordinates(tile.textureCoordinates);
             sprite.setWidth(gridSize.x);
             sprite.setHeight(gridSize.y);
@@ -142,7 +142,7 @@ public class EditorTileMapCtrl extends Component implements NotSerializeComponen
         if (holdingObj == null || holdingObj.isRemoved()) return;
 
         Vector2f mapPos = tileMap.globalPosition();
-        Vector2i gridSize = tileSet.getGridSize();
+        Vector2i gridSize = tileSet.gridSize();
         Vector2f gridWorldSize = WorldUnit.pixelToWorld(new Vector2f(gridSize.x, gridSize.y));
 
         float anchorWorldX = mapPos.x + gridPos.x * gridWorldSize.x + gridWorldSize.x / 2.0f;
@@ -154,7 +154,7 @@ public class EditorTileMapCtrl extends Component implements NotSerializeComponen
 
     private void drawEraserSquare(TileMap tileMap, TileSet tileSet, Vector2i gridPos) {
         Vector2f mapPos = tileMap.globalPosition();
-        Vector2i gridSize = tileSet.getGridSize();
+        Vector2i gridSize = tileSet.gridSize();
         Vector2f gridWorldSize = WorldUnit.pixelToWorld(new Vector2f(gridSize.x, gridSize.y));
 
         float anchorWorldX = mapPos.x + gridPos.x * gridWorldSize.x;
@@ -211,7 +211,7 @@ public class EditorTileMapCtrl extends Component implements NotSerializeComponen
 
     private Vector2i calculateGridPos(TileMap tileMap, TileSet tileSet) {
         Vector2f mapPos = tileMap.globalPosition();
-        Vector2i gridSize = tileSet.getGridSize();
+        Vector2i gridSize = tileSet.gridSize();
 
         if (gridSize.x <= 0 || gridSize.y <= 0) return null;
 

@@ -127,7 +127,7 @@ public class Transform2D extends Component {
         ImGui.popStyleColor(1);
         if (!open) return;
         ImGui.separator();
-        ImEditorGui.dragVec2Ctrl("Position", position, 0.0f, WorldUnit.getWorldUnitsPerPixel(), this);
+        ImEditorGui.dragVec2Ctrl("Position", position, 0.0f, WorldUnit.WorldUnitsPerPixel, this);
         ImEditorGui.dragVec2Ctrl("Scale", scale, 1.0f, this);
         rotation = ImEditorGui.dragFloatCtrl("Rotation", rotation, this);
         zIndex = ImEditorGui.dragIntCtrl("Z-Index", zIndex, this);

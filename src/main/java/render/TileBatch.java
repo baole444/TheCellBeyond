@@ -1,7 +1,6 @@
 package render;
 
 import TheCellBeyond.GameObject;
-import components.Component;
 import TheCellBeyond.TileMap;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
@@ -12,7 +11,6 @@ import render.texture.TileSet;
 import utility.WorldUnit;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static org.lwjgl.opengl.GL15.*;
@@ -93,12 +91,12 @@ public class TileBatch implements Comparable<TileBatch> {
     }
 
     public void updateBatch() {
-        if (tileMap == null || tileMap.getTileSet() == null) {
+        if (tileMap == null || tileMap.tileSet() == null) {
             tileCount = 0;
             return;
         }
 
-        HashMap<Vector2i, Tile> tiles = tileMap.getTiles();
+        HashMap<Vector2i, Tile> tiles = tileMap.tiles();
         if (tiles.isEmpty()) {
             tileCount = 0;
             return;
@@ -109,9 +107,9 @@ public class TileBatch implements Comparable<TileBatch> {
         vertices = new float[tileCount * 4 * vertexSize];
         indices = new int[tileCount * 6];
 
-        TileSet tileSet = tileMap.getTileSet();
+        TileSet tileSet = tileMap.tileSet();
         Vector2f tileMapPosition = tileMap.globalPosition();
-        Vector2i gridSize = tileSet.getGridSize();
+        Vector2i gridSize = tileSet.gridSize();
         Vector2f gridSizeWorld = WorldUnit.pixelToWorld(new Vector2f(gridSize));
         Vector4f color = new Vector4f(1.0f);
 
@@ -202,7 +200,7 @@ public class TileBatch implements Comparable<TileBatch> {
     }
 
     public void render() {
-        if (tileMap == null || tileMap.getTileSet() == null) return;
+        if (tileMap == null || tileMap.tileSet() == null) return;
 
         TileMap map = tileMap;
         if (map.globalZIndex() != zIndex) {
@@ -235,7 +233,7 @@ public class TileBatch implements Comparable<TileBatch> {
         shader.loadMat4f("uProject", projMatrix);
         shader.loadMat4f("uView", vMatrix);
 
-        Texture texture = map.getTileSet().getTexture();
+        Texture texture = map.tileSet().texture();
         if (texture != null) {
             glActiveTexture(GL_TEXTURE + 1);
             texture.bind();

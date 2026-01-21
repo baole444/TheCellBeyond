@@ -19,7 +19,7 @@ public class StateEngine extends Component {
     private transient boolean initialized = false;
 
     @Override
-    protected void onStartLogic() {
+    protected void onStart() {
         initialize();
     }
 

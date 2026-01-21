@@ -446,13 +446,13 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
     }
 
     @Override
-    protected void onStartLogic() {
+    protected void onStart() {
         init();
         play(defaultAnimation);
     }
 
     @Override
-    protected void onEditorStartLogic() {
+    protected void onEditorStart() {
         init();
     }
 

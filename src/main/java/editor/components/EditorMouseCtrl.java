@@ -127,9 +127,9 @@ public class EditorMouseCtrl extends Component implements NotSerializeComponent 
         if (EditorTileMapGrid.draw()) {
             TileMap editingTileMap = TileMapEditor.getEditingTileMap();
 
-            if (editingTileMap != null && editingTileMap.getTileSet() != null) {
+            if (editingTileMap != null && editingTileMap.tileSet() != null) {
                 Vector2f tileMapPos = editingTileMap.globalPosition();
-                Vector2i gridSize = editingTileMap.getTileSet().getGridSize();
+                Vector2i gridSize = editingTileMap.tileSet().gridSize();
 
                 float gridWidth = WorldUnit.pixelToWorld(gridSize.x);
                 float gridHeight = WorldUnit.pixelToWorld(gridSize.y);

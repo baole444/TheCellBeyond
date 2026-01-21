@@ -644,7 +644,7 @@ public class GameObject {
      * This is called by the {@link Scene} on its starting logic or when this game object is added to a running scene.
      */
     public final void start() {
-        onStartLogic();
+        onStart();
         isStarted = true;
 
         for (Component component : components) component.start();
@@ -655,7 +655,7 @@ public class GameObject {
     /**
      * Optional hook for additional game object's start logic before starting its components.
      */
-    protected void onStartLogic() {}
+    protected void onStart() {}
 
     /**
      * Initialize this game object's editor state when it is first added to the {@link Scene}.
@@ -665,7 +665,7 @@ public class GameObject {
      * that need to be reflected in editor mode.
      */
     public final void editorStart() {
-        onEditorStartLogic();
+        onEditorStart();
         isStarted = true;
 
         for (Component component : components) component.editorStart();
@@ -673,8 +673,17 @@ public class GameObject {
         isDirty = true;
     }
 
-    protected void onEditorStartLogic() {
+    /**
+     * * Optional hook for additional game object's editor start logic before starting its components.
+     */
+    protected void onEditorStart() {}
 
+    /**
+     * Check if this object is initialized or not.
+     * @return true if {@link #start()} or {@link #editorStart()} was called
+     */
+    public boolean started() {
+        return isStarted;
     }
 
     /**

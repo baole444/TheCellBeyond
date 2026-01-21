@@ -673,9 +673,9 @@ public class GameObject2D extends GameObject {
      * and propagate it down to all descendants of type {@link GameObject2D} or its subclasses.
      */
     private void setTransformDirty() {
+        onTransformDirty();
         if (!isTransformDirty) {
             isTransformDirty = true;
-
             if (!isNotifyingComponent) updateSpatialComponents();
         }
 
@@ -685,6 +685,11 @@ public class GameObject2D extends GameObject {
             }
         }
     }
+
+    /**
+     * Optional hook for additional 2D object's transform dirty logic.
+     */
+    protected void onTransformDirty() {}
 
     /**
      * Check if this 2D object is in the process of updating its global transform.

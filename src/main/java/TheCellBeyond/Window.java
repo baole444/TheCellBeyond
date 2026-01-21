@@ -210,7 +210,7 @@ public final class Window implements EngineEventListener {
                     return;
                 }
 
-                if (UserPreference.editorPreferences().autoSaveOnExit()) LogicServer.currentScene().saveLevel();
+                if (projectLoaded && UserPreference.editorPreferences().autoSaveOnExit() && !LogicServer.runtimeMode()) LogicServer.currentScene().saveLevel();
 
                 glfwSetWindowShouldClose(windowPtr, false);
                 shouldClose = ExitConfirmDialog.exitDialog();

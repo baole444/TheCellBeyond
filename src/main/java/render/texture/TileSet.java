@@ -45,7 +45,11 @@ public class TileSet {
         this.tileSetSprite = tileSetSprite;
     }
 
-    public void setTileSetSprite(Sprite sprite) {
+    public Sprite tileSetSprite() {
+        return tileSetSprite;
+    }
+
+    public void tileSetSprite(Sprite sprite) {
         if (Objects.equals(tileSetSprite, sprite)) return;
         tileSetSprite = sprite;
 
@@ -84,19 +88,19 @@ public class TileSet {
         tileDirty = true;
     }
 
-    public float getWidth() {
+    public float width() {
         return tileSetSprite != null ? tileSetSprite.getWidth() : 0.0f;
     }
 
-    public float getHeight() {
+    public float height() {
         return tileSetSprite != null ? tileSetSprite.getHeight() : 0.0f;
     }
 
-    public Vector2i getGridSize() {
+    public Vector2i gridSize() {
         return new Vector2i(gridSize);
     }
 
-    public void setGridSize(Vector2i tileSize) {
+    public void gridSize(Vector2i tileSize) {
         if (tileSize == null) return;
 
         int x = Math.max(1, tileSize.x);
@@ -109,11 +113,11 @@ public class TileSet {
         tileDirty = true;
     }
 
-    public Vector2i getStartPosition() {
+    public Vector2i startPosition() {
         return new Vector2i(startPosition);
     }
 
-    public void setStartPosition(Vector2i startOffset) {
+    public void startPosition(Vector2i startOffset) {
         if (startOffset == null) return;
 
         int x = Math.max(0, startOffset.x);
@@ -126,23 +130,19 @@ public class TileSet {
         tileDirty = true;
     }
 
-    public Texture getTexture() {
+    public Texture texture() {
         if (tileSetSprite == null) return null;
 
         return tileSetSprite.getTexture();
     }
 
-    public int getTextureID() {
+    public int textureID() {
         if (tileSetSprite == null) return -1;
 
         return tileSetSprite.getTextureID();
     }
 
-    public Sprite getTileSetSprite() {
-        return tileSetSprite;
-    }
-
-    public Tile getTile(Vector2i gridPosition) {
+    public Tile tile(Vector2i gridPosition) {
         if (gridPosition == null || gridPosition.x < 0 || gridPosition.y < 0 || !tiles.containsKey(gridPosition)) return null;
 
         return tiles.get(gridPosition);
@@ -154,7 +154,7 @@ public class TileSet {
         return new HashSet<>(tiles.keySet());
     }
 
-    public List<Tile> getTiles() {
+    public List<Tile> tiles() {
         if (tiles.isEmpty()) return List.of();
 
         return tiles.values().stream().toList();

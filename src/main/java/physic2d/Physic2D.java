@@ -6,13 +6,11 @@ import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.*;
 import org.joml.Math;
 import org.joml.Vector2f;
-import physic2d.collider.BoxCollider2D;
-import physic2d.collider.CircleCollider2D;
-import physic2d.collider.CollisionShape2D;
-import physic2d.collider.CapsuleCollider2D;
+import physic2d.collider.*;
 import utility.log.EngineLog;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * <a href="https://box2d.org">Reference Box2D code (C code)</a>
@@ -136,12 +134,22 @@ public class Physic2D {
         addCircleCollider2D(physicBody2D, capsuleCollider2D.footCircle());
     }
 
+    private void addTileCollider2D(PhysicBody2D physicBody2D, TileCollider2D tileCollider2D) {
+        Body body = physicBody2D.getPhysicBodyRef();
+        if (body == null) return;
+        Set<Shape> shapes = tileCollider2D.createCollisionShapes();
+        for (Shape shape : shapes) {
+            if (shape != null) createFixture(physicBody2D, body, shape);
+        }
+    }
+
     public void addCollider2D(PhysicBody2D physicBody2D, CollisionShape2D collisionShape2D) {
         try {
             switch (collisionShape2D) {
                 case BoxCollider2D boxCollider2D -> addBoxCollider2D(physicBody2D, boxCollider2D);
                 case CircleCollider2D circleCollider2D -> addCircleCollider2D(physicBody2D, circleCollider2D);
                 case CapsuleCollider2D capsuleCollider2D -> addCapsuleCollider(physicBody2D, capsuleCollider2D);
+                case TileCollider2D tileCollider2D -> addTileCollider2D(physicBody2D, tileCollider2D);
                 default -> {}
             }
         } catch (Exception e) {

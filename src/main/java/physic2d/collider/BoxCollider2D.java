@@ -10,7 +10,7 @@ import org.joml.Vector2f;
 import render.DebugDraw;
 
 public class BoxCollider2D extends CollisionShape2D {
-    private final Vector2f halfSize = new Vector2f(0.32f);
+    private final Vector2f halfSize = new Vector2f(0.16f);
 
     public Vector2f getHalfSize() {
         return new Vector2f(halfSize);
@@ -57,7 +57,7 @@ public class BoxCollider2D extends CollisionShape2D {
 
         ImGui.indent();
         Vector2f half = new Vector2f(halfSize);
-        if (ImEditorGui.dragVec2Ctrl("Half Size", half, 0.32f, this)) setHalfSize(half);
+        if (ImEditorGui.dragVec2Ctrl("Half Size", half, 0.16f, this)) setHalfSize(half);
         ImGui.unindent();
         super.additionalImGuiLogic();
     }

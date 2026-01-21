@@ -147,7 +147,7 @@ class TileCollisionShapeEditor {
         ImGui.endTable();
         ImGui.separator();
         ImGui.spacing();
-        renderTilePreview(tileset.getTextureID(), tile, tileset.getGridSize());
+        renderTilePreview(tileset.textureID(), tile, tileset.gridSize());
         ImGui.spacing();
 
         if (editingMode != null) {
