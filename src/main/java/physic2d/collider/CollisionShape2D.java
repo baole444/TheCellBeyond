@@ -116,6 +116,7 @@ public abstract class CollisionShape2D extends SpatialComponent {
         int r = vertices.length - 1;
         while (l < r) {
             Vec2 tmp = vertices[l];
+            vertices[l] = vertices[r];
             vertices[r] = tmp;
             l++;
             r--;
