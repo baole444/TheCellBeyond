@@ -19,12 +19,12 @@ import static org.lwjgl.opengl.GL30.glBindVertexArray;
 import static org.lwjgl.opengl.GL30.glGenVertexArrays;
 
 public class TileBatch implements Comparable<TileBatch> {
-    private static final int posSize = 2;
-    private static final int colorSize = 4;
-    private static final int textureCoordinateSize = 2;
-    private static final int textureIdSize = 1;
-    private static final int objectIdSize = 1;
-    private static final int vertexSize = posSize + colorSize + textureCoordinateSize + textureIdSize + objectIdSize;
+    private static final int PosSize = 2;
+    private static final int ColorSize = 4;
+    private static final int TextureCoordinateSize = 2;
+    private static final int TextureIdSize = 1;
+    private static final int ObjectIdSize = 1;
+    private static final int VertexSize = PosSize + ColorSize + TextureCoordinateSize + TextureIdSize + ObjectIdSize;
 
     private TileMap tileMap;
     private final int zIndex;
@@ -32,7 +32,7 @@ public class TileBatch implements Comparable<TileBatch> {
 
     private float[] vertices;
     private int[] indices;
-    private final int[] texSlot = {0, 1, 2, 3, 4, 5, 6, 7};
+    private final int[] TextureSlot = {0, 1, 2, 3, 4, 5, 6, 7};
     private int vaoID, vboID, eboID;
 
     private int tileCount;
@@ -68,25 +68,25 @@ public class TileBatch implements Comparable<TileBatch> {
     }
 
     private void adjustVertexATTB() {
-        int stride = vertexSize * Float.BYTES;
+        int stride = VertexSize * Float.BYTES;
 
-        glVertexAttribPointer(0, posSize, GL_FLOAT, false, stride, 0);
+        glVertexAttribPointer(0, PosSize, GL_FLOAT, false, stride, 0);
         glEnableVertexAttribArray(0);
 
-        int colorOffset = posSize * Float.BYTES;
-        glVertexAttribPointer(1, colorSize, GL_FLOAT, false, stride, colorOffset);
+        int colorOffset = PosSize * Float.BYTES;
+        glVertexAttribPointer(1, ColorSize, GL_FLOAT, false, stride, colorOffset);
         glEnableVertexAttribArray(1);
 
-        int textureCoordinateOffset = colorOffset + colorSize * Float.BYTES;
-        glVertexAttribPointer(2, textureCoordinateSize, GL_FLOAT, false, stride, textureCoordinateOffset);
+        int textureCoordinateOffset = colorOffset + ColorSize * Float.BYTES;
+        glVertexAttribPointer(2, TextureCoordinateSize, GL_FLOAT, false, stride, textureCoordinateOffset);
         glEnableVertexAttribArray(2);
 
-        int textureIDOffset = textureCoordinateOffset + textureCoordinateSize * Float.BYTES;
-        glVertexAttribPointer(3, textureIdSize, GL_FLOAT, false, stride, textureIDOffset);
+        int textureIDOffset = textureCoordinateOffset + TextureCoordinateSize * Float.BYTES;
+        glVertexAttribPointer(3, TextureIdSize, GL_FLOAT, false, stride, textureIDOffset);
         glEnableVertexAttribArray(3);
 
-        int objectIDOffset = textureIDOffset + textureIdSize * Float.BYTES;
-        glVertexAttribPointer(4, objectIdSize, GL_FLOAT, false, stride, objectIDOffset);
+        int objectIDOffset = textureIDOffset + TextureIdSize * Float.BYTES;
+        glVertexAttribPointer(4, ObjectIdSize, GL_FLOAT, false, stride, objectIDOffset);
         glEnableVertexAttribArray(4);
     }
 
@@ -96,15 +96,14 @@ public class TileBatch implements Comparable<TileBatch> {
             return;
         }
 
-        HashMap<Vector2i, Tile> tiles = tileMap.tiles();
-        if (tiles.isEmpty()) {
+        HashMap<Vector2i, TileMap.TilePlacement> placements = tileMap.tilePlacements();
+        if (placements.isEmpty()) {
             tileCount = 0;
             return;
         }
 
-        tileCount = tiles.size();
-
-        vertices = new float[tileCount * 4 * vertexSize];
+        tileCount = placements.size();
+        vertices = new float[tileCount * 4 * VertexSize];
         indices = new int[tileCount * 6];
 
         TileSet tileSet = tileMap.tileSet();
@@ -114,14 +113,13 @@ public class TileBatch implements Comparable<TileBatch> {
         Vector4f color = new Vector4f(1.0f);
 
         int tileIndex = 0;
-        for (Map.Entry<Vector2i, Tile> entry : tiles.entrySet()) {
+        for (Map.Entry<Vector2i, TileMap.TilePlacement> entry : placements.entrySet()) {
             Vector2i mapCoordinate = entry.getKey();
-            Tile tile = entry.getValue();
+            TileMap.TilePlacement placement = entry.getValue();
+            Tile tile = tileSet.tile(placement.sourceCoordinate());
 
             if (tile == null || tile.textureCoordinates == null) continue;
-
             Vector2f tilePosition = calculateTilePosition(tileMapPosition, mapCoordinate, gridSizeWorld);
-
             genVertexProperties(tileIndex, tilePosition, gridSizeWorld, tile.textureCoordinates, color);
             genIndices(tileIndex);
 
@@ -141,7 +139,7 @@ public class TileBatch implements Comparable<TileBatch> {
     }
 
     private void genVertexProperties(int index, Vector2f position, Vector2f size,Vector2f[] textureCoordinate, Vector4f color) {
-        int offset = index * 4 * vertexSize;
+        int offset = index * 4 * VertexSize;
         float textureID = 1.0f;
         float objectID = tileMap!= null ? tileMap.getUID() : 0.0f;
 
@@ -167,7 +165,7 @@ public class TileBatch implements Comparable<TileBatch> {
             vertices[offset + 8] = textureID;
             vertices[offset + 9] = objectID;
 
-            offset += vertexSize;
+            offset += VertexSize;
         }
     }
 
@@ -239,7 +237,7 @@ public class TileBatch implements Comparable<TileBatch> {
             texture.bind();
         }
 
-        shader.loadIntA("uTex", texSlot);
+        shader.loadIntA("uTex", TextureSlot);
 
         glBindVertexArray(vaoID);
         glEnableVertexAttribArray(0);

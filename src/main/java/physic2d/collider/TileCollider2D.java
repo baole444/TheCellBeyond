@@ -6,6 +6,7 @@ import org.jbox2d.common.Vec2;
 import org.joml.Vector2f;
 import org.joml.Vector2i;
 import render.texture.Tile;
+import render.texture.TileSet;
 import utility.WorldUnit;
 
 import java.util.HashMap;
@@ -44,19 +45,23 @@ public class TileCollider2D extends CollisionShape2D {
         shapes.clear();
         if (tileMap == null || tileMap.tileSet() == null) return shapes;
 
-        HashMap<Vector2i, Tile> tiles = tileMap.tiles();
-        if (tiles.isEmpty()) return shapes;
+        HashMap<Vector2i, TileMap.TilePlacement> placements = tileMap.tilePlacements();
+        if (placements.isEmpty()) return shapes;
 
+        TileSet tileSet = tileMap.tileSet();
         Vector2i gridSize = tileMap.tileSet().gridSize();
         Vector2f gridWorldSize = WorldUnit.pixelToWorld(gridSize.x, gridSize.y);
 
-        for (Map.Entry<Vector2i, Tile> entry : tiles.entrySet()) {
+        for (Map.Entry<Vector2i, TileMap.TilePlacement> entry : placements.entrySet()) {
             Vector2i mapCoordinate = entry.getKey();
-            Tile tile = entry.getValue();
+            TileMap.TilePlacement placement = entry.getValue();
+            Tile tile = tileSet.tile(placement.sourceCoordinate());
             if (!hasCollisionShape(tile)) continue;
+
             Vector2f tileWorldPosition = tileWorldPosition(mapCoordinate, gridWorldSize);
             Vec2[] worldNodes = toWorldNodes(tile.collisionPolygonNodes, tileWorldPosition, gridWorldSize);
             if (worldNodes.length < MinNode) continue;
+
             Shape shape = createShapeFromNodeArray(worldNodes);
             if (shape != null) shapes.add(shape);
         }
