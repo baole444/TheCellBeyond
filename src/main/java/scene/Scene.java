@@ -63,15 +63,15 @@ public class Scene {
     }
 
     public void editorStart() {
+        isSceneOn.set(true);
         EngineEventCallback.emit(new SceneEvent(SceneEvent.Type.SceneEntered, this));
-        updateQueues();
 
         for (GameObject go : sceneData.gameObjectByUUIDs().values()) {
             go.editorStart();
             cacheComponents(go);
         }
 
-        isSceneOn.set(true);
+        updateQueues();
     }
 
     private void cacheComponents(GameObject go) {
@@ -125,8 +125,11 @@ public class Scene {
         }
 
         if (isSceneOn.get()) {
-            go.start();
-            sceneData.physic2D().add(go);
+            if (LogicServer.runtimeMode()) {
+                go.start();
+                sceneData.physic2D().add(go);
+            }
+            else go.editorStart();
             cacheComponents(go);
         }
 

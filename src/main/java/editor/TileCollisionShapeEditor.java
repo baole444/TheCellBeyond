@@ -190,7 +190,7 @@ class TileCollisionShapeEditor {
         Vector2f[] nodes = tile.collisionPolygonNodes;
         for (Vector2f node : nodes) {
             Vector2f tmp = new Vector2f(node);
-            ImEditorGui.dragVec2Ctrl("", tmp, 0.0f, 0.0f, 0.01f, node, 0.0f, 1.0f);
+            ImEditorGui.dragVec2Ctrl("", tmp, 0.0f, 0.0f, 0.001f, node, 0.0f, 1.0f);
             if (!tmp.equals(node)) {
                 node.set(Math.max(0.0f, Math.min(1.0f, tmp.x)), Math.max(0.0f, Math.min(1.0f, tmp.y)));
                 edited = true;
