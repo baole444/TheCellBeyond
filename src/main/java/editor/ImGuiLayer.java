@@ -14,7 +14,7 @@ import scene.Scene;
 import org.joml.Math;
 import utility.AssetReference;
 import utility.FontPT;
-import utility.PathResolver;
+import utility.UnifiedPaths;
 import utility.Settings;
 
 import java.io.IOException;
@@ -117,12 +117,12 @@ public class ImGuiLayer {
 
         // Get font data
         AssetReference assetReference = new AssetReference(Settings.FontPath.NotoSansMono);
-        PathResolver resolver;
+        UnifiedPaths resolver;
 
-        if (!PathResolver.isInitialized()) {
-            PathResolver.initialize(null);
+        if (!UnifiedPaths.isInitialized()) {
+            UnifiedPaths.initialize(null);
         }
-        resolver = PathResolver.get();
+        resolver = UnifiedPaths.get();
 
         try (InputStream stream = resolver.getAssetStream(assetReference.resolvedPath())) {
             byte[] fontData = stream.readAllBytes();

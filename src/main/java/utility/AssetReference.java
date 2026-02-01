@@ -8,14 +8,14 @@ import java.util.Objects;
  */
 public class AssetReference {
     private final String canonicalPath;
-    private transient volatile PathResolver.AssetPath resolvedPath;
+    private transient volatile UnifiedPaths.AssetPath resolvedPath;
 
     /**
      * Create a new {@link AssetReference} with the given path.
      * @param path the relative or absolute path to wrap
      */
     public AssetReference(String path) {
-        PathResolver resolver = PathResolver.get();
+        UnifiedPaths resolver = UnifiedPaths.get();
         canonicalPath = resolver.toCanonicalPath(path);
         initializeResolvedPath();
     }
@@ -25,7 +25,7 @@ public class AssetReference {
      */
     private void initializeResolvedPath() {
         if (resolvedPath == null) {
-            PathResolver resolver = PathResolver.get();
+            UnifiedPaths resolver = UnifiedPaths.get();
             resolvedPath = resolver.resolvePath(canonicalPath);
         }
     }
@@ -40,9 +40,9 @@ public class AssetReference {
 
     /**
      * Get the resolved path of this reference.
-     * @return the reference's {@link utility.PathResolver.AssetPath} which contain the resolved path
+     * @return the reference's {@link UnifiedPaths.AssetPath} which contain the resolved path
      */
-    public PathResolver.AssetPath resolvedPath() {
+    public UnifiedPaths.AssetPath resolvedPath() {
         if (resolvedPath == null) initializeResolvedPath();
         return resolvedPath;
     }

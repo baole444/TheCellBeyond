@@ -2,7 +2,7 @@ package render.text;
 
 import org.lwjgl.BufferUtils;
 import utility.AssetReference;
-import utility.PathResolver;
+import utility.UnifiedPaths;
 
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
@@ -81,7 +81,7 @@ public class FontManager {
 
         try {
             AssetReference assetRef = request.fontAsset();
-            PathResolver resolver = PathResolver.get();
+            UnifiedPaths resolver = UnifiedPaths.get();
 
             try (InputStream stream = resolver.getAssetStream(assetRef.resolvedPath())) {
                 byte[] fontData = stream.readAllBytes();

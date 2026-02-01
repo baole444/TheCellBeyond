@@ -14,7 +14,7 @@ import org.joml.Vector2f;
 import org.joml.Vector2i;
 import render.Texture;
 import utility.IdPool;
-import utility.PathResolver;
+import utility.UnifiedPaths;
 import utility.TextureScale;
 
 import java.io.IOException;
@@ -73,7 +73,7 @@ public class AddSpriteSheetDialog {
         if (previewTexture == null) return;
         String path = previewTexture.getCanonicalPath();
         if (path != null) {
-            PathResolver resolver = PathResolver.get();
+            UnifiedPaths resolver = UnifiedPaths.get();
             if (!resolver.isPathInsideProject(path)) previewTexture.dispose();
         }
         previewTexture = null;
@@ -364,7 +364,7 @@ public class AddSpriteSheetDialog {
             String relativePath;
 
             if (source.startsWith(projectRoot)) {
-                relativePath = PathResolver.resolveToRelative(projectRoot.toString(), source.toString());
+                relativePath = UnifiedPaths.resolveToRelative(projectRoot.toString(), source.toString());
             } else {
                 Path dir = Paths.get(Project.projectRoot(), "sheets");
                 if (!Files.exists(dir)) Files.createDirectories(dir);

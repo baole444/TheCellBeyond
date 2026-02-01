@@ -15,6 +15,8 @@ import imgui.flag.ImGuiTableColumnFlags;
 import imgui.flag.ImGuiTableFlags;
 import imgui.flag.ImGuiTreeNodeFlags;
 import scene.Scene;
+import utility.HierarchyPath;
+import utility.HierarchyPaths;
 import utility.IdPool;
 import utility.log.EngineLog;
 
@@ -34,26 +36,8 @@ import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_1;
  * which mean it can have a parent and multiple child objects.
  * Game objects that have no parent are considered root game objects,
  * located at scene's root level on their hierarchy tree.
- * </p>
- * <p>
- * Hierarchy path can be both resolved to a component or a game object at the <i><u>destination</u></i>.
- * This depends on which resolve method is used.
- * </p>
- * <p>
- * <b>Hierarchy Path Formats:</b>
- * <ul>
- *     <li> <i><u><b>/</b>rootObject/childObject/childObject/destination</u></i> - Path start at scene's root level,
- *     resolving start from the root of the current game object's hierarchy tree.
- *     </li>
- *     <li> <i><u><b>../</b>currentObject/childObject/destination</u></i> - Path start at relative parent level,
- *     resolving start from the parent of the current game object.
- *     </li>
- *     <li> <i><u>currentObject/childObject/destination</u></i> - Path start at relative level,
- *     resolving start from the current game object.
- *     </li>
- * </ul>
- * <p>
  * <b>Inherited by:</b> {@link GameObject2D}
+ * @see utility.HierarchyPath HierarchyPath system
  */
 public class GameObject {
     /**
@@ -322,46 +306,6 @@ public class GameObject {
         for (GameObject child : children) {
             c = child.findComponentByName(componentName);
             if (c != null) return c;
-        }
-
-        return null;
-    }
-
-    /**
-     * Get a {@link Component} using the given hierarchy path.
-     * @param path the hierarchy path that leads to the component
-     * @return the {@link Component} at the path's destination or {@code null} if there is none
-     */
-    public Component resolveHierarchyPathAsComponent(String path) {
-        if (path == null || path.isEmpty()) return null;
-
-        if (path.startsWith("/")) {
-            GameObject root = getRoot();
-            return root.resolveHierarchyPathAsComponent(path.substring(1));
-        }
-
-        if (path.startsWith("../")) {
-            String remainPath = path.substring(3);
-            return Objects.requireNonNullElse(parent, this).resolveHierarchyPathAsComponent(remainPath);
-        }
-
-        int slashIndex = path.indexOf("/");
-        if (slashIndex > 0) {
-            String childName = path.substring(0, slashIndex);
-            String remains = path.substring(slashIndex + 1);
-
-            GameObject child = getChild(childName);
-            if (child == null) return null;
-            return child.resolveHierarchyPathAsComponent(remains);
-        }
-
-        Component component = namedComponents.get(path);
-        if (component != null) return component;
-
-        for (Component c : components) {
-            if (c.getClass().getSimpleName().equals(path)) {
-                return c;
-            }
         }
 
         return null;
@@ -985,6 +929,26 @@ public class GameObject {
 
             if (!sourceChild.children.isEmpty()) copyDescendants(sourceChild, copyChild);
         }
+    }
+
+    public HierarchyPath asPath() {
+        return HierarchyPaths.of(this);
+    }
+
+    public static GameObject getObject(HierarchyPath absolutePath) {
+        return HierarchyPaths.toGameObject(absolutePath);
+    }
+
+    public static GameObject getObject(HierarchyPath path, GameObject context) {
+        return HierarchyPaths.toGameObject(path, context);
+    }
+
+    public static GameObject getObject(String absolutePath) {
+        return HierarchyPaths.toGameObject(absolutePath);
+    }
+
+    public static GameObject getObject(String path, GameObject context) {
+        return HierarchyPaths.toGameObject(path, context);
     }
 
     @Override

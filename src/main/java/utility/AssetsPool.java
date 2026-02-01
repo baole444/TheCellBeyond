@@ -40,7 +40,7 @@ public class AssetsPool {
     private AssetsPool() {}
 
     public static Shader loadShader(String path) {
-        PathResolver resolver = PathResolver.get();
+        UnifiedPaths resolver = UnifiedPaths.get();
         String canonicalPath = resolver.toCanonicalPath(path);
 
         if (shaders.containsKey(canonicalPath)) return shaders.get(canonicalPath);
@@ -53,21 +53,21 @@ public class AssetsPool {
     }
 
     public static Shader getShader (String path) {
-        PathResolver resolver = PathResolver.get();
+        UnifiedPaths resolver = UnifiedPaths.get();
         String canonicalPath = resolver.toCanonicalPath(path);
 
         return shaders.get(canonicalPath);
     }
 
     public static boolean hasShader(String path) {
-        PathResolver resolver = PathResolver.get();
+        UnifiedPaths resolver = UnifiedPaths.get();
         String canonicalPath = resolver.toCanonicalPath(path);
 
         return shaders.containsKey(canonicalPath);
     }
 
     public static void reloadShader(String path) {
-        PathResolver resolver = PathResolver.get();
+        UnifiedPaths resolver = UnifiedPaths.get();
         String canonicalPath = resolver.toCanonicalPath(path);
 
         Shader shader = shaders.get(canonicalPath);
@@ -82,7 +82,7 @@ public class AssetsPool {
     }
 
     public static Texture loadTexture(String path) {
-        PathResolver resolver = PathResolver.get();
+        UnifiedPaths resolver = UnifiedPaths.get();
         String canonicalPath = resolver.toCanonicalPath(path);
 
         Texture currentTexture = textures.get(canonicalPath);
@@ -97,7 +97,7 @@ public class AssetsPool {
     }
 
     public static FontAtlasTexture loadFontAtlasTexture(String path, GlyphRange glyphRange, int width, int height, int channels) {
-        PathResolver resolver = PathResolver.get();
+        UnifiedPaths resolver = UnifiedPaths.get();
         String canonicalPath = resolver.toCanonicalPath(path);
 
         AtlasKey key = new AtlasKey(canonicalPath, glyphRange);
@@ -113,13 +113,13 @@ public class AssetsPool {
     }
 
     public static boolean hasTextureUnit(String path) {
-        PathResolver resolver = PathResolver.get();
+        UnifiedPaths resolver = UnifiedPaths.get();
         String canonicalPath = resolver.toCanonicalPath(path);
         return textureUnits.containsKey(canonicalPath);
     }
 
     public static void addTextureUnit(String path, TextureUnit textureUnit) {
-        PathResolver resolver = PathResolver.get();
+        UnifiedPaths resolver = UnifiedPaths.get();
         String canonicalPath = resolver.toCanonicalPath(path);
 
         if (!textureUnits.containsKey(canonicalPath)) {
@@ -128,7 +128,7 @@ public class AssetsPool {
     }
 
     public static TextureUnit loadTextureUnit(String path) {
-        PathResolver resolver = PathResolver.get();
+        UnifiedPaths resolver = UnifiedPaths.get();
         String canonicalPath = resolver.toCanonicalPath(path);
 
         if (!textureUnits.containsKey(canonicalPath)) System.err.println("Failed to load '" + canonicalPath + "', no asset added.");
@@ -137,13 +137,13 @@ public class AssetsPool {
     }
 
     public static boolean hasSpriteSheet(String path) {
-        PathResolver resolver = PathResolver.get();
+        UnifiedPaths resolver = UnifiedPaths.get();
         String canonicalPath = resolver.toCanonicalPath(path);
         return spritesheets.containsKey(canonicalPath);
     }
 
     public static void addSpriteSheet(String path, SpriteSheet spritesheet) {
-        PathResolver resolver = PathResolver.get();
+        UnifiedPaths resolver = UnifiedPaths.get();
         String canonicalPath = resolver.toCanonicalPath(path);
 
         if (!spritesheets.containsKey(canonicalPath)) {
@@ -152,7 +152,7 @@ public class AssetsPool {
     }
 
     public static SpriteSheet loadSpriteSheet(String path) {
-        PathResolver resolver = PathResolver.get();
+        UnifiedPaths resolver = UnifiedPaths.get();
         String canonicalPath = resolver.toCanonicalPath(path);
 
         if (!spritesheets.containsKey(canonicalPath)) {
@@ -163,12 +163,12 @@ public class AssetsPool {
     }
 
     public static Sound addSound(String path, boolean isLoop) {
-        PathResolver resolver = PathResolver.get();
+        UnifiedPaths resolver = UnifiedPaths.get();
         String canonicalPath = resolver.toCanonicalPath(path);
 
         if (sounds.containsKey(canonicalPath)) return sounds.get(canonicalPath);
 
-        PathResolver.AssetPath assetPath = resolver.resolvePath(path);
+        UnifiedPaths.AssetPath assetPath = resolver.resolvePath(path);
 
         Sound sound = new Sound(assetPath.resolvedPath(), isLoop);
         sounds.put(canonicalPath, sound);
@@ -176,7 +176,7 @@ public class AssetsPool {
     }
 
     public static Sound loadSound(String path) {
-        PathResolver resolver = PathResolver.get();
+        UnifiedPaths resolver = UnifiedPaths.get();
         String canonicalPath = resolver.toCanonicalPath(path);
 
         if (sounds.containsKey(canonicalPath)) return sounds.get(canonicalPath);

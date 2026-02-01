@@ -1,6 +1,5 @@
 package components;
 
-import TheCellBeyond.Window;
 import editor.ImEditorGui;
 import imgui.ImGui;
 import org.joml.Vector2f;
@@ -8,7 +7,7 @@ import org.joml.Vector4f;
 import render.DebugDraw;
 import render.text.*;
 import utility.AssetReference;
-import utility.PathResolver;
+import utility.UnifiedPaths;
 import utility.Settings;
 import utility.WorldUnit;
 
@@ -168,7 +167,7 @@ public class TextRenderer extends SpatialComponent implements FontStatusCallback
 
         String fontPathInput = ImEditorGui.inputText("Font Path", currentPath, this);
         if (!fontPathInput.equals(currentPath)) {
-            PathResolver resolver = PathResolver.get();
+            UnifiedPaths resolver = UnifiedPaths.get();
             AssetReference newRef = new AssetReference(fontPathInput);
 
             if (resolver.exists(newRef.resolvedPath())) {
@@ -271,7 +270,7 @@ public class TextRenderer extends SpatialComponent implements FontStatusCallback
         AssetReference newRef = new AssetReference(fontPathInput);
 
         if (!Objects.equals(newRef, assetReference)) {
-            PathResolver resolver = PathResolver.get();
+            UnifiedPaths resolver = UnifiedPaths.get();
             if (resolver.exists(newRef.resolvedPath())) {
                 this.assetReference = newRef;
                 this.pendingRequest = false;

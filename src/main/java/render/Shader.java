@@ -3,7 +3,7 @@ package render;
 import org.joml.*;
 import org.lwjgl.BufferUtils;
 import utility.AssetReference;
-import utility.PathResolver;
+import utility.UnifiedPaths;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,7 +29,7 @@ public class Shader {
     }
 
     private void loadShaderSource() {
-        PathResolver resolver = PathResolver.get();
+        UnifiedPaths resolver = UnifiedPaths.get();
 
         try (InputStream stream = resolver.getAssetStream(assetReference.resolvedPath())) {
             String src = new String(stream.readAllBytes());
@@ -168,7 +168,7 @@ public class Shader {
     }
 
     public boolean exists() {
-        PathResolver resolver = PathResolver.get();
+        UnifiedPaths resolver = UnifiedPaths.get();
         return resolver.exists(assetReference.resolvedPath());
     }
 

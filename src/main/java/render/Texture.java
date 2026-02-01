@@ -4,7 +4,7 @@ import org.lwjgl.BufferUtils;
 import render.texture.TextureHandle;
 import render.texture.TextureManager;
 import utility.AssetReference;
-import utility.PathResolver;
+import utility.UnifiedPaths;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,7 +31,7 @@ public class Texture {
     }
 
     private void loadTextureData() {
-        PathResolver resolver = PathResolver.get();
+        UnifiedPaths resolver = UnifiedPaths.get();
 
         try (InputStream stream = resolver.getAssetStream(assetReference.resolvedPath())) {
             byte[] data = stream.readAllBytes();

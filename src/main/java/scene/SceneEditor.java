@@ -28,7 +28,7 @@ import render.texture.Sprite;
 import render.texture.SpriteSheet;
 import render.texture.TextureUnit;
 import utility.AssetsPool;
-import utility.PathResolver;
+import utility.UnifiedPaths;
 import utility.TextureScale;
 import utility.prefabrication.PrefabData;
 import utility.prefabrication.PrefabManager;
@@ -388,7 +388,7 @@ public class SceneEditor extends SceneLoader implements EngineEventListener {
             for (Map.Entry<String, ProjectSheetMap> sheets : categories.getValue().entrySet()) {
                 String name = sheets.getKey();
                 ProjectSheetMap sM = sheets.getValue();
-                String path = PathResolver.resolveToAbsolute(Project.projectRoot(), sM.path());
+                String path = UnifiedPaths.resolveToAbsolute(Project.projectRoot(), sM.path());
 
                 SpriteSheet spriteSheet = AssetsPool.loadSpriteSheet(path);
                 if (spriteSheet != null) categorySheets.put(name, spriteSheet);

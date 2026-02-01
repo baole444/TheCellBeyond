@@ -12,7 +12,7 @@ import tools.jackson.core.exc.JacksonIOException;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.dataformat.yaml.YAMLFactory;
 import utility.AssetsPool;
-import utility.PathResolver;
+import utility.UnifiedPaths;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,8 +34,8 @@ public class Project {
             File projectFile = new File(path);
 
             CurrentProject = YAML_MAPPER.readValue(projectFile, ProjectData.class);
-            ProjectRoot = PathResolver.toRoot(path);
-            PathResolver.initialize(ProjectRoot);
+            ProjectRoot = UnifiedPaths.toRoot(path);
+            UnifiedPaths.initialize(ProjectRoot);
             _projectYmlPath = path;
 
             if (CurrentProject != null) {
@@ -566,7 +566,7 @@ public class Project {
         if (CurrentProject == null || ProjectRoot == null) return;
 
         for (String dir : requiredDirs) {
-            Path toDir = Path.of(PathResolver.resolveToAbsolute(ProjectRoot, dir));
+            Path toDir = Path.of(UnifiedPaths.resolveToAbsolute(ProjectRoot, dir));
             if (!Files.isDirectory(toDir)) {
                 try {
                     Files.createDirectories(toDir);

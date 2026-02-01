@@ -8,7 +8,7 @@ import org.lwjgl.system.MemoryStack;
 import physic2d.PhysicLayer;
 import render.Texture;
 import utility.AssetReference;
-import utility.PathResolver;
+import utility.UnifiedPaths;
 import utility.log.EngineLog;
 
 import java.io.IOException;
@@ -228,7 +228,7 @@ public class TileSet {
 
         String canonicalPath = texture.getCanonicalPath();
         AssetReference assetReference = new AssetReference(canonicalPath);
-        PathResolver resolver = PathResolver.get();
+        UnifiedPaths resolver = UnifiedPaths.get();
 
         try (InputStream stream = resolver.getAssetStream(assetReference.resolvedPath())) {
             byte[] data = stream.readAllBytes();

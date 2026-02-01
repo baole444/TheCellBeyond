@@ -6,6 +6,8 @@ import imgui.ImGui;
 import org.jbox2d.dynamics.contacts.Contact;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2f;
+import utility.HierarchyPath;
+import utility.HierarchyPaths;
 import utility.log.EngineLog;
 
 import java.util.UUID;
@@ -224,34 +226,6 @@ public abstract class Component {
      */
     protected void onDestroy() {}
 
-    public <T extends Component> T getSibling(Class<T> componentClass) {
-        if (gameObject == null) return null;
-        return gameObject.getFirstComponent(componentClass);
-    }
-
-    public <T extends Component> T getFromParent(Class<T> componentClass) {
-        if (gameObject == null || gameObject.getParent() == null) return null;
-        return gameObject.getParent().getFirstComponent(componentClass);
-    }
-
-    public <T extends Component> T getFromChild(String childName, Class<T> componentClass) {
-        if (gameObject == null) return null;
-        GameObject child = gameObject.getChild(childName);
-        if (child == null) return null;
-        return child.getFirstComponent(componentClass);
-    }
-
-    public Component findComponentByName(String name) {
-        if (gameObject == null) return null;
-        GameObject root = gameObject.getRoot();
-        return root.findComponentByName(name);
-    }
-
-    public Component getComponentByPath(String path) {
-        if (gameObject == null || path == null) return null;
-        return gameObject.resolveHierarchyPathAsComponent(path);
-    }
-
     /**
      * Export this component's properties for editing in the Editor UI.
      */
@@ -314,5 +288,25 @@ public abstract class Component {
 
         if (gameObject != null) gameObject.onComponentNameChanged(this, name);
 
+    }
+
+    public HierarchyPath asPath() {
+        return HierarchyPaths.of(this);
+    }
+
+    public static Component getComponent(HierarchyPath absolutePath) {
+        return HierarchyPaths.toComponent(absolutePath);
+    }
+
+    public static Component getComponent(HierarchyPath path, GameObject context) {
+        return HierarchyPaths.toComponent(path, context);
+    }
+
+    public static Component getComponent(String path, GameObject context) {
+        return HierarchyPaths.toComponent(path, context);
+    }
+
+    public static Component getComponent(String absolutePath) {
+        return HierarchyPaths.toComponent(absolutePath);
     }
 }

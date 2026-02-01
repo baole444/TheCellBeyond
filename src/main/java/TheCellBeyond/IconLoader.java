@@ -3,7 +3,7 @@ package TheCellBeyond;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.system.MemoryStack;
 import utility.AssetReference;
-import utility.PathResolver;
+import utility.UnifiedPaths;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,13 +19,13 @@ public record IconLoader(int width, int height, ByteBuffer icon, AssetReference 
 
     public static IconLoader loadIcon(String filepath) {
         try {
-            PathResolver.get();
+            UnifiedPaths.get();
         } catch (IllegalStateException e) {
-            PathResolver.initialize(null);
+            UnifiedPaths.initialize(null);
         }
 
         AssetReference assetRef = new AssetReference(filepath);
-        PathResolver resolver = PathResolver.get();
+        UnifiedPaths resolver = UnifiedPaths.get();
 
         try (InputStream stream = resolver.getAssetStream(assetRef.resolvedPath())) {
             byte[] data = stream.readAllBytes();

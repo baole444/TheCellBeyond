@@ -18,14 +18,14 @@ import java.util.concurrent.ConcurrentHashMap;
  *      <li> <i><u>/dir/path/to/asset</u></i> - Potential absolute path, can be resolved as external or project asset</li>
  * </ul>
  */
-public class PathResolver {
-    private static final String ENGINE_PREFIX = "engine://";
-    private static final String PROJECT_PREFIX = "project://";
+public class UnifiedPaths {
+    private static final String EnginePrefix = "engine://";
+    private static final String ProjectPrefix = "project://";
 
     private final String projectRoot;
     private final ConcurrentHashMap<String, AssetPath> pathCache = new ConcurrentHashMap<>();
 
-    private static volatile PathResolver instance;
+    private static volatile UnifiedPaths instance;
 
     /**
      * Asset classification, base on the path that leads to the asset's file on the system.
@@ -78,25 +78,25 @@ public class PathResolver {
         }
     }
 
-    private PathResolver(String projectRoot) {
+    private UnifiedPaths(String projectRoot) {
         this.projectRoot = projectRoot;
     }
 
     /**
-     * Initialize {@link PathResolver} using the given path to user project.
+     * Initialize {@link UnifiedPaths} using the given path to user project.
      * @param projectRoot the absolute path that leads to the user project's root directory
      */
     public static void initialize(String projectRoot) {
-        instance = new PathResolver(projectRoot);
+        instance = new UnifiedPaths(projectRoot);
     }
 
     /**
-     * Get the instance of {@link PathResolver}.
+     * Get the instance of {@link UnifiedPaths}.
      * @return the current or new instance if there is none yet
      */
-    public static synchronized PathResolver get() {
+    public static synchronized UnifiedPaths get() {
         if (instance == null) {
-            throw new IllegalStateException("PathResolver not initialized. Please call initialize() first.");
+            throw new IllegalStateException("UnifiedPaths not initialized. Please call initialize() first.");
         }
         return instance;
     }
@@ -125,13 +125,13 @@ public class PathResolver {
      * Resolve the path into engine, project or external asset base on its starting prefix or the lack of it.
      */
     private AssetPath parseAndResolve(String path) {
-        if (path.startsWith(ENGINE_PREFIX)) {
-            String enginePath = path.substring(ENGINE_PREFIX.length());
+        if (path.startsWith(EnginePrefix)) {
+            String enginePath = path.substring(EnginePrefix.length());
             return new AssetPath(path, enginePath, AssetType.ENGINE, true);
         }
 
-        if (path.startsWith(PROJECT_PREFIX)) {
-            String projectPath = path.substring(PROJECT_PREFIX.length());
+        if (path.startsWith(ProjectPrefix)) {
+            String projectPath = path.substring(ProjectPrefix.length());
             String absPath = resolveProjectPathToAbsolute(projectPath);
             return new AssetPath(path, absPath, AssetType.PROJECT, true);
         }
@@ -182,7 +182,7 @@ public class PathResolver {
             throw new IllegalArgumentException("Engine path cannot be null");
         }
 
-        InputStream stream = PathResolver.class.getClassLoader().getResourceAsStream(enginePath);
+        InputStream stream = UnifiedPaths.class.getClassLoader().getResourceAsStream(enginePath);
 
         if (stream == null) {
             throw new IOException("Engine asset not found: " + enginePath);
@@ -204,12 +204,12 @@ public class PathResolver {
      * Check if a file or asset exists within the project, engine's scope or externally.
      * @param assetPath The {@link AssetPath} to check
      * @return true if the asset or file exist.
-     * @see PathResolver#isPathInsideProject(String path) Check if a path is of AssetType Project
+     * @see UnifiedPaths#isPathInsideProject(String path) Check if a path is of AssetType Project
      */
     public boolean exists(AssetPath assetPath) {
         switch (assetPath.type()) {
             case ENGINE -> {
-                return PathResolver.class.getClassLoader().getResource(assetPath.resolvedPath()) != null;
+                return UnifiedPaths.class.getClassLoader().getResource(assetPath.resolvedPath()) != null;
             }
             case PROJECT, EXTERNAL -> {
                 return Files.exists(Paths.get(assetPath.resolvedPath()));
@@ -224,7 +224,7 @@ public class PathResolver {
      * Check if a file or asset exists within the project, engine's scope or externally.
      * @param path the relative or absolute path to check
      * @return true if the asset or file exist
-     * @see PathResolver#isPathInsideProject(String path) Check if a path is of AssetType Project
+     * @see UnifiedPaths#isPathInsideProject(String path) Check if a path is of AssetType Project
      */
     public boolean exists(String path) {
         if (path == null || path.isBlank()) return false;
@@ -235,7 +235,7 @@ public class PathResolver {
      * Check if a file or asset path located inside the project directory.
      * @param path the relative or absolute path to check
      * @return true if the path resolved as {@link AssetType#PROJECT}
-     * @see PathResolver#exists(String path) Check if a file or asset exists
+     * @see UnifiedPaths#exists(String path) Check if a file or asset exists
      */
     public boolean isPathInsideProject(String path) {
         if (path == null || path.isBlank()) return false;
@@ -274,7 +274,7 @@ public class PathResolver {
         switch (assetPath.type()) {
             case ENGINE -> {
                 if (assetPath.isAbsolute()) return assetPath.originalPath();
-                return ENGINE_PREFIX + assetPath.resolvedPath();
+                return EnginePrefix + assetPath.resolvedPath();
             }
             case PROJECT -> {
                 return toProjectRelativePath(assetPath.resolvedPath());
@@ -360,8 +360,8 @@ public class PathResolver {
     }
 
     /**
-     * Check if PathResolver is initialized or not
-     * @return true if PathResolver is initialized.
+     * Check if UnifiedPaths is initialized or not
+     * @return true if UnifiedPaths is initialized.
      */
     public static boolean isInitialized () {
         return instance != null;

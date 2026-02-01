@@ -16,7 +16,7 @@ import eventviewer.event.SceneEvent;
 import project.Project;
 import imgui.type.ImBoolean;
 import physic2d.Physic2D;
-import utility.PathResolver;
+import utility.UnifiedPaths;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -320,7 +320,7 @@ public class Scene {
             return;
         }
 
-        String resolvedPath = PathResolver.resolveToAbsolute(Project.projectRoot(), Project.currentProject().scenes().get(currentSceneName).path());
+        String resolvedPath = UnifiedPaths.resolveToAbsolute(Project.projectRoot(), Project.currentProject().scenes().get(currentSceneName).path());
 
         Gson gson = new GsonBuilder()
                 .setPrettyPrinting()
@@ -353,7 +353,7 @@ public class Scene {
 
         if (currentSceneName == null) return;
 
-        String resolvedPath = PathResolver.resolveToAbsolute(Project.projectRoot(), Project.currentProject().scenes().get(currentSceneName).path());
+        String resolvedPath = UnifiedPaths.resolveToAbsolute(Project.projectRoot(), Project.currentProject().scenes().get(currentSceneName).path());
 
         Gson gson = new GsonBuilder()
                 .setPrettyPrinting()

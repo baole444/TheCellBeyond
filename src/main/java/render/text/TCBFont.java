@@ -11,7 +11,7 @@ import org.lwjgl.util.msdfgen.MSDFGenTransform;
 import render.FontAtlasTexture;
 import utility.AssetReference;
 import utility.AssetsPool;
-import utility.PathResolver;
+import utility.UnifiedPaths;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -100,9 +100,9 @@ public class TCBFont {
      * @throws IOException File does not exist.
      */
     public TCBFont(String filepath, int fontSizePixel, GlyphRange glyphRange) throws IOException {
-        PathResolver resolver;
-        if (!PathResolver.isInitialized()) PathResolver.initialize(null);
-        resolver = PathResolver.get();
+        UnifiedPaths resolver;
+        if (!UnifiedPaths.isInitialized()) UnifiedPaths.initialize(null);
+        resolver = UnifiedPaths.get();
 
         assetReference = new AssetReference(filepath);
         verifyFontFile();
@@ -193,7 +193,7 @@ public class TCBFont {
     }
 
     private void verifyFontFile() throws IOException {
-        PathResolver resolver = PathResolver.get();
+        UnifiedPaths resolver = UnifiedPaths.get();
 
         if (!resolver.exists(assetReference.resolvedPath())) throw new IOException("Font file does not exist at: '" + assetReference.canonicalPath() + "'");
     }
