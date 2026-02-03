@@ -94,7 +94,7 @@ public class PrefabManager {
             loadedPrefabs.put(prefabName, new PrefabData(
                     prefabName,
                     jsonString,
-                    gameObject.name + (includeChildren ? " (with children)" : "")
+                    gameObject.name()+ (includeChildren ? " (with children)" : "")
             ));
 
             System.out.println("Saved prefab: " + prefabName + " to " + prefabFile);

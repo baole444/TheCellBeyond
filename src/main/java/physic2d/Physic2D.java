@@ -153,7 +153,7 @@ public class Physic2D {
                 default -> {}
             }
         } catch (Exception e) {
-            LOGGER.error(String.format("Failed to add collider %s of %s : %s", collisionShape2D.getComponentName(), physicBody2D.name, e.getMessage()));
+            LOGGER.error(String.format("Failed to add collider %s of %s : %s", collisionShape2D.name(), physicBody2D.name(), e.getMessage()));
         }
 
     }
@@ -170,7 +170,7 @@ public class Physic2D {
             addCollider2D(physicBody2D, collisionShape2D);
             body.resetMassData();
         } catch (Exception e) {
-            LOGGER.error(String.format("Failed to reset collider %s of %s : %s", collisionShape2D.getComponentName(), physicBody2D.name, e.getMessage()));
+            LOGGER.error(String.format("Failed to reset collider %s of %s : %s", collisionShape2D.name(), physicBody2D.name(), e.getMessage()));
         }
 
     }

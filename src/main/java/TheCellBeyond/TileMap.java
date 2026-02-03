@@ -48,6 +48,15 @@ public class TileMap extends GameObject2D {
     private transient PhysicBody2D physicBody2D = null;
     private transient boolean physicBodyDirty = false;
 
+    public TileMap() {
+        String name = TileMap.class.getSimpleName();
+        this(name);
+    }
+
+    public TileMap(String name) {
+        super(name);
+    }
+
     @Override
     protected void onStart() {
         initPhysicBody();
@@ -76,14 +85,6 @@ public class TileMap extends GameObject2D {
         addChild(physicBody2D);
         Scene scene = LogicServer.currentScene();
         if (scene != null) scene.queueForObjectAddition(physicBody2D, this);
-    }
-
-    public TileMap() {
-        super(TileMap.class.getSimpleName());
-    }
-
-    public TileMap(String name) {
-        super(name);
     }
 
     public PhysicBody2D physicBody2D() {

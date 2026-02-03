@@ -67,17 +67,12 @@ public class GameObject {
     /**
      * The name of this game object.
      */
-    public String name;
+    private String name;
 
     /**
      * The list of {@link Component} that this game object has.
      */
     private final CopyOnWriteArrayList<Component> components;
-
-    /**
-     * The map of named {@link Component}, updated from {@link #components} for faster access.
-     */
-    private final transient Map<String, Component> namedComponents = new ConcurrentHashMap<>();
 
     /**
      * Should this game object be serialized or not.
@@ -123,7 +118,7 @@ public class GameObject {
      * Create a new {@link GameObject}.
      */
     public GameObject() {
-        String name = GameObject2D.class.getSimpleName();
+        String name = GameObject.class.getSimpleName();
         this(name);
     }
 
@@ -132,12 +127,33 @@ public class GameObject {
      * @param name the new name for the object
      */
     public GameObject(String name) {
-        this.name = name;
+        if (name == null || name.isBlank()) name = this.getClass().getSimpleName();
+        this.name = name.trim();
         components = new CopyOnWriteArrayList<>();
         children = new LinkedHashSet<>();
         childrenUUIDs = new ArrayList<>();
         uuid = UUID.randomUUID();
         cachedID = idCounter.newId();
+    }
+
+    /**
+     * Get the name of this object.
+     * @return the name string
+     */
+    public String name() {
+        if (name == null) name = this.getClass().getSimpleName();
+        return name;
+    }
+
+    /**
+     * Set a custom name for this object.
+     * <p>
+     * If the new name is null or bank, this object revert back to its class name.
+     * @param name the name to update to
+     */
+    public void name(String name) {
+        if (name == null || name.isBlank()) name = this.getClass().getSimpleName();
+        this.name = name.trim();
     }
 
     /**
@@ -295,17 +311,13 @@ public class GameObject {
     }
 
     /**
-     * Get the {@link Component} with the given name, from this game object and its descendant objects' component list.
+     * Get the {@link Component} with the given name.
      * @param componentName the name of the component to find
      * @return the first {@link Component} with matching name, or null if there is none
      */
     public Component findComponentByName(String componentName) {
-        Component c = namedComponents.get(componentName);
-        if (c != null) return c;
-
-        for (GameObject child : children) {
-            c = child.findComponentByName(componentName);
-            if (c != null) return c;
+        for (Component c : components) {
+            if (c != null && c.name().equals(componentName)) return c;
         }
 
         return null;
@@ -466,8 +478,6 @@ public class GameObject {
     public boolean removeComponent(Component component) {
         boolean removed = components.remove(component);
         if (!removed) return false;
-
-        if (component.getComponentName() != null) namedComponents.remove(component.getComponentName());
         Scene scene = LogicServer.currentScene();
         if (scene != null) scene.queueForComponentRemoval(component);
 
@@ -490,12 +500,10 @@ public class GameObject {
 
         components.add(component);
         component.gameObject = this;
-        String componentName = component.getComponentName();
-        if (componentName != null && !componentName.isBlank()) {
-            namedComponents.put(componentName, component);
+        if (isStarted) {
+            if (LogicServer.runtimeMode()) component.start();
+            else component.editorStart();
         }
-
-        if (isStarted) component.start();
         setDirty(true);
     }
 
@@ -508,22 +516,6 @@ public class GameObject {
         for (Component component : components) {
             if (component == null) continue;
             addComponent(component);
-        }
-    }
-
-    /**
-     * Update the cached named component mapping of this game object.
-     * <p>
-     * Please use {@link Component#setComponentName(String)} instead.
-     * @param component the component that changed name
-     * @param name the new name of that component, nullable
-     * @see Component#setComponentName(String) Set a custom name for the component
-     */
-    public void onComponentNameChanged(Component component, String name) {
-        namedComponents.values().removeIf(c -> c == component);
-
-        if (name != null && !name.isEmpty()) {
-            namedComponents.put(name, component);
         }
     }
 
@@ -651,7 +643,7 @@ public class GameObject {
             ImGui.tableSetupColumn("##Component_Delete_Column_" + uuid, ImGuiTableColumnFlags.WidthFixed);
 
             ImGui.tableNextColumn();
-            String name = c.getComponentName();
+            String name = c.name();
             String label = (name == null || name.isBlank()) ? c.getClass().getSimpleName() : name + "##" + uuid;
             ImGui.pushStyleColor(ImGuiCol.Header, 0.0f, 0.0f, 0.0f, 0.0f);
             boolean open = ImGui.collapsingHeader(label);
@@ -907,12 +899,7 @@ public class GameObject {
         obj.children.clear();
         obj.childrenUUIDs.clear();
 
-        for (Component c : obj.getComponents()) {
-            c.setUUID(UUID.randomUUID());
-            if (c.getComponentName() == null || c.getComponentName().isEmpty()) continue;
-            obj.namedComponents.put(c.getComponentName(), c);
-        }
-
+        for (Component c : obj.getComponents()) c.setUUID(UUID.randomUUID());
         return obj;
     }
 

@@ -90,7 +90,7 @@ public class HierarchyPaths {
         }
 
         Component component = findComponent(targetObject, componentName);
-        if (component == null) Logger.warning(String.format("Cannot resolve '%s' to component: component '%s' does not exist for object '%s'.", path, componentName, targetObject.name));
+        if (component == null) Logger.warning(String.format("Cannot resolve '%s' to component: component '%s' does not exist for object '%s'.", path, componentName, targetObject.name()));
         return component;
     }
 
@@ -119,7 +119,7 @@ public class HierarchyPaths {
         if (component == null) return null;
         String objPath = buildObjectPath(component.gameObject);
         if (objPath == null) return null;
-        String componentName = component.getComponentName();
+        String componentName = component.name();
         if (componentName == null || componentName.isEmpty()) {
             componentName = component.getClass().getSimpleName();
         }
@@ -163,7 +163,7 @@ public class HierarchyPaths {
         }
 
         for (GameObject go : rootObjects) {
-            if (go.name != null && go.name.equals(segment)) return go;
+            if (go.name() != null && go.name().equals(segment)) return go;
             if (go.getClass().getSimpleName().equals(segment)) return go;
         }
 
@@ -176,7 +176,7 @@ public class HierarchyPaths {
         if (segment.equals(HierarchyPath.Current)) return current;
         if (segment.equals(HierarchyPath.Parent)) {
             GameObject parent = current.getParent();
-            if (parent == null) Logger.warning(String.format("Cannot resolve '%s' at arg %d: object '%s' has no parent!", path, segmentIndex, current.name));
+            if (parent == null) Logger.warning(String.format("Cannot resolve '%s' at arg %d: object '%s' has no parent!", path, segmentIndex, current.name()));
             return parent;
         }
 
@@ -187,7 +187,7 @@ public class HierarchyPaths {
         }
 
         GameObject child = findChildObject(current, objectName);
-        if (child == null) Logger.warning(String.format("Cannot resolve '%s' at arg %d: no child '%s' of '%s'", path, segmentIndex, objectName, current.name));
+        if (child == null) Logger.warning(String.format("Cannot resolve '%s' at arg %d: no child '%s' of '%s'", path, segmentIndex, objectName, current.name()));
         return child;
     }
 
@@ -215,7 +215,7 @@ public class HierarchyPaths {
         List<String> segments = new ArrayList<>();
         GameObject current = object;
         while (current != null) {
-            segments.add(current.name);
+            segments.add(current.name());
             current = current.getParent();
         }
 

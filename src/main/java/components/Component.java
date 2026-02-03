@@ -84,9 +84,16 @@ public abstract class Component {
      * Custom name of this component.
      * Named component is cached in scene's data for faster access.
      */
-    private String componentName = null;
+    private String componentName;
 
     public Component() {
+        String name = Component.class.getSimpleName();
+        this(name);
+    }
+
+    public Component(String name) {
+        if (name == null || name.isBlank()) name = this.getClass().getSimpleName();
+        componentName = name.trim();
         uuid = UUID.randomUUID();
     }
 
@@ -230,12 +237,8 @@ public abstract class Component {
      * Export this component's properties for editing in the Editor UI.
      */
     public void imgui() {
-        if (componentName == null) {
-            if (ImGui.button("Set component's name")) componentName = this.getClass().getSimpleName();
-        } else {
-            String name = ImEditorGui.inputText("Name", componentName, this);
-            if (!name.equals(componentName)) setComponentName(name);
-        }
+        String name = ImEditorGui.inputText("Name", componentName, this);
+        if (!name.equals(componentName)) name(name);
 
         additionalImGuiLogic();
     }
@@ -269,25 +272,22 @@ public abstract class Component {
 
     /**
      * Get the custom name of this component.
-     * @return the name string, or null if it doesn't have one
+     * @return the name string
      */
-    @Nullable
-    public String getComponentName() {
+    public String name() {
+        if (componentName == null) componentName = this.getClass().getSimpleName();
         return componentName;
     }
 
     /**
      * Set a custom name for this component.
      * <p>
-     * If the name is {@code null} or blank, this remove the custom name of the component instead.
-     * @param name the name to update with, nullable
+     * If the name is {@code null} or blank, this component revert back to its class name.
+     * @param name the name to update with
      */
-    public void setComponentName(@Nullable String name) {
-        if (name != null && name.isBlank()) name = null;
-        componentName = name;
-
-        if (gameObject != null) gameObject.onComponentNameChanged(this, name);
-
+    public void name(String name) {
+        if (name == null || name.isBlank()) name = this.getClass().getSimpleName();
+        componentName = name.trim();
     }
 
     public HierarchyPath asPath() {

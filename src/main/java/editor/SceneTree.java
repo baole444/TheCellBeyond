@@ -74,7 +74,7 @@ public class SceneTree {
 
         if (payload instanceof GameObject dropGo) {
             if (scene.reparentObject(dropGo, null)) {
-                LOGGER.info(String.format("Moved '%s' to scene's root level", dropGo.name));
+                LOGGER.info(String.format("Moved '%s' to scene's root level", dropGo.name()));
             }
         }
 
@@ -109,7 +109,7 @@ public class SceneTree {
             flags |= ImGuiTreeNodeFlags.Leaf | ImGuiTreeNodeFlags.NoTreePushOnOpen;
         }
 
-        boolean nodeOpen = ImGui.treeNodeEx(go.name, flags);
+        boolean nodeOpen = ImGui.treeNodeEx(go.name(), flags);
         renderContextMenu(go, scene);
 
         if (ImGui.isItemClicked() && !ImGui.isItemToggledOpen()) {
@@ -119,7 +119,7 @@ public class SceneTree {
 
         if (ImGui.beginDragDropSource()) {
             ImGui.setDragDropPayload(GROUPING_PAYLOAD, go);
-            ImGui.text("Name: " + go.name);
+            ImGui.text("Name: " + go.name());
             ImGui.text("Type: " + go.getClass().getSimpleName());
             ImGui.text("UUID: " + go.getUUID().toString());
 
@@ -144,20 +144,14 @@ public class SceneTree {
 
     private static void beginReparentDragDrop(GameObject go, Scene scene) {
         if (!ImGui.beginDragDropTarget()) return;
-
         Object payload = ImGui.acceptDragDropPayload(GROUPING_PAYLOAD);
-
         if (!(payload instanceof GameObject dropGo)) {
             ImGui.endDragDropTarget();
             return;
         }
 
-        if (scene.reparentObject(dropGo, go)) {
-            LOGGER.info(String.format("Reparented '%s' to '%s'", dropGo.name, go.name));
-        } else {
-            LOGGER.warning(String.format("Reparented '%s' to '%s' is not allowed!", dropGo.name, go.name));
-        }
-
+        if (scene.reparentObject(dropGo, go)) LOGGER.info(String.format("Reparented '%s' to '%s'", dropGo.name(), go.name()));
+        else LOGGER.warning(String.format("Reparented '%s' to '%s' is not allowed!", dropGo.name(), go.name()));
         ImGui.endDragDropTarget();
     }
 
@@ -175,7 +169,7 @@ public class SceneTree {
                 if (ImGui.menuItem("With children")) copy = go.copy(true);
 
                 if (copy != null) {
-                    copy.name = go.name + "_copy";
+                    copy.name(go.name() + "_copy");
                     scene.queueForObjectAddition(copy, go.getParent());
                 }
 
@@ -207,7 +201,7 @@ public class SceneTree {
     }
 
     private static void savePrefabDialog(GameObject go, boolean withChildren) {
-        String prefabName = go.name.replaceAll("[^a-zA-z0-9_-]", "_");
+        String prefabName = go.name().replaceAll("[^a-zA-z0-9_-]", "_");
 
         // TODO: add popup to ask custom prefab name later,
         //  auto fill it with current name in case user don't want to change it

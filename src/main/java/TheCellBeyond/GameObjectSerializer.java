@@ -90,7 +90,7 @@ public class GameObjectSerializer implements JsonSerializer<GameObject>, JsonDes
             return (GameObject) goClass.getConstructor(String.class).newInstance(name);
         } catch (NoSuchMethodException e) {
             GameObject go = (GameObject) goClass.getConstructor().newInstance();
-            go.name = name;
+            go.name(name);
             return go;
         }
     }

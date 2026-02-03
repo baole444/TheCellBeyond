@@ -97,7 +97,7 @@ public final class Controller2D extends Component {
 
         if (!isGameObjectSpatialCompatible && !isGameObjectPhysicCompatible) {
             controlMode = ControlMode.Incompatible;
-            LOGGER.warning(String.format("Mounting %s to unsupported '%s' object", this.getClass().getSimpleName(), gameObject.name));
+            LOGGER.warning(String.format("Mounting %s to unsupported '%s' object", this.getClass().getSimpleName(), gameObject.name()));
             return;
         }
 
@@ -304,7 +304,7 @@ public final class Controller2D extends Component {
         ImGui.text("Control Mode:");
         if (ImGui.beginCombo("##Select_Controller_Control_Mode_Combo_" + getUUID(), current.name())) {
             if (!isGameObjectSpatialCompatible && !isGameObjectPhysicCompatible) {
-                ImGui.textWrapped(gameObject.name + " is not compatible with this controller");
+                ImGui.textWrapped(gameObject.name() + " is not compatible with this controller");
             } else {
                 for (ControlMode mode : ControlMode.values()) {
                     if (mode == ControlMode.Incompatible) continue;

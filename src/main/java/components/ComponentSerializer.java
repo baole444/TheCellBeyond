@@ -22,7 +22,7 @@ public class ComponentSerializer implements JsonSerializer<Component>,
             }
 
             if (jsonObject.has("componentName")) {
-                component.setComponentName(jsonObject.get("componentName").getAsString());
+                component.name(jsonObject.get("componentName").getAsString());
             }
 
             return component;
@@ -42,16 +42,8 @@ public class ComponentSerializer implements JsonSerializer<Component>,
         );
 
         result.add("uuid", context.serialize(component.getUUID()));
-
-        if (component.getComponentName() != null && !component.getComponentName().isEmpty()) {
-            result.add("componentName", new JsonPrimitive(component.getComponentName()));
-        }
-
-        result.add("properties",
-                context.serialize(component,
-                        component.getClass()
-                )
-        );
+        result.add("componentName", new JsonPrimitive(component.name()));
+        result.add("properties", context.serialize(component, component.getClass()));
         return result;
     }
 }
