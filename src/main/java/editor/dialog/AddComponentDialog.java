@@ -44,7 +44,9 @@ public class AddComponentDialog {
         CapsuleCollider2D("CapsuleCollider2D", "Add a capsule/pillbox-like shape for detecting collision to the object." +
                 "The object type must inherit PhysicBody2D for physic collision to work."),
 
-        Controller2D("Controller2D", "Movement control, experimental component");
+        Controller2D("Controller2D", "Add ability to give input movement control for supported object."),
+
+        RemoteTransform2D("RemoteTransform2D", "Add transform broadcast, to update remote object outside of this component hierarchy path.");
 
         private final String displayLabel;
         private final String description;
@@ -151,6 +153,7 @@ public class AddComponentDialog {
             case CircleCollider2D -> c = new CircleCollider2D();
             case CapsuleCollider2D -> c = new CapsuleCollider2D();
             case Controller2D -> c = new Controller2D();
+            case RemoteTransform2D -> c = new RemoteTransform2D();
             default -> c = null;
         }
 

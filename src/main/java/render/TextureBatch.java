@@ -119,9 +119,9 @@ public class TextureBatch implements Comparable<TextureBatch> {
         sprites[index] = spriteRenderer;
         countSprite++;
 
-        if (spriteRenderer.getTexture() != null) {
-            if (!textures.contains(spriteRenderer.getTexture())) {
-                textures.add(spriteRenderer.getTexture());
+        if (spriteRenderer.texture() != null) {
+            if (!textures.contains(spriteRenderer.texture())) {
+                textures.add(spriteRenderer.texture());
             }
         }
 
@@ -147,9 +147,9 @@ public class TextureBatch implements Comparable<TextureBatch> {
         for (int i = 0; i < countSprite; i++) {
             SpriteRenderer spr = sprites[i];
             if (spr.isSpriteDirty()) {
-                if (spr.getTexture() != null && !textures.contains(spr.getTexture()) && isTextureCapacityValid()) textures.add(spr.getTexture());
+                if (spr.texture() != null && !textures.contains(spr.texture()) && isTextureCapacityValid()) textures.add(spr.texture());
                 dirtyIndex.add(i);
-                spr.setSpriteDirty(false);
+                spr.spriteDirty(false);
             }
         }
 
@@ -211,10 +211,10 @@ public class TextureBatch implements Comparable<TextureBatch> {
         SpriteRenderer spriteRenderer = sprites[index];
 
         int offset = index * 4 * vertexSize;
-        Vector4f color = spriteRenderer.getColor();
-        Vector2f[] textureCoordinates = spriteRenderer.getTextureCoordinates();
+        Vector4f color = spriteRenderer.color();
+        Vector2f[] textureCoordinates = spriteRenderer.textureCoordinates();
 
-        if (textureCoordinates == null || spriteRenderer.getTexture() == null) {
+        if (textureCoordinates == null || spriteRenderer.texture() == null) {
             textureCoordinates = new Vector2f[] {
                     new Vector2f(1, 1),
                     new Vector2f(1, 0),
@@ -225,8 +225,8 @@ public class TextureBatch implements Comparable<TextureBatch> {
             color = new Vector4f(color.x, color.y, color.z, 0.0f);
         }
 
-        boolean flipH = spriteRenderer.isFlipHorizontally();
-        boolean flipV = spriteRenderer.isFlipVertically();
+        boolean flipH = spriteRenderer.flipHorizontally();
+        boolean flipV = spriteRenderer.flipVertically();
 
         if (flipH || flipV) {
             Vector2f[] flipCoordinates = new Vector2f[4];
@@ -242,16 +242,16 @@ public class TextureBatch implements Comparable<TextureBatch> {
 
         int ID = 0;
         //[0, tex, tex, tex, tex]
-        if (spriteRenderer.getTexture() != null) {
+        if (spriteRenderer.texture() != null) {
             for (int i = 0; i < textures.size(); i++) {
-                if (textures.get(i).equals(spriteRenderer.getTexture())) {
+                if (textures.get(i).equals(spriteRenderer.texture())) {
                     ID = i + 1;
                     break;
                 }
             }
         }
 
-        Vector2f worldSize = spriteRenderer.getSpriteSizeAsWorldUnit();
+        Vector2f worldSize = spriteRenderer.spriteSizeAsWorldUnit();
         Vector2f pos = spriteRenderer.globalPosition();
         Vector2f scale = spriteRenderer.globalScale();
         float rotation = spriteRenderer.globalRotation();
@@ -334,7 +334,7 @@ public class TextureBatch implements Comparable<TextureBatch> {
             if (sps.contains(sprites[i])) {
                 for (int j = i; j < countSprite - 1; j++) {
                     sprites[j] = sprites[j + 1];
-                    sprites[j].setSpriteDirty(true);
+                    sprites[j].spriteDirty(true);
                 }
 
                 countSprite--;
@@ -356,7 +356,7 @@ public class TextureBatch implements Comparable<TextureBatch> {
                 if (sprites[i] == spriteRenderer) {
                     for (int j = i; j < countSprite - 1; j++) {
                         sprites[j] = sprites[j + 1];
-                        sprites[j].setSpriteDirty(true);
+                        sprites[j].spriteDirty(true);
                     }
 
                     countSprite--;

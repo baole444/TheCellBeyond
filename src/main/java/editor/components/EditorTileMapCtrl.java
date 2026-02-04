@@ -120,8 +120,8 @@ public class EditorTileMapCtrl extends Component implements NotSerializeComponen
             sprite.setTextureCoordinates(tile.textureCoordinates);
             sprite.setWidth(gridSize.x);
             sprite.setHeight(gridSize.y);
-            spriteRenderer.setSprite(sprite);
-            spriteRenderer.setColor(previewColor);
+            spriteRenderer.sprite(sprite);
+            spriteRenderer.color(previewColor);
 
             Vector2f localOffset = new Vector2f(offset.x * gridWorldSize.x, -offset.y * gridWorldSize.y);
             spriteRenderer.position(localOffset);

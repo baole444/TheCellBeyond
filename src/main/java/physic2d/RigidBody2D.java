@@ -24,11 +24,12 @@ public class RigidBody2D extends PhysicBody2D {
     private transient final Vector2f currentVelocity = new Vector2f();
 
     public RigidBody2D() {
-        this(PhysicBodyType.Dynamic);
+        String name = RigidBody2D.class.getSimpleName();
+        this(name);
     }
 
     public RigidBody2D(String name) {
-        this (name, PhysicBodyType.Dynamic);
+        this(name, PhysicBodyType.Dynamic);
     }
 
     public RigidBody2D(PhysicBodyType bodyType) {
@@ -37,6 +38,7 @@ public class RigidBody2D extends PhysicBody2D {
     }
 
     public RigidBody2D(String name, PhysicBodyType bodyType) {
+        if (invalidName(name)) name = RigidBody2D.class.getSimpleName();
         super(name, bodyType);
     }
 

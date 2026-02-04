@@ -33,6 +33,7 @@ public abstract class PhysicBody2D extends GameObject2D {
     }
 
     public PhysicBody2D(String name, PhysicBodyType bodyType) {
+        if (invalidName(name)) name = PhysicBody2D.class.getSimpleName();
         super(name);
         physicBodyType = bodyType;
     }

@@ -82,6 +82,15 @@ public final class Controller2D extends Component {
     private transient boolean isGameObjectSpatialCompatible = false;
     private transient boolean isGameObjectPhysicCompatible = false;
 
+    public Controller2D() {
+        String name = Controller2D.class.getSimpleName();
+        this(name);
+    }
+
+    public Controller2D(String name) {
+        if (invalidName(name)) name = Controller2D.class.getSimpleName();
+        super(name);
+    }
 
     @Override
     protected void onStart() {

@@ -1,17 +1,10 @@
 package components;
 
-import editor.ImEditorGui;
-import editor.payload.SpriteDragDropPayload;
-import imgui.ImDrawList;
-import imgui.ImGui;
-import imgui.ImVec2;
-import imgui.flag.ImGuiCol;
-import imgui.type.ImBoolean;
+import editor.template.EditorTemplate;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import render.Texture;
 import render.texture.Sprite;
-import utility.TextureScale;
 import utility.WorldUnit;
 
 import java.util.Objects;
@@ -29,83 +22,19 @@ public class SpriteRenderer extends SpatialComponent {
 
     private volatile transient boolean isSpriteDirty = true;
 
+    public SpriteRenderer() {
+        String name = SpriteRenderer.class.getSimpleName();
+        this(name);
+    }
+
+    public SpriteRenderer(String name) {
+        if (invalidName(name)) name = SpriteRenderer.class.getSimpleName();
+        super(name);
+    }
+
     @Override
     protected void additionalImGuiLogic() {
-        float availX = ImGui.getContentRegionAvailX();
-        ImGui.text("Sprite: ");
-
-        if (sprite != null && sprite.getTexture() != null) {
-            ImGui.sameLine();
-            ImGui.pushStyleColor(ImGuiCol.Button, 0.7f, 0.2f, 0.2f, 1.0f);
-            ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.8f, 0.3f, 0.3f, 1.0f);
-            ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0.7f, 0.2f, 0.2f, 1.0f);
-            if (ImGui.button("Clear sprite")) {
-                setSprite(new Sprite());
-                if (gameObject != null) gameObject.setDirty(true);
-            }
-            ImGui.popStyleColor(3);
-        }
-
-        float previewLimitY = 160.0f;
-        if (sprite == null || sprite.getTexture() == null) {
-            if (ImGui.beginChild("Mock_sprite_drop_area", ImGui.getContentRegionAvailX(), previewLimitY, true)) {
-                ImGui.beginDisabled();
-                ImGui.textWrapped("No sprite assigned. Drag and drop a sprite from Sprite list here.");
-                ImGui.endDisabled();
-                ImGui.endChild();
-            }
-        } else {
-            int textureId = sprite.getTextureID();
-            Vector2f[] textureCoordinates = sprite.getTextureCoordinates();
-
-            Vector2f previewSize = TextureScale.calculateFitDimension(sprite.getWidth(), sprite.getHeight(), availX, previewLimitY);
-            ImGui.image(textureId, previewSize.x, previewSize.y,
-                    textureCoordinates[2].x, textureCoordinates[0].y,
-                    textureCoordinates[0].x, textureCoordinates[2].y
-            );
-        }
-
-        if (ImGui.beginDragDropTarget()) {
-            if (ImGui.isWindowHovered()) {
-                ImDrawList drawList = ImGui.getWindowDrawList();
-                ImVec2 min = ImGui.getItemRectMin();
-                ImVec2 max = ImGui.getItemRectMax();
-                drawList.addRectFilled(min, max, ImGui.colorConvertFloat4ToU32(0.2f, 0.7f, 0.2f, 0.3f));
-                drawList.addRect(min, max, ImGui.colorConvertFloat4ToU32(0.2f, 0.7f, 0.2f, 0.8f), 0 , 0 , 2);
-            }
-
-            Object payload = ImGui.acceptDragDropPayload(SpriteDragDropPayload.getPayloadType());
-
-            if (payload == null) {
-                ImGui.endDragDropTarget();
-                return;
-            }
-
-            Sprite dropSprite = SpriteDragDropPayload.getPayload();
-
-            if (dropSprite != null) setSprite(dropSprite);
-
-            if (gameObject != null) gameObject.setDirty(true);
-
-            ImGui.endDragDropTarget();
-        }
-
-        if (ImEditorGui.colorCtrl("Color", this.color, this)) {
-            this.isSpriteDirty = true;
-        }
-
-        ImGui.indent();
-        ImBoolean flipHState = new ImBoolean(flipHorizontally);
-        ImBoolean flipVState = new ImBoolean(flipVertically);
-        String compositeID = "Flip axis##" + getUUID();
-        ImGui.pushStyleColor(ImGuiCol.Header, 0.0f, 0.0f, 0.0f, 0.0f);
-        boolean open = ImGui.collapsingHeader(compositeID);
-        ImGui.popStyleColor(1);
-        if (open) {
-            if (ImGui.checkbox("Horizontal##" + getUUID(), flipHState)) flipHorizontally(flipHState.get());
-            if (ImGui.checkbox("Vertical##" + getUUID(), flipVState)) flipVertically(flipVState.get());
-        }
-        ImGui.unindent();
+        EditorTemplate.render(this);
     }
 
     @Override
@@ -117,7 +46,7 @@ public class SpriteRenderer extends SpatialComponent {
      * Update the dirty flag for this SpriteRenderer.
      * @param needsUpdate true to set sprite dirty
      */
-    public void setSpriteDirty(boolean needsUpdate) {
+    public void spriteDirty(boolean needsUpdate) {
         isSpriteDirty = needsUpdate;
         if (!needsUpdate && sprite != null) sprite.rendererUpdated();
     }
@@ -126,15 +55,15 @@ public class SpriteRenderer extends SpatialComponent {
      * Get the tint color that is applied onto the Sprite.
      * @return tint color vector
      */
-    public Vector4f getColor() {
-        return this.color;
+    public Vector4f color() {
+        return color;
     }
 
     /**
      * Get the width and height of the Sprite in pixel value.
      * @return size vector of the sprite
      */
-    public Vector2f getSpriteSize() {
+    public Vector2f spriteSize() {
         if (sprite == null) return new Vector2f(1.0f);
 
         return new Vector2f(sprite.getWidth(), sprite.getHeight());
@@ -142,18 +71,18 @@ public class SpriteRenderer extends SpatialComponent {
 
     /**
      * Get the width and height of the Sprite in world unit value.
-     * This simply pass {@link SpriteRenderer#getSpriteSize()} into {@link WorldUnit#pixelToWorld(Vector2f)}
+     * This simply pass {@link SpriteRenderer#spriteSize()} into {@link WorldUnit#pixelToWorld(Vector2f)}
      * @return size vector of the sprite
      */
-    public Vector2f getSpriteSizeAsWorldUnit() {
-        return WorldUnit.pixelToWorld(getSpriteSize());
+    public Vector2f spriteSizeAsWorldUnit() {
+        return WorldUnit.pixelToWorld(spriteSize());
     }
 
     /**
      * Get the texture of the Sprite.
      * @return texture reference of the sprite or null if the sprite/texture is null
      */
-    public Texture getTexture() {
+    public Texture texture() {
         return sprite != null ? sprite.getTexture() : null;
     }
 
@@ -161,8 +90,16 @@ public class SpriteRenderer extends SpatialComponent {
      * Get the texture coordinates of the Sprite.
      * @return the array of 4 UV corners in the follow order: {@code (1,1), (1,0), (0,0), (0,1)}
      */
-    public Vector2f[] getTextureCoordinates() {
+    public Vector2f[] textureCoordinates() {
         return sprite != null ? sprite.getTextureCoordinates() : null;
+    }
+
+    /**
+     * Get the sprite used by this SpriteRenderer.
+     * @return the current sprite or null if there is none
+     */
+    public Sprite sprite() {
+        return sprite;
     }
 
     /**
@@ -171,7 +108,7 @@ public class SpriteRenderer extends SpatialComponent {
      * Set sprite to {@code null} or {@code new Sprite()} will disable rendering of this component.
      * @param sprite the new sprite
      */
-    public void setSprite(Sprite sprite) {
+    public void sprite(Sprite sprite) {
         if (Objects.equals(this.sprite, sprite)) return;
         this.sprite = sprite;
         isSpriteDirty = true;
@@ -183,7 +120,7 @@ public class SpriteRenderer extends SpatialComponent {
      * Set the color to {@code (1, 1, 1, 1)} will disable tint color.
      * @param color the new color vector
      */
-    public void setColor(Vector4f color) {
+    public void color(Vector4f color) {
         if(color == null) return;
         if (Objects.equals(this.color, color)) return;
         isSpriteDirty = true;
@@ -229,7 +166,7 @@ public class SpriteRenderer extends SpatialComponent {
      * Check the horizontal flip status of this SpriteRenderer.
      * @return true if the sprite is flipped vertically
      */
-    public boolean isFlipHorizontally() {
+    public boolean flipHorizontally() {
         return flipHorizontally;
     }
 
@@ -237,7 +174,7 @@ public class SpriteRenderer extends SpatialComponent {
      * Check the vertical flip status of this SpriteRenderer.
      * @return true if the sprite is flipped vertically
      */
-    public boolean isFlipVertically() {
+    public boolean flipVertically() {
         return flipVertically;
     }
 }

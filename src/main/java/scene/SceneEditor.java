@@ -350,7 +350,6 @@ public class SceneEditor extends SceneLoader implements EngineEventListener {
         }
     }
 
-
     private void searchFilter(String filterTerm, Map<String, Map<String, SpriteSheet>> categorizedSheets) {
         if (filterTerm == null || !filterChanged) return;
 

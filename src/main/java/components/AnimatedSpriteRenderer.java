@@ -1,6 +1,5 @@
 package components;
 
-import TheCellBeyond.internal.LogicServer;
 import imgui.ImGui;
 import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiTreeNodeFlags;
@@ -23,7 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * The component facilitates animation playback over time and default animation that autoplay on start.
  */
 public class AnimatedSpriteRenderer extends SpriteRenderer {
-    public static final float DEFAULT_FPS = 5.0f;
+    public static final float DefaultFPS = 5.0f;
     private final ConcurrentHashMap<String, Animation> animations = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Float> animationFPS = new ConcurrentHashMap<>();
     private String defaultAnimation = null;
@@ -32,6 +31,16 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
     private transient Animation currentAnimation = null;
     private transient boolean play = false;
     private transient boolean backward = false;
+
+    public AnimatedSpriteRenderer() {
+        String name = AnimatedSpriteRenderer.class.getSimpleName();
+        this(name);
+    }
+
+    public AnimatedSpriteRenderer(String name) {
+        if (invalidName(name)) name = AnimatedSpriteRenderer.class.getSimpleName();
+        super(name);
+    }
 
     /**
      * Get the default animation's name in this AnimatedSpriteRenderer.
@@ -67,7 +76,7 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
 
         if (animations.isEmpty()) {
             animations.put(newName, new Animation());
-            animationFPS.put(newName, DEFAULT_FPS);
+            animationFPS.put(newName, DefaultFPS);
             return newName;
         }
 
@@ -79,7 +88,7 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
         }
 
         animations.put(uniqueName, new Animation());
-        animationFPS.put(uniqueName, DEFAULT_FPS);
+        animationFPS.put(uniqueName, DefaultFPS);
 
         return uniqueName;
     }
@@ -152,7 +161,7 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
             stop();
             currentAnimation = animation;
             if (currentAnimation.frames().isEmpty()) return;
-            setSprite(currentAnimation.currentFrame().sprite);
+            sprite(currentAnimation.currentFrame().sprite);
         }
     }
 
@@ -436,13 +445,13 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
 
     private void updateSpriteFromCurrentAnimation() {
         if (currentAnimation == null) {
-            setSprite(null);
+            sprite(null);
             return;
         }
 
         Frame f = currentAnimation.currentFrame();
         Sprite s = f == null ? null : f.sprite;
-        setSprite(s);
+        sprite(s);
     }
 
     @Override
@@ -494,8 +503,8 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
         }
 
         ImGui.spacing();
-        ImBoolean flipHState = new ImBoolean(isFlipHorizontally());
-        ImBoolean flipVState = new ImBoolean(isFlipVertically());
+        ImBoolean flipHState = new ImBoolean(flipHorizontally());
+        ImBoolean flipVState = new ImBoolean(flipVertically());
         String compositeID = "Flip axis##Flip_Axis_AnimatedSprite_Header" + getUUID();
         ImGui.pushStyleColor(ImGuiCol.Header, 0.0f, 0.0f, 0.0f, 0.0f);
         boolean openFlip = ImGui.collapsingHeader(compositeID);

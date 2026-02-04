@@ -14,6 +14,15 @@ public abstract class CollisionShape2D extends SpatialComponent {
     protected transient PhysicBody2D physicBody2D = null;
     protected transient boolean needsFixtureReset = false;
 
+    public CollisionShape2D() {
+        String name = CollisionShape2D.class.getSimpleName();
+        this(name);
+    }
+
+    public CollisionShape2D(String name) {
+        super(name);
+    }
+
     @Override
     protected void onStart() {
         init();

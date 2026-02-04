@@ -70,56 +70,51 @@ public class ImEditorGui {
 
         float resetWidth = ImGui.calcTextSizeX(" X ");
         float dragRemains = (ImGui.getContentRegionAvailX() - resetWidth * 2.0f) / 2.0f;
-        boolean changed = false;
-        ImGui.pushStyleVar(ImGuiStyleVar.ItemSpacing, 0, 0);
+        final ImBoolean changed = new ImBoolean(false);
 
-        ImGui.pushID("x");
-        ImGui.pushStyleColor(ImGuiCol.Button, 0.7f, 0.2f, 0.2f, 1.0f);
-        ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.8f, 0.3f, 0.3f, 1.0f);
-        ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0.7f, 0.2f, 0.2f, 1.0f);
-        if (ImGui.button("X##Reset_X_" + id, resetWidth, 0.0f)) {
-            out.x = resetX;
-            changed = true;
-        }
-        ImGui.popStyleColor(3);
+        ImGui.pushStyleVar(ImGuiStyleVar.ItemSpacing, 0, 0);
+        ImGui.pushID("x_" + id);
+        EditorColors.RedButton.create(() -> {
+            if (ImGui.button("X##Reset_X_" + id, resetWidth, 0.0f)) {
+                out.x = resetX;
+                changed.set(true);
+            }
+        });
         ImGui.pushItemWidth(dragRemains);
         ImGui.sameLine();
         float[] valX = {out.x};
-        if (ImGui.dragFloat("##dragX", valX, dragSpeed, minVal, maxVal)) {
+        if (ImGui.dragFloat("##drag_X_", valX, dragSpeed, minVal, maxVal)) {
             out.x = valX[0];
-            changed = true;
+            changed.set(true);
         }
         ImGui.popItemWidth();
         ImGui.popID();
         ImGui.sameLine();
 
-        ImGui.pushID("y");
-        ImGui.pushStyleColor(ImGuiCol.Button, 0.2f, 0.7f, 0.2f, 1.0f);
-        ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.3f, 0.8f, 0.3f, 1.0f);
-        ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0.2f, 0.7f, 0.2f, 1.0f);
-        if (ImGui.button("Y##Reset_Y_" + id, resetWidth, 0.0f)) {
-            out.y = resetY;
-            changed = true;
-        }
-        ImGui.popStyleColor(3);
+        ImGui.pushID("y_" + id);
+        EditorColors.GreenButton.create(() -> {
+            if (ImGui.button("Y##Reset_Y_" + id, resetWidth, 0.0f)) {
+                out.y = resetY;
+                changed.set(true);
+            }
+        });
         ImGui.pushItemWidth(dragRemains);
         ImGui.sameLine();
         float[] valY = {out.y};
-        if (ImGui.dragFloat("##dragY", valY, dragSpeed, minVal, maxVal)) {
+        if (ImGui.dragFloat("##drag_Y_" + id, valY, dragSpeed, minVal, maxVal)) {
             out.y = valY[0];
-            changed = true;
+            changed.set(true);
         }
         ImGui.popItemWidth();
         ImGui.popID();
 
-        if (changed) source.set(out.x, out.y);
+        if (changed.get()) source.set(out.x, out.y);
 
         ImGui.popStyleVar();
-
         if (useLabel) ImGui.endTable();
         ImGui.popID();
 
-        return changed;
+        return changed.get();
     }
 
     public static float dragFloatCtrl(String label, float val, Object caller) {
@@ -171,12 +166,9 @@ public class ImEditorGui {
         }
 
         ImGui.pushStyleVar(ImGuiStyleVar.ItemSpacing, 0, 0);
-
-        ImGui.pushStyleColor(ImGuiCol.Button, 0.7f, 0.2f, 0.2f, 1.0f);
-        ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.8f, 0.3f, 0.3f, 1.0f);
-        ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0.7f, 0.2f, 0.2f, 1.0f);
-        if (ImGui.button("Reset##Reset_" + id)) val = resetVal;
-        ImGui.popStyleColor(3);
+        ImBoolean reset = new ImBoolean(false);
+        EditorColors.RedButton.create(() -> reset.set(ImGui.button("Reset##Reset_" + id)));
+        if (reset.get()) val = resetVal;
         ImGui.sameLine();
 
         ImGui.pushItemWidth(ImGui.getContentRegionAvailX());
@@ -227,12 +219,9 @@ public class ImEditorGui {
         }
 
         ImGui.pushStyleVar(ImGuiStyleVar.ItemSpacing, 0, 0);
-
-        ImGui.pushStyleColor(ImGuiCol.Button, 0.7f, 0.2f, 0.2f, 1.0f);
-        ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.8f, 0.3f, 0.3f, 1.0f);
-        ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0.7f, 0.2f, 0.2f, 1.0f);
-        if (ImGui.button("Reset##Reset_" + id)) val = resetVal;
-        ImGui.popStyleColor(3);
+        ImBoolean reset = new ImBoolean(false);
+        EditorColors.RedButton.create(() -> reset.set(ImGui.button("Reset##Reset_" + id)));
+        if (reset.get()) val = resetVal;
         ImGui.sameLine();
 
         ImGui.pushItemWidth(ImGui.getContentRegionAvailX());
@@ -285,7 +274,6 @@ public class ImEditorGui {
     public static String inputText(String label, String txt, Object caller) {
         String id = createID(label, caller);
         ImString out = new ImString(txt, 256);
-
         boolean useLabel = label != null && !label.isBlank();
         ImGui.pushID(id);
         if (useLabel) {
@@ -313,7 +301,6 @@ public class ImEditorGui {
 
         if (useLabel) ImGui.endTable();
         ImGui.popID();
-
         return changed ? out.get() : txt;
     }
 

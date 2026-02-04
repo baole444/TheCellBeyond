@@ -21,6 +21,16 @@ public class TileCollider2D extends CollisionShape2D {
     private TileMap tileMap;
     private final Set<Shape> shapes = new HashSet<>();
 
+    public TileCollider2D() {
+        String name = TileCollider2D.class.getSimpleName();
+        this(name);
+    }
+
+    public TileCollider2D(String name) {
+        if (invalidName(name)) name = TileCollider2D.class.getSimpleName();
+        super(name);
+    }
+
     @Override
     protected void onStart() {
         if (gameObject != null && gameObject.getParent() instanceof TileMap map) tileMap = map;

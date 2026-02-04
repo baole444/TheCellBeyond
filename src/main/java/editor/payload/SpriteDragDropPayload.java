@@ -3,7 +3,7 @@ package editor.payload;
 import render.texture.Sprite;
 
 public class SpriteDragDropPayload {
-    private static final String PAYLOAD_TYPE = "Sprite_Assignment_Payload";
+    private static final String PayloadType = "Sprite_Assignment_Payload";
     private static Sprite currentPayload = null;
 
     public static void setPayload(Sprite sprite) {
@@ -19,6 +19,6 @@ public class SpriteDragDropPayload {
     }
 
     public static String getPayloadType() {
-        return PAYLOAD_TYPE;
+        return PayloadType;
     }
 }

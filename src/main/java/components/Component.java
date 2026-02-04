@@ -92,7 +92,7 @@ public abstract class Component {
     }
 
     public Component(String name) {
-        if (name == null || name.isBlank()) name = this.getClass().getSimpleName();
+        if (invalidName(name)) name = this.getClass().getSimpleName();
         componentName = name.trim();
         uuid = UUID.randomUUID();
     }
@@ -286,7 +286,7 @@ public abstract class Component {
      * @param name the name to update with
      */
     public void name(String name) {
-        if (name == null || name.isBlank()) name = this.getClass().getSimpleName();
+        if (invalidName(name)) name = this.getClass().getSimpleName();
         componentName = name.trim();
     }
 
@@ -308,5 +308,9 @@ public abstract class Component {
 
     public static Component getComponent(String absolutePath) {
         return HierarchyPaths.toComponent(absolutePath);
+    }
+
+    protected static boolean invalidName(String name) {
+        return name == null || name.isBlank() || name.contains(HierarchyPath.ComponentDelimiter);
     }
 }

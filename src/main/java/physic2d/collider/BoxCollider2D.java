@@ -12,6 +12,15 @@ import render.DebugDraw;
 public class BoxCollider2D extends CollisionShape2D {
     private final Vector2f halfSize = new Vector2f(0.16f);
 
+    public BoxCollider2D() {
+        String name = BoxCollider2D.class.getSimpleName();
+        this(name);
+    }
+
+    public BoxCollider2D(String name) {
+        super(name);
+    }
+
     public Vector2f getHalfSize() {
         return new Vector2f(halfSize);
     }

@@ -18,6 +18,16 @@ public class StateEngine extends Component {
     private transient boolean isStatesSorted = false;
     private transient boolean initialized = false;
 
+    public StateEngine() {
+        String name = StateEngine.class.getSimpleName();
+        this(name);
+    }
+
+    public StateEngine(String name) {
+        if (invalidName(name)) name = StateEngine.class.getSimpleName();
+        super(name);
+    }
+
     @Override
     protected void onStart() {
         initialize();

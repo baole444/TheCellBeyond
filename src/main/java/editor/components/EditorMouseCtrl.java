@@ -45,7 +45,7 @@ public class EditorMouseCtrl extends Component implements NotSerializeComponent 
         holdObj = obj;
 
         for (SpriteRenderer sprite : holdObj.getComponents(SpriteRenderer.class)) {
-            sprite.setColor(pickUpColor);
+            sprite.color(pickUpColor);
         }
         holdObj.addComponent(new IsNotSelectable());
         holdObj.setNotSerialize();
@@ -58,7 +58,7 @@ public class EditorMouseCtrl extends Component implements NotSerializeComponent 
         newObj = holdObj.copy(true);
 
         for (SpriteRenderer sprite : newObj.getComponents(SpriteRenderer.class)) {
-            sprite.setColor(resetColor);
+            sprite.color(resetColor);
         }
 
         newObj.removeComponents(IsNotSelectable.class);

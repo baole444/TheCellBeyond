@@ -49,7 +49,7 @@ public class EditorObjectIndicator extends SpriteRenderer implements NotSerializ
 
         Sprite sprite = textureUnit.getSprite();
         if (sprite == null) return;
-        setSprite(sprite);
+        sprite(sprite);
 
         zIndex(Viewport.farZIndex);
         localTransform2D.relativeZIndex = false;
@@ -89,11 +89,11 @@ public class EditorObjectIndicator extends SpriteRenderer implements NotSerializ
 
     private void setInactive() {
         active = false;
-        setColor(new Vector4f(0.0f));
+        color(new Vector4f(0.0f));
     }
 
     private void setActive() {
         active = true;
-        setColor(new Vector4f(1.0f, 1.0f, 1.0f, 0.8f));
+        color(new Vector4f(1.0f, 1.0f, 1.0f, 0.8f));
     }
 }

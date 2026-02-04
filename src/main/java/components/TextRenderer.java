@@ -14,10 +14,10 @@ import utility.WorldUnit;
 import java.util.Objects;
 
 public class TextRenderer extends SpatialComponent implements FontStatusCallback {
-    private String text;
-    private AssetReference assetReference;
-    private float point;
-    private final Vector4f color;
+    private String text = "Text";
+    private AssetReference assetReference = new AssetReference(Settings.FontPath.NotoSansMono);
+    private float point = 12;
+    private final Vector4f color = new Vector4f(1.0f, 1.0f, 1.0f, 1.0f);
     private boolean isTextDirty = true;
     private String glyphRangeName = "ASCII";
 
@@ -38,17 +38,15 @@ public class TextRenderer extends SpatialComponent implements FontStatusCallback
     private VerticalAlignment vAlign = VerticalAlignment.TOP;
 
     public TextRenderer() {
-        this.text = "Text renderer";
-        this.assetReference = new AssetReference(Settings.FontPath.NotoSansMono);
-        this.point = 12;
-        this.color = new Vector4f(1.0f, 1.0f, 1.0f, 1.0f);
+        String name = TextRenderer.class.getSimpleName();
+        super(name);
     }
 
     public TextRenderer(String text, String fontPath, float point, Vector4f color, GlyphRange glyphRange) {
         this.text = text;
         this.assetReference = new AssetReference(fontPath);
         this.point = point;
-        this.color = color;
+        if (color != null) this.color.set(color);
         this.glyphRangeName = glyphRange.name();
     }
 
@@ -56,7 +54,7 @@ public class TextRenderer extends SpatialComponent implements FontStatusCallback
         this.text = text;
         this.assetReference = new AssetReference(fontPath);
         this.point = point;
-        this.color = color;
+        if (color != null) this.color.set(color);
         this.glyphRangeName = glyphRange.name();
         setWorldPosition(position);
     }
@@ -67,13 +65,11 @@ public class TextRenderer extends SpatialComponent implements FontStatusCallback
         }
 
         GlyphRange range = GlyphRange.valueOf(glyphRangeName);
-
         FontRequest request = new FontRequest(assetReference, point, range);
 
         if (currentRequest == null || !currentRequest.equals(request)) {
             currentRequest = request;
             pendingRequest = true;
-
             FontManager.get().requestFont(request, this);
         }
     }

@@ -10,6 +10,16 @@ public abstract class SpatialComponent extends Component implements Transformati
     private transient Transform2D effectiveTransform2D = null;
     private transient boolean isTransformDirty = true;
 
+    public SpatialComponent() {
+        String name = SpatialComponent.class.getSimpleName();
+        this(name);
+    }
+
+    public SpatialComponent(String name) {
+        if (invalidName(name)) name = SpatialComponent.class.getSimpleName();
+        super(name);
+    }
+
     @Override
     public void start() {
         super.start();

@@ -67,7 +67,14 @@ public class Transform2D extends Component {
     /**
      * Create a new {@link Transform2D} and initialize its components to the default values.
      */
-    public Transform2D() {}
+    public Transform2D() {
+        String name = Transform2D.class.getSimpleName();
+        this(name);
+    }
+
+    public Transform2D(String name) {
+        super(name);
+    }
 
     /**
      * Create a new {@link Transform2D} and initialize its components with the given position.
@@ -83,6 +90,7 @@ public class Transform2D extends Component {
      * @param scale the scale vector to initialize with
      */
     public Transform2D(Vector2f position, Vector2f scale) {
+        this();
         this.position.set(position);
         this.scale.set(scale);
     }
@@ -92,6 +100,7 @@ public class Transform2D extends Component {
      * @param other the other transform to copy from
      */
     public Transform2D(Transform2D other) {
+        this();
         position.set(other.position);
         scale.set(other.scale);
         rotation = other.rotation;

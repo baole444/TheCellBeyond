@@ -21,7 +21,6 @@ import utility.IdPool;
 import utility.log.EngineLog;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
@@ -127,7 +126,7 @@ public class GameObject {
      * @param name the new name for the object
      */
     public GameObject(String name) {
-        if (name == null || name.isBlank()) name = this.getClass().getSimpleName();
+        if (invalidName(name)) name = GameObject.class.getSimpleName();
         this.name = name.trim();
         components = new CopyOnWriteArrayList<>();
         children = new LinkedHashSet<>();
@@ -141,7 +140,7 @@ public class GameObject {
      * @return the name string
      */
     public String name() {
-        if (name == null) name = this.getClass().getSimpleName();
+        if (name == null) name = getClass().getSimpleName();
         return name;
     }
 
@@ -152,7 +151,7 @@ public class GameObject {
      * @param name the name to update to
      */
     public void name(String name) {
-        if (name == null || name.isBlank()) name = this.getClass().getSimpleName();
+        if (invalidName(name)) name = getClass().getSimpleName();
         this.name = name.trim();
     }
 
@@ -643,8 +642,7 @@ public class GameObject {
             ImGui.tableSetupColumn("##Component_Delete_Column_" + uuid, ImGuiTableColumnFlags.WidthFixed);
 
             ImGui.tableNextColumn();
-            String name = c.name();
-            String label = (name == null || name.isBlank()) ? c.getClass().getSimpleName() : name + "##" + uuid;
+            String label = c.getClass().getSimpleName() + "##" + uuid;
             ImGui.pushStyleColor(ImGuiCol.Header, 0.0f, 0.0f, 0.0f, 0.0f);
             boolean open = ImGui.collapsingHeader(label);
             ImGui.popStyleColor(1);
@@ -960,5 +958,9 @@ public class GameObject {
      */
     public void setDirty(boolean dirty) {
         isDirty = dirty;
+    }
+
+    protected static boolean invalidName(String name) {
+        return name == null || name.isBlank() || name.trim().equals(HierarchyPath.Root);
     }
 }

@@ -10,6 +10,7 @@ public class StaticBody2D extends PhysicBody2D {
     }
 
     public StaticBody2D(String name) {
+        if (invalidName(name)) name = StaticBody2D.class.getSimpleName();
         super(name, PhysicBodyType.Static);
     }
 

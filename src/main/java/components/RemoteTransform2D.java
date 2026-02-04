@@ -2,23 +2,23 @@ package components;
 
 import TheCellBeyond.GameObject;
 import TheCellBeyond.GameObject2D;
-import TheCellBeyond.internal.LogicServer;
-import scene.Scene;
-
-import java.util.UUID;
-
-// TODO: Convert to hierarchy path once that is developed.
+import editor.template.EditorTemplate;
+import utility.HierarchyPath;
+import utility.HierarchyPaths;
 
 /**
  * RemoteTransform2D allows pushing its {@link TheCellBeyond.Transform2D} to another {@link GameObject2D} or its subclasses.
  * <p>
  * It can be set to push update on position, rotation and scale to the targeted 2D object.
  * It can use either local or global transform.
+ * <p>
+ * RemoteTransform2D cannot know if an object is added back to the scene,
+ * {@link #resolveTarget()} can be called to update the cache in this case.
  *
  * @apiNote RemoteTransform2D use its global transform as update source regardless of {@link #useGlobalTransform}.
  */
 public class RemoteTransform2D extends SpatialComponent {
-    private UUID targetUUID;
+    private String targetPath = "";
 
     /**
      * Should the remote 2D object's position be updated.
@@ -40,10 +40,28 @@ public class RemoteTransform2D extends SpatialComponent {
      */
     public boolean useGlobalTransform = true;
 
+    /**
+     * Cached target
+     */
     private transient GameObject2D target;
+
+    public RemoteTransform2D() {
+        String name = RemoteTransform2D.class.getSimpleName();
+        this(name);
+    }
+
+    public RemoteTransform2D(String name) {
+        if (invalidName(name)) name = RemoteTransform2D.class.getSimpleName();
+        super(name);
+    }
 
     @Override
     protected void onStart() {
+        resolveTarget();
+    }
+
+    @Override
+    protected void onEditorStart() {
         resolveTarget();
     }
 
@@ -54,19 +72,22 @@ public class RemoteTransform2D extends SpatialComponent {
     }
 
     /**
-     * Get the unique identifier of the target's object.
-     * @return the targeted {@link UUID}
+     * Get the hierarchy path to the targeted object.
+     * @return the hierarchy path
      */
-    public UUID targetUUID() {
-        return targetUUID;
+    public String targetPath() {
+        return targetPath;
     }
 
     /**
-     * Set the targeted object using its unique identifier.
-     * @param uuid the {@link UUID} of the target
+     * Set the targeted object using the hierarchy path leading to it.
+     * @param path the hierarchy path to target
      */
-    public void targetUUID(UUID uuid) {
-        targetUUID = uuid;
+    public void targetPath(String path) {
+        if (path == null) path = "";
+        path = path.trim();
+        if (path.equals(targetPath)) return;
+        targetPath = path.trim();
         resolveTarget();
     }
 
@@ -78,25 +99,35 @@ public class RemoteTransform2D extends SpatialComponent {
         return target;
     }
 
-    private void resolveTarget() {
-        target = null;
-        if (targetUUID == null) return;
-        Scene scene = LogicServer.currentScene();
-        if (scene == null) return;
-        GameObject go = scene.getGameObject(targetUUID);
-        if (go instanceof GameObject2D go2D) {
-            if (!gameObject.isAncestor(go2D)) target = go2D;
-        }
-    }
-
-    private boolean validTarget() {
+    /**
+     * Check if the target of this remote transform is valid or not.
+     * @return true if the object is of type GameObject2D or it's subclasses and is not removed
+     */
+    public boolean validTarget() {
         if (target == null) return false;
         if (target.isRemoved()) {
             target = null;
             return false;
         }
-
         return true;
+    }
+
+    /**
+     * Resolve and update the remote transform's cached target.
+     */
+    public void resolveTarget() {
+        target = null;
+        if (targetPath == null || targetPath.isBlank()) return;
+        HierarchyPath path = new HierarchyPath(targetPath);
+        GameObject resolved = HierarchyPaths.toGameObject(path, gameObject);
+
+        if (!(resolved instanceof GameObject2D go2D) || gameObject.isAncestor(go2D)) return;
+        target = go2D;
+    }
+
+    @Override
+    protected void additionalImGuiLogic() {
+        EditorTemplate.render(this);
     }
 
     private void pushTransform() {

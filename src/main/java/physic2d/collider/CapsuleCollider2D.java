@@ -21,6 +21,15 @@ public class CapsuleCollider2D extends CollisionShape2D {
     private float width = 0.32f;
     private float height = 0.64f;
 
+    public CapsuleCollider2D() {
+        String name = CapsuleCollider2D.class.getSimpleName();
+        this(name);
+    }
+
+    public CapsuleCollider2D(String name) {
+        super(name);
+    }
+
     @Override
     protected void onStart() {
         headCircle.gameObject = this.gameObject;
@@ -103,8 +112,8 @@ public class CapsuleCollider2D extends CollisionShape2D {
         float radius = width / 2.0f;
         float boxH = height - (2.0f * radius);
 
-        headCircle.setRadius(radius);
-        footCircle.setRadius(radius);
+        headCircle.radius(radius);
+        footCircle.radius(radius);
 
         headCircle.position(new Vector2f(0.0f, boxH / 2.0f));
         footCircle.position(new Vector2f(0.0f, -boxH / 2.0f));

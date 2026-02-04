@@ -170,7 +170,7 @@ public class Renderer implements EngineEventListener {
             if (textureBatch.hasSprite(sprite)) return;
             if (!textureBatch.hasSpace() || textureBatch.zIndex() != sprite.globalZIndex()) continue;
 
-            Texture t = sprite.getTexture();
+            Texture t = sprite.texture();
             if (t == null || textureBatch.hasTexture(t) || textureBatch.isTextureCapacityValid()) {
                 textureBatch.loadSprite(sprite);
                 isAdded = true;

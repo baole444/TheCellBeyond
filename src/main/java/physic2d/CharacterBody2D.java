@@ -36,6 +36,7 @@ public class CharacterBody2D extends PhysicBody2D {
     }
 
     public CharacterBody2D(String name) {
+        if (invalidName(name)) name = CharacterBody2D.class.getSimpleName();
         super(name, PhysicBodyType.Kinematic);
     }
 

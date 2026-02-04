@@ -11,16 +11,27 @@ import render.DebugDraw;
 public class CircleCollider2D extends CollisionShape2D {
     private float radius = 0.16f;
 
-    public float getRadius() {
+    public CircleCollider2D() {
+        String name = CircleCollider2D.class.getSimpleName();
+        this(name);
+    }
+
+    public CircleCollider2D(String name) {
+        if (invalidName(name)) name = CircleCollider2D.class.getSimpleName();
+        super(name);
+    }
+
+
+    public float radius() {
         return radius;
     }
 
-    public void setRadius(float radius) {
+    public void radius(float radius) {
         this.radius = Math.max(radius, MinimumShapeDimension);
         setFixtureNeedReset();
     }
 
-    public float getEffectiveRadius() {
+    public float effectiveRadius() {
         Vector2f scale = globalScale();
         float effectiveR = radius * ((scale.x + scale.y) / 2.0f);
         return Math.max(effectiveR, MinimumShapeDimension);
@@ -29,7 +40,7 @@ public class CircleCollider2D extends CollisionShape2D {
     @Override
     public Shape createCollisionShape() {
         CircleShape shape = new CircleShape();
-        float radius = getEffectiveRadius();
+        float radius = effectiveRadius();
         shape.setRadius(radius);
         Vector2f localPos = position();
         shape.m_p.set(localPos.x, localPos.y);
@@ -39,7 +50,7 @@ public class CircleCollider2D extends CollisionShape2D {
     @Override
     protected void drawDebugShape() {
         if (gameObject == null) return;
-        float radius = getEffectiveRadius();
+        float radius = effectiveRadius();
         DebugDraw.addCircle(globalPosition(), radius);
     }
 
@@ -53,7 +64,7 @@ public class CircleCollider2D extends CollisionShape2D {
         }
         ImGui.indent();
         float r = ImEditorGui.dragFloatCtrl("Radius", radius, 0.16f, this, MinimumShapeDimension);
-        if (Float.compare(r, radius) != 0) setRadius(r);
+        if (Float.compare(r, radius) != 0) radius(r);
         ImGui.unindent();
         super.additionalImGuiLogic();
     }

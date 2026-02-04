@@ -67,7 +67,7 @@ public class EditorGizmo extends SpatialComponent implements NotSerializeCompone
 
         SpriteRenderer renderer = new SpriteRenderer();
         renderer.zIndex(100);
-        renderer.setSprite(sprite);
+        renderer.sprite(sprite);
 
         go2D.addComponent(renderer);
         return go2D;
@@ -138,13 +138,13 @@ public class EditorGizmo extends SpatialComponent implements NotSerializeCompone
     }
 
     private void setActive() {
-        xAxisSpr.setColor(xAxisColor);
-        yAxisSpr.setColor(yAxisColor);
+        xAxisSpr.color(xAxisColor);
+        yAxisSpr.color(yAxisColor);
     }
 
     private void setInactive() {
-        xAxisSpr.setColor(resetColor);
-        yAxisSpr.setColor(resetColor);
+        xAxisSpr.color(resetColor);
+        yAxisSpr.color(resetColor);
     }
 
     private boolean isHoverX() {
@@ -155,10 +155,10 @@ public class EditorGizmo extends SpatialComponent implements NotSerializeCompone
                 cursorPos.y >= xAxisPos.y - (gizHeight / 2.0f) &&
                 cursorPos.y <= xAxisPos.y + (gizWidth / 2.0f)
         ) {
-            xAxisSpr.setColor(xHover);
+            xAxisSpr.color(xHover);
             return true;
         }
-        xAxisSpr.setColor(xAxisColor);
+        xAxisSpr.color(xAxisColor);
         return false;
     }
 
@@ -170,10 +170,10 @@ public class EditorGizmo extends SpatialComponent implements NotSerializeCompone
                 cursorPos.y <= yAxisPos.y + (gizHeight / 2.0f) &&
                 cursorPos.y >= yAxisPos.y - (gizHeight / 2.0f)
         ) {
-            yAxisSpr.setColor(yHover);
+            yAxisSpr.color(yHover);
             return true;
         }
-        yAxisSpr.setColor(yAxisColor);
+        yAxisSpr.color(yAxisColor);
         return false;
     }
 

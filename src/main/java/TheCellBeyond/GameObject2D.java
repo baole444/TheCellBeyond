@@ -84,6 +84,7 @@ public class GameObject2D extends GameObject {
      * @param name the new name for the 2D object
      */
     public GameObject2D(String name) {
+        if (invalidName(name)) name = GameObject2D.class.getSimpleName();
         super(name);
         localTransform2D = new Transform2D();
         globalTransform2D = new Transform2D();

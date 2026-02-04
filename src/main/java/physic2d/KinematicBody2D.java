@@ -21,6 +21,7 @@ public class KinematicBody2D extends PhysicBody2D {
     }
 
     public KinematicBody2D(String name) {
+        if (invalidName(name)) name = KinematicBody2D.class.getSimpleName();
         super(name, PhysicBodyType.Kinematic);
     }
 

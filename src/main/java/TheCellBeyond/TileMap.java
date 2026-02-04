@@ -54,6 +54,7 @@ public class TileMap extends GameObject2D {
     }
 
     public TileMap(String name) {
+        if (invalidName(name)) name = TileMap.class.getSimpleName();
         super(name);
     }
 

@@ -58,7 +58,7 @@ public class EditorKeyCtrl extends Component implements NotSerializeComponent {
                 List<SpriteRenderer> sprites = go.getComponents(SpriteRenderer.class);
                 for (int j = 0; j < sprites.size(); j++) {
                     SpriteRenderer sprite = sprites.get(j);
-                    if (sprite != null) sprite.setColor(colors.get(j));
+                    if (sprite != null) sprite.color(colors.get(j));
                 }
 
                 LogicServer.currentScene().queueForObjectAddition(copy);

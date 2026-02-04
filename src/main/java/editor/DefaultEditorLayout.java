@@ -1,17 +1,11 @@
 package editor;
 
-import editor.preference.UserPreference;
 import imgui.flag.ImGuiDir;
 import imgui.internal.ImGui;
 import imgui.internal.ImGuiDockNode;
 import imgui.internal.flag.ImGuiDockNodeFlags;
 import imgui.type.ImInt;
 import scene.SceneEditor;
-import utility.log.EngineLog;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 
 class DefaultEditorLayout {
     private static final float SIDE_COLUMNS = 0.2f;
@@ -39,7 +33,7 @@ class DefaultEditorLayout {
         ImGuiDockNode resourcePanel = ImGui.dockBuilderGetNode(bottomLeftDock.get());
         resourcePanel.addLocalFlags(ImGuiDockNodeFlags.NoTabBar);
 
-        ImGui.dockBuilderDockWindow(SceneTree.WINDOW_ID, leftDock.get());
+        ImGui.dockBuilderDockWindow(SceneTree.WindowID, leftDock.get());
         ImGui.dockBuilderDockWindow(SceneEditor.WINDOW_ID, bottomLeftDock.get());
         ImGui.dockBuilderDockWindow(SceneEditorViewport.WINDOW_ID, mainDock.get());
         ImGui.dockBuilderDockWindow(BottomPanel.WINDOW_ID, bottomMainDock.get());

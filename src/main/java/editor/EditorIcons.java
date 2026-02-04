@@ -5,7 +5,7 @@ import render.texture.SpriteSheet;
 import utility.AssetsPool;
 import utility.Settings;
 
-public class EditorIcons {
+public final class EditorIcons {
     private static final String PATH = Settings.TexturePath.EditorControls;
     private static final int width = 28;
     private static final int height = 28;
