@@ -208,6 +208,12 @@ public abstract class Component {
      */
     protected void onUpdate(float dt) {}
 
+    public void physicUpdate(float dt) {
+        onPhysicUpdate(dt);
+    }
+
+    protected void onPhysicUpdate(float dt) {}
+
     public void startCollision(GameObject targetObj, Contact contact, Vector2f hitNormalization) {}
 
     public void endCollision(GameObject targetObj, Contact contact, Vector2f hitNormalization) {}

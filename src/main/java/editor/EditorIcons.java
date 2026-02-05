@@ -18,17 +18,64 @@ public final class EditorIcons {
     }
 
     public enum Icons implements EditorIconSprite {
+        /**
+         * File with plush sign.
+         */
         New(0),
+
+        /**
+         * Two overlap files.
+         */
         Copy(1),
+
+        /**
+         * File with pen writing on it.
+         */
         Edit(2),
+
+        /**
+         * Trashcan.
+         */
         Delete(3),
+
+        /**
+         * Minus sign
+         */
         Remove(4),
+
+        /**
+         * Plus sign.
+         */
         Add(5),
-        Edit2(6),
+
+        /**
+         * Writing Pen.
+         */
+        EditPen(6),
+
+        /**
+         * Circle arrow.
+         */
         Reset(7),
+
+        /**
+         * Folder.
+         */
         Open(8),
+
+        /**
+         * Mouse pointer.
+         */
         Select(9),
+
+        /**
+         * Magnifier.
+         */
         Search(10),
+
+        /**
+         * Eraser.
+         */
         Eraser(11);
 
         final int index;

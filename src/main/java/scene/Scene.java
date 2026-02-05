@@ -284,10 +284,20 @@ public class Scene {
         if (snapshot != null) EngineEventCallback.emit(new SceneEvent(SceneEvent.Type.ObjectUpdated, this, snapshot));
     }
 
+    /**
+     * Step the physic logic of sceneShould be call before {@link #update(float)}
+     * @param dt
+     */
+    public void updatePhysic(float dt) {
+        sceneData.physic2D().update(dt);
+        for (GameObject go : sceneData.gameObjectByUUIDs().values()) {
+            go.physicUpdate(dt);
+        }
+    }
+
     public void update(float dt) {
         sceneData.updated().set(false);
         sceneData.viewport().adjustProjection();
-        sceneData.physic2D().update(dt);
 
         for (GameObject go : sceneData.gameObjectByUUIDs().values()) {
             go.update(dt);

@@ -49,12 +49,8 @@ public abstract class PhysicBody2D extends GameObject2D {
         }
 
         super.update(dt);
-
         if (needFixtureUpdate) updateFixtureFilter();
-        physicUpdate(dt);
     }
-
-    protected void physicUpdate(float dt) {}
 
     public float getFriction() {
         return friction;

@@ -76,10 +76,16 @@ public class FrameBuffer {
         this.windowPtr = windowPtr;
     }
 
+    /**
+     * Bind this framebuffer.
+     */
     public void use() {
         glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObjID);
     }
 
+    /**
+     * Unbind this framebuffer
+     */
     public void detach() {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }

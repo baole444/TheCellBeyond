@@ -65,8 +65,10 @@ class RemoteTransform2DTemplate implements ComponentTemplate<RemoteTransform2D> 
         ImGui.spacing();
         ImGui.text("If true, the broadcasted transform will be applied to the targeted object's global transform.");
         ImGui.spacing();
+        ImGui.pushStyleColor(ImGuiCol.Text, EditorColors.YellowHighLight);
         ImGui.text("Note: RemoteTransform2D always use its global transform as the broadcast source,");
         ImGui.text("      only the target are affected by this property");
+        ImGui.popStyleColor(1);
         ImGui.endTooltip();
     }
 

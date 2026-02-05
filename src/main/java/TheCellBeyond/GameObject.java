@@ -561,10 +561,7 @@ public class GameObject {
      */
     public void update(float dt) {
         onUpdate(dt);
-
-        for (Component component : components) {
-            component.update(dt);
-        }
+        for (Component component : components) component.update(dt);
     }
 
     /**
@@ -572,6 +569,26 @@ public class GameObject {
      * @param dt delta time
      */
     protected void onUpdate(float dt) {}
+
+    /**
+     * Step the physic logic of this game object by the delta time of the physic system.
+     * <p>
+     * Called once per iteration of the game's loop by the Engine.
+     * This first executes the logic in {@link #onPhysicUpdate(float)},
+     * then iterates the component list and executes {@link Component#physicUpdate(float)}
+     * </p>
+     *
+     * @param dt
+     */
+    public void physicUpdate(float dt) {
+        onPhysicUpdate(dt);
+
+        for (Component component : components) {
+            component.physicUpdate(dt);
+        }
+    }
+
+    protected void onPhysicUpdate(float dt) {}
 
     /**
      * Initialize this game object's state when it is first added to the {@link Scene}.

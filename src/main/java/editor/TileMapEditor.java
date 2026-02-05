@@ -131,7 +131,7 @@ public class TileMapEditor {
 
             ImGui.tableNextColumn();
             boolean isDrawMode = editingMode == Mode.Draw;
-            if (ImEditorGui.selectableIcon("Draw Mode##TME_Draw_Mode_Selectable", EditorIcons.Icons.Edit2, "Click to toggle tile draw mode", isDrawMode, modeSelectableSize, modeSelectableSize)) {
+            if (ImEditorGui.selectableIcon("Draw Mode##TME_Draw_Mode_Selectable", EditorIcons.Icons.EditPen, "Click to toggle tile draw mode", isDrawMode, modeSelectableSize, modeSelectableSize)) {
                 editingMode = isDrawMode ? null : Mode.Draw;
                 EditorTileMapGrid.draw(!isDrawMode);
             }

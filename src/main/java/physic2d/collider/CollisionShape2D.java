@@ -44,9 +44,8 @@ public abstract class CollisionShape2D extends SpatialComponent {
     }
 
     @Override
-    protected void onUpdate(float dt) {
-        if (physicBody2D == null) return;
-        drawDebugShape();
+    protected void onPhysicUpdate(float dt) {
+        if (needsFixtureReset) resetFixture();
     }
 
     @Override

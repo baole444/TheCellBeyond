@@ -21,17 +21,12 @@ import utility.log.EngineLog;
 import java.util.List;
 
 public class LogicServer implements EngineEventListener {
-    private static final LogicServer instance;
-    private static final EngineLog LOGGER = new EngineLog(LogicServer.class);
+    private static final LogicServer instance = new LogicServer();
+    private static final EngineLog Logger = new EngineLog(LogicServer.class);
     private static Scene currentScene;
     private static String currentSceneName;
     private static boolean runtimeMode = false;
-
     private static boolean runtimeCrashed = false;
-
-    static {
-        instance = new LogicServer();
-    }
 
     private LogicServer() {
         EngineEventCallback.register(this);
@@ -70,19 +65,29 @@ public class LogicServer implements EngineEventListener {
         return runtimeMode;
     }
 
-    public static void loop(float dt)  {
-        if (runtimeCrashed) return;
+    public static void updatePhysic(float dt) {
+        if (!runtimeMode || runtimeCrashed || currentScene == null) return;
+        try {
+            currentScene.updatePhysic(dt);
+        } catch (Exception e) {
+            runtimeCrashed = true;
+            Logger.warning("Test play stopped due to exceptio.n");
+            logCrash(e);
+            EngineEventCallback.emit(null, new RuntimeEvent(RuntimeEvent.Type.RuntimeCrashed));
+        }
+    }
 
+    public static void update(float dt)  {
+        if (runtimeCrashed || currentScene == null) return;
         if (runtimeMode) {
             try {
                 currentScene.update(dt);
             } catch (Exception e) {
                 runtimeCrashed = true;
-                LOGGER.warning("Test play stopped due to exception");
+                Logger.warning("Test play stopped due to exception.");
                 logCrash(e);
                 EngineEventCallback.emit(null, new RuntimeEvent(RuntimeEvent.Type.RuntimeCrashed));
             }
-
             return;
         }
 
@@ -90,22 +95,20 @@ public class LogicServer implements EngineEventListener {
     }
 
     private static void logCrash(Exception e) {
-        LOGGER.error("Runtime exception occurred:");
-        LOGGER.error(String.format("Message: %s", e.getMessage()));
+        Logger.error("Runtime exception occurred:");
+        Logger.error(String.format("Message: %s", e.getMessage()));
 
         int stackCount = 0;
         for (StackTraceElement element : e.getStackTrace()) {
             String className = element.getClassName();
 
             if (className.startsWith("java.") || className.startsWith("sun.") || className.startsWith("javax.") || className.startsWith("jdk.")) continue;
-
-            LOGGER.error(String.format("\tat %s", element));
+            Logger.error(String.format("\tat %s", element));
             stackCount++;
 
             if (className.equals(LogicServer.class.getCanonicalName()) && element.getMethodName().equals("loop")) break;
-
             if (stackCount >= 15) {
-                LOGGER.error("\t... (more folded frames)");
+                Logger.error("\t... (more folded frames)");
                 break;
             }
         }
@@ -123,12 +126,12 @@ public class LogicServer implements EngineEventListener {
                 runtimeMode = true;
                 currentScene.saveLevel();
                 changeScene(new SceneEditor());
-                LOGGER.info("Test play started.");
+                Logger.info("Test play started.");
             }
             case RuntimeEvent.Type.RuntimeStopped -> {
                 runtimeMode = false;
                 changeScene(new SceneEditor());
-                LOGGER.info("Test play stopped.");
+                Logger.info("Test play stopped.");
             }
             case RuntimeEvent.Type.RuntimeCrashed -> {
                 runtimeMode = false;
@@ -142,15 +145,15 @@ public class LogicServer implements EngineEventListener {
         switch (event.type) {
             case SaveEditingSceneToDisk -> {
                 if (runtimeMode) {
-                    LOGGER.warning("Saving scene data structure in runtime mode is forbidden!");
+                    Logger.warning("Saving scene data structure in runtime mode is forbidden!");
                     return;
                 }
                 currentScene.saveLevel();
-                LOGGER.debug("Saving current level...");
+                Logger.debug("Saving current level...");
             }
             case LoadProjectFromDisk -> {
                 String projectPath = object.toString();
-                LOGGER.info("Loading project file at " + projectPath);
+                Logger.info("Loading project file at " + projectPath);
                 Project.loadFromYaml(projectPath);
                 boolean projectLoaded = (Project.currentProject() != null && Project.projectRoot() != null);
                 if (!projectLoaded) return;
@@ -184,7 +187,7 @@ public class LogicServer implements EngineEventListener {
                 }
 
                 changeScene(new SceneEditor());
-                LOGGER.debug("Requested to load Scene: " + sceneName);
+                Logger.debug("Requested to load Scene: " + sceneName);
             }
         }
     }

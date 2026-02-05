@@ -122,7 +122,7 @@ class TileCollisionShapeEditor {
 
         ImGui.tableNextColumn();
         boolean isEditMode = editingMode == Mode.EditPolygon;
-        if (ImEditorGui.selectableIcon("Edit Node##TSE_TCSE_Collision_Edit_Node_Mode_Selectable", EditorIcons.Icons.Edit, "Click to start editing polygon", isEditMode, ModeSelectableSize, ModeSelectableSize)) {
+        if (ImEditorGui.selectableIcon("Edit Node##TSE_TCSE_Collision_Edit_Node_Mode_Selectable", EditorIcons.Icons.EditPen, "Click to start editing polygon", isEditMode, ModeSelectableSize, ModeSelectableSize)) {
             editingMode = isEditMode ? null : Mode.EditPolygon;
             pendingNodes.clear();
             draggingNewNode = false;

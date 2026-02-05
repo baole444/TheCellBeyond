@@ -22,7 +22,6 @@ import org.lwjgl.openal.ALC;
 import org.lwjgl.openal.ALCCapabilities;
 import org.lwjgl.openal.ALCapabilities;
 import org.lwjgl.opengl.GL;
-import project.ProjectPreference;
 import render.*;
 import render.text.FontManager;
 import utility.AssetsPool;
@@ -91,7 +90,7 @@ public final class Window implements EngineEventListener {
             projectLoaded = (Project.currentProject() != null && Project.projectRoot() != null);
 
             if (glfwWindowShouldClose(windowPtr)) {
-                endScr();
+                endScreen();
                 return;
             }
         }
@@ -107,7 +106,7 @@ public final class Window implements EngineEventListener {
         String version = glGetString(GL_VERSION);
         LOGGER.info("Active GPU: " + renderer + " Driver version: " + version);
 
-        endScr();
+        endScreen();
         Objects.requireNonNull(glfwSetErrorCallback(null)).free();
     }
 
@@ -123,8 +122,9 @@ public final class Window implements EngineEventListener {
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 
-        width = getScrSize().x;
-        height = getScrSize().y;
+        Vector2i windowSize = screenSize();
+        width = windowSize.x;
+        height = windowSize.y;
 
         glfwDefaultWindowHints();
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
@@ -224,7 +224,7 @@ public final class Window implements EngineEventListener {
     /**
      * Return current active display size that the windows is on.
     */
-    public Vector2i getScrSize() {
+    public static Vector2i screenSize() {
         GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
         int w = device.getDisplayMode().getWidth();
         int h = device.getDisplayMode().getHeight();
@@ -232,7 +232,7 @@ public final class Window implements EngineEventListener {
         return new Vector2i(w, h);
     }
 
-    private void endScr(){
+    private void endScreen() {
         FontManager.get().dispose();
         AssetsPool.clearCache();
         RendererState.cleanup();
@@ -252,8 +252,11 @@ public final class Window implements EngineEventListener {
         glfwTerminate();
     }
 
+    /**
+     * Engine main loop.
+     */
     public void loop () {
-        float beginTime = (float)glfwGetTime();
+        float beginTime = (float) glfwGetTime();
         float endTime;
         float dt = -1.0f;
 
@@ -265,36 +268,10 @@ public final class Window implements EngineEventListener {
 
         while (!glfwWindowShouldClose(windowPtr)) {
             glfwPollEvents();
-
+            LogicServer.updatePhysic(dt);
             if (dt >= 0.0f) {
-                rendererState.setRenderPass(RendererState.RenderPass.SELECTION);
-                rendererState.setShader(objectSelectShader);
-                objectSelection.useWrite();
-                glViewport(0, 0, frameBuffer.getWidth(), frameBuffer.getHeight());
-                glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-                Renderer.get().render();
-                objectSelection.detachWrite();
-
-                rendererState.setRenderPass(RendererState.RenderPass.NORMAL);
-                rendererState.setShader(defaultShader);
-
-                DebugDraw.startFrame();
-                frameBuffer.use();
-                if (overrideClearColor) {
-                    glClearColor(r, g, b, a);
-                } else {
-                    Vector4f clearColor = Project.preference().clearColor().toVector();
-                    glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
-                }
-
-                glClear(GL_COLOR_BUFFER_BIT);
-
-                LogicServer.loop(dt);
-                Renderer.get().render();
-                DebugDraw.draw();
-
-                frameBuffer.detach();
+                objectSelectionPass(rendererState, objectSelectShader);
+                normalPass(rendererState, defaultShader, dt);
                 imGuiLayer.update(dt, LogicServer.currentScene());
             }
 
@@ -303,12 +280,44 @@ public final class Window implements EngineEventListener {
 
             glfwSwapBuffers(windowPtr);
 
-            endTime = (float)glfwGetTime();
+            endTime = (float) glfwGetTime();
             dt = endTime - beginTime;
             beginTime = endTime;
 
             if (forceClose) glfwSetWindowShouldClose(windowPtr, true);
         }
+    }
+
+    private void objectSelectionPass(RendererState rendererState, Shader objectSelectShader) {
+        rendererState.setRenderPass(RendererState.RenderPass.SELECTION);
+        rendererState.setShader(objectSelectShader);
+        objectSelection.useWrite();
+        glViewport(0, 0, frameBuffer.getWidth(), frameBuffer.getHeight());
+        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        Renderer.get().render();
+        objectSelection.detachWrite();
+    }
+
+    private void normalPass(RendererState rendererState, Shader defaultShader, float dt) {
+        rendererState.setRenderPass(RendererState.RenderPass.NORMAL);
+        rendererState.setShader(defaultShader);
+        DebugDraw.startFrame();
+        frameBuffer.use();
+        if (overrideClearColor) {
+            glClearColor(r, g, b, a);
+        } else {
+            Vector4f clearColor = Project.preference().clearColor().toVector();
+            glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
+        }
+
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        LogicServer.update(dt);
+        Renderer.get().render();
+        DebugDraw.draw();
+
+        frameBuffer.detach();
     }
 
     @Override
