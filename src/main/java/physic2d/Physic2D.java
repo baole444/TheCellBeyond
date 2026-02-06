@@ -28,6 +28,22 @@ public class Physic2D {
 
     private transient float physicDt = 0.0f;
 
+    /**
+     * Callback invoked before each physic world step using fixed delta.
+     * This allows applying forces or velocities before simulation.
+     */
+    @FunctionalInterface
+    public interface PhysicStepCallback {
+        /**
+         * Execute physic update logic, called once per physic world step.
+         * @param fixedDT the fixed physic delta time
+         */
+        void onPhysicStep(float fixedDT);
+    }
+
+    /**
+     * Create new 2D physic world instance.
+     */
     public Physic2D() {
         world.setContactListener(new Physic2DContactListener());
     }
@@ -71,12 +87,27 @@ public class Physic2D {
         }
     }
 
-    public void update(float dt) {
+    /**
+     * Step the physic world using the fixed delta time {@link #PhysicDeltaRate} with catchup.
+     * The callback is invoked before each physic step.
+     * @param dt variable frame delta time
+     * @param callback callback logic, can be null
+     */
+    public void update(float dt, PhysicStepCallback callback) {
         physicDt += dt;
         while (physicDt >= PhysicDeltaRate) {
             physicDt -= PhysicDeltaRate;
+            if (callback != null) callback.onPhysicStep(PhysicDeltaRate);
             world.step(PhysicDeltaRate, MaxVelocityPass, MaxPositionPass);
         }
+    }
+
+    /**
+     * Step the physic world using the fixed delta time {@link #PhysicDeltaRate} with catchup.
+     * This allows stepping physic world without callback.
+     */
+    public void update(float dt) {
+        update(dt, null);
     }
 
     private void createFixture(PhysicBody2D physicBody2D, Body body, Shape shape) {

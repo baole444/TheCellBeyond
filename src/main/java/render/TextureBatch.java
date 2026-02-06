@@ -1,6 +1,7 @@
 package render;
 
 import TheCellBeyond.GameObject;
+import TheCellBeyond.TileMap;
 import components.Component;
 import components.SpriteRenderer;
 import editor.components.EditorObjectIndicator;
@@ -209,7 +210,6 @@ public class TextureBatch implements Comparable<TextureBatch> {
 
     private void genVertexProperties(float[] target, int index) {
         SpriteRenderer spriteRenderer = sprites[index];
-
         int offset = index * 4 * vertexSize;
         Vector4f color = spriteRenderer.color();
         Vector2f[] textureCoordinates = spriteRenderer.textureCoordinates();

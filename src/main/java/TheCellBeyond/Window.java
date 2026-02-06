@@ -268,8 +268,11 @@ public final class Window implements EngineEventListener {
 
         while (!glfwWindowShouldClose(windowPtr)) {
             glfwPollEvents();
+
             LogicServer.updatePhysic(dt);
             if (dt >= 0.0f) {
+                DebugDraw.startFrame();
+                LogicServer.update(dt);
                 objectSelectionPass(rendererState, objectSelectShader);
                 normalPass(rendererState, defaultShader, dt);
                 imGuiLayer.update(dt, LogicServer.currentScene());
@@ -277,13 +280,10 @@ public final class Window implements EngineEventListener {
 
             MouseListener.endFrame();
             KeyListener.endFrame();
-
             glfwSwapBuffers(windowPtr);
-
             endTime = (float) glfwGetTime();
             dt = endTime - beginTime;
             beginTime = endTime;
-
             if (forceClose) glfwSetWindowShouldClose(windowPtr, true);
         }
     }
@@ -302,7 +302,6 @@ public final class Window implements EngineEventListener {
     private void normalPass(RendererState rendererState, Shader defaultShader, float dt) {
         rendererState.setRenderPass(RendererState.RenderPass.NORMAL);
         rendererState.setShader(defaultShader);
-        DebugDraw.startFrame();
         frameBuffer.use();
         if (overrideClearColor) {
             glClearColor(r, g, b, a);
@@ -312,11 +311,8 @@ public final class Window implements EngineEventListener {
         }
 
         glClear(GL_COLOR_BUFFER_BIT);
-
-        LogicServer.update(dt);
         Renderer.get().render();
         DebugDraw.draw();
-
         frameBuffer.detach();
     }
 

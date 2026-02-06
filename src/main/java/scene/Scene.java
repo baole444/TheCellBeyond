@@ -13,8 +13,8 @@ import editor.components.EditorObjectIndicator;
 import editor.dialog.SaveSceneAsDialog;
 import eventviewer.EngineEventCallback;
 import eventviewer.event.SceneEvent;
+import physic2d.PhysicBody2D;
 import project.Project;
-import imgui.type.ImBoolean;
 import physic2d.Physic2D;
 import utility.UnifiedPaths;
 
@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 
 public class Scene {
     private final SceneLoader sceneLoader;
-    private transient final ImBoolean isSceneOn;
+    private transient boolean sceneStarted = false;
     private final DataSnapshot sceneData;
 
     private final List<GameObject> addedGameObjects;
@@ -42,7 +42,6 @@ public class Scene {
         removedGameObjects = new ArrayList<>();
         removedComponents = new ArrayList<>();
         addedGameObjectWithParents = new HashMap<>();
-        isSceneOn = new ImBoolean(false);
     }
 
     public void init() {
@@ -51,7 +50,7 @@ public class Scene {
     }
 
     public void start() {
-        isSceneOn.set(true);
+        sceneStarted = true;
         EngineEventCallback.emit(new SceneEvent(SceneEvent.Type.SceneEntered, this));
         for (GameObject go : sceneData.gameObjectByUUIDs().values()) {
             go.start();
@@ -63,7 +62,7 @@ public class Scene {
     }
 
     public void editorStart() {
-        isSceneOn.set(true);
+        sceneStarted = true;
         EngineEventCallback.emit(new SceneEvent(SceneEvent.Type.SceneEntered, this));
 
         for (GameObject go : sceneData.gameObjectByUUIDs().values()) {
@@ -102,29 +101,23 @@ public class Scene {
     }
 
     private void addObjToScene(GameObject go, GameObject parent) {
-        if (go == null) return;
-
-        if (sceneData.gameObjectByUUIDs().containsKey(go.getUUID())) return;
-
+        if (go == null || sceneData.gameObjectByUUIDs().containsKey(go.getUUID())) return;
         sceneData.cachedIDs().put(go.getUID(), go.getUUID());
         sceneData.gameObjectByUUIDs().put(go.getUUID(), go);
-
         if (parent != null) {
             parent.addChild(go);
         }
 
         if (go.getParentUUID() == null && !sceneData.rootGameObjects().contains(go)) sceneData.rootGameObjects().add(go);
-
         if (go.isSerialize() &&
                 go.getFirstComponent(IsNotSelectable.class) == null &&
                 go.getFirstComponent(EditorObjectIndicator.class) == null &&
                 go instanceof GameObject2D
         ) {
-            EditorObjectIndicator editorObjectIndicator = new EditorObjectIndicator();
-            go.addComponent(editorObjectIndicator);
+            go.addComponent(new EditorObjectIndicator());
         }
 
-        if (isSceneOn.get()) {
+        if (sceneStarted) {
             if (LogicServer.runtimeMode()) {
                 go.start();
                 sceneData.physic2D().add(go);
@@ -269,6 +262,7 @@ public class Scene {
     }
 
     public void editorUpdate(float dt) {
+        if (!sceneStarted) return;
         sceneData.updated().set(false);
         sceneData.viewport().adjustProjection();
 
@@ -281,21 +275,35 @@ public class Scene {
         sceneData.updated().set(true);
 
         RenderUpdateSnapshot snapshot = sceneData.extractRenderData();
-        if (snapshot != null) EngineEventCallback.emit(new SceneEvent(SceneEvent.Type.ObjectUpdated, this, snapshot));
-    }
-
-    /**
-     * Step the physic logic of sceneShould be call before {@link #update(float)}
-     * @param dt
-     */
-    public void updatePhysic(float dt) {
-        sceneData.physic2D().update(dt);
-        for (GameObject go : sceneData.gameObjectByUUIDs().values()) {
-            go.physicUpdate(dt);
+        if (snapshot != null) {
+            EngineEventCallback.emit(new SceneEvent(SceneEvent.Type.ObjectUpdated, this, snapshot));
         }
     }
 
+    /**
+     * Step the physic logic of scene.
+     * Should be call before {@link #update(float)}
+     * @param dt variable frame delta time
+     */
+    public void updatePhysic(float dt) {
+        if (!sceneStarted) return;
+        sceneData.physic2D().update(dt, (fixedDT) -> {
+            for (GameObject go : sceneData.gameObjectByUUIDs().values()) {
+                go.physicUpdate(fixedDT);
+            }
+        });
+
+        for (GameObject go : sceneData.gameObjectByUUIDs().values()) {
+            if (go instanceof PhysicBody2D physicBody2D) physicBody2D.syncTransformFromPhysic();
+        }
+    }
+
+    /**
+     * Update this scene by the given delta time.
+     * @param dt variable frame delta time
+     */
     public void update(float dt) {
+        if (!sceneStarted) return;
         sceneData.updated().set(false);
         sceneData.viewport().adjustProjection();
 

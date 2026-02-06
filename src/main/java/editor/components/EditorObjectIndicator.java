@@ -10,12 +10,19 @@ import render.texture.TextureUnit;
 import utility.AssetsPool;
 import utility.Settings;
 
-public class EditorObjectIndicator extends SpriteRenderer implements NotSerializeComponent {
+public final class EditorObjectIndicator extends SpriteRenderer implements NotSerializeComponent {
     private static final String PATH = Settings.TexturePath.ObjectIndicator;
 
     private transient TextureUnit textureUnit;
     private transient boolean isInitialized = false;
     private transient boolean active = false;
+
+    public EditorObjectIndicator() {
+        String name = EditorObjectIndicator.class.getSimpleName();
+        super(name);
+        zIndex(Viewport.farZIndex);
+        localTransform2D.relativeZIndex = false;
+    }
 
     @Override
     protected void onEditorStart() {
@@ -46,14 +53,9 @@ public class EditorObjectIndicator extends SpriteRenderer implements NotSerializ
 
     private void completeInit() {
         if (textureUnit == null) return;
-
         Sprite sprite = textureUnit.getSprite();
         if (sprite == null) return;
         sprite(sprite);
-
-        zIndex(Viewport.farZIndex);
-        localTransform2D.relativeZIndex = false;
-
         isInitialized = true;
     }
 

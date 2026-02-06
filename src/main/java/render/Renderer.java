@@ -37,7 +37,6 @@ public class Renderer implements EngineEventListener {
     private final Matrix4f viewMatrix = new Matrix4f().identity();
 
     private Scene currentScene;
-    private final AtomicBoolean awaitClearingRenderData = new AtomicBoolean(false);
 
     public static void init() {
         if (instance == null) instance = new Renderer();
@@ -256,7 +255,6 @@ public class Renderer implements EngineEventListener {
         if (switchZIndexQueue.isEmpty()) return;
         List<GameObject> updateList = new ArrayList<>(switchZIndexQueue);
         switchZIndexQueue.clear();
-
         for (GameObject go : updateList) if (!go.isRemoved()) addGameObject(go);
     }
 
@@ -266,15 +264,11 @@ public class Renderer implements EngineEventListener {
     }
 
     private void processSnapshot() {
-        if (awaitClearingRenderData.get()) {
-            clearRenderData();
-            awaitClearingRenderData.set(false);
-            return;
-        }
-
         RenderUpdateSnapshot snapshot = updateSnapshots.poll();
         if (snapshot == null) return;
-        for (GameObject go : snapshot.updateObjects()) if (!go.isRemoved()) addGameObject(go);
+        for (GameObject go : snapshot.updateObjects()) {
+            if (!go.isRemoved()) addGameObject(go);
+        }
     }
 
     @Override
@@ -292,13 +286,12 @@ public class Renderer implements EngineEventListener {
 
     private void onSceneStart(Scene scene) {
         if (scene == null) return;
-        awaitClearingRenderData.set(true);
         currentScene = scene;
     }
 
     private void onSceneLeave(Scene scene) {
         if (scene == null || currentScene != scene) return;
-        awaitClearingRenderData.set(true);
+        clearRenderData();
         currentScene = null;
     }
 
@@ -338,5 +331,6 @@ public class Renderer implements EngineEventListener {
         textBatches.clear();
         updateSnapshots.clear();
         switchZIndexQueue.clear();
+        pendingOperations.clear();
     }
 }

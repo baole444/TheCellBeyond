@@ -40,16 +40,19 @@ public abstract class PhysicBody2D extends GameObject2D {
 
     @Override
     public void update(float dt) {
-        if (physicBodyRef != null) {
-            Vector2f physicPos = new Vector2f(physicBodyRef.getPosition().x, physicBodyRef.getPosition().y);
-            float physicRot = Math.toDegrees(physicBodyRef.getAngle());
-
-            position(physicPos);
-            rotation(physicRot);
-        }
-
         super.update(dt);
         if (needFixtureUpdate) updateFixtureFilter();
+    }
+
+    /**
+     * Sync this physic body's spatial transform with its physical transform.
+     */
+    public void syncTransformFromPhysic() {
+        if (physicBodyRef == null) return;
+        Vec2 physicPos = physicBodyRef.getPosition();
+        float physicRot = Math.toDegrees(physicBodyRef.getAngle());
+        position(physicPos.x, physicPos.y);
+        rotation(physicRot);
     }
 
     public float getFriction() {
