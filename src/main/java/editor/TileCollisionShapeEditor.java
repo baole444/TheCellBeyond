@@ -108,7 +108,7 @@ class TileCollisionShapeEditor {
 
         ImGui.tableNextColumn();
         boolean isAddMode = editingMode == Mode.AddPolygon;
-        if (ImEditorGui.selectableIcon("Add Node##TSE_TCSE_Collision_Add_Node_Mode_Selectable", EditorIcons.Icons.Add, "Click to start adding polygon", isAddMode, ModeSelectableSize, ModeSelectableSize)) {
+        if (EditorWidget.selectableIcon("Add Node##TSE_TCSE_Collision_Add_Node_Mode_Selectable", EditorIcons.Icons.Add, "Click to start adding polygon", isAddMode, ModeSelectableSize, ModeSelectableSize)) {
             if (isAddMode) {
                 if (!pendingNodes.isEmpty() && pendingNodes.size() < MinNode) pendingNodes.clear();
                 draggingNewNode = false;
@@ -122,7 +122,7 @@ class TileCollisionShapeEditor {
 
         ImGui.tableNextColumn();
         boolean isEditMode = editingMode == Mode.EditPolygon;
-        if (ImEditorGui.selectableIcon("Edit Node##TSE_TCSE_Collision_Edit_Node_Mode_Selectable", EditorIcons.Icons.EditPen, "Click to start editing polygon", isEditMode, ModeSelectableSize, ModeSelectableSize)) {
+        if (EditorWidget.selectableIcon("Edit Node##TSE_TCSE_Collision_Edit_Node_Mode_Selectable", EditorIcons.Icons.EditPen, "Click to start editing polygon", isEditMode, ModeSelectableSize, ModeSelectableSize)) {
             editingMode = isEditMode ? null : Mode.EditPolygon;
             pendingNodes.clear();
             draggingNewNode = false;
@@ -130,14 +130,14 @@ class TileCollisionShapeEditor {
 
         ImGui.tableNextColumn();
         boolean isRemoveMode = editingMode == Mode.RemovePolygon;
-        if (ImEditorGui.selectableIcon("Remove Node##TSE_TCSE_Collision_Remove_Node_Mode_Selectable", EditorIcons.Icons.Remove, "Click start removing polygon", isRemoveMode, ModeSelectableSize, ModeSelectableSize)) {
+        if (EditorWidget.selectableIcon("Remove Node##TSE_TCSE_Collision_Remove_Node_Mode_Selectable", EditorIcons.Icons.Remove, "Click start removing polygon", isRemoveMode, ModeSelectableSize, ModeSelectableSize)) {
             editingMode = isRemoveMode ? null : Mode.RemovePolygon;
             pendingNodes.clear();
             draggingNewNode = false;
         }
 
         ImGui.tableNextColumn();
-        if (ImEditorGui.iconButton("Reset Node##TSE_TCSE_Collision_Reset_Node_Button", EditorIcons.Icons.Reset, "Click to reset polygon to tile shape")) {
+        if (EditorWidget.iconButton("Reset Node##TSE_TCSE_Collision_Reset_Node_Button", EditorIcons.Icons.Reset, "Click to reset polygon to tile shape")) {
             pendingNodes.clear();
             hoveringEdge = -1;
             draggingNewNode = false;
@@ -190,7 +190,7 @@ class TileCollisionShapeEditor {
         Vector2f[] nodes = tile.collisionPolygonNodes;
         for (Vector2f node : nodes) {
             Vector2f tmp = new Vector2f(node);
-            ImEditorGui.dragVec2Ctrl("", tmp, 0.0f, 0.0f, 0.001f, node, 0.0f, 1.0f);
+            EditorWidget.dragVec2Ctrl("", tmp, 0.0f, 0.0f, 0.001f, node, 0.0f, 1.0f);
             if (!tmp.equals(node)) {
                 node.set(Math.max(0.0f, Math.min(1.0f, tmp.x)), Math.max(0.0f, Math.min(1.0f, tmp.y)));
                 edited = true;

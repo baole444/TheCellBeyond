@@ -5,15 +5,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import components.ComponentSerializer;
 import components.Component;
-import components.NotSerializeComponent;
-import editor.BottomPanel;
-import editor.EditorIcons;
-import editor.ImEditorGui;
-import imgui.ImGui;
-import imgui.flag.ImGuiCol;
-import imgui.flag.ImGuiTableColumnFlags;
-import imgui.flag.ImGuiTableFlags;
-import imgui.flag.ImGuiTreeNodeFlags;
+import editor.template.EditorTemplate;
 import scene.Scene;
 import utility.HierarchyPath;
 import utility.HierarchyPaths;
@@ -23,8 +15,6 @@ import utility.log.EngineLog;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
-
-import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_1;
 
 /**
  * GameObject is the base type of other object.
@@ -642,52 +632,13 @@ public class GameObject {
      * Export this game object's properties for editing in the Editor UI.
      */
     public final void imgui() {
-        name = ImEditorGui.inputText("Name", name, this);
-        additionalImGuiLogic();
-        ImGui.spacing();
-        boolean openComponent = ImGui.collapsingHeader("Components##GO_Components_Header_" + getUUID(), ImGuiTreeNodeFlags.DefaultOpen);
-        if (!openComponent) {
-            ImGui.spacing();
-            return;
-        }
-        ImGui.indent();
-        for (Component c: components) {
-            if (c instanceof NotSerializeComponent) continue;
-            UUID uuid = c.getUUID();
-            if (!ImGui.beginTable("##Component_Table_Header_" + uuid, 2, ImGuiTableFlags.SizingFixedFit)) continue;
-            ImGui.tableSetupColumn("##Component_Header_Column_" + uuid, ImGuiTableColumnFlags.WidthStretch);
-            ImGui.tableSetupColumn("##Component_Delete_Column_" + uuid, ImGuiTableColumnFlags.WidthFixed);
-
-            ImGui.tableNextColumn();
-            String label = c.getClass().getSimpleName() + "##" + uuid;
-            ImGui.pushStyleColor(ImGuiCol.Header, 0.0f, 0.0f, 0.0f, 0.0f);
-            boolean open = ImGui.collapsingHeader(label);
-            ImGui.popStyleColor(1);
-            if (ImGui.isItemClicked(GLFW_MOUSE_BUTTON_1)) BottomPanel.interacted(c);
-
-            ImGui.tableNextColumn();
-            boolean clicked = ImEditorGui.iconButton("Delete##Delete_Component_Button_" + uuid, EditorIcons.Icons.Delete, "Remove this component");
-            ImGui.endTable();
-
-            if (clicked) {
-                removeComponent(c);
-                continue;
-            }
-
-            if (!open) continue;
-            ImGui.separator();
-            c.imgui();
-            ImGui.separator();
-        }
-
-        ImGui.unindent();
-        ImGui.spacing();
+        EditorTemplate.render(this);
     }
 
     /**
      * Additional game object's properties export before exporting its component's properties.
      */
-    protected void additionalImGuiLogic() {}
+    public void additionalImGuiLogic() {}
 
     /**
      * Destroy this game object and all its descendant objects.

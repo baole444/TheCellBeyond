@@ -9,10 +9,8 @@ import editor.preference.UserPreference;
 import eventviewer.EngineEventListener;
 import eventviewer.event.RuntimeEvent;
 import eventviewer.event.Event;
-import eventviewer.event.SceneEvent;
 import project.Project;
 import eventviewer.EngineEventCallback;
-import eventviewer.event.EditorEvent;
 import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.ImGuiPopupFlags;
@@ -85,7 +83,7 @@ public class SceneEditorViewport implements EngineEventListener {
         ImGui.text(" ");
 
         ImGui.tableNextColumn();
-        ImEditorGui.textCenterAlign(currentSceneName);
+        EditorWidget.textCenterAlign(currentSceneName);
 
         ImGui.tableNextColumn();
         ImBoolean snapGrid = new ImBoolean(UserPreference.editorPreferences().showGridLine());

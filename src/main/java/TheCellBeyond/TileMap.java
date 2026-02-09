@@ -3,7 +3,7 @@ package TheCellBeyond;
 import TheCellBeyond.internal.LogicServer;
 import components.IsNotSelectable;
 import editor.EditorIcons;
-import editor.ImEditorGui;
+import editor.EditorWidget;
 import imgui.ImGui;
 import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiTableColumnFlags;
@@ -209,7 +209,7 @@ public class TileMap extends GameObject2D {
     }
 
     @Override
-    protected void additionalImGuiLogic() {
+    public void additionalImGuiLogic() {
         ImGui.spacing();
         boolean openMap = ImGui.collapsingHeader("TileMap##TileMap_Properties_Header_" + getUUID(), ImGuiTreeNodeFlags.DefaultOpen);
         if (!openMap) {
@@ -251,9 +251,9 @@ public class TileMap extends GameObject2D {
             openSet = ImGui.collapsingHeader("TileSet##TileMap_TileSet_Properties_Header_" + getUUID(), ImGuiTreeNodeFlags.DefaultOpen);
             ImGui.popStyleColor(1);
             ImGui.tableNextColumn();
-            if (ImEditorGui.iconButton("TileSet_TileMap_Reset_Button_" + getUUID(), EditorIcons.Icons.Reset, "Reset this tile set to default")) resetToDefault();
+            if (EditorWidget.iconButton("TileSet_TileMap_Reset_Button_" + getUUID(), EditorIcons.Icons.Reset, "Reset this tile set to default")) resetToDefault();
             ImGui.tableNextColumn();
-            if (ImEditorGui.iconButton("TileSet_TileMap_Delete_Button_" + getUUID(), EditorIcons.Icons.Delete, "Delete this tile set")) deleteTileSet();
+            if (EditorWidget.iconButton("TileSet_TileMap_Delete_Button_" + getUUID(), EditorIcons.Icons.Delete, "Delete this tile set")) deleteTileSet();
             ImGui.endTable();
         }
         if (!openSet) {
@@ -271,24 +271,24 @@ public class TileMap extends GameObject2D {
 
         ImGui.text("Tile size:");
         Vector2i size = tileSet.gridSize();
-        int x = ImEditorGui.dragIntCtrl("With", size.x, 16, tileSet, 1);
-        int y = ImEditorGui.dragIntCtrl("Height", size.y, 16, tileSet, 1);
+        int x = EditorWidget.dragIntCtrl("With", size.x, 16, tileSet, 1);
+        int y = EditorWidget.dragIntCtrl("Height", size.y, 16, tileSet, 1);
         if (x != size.x || y != size.y) tileSet.gridSize(size.set(x, y));
 
         ImGui.separator();
         ImGui.text("Start position offset:");
         Vector2i startOffset = tileSet.startPosition();
-        int xF = ImEditorGui.dragIntCtrl("X offset", startOffset.x, 0, tileSet, 0);
-        int yF = ImEditorGui.dragIntCtrl("Y offset", startOffset.y, 0, tileSet, 0);
+        int xF = EditorWidget.dragIntCtrl("X offset", startOffset.x, 0, tileSet, 0);
+        int yF = EditorWidget.dragIntCtrl("Y offset", startOffset.y, 0, tileSet, 0);
         if (xF != startOffset.x || yF != startOffset.y) tileSet.startPosition(startOffset.set(xF, yF));
 
         ImGui.separator();
         ImGui.text("Physic layers");
         ImGui.spacing();
         ImGui.indent();
-        int collisionLayer = ImEditorGui.physicLayerSelectable("Collision Layer", tileSet.getCollisionLayer(), this);
+        int collisionLayer = EditorWidget.physicLayerSelectable("Collision Layer", tileSet.getCollisionLayer(), this);
         ImGui.spacing();
-        int collisionMask = ImEditorGui.physicLayerSelectable("Collision Mask", tileSet.getCollisionMask(), this);
+        int collisionMask = EditorWidget.physicLayerSelectable("Collision Mask", tileSet.getCollisionMask(), this);
         tileSet.setCollisionLayer(collisionLayer);
         tileSet.setCollisionMask(collisionMask);
         ImGui.unindent();

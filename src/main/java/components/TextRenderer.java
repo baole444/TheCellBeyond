@@ -1,6 +1,6 @@
 package components;
 
-import editor.ImEditorGui;
+import editor.EditorWidget;
 import imgui.ImGui;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
@@ -156,12 +156,12 @@ public class TextRenderer extends SpatialComponent implements FontStatusCallback
 
     @Override
     protected void additionalImGuiLogic() {
-        String textInput = ImEditorGui.inputTextWithIME("Text", text, 1024, this);
+        String textInput = EditorWidget.inputTextWithIME("Text", text, 1024, this);
         setText(textInput);
 
         String currentPath = assetReference != null ? assetReference.canonicalPath() : "";
 
-        String fontPathInput = ImEditorGui.inputText("Font Path", currentPath, this);
+        String fontPathInput = EditorWidget.inputText("Font Path", currentPath, this);
         if (!fontPathInput.equals(currentPath)) {
             UnifiedPaths resolver = UnifiedPaths.get();
             AssetReference newRef = new AssetReference(fontPathInput);
@@ -173,14 +173,14 @@ public class TextRenderer extends SpatialComponent implements FontStatusCallback
             }
         }
 
-        float fontSizeInput = ImEditorGui.dragFloatCtrl("Font Size", point, this);
+        float fontSizeInput = EditorWidget.dragFloatCtrl("Font Size", point, this);
         if (fontSizeInput != point) {
             this.point = Math.abs(fontSizeInput);
             this.pendingRequest = false;
             requestLoadFont();
         }
 
-        if (ImEditorGui.colorCtrl("Color", color, this)) {
+        if (EditorWidget.colorCtrl("Color", color, this)) {
             this.isTextDirty = true;
         }
 

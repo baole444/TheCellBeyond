@@ -1,10 +1,8 @@
 package components;
 
 import TheCellBeyond.GameObject;
-import editor.ImEditorGui;
-import imgui.ImGui;
+import editor.EditorWidget;
 import org.jbox2d.dynamics.contacts.Contact;
-import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2f;
 import utility.HierarchyPath;
 import utility.HierarchyPaths;
@@ -243,7 +241,7 @@ public abstract class Component {
      * Export this component's properties for editing in the Editor UI.
      */
     public void imgui() {
-        String name = ImEditorGui.inputText("Name", componentName, this);
+        String name = EditorWidget.inputText("Name", componentName, this);
         if (!name.equals(componentName)) name(name);
 
         additionalImGuiLogic();

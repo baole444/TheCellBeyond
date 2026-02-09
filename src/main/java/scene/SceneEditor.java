@@ -5,7 +5,7 @@ import TheCellBeyond.Transform2D;
 import components.*;
 import editor.EditorIcons;
 import editor.components.*;
-import editor.ImEditorGui;
+import editor.EditorWidget;
 import editor.dialog.AddSpriteSheetDialog;
 import editor.dialog.AddTextureUnitDialog;
 import editor.payload.SpriteDragDropPayload;
@@ -185,7 +185,7 @@ public class SceneEditor extends SceneLoader implements EngineEventListener {
             }
 
             ImGui.sameLine();
-            boolean delete = ImEditorGui.iconButton("##delete_prefab_" + name, EditorIcons.Icons.Delete, "Delete '" + name + "' prefab blueprint");
+            boolean delete = EditorWidget.iconButton("##delete_prefab_" + name, EditorIcons.Icons.Delete, "Delete '" + name + "' prefab blueprint");
             if (delete) manager.deletePrefab(name);
 
             ImGui.newLine();

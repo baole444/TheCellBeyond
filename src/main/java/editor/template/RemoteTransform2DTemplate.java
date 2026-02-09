@@ -4,7 +4,7 @@ import TheCellBeyond.GameObject;
 import components.RemoteTransform2D;
 import editor.EditorColors;
 import editor.EditorIcons;
-import editor.ImEditorGui;
+import editor.EditorWidget;
 import editor.payload.GameObjectDragDropPayload;
 import imgui.ImGui;
 import imgui.ImVec2;
@@ -87,10 +87,10 @@ class RemoteTransform2DTemplate implements ComponentTemplate<RemoteTransform2D> 
         ImGui.tableSetupColumn("##RemoteTransform2D_TargetPath_Input_Column_" + component.getUUID(), ImGuiTableColumnFlags.WidthStretch);
         ImGui.tableSetupColumn("##RemoteTransform2D_TargetPath_Clear_Input_Column_" + component.getUUID(), ImGuiTableColumnFlags.WidthFixed);
         ImGui.tableNextColumn();
-        component.targetPath(ImEditorGui.inputText("Target Path", component.targetPath(), component));
+        component.targetPath(EditorWidget.inputText("Target Path", component.targetPath(), component));
         pathToolTip(component);
         ImGui.tableNextColumn();
-        if (ImEditorGui.iconButton("##RemoteTransform2D_TargetPath_Input_Clear_Button_" + component.getUUID(), EditorIcons.Icons.Reset, "Click to reset the target path to default")) component.targetPath("");
+        if (EditorWidget.iconButton("##RemoteTransform2D_TargetPath_Input_Clear_Button_" + component.getUUID(), EditorIcons.Icons.Reset, "Click to reset the target path to default")) component.targetPath("");
         ImGui.endTable();
         return true;
     }

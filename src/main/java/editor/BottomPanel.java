@@ -69,7 +69,7 @@ public class BottomPanel {
         }
     }
 
-    public static void interact(GameObject go) {
+    public static void interacted(GameObject go) {
         if (go == null) {
             clear();
             return;

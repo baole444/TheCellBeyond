@@ -23,7 +23,7 @@ public class Properties {
         }
 
         GameObject activeGameObject = getActiveGameObject();
-        BottomPanel.interact(activeGameObject);
+        BottomPanel.interacted(activeGameObject);
         if (activeGameObject == null) {
             ImGui.beginDisabled();
             ImGui.textWrapped("Select an object in the Scene tree or in the scene to edit its properties");
@@ -39,7 +39,7 @@ public class Properties {
 
         float buttonW = ImGui.getContentRegionAvailX();
         float buttonH = BUTTON_RESERVED_HEIGHT * 0.9f;
-        if (ImGui.button("Add new Component", buttonW, buttonH)) AddComponentDialog.show(activeGameObject);
+        if (ImGui.button("Add new Component##Properties_Inspector_Add_Component_Button", buttonW, buttonH)) AddComponentDialog.show(activeGameObject);
 
         ImGui.separator();
         activeGameObject.imgui();

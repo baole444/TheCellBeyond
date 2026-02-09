@@ -2,7 +2,7 @@ package editor.template;
 
 import components.SpriteRenderer;
 import editor.EditorColors;
-import editor.ImEditorGui;
+import editor.EditorWidget;
 import editor.payload.SpriteDragDropPayload;
 import imgui.ImGui;
 import imgui.flag.ImGuiCol;
@@ -64,7 +64,7 @@ class SpriteRendererTemplate implements ComponentTemplate<SpriteRenderer> {
         acceptDragDrop(component);
 
         Vector4f color = new Vector4f(component.color());
-        if (ImEditorGui.colorCtrl("Color", color, component)) {
+        if (EditorWidget.colorCtrl("Color", color, component)) {
             component.color(color);
         }
 

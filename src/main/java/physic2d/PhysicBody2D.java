@@ -2,7 +2,7 @@ package physic2d;
 
 import TheCellBeyond.GameObject2D;
 import TheCellBeyond.internal.LogicServer;
-import editor.ImEditorGui;
+import editor.EditorWidget;
 import imgui.ImGui;
 import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiTreeNodeFlags;
@@ -178,7 +178,7 @@ public abstract class PhysicBody2D extends GameObject2D {
     public void addMovement(Vector2f velocity) {}
 
     @Override
-    protected void additionalImGuiLogic() {
+    public void additionalImGuiLogic() {
         ImGui.spacing();
         boolean openPhysic = ImGui.collapsingHeader("PhysicBody2D##PhysicBody2D_Properties_Header_" + getUUID(), ImGuiTreeNodeFlags.DefaultOpen);
         if (!openPhysic) {
@@ -186,7 +186,7 @@ public abstract class PhysicBody2D extends GameObject2D {
             return;
         }
         ImGui.indent();
-        float friction = ImEditorGui.dragFloatCtrl("Friction", this.friction, this);
+        float friction = EditorWidget.dragFloatCtrl("Friction", this.friction, this);
         if (friction != this.friction) setFriction(friction);
 
         ImBoolean sensor = new ImBoolean(isSensor);
@@ -201,9 +201,9 @@ public abstract class PhysicBody2D extends GameObject2D {
         ImGui.popStyleColor(1);
         if (open) {
             ImGui.separator();
-            int collisionLayer = ImEditorGui.physicLayerSelectable("Collision Layer", this.collisionLayer, this);
+            int collisionLayer = EditorWidget.physicLayerSelectable("Collision Layer", this.collisionLayer, this);
             ImGui.spacing();
-            int collisionMask = ImEditorGui.physicLayerSelectable("Collision Mask", this.collisionMask, this);
+            int collisionMask = EditorWidget.physicLayerSelectable("Collision Mask", this.collisionMask, this);
             setCollisionLayer(collisionLayer);
             setCollisionMask(collisionMask);
             ImGui.separator();

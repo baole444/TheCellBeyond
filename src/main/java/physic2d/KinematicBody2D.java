@@ -1,6 +1,6 @@
 package physic2d;
 
-import editor.ImEditorGui;
+import editor.EditorWidget;
 import imgui.ImGui;
 import imgui.flag.ImGuiTreeNodeFlags;
 import imgui.type.ImBoolean;
@@ -117,7 +117,7 @@ public class KinematicBody2D extends PhysicBody2D {
     }
 
     @Override
-    protected void additionalImGuiLogic() {
+    public void additionalImGuiLogic() {
         ImGui.spacing();
         boolean openKinematic = ImGui.collapsingHeader("KinematicBody2D##KinematicBody2D_Properties_Header_" + getUUID(), ImGuiTreeNodeFlags.DefaultOpen);
         if (!openKinematic) {
@@ -127,9 +127,9 @@ public class KinematicBody2D extends PhysicBody2D {
 
         ImGui.indent();
         Vector2f vec = new Vector2f(velocity);
-        if (ImEditorGui.dragVec2Ctrl("Velocity", vec, 0.0f, this)) velocity(vec);
+        if (EditorWidget.dragVec2Ctrl("Velocity", vec, 0.0f, this)) velocity(vec);
 
-        float angle = ImEditorGui.dragFloatCtrl("Angular velocity", angularVelocity, 0.0f, 1.0f, this);
+        float angle = EditorWidget.dragFloatCtrl("Angular velocity", angularVelocity, 0.0f, 1.0f, this);
         if (Float.compare(angle, angularVelocity) != 0) angularVelocity(angle);
 
         ImGui.spacing();

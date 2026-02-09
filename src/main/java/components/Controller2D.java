@@ -3,7 +3,7 @@ package components;
 import TheCellBeyond.GameObject2D;
 import TheCellBeyond.Input;
 import TheCellBeyond.InputAction;
-import editor.ImEditorGui;
+import editor.EditorWidget;
 import imgui.ImGui;
 import imgui.flag.ImGuiTreeNodeFlags;
 import imgui.type.ImBoolean;
@@ -325,7 +325,7 @@ public final class Controller2D extends Component {
         }
 
         ImGui.spacing();
-        float speed = ImEditorGui.dragFloatCtrl("Movement Speed", movementSpeed, 0.0f, 0.1f, this);
+        float speed = EditorWidget.dragFloatCtrl("Movement Speed", movementSpeed, 0.0f, 0.1f, this);
         if (Float.compare(speed, movementSpeed) != 0) movementSpeed = speed;
 
         ImBoolean oneAction = new ImBoolean(oneActionPerFrame);

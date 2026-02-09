@@ -1,6 +1,6 @@
 package physic2d.collider;
 
-import editor.ImEditorGui;
+import editor.EditorWidget;
 import imgui.ImGui;
 import imgui.flag.ImGuiTreeNodeFlags;
 import org.jbox2d.collision.shapes.PolygonShape;
@@ -66,7 +66,7 @@ public class BoxCollider2D extends CollisionShape2D {
 
         ImGui.indent();
         Vector2f half = new Vector2f(halfSize);
-        if (ImEditorGui.dragVec2Ctrl("Half Size", half, 0.16f, this)) setHalfSize(half);
+        if (EditorWidget.dragVec2Ctrl("Half Size", half, 0.16f, this)) setHalfSize(half);
         ImGui.unindent();
         super.additionalImGuiLogic();
     }

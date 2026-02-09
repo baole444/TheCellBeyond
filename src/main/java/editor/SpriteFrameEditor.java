@@ -100,7 +100,7 @@ class SpriteFrameEditor {
 
     private static void renderAnimationControl() {
         if (selectedName == null) {
-            if (ImEditorGui.iconButton("Add##Add_New_Animation_SFC", EditorIcons.Icons.New, "Create new animation")) editingAnimatedSprite.newAnimation();
+            if (EditorWidget.iconButton("Add##Add_New_Animation_SFC", EditorIcons.Icons.New, "Create new animation")) editingAnimatedSprite.newAnimation();
             return;
         }
 
@@ -114,13 +114,13 @@ class SpriteFrameEditor {
         ImGui.tableSetupColumn("##Frame_Animation_Column_SFC");
         ImGui.tableSetupColumn("##FrameTime_Animation_Column_SFC");
         ImGui.tableNextColumn();
-        if (ImEditorGui.iconButton("Add##Add_New_Animation_SFC", EditorIcons.Icons.New, "Create new animation")) editingAnimatedSprite.newAnimation();
+        if (EditorWidget.iconButton("Add##Add_New_Animation_SFC", EditorIcons.Icons.New, "Create new animation")) editingAnimatedSprite.newAnimation();
 
         ImGui.sameLine();
-        if (ImEditorGui.iconButton("Duplicate##Duplicate_Animation_SFC", EditorIcons.Icons.Copy, "Duplicate selected animation")) editingAnimatedSprite.duplicateAnimation(selectedName);
+        if (EditorWidget.iconButton("Duplicate##Duplicate_Animation_SFC", EditorIcons.Icons.Copy, "Duplicate selected animation")) editingAnimatedSprite.duplicateAnimation(selectedName);
 
         ImGui.sameLine();
-        if (ImEditorGui.iconButton("Delete##Delete_Animation_SFC", EditorIcons.Icons.Delete, "Delete selected animation")) {
+        if (EditorWidget.iconButton("Delete##Delete_Animation_SFC", EditorIcons.Icons.Delete, "Delete selected animation")) {
             editingAnimatedSprite.removeAnimation(selectedName);
             if (Objects.equals(editingName, selectedName)) {
                 editingName = null;
@@ -154,7 +154,7 @@ class SpriteFrameEditor {
         ImGui.popItemWidth();
 
         ImGui.sameLine();
-        if (ImEditorGui.iconButton("Step Back##Step_Back_Frame_SFC", EditorIcons.SpriteFrameIcons.PreviousFrame, "Step animation back 1 frame")) {
+        if (EditorWidget.iconButton("Step Back##Step_Back_Frame_SFC", EditorIcons.SpriteFrameIcons.PreviousFrame, "Step animation back 1 frame")) {
             editingAnimatedSprite.pause();
             Animation current = editingAnimatedSprite.currentAnimation();
             if (current != null) {
@@ -167,7 +167,7 @@ class SpriteFrameEditor {
         boolean backward = editingAnimatedSprite.isBackward();
 
         ImGui.sameLine();
-        if (ImEditorGui.iconButton("Play Backward##Play_Animation_Backward_SFC", EditorIcons.SpriteFrameIcons.PlayBackward, "Play/Resume the animation backward")) {
+        if (EditorWidget.iconButton("Play Backward##Play_Animation_Backward_SFC", EditorIcons.SpriteFrameIcons.PlayBackward, "Play/Resume the animation backward")) {
             if (play && !backward) {
                 editingAnimatedSprite.playBackward(selectedName);
             } else if (!play) {
@@ -177,13 +177,13 @@ class SpriteFrameEditor {
 
         ImGui.sameLine();
         if (play) {
-            if (ImEditorGui.iconButton("Pause##Pause_Animation_SFC", EditorIcons.SpriteFrameIcons.Pause, "Pause the animation")) editingAnimatedSprite.pause();
+            if (EditorWidget.iconButton("Pause##Pause_Animation_SFC", EditorIcons.SpriteFrameIcons.Pause, "Pause the animation")) editingAnimatedSprite.pause();
         } else {
-            if (ImEditorGui.iconButton("Stop##Stop_Animation_SFC", EditorIcons.SpriteFrameIcons.Stop, "Stop the animation")) editingAnimatedSprite.stop();
+            if (EditorWidget.iconButton("Stop##Stop_Animation_SFC", EditorIcons.SpriteFrameIcons.Stop, "Stop the animation")) editingAnimatedSprite.stop();
         }
 
         ImGui.sameLine();
-        if (ImEditorGui.iconButton("Play#Play_Animation_SFC", EditorIcons.SpriteFrameIcons.Play, "Play/Resume the animation")) {
+        if (EditorWidget.iconButton("Play#Play_Animation_SFC", EditorIcons.SpriteFrameIcons.Play, "Play/Resume the animation")) {
             if (play && backward) {
                 editingAnimatedSprite.play(selectedName);
             } else if (!play) {
@@ -192,7 +192,7 @@ class SpriteFrameEditor {
         }
 
         ImGui.sameLine();
-        if (ImEditorGui.iconButton("Step Forward##Step_Forward_Frame_SFC", EditorIcons.SpriteFrameIcons.NextFrame, "Step animation forward 1 frame")) {
+        if (EditorWidget.iconButton("Step Forward##Step_Forward_Frame_SFC", EditorIcons.SpriteFrameIcons.NextFrame, "Step animation forward 1 frame")) {
             editingAnimatedSprite.pause();
             Animation animation = editingAnimatedSprite.currentAnimation();
             if (animation != null) {
@@ -202,21 +202,21 @@ class SpriteFrameEditor {
         }
 
         ImGui.tableNextColumn();
-        if (ImEditorGui.iconButton("Move Frame Left##Move_Frame_Left_SFC", EditorIcons.SpriteFrameIcons.MoveFrameLeft, "Move selected frame to the left of the current index")) {
+        if (EditorWidget.iconButton("Move Frame Left##Move_Frame_Left_SFC", EditorIcons.SpriteFrameIcons.MoveFrameLeft, "Move selected frame to the left of the current index")) {
             editingAnimatedSprite.stop();
             boolean moved = editingAnimatedSprite.moveFrameLeft(selectedName, selectedFrame);
             if (moved) selectedFrame--;
         }
 
         ImGui.sameLine();
-        if (ImEditorGui.iconButton("Move Frame Right##Move_Frame_Right_SFC", EditorIcons.SpriteFrameIcons.MoveFrameRight, "Move selected frame to the right of the current index")) {
+        if (EditorWidget.iconButton("Move Frame Right##Move_Frame_Right_SFC", EditorIcons.SpriteFrameIcons.MoveFrameRight, "Move selected frame to the right of the current index")) {
             editingAnimatedSprite.stop();
             boolean moved = editingAnimatedSprite.moveFrameRight(selectedName, selectedFrame);
             if (moved) selectedFrame++;
         }
 
         ImGui.sameLine();
-        if (ImEditorGui.iconButton("Delete Frame##Delete_Frame_SFC", EditorIcons.Icons.Delete, "Delete the selected frame from the animation")) {
+        if (EditorWidget.iconButton("Delete Frame##Delete_Frame_SFC", EditorIcons.Icons.Delete, "Delete the selected frame from the animation")) {
             editingAnimatedSprite.stop();
             editingAnimatedSprite.removeFrame(selectedName, selectedFrame);
             selectedFrame = 0;

@@ -773,7 +773,7 @@ public class GameObject2D extends GameObject {
     }
 
     @Override
-    protected void additionalImGuiLogic() {
+    public void additionalImGuiLogic() {
         ImGui.spacing();
         boolean openTransform = ImGui.collapsingHeader("GameObject2D##Transform_GO2D_Properties_" + getUUID(), ImGuiTreeNodeFlags.DefaultOpen);
         if (openTransform) {

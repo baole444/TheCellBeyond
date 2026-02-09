@@ -1,6 +1,8 @@
 package editor;
 
 import TheCellBeyond.KeyListener;
+import editor.widgets.CollapsibleHeader;
+import editor.widgets.CollapsibleHeaderFlag;
 import imgui.ImVec2;
 import imgui.flag.*;
 import imgui.type.ImBoolean;
@@ -17,7 +19,10 @@ import org.joml.Vector4f;
 
 import java.util.HashMap;
 
-public class ImEditorGui {
+/**
+ * Widgets used by the Editor UI.
+ */
+public class EditorWidget {
     private record ShortenLabelKey(String text, float width) {}
 
     private static final HashMap<ShortenLabelKey, String> shortenLabels = new HashMap<>();
@@ -558,5 +563,73 @@ public class ImEditorGui {
         if (label == null) return 1.0f;
         float widthPadding = ImGui.calcTextSizeX(label, true) + 1.0f;
         return Math.min(widthPadding, Math.max(0.0f, maxWidth));
+    }
+
+    /**
+     * A header widget that can be expanded or collapsed by interacting with the drop-down arrow,
+     * or execute logic in callback when interacting with the label.
+     * <p>
+     * This is a combination of collapsing header, and table to separate interaction.
+     * It also enables dynamic naming without having the header collapsed when the visible label changed.
+     *
+     * @param id unique id of the header
+     * @param label the display label
+     * @param onExpand callback when header is expanded
+     * @param onLabelInteract callback when label of the header is clicked
+     */
+    public static void collapsibleHeader(String id, String label, Runnable onExpand, Runnable onLabelInteract) {
+        CollapsibleHeader.create(id, label, onExpand, onLabelInteract);
+    }
+
+    /**
+     * A header widget that can be expanded or collapsed by interacting with the drop-down arrow,
+     * or execute logic in callback when interacting with the label.
+     * <p>
+     * This is a combination of collapsing header, and table to separate interaction.
+     * It also enables dynamic naming without having the header collapsed when the visible label changed.
+     *
+     * @param id unique id of the header
+     * @param label the display label
+     * @param labelTooltip tooltip when hovering over the label
+     * @param onExpand callback when header is expanded
+     * @param onLabelInteract callback when label of the header is clicked
+     * @param headerFlag flag for the header widget
+     */
+    public static void collapsibleHeader(String id, String label, String labelTooltip, Runnable onExpand, Runnable onLabelInteract, CollapsibleHeaderFlag headerFlag) {
+        CollapsibleHeader.create(id, label, labelTooltip, onExpand, onLabelInteract, headerFlag);
+    }
+
+    /**
+     * A header widget that can be expanded or collapsed by interacting with the drop-down arrow,
+     * or execute logic in callback when interacting with the label.
+     * <p>
+     * This is a combination of collapsing header, and table to separate interaction.
+     * It also enables dynamic naming without having the header collapsed when the visible label changed.
+     *
+     * @param id unique id of the header
+     * @param label the display label
+     * @param onLabelInteract callback when label of the header is clicked
+     * @return true if the header is expanded
+     */
+    public static boolean collapsibleHeader(String id, String label, Runnable onLabelInteract) {
+        return CollapsibleHeader.create(id, label, onLabelInteract);
+    }
+
+    /**
+     * A header widget that can be expanded or collapsed by interacting with the drop-down arrow,
+     * or execute logic in callback when interacting with the label.
+     * <p>
+     * This is a combination of collapsing header, and table to separate interaction.
+     * It also enables dynamic naming without having the header collapsed when the visible label changed.
+     *
+     * @param id unique id of the header
+     * @param label the display label
+     * @param labelTooltip tooltip when hovering over the label
+     * @param onLabelInteract callback when label of the header is clicked
+     * @param headerFlag flag for the header widget
+     * @return true if the header is expanded
+     */
+    public static boolean collapsibleHeader(String id, String label, String labelTooltip, Runnable onLabelInteract, CollapsibleHeaderFlag headerFlag) {
+        return CollapsibleHeader.create(id, label, labelTooltip, onLabelInteract, headerFlag);
     }
 }

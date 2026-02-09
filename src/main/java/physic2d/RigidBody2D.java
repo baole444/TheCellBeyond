@@ -1,6 +1,6 @@
 package physic2d;
 
-import editor.ImEditorGui;
+import editor.EditorWidget;
 import imgui.ImGui;
 import imgui.flag.ImGuiTreeNodeFlags;
 import imgui.type.ImBoolean;
@@ -183,7 +183,7 @@ public class RigidBody2D extends PhysicBody2D {
     }
 
     @Override
-    protected void additionalImGuiLogic() {
+    public void additionalImGuiLogic() {
         ImGui.spacing();
         boolean openRigid = ImGui.collapsingHeader("RigidBody2D##RigidBody2D_Properties_Header", ImGuiTreeNodeFlags.DefaultOpen);
         if (!openRigid) {
@@ -192,12 +192,12 @@ public class RigidBody2D extends PhysicBody2D {
         }
         ImGui.indent();
         Vector2f vTmp = new Vector2f(initialVelocity);
-        boolean vChanged = ImEditorGui.dragVec2Ctrl("Velocity", vTmp, 0.0f, this);
-        float angularV = ImEditorGui.dragFloatCtrl("Angular Velocity", angularVelocity, 0.0f, 1.0f,this);
-        float ms = ImEditorGui.dragFloatCtrl("Mass", mass, 0.0f, this, 0.0f);
-        float rollResist = ImEditorGui.dragFloatCtrl("Roll Resistance", rollResistance, 0.8f, this, 0.0f);
-        float translateResist = ImEditorGui.dragFloatCtrl("Translate Resistance", translateResistance, 0.8f, this, 0.0f);
-        float gravScale = ImEditorGui.dragFloatCtrl("Gravity Scale", gravityScale, 1.0f, this);
+        boolean vChanged = EditorWidget.dragVec2Ctrl("Velocity", vTmp, 0.0f, this);
+        float angularV = EditorWidget.dragFloatCtrl("Angular Velocity", angularVelocity, 0.0f, 1.0f,this);
+        float ms = EditorWidget.dragFloatCtrl("Mass", mass, 0.0f, this, 0.0f);
+        float rollResist = EditorWidget.dragFloatCtrl("Roll Resistance", rollResistance, 0.8f, this, 0.0f);
+        float translateResist = EditorWidget.dragFloatCtrl("Translate Resistance", translateResistance, 0.8f, this, 0.0f);
+        float gravScale = EditorWidget.dragFloatCtrl("Gravity Scale", gravityScale, 1.0f, this);
         ImBoolean fixedRot = new ImBoolean(fixedRotation);
         if (ImGui.checkbox("Fixed Rotation##RigidBody2D_fixedRotation_" + getUUID(), fixedRot)) fixedRotation(fixedRot.get());
         ImBoolean b = new ImBoolean(bullet);

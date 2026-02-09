@@ -1,7 +1,7 @@
 package physic2d;
 
 import TheCellBeyond.internal.LogicServer;
-import editor.ImEditorGui;
+import editor.EditorWidget;
 import imgui.ImGui;
 import imgui.flag.ImGuiTreeNodeFlags;
 import imgui.type.ImBoolean;
@@ -303,7 +303,7 @@ public class CharacterBody2D extends PhysicBody2D {
     }
 
     @Override
-    protected void additionalImGuiLogic() {
+    public void additionalImGuiLogic() {
         ImGui.spacing();
         boolean openChar = ImGui.collapsingHeader("CharacterBody2D##CharacterBody2D_Properties_Header_" + getUUID(), ImGuiTreeNodeFlags.DefaultOpen);
         if (!openChar) {
@@ -324,22 +324,22 @@ public class CharacterBody2D extends PhysicBody2D {
         }
         ImGui.spacing();
         Vector2f upDir = new Vector2f(UpDirection);
-        if (ImEditorGui.dragVec2Ctrl("Up Direction", upDir, 0.0f, 1.0f, 0.1f, this)) upDirection(upDir);
+        if (EditorWidget.dragVec2Ctrl("Up Direction", upDir, 0.0f, 1.0f, 0.1f, this)) upDirection(upDir);
 
         if (motionMode == MotionMode.Grounded) {
             ImGui.spacing();
-            float slopeAngle = ImEditorGui.dragFloatCtrl("Max Slope Angle", maxSlopeAngle, 45.0f, 1.0f, this, 0.0f, 90.0f);
+            float slopeAngle = EditorWidget.dragFloatCtrl("Max Slope Angle", maxSlopeAngle, 45.0f, 1.0f, this, 0.0f, 90.0f);
             if (Float.compare(slopeAngle, maxSlopeAngle) != 0) maxSlopeAngle(slopeAngle);
             ImBoolean floorSnap = new ImBoolean(snapToFloor);
             if (ImGui.checkbox("Snap to floor##CharacterBody2D_SnapToFloor_CheckBox_" + getUUID(), floorSnap)) snapToFloor = floorSnap.get();
             if (snapToFloor) {
-                float snapDistance = ImEditorGui.dragFloatCtrl("Floor Snapping Distance", floorSnapDistance, 0.1f, 0.1f, this, 0.0f);
+                float snapDistance = EditorWidget.dragFloatCtrl("Floor Snapping Distance", floorSnapDistance, 0.1f, 0.1f, this, 0.0f);
                 if (Float.compare(snapDistance, floorSnapDistance) != 0) floorSnapDistance(snapDistance);
             }
         }
 
         ImGui.spacing();
-        float margin = ImEditorGui.dragFloatCtrl("Safe Margin", safeMargin, 0.01f, this, 0.001f);
+        float margin = EditorWidget.dragFloatCtrl("Safe Margin", safeMargin, 0.01f, this, 0.001f);
         if (Float.compare(margin, safeMargin) != 0) safeMargin(margin);
 
         ImGui.unindent();

@@ -2,7 +2,7 @@ package editor.dialog;
 
 import TheCellBeyond.*;
 import editor.EditorIcons;
-import editor.ImEditorGui;
+import editor.EditorWidget;
 import editor.ImGuiLayer;
 import imgui.ImGui;
 import imgui.flag.*;
@@ -173,7 +173,7 @@ class InputMapTab {
 
             ImGui.tableNextColumn();
             String addId = "Add##EPPD_Add_KeyCombo_" + actionName;
-            if (ImEditorGui.iconButton(addId, EditorIcons.Icons.New, "Add new key combo")) {
+            if (EditorWidget.iconButton(addId, EditorIcons.Icons.New, "Add new key combo")) {
                 final String finalName = actionName;
                 pendingCallback = (resultKeyCombo, accepted) -> {
                     if (!accepted || resultKeyCombo == null || resultKeyCombo.isEmpty()) return;
@@ -187,7 +187,7 @@ class InputMapTab {
 
             ImGui.tableNextColumn();
             String deleteActionId = "Delete##EPPD_Delete_Action_" + actionName;
-            if (ImEditorGui.iconButton(deleteActionId, EditorIcons.Icons.Delete, "Delete this action")) {
+            if (EditorWidget.iconButton(deleteActionId, EditorIcons.Icons.Delete, "Delete this action")) {
                 if (Project.removeInputAction(actionName)) filterChanged = true;
             }
 
@@ -239,7 +239,7 @@ class InputMapTab {
 
             ImGui.tableNextColumn();
             String editId = "Edit##EPPD_Edit_KeyCombo_" + actionName + "_" + i;
-            if (ImEditorGui.iconButton(editId, EditorIcons.Icons.Edit, "Edit this key combo")) {
+            if (EditorWidget.iconButton(editId, EditorIcons.Icons.Edit, "Edit this key combo")) {
                 final String finalName = actionName;
                 final int index = i;
                 pendingCallback = (resultKeyCombo, accepted) -> {
@@ -254,7 +254,7 @@ class InputMapTab {
 
             ImGui.tableNextColumn();
             String deleteComboId = "Delete##EPPD_Delete_KeyCombo_" + actionName + "_" + i;
-            if (ImEditorGui.iconButton(deleteComboId, EditorIcons.Icons.Delete, "Delete this key combo")) {
+            if (EditorWidget.iconButton(deleteComboId, EditorIcons.Icons.Delete, "Delete this key combo")) {
                 List<Set<InputKey>> update = new ArrayList<>();
                 for (Set<InputKey> keyCombo : keyCombos) {
                     if (keyCombo == combo) continue;

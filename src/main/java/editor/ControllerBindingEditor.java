@@ -90,14 +90,14 @@ class ControllerBindingEditor {
     }
 
     private static void renderControllerControl() {
-        if (ImEditorGui.iconButton("Add##Add_New_ControllerBinding_CBE", EditorIcons.Icons.New, "Create new binding")) editingController.newBinding();
+        if (EditorWidget.iconButton("Add##Add_New_ControllerBinding_CBE", EditorIcons.Icons.New, "Create new binding")) editingController.newBinding();
         if (selectedName == null) return;
 
         ImGui.sameLine();
-        if (ImEditorGui.iconButton("Duplicate##Duplicate_ControllerBinding_CBE", EditorIcons.Icons.Copy, "Duplicate selected binding")) editingController.duplicateBinding(selectedName);
+        if (EditorWidget.iconButton("Duplicate##Duplicate_ControllerBinding_CBE", EditorIcons.Icons.Copy, "Duplicate selected binding")) editingController.duplicateBinding(selectedName);
 
         ImGui.sameLine();
-        if (ImEditorGui.iconButton("Delete##Delete_ControllerBinding_CBE", EditorIcons.Icons.Delete, "Delete selected binding")) {
+        if (EditorWidget.iconButton("Delete##Delete_ControllerBinding_CBE", EditorIcons.Icons.Delete, "Delete selected binding")) {
             editingController.removeBinding(selectedName);
             if (Objects.equals(editingName, selectedName)) {
                 editingName = null;
@@ -183,7 +183,7 @@ class ControllerBindingEditor {
             return;
         }
         Vector2f dir = new Vector2f(binding.directionVector());
-        if (ImEditorGui.dragVec2Ctrl("Direction", dir, 0.0f, 0.1f, binding)) binding.direction.set(dir);
+        if (EditorWidget.dragVec2Ctrl("Direction", dir, 0.0f, 0.1f, binding)) binding.direction.set(dir);
         if (ImGui.beginCombo("##Set_Direction_Using_Common_Direction_Combo_CBE", "Use common direction")) {
             if (ImGui.selectable("UP (x:0.0, y:1.0)##Select_UP_Dir_Selectable_CBE")) binding.direction.set(ControllerDirection.up());
             if (ImGui.selectable("DOWN (x:0.0, y:-1.0)##Select_DOWN_Dir_Selectable_CBE")) binding.direction.set(ControllerDirection.down());
@@ -206,7 +206,7 @@ class ControllerBindingEditor {
 
         if (binding.activationMode() == InputActivation.ActivationMode.Hold) {
             ImGui.indent();
-            float holdTime = ImEditorGui.dragFloatCtrl("Hold Time", binding.activation.requiredHoldTime(), 0.0f, 0.1f, binding, 0.0f);
+            float holdTime = EditorWidget.dragFloatCtrl("Hold Time", binding.activation.requiredHoldTime(), 0.0f, 0.1f, binding, 0.0f);
             ImGui.unindent();
             if (Float.compare(holdTime, binding.activation.requiredHoldTime()) != 0) binding.activation.requiredHoldTime(holdTime);
         }
@@ -250,7 +250,7 @@ class ControllerBindingEditor {
             ImGui.tableNextColumn();
             ImGui.textWrapped(name);
             ImGui.tableNextColumn();
-            if (ImEditorGui.iconButton("Unbound##CBE_Unbound_Input_Action_" + name, EditorIcons.Icons.Delete, "Unbound '" + name + "' Input Action")) {
+            if (EditorWidget.iconButton("Unbound##CBE_Unbound_Input_Action_" + name, EditorIcons.Icons.Delete, "Unbound '" + name + "' Input Action")) {
                 binding.boundActionNames.remove(name);
                 break;
             }
@@ -274,7 +274,7 @@ class ControllerBindingEditor {
             ImGui.setNextItemWidth(ImGui.getContentRegionAvailX());
             ImGui.inputTextWithHint("##CBE_Search_Filter_ActionName", "Enter action name...", actionNameSearchFilter);
             ImGui.tableNextColumn();
-            if (ImEditorGui.iconButton("Clear##CBE_Search_Clear_ActionName", EditorIcons.Icons.Eraser, "Clear search filter term")) actionNameSearchFilter.clear();
+            if (EditorWidget.iconButton("Clear##CBE_Search_Clear_ActionName", EditorIcons.Icons.Eraser, "Clear search filter term")) actionNameSearchFilter.clear();
             ImGui.endTable();
         }
 

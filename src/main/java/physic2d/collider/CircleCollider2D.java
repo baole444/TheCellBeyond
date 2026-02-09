@@ -1,6 +1,6 @@
 package physic2d.collider;
 
-import editor.ImEditorGui;
+import editor.EditorWidget;
 import imgui.ImGui;
 import imgui.flag.ImGuiTreeNodeFlags;
 import org.jbox2d.collision.shapes.CircleShape;
@@ -63,7 +63,7 @@ public class CircleCollider2D extends CollisionShape2D {
             return;
         }
         ImGui.indent();
-        float r = ImEditorGui.dragFloatCtrl("Radius", radius, 0.16f, this, MinimumShapeDimension);
+        float r = EditorWidget.dragFloatCtrl("Radius", radius, 0.16f, this, MinimumShapeDimension);
         if (Float.compare(r, radius) != 0) radius(r);
         ImGui.unindent();
         super.additionalImGuiLogic();

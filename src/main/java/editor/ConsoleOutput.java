@@ -103,12 +103,12 @@ public class ConsoleOutput implements EngineLogListener {
     }
 
     private void drawLogFilter() {
-        ImEditorGui.selectableIcon(debugId, EditorIcons.LogLevelIcons.Debug, "Show/hide debug log level", enableDebug, iconSize, iconSize);
-        ImEditorGui.selectableIcon(infoId, EditorIcons.LogLevelIcons.Info, "Show/hide info log level", enableInfo, iconSize, iconSize);
-        ImEditorGui.selectableIcon(warningId, EditorIcons.LogLevelIcons.Warning, "Show/hide warning log level", enableWarning, iconSize, iconSize);
-        ImEditorGui.selectableIcon(errorId, EditorIcons.LogLevelIcons.Error, "Show/hide error log level", enableError, iconSize, iconSize);
+        EditorWidget.selectableIcon(debugId, EditorIcons.LogLevelIcons.Debug, "Show/hide debug log level", enableDebug, iconSize, iconSize);
+        EditorWidget.selectableIcon(infoId, EditorIcons.LogLevelIcons.Info, "Show/hide info log level", enableInfo, iconSize, iconSize);
+        EditorWidget.selectableIcon(warningId, EditorIcons.LogLevelIcons.Warning, "Show/hide warning log level", enableWarning, iconSize, iconSize);
+        EditorWidget.selectableIcon(errorId, EditorIcons.LogLevelIcons.Error, "Show/hide error log level", enableError, iconSize, iconSize);
         ImGui.separator();
-        if (ImEditorGui.iconButton("Clear##Clear_log_history", EditorIcons.Icons.Delete, "Click to clear log history", iconSize, iconSize)) {
+        if (EditorWidget.iconButton("Clear##Clear_log_history", EditorIcons.Icons.Delete, "Click to clear log history", iconSize, iconSize)) {
             EngineLog.clear();
             entries.clear();
         }

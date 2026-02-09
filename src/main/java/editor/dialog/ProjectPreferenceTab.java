@@ -1,6 +1,6 @@
 package editor.dialog;
 
-import editor.ImEditorGui;
+import editor.EditorWidget;
 import imgui.ImGui;
 import imgui.flag.*;
 import imgui.type.ImBoolean;
@@ -110,7 +110,7 @@ class ProjectPreferenceTab {
         ImGui.endDisabled();
 
         ImGui.spacing();
-        if (ImEditorGui.colorCtrl("Clear color", clearColor, ProjectPreferenceTab.class)) projectPreferencesChanged = true;
+        if (EditorWidget.colorCtrl("Clear color", clearColor, ProjectPreferenceTab.class)) projectPreferencesChanged = true;
         ImGui.unindent();
         ImGui.separator();
     }

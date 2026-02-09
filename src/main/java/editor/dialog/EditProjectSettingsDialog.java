@@ -1,26 +1,11 @@
 package editor.dialog;
 
-import TheCellBeyond.*;
-import editor.EditorIcons;
-import editor.ImEditorGui;
-import editor.ImGuiLayer;
 import imgui.flag.*;
-import project.Project;
-import project.ProjectData;
-import project.ProjectPreference;
 import imgui.ImGui;
 import imgui.ImVec2;
-import imgui.type.ImBoolean;
-import imgui.type.ImFloat;
-import imgui.type.ImInt;
-import imgui.type.ImString;
-import org.joml.Vector2i;
 import utility.IdPool;
 
 import java.util.*;
-import java.util.stream.Collectors;
-
-import static org.lwjgl.glfw.GLFW.*;
 
 public class EditProjectSettingsDialog {
     enum TabName {

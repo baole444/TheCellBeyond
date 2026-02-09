@@ -1,10 +1,7 @@
 package TheCellBeyond;
 
 import components.Component;
-import editor.ImEditorGui;
-import imgui.ImGui;
-import imgui.flag.ImGuiCol;
-import imgui.type.ImBoolean;
+import editor.template.EditorTemplate;
 import org.joml.Vector2f;
 import utility.WorldUnit;
 
@@ -130,27 +127,7 @@ public class Transform2D extends Component {
 
     @Override
     public void imgui() {
-        String compositeID = "Transform2D##" + getUUID();
-        ImGui.pushStyleColor(ImGuiCol.Header, 0.0f, 0.0f, 0.0f, 0.0f);
-        boolean open = ImGui.collapsingHeader(compositeID);
-        ImGui.popStyleColor(1);
-        if (!open) return;
-        ImGui.separator();
-        ImEditorGui.dragVec2Ctrl("Position", position, 0.0f, WorldUnit.WorldUnitsPerPixel, this);
-        ImEditorGui.dragVec2Ctrl("Scale", scale, 1.0f, this);
-        rotation = ImEditorGui.dragFloatCtrl("Rotation", rotation, this);
-        zIndex = ImEditorGui.dragIntCtrl("Z-Index", zIndex, this);
-        ImBoolean rZIndex = new ImBoolean(relativeZIndex);
-        if (ImGui.checkbox("Z-Index as Relative##Relative_Transform_ZIndex_" + getUUID(), rZIndex)) relativeZIndex = rZIndex.get();
-        if (ImGui.isItemHovered()) {
-            ImGui.beginTooltip();
-            ImGui.text("relativeZIndex = " + (relativeZIndex ? "true" : "false"));
-            ImGui.spacing();
-            ImGui.text("If \"true\", the final z-Index of this transform is relative to the parent/owning object.");
-            ImGui.text("For example, if this transform's z-Index is 2 and final z-Index of the parent/owning object is 3, this transform's effective z-Index is 2 + 3 = 5");
-            ImGui.endTooltip();
-        }
-        ImGui.separator();
+        EditorTemplate.render(this);
     }
 
     @Override

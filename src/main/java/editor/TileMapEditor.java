@@ -124,21 +124,21 @@ public class TileMapEditor {
             ImGui.tableSetupColumn("##TME_Zoom_Mode_Column", ImGuiTableColumnFlags.WidthStretch);
             ImGui.tableNextColumn();
             boolean isSelectionMode = editingMode == Mode.Select;
-            if (ImEditorGui.selectableIcon("Selection Mode##TME_Select_Mode_Selectable", EditorIcons.Icons.Select, "Click to toggle tile selection mode", isSelectionMode, modeSelectableSize, modeSelectableSize)) {
+            if (EditorWidget.selectableIcon("Selection Mode##TME_Select_Mode_Selectable", EditorIcons.Icons.Select, "Click to toggle tile selection mode", isSelectionMode, modeSelectableSize, modeSelectableSize)) {
                 editingMode = isSelectionMode ? null : Mode.Select;
                 EditorTileMapGrid.hide();
             }
 
             ImGui.tableNextColumn();
             boolean isDrawMode = editingMode == Mode.Draw;
-            if (ImEditorGui.selectableIcon("Draw Mode##TME_Draw_Mode_Selectable", EditorIcons.Icons.EditPen, "Click to toggle tile draw mode", isDrawMode, modeSelectableSize, modeSelectableSize)) {
+            if (EditorWidget.selectableIcon("Draw Mode##TME_Draw_Mode_Selectable", EditorIcons.Icons.EditPen, "Click to toggle tile draw mode", isDrawMode, modeSelectableSize, modeSelectableSize)) {
                 editingMode = isDrawMode ? null : Mode.Draw;
                 EditorTileMapGrid.draw(!isDrawMode);
             }
 
             ImGui.tableNextColumn();
             boolean isEraserMode = editingMode == Mode.Erase;
-            if (ImEditorGui.selectableIcon("Eraser Mode##TME_Eraser_Mode_Selectable", EditorIcons.Icons.Eraser, "Click to toggle tile eraser mode", isEraserMode, modeSelectableSize, modeSelectableSize)) {
+            if (EditorWidget.selectableIcon("Eraser Mode##TME_Eraser_Mode_Selectable", EditorIcons.Icons.Eraser, "Click to toggle tile eraser mode", isEraserMode, modeSelectableSize, modeSelectableSize)) {
                 editingMode = isEraserMode ? null : Mode.Erase;
                 EditorTileMapGrid.draw(!isEraserMode);
             }
@@ -177,7 +177,7 @@ public class TileMapEditor {
                 }
 
                 ImGui.tableNextColumn();
-                if (ImEditorGui.iconButton("##TME_Zoom_level_Control_Reset_Button", EditorIcons.Icons.Reset, "Reset zoom to 1.0")) zoom = 1.0f;
+                if (EditorWidget.iconButton("##TME_Zoom_level_Control_Reset_Button", EditorIcons.Icons.Reset, "Reset zoom to 1.0")) zoom = 1.0f;
                 ImGui.endTable();
             }
 
