@@ -20,54 +20,54 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
+/**
+ * Project stores user's project data structure, resource import and paths to scene files.
+ */
 public class Project {
     private static ProjectData CurrentProject = null;
     private static String ProjectRoot = null;
     private static ProjectPreference preference = null;
     private static String _projectYmlPath = null;
-    private static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory());
+    private static final ObjectMapper YAMLMapper = new ObjectMapper(new YAMLFactory());
     private static final List<String> requiredDirs = List.of("assets", "prefabs", "scenes", "sheets");
-    public static final String PROJECT_VERSION = "0.1";
+    public static final String ProjectVersion = "0.1";
 
-    public static ProjectData loadFromYaml(String path) {
+    /**
+     * Check if there is a project with valid path loaded or not.
+     * @return true if current project and project root not null
+     */
+    public static boolean loaded() {
+        return CurrentProject != null && ProjectRoot != null;
+    }
+
+    public static void loadFromYaml(String path) {
         try {
             File projectFile = new File(path);
 
-            CurrentProject = YAML_MAPPER.readValue(projectFile, ProjectData.class);
+            CurrentProject = YAMLMapper.readValue(projectFile, ProjectData.class);
             ProjectRoot = UnifiedPaths.toRoot(path);
             UnifiedPaths.initialize(ProjectRoot);
             _projectYmlPath = path;
 
-            if (CurrentProject != null) {
-                if (CurrentProject.project() == null) {
-                    System.err.println("Project preference is missing, generating new preference...");
-                    CurrentProject = new ProjectData(CurrentProject.version(),
-                            new ProjectPreference(), CurrentProject.assets(),
-                            CurrentProject.sheets(), CurrentProject.scenes(),
-                            currentProject().inputActions(),
-                            currentProject().physicLayers()
-                    );
-                    save();
-                }
-                preference = CurrentProject.project();
-
-                sanctionRelativePath();
-                checkAndAddRequiredDirs();
+            if (CurrentProject == null) {
+                System.err.println("Cannot load project file!");
+                return;
             }
-            EngineEventCallback.emit(null, new EditorEvent(EditorEvent.Type.ProjectLoaded));
-            return CurrentProject;
+
+            preference = CurrentProject.project();
+            sanctionRelativePath();
+            checkAndAddRequiredDirs();
+            EngineEventCallback.emit(CurrentProject, new EditorEvent(EditorEvent.Type.ProjectLoaded));
         } catch (JacksonIOException e) {
             System.err.println("Failed to load project file: " + e.getMessage());
-            return null;
         }
     }
 
     public static void saveToYaml(String path) {
         try {
-            if (CurrentProject != null) {
-                YAML_MAPPER.writeValue(new File(path), CurrentProject);
-                _projectYmlPath = path;
-            }
+            if (CurrentProject == null) return;
+            YAMLMapper.writeValue(new File(path), CurrentProject);
+            _projectYmlPath = path;
         } catch (JacksonIOException e) {
             System.err.println("Failed to save project file: " + e.getMessage());
         }
@@ -99,10 +99,10 @@ public class Project {
         ProjectPreference newPref = preference;
         if (newPref == null) newPref = new ProjectPreference();
 
-        ProjectData newProject = new ProjectData(PROJECT_VERSION, newPref);
+        ProjectData newProject = new ProjectData(ProjectVersion, newPref);
 
         try {
-            YAML_MAPPER.writeValue(potentialProject.toFile(), newProject);
+            YAMLMapper.writeValue(potentialProject.toFile(), newProject);
         } catch (JacksonIOException e) {
             System.err.println("Failed to create new project");
             return false;
@@ -122,13 +122,11 @@ public class Project {
 
     public static List<String> getSceneNames() {
         if (CurrentProject == null) return List.of();
-
         return CurrentProject.scenes().keySet().stream().toList();
     }
 
     public static ProjectSceneMap getScene(String key) {
         if (CurrentProject == null || CurrentProject.scenes() == null) return null;
-
         return CurrentProject.scenes().get(key);
     }
 
@@ -470,109 +468,88 @@ public class Project {
 
     private static void sanctionRelativePath() {
         if (CurrentProject == null) return;
-
         boolean modified = false;
 
-        if (CurrentProject.assets() != null) {
-            for (Map.Entry<UUID, ProjectAssetMap> entry : new HashMap<>(CurrentProject.assets()).entrySet()) {
-                String path = entry.getValue().path();
+        for (Map.Entry<UUID, ProjectAssetMap> entry : new HashMap<>(CurrentProject.assets()).entrySet()) {
+            String path = entry.getValue().path();
+            String sanctioned = fixRelativePath(path);
+            if (path.equals(sanctioned)) continue;
+            modified = true;
+            ProjectAssetMap fixed = new ProjectAssetMap(sanctioned, entry.getValue().sizeX(), entry.getValue().sizeY());
+            updateAsset(entry.getKey(), fixed);
+        }
+
+        for (Map.Entry<String, Map<String, ProjectSheetMap>> category : new HashMap<>(CurrentProject.sheets()).entrySet()) {
+            for (Map.Entry<String, ProjectSheetMap> sheet : new HashMap<>(category.getValue()).entrySet()) {
+                String path = sheet.getValue().path();
                 String sanctioned = fixRelativePath(path);
-                if (!path.equals(sanctioned)) {
-                    modified = true;
-                    ProjectAssetMap fixed = new ProjectAssetMap(sanctioned, entry.getValue().sizeX(), entry.getValue().sizeY());
-                    updateAsset(entry.getKey(), fixed);
-                }
+                if (path.equals(sanctioned)) return;
+                modified = true;
+                ProjectSheetMap current = sheet.getValue();
+                ProjectSheetMap fixed = new ProjectSheetMap(sanctioned, current.numberOfSprite(),
+                        current.spriteSizeX(), current.spriteSizeY(),
+                        current.spriteSpacingX(), current.spriteSpacingY(),
+                        current.spriteStartPosX(), current.spriteStartPosY()
+                );
+
+                updateSheet(category.getKey(), sheet.getKey(), fixed);
             }
         }
 
-        if (CurrentProject.sheets() != null) {
-            for (Map.Entry<String, Map<String, ProjectSheetMap>> category : new HashMap<>(CurrentProject.sheets()).entrySet()) {
-                for (Map.Entry<String, ProjectSheetMap> sheet : new HashMap<>(category.getValue()).entrySet()) {
-                    String path = sheet.getValue().path();
-                    String sanctioned = fixRelativePath(path);
-                    if (!path.equals(sanctioned)) {
-                        modified = true;
-                        ProjectSheetMap current = sheet.getValue();
-                        ProjectSheetMap fixed = new ProjectSheetMap(sanctioned, current.numberOfSprite(),
-                                current.spriteSizeX(), current.spriteSizeY(),
-                                current.spriteSpacingX(), current.spriteSpacingY(),
-                                current.spriteStartPosX(), current.spriteStartPosY()
-                        );
-
-                        updateSheet(category.getKey(), sheet.getKey(), fixed);
-                    }
-                }
+        for (Map.Entry<String, ProjectSceneMap> entry : new HashMap<>(CurrentProject.scenes()).entrySet()) {
+            String path = entry.getValue().path();
+            String sanctioned = fixRelativePath(path);
+            if (!path.equals(sanctioned)) {
+                modified = true;
+                updateScene(entry.getKey(), new ProjectSceneMap(sanctioned));
             }
         }
 
-        if (CurrentProject.scenes() != null) {
-            for (Map.Entry<String, ProjectSceneMap> entry : new HashMap<>(CurrentProject.scenes()).entrySet()) {
-                String path = entry.getValue().path();
-                String sanctioned = fixRelativePath(path);
-                if (!path.equals(sanctioned)) {
-                    modified = true;
-                    updateScene(entry.getKey(), new ProjectSceneMap(sanctioned));
-                }
-            }
-        }
-
-        if (modified) {
-            System.out.println("Corrected current project's relative paths");
-        }
+        if (modified) System.out.println("Corrected current project's relative paths");
     }
 
     public static void loadProjectData() {
         if (CurrentProject == null) return;
 
-        if (CurrentProject.sheets() != null) {
-            for (Map.Entry<String, Map<String, ProjectSheetMap>> categories : CurrentProject.sheets().entrySet()) {
-                for (Map.Entry<String, ProjectSheetMap> sheets : categories.getValue().entrySet()) {
-                    ProjectSheetMap sheetMap = sheets.getValue();
-                    String projectPath = "project://" + sheetMap.path();
+        for (Map.Entry<String, Map<String, ProjectSheetMap>> categories : CurrentProject.sheets().entrySet()) {
+            for (Map.Entry<String, ProjectSheetMap> sheets : categories.getValue().entrySet()) {
+                ProjectSheetMap sheetMap = sheets.getValue();
+                String projectPath = UnifiedPaths.ProjectPrefix + sheetMap.path();
+                Texture texture = AssetsPool.loadTexture(projectPath);
+                SpriteSheet sheet = new SpriteSheet(texture, sheetMap.spriteSizeX(), sheetMap.spriteSizeY(),
+                        sheetMap.numberOfSprite(), sheetMap.spriteSpacingX(), sheetMap.spriteSpacingY(),
+                        sheetMap.spriteStartPosX(), sheetMap.spriteStartPosY()
+                );
 
-                    Texture texture = AssetsPool.loadTexture(projectPath);
-                    SpriteSheet sheet = new SpriteSheet(texture, sheetMap.spriteSizeX(), sheetMap.spriteSizeY(),
-                            sheetMap.numberOfSprite(), sheetMap.spriteSpacingX(), sheetMap.spriteSpacingY(),
-                            sheetMap.spriteStartPosX(), sheetMap.spriteStartPosY()
-                    );
-
-                    AssetsPool.addSpriteSheet(projectPath, sheet);
-                }
+                AssetsPool.addSpriteSheet(projectPath, sheet);
             }
         }
 
-        if (CurrentProject.assets() != null) {
-            for (Map.Entry<UUID, ProjectAssetMap> entry : CurrentProject.assets().entrySet()) {
-                ProjectAssetMap assetMap = entry.getValue();
-                String projectPath = "project://" + assetMap.path();
+        for (Map.Entry<UUID, ProjectAssetMap> entry : CurrentProject.assets().entrySet()) {
+            ProjectAssetMap assetMap = entry.getValue();
+            String projectPath = UnifiedPaths.ProjectPrefix + assetMap.path();
+            Texture texture = AssetsPool.loadTexture(projectPath);
+            TextureUnit unit = new TextureUnit(texture, assetMap.sizeX(), assetMap.sizeY());
 
-                Texture texture = AssetsPool.loadTexture(projectPath);
-                TextureUnit unit = new TextureUnit(texture, assetMap.sizeX(), assetMap.sizeY());
-
-                AssetsPool.addTextureUnit(projectPath, unit);
-            }
+            AssetsPool.addTextureUnit(projectPath, unit);
         }
     }
 
     private static String fixRelativePath(String path) {
         if (path == null) return null;
-
         if (path.startsWith("/")) return "." + path;
-
         return path;
     }
 
     private static void checkAndAddRequiredDirs() {
         if (CurrentProject == null || ProjectRoot == null) return;
-
         for (String dir : requiredDirs) {
             Path toDir = Path.of(UnifiedPaths.resolveToAbsolute(ProjectRoot, dir));
-            if (!Files.isDirectory(toDir)) {
-                try {
-                    Files.createDirectories(toDir);
-                } catch (IOException e) {
-                    System.err.println("Cannot create missing '" + dir + "' directory for the project");
-                }
+            if (Files.isDirectory(toDir)) continue;
+            try {
+                Files.createDirectories(toDir);
+            } catch (IOException e) {
+                System.err.println("Cannot create missing '" + dir + "' directory for the project");
             }
         }
     }

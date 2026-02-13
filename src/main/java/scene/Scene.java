@@ -4,24 +4,14 @@ import TheCellBeyond.*;
 import TheCellBeyond.internal.DataSnapshot;
 import TheCellBeyond.internal.LogicServer;
 import TheCellBeyond.internal.RenderUpdateSnapshot;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import components.ComponentSerializer;
 import components.Component;
 import components.IsNotSelectable;
 import editor.components.EditorObjectIndicator;
-import editor.dialog.SaveSceneAsDialog;
 import eventviewer.EngineEventCallback;
 import eventviewer.event.SceneEvent;
 import physic2d.PhysicBody2D;
-import project.Project;
 import physic2d.Physic2D;
-import utility.UnifiedPaths;
 
-import java.io.FileWriter;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -29,6 +19,7 @@ public class Scene {
     private final SceneLoader sceneLoader;
     private transient boolean sceneStarted = false;
     private final DataSnapshot sceneData;
+    private UUID sceneUUID;
 
     private final List<GameObject> addedGameObjects;
     private final List<GameObject> removedGameObjects;
@@ -242,6 +233,10 @@ public class Scene {
         return sceneData.gameObjectByUUIDs();
     }
 
+    /**
+     * Get the list of object that is serialized from scene.
+     * @return a new list of {@link GameObject}
+     */
     public List<GameObject> getSerializedObject() {
         return sceneData.gameObjectByUUIDs().values().stream().filter(GameObject::isSerialize).collect(Collectors.toCollection(ArrayList::new));
     }
@@ -331,74 +326,27 @@ public class Scene {
         return sceneData.physic2D();
     }
 
+    public UUID sceneUUID() {
+        return sceneUUID;
+    }
+
     public void saveLevel() {
-        String currentSceneName = LogicServer.currentSceneName();
-        if (currentSceneName == null) {
-            SaveSceneAsDialog.show(this::saveLevel);
-            return;
-        }
-
-        String resolvedPath = UnifiedPaths.resolveToAbsolute(Project.projectRoot(), Project.currentProject().scenes().get(currentSceneName).path());
-
-        Gson gson = new GsonBuilder()
-                .setPrettyPrinting()
-                .registerTypeAdapter(Component.class, new ComponentSerializer())
-                .registerTypeHierarchyAdapter(GameObject.class, new GameObjectSerializer())
-                .enableComplexMapKeySerialization()
-                .create();
-
-        try {
-            FileWriter writer = new FileWriter(resolvedPath);
-            List<GameObject> serializeList = new ArrayList<>();
-            for (GameObject obj : sceneData.gameObjectByUUIDs().values()) {
-                if (obj.isSerialize() && Project.currentProject() != null && Project.projectRoot() != null) {
-                    obj.prepareForSerialization();
-                    serializeList.add(obj);
-                }
-            }
-            writer.write(gson.toJson(serializeList));
-            writer.close();
-        } catch (IOException e) {
-            System.err.println("Failed to save level!");
-            System.err.println("_______________________________________________________________________\n");
-            System.err.println(e.getMessage());
-            System.err.println("\n_______________________________________________________________________\n");
-        }
+        SceneManager.saveCurrentScene();
     }
 
     public void loadLevel() {
-        String currentSceneName = LogicServer.currentSceneName();
+        SceneManager.loadScene(this);
+    }
 
-        if (currentSceneName == null) return;
-
-        String resolvedPath = UnifiedPaths.resolveToAbsolute(Project.projectRoot(), Project.currentProject().scenes().get(currentSceneName).path());
-
-        Gson gson = new GsonBuilder()
-                .setPrettyPrinting()
-                .registerTypeAdapter(Component.class, new ComponentSerializer())
-                .registerTypeHierarchyAdapter(GameObject.class, new GameObjectSerializer())
-                .enableComplexMapKeySerialization()
-                .create();
-
-        String loadFile;
-        try {
-            loadFile = new String(Files.readAllBytes(Paths.get(resolvedPath)));
-        } catch (IOException e) {
-            System.out.println("No level file found, generating new file...");
-            saveLevel();
-            System.out.println("File created.");
-            return;
-        }
-
-        if (!loadFile.isEmpty()) {
-            GameObject[] objects = gson.fromJson(loadFile, GameObject[].class);
-            for (GameObject go : objects) {
-                addObjToScene(go, null);
-            }
-
-            for (GameObject go : objects) {
-                go.restoreHierarchy(this);
-            }
-        }
+    /**
+     * Exclusive method for scene manager to load the deserialized data of this scene.
+     * @param file the file data to load from
+     */
+    void loadDataFromFile(SceneFile file) {
+        if (file == null || file.objects().isEmpty()) return;
+        sceneUUID = file.uuid();
+        List<GameObject> objects = file.objects();
+        objects.forEach(go -> addObjToScene(go, null));
+        objects.forEach(go -> go.restoreHierarchy(this));
     }
 }

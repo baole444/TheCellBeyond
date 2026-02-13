@@ -2,15 +2,13 @@ package editor.dialog;
 
 import TheCellBeyond.internal.LogicServer;
 import project.Project;
-import project.ProjectSceneMap;
-import eventviewer.EngineEventCallback;
-import eventviewer.event.EditorEvent;
 import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImString;
+import scene.SceneManager;
 
 public class NewSceneDialog {
     private static final String POPUP_ID = "Create new scene";
@@ -119,41 +117,31 @@ public class NewSceneDialog {
 
     private static void checkNewSceneName() {
         String name = sceneName.get().trim();
-
-        if (name.isEmpty()) {
+        if (!SceneManager.validSceneName(name)) {
             nameTaken = false;
             errorMessage = "Name cannot be empty";
             return;
         }
-
-        if (Project.currentProject() != null && Project.getSceneNames().contains(name)) {
+        if (!SceneManager.sceneNameAvailable(name)) {
             nameTaken = true;
             errorMessage = "Scene '" + name + "' already existed";
             return;
         }
-
         nameTaken = false;
         errorMessage = "";
     }
 
     private static void createNewScene() {
         String name = sceneName.get().trim();
-
-        if (name.isEmpty() || nameTaken) {
+        if (!SceneManager.validSceneName(name) || nameTaken) {
             errorMessage = "Entered name is empty or already taken";
             return;
         }
-
-        String scenePath = "scenes/" + name.replaceAll("[^a-zA-Z0-9_-]", "_") + ".cell";
-        ProjectSceneMap newScene = new ProjectSceneMap(scenePath);
-        if (!Project.addScene(name, newScene)) {
+        if (!SceneManager.createNewScene(name)) {
             errorMessage = "Failed to create new scene '" + name + "'";
             return;
         }
-
-        LogicServer.currentSceneName(name);
-        EngineEventCallback.emit(name, new EditorEvent(EditorEvent.Type.LoadEditingSceneFromDisk));
-
+        SceneManager.requestLoadScene(name);
         showDialog = false;
         ImGui.closeCurrentPopup();
     }

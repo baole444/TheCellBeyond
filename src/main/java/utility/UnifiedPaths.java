@@ -19,8 +19,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * </ul>
  */
 public class UnifiedPaths {
-    private static final String EnginePrefix = "engine://";
-    private static final String ProjectPrefix = "project://";
+    public static final String EnginePrefix = "engine://";
+    public static final String ProjectPrefix = "project://";
 
     private final String projectRoot;
     private final ConcurrentHashMap<String, AssetPath> pathCache = new ConcurrentHashMap<>();

@@ -29,7 +29,7 @@ public class ConsoleOutput implements EngineLogListener {
     private static final String errorId = "Error##enable_error_log_history";
 
     private final ImBoolean enableDebug = new ImBoolean(false);
-    private final ImBoolean enableInfo = new ImBoolean(false);
+    private final ImBoolean enableInfo = new ImBoolean(true);
     private final ImBoolean enableWarning = new ImBoolean(true);
     private final ImBoolean enableError = new ImBoolean(true);
     private final EnumMap<EngineLog.Level, ImBoolean> logFilter;
@@ -91,14 +91,11 @@ public class ConsoleOutput implements EngineLogListener {
             ImGui.endChild();
             return;
         }
-
         List<LogEntry> logs = entries.toList();
         for (LogEntry entry : logs) {
             printLog(entry);
         }
-
         if (ImGui.getScrollY() >= ImGui.getScrollMaxY() - 1.0f) ImGui.setScrollHereY(1.0f);
-
         ImGui.endChild();
     }
 

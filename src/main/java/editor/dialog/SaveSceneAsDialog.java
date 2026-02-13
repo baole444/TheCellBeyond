@@ -1,14 +1,12 @@
 package editor.dialog;
 
-import TheCellBeyond.internal.LogicServer;
-import project.Project;
-import project.ProjectSceneMap;
 import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImString;
+import scene.SceneManager;
 
 public class SaveSceneAsDialog {
     private static final String POPUP_ID = "Save scene as...";
@@ -104,13 +102,12 @@ public class SaveSceneAsDialog {
     private static void checkNewSceneName() {
         String name = sceneName.get().trim();
 
-        if (name.isEmpty()) {
+        if (!SceneManager.validSceneName(name)) {
             nameTaken = false;
             errorMessage = "Name cannot be empty";
             return;
         }
-
-        if (Project.currentProject() != null && Project.getSceneNames().contains(name)) {
+        if (!SceneManager.sceneNameAvailable(name)) {
             nameTaken = true;
             errorMessage = "Scene '" + name + "' already existed";
             return;
@@ -122,20 +119,14 @@ public class SaveSceneAsDialog {
 
     private static void saveScene() {
         String name = sceneName.get().trim();
-
-        if (name.isEmpty() || nameTaken) {
+        if (!SceneManager.validSceneName(name) || nameTaken) {
             errorMessage = "Entered name is empty or already taken";
             return;
         }
-
-        String scenePath = "scenes/" + name.replaceAll("[^a-zA-Z0-9_-]", "_") + ".cell";
-        ProjectSceneMap newScene = new ProjectSceneMap(scenePath);
-        if (!Project.addScene(name, newScene)) {
+        if (!SceneManager.saveSceneAs(name)) {
             errorMessage = "Failed to save new scene '" + name + "'";
             return;
         }
-
-        LogicServer.currentSceneName(name);
 
         if (onSaveCallback != null) {
             Runnable callback = onSaveCallback;
