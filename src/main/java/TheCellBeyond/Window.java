@@ -24,6 +24,7 @@ import org.lwjgl.openal.ALCapabilities;
 import org.lwjgl.opengl.GL;
 import render.*;
 import render.text.FontManager;
+import scene.SceneManager;
 import utility.AssetsPool;
 import editor.dialog.ExitConfirmDialog;
 import utility.Settings;
@@ -38,6 +39,9 @@ import static org.lwjgl.openal.ALC10.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
+/**
+ * The main window of TCB, responsible for initializing GLFW window and IO callbacks.
+ */
 public final class Window implements EngineEventListener {
     private static final EngineLog LOGGER = new EngineLog(Window.class);
     private int width;
@@ -54,15 +58,15 @@ public final class Window implements EngineEventListener {
     private ObjectSelection objectSelection;
 
     private final IconLoader iconFile = IconLoader.loadIcon(Settings.TexturePath.TCBIcon);
-
     private boolean shouldClose;
     private boolean forceClose = false;
-
     private long soundContext;
     private long audioDevice;
-
     private boolean projectLoaded = false;
 
+    /**
+     * Create a new window instance and register it with the Engine Event Callback.
+     */
     public Window() {
         this.width = 640;
         this.height = 480;
@@ -75,18 +79,24 @@ public final class Window implements EngineEventListener {
         a = 1.0f;
     }
 
+    /**
+     * Get the current window instance.
+     * @return {@link Window} instance
+     */
     public static Window get() {
         if (Window.window == null) Window.window = new Window();
         return Window.window;
     }
 
+    /**
+     * Start the window life cycle.
+     */
     public void run() {
         LOGGER.info("Starting LWJGL " + Version.getVersion());
         initWindow();
         Renderer.init();
         if (!projectLoaded) {
             StartupWindow.show(windowPtr, imGuiLayer, width, height);
-
             projectLoaded = (Project.currentProject() != null && Project.projectRoot() != null);
 
             if (glfwWindowShouldClose(windowPtr)) {
@@ -97,7 +107,6 @@ public final class Window implements EngineEventListener {
 
         if (projectLoaded) {
             String projectDetail = " - [" + Project.preference().name() + "] [" + Project.projectRoot() + "]";
-
             glfwSetWindowTitle(windowPtr, this.title + projectDetail);
             loop();
         }
@@ -112,64 +121,35 @@ public final class Window implements EngineEventListener {
 
     private void initWindow() {
         GLFWErrorCallback.createPrint(System.err).set();
-
         if (!glfwInit()) {
-            LOGGER.error("Unable to start GLFW.");
+            LOGGER.error("Failed to initialize window: GLFW init failed");
             System.exit(-1);
         }
-
         String glslVer = "#version 330 core";
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-
         Vector2i windowSize = screenSize();
         width = windowSize.x;
         height = windowSize.y;
-
-        glfwDefaultWindowHints();
-        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-        glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-        glfwWindowHint(GLFW_MAXIMIZED, GLFW_FALSE);
-
+        applyWindowHints();
         windowPtr = glfwCreateWindow(width, height, title, NULL, NULL);
         LOGGER.info("Creating new window, dimension: " + width + " x " + height);
         if (windowPtr == NULL) {
-            LOGGER.error("Failed to spawn window.");
+            LOGGER.error("Failed to create GLFW window: null pointer");
             System.exit(-1);
         }
-
         setupWindowCallback();
-
         glfwMakeContextCurrent(windowPtr);
         glfwSwapInterval(1);
         glfwShowWindow(windowPtr);
-        String defaultAudioDevice = alcGetString(0, ALC_DEFAULT_DEVICE_SPECIFIER);
-        audioDevice = alcOpenDevice(Objects.requireNonNull(defaultAudioDevice));
-
-        int[] ATTB = {0};
-        soundContext = alcCreateContext(audioDevice, ATTB);
-        alcMakeContextCurrent(soundContext);
-
-        ALCCapabilities alcCapabilities = ALC.createCapabilities(audioDevice);
-        ALCapabilities alCapabilities = AL.createCapabilities(alcCapabilities);
-
-        if (!alCapabilities.OpenAL10) {
-            LOGGER.warning("OpenAL10 is not supported on this device");
-            System.exit(-2);
-        }
+        setupAudioDevice();
 
         GL.createCapabilities();
         glEnable(GL_BLEND);
         glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-
         frameBuffer = new FrameBuffer(width, height);
         objectSelection = new ObjectSelection(width, height);
-
         glViewport(0, 0, width, height);
-
         imGuiLayer = new ImGuiLayer(windowPtr);
         imGuiLayer.initImGui(glslVer);
-
         glfwMaximizeWindow(windowPtr);
 
         if (iconFile != null) {
@@ -181,13 +161,34 @@ public final class Window implements EngineEventListener {
         }
     }
 
+    private void setupAudioDevice() {
+        String defaultAudioDevice = alcGetString(0, ALC_DEFAULT_DEVICE_SPECIFIER);
+        audioDevice = alcOpenDevice(Objects.requireNonNull(defaultAudioDevice));
+        int[] ATTB = {0};
+        soundContext = alcCreateContext(audioDevice, ATTB);
+        alcMakeContextCurrent(soundContext);
+        ALCCapabilities alcCapabilities = ALC.createCapabilities(audioDevice);
+        ALCapabilities alCapabilities = AL.createCapabilities(alcCapabilities);
+        if (!alCapabilities.OpenAL10) {
+            LOGGER.warning("OpenAL10 is not supported on this device");
+            System.exit(-2);
+        }
+    }
+
+    private static void applyWindowHints() {
+        glfwDefaultWindowHints();
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+        glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+        glfwWindowHint(GLFW_MAXIMIZED, GLFW_FALSE);
+    }
+
     private void setupWindowCallback() {
         glfwSetWindowSizeCallback(windowPtr, (window, w, h) -> {
             if (w <= 0 || h <= 0) return;
-
             width = w;
             height = h;
-
             frameBuffer.resize(width, height);
             objectSelection.resize(width, height);
             if (LogicServer.currentScene() != null && LogicServer.currentScene().viewport() != null && !LogicServer.runtimeMode()) {
@@ -209,9 +210,7 @@ public final class Window implements EngineEventListener {
                     glfwSetWindowShouldClose(windowPtr, true);
                     return;
                 }
-
-                if (projectLoaded && UserPreference.editorPreferences().autoSaveOnExit() && !LogicServer.runtimeMode()) LogicServer.currentScene().saveLevel();
-
+                if (projectLoaded && UserPreference.editorPreferences().autoSaveOnExit()) SceneManager.saveCurrentScene();
                 glfwSetWindowShouldClose(windowPtr, false);
                 shouldClose = ExitConfirmDialog.exitDialog();
                 if (shouldClose) {
@@ -330,9 +329,13 @@ public final class Window implements EngineEventListener {
         a = clearColor.a();
 
         String projectDetail = " - [" + Project.preference().name() + "] [" + Project.projectRoot() + "]";
-        glfwSetWindowTitle(windowPtr, this.title + projectDetail);
+        glfwSetWindowTitle(windowPtr, title + projectDetail);
     }
 
+    /**
+     * Get this window pointer.
+     * @return the pointer address
+     */
     public long getWindowPtr() {
         return windowPtr;
     }

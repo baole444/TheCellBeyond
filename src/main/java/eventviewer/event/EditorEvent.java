@@ -4,7 +4,6 @@ public class EditorEvent extends Event {
     public enum Type {
         LoadProjectFromDisk,
         ProjectLoaded,
-
         CreateNewScene,
         SaveEditingSceneToDisk,
         LoadEditingSceneFromDisk,

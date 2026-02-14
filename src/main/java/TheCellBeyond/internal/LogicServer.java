@@ -34,10 +34,8 @@ public class LogicServer implements EngineEventListener {
 
     public static void changeScene(SceneLoader sceneLoader) {
         if (currentScene != null) currentScene.destroy();
-
         Properties.clearSelection();
         SceneTree.clearSelection();
-
         currentScene = new Scene(sceneLoader);
         currentScene.loadLevel();
         currentScene.init();
@@ -123,8 +121,8 @@ public class LogicServer implements EngineEventListener {
     private void handleRuntimeEvent(Object object, RuntimeEvent event) {
         switch (event.type) {
             case RuntimeEvent.Type.RuntimeStarted -> {
-                runtimeMode = true;
                 currentScene.saveLevel();
+                runtimeMode = true;
                 changeScene(new SceneEditor());
                 Logger.info("Test play started.");
             }

@@ -3,62 +3,23 @@ package editor;
 import TheCellBeyond.internal.LogicServer;
 import editor.dialog.*;
 import project.Project;
-import eventviewer.EngineEventCallback;
-import eventviewer.event.EditorEvent;
 import imgui.ImGui;
-import imgui.internal.flag.ImGuiItemFlags;
+import scene.SceneManager;
 
 import java.util.List;
 
-public class MenuBar {
-    public static void imgui() {
+/**
+ * Menu bar of the editor.
+ */
+final class MenuBar {
+    /**
+     * Render the editor menu bar.
+     */
+    static void imgui() {
         if (!ImGui.beginMenuBar()) return;
-        ImGui.pushID(ImGuiItemFlags.SelectableDontClosePopup);
-        if (ImGui.beginMenu("Editor")) {
-            if (ImGui.menuItem("Preferences###Editor_prefs")) EditEditorPreferencesDialog.show();
-            if (ImGui.menuItem("Reset Layout###Reset_Editor_layout")) ImGuiLayer.resetLayout();
-            ImGui.endMenu();
-        }
-
-        if (ImGui.beginMenu("Project")) {
-            if (ImGui.menuItem("Preferences###Project_prefs")) EditProjectSettingsDialog.show();
-            ImGui.separator();
-            if (ImGui.menuItem("Exit to Project List")) ExitToProjectListDialog.show();
-
-            ImGui.endMenu();
-        }
-
-        if (ImGui.beginMenu("Scenes")){
-            if (ImGui.menuItem("Save current Scene", "Ctrl+S")) {
-                EngineEventCallback.emit(null, new EditorEvent(EditorEvent.Type.SaveEditingSceneToDisk));
-            }
-
-            if (ImGui.menuItem("Create new Scene")) {
-                boolean requireSave = Project.getSceneNames().contains(LogicServer.currentSceneName());
-                NewSceneDialog.show(requireSave);
-            }
-            ImGui.separator();
-            if (!Project.getSceneNames().isEmpty() && ImGui.beginMenu("Open Scene")) {
-                List<String> sceneNameList = Project.getSceneNames();
-                for (String name : sceneNameList) {
-                    if (ImGui.menuItem(name)) {
-                        String sceneName = LogicServer.currentSceneName();
-
-                        if (sceneName != null && !sceneName.equals(name) && Project.getSceneNames().contains(sceneName)) {
-                            ConfirmSaveSceneDialog.show(() -> EngineEventCallback.emit(name, new EditorEvent(EditorEvent.Type.LoadEditingSceneFromDisk)));
-                        } else {
-                            EngineEventCallback.emit(name, new EditorEvent(EditorEvent.Type.LoadEditingSceneFromDisk));
-                        }
-                    }
-                }
-
-                ImGui.endMenu();
-            }
-
-            ImGui.endMenu();
-        }
-
-        ImGui.popID();
+        renderEditorMenu();
+        renderProjectMenu();
+        renderSceneMenu();
         ImGui.endMenuBar();
 
         EditProjectSettingsDialog.imgui();
@@ -67,6 +28,50 @@ public class MenuBar {
         SaveSceneAsDialog.imgui();
         ConfirmSaveSceneDialog.imgui();
         NewSceneDialog.imgui();
+    }
+
+    private static void renderEditorMenu() {
+        if (!ImGui.beginMenu("Editor##MenuBar_Editor_Menu")) return;
+        if (ImGui.menuItem("Preferences##MenuBar_Editor_prefs")) EditEditorPreferencesDialog.show();
+        if (ImGui.menuItem("Reset Layout##MenuBar_Reset_Editor_layout")) ImGuiLayer.resetLayout();
+        ImGui.endMenu();
+    }
+
+    private static void renderProjectMenu() {
+        if (!ImGui.beginMenu("Project##MenuBar_Project_Menu")) return;
+        if (ImGui.menuItem("Preferences##MenuBar_Project_prefs")) EditProjectSettingsDialog.show();
+        ImGui.separator();
+        if (ImGui.menuItem("Exit to Project List##MenuBar_Exit_To_Project_List")) ExitToProjectListDialog.show();
+        ImGui.endMenu();
+    }
+
+    private static void renderSceneMenu() {
+        if (!ImGui.beginMenu("Scenes##MenuBar_Scene_Menu")) return;
+        if (ImGui.menuItem("Save current Scene", "Ctrl+S")) SceneManager.saveCurrentScene();
+        if (ImGui.menuItem("Create new Scene##MenuBar_Scene_Menu_Create_New_Scene")) showNewSceneDialog();
+        ImGui.separator();
+        if (!ImGui.beginMenu("Open Scene##MenuBar_Scene_Menu_Open_Scene_Menu")) {
+            ImGui.endMenu();
+            return;
+        }
+        List<String> sceneNameList = Project.getSceneNames();
+        if (sceneNameList.isEmpty()) {
+            ImGui.text("No scene added yet.");
+            if (ImGui.menuItem("Create new Scene?##MenuBar_Scene_Menu_Ask_New_Scene")) showNewSceneDialog();
+            ImGui.endMenu();
+            return;
+        }
+        for (String name : sceneNameList) {
+            if (!ImGui.menuItem(name)) continue;
+            ConfirmSaveSceneDialog.show(() -> SceneManager.requestLoadScene(name));
+        }
+        ImGui.endMenu();
+        ImGui.endMenu();
+    }
+
+    private static void showNewSceneDialog() {
+        boolean requireSave = Project.loaded() && Project.getScene(LogicServer.currentSceneName()) != null;
+        NewSceneDialog.show(requireSave);
     }
 }
 
