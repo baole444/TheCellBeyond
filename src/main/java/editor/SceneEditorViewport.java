@@ -35,7 +35,6 @@ public class SceneEditorViewport implements EngineEventListener {
 
     public void imgui() {
         String sceneName = LogicServer.currentSceneName();
-
         if (sceneName == null) currentSceneName = "Untitled";
         if (sceneName != null && !currentSceneName.equals(sceneName)) currentSceneName = sceneName;
         if (!ImGui.begin(WINDOW_ID, ImGuiWindowFlags.NoScrollbar
@@ -135,23 +134,19 @@ public class SceneEditorViewport implements EngineEventListener {
         float aspectRatio = LogicServer.runtimeMode() ?
                 Project.getGameAspectRatio() :
                 (float) fb.getWidth() / fb.getHeight();
-
         float usableWidth = winSize.x;
         float usableHeight = usableWidth / aspectRatio;
         if (usableHeight > winSize.y) {
             usableHeight = winSize.y;
             usableWidth = usableHeight * aspectRatio;
         }
-
         if (usableWidth != currentWidth || usableHeight != currentHeight) {
             currentWidth = usableWidth;
             currentHeight = usableHeight;
         }
-
         if (!LogicServer.runtimeMode()) {
             LogicServer.currentScene().viewport().adjustSceneScale(usableHeight);
         }
-
         return new ImVec2(usableWidth, usableHeight);
     }
 

@@ -1,8 +1,28 @@
 package scene;
 
+/**
+ * Scene loader is used by the {@link Scene} to execute logic at important point in scene life cycle.
+ */
 public abstract class SceneLoader {
-    public abstract void onSceneEntered(Scene scene);
+    /**
+     * Called on scene finish loading resource.
+     * @param scene the scene that call this method
+     */
     public abstract void loadResource(Scene scene);
-    public void imgui() {}
+
+    /**
+     * Called on scene finish starting.
+     * @param scene the scene that call this method
+     */
+    public abstract void onSceneStarted(Scene scene);
+
+    /**
+     * Called on scene finish clean up.
+     */
     public abstract void onSceneEnd();
+
+    /**
+     * Additional Editor UI export.
+     */
+    public void imgui() {}
 }

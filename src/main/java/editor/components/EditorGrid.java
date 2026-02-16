@@ -20,7 +20,6 @@ public class EditorGrid extends Component implements NotSerializeComponent {
     private static final Vector4f centralLinesColor = new Vector4f(0.75f);
     private static final Vector4f verticalBoundColor = new Vector4f(0.5f, 0.5f, 1.0f, 0.75f);
     private static final Vector4f horizontalBoundColor = new Vector4f(1.0f, 0.0f, 1.0f, 0.75f);
-
     public static final float minimumGap = 0.01f;
 
     private static final HashSet<Class<?>> prioritizing = new HashSet<>();
@@ -28,7 +27,6 @@ public class EditorGrid extends Component implements NotSerializeComponent {
     @Override
     public void editorUpdate(float dt) {
         if (dt < 0.0f) return;
-
         Viewport viewport = LogicServer.currentScene().viewport();
         float totalZoom = viewport.getZoom() / Project.preference().textureGlobalScale();
         Vector2f viewPos = viewport.position;
@@ -45,7 +43,6 @@ public class EditorGrid extends Component implements NotSerializeComponent {
             int countVertical = (int)(projectSize.x * totalZoom / Settings.GRID_WIDTH) + 2;
             int countHorizontal = (int)(projectSize.y * totalZoom / Settings.GRID_HEIGHT) + 2;
             int maxLines = Math.max(countVertical, countHorizontal);
-
             drawGrid(firstX, firstY, maxLines, countVertical, countHorizontal, width, height);
         }
 
@@ -67,11 +64,9 @@ public class EditorGrid extends Component implements NotSerializeComponent {
         for (int i = 0; i < maxLines; i++) {
             float x = firstX + (Settings.GRID_WIDTH * i);
             float y = firstY + (Settings.GRID_HEIGHT * i);
-
             if (canDrawVerticalLine(i, countVertical, x)) {
                 DebugDraw.addLine2(new Vector2f(x, firstY), new Vector2f(x, firstY + height), normalGridColor);
             }
-
             if (canDrawHorizontalLine(i, countHorizontal, y)) {
                 DebugDraw.addLine2(new Vector2f(firstX, y), new Vector2f(firstX + width, y), normalGridColor);
             }
@@ -80,13 +75,11 @@ public class EditorGrid extends Component implements NotSerializeComponent {
 
     private boolean canDrawVerticalLine(int index, int verticalLineCount, float x) {
         if (index >= verticalLineCount) return false;
-
         return Math.abs(x) > minimumGap;
     }
 
     private boolean canDrawHorizontalLine(int index, int horizontalLineCount, float y) {
         if (index >= horizontalLineCount) return false;
-
         return Math.abs(y) > minimumGap;
     }
 

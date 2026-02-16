@@ -1,7 +1,9 @@
 package editor.components;
 
+import TheCellBeyond.GameObject;
 import TheCellBeyond.GameObject2D;
 import TheCellBeyond.Viewport;
+import components.IsNotSelectable;
 import components.NotSerializeComponent;
 import components.SpriteRenderer;
 import org.joml.Vector4f;
@@ -88,6 +90,18 @@ public final class EditorObjectIndicator extends SpriteRenderer implements NotSe
      */
     @Override
     public void imgui() {}
+
+    /**
+     * Add editor indicator to the given game object.
+     * This requires object of type {@link GameObject2D} or its subclasses.
+     * @param go the game object to receive the component
+     */
+    public static void add(GameObject go) {
+        if (go == null || go.isRemoved() || !go.isSerialize()) return;
+        if (go.getFirstComponent(IsNotSelectable.class) != null) return;
+        go.removeComponents(EditorObjectIndicator.class);
+        if (go instanceof GameObject2D go2D) go2D.addComponent(new EditorObjectIndicator());
+    }
 
     private void setInactive() {
         active = false;

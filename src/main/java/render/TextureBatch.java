@@ -109,9 +109,9 @@ public class TextureBatch implements Comparable<TextureBatch> {
         glVertexAttribPointer(3, textureIdSize, GL_FLOAT, false, vertexBytes, textureIdOffset);
         glEnableVertexAttribArray(3);
 
-        int OBJECT_ID_SIZE = 1;
-        int OBJECT_ID_OFFSET = textureIdOffset + textureIdSize * Float.BYTES;
-        glVertexAttribPointer(4, OBJECT_ID_SIZE, GL_FLOAT, false, vertexBytes, OBJECT_ID_OFFSET);
+        int objectIdSize = 1;
+        int objectIdOffset = textureIdOffset + textureIdSize * Float.BYTES;
+        glVertexAttribPointer(4, objectIdSize, GL_FLOAT, false, vertexBytes, objectIdOffset);
         glEnableVertexAttribArray(4);
     }
 
@@ -119,92 +119,65 @@ public class TextureBatch implements Comparable<TextureBatch> {
         int index = countSprite;
         sprites[index] = spriteRenderer;
         countSprite++;
-
-        if (spriteRenderer.texture() != null) {
-            if (!textures.contains(spriteRenderer.texture())) {
-                textures.add(spriteRenderer.texture());
-            }
+        if (spriteRenderer.texture() != null && !textures.contains(spriteRenderer.texture())) {
+            textures.add(spriteRenderer.texture());
         }
-
-        // Add property to the vertex array
         genVertexProperties(vertices, index);
-
-        if (countSprite >= maxBatchSize) {
-            hasSpace = false;
-        }
+        if (countSprite >= maxBatchSize) hasSpace = false;
     }
 
     public void render() {
         for (int i = 0; i < countSprite; i++) {
             SpriteRenderer spr = sprites[i];
-            if (spr.globalZIndex() != zIndex) {
-                removeIfExist(spr.gameObject);
-                renderer.switchZIndex(spr.gameObject);
-                i--;
-            }
+            if (spr.globalZIndex() == zIndex) continue;
+            removeIfExist(spr.gameObject);
+            renderer.switchZIndex(spr.gameObject);
+            i--;
         }
-
         List<Integer> dirtyIndex = new ArrayList<>();
         for (int i = 0; i < countSprite; i++) {
             SpriteRenderer spr = sprites[i];
-            if (spr.isSpriteDirty()) {
-                if (spr.texture() != null && !textures.contains(spr.texture()) && isTextureCapacityValid()) textures.add(spr.texture());
-                dirtyIndex.add(i);
-                spr.spriteDirty(false);
-            }
+            if (!spr.isSpriteDirty()) continue;
+            if (spr.texture() != null && !textures.contains(spr.texture()) && isTextureCapacityValid()) textures.add(spr.texture());
+            dirtyIndex.add(i);
+            spr.spriteDirty(false);
         }
-
         if (!dirtyIndex.isEmpty()) {
             float[] newVertices = new float[vertices.length];
             System.arraycopy(vertices, 0, newVertices, 0, vertices.length);
-
-            for (int i : dirtyIndex) {
-                genVertexProperties(newVertices, i);
-            }
-
+            for (int i : dirtyIndex) genVertexProperties(newVertices, i);
             glBindBuffer(GL_ARRAY_BUFFER, vboID);
             glBufferSubData(GL_ARRAY_BUFFER, 0, newVertices);
-
             System.arraycopy(newVertices, 0 , vertices, 0, vertices.length);
         }
 
         Shader shader = RendererState.getCurrentShader();
         shader.use();
-
         Matrix4f projMatrix;
         Matrix4f vMatrix;
-
         if (projectionMatrix != null) {
             projMatrix = projectionMatrix;
         } else projMatrix = new Matrix4f().identity();
-
         if (viewMatrix != null) {
             vMatrix = viewMatrix;
         } else vMatrix = new Matrix4f().identity();
-
         shader.loadMat4f("uProject", projMatrix);
         shader.loadMat4f("uView", vMatrix);
         for (int i = 0; i < textures.size(); i++) {
             glActiveTexture(GL_TEXTURE0 + i + 1);
             textures.get(i).bind();
         }
-
         shader.loadIntA("uTex", texSlot);
 
         glBindVertexArray(vaoID);
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
-
         glDrawElements(GL_TRIANGLES, countSprite * 6, GL_UNSIGNED_INT, 0);
-
         glDisableVertexAttribArray(0);
         glDisableVertexAttribArray(1);
         glBindVertexArray(0);
 
-        for (Texture texture : textures) {
-            texture.unbind();
-        }
-
+        textures.forEach(Texture::unbind);
         shader.detach();
     }
 
@@ -221,22 +194,17 @@ public class TextureBatch implements Comparable<TextureBatch> {
                     new Vector2f(0, 0),
                     new Vector2f(0, 1)
             };
-
             color = new Vector4f(color.x, color.y, color.z, 0.0f);
         }
 
         boolean flipH = spriteRenderer.flipHorizontally();
         boolean flipV = spriteRenderer.flipVertically();
-
         if (flipH || flipV) {
             Vector2f[] flipCoordinates = new Vector2f[4];
-
             for (int i = 0; i < 4; i++) {
                 int sourceIndex = flipSourceIndex(i, flipH, flipV);
-
                 flipCoordinates[i] = new Vector2f(textureCoordinates[sourceIndex]);
             }
-
             textureCoordinates = flipCoordinates;
         }
 
@@ -244,10 +212,9 @@ public class TextureBatch implements Comparable<TextureBatch> {
         //[0, tex, tex, tex, tex]
         if (spriteRenderer.texture() != null) {
             for (int i = 0; i < textures.size(); i++) {
-                if (textures.get(i).equals(spriteRenderer.texture())) {
-                    ID = i + 1;
-                    break;
-                }
+                if (!textures.get(i).equals(spriteRenderer.texture())) continue;
+                ID = i + 1;
+                break;
             }
         }
 
@@ -280,9 +247,7 @@ public class TextureBatch implements Comparable<TextureBatch> {
                     pos.y + (yAdd * worldSize.y),
                     0, 1
             );
-            if (!isIndicator && isTransformed) {
-                instPos = new Vector4f(xAdd, yAdd, 0, 1).mul(transformMatrix);
-            }
+            if (!isIndicator && isTransformed) instPos = new Vector4f(xAdd, yAdd, 0, 1).mul(transformMatrix);
 
             target[offset] = instPos.x / instPos.w;
             target[offset + 1] = instPos.y / instPos.w;
@@ -326,61 +291,46 @@ public class TextureBatch implements Comparable<TextureBatch> {
     public boolean removeIfExist(GameObject go) {
         List<SpriteRenderer> sps = go.getComponents(SpriteRenderer.class);
         if (sps.isEmpty()) return false;
-
         int removalCount = 0;
-
         int i = 0;
         while (i < countSprite) {
-            if (sps.contains(sprites[i])) {
-                for (int j = i; j < countSprite - 1; j++) {
-                    sprites[j] = sprites[j + 1];
-                    sprites[j].spriteDirty(true);
-                }
-
-                countSprite--;
-                sprites[countSprite] = null;
-                removalCount++;
-            } else {
+            if (!sps.contains(sprites[i])) {
                 i++;
+                continue;
             }
+            for (int j = i; j < countSprite - 1; j++) {
+                sprites[j] = sprites[j + 1];
+                sprites[j].spriteDirty(true);
+            }
+            countSprite--;
+            sprites[countSprite] = null;
+            removalCount++;
         }
-
         return removalCount > 0;
     }
 
     public boolean removeIfExist(Component component) {
-        if (component == null ) return false;
-
-        if (component instanceof SpriteRenderer spriteRenderer) {
-            for (int i = 0; i < countSprite; i++) {
-                if (sprites[i] == spriteRenderer) {
-                    for (int j = i; j < countSprite - 1; j++) {
-                        sprites[j] = sprites[j + 1];
-                        sprites[j].spriteDirty(true);
-                    }
-
-                    countSprite--;
-                    sprites[countSprite] = null;
-
-                    if (countSprite < maxBatchSize) {
-                        hasSpace = true;
-                    }
-
-                    return true;
-                }
+        if (!(component instanceof SpriteRenderer spriteRenderer)) return false;
+        for (int i = 0; i < countSprite; i++) {
+            if (sprites[i] != spriteRenderer) continue;
+            for (int j = i; j < countSprite - 1; j++) {
+                sprites[j] = sprites[j + 1];
+                sprites[j].spriteDirty(true);
             }
+            countSprite--;
+            sprites[countSprite] = null;
+            if (countSprite < maxBatchSize) {
+                hasSpace = true;
+            }
+            return true;
         }
-
         return false;
     }
 
     private int[] genIndices() {
         // 6 indices / quad (3 per tris)
         int[] elements = new int[6 * maxBatchSize];
-        for (int i = 0; i < maxBatchSize; i++) {
-            loadEleIndices(elements, i);
-        }
-
+        for (int i = 0; i < maxBatchSize; i++) loadEleIndices(elements, i);
         return elements;
     }
 
@@ -389,12 +339,10 @@ public class TextureBatch implements Comparable<TextureBatch> {
         int offset = 4 * index;
 
         // 3, 2, 0, 0, 2, 1     7, 6, 4, 4, 6, 5
-
         // Tris 1
         elements[offsetArrayI] = offset + 3;
         elements[offsetArrayI + 1] = offset + 2;
         elements[offsetArrayI + 2] = offset;
-
         //Tris 2
         elements[offsetArrayI + 3] = offset;
         elements[offsetArrayI + 4] = offset + 2;
@@ -411,12 +359,10 @@ public class TextureBatch implements Comparable<TextureBatch> {
 
     public boolean hasSprite(SpriteRenderer spriteRenderer) {
         if (spriteRenderer == null || spriteRenderer.getUUID() == null || spriteRenderer.gameObject == null) return false;
-
         UUID uuid = spriteRenderer.getUUID();
         for (int i = 0; i < countSprite; i++) {
             if (sprites[i] != null && uuid.equals(sprites[i].getUUID())) return true;
         }
-
         return false;
     }
 

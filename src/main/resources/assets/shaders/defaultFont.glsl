@@ -3,10 +3,8 @@
 layout(location=0) in vec2 aPos;
 layout(location=1) in vec4 aColor;
 layout(location=2) in vec2 aTexCrd;
-
 out vec4 fColor;
 out vec2 fTexCrd;
-
 uniform mat4 uProject;
 uniform mat4 uView;
 
@@ -22,10 +20,8 @@ void main()
 
 in vec4 fColor;
 in vec2 fTexCrd;
-
 uniform sampler2D uFontTex;
 uniform float uPxRange = 4.0;
-
 out vec4 color;
 
 float median(float r, float g, float b) {

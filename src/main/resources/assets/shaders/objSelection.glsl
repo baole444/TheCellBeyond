@@ -5,10 +5,8 @@ layout (location=1) in vec4 aColor;
 layout (location=2) in vec2 aTexCrd;
 layout (location=3) in float aTexID;
 layout (location=4) in float aObjID;
-
 uniform mat4 uProject;
 uniform mat4 uView;
-
 out vec4 fColor;
 out vec2 fTexCrd;
 out float fTexID;
@@ -30,10 +28,8 @@ in vec4 fColor;
 in vec2 fTexCrd;
 in float fTexID;
 in float fObjID;
-
 uniform sampler2D uTex[8];
 uniform sampler2D uFontTex;
-
 out vec3 color;
 
 float median(float r, float g, float b) {
@@ -44,9 +40,7 @@ void main()
 {
     if (fTexID > 0) {
         int id = int(fTexID);
-
         vec4 texColor = texture(uTex[id], fTexCrd);
-
         if (texColor.a * fColor.a < 0.1) {
             discard;
         }
@@ -54,15 +48,12 @@ void main()
 
     else {
         vec3 msd = texture(uFontTex, fTexCrd).rgb;
-
         float sd = median(msd.r, msd.g, msd.b);
-
         float alpha = texture(uFontTex, fTexCrd).r;
 
         if (alpha < 0.5) {
             discard;
         }
     }
-
     color = vec3(fObjID, fObjID, fObjID);
 }

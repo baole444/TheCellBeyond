@@ -38,14 +38,11 @@ import java.util.stream.Collectors;
 
 public class SceneEditor extends SceneLoader implements EngineEventListener {
     public static final String WINDOW_ID = "Resources###Editor_Project_Resource";
-
     private final Vector2i prefabButtonSize = new Vector2i(200, 30);
     private GameObject levelEditorObject;
-
     private final Map<String, Map<String, SpriteSheet>> categorizedSpriteSheetList = new HashMap<>();
     private final Map<String, Map<String, SpriteSheet>> filteredSpriteSheetList = new HashMap<>();
     private final Map<UUID, TextureUnit> textureUnits = new HashMap<>();
-
     private transient final ImString spriteSearchFilter;
     private transient boolean filterChanged = true;
 
@@ -55,7 +52,11 @@ public class SceneEditor extends SceneLoader implements EngineEventListener {
     }
 
     @Override
-    public void onSceneEntered(Scene scene) {
+    public void onSceneStarted(Scene scene) {}
+
+    @Override
+    public void loadResource(Scene scene) {
+        Project.loadProjectData();
         loadCategorizedSheet();
         loadTextureUnits();
 
@@ -67,11 +68,6 @@ public class SceneEditor extends SceneLoader implements EngineEventListener {
                 new EditorSceneCtrl(scene.viewport()), new EditorGizmoCtrl()
         );
         scene.queueForObjectAddition(levelEditorObject);
-    }
-
-    @Override
-    public void loadResource(Scene scene) {
-        Project.loadProjectData();
     }
 
     public void reloadResource() {

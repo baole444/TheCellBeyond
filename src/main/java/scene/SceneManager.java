@@ -132,7 +132,6 @@ public final class SceneManager {
             Logger.error(String.format(CannotSaveAsFormat, newSceneName, SaveFileFailed));
             return false;
         }
-        LogicServer.currentSceneName(newSceneName);
         Logger.info(String.format("Saved scene as '%s'", newSceneName));
         return true;
     }
@@ -164,7 +163,6 @@ public final class SceneManager {
             Logger.error(String.format(CannotCreateFormat, sceneName, SaveFileFailed));
             return false;
         }
-        LogicServer.currentSceneName(sceneName);
         Logger.info(String.format("Created new scene '%s'", sceneName));
         return true;
     }
@@ -190,21 +188,25 @@ public final class SceneManager {
 
     /**
      * Load the scene file's data into the given scene instance.
+     * The data is sourced using the given scene name.
      * @param scene the scene instance to receive the data
+     * @param sceneName the name of the scene to get data from
+     * @apiNote The scene instance passed into the method is assumed to not
+     * have its name set by the Scene Manager yet.
      */
-    public static void loadScene(Scene scene) {
+    public static void loadScene(Scene scene, String sceneName) {
         if (scene == null) {
             Logger.warning("Cannot load data into null scene");
             return;
         }
-        String currentName = LogicServer.currentSceneName();
-        if (currentName == null) {
-            Logger.warning("Cannot load scene: current scene name not set");
+        if (invalidName(sceneName)) {
+            Logger.warning("Cannot load data into scene: invalid scene name");
             return;
         }
-        SceneFile file = loadSceneFile(currentName);
+        sceneName = sceneName.trim();
+        SceneFile file = loadSceneFile(sceneName);
         if (file == null) {
-            Logger.warning(String.format("No data for scene '%s' to be loaded", currentName));
+            Logger.warning(String.format("No data for scene '%s' to be loaded", sceneName));
             return;
         }
         scene.loadDataFromFile(file);

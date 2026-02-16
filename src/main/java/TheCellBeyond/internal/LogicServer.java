@@ -16,6 +16,7 @@ import project.ProjectPreference;
 import scene.Scene;
 import scene.SceneEditor;
 import scene.SceneLoader;
+import scene.SceneManager;
 import utility.log.EngineLog;
 
 import java.util.List;
@@ -24,7 +25,6 @@ public class LogicServer implements EngineEventListener {
     private static final LogicServer instance = new LogicServer();
     private static final EngineLog Logger = new EngineLog(LogicServer.class);
     private static Scene currentScene;
-    private static String currentSceneName;
     private static boolean runtimeMode = false;
     private static boolean runtimeCrashed = false;
 
@@ -32,15 +32,27 @@ public class LogicServer implements EngineEventListener {
         EngineEventCallback.register(this);
     }
 
-    public static void changeScene(SceneLoader sceneLoader) {
+    private static void changeScene(SceneLoader sceneLoader) {
+        String sceneName = currentScene == null ? null : currentScene.name();
+        changeScene(sceneLoader, sceneName);
+    }
+
+    private static void changeScene(SceneLoader sceneLoader, String sceneName) {
         if (currentScene != null) currentScene.destroy();
         Properties.clearSelection();
         SceneTree.clearSelection();
         currentScene = new Scene(sceneLoader);
-        currentScene.loadLevel();
+        if (SceneManager.validSceneName(sceneName)) SceneManager.loadScene(currentScene, sceneName);
         currentScene.init();
         if (runtimeMode) currentScene.start();
         else currentScene.editorStart();
+    }
+
+    private static void reloadScene() {
+        if (currentScene == null) return;
+        String sceneName = currentScene.name();
+        if (!SceneManager.validSceneName(sceneName)) return;
+        changeScene(new SceneEditor(), sceneName);
     }
 
     public static Scene currentScene() {
@@ -48,11 +60,7 @@ public class LogicServer implements EngineEventListener {
     }
 
     public static String currentSceneName() {
-        return currentSceneName;
-    }
-
-    public static void currentSceneName(String currentSceneName) {
-        LogicServer.currentSceneName = currentSceneName;
+        return currentScene == null ? null : currentScene.name();
     }
 
     public static Physic2D physic2D() {
@@ -88,7 +96,6 @@ public class LogicServer implements EngineEventListener {
             }
             return;
         }
-
         currentScene.editorUpdate(dt);
     }
 
@@ -99,11 +106,9 @@ public class LogicServer implements EngineEventListener {
         int stackCount = 0;
         for (StackTraceElement element : e.getStackTrace()) {
             String className = element.getClassName();
-
             if (className.startsWith("java.") || className.startsWith("sun.") || className.startsWith("javax.") || className.startsWith("jdk.")) continue;
             Logger.error(String.format("\tat %s", element));
             stackCount++;
-
             if (className.equals(LogicServer.class.getCanonicalName()) && element.getMethodName().equals("loop")) break;
             if (stackCount >= 15) {
                 Logger.error("\t... (more folded frames)");
@@ -121,20 +126,20 @@ public class LogicServer implements EngineEventListener {
     private void handleRuntimeEvent(Object object, RuntimeEvent event) {
         switch (event.type) {
             case RuntimeEvent.Type.RuntimeStarted -> {
-                currentScene.saveLevel();
+                SceneManager.saveCurrentScene();
                 runtimeMode = true;
-                changeScene(new SceneEditor());
+                reloadScene();
                 Logger.info("Test play started.");
             }
             case RuntimeEvent.Type.RuntimeStopped -> {
                 runtimeMode = false;
-                changeScene(new SceneEditor());
+                reloadScene();
                 Logger.info("Test play stopped.");
             }
             case RuntimeEvent.Type.RuntimeCrashed -> {
                 runtimeMode = false;
                 runtimeCrashed = false;
-                changeScene(new SceneEditor());
+                reloadScene();
             }
         }
     }
@@ -142,11 +147,7 @@ public class LogicServer implements EngineEventListener {
     private void handleEditorEvent(Object object, EditorEvent event) {
         switch (event.type) {
             case SaveEditingSceneToDisk -> {
-                if (runtimeMode) {
-                    Logger.warning("Saving scene data structure in runtime mode is forbidden!");
-                    return;
-                }
-                currentScene.saveLevel();
+                SceneManager.saveCurrentScene();
                 Logger.debug("Saving current level...");
             }
             case LoadProjectFromDisk -> {
@@ -155,36 +156,27 @@ public class LogicServer implements EngineEventListener {
                 Project.loadFromYaml(projectPath);
                 boolean projectLoaded = (Project.currentProject() != null && Project.projectRoot() != null);
                 if (!projectLoaded) return;
-
                 MouseListener.setStartupMode(false);
                 List<String> availScenes = Project.getSceneNames();
                 if (availScenes.isEmpty()) {
-                    LogicServer.currentSceneName(null);
                     LogicServer.changeScene(new SceneEditor());
                     return;
                 }
-
                 RecentProject project = UserPreference.recentProject(projectPath);
                 String lastOpenScene = project != null ? project.lastOpenScene() : null;
-                if (lastOpenScene == null || !availScenes.contains(lastOpenScene)) {
-                    lastOpenScene = availScenes.getFirst();
-                }
-
-                currentSceneName(lastOpenScene);
-                changeScene(new SceneEditor());
+                if (lastOpenScene == null || !availScenes.contains(lastOpenScene)) lastOpenScene = availScenes.getFirst();
+                changeScene(new SceneEditor(), lastOpenScene);
             }
             case LoadEditingSceneFromDisk -> {
                 runtimeMode = false;
                 String sceneName = (String) object;
-                currentSceneName(sceneName);
                 String path = Project.projectYMLPath();
                 if (path != null) {
                     ProjectPreference preference = Project.preference();
                     RecentProject update = new RecentProject(preference.name(), path, sceneName);
                     UserPreference.updateRecentProject(update);
                 }
-
-                changeScene(new SceneEditor());
+                changeScene(new SceneEditor(), sceneName);
                 Logger.debug("Requested to load Scene: " + sceneName);
             }
         }

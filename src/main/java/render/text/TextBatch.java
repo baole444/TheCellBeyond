@@ -21,11 +21,11 @@ import static org.lwjgl.opengl.GL30.*;
 public class TextBatch implements Comparable<TextBatch> {
     // |Position| |   Color  | |Coordinate|
     // |  f, f  | |f, f, f, f| |   f, f   |
-    private static final int POS_SIZE = 2;
-    private static final int COLOR_SIZE = 4;
-    private static final int TEX_COORD_SIZE = 2;
-    private static final int OBJECT_ID_SIZE = 1;
-    private static final int VERTEX_SIZE = POS_SIZE + COLOR_SIZE + TEX_COORD_SIZE + OBJECT_ID_SIZE;
+    private static final int PositionSize = 2;
+    private static final int ColorSize = 4;
+    private static final int TextureCoordinateSize = 2;
+    private static final int ObjectIdSize = 1;
+    private static final int VertexSize = PositionSize + ColorSize + TextureCoordinateSize + ObjectIdSize;
 
     private final int zIndex;
     private final int maxBatchSize;
@@ -65,19 +65,19 @@ public class TextBatch implements Comparable<TextBatch> {
 
         vboID = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, vboID);
-        glBufferData(GL_ARRAY_BUFFER, (long) maxBatchSize * 6 * VERTEX_SIZE * Float.BYTES, GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, (long) maxBatchSize * 6 * VertexSize * Float.BYTES, GL_DYNAMIC_DRAW);
 
         // Enable vertex attributes
-        glVertexAttribPointer(0, POS_SIZE, GL_FLOAT, false, VERTEX_SIZE * Float.BYTES, 0);
+        glVertexAttribPointer(0, PositionSize, GL_FLOAT, false, VertexSize * Float.BYTES, 0);
         glEnableVertexAttribArray(0);
 
-        glVertexAttribPointer(1, COLOR_SIZE, GL_FLOAT, false, VERTEX_SIZE * Float.BYTES, POS_SIZE * Float.BYTES);
+        glVertexAttribPointer(1, ColorSize, GL_FLOAT, false, VertexSize * Float.BYTES, PositionSize * Float.BYTES);
         glEnableVertexAttribArray(1);
 
-        glVertexAttribPointer(2, TEX_COORD_SIZE, GL_FLOAT, false, VERTEX_SIZE * Float.BYTES, (POS_SIZE + COLOR_SIZE) * Float.BYTES);
+        glVertexAttribPointer(2, TextureCoordinateSize, GL_FLOAT, false, VertexSize * Float.BYTES, (PositionSize + ColorSize) * Float.BYTES);
         glEnableVertexAttribArray(2);
 
-        glVertexAttribPointer(3, OBJECT_ID_SIZE, GL_FLOAT, false, VERTEX_SIZE * Float.BYTES, (POS_SIZE + COLOR_SIZE + TEX_COORD_SIZE) * Float.BYTES);
+        glVertexAttribPointer(3, ObjectIdSize, GL_FLOAT, false, VertexSize * Float.BYTES, (PositionSize + ColorSize + TextureCoordinateSize) * Float.BYTES);
         glEnableVertexAttribArray(3);
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -173,7 +173,7 @@ public class TextBatch implements Comparable<TextBatch> {
 
         if (charCount == 0) return new float[0];
 
-        float[] vertices = new float[charCount * 6 * VERTEX_SIZE];
+        float[] vertices = new float[charCount * 6 * VertexSize];
         int vertexOffset = 0;
 
         for (TextRenderer textRenderer : components) {
