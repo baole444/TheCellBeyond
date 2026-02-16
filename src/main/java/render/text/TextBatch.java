@@ -77,8 +77,8 @@ public class TextBatch implements Comparable<TextBatch> {
         glVertexAttribPointer(2, TextureCoordinateSize, GL_FLOAT, false, VertexSize * Float.BYTES, (PositionSize + ColorSize) * Float.BYTES);
         glEnableVertexAttribArray(2);
 
-        glVertexAttribPointer(3, ObjectIdSize, GL_FLOAT, false, VertexSize * Float.BYTES, (PositionSize + ColorSize + TextureCoordinateSize) * Float.BYTES);
-        glEnableVertexAttribArray(3);
+        glVertexAttribPointer(4, ObjectIdSize, GL_FLOAT, false, VertexSize * Float.BYTES, (PositionSize + ColorSize + TextureCoordinateSize) * Float.BYTES);
+        glEnableVertexAttribArray(4);
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
@@ -89,58 +89,46 @@ public class TextBatch implements Comparable<TextBatch> {
             hasSpace = false;
             return;
         }
-
         if (!textRenderers.contains(textRenderer)) {
             textRenderers.add(textRenderer);
-            // Group by font
             regroupComponent(textRenderer);
         }
     }
 
     public void render() {
         if (textRenderers.isEmpty()) return;
-
         boolean requireRegroup = false;
         for (TextRenderer component : textRenderers) {
-            if (component.isTextDirty()) {
-                component.clearDirty();
-                requireRegroup = true;
-            }
+            if (!component.isTextDirty()) continue;
+            component.clearDirty();
+            requireRegroup = true;
         }
-
-        if (requireRegroup) {
-            regroupComponents();
-        }
-
+        if (requireRegroup) regroupComponents();
         Shader instShader = shader;
-        if (RendererState.isSelectionPass()) {
-            instShader = RendererState.getCurrentShader();
-        }
-
+        if (RendererState.isSelectionPass()) instShader = RendererState.getCurrentShader();
         instShader.use();
-
         Matrix4f projMatrix;
         Matrix4f vMatrix;
-
         if (projectionMatrix != null) {
             projMatrix = projectionMatrix;
         } else projMatrix = new Matrix4f().identity();
-
         if (viewMatrix != null) {
             vMatrix = viewMatrix;
         } else vMatrix = new Matrix4f().identity();
-
         instShader.loadMat4f("uProject", projMatrix);
         instShader.loadMat4f("uView", vMatrix);
-
         glBindVertexArray(vaoID);
         glBindBuffer(GL_ARRAY_BUFFER, vboID);
+        renderFontGroups(instShader);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+        if (RendererState.isNormalPass()) instShader.detach();
+    }
 
-        // Render per group
+    private void renderFontGroups(Shader instShader) {
         for (Map.Entry<TCBFont, List<TextRenderer>> entry : fontGroups.entrySet()) {
             TCBFont font = entry.getKey();
             List<TextRenderer> components = entry.getValue();
-
             if (components.isEmpty()) continue;
             if (font == null || !font.isLoaded()) continue;
             if (RendererState.isNormalPass()) {
@@ -150,32 +138,19 @@ public class TextBatch implements Comparable<TextBatch> {
                 glBindTexture(GL_TEXTURE_2D, textureId);
                 instShader.loadInt("uFontTex", 0);
             }
-
             float[] vertices = genVertices(components, font);
             if (vertices.length == 0) continue;
-
             glBufferSubData(GL_ARRAY_BUFFER, 0, vertices);
             int charCount = countChars(components);
             glDrawArrays(GL_TRIANGLES, 0 , charCount * 6);
-        }
-
-        // Cleanup
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
-
-        if (RendererState.isNormalPass()) {
-            instShader.detach();
         }
     }
 
     private float[] genVertices(List<TextRenderer> components, TCBFont font) {
         int charCount = countChars(components);
-
         if (charCount == 0) return new float[0];
-
         float[] vertices = new float[charCount * 6 * VertexSize];
         int vertexOffset = 0;
-
         for (TextRenderer textRenderer : components) {
             String text = textRenderer.getText();
             if (text.isEmpty()) continue;
@@ -213,35 +188,28 @@ public class TextBatch implements Comparable<TextBatch> {
 
             for (int i = 0; i < text.length(); i++) {
                 char c = text.charAt(i);
-
-                // move to the next line
                 if (c == '\n') {
                     y -= WorldUnit.pixelToWorld(font.getFontSizePixel());
                     x = initialX;
                     continue;
                 }
-
                 CharInfo charInfo = font.getCharInfo(c);
                 if (charInfo == null) continue;
                 float charX = x - WorldUnit.pixelToWorld((float) charInfo.xOffset());
                 float charY = y - WorldUnit.pixelToWorld((float) charInfo.yOffset());
                 float width = WorldUnit.pixelToWorld(charInfo.fontSize());
                 float height = WorldUnit.pixelToWorld(charInfo.fontSize());
-
                 float texX0 = charInfo.x0() / (float) font.getAtlasWidth();
                 float texY0 = charInfo.y0() / (float) font.getAtlasHeight();
                 float texX1 = charInfo.x1() / (float) font.getAtlasWidth();
                 float texY1 = charInfo.y1() / (float) font.getAtlasHeight();
-
                 float[][] verticesData = {
                         {charX,             charY,          texX0, texY1},
                         {charX,             charY + height, texX0, texY0},
                         {charX + width,     charY,          texX1, texY1},
                         {charX + width,     charY + height, texX1, texY0}
                 };
-
                 int[] indices = {0, 1, 2, 1, 3, 2};
-
                 for (int index : indices) {
                     float[] vertexData = verticesData[index];
                     vertices[vertexOffset++] = vertexData[0];
