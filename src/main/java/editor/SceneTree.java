@@ -5,6 +5,7 @@ import TheCellBeyond.internal.LogicServer;
 import editor.dialog.AddObjectDialog;
 import editor.payload.GameObjectDragDropPayload;
 import imgui.ImGui;
+import imgui.flag.ImGuiChildFlags;
 import imgui.flag.ImGuiMouseButton;
 import imgui.flag.ImGuiTreeNodeFlags;
 import imgui.flag.ImGuiWindowFlags;
@@ -28,7 +29,6 @@ public class SceneTree {
             ImGui.end();
             return;
         }
-
         Scene scene = LogicServer.currentScene();
         if (scene == null) {
             ImGui.text("No scene loaded");
@@ -36,23 +36,26 @@ public class SceneTree {
             return;
         }
 
-        List<GameObject> rootGameObjects = scene.getRootGameObjects();
+        GameObject root = scene.root();
+        if (root == null) {
+            ImGui.text("Scene root object not found");
+            ImGui.end();
+            return;
+        }
         float buttonW = ImGui.getContentRegionAvailX();
         float buttonH = ReservedButtonHeight * 0.9f;
-        if (ImGui.button("Add new Object", buttonW, buttonH)) AddObjectDialog.show(null);
-
+        if (ImGui.button("Add new Object", buttonW, buttonH)) AddObjectDialog.show(root);
         ImGui.separator();
         float availHeight = ImGui.getContentRegionAvailY() - ReservedButtonHeight * 1.1f;
-        ImGui.beginChild(SceneTreeID, ImGuiWindowFlags.None, availHeight, enableBorder);
-        renderHierarchyTree(rootGameObjects, scene);
+        ImGui.beginChild(SceneTreeID, 0, availHeight, ImGuiChildFlags.Border);
+        renderHierarchyTree(root, scene);
 
         if (ImGui.isWindowHovered()
                 && !ImGui.isAnyItemHovered()
                 && ImGui.isMouseClicked(ImGuiMouseButton.Right)
         ) ImGui.openPopup(NewPopupID);
-
         if (ImGui.beginPopup(NewPopupID)) {
-            if (ImGui.menuItem("New Object...")) AddObjectDialog.show(null);
+            if (ImGui.menuItem("New Object...")) AddObjectDialog.show(root);
             ImGui.endPopup();
         }
         ImGui.endChild();
@@ -66,23 +69,16 @@ public class SceneTree {
 
         Object payload = ImGui.acceptDragDropPayload(GameObjectDragDropPayload.getPayloadType());
         if (payload instanceof GameObject dropGo) {
-            if (scene.reparentObject(dropGo, null)) {
-                Logger.info(String.format("Moved '%s' to scene's root level", dropGo.name()));
+            if (scene.reparentObject(dropGo, scene.root())) {
+                Logger.info(String.format("Moved '%s' to scene's root", dropGo.name()));
             }
         }
-
         ImGui.endDragDropTarget();
     }
 
-    private static void renderHierarchyTree(List<GameObject> rootGameObjects, Scene scene) {
-        if (rootGameObjects.isEmpty()) {
-            ImGui.text("Scene is empty");
-            return;
-        }
-
-        for (GameObject go : rootGameObjects) {
-            if (go.isSerialize()) renderTree(go, scene);
-        }
+    private static void renderHierarchyTree(GameObject go, Scene scene) {
+        if (go == null) return;
+        renderTree(go, scene);
     }
 
     private static void renderTree(GameObject go, Scene scene) {
@@ -90,19 +86,17 @@ public class SceneTree {
 
         int flags = ImGuiTreeNodeFlags.OpenOnArrow
                 | ImGuiTreeNodeFlags.SpanAvailWidth
-                | ImGuiTreeNodeFlags.FramePadding;
+                | ImGuiTreeNodeFlags.FramePadding
+                | ImGuiTreeNodeFlags.DefaultOpen;
         if (go == selectedObject) flags |= ImGuiTreeNodeFlags.Selected;
-
-        List<GameObject> children = go.getChildren().stream().toList();
+        List<GameObject> children = go.getChildren().stream().filter(GameObject::isSerialize).toList();
         if (children.isEmpty()) flags |= ImGuiTreeNodeFlags.Leaf | ImGuiTreeNodeFlags.NoTreePushOnOpen;
-
         boolean nodeOpen = ImGui.treeNodeEx(go.name(), flags);
         renderContextMenu(go, scene);
         if (ImGui.isItemHovered() && ImGui.isMouseReleased(ImGuiMouseButton.Left) && !ImGui.isItemToggledOpen()) {
             selectedObject = go;
             Properties.setActiveGameObject(go);
         }
-
         if (ImGui.beginDragDropSource()) {
             GameObjectDragDropPayload.setPayload(go);
             ImGui.setDragDropPayload(GameObjectDragDropPayload.getPayloadType(), go);
@@ -111,17 +105,12 @@ public class SceneTree {
             ImGui.text("UUID: " + go.getUUID().toString());
             ImGui.endDragDropSource();
         }
-
         beginReparentDragDrop(go, scene);
         if (!nodeOpen || children.isEmpty()) {
             ImGui.popID();
             return;
         }
-
-        for (GameObject child : children) {
-            if (child.isSerialize()) renderTree(child, scene);
-        }
-
+        children.forEach(child -> renderTree(child, scene));
         ImGui.treePop();
         ImGui.popID();
     }
@@ -143,7 +132,7 @@ public class SceneTree {
         if (go == null || scene == null) return;
         if (ImGui.beginPopupContextItem()) {
             if (ImGui.menuItem("Delete")) {
-                go.destroy();
+                scene.queueObjectForRemoval(go);
             }
 
             if (ImGui.beginMenu("Duplicate...")) {
@@ -154,7 +143,6 @@ public class SceneTree {
                     copy.name(go.name() + "_copy");
                     scene.queueForObjectAddition(copy, go.getParent());
                 }
-
                 ImGui.endMenu();
             }
 

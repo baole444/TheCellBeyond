@@ -10,6 +10,7 @@ import eventviewer.EngineEventCallback;
 import eventviewer.event.SceneEvent;
 import physic2d.PhysicBody2D;
 import physic2d.Physic2D;
+import utility.log.EngineLog;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
  * When an object is added or remove from scene, it is first queued and then process at the end of logic process update.
  */
 public class Scene {
+    private static final EngineLog Logger = new EngineLog(Scene.class);
     private final SceneLoader sceneLoader;
     private final DataSnapshot sceneData;
     private final List<GameObject> addedGameObjects;
@@ -30,6 +32,7 @@ public class Scene {
     private final HashMap<GameObject, GameObject> addedGameObjectWithParents;
     private UUID sceneUUID;
     private String name;
+    private GameObject root;
     private transient boolean sceneStarted = false;
 
     /**
@@ -55,9 +58,10 @@ public class Scene {
     /**
      * Destroy/Leave and end the scene.
      */
-    public synchronized void destroy() {
+    public void destroy() {
         EngineEventCallback.emit(new SceneEvent(SceneEvent.Type.SceneLeaved, this));
-        sceneData.gameObjectByUUIDs().values().forEach(GameObject::destroy);
+        sceneData.gameObjects().forEach(GameObject::destroy);
+        sceneData.clear();
         sceneLoader.onSceneEnd();
     }
 
@@ -72,7 +76,7 @@ public class Scene {
     public void start() {
         sceneStarted = true;
         EngineEventCallback.emit(new SceneEvent(SceneEvent.Type.SceneEntered, this));
-        sceneData.gameObjectByUUIDs().values().forEach(go -> {
+        sceneData.gameObjects().forEach(go -> {
             go.start();
             sceneData.physic2D().add(go);
             cacheComponents(go);
@@ -81,13 +85,17 @@ public class Scene {
         updateQueues();
     }
 
+    /**
+     * Start the scene in editor mode.
+     */
     public void editorStart() {
         sceneStarted = true;
         EngineEventCallback.emit(new SceneEvent(SceneEvent.Type.SceneEntered, this));
-        for (GameObject go : sceneData.gameObjectByUUIDs().values()) {
+        sceneData.gameObjects().forEach(go -> {
             go.editorStart();
             cacheComponents(go);
-        }
+        });
+        sceneLoader.onSceneStarted(this);
         updateQueues();
     }
 
@@ -95,10 +103,10 @@ public class Scene {
         if (!sceneStarted) return;
         sceneData.updated().set(false);
         sceneData.viewport().adjustProjection();
-        for (GameObject go : sceneData.gameObjectByUUIDs().values()) {
+        sceneData.gameObjects().forEach(go -> {
             go.editorUpdate(dt);
             if (go.isRemoved()) queueObjectForRemoval(go);
-        }
+        });
         updateQueues();
         sceneData.updated().set(true);
         RenderUpdateSnapshot snapshot = sceneData.extractRenderData();
@@ -115,11 +123,9 @@ public class Scene {
     public void updatePhysic(float dt) {
         if (!sceneStarted) return;
         sceneData.physic2D().update(dt, (fixedDT) -> {
-            for (GameObject go : sceneData.gameObjectByUUIDs().values()) {
-                go.physicUpdate(fixedDT);
-            }
+            sceneData.gameObjects().forEach(go -> go.physicUpdate(fixedDT));
         });
-        for (GameObject go : sceneData.gameObjectByUUIDs().values()) {
+        for (GameObject go : sceneData.gameObjects()) {
             if (go instanceof PhysicBody2D physicBody2D) physicBody2D.syncTransformFromPhysic();
         }
     }
@@ -132,10 +138,10 @@ public class Scene {
         if (!sceneStarted) return;
         sceneData.updated().set(false);
         sceneData.viewport().adjustProjection();
-        for (GameObject go : sceneData.gameObjectByUUIDs().values()) {
+        sceneData.gameObjects().forEach(go -> {
             go.update(dt);
             if (go.isRemoved()) queueObjectForRemoval(go);
-        }
+        });
         updateQueues();
         sceneData.updated().set(true);
         RenderUpdateSnapshot snapshot = sceneData.extractRenderData();
@@ -146,8 +152,8 @@ public class Scene {
      * Get the map of all game object currently in the scene.
      * @return a copy of the scene's game object map
      */
-    public Map<UUID, GameObject> getGameObjects() {
-        return new HashMap<>(sceneData.gameObjectByUUIDs());
+    public List<GameObject> getGameObjects() {
+        return new ArrayList<>(sceneData.gameObjects());
     }
 
     /**
@@ -155,15 +161,15 @@ public class Scene {
      * @return a new list of {@link GameObject}
      */
     public List<GameObject> getSerializedObject() {
-        return sceneData.gameObjectByUUIDs().values().stream().filter(GameObject::isSerialize).collect(Collectors.toCollection(ArrayList::new));
+        return sceneData.gameObjects().stream().filter(GameObject::isSerialize).collect(Collectors.toCollection(ArrayList::new));
     }
 
     /**
-     * Get the list of object at the scene root level.
-     * @return a new list of {@link GameObject}
+     * Get the root object of the scene.
+     * @return scene root object or null if not exist
      */
-    public List<GameObject> getRootGameObjects() {
-        return new ArrayList<>(sceneData.rootGameObjects());
+    public GameObject root() {
+        return root;
     }
 
     /**
@@ -174,7 +180,7 @@ public class Scene {
      */
     public GameObject getGameObject(int id) {
         UUID uuid = sceneData.cachedIDs().get(id);
-        if (uuid != null) return sceneData.gameObjectByUUIDs().get(uuid);
+        if (uuid != null) return sceneData.cachedObjectsByUUID().get(uuid);
         return null;
     }
 
@@ -184,7 +190,7 @@ public class Scene {
      * @return the {@link GameObject} with the given uuid, null if there is no match
      */
     public GameObject getGameObject(UUID objectUUID) {
-        return sceneData.gameObjectByUUIDs().get(objectUUID);
+        return sceneData.cachedObjectsByUUID().get(objectUUID);
     }
 
     /**
@@ -192,7 +198,7 @@ public class Scene {
      * @param go the object to add
      */
     public void queueForObjectAddition(GameObject go) {
-        queueForObjectAddition(go, null);
+        queueForObjectAddition(go, root);
     }
 
     /**
@@ -202,7 +208,7 @@ public class Scene {
      */
     public void queueForObjectAddition(GameObject go, GameObject parent) {
         if (go == null) return;
-        if (addedGameObjects.contains(go) || sceneData.gameObjectByUUIDs().containsKey(go.getUUID())) return;
+        if (addedGameObjects.contains(go) || sceneData.cachedObjectsByUUID().containsKey(go.getUUID())) return;
         addedGameObjects.add(go);
         if (parent != null) addedGameObjectWithParents.put(go, parent);
     }
@@ -213,7 +219,11 @@ public class Scene {
      */
     public void queueObjectForRemoval(GameObject go) {
         if (go == null) return;
-        if (removedGameObjects.contains(go) || sceneData.gameObjectByUUIDs().containsKey(go.getUUID())) return;
+        if (go == root) {
+            Logger.warning("Remove root object from scene is not allowed");
+            return;
+        }
+        if (removedGameObjects.contains(go) || sceneData.cachedObjectsByUUID().containsKey(go.getUUID())) return;
         removedGameObjects.add(go);
         addedGameObjects.remove(go);
         addedGameObjectWithParents.remove(go);
@@ -236,10 +246,12 @@ public class Scene {
      */
     public boolean reparentObject(GameObject child, GameObject newParent) {
         if (child == null || child == newParent) return false;
+        if (child == root) {
+            Logger.warning("Cannot reparent scene root object");
+            return false;
+        }
         if (newParent != null && newParent.isAncestor(child)) return false;
-        if (child.getParent() == null) sceneData.rootGameObjects().remove(child);
         child.setParent(newParent);
-        if (newParent == null && !sceneData.rootGameObjects().contains(child)) sceneData.rootGameObjects().add(child);
         return true;
     }
 
@@ -296,13 +308,12 @@ public class Scene {
     }
 
     private void addObjectToScene(GameObject go, GameObject parent) {
-        if (go == null || sceneData.gameObjectByUUIDs().containsKey(go.getUUID())) return;
+        if (go == null || sceneData.cachedObjectsByUUID().containsKey(go.getUUID())) return;
         sceneData.cachedIDs().put(go.getUID(), go.getUUID());
-        sceneData.gameObjectByUUIDs().put(go.getUUID(), go);
-        if (parent != null) {
-            parent.addChild(go);
-        }
-        if (go.getParentUUID() == null && !sceneData.rootGameObjects().contains(go)) sceneData.rootGameObjects().add(go);
+        sceneData.cachedObjectsByUUID().put(go.getUUID(), go);
+        if (go == root) sceneData.gameObjects().addFirst(go);
+        else sceneData.gameObjects().add(go);
+        if (parent != null) parent.addChild(go);
         EditorObjectIndicator.add(go);
         if (sceneStarted) {
             if (LogicServer.runtimeMode()) {
@@ -312,31 +323,27 @@ public class Scene {
             else go.editorStart();
             cacheComponents(go);
         }
-        for (GameObject child : go.getChildren()) {
-            if (!sceneData.gameObjectByUUIDs().containsKey(child.getUUID())) queueForObjectAddition(child, go);
-        }
+        go.getChildren().stream()
+                .filter(child -> !sceneData.cachedObjectsByUUID().containsKey(child.getUUID()))
+                .forEach(child -> queueForObjectAddition(child, go));
         EngineEventCallback.emit(new SceneEvent(SceneEvent.Type.ObjectAdded, this, go));
     }
 
     private void removeObjectFromScene(GameObject go) {
         if (go == null) return;
-        if (go.getParent() != null) {
-            go.getParent().removeChild(go);
-        } else {
-            sceneData.rootGameObjects().remove(go);
+        if (go == root) {
+            Logger.warning("Cannot remove scene root object");
+            return;
         }
-        List<GameObject> descendants = go.getAllDescendants();
-        for (GameObject descendant : descendants) {
-            sceneData.cachedIDs().remove(descendant.getUID());
-            sceneData.gameObjectByUUIDs().remove(descendant.getUUID());
-            sceneData.physic2D().destroyObject(descendant);
-            uncacheComponents(descendant);
-        }
-        sceneData.cachedIDs().remove(go.getUID());
-        sceneData.gameObjectByUUIDs().remove(go.getUUID());
-        sceneData.physic2D().destroyObject(go);
-        uncacheComponents(go);
+        if (go.getParent() != null) go.getParent().removeChild(go);
+        go.getAllDescendants().forEach(this::removeFromData);
+        removeFromData(go);
         EngineEventCallback.emit(new SceneEvent(SceneEvent.Type.ObjectRemoved, this , go));
+    }
+
+    private void removeFromData(GameObject go) {
+        sceneData.removeObject(go);
+        uncacheComponents(go);
     }
 
     private void removeComponentFromScene(Component component) {
@@ -355,12 +362,12 @@ public class Scene {
         addedGameObjectWithParents.clear();
         removedGameObjects.clear();
         removedComponents.clear();
-        for (Component c : componentToRemove) removeComponentFromScene(c);
-        for (GameObject go : toRemove) removeObjectFromScene(go);
-        for (GameObject go : toAdd) {
+        componentToRemove.forEach(this::removeComponentFromScene);
+        toRemove.forEach(this::removeObjectFromScene);
+        toAdd.forEach(go -> {
             GameObject parent = toAddParent.get(go);
             addObjectToScene(go, parent);
-        }
+        });
     }
 
     /**
@@ -368,10 +375,12 @@ public class Scene {
      * @param file the file data to load from
      */
     void loadDataFromFile(SceneFile file) {
-        if (file == null || file.objects().isEmpty()) return;
+        if (file == null) return;
         sceneUUID = file.uuid();
         name = file.name();
-        List<GameObject> objects = file.objects();
+        root = file.root();
+        List<GameObject> objects = new ArrayList<>(file.objects());
+        objects.addFirst(root);
         objects.forEach(go -> addObjectToScene(go, null));
         objects.forEach(go -> go.restoreHierarchy(this));
     }

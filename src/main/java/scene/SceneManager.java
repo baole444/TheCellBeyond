@@ -94,9 +94,12 @@ public final class SceneManager {
             Logger.error(String.format(CannotSaveFormat, sceneName, ProjectNotLoaded));
             return false;
         }
+        GameObject root = scene.root();
+        if (root != null) root.prepareForSerialization();
         List<GameObject> objects = scene.getSerializedObject();
         objects.forEach(GameObject::prepareForSerialization);
-        SceneFile file = new SceneFile(scene.sceneUUID(), sceneName, "", SceneFile.SaveVersion, objects);
+        String type = root == null ? "" : root.getClass().getCanonicalName();
+        SceneFile file = new SceneFile(scene.sceneUUID(), sceneName, type, SceneFile.SaveVersion, root, objects);
         return saveSceneFile(file);
     }
 
@@ -240,25 +243,12 @@ public final class SceneManager {
             saveSceneFile(newFile);
             return newFile;
         }
-
         try {
             Gson gson = buildGson();
             JsonElement element = JsonParser.parseString(fileContent);
-            if (element.isJsonArray()) {
-                GameObject[] objects = gson.fromJson(element, GameObject[].class);
-                Logger.info(String.format("Update scene file format for '%s'", sceneName));
-                return SceneFile.fromLegacy(objects != null ? List.of(objects) : null, sceneName);
-            }
-            if (!element.isJsonObject()) {
-                Logger.warning(String.format(CannotLoadFormat, sceneName, "unknow scene data format"));
-                return new SceneFile(sceneName);
-            }
-            JsonObject jsonObject = element.getAsJsonObject();
-            if (jsonObject.has("objects") || jsonObject.has("uuid") || jsonObject.has("name")) {
-                return gson.fromJson(element, SceneFile.class);
-            }
-            GameObject[] objects = gson.fromJson(element, GameObject[].class);
-            return SceneFile.fromLegacy(objects != null ? List.of(objects) : null, sceneName);
+            JsonObject jsonObject = SceneFileMigrator.migrateToLatest(element, sceneName);
+            if (jsonObject == null) throw new JsonSyntaxException("Unknown scene data format");
+            return gson.fromJson(jsonObject, SceneFile.class);
         } catch (JsonSyntaxException e) {
             Logger.error(String.format("Failed to parse scene file for '%s': ", e.getMessage()));
             return new SceneFile(sceneName);
@@ -332,7 +322,7 @@ public final class SceneManager {
      * This consist of 2 type adapter for component and game object.
      * @return the configured Gson instance
      */
-    private static Gson buildGson() {
+    static Gson buildGson() {
         return new GsonBuilder()
                 .registerTypeAdapter(Component.class, new ComponentSerializer())
                 .registerTypeHierarchyAdapter(GameObject.class, new GameObjectSerializer())

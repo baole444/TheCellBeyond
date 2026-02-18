@@ -154,7 +154,6 @@ public class GameObject {
         for (GameObject child : children) {
             if (child.name.equals(childName)) return child;
         }
-
         return null;
     }
 
@@ -176,18 +175,14 @@ public class GameObject {
      */
     public void addChild(GameObject child) {
         if (child == null || child == this) return;
-
         if (isAncestor(child)) {
             System.err.println("Cannot add parent as child.");
             return;
         }
-
         if (child.parent != null) child.parent.removeChild(child);
-
         children.add(child);
         child.parent = this;
         child.parentUUID = this.uuid;
-
         updateChildrenUUIDs();
     }
 
@@ -197,13 +192,11 @@ public class GameObject {
      */
     public void removeChild(GameObject child) {
         if (child == null) return;
-
         children.remove(child);
         if (child.parent == this) {
             child.parent = null;
             child.parentUUID = null;
         }
-
         updateChildrenUUIDs();
     }
 
@@ -221,7 +214,6 @@ public class GameObject {
             newParent.addChild(this);
             return;
         }
-
         if (parent != null) parent.removeChild(this);
         parent = null;
         parentUUID = null;

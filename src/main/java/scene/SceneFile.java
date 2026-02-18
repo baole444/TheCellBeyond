@@ -1,6 +1,8 @@
 package scene;
 
 import TheCellBeyond.GameObject;
+import TheCellBeyond.GameObject2D;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -11,10 +13,18 @@ import java.util.UUID;
  * @param name name of the scene
  * @param sceneType type of the scene
  * @param version scene file version number
+ * @param root scene root object
  * @param objects list of serialized game object
  */
-public record SceneFile(UUID uuid, String name, String sceneType, int version, List<GameObject> objects) {
-    public static final int SaveVersion = 1;
+public record SceneFile(UUID uuid, String name, String sceneType, int version, GameObject root, List<GameObject> objects) {
+    static final int SaveVersion = 2;
+
+    static final String UUIDKey = "uuid";
+    static final String NameKey = "name";
+    static final String SceneTypeKey = "sceneType";
+    static final String VersionKey = "version";
+    static final String RootKey = "root";
+    static final String ObjectsKey = "objects";
 
     /**
      * Compact constructor ensure that data of SceneFile is not null.
@@ -22,11 +32,13 @@ public record SceneFile(UUID uuid, String name, String sceneType, int version, L
      * @param name name of the scene
      * @param sceneType type of the scene
      * @param version scene file version number
+     * @param root scene root object
      * @param objects list of serialized game object
      */
     public SceneFile {
         if (uuid == null) uuid = UUID.randomUUID();
         if (name == null || name.isBlank()) name = "scene_unknown_name_" + uuid;
+        if (root == null) root = new GameObject2D("Root");
         if (objects == null) objects = new ArrayList<>();
         else objects = new ArrayList<>(objects);
     }
@@ -36,7 +48,7 @@ public record SceneFile(UUID uuid, String name, String sceneType, int version, L
      * @param name name of the scene
      */
     public SceneFile(String name) {
-        this(UUID.randomUUID(), name, "", SaveVersion, new ArrayList<>());
+        this(UUID.randomUUID(), name, "", SaveVersion, new GameObject2D("Root"), new ArrayList<>());
     }
 
     /**
@@ -46,6 +58,14 @@ public record SceneFile(UUID uuid, String name, String sceneType, int version, L
      * @return a new {@link SceneFile}
      */
     public static SceneFile fromLegacy(List<GameObject> objects, String sceneName) {
-        return new SceneFile(UUID.randomUUID(), sceneName, "", SaveVersion, objects);
+        return new SceneFile(UUID.randomUUID(), sceneName, "", 1, null, objects);
+    }
+
+    /**
+     * Get the default root object for scene file
+     * @return an instance of {@link GameObject2D} named "Root"
+     */
+    static GameObject defaultRoot() {
+        return new GameObject2D("Root");
     }
 }

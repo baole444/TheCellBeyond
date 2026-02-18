@@ -30,7 +30,6 @@ public class Shader {
 
     private void loadShaderSource() {
         UnifiedPaths resolver = UnifiedPaths.get();
-
         try (InputStream stream = resolver.getAssetStream(assetReference.resolvedPath())) {
             String src = new String(stream.readAllBytes());
             parseShaderSource(src);
@@ -77,18 +76,10 @@ public class Shader {
 
     public void compile() {
         if (isCompiled) return;
-
         int vertexID, fragmentID;
-        // Compile and link shader:
-
-        // First load and compile the vertex shader.
         vertexID = glCreateShader(GL_VERTEX_SHADER);
-
-        // Pass shader to GPU.
         glShaderSource(vertexID, vertexSrc);
         glCompileShader(vertexID);
-
-        // Catch errors.
         int success = glGetShaderi(vertexID, GL_COMPILE_STATUS);
         if (success == GL_FALSE) {
             int len = glGetShaderi(vertexID, GL_INFO_LOG_LENGTH);
@@ -96,15 +87,9 @@ public class Shader {
             System.out.println(glGetShaderInfoLog(vertexID, len));
             assert false: "";
         }
-
-        // First load and compile the fragment shader.
         fragmentID = glCreateShader(GL_FRAGMENT_SHADER);
-
-        // Pass shader to GPU.
         glShaderSource(fragmentID, fragmentSrc);
         glCompileShader(fragmentID);
-
-        // Catch errors.
         success = glGetShaderi(fragmentID, GL_COMPILE_STATUS);
         if (success == GL_FALSE) {
             int len = glGetShaderi(fragmentID, GL_INFO_LOG_LENGTH);
@@ -112,14 +97,10 @@ public class Shader {
             System.out.println(glGetShaderInfoLog(fragmentID, len));
             assert false: "";
         }
-
-        // Link shader.
         shaderProgramID = glCreateProgram();
         glAttachShader(shaderProgramID, vertexID);
         glAttachShader(shaderProgramID, fragmentID);
         glLinkProgram(shaderProgramID);
-
-        // Catch linking errors.
         success = glGetProgrami(shaderProgramID, GL_LINK_STATUS);
         if (success == GL_FALSE) {
             int len = glGetProgrami(shaderProgramID, GL_INFO_LOG_LENGTH);
@@ -127,14 +108,11 @@ public class Shader {
             System.out.println(glGetProgramInfoLog(shaderProgramID, len));
             assert false: "";
         }
-
         isCompiled = true;
     }
 
     public void use() {
         if (!isCompiled) compile();
-
-        // Bind shader
         if (!isInUse) glUseProgram(shaderProgramID);
     }
 

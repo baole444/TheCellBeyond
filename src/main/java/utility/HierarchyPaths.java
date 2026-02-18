@@ -146,8 +146,7 @@ public class HierarchyPaths {
         }
 
         if (path.segmentCount() == 1 && path.fromRoot()) {
-            Logger.warning("Path '/root' is not yet supported.");
-            return null;
+            return scene.root();
         }
 
         String segment = path.segment(path.fromRoot() ? 1 : 0);
@@ -156,13 +155,13 @@ public class HierarchyPaths {
             return null;
         }
 
-        List<GameObject> rootObjects = scene.getRootGameObjects();
-        if (rootObjects.isEmpty()) {
+        GameObject root = scene.root();
+        if (root == null) {
             Logger.error(String.format("Cannot resolve absolute path '%s': no root object in scene!", path));
             return null;
         }
 
-        for (GameObject go : rootObjects) {
+        for (GameObject go : root.getChildren()) {
             if (go.name() != null && go.name().equals(segment)) return go;
             if (go.getClass().getSimpleName().equals(segment)) return go;
         }
