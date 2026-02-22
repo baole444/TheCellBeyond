@@ -9,31 +9,23 @@ import render.FrameBuffer;
 import utility.WorldUnit;
 
 public class Viewport {
-    public static final int nearZIndex = -16;
-    public static final int farZIndex = 1024;
-
-    public Vector2f position;
-    private final Matrix4f projectionMatrix;
-    private final Matrix4f viewMatrix;
-    private final Matrix4f inverseProjectionMatrix;
-    private final Matrix4f inverseViewMatrix;
-
+    public static final int NearZIndex = -16;
+    public static final int FarZIndex = 1024;
+    private static float globalScale;
+    public final Vector2f position = new Vector2f();
+    private final Matrix4f projectionMatrix = new Matrix4f();
+    private final Matrix4f viewMatrix = new Matrix4f();
+    private final Matrix4f inverseProjectionMatrix = new Matrix4f();
+    private final Matrix4f inverseViewMatrix = new Matrix4f();
     private float sceneScale;
     private float aspectRatio;
     private Vector2f projectionSize;
-    private float zoom = 1.0f;
-    private static float globalScale;
-
+    private final Vector2f zoom = new Vector2f(1.0f);
+    private float rotation = 0.0f;
     private boolean isDynamic = true;
 
-    public Viewport(Vector2f position) {
+    public Viewport() {
         globalScale = Project.preference().textureGlobalScale();
-        this.position = position;
-        projectionMatrix = new Matrix4f();
-        viewMatrix = new Matrix4f();
-        inverseProjectionMatrix = new Matrix4f();
-        inverseViewMatrix = new Matrix4f();
-
         aspectRatio = (float) Window.getWidth() / Window.getHeight();
         sceneScale = WorldUnit.pixelToWorld(Window.getHeight());
         if (LogicServer.runtimeMode()) {
@@ -41,9 +33,13 @@ public class Viewport {
             aspectRatio = Window.getTargetAspectRatio();
             sceneScale = WorldUnit.pixelToWorld(Project.preference().gameWindowHeight());
         }
-
         projectionSize = new Vector2f(aspectRatio * sceneScale, sceneScale);
         adjustProjection();
+    }
+
+    public Viewport(Vector2f position) {
+        this();
+        this.position.set(position);
     }
 
     public void updateAspectRatio(float width, float height) {
@@ -69,31 +65,31 @@ public class Viewport {
         FrameBuffer fb = Window.getFrameBuffer();
         float fbHWorldUnit = WorldUnit.pixelToWorld(fb.getHeight());
         float scale = availHeight / fb.getHeight();
-
         sceneScale = fbHWorldUnit * scale;
-
         projectionSize = new Vector2f(aspectRatio * sceneScale, sceneScale);
     }
 
     public void adjustProjection() {
         globalScale = Project.preference().textureGlobalScale();
         projectionMatrix.identity();
-        projectionMatrix.ortho(0.0f, projectionSize.x * (zoom / globalScale),
-                0.0f, projectionSize.y * (zoom / globalScale),
-                nearZIndex, farZIndex
+        projectionMatrix.ortho(
+                0.0f, projectionSize.x * (zoom.x / globalScale),
+                0.0f, projectionSize.y * (zoom.y / globalScale),
+                NearZIndex, FarZIndex
         );
         projectionMatrix.invert(inverseProjectionMatrix);
     }
 
     public Matrix4f getViewMatrix() {
-        Vector3f front = new Vector3f(0.0f, 0.0f, -1.0f).add(position.x, position.y, 0.0f);
-        Vector3f up = new Vector3f(0.0f, 1.0f, 0.0f);
+        float radians = (float) Math.toRadians(rotation);
+        float cos = (float) Math.cos(radians);
+        float sin = (float) Math.sin(radians);
+
+        Vector3f front = new Vector3f(position.x, position.y, -1.0f);
+        Vector3f up = new Vector3f(-sin, cos, 0.0f);
         Vector3f cameraPos = new Vector3f(position.x, position.y, 20.0f);
-
         viewMatrix.identity().lookAt(cameraPos, front, up);
-
         viewMatrix.invert(inverseViewMatrix);
-
         return viewMatrix;
     }
 
@@ -117,16 +113,29 @@ public class Viewport {
         return aspectRatio;
     }
 
-    public float getZoom() {
+    public Vector2f getZoom() {
         return zoom;
     }
 
     public void setZoom(float zoom) {
-        this.zoom = zoom;
+        this.zoom.set(zoom);
     }
 
-    public void addZoom(float val) {
-        this.zoom += val;
+    public void setZoom(Vector2f zoom) {
+        if (zoom == null) return;
+        this.zoom.set(zoom);
+    }
+
+    public void addZoom(float value) {
+        this.zoom.add(value, value);
+    }
+
+    public float getRotation() {
+        return rotation;
+    }
+
+    public void setRotation(float degrees) {
+        rotation = degrees;
     }
 
     public float sceneScale() {

@@ -1,5 +1,6 @@
 package editor.dialog;
 
+import TheCellBeyond.internal.LogicServer;
 import editor.preference.EditorPreferences;
 import editor.preference.UserPreference;
 import eventviewer.EngineEventCallback;
@@ -32,18 +33,18 @@ public class ConfirmSaveSceneDialog {
 
     public static void imgui() {
         if (!showDialog) return;
-
+        if (LogicServer.currentScene() == null) {
+            closeConfirmation();
+            return;
+        }
         if (isAutoSaveOnSceneChange) {
             EngineEventCallback.emit(null, new EditorEvent(EditorEvent.Type.SaveEditingSceneToDisk));
             closeConfirmation();
             return;
         }
-
         ImGui.openPopup(POPUP_ID);
-
         ImVec2 centre = ImGui.getMainViewport().getCenter();
         float pivotXY = 0.5f;
-
         ImGui.setNextWindowPos(centre.x, centre.y, ImGuiCond.Appearing, pivotXY, pivotXY);
         ImGui.setNextWindowSize(DIALOG_SIZE);
 
@@ -103,9 +104,7 @@ public class ConfirmSaveSceneDialog {
     private static void closeConfirmation() {
         showDialog = false;
         ImGui.closeCurrentPopup();
-
         if (onCompleteDecision == null) return;
-
         Runnable callback = onCompleteDecision;
         onCompleteDecision = null;
         onCancelDecision = null;

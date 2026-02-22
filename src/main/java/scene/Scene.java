@@ -101,6 +101,7 @@ public class Scene {
 
     public void editorUpdate(float dt) {
         if (!sceneStarted) return;
+        if (rootIsFreed()) return;
         sceneData.updated().set(false);
         sceneData.viewport().adjustProjection();
         sceneData.gameObjects().forEach(go -> {
@@ -122,6 +123,7 @@ public class Scene {
      */
     public void updatePhysic(float dt) {
         if (!sceneStarted) return;
+        if (rootIsFreed()) return;
         sceneData.physic2D().update(dt, (fixedDT) -> {
             sceneData.gameObjects().forEach(go -> go.physicUpdate(fixedDT));
         });
@@ -130,12 +132,25 @@ public class Scene {
         }
     }
 
+    private boolean rootIsFreed() {
+        if (root.isRemoved()) {
+            Logger.info(String.format("Root object had been freed, exiting scene '%s'", name));
+            destroy();
+            return true;
+        }
+        return false;
+    }
+
     /**
      * Update this scene by the given delta time.
      * @param dt variable frame delta time
      */
     public void update(float dt) {
         if (!sceneStarted) return;
+        if (root.isRemoved()) {
+            destroy();
+            return;
+        }
         sceneData.updated().set(false);
         sceneData.viewport().adjustProjection();
         sceneData.gameObjects().forEach(go -> {
@@ -160,8 +175,22 @@ public class Scene {
      * Get the list of object that is serialized in scene.
      * @return a new list of {@link GameObject}
      */
-    public List<GameObject> getSerializedObject() {
-        return sceneData.gameObjects().stream().filter(GameObject::isSerialize).collect(Collectors.toCollection(ArrayList::new));
+    public List<GameObject> getSerializedObjects() {
+        return sceneData.gameObjects().stream()
+                .filter(GameObject::isSerialize)
+                .collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    /**
+     * Get the list of object that is serialized in scene and is orphan (has no parent). This does not include root object.
+     * @return a new list of {@link GameObject}
+     */
+    public List<GameObject> getOrphanObjects() {
+        return sceneData.gameObjects().stream()
+                .filter(GameObject::isSerialize)
+                .filter(go -> go != root)
+                .filter(GameObject::isRoot)
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     /**
@@ -194,7 +223,7 @@ public class Scene {
     }
 
     /**
-     * Queue the object to add to the scene.
+     * Queue the object to add to the scene as child of root object.
      * @param go the object to add
      */
     public void queueForObjectAddition(GameObject go) {
@@ -223,7 +252,7 @@ public class Scene {
             Logger.warning("Remove root object from scene is not allowed");
             return;
         }
-        if (removedGameObjects.contains(go) || sceneData.cachedObjectsByUUID().containsKey(go.getUUID())) return;
+        if (removedGameObjects.contains(go) || !sceneData.cachedObjectsByUUID().containsKey(go.getUUID())) return;
         removedGameObjects.add(go);
         addedGameObjects.remove(go);
         addedGameObjectWithParents.remove(go);
@@ -380,6 +409,8 @@ public class Scene {
         name = file.name();
         root = file.root();
         List<GameObject> objects = new ArrayList<>(file.objects());
+        UUID rootUUID = root.getUUID();
+        if (rootUUID != null) objects.removeIf(go -> rootUUID.equals(go.getUUID()));
         objects.addFirst(root);
         objects.forEach(go -> addObjectToScene(go, null));
         objects.forEach(go -> go.restoreHierarchy(this));

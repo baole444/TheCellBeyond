@@ -74,7 +74,7 @@ public abstract class PhysicBody2D extends GameObject2D {
     public void setSensor(boolean sensor) {
         this.isSensor = sensor;
         if (physicBodyRef != null) {
-            LogicServer.physic2D().setIsSensor(this, sensor);
+            LogicServer.currentScenePhysic2D().setIsSensor(this, sensor);
         }
     }
 
@@ -153,7 +153,7 @@ public abstract class PhysicBody2D extends GameObject2D {
     private void updateFixtureFilter() {
         if (!needFixtureUpdate) return;
 
-        Physic2D physic2D = LogicServer.physic2D();
+        Physic2D physic2D = LogicServer.currentScenePhysic2D();
         if (physic2D == null || physic2D.isLock()) return;
         if (physicBodyRef == null) {
             needFixtureUpdate = false;

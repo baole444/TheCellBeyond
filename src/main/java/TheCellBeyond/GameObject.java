@@ -641,21 +641,16 @@ public class GameObject {
     public void destroy() {
         onDestroy();
         isRemoved = true;
-
         if (parent != null) parent.removeChild(this);
-
         List<GameObject> childrenCopy = new ArrayList<>(children);
-
         for (GameObject child : childrenCopy) {
             if (child == null) continue;
             child.destroy();
         }
-
         for (Component component : components) {
             if (component == null) continue;
             component.destroy();
         }
-
         if (cachedID > 0) {
             idCounter.releaseId(cachedID);
             cachedID = -1;

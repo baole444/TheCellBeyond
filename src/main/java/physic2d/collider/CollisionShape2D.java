@@ -68,7 +68,7 @@ public abstract class CollisionShape2D extends SpatialComponent {
     }
 
     public void resetFixture() {
-        Physic2D physic2D = LogicServer.physic2D();
+        Physic2D physic2D = LogicServer.currentScenePhysic2D();
         if (physic2D == null || physic2D.isLock()) {
             needsFixtureReset = true;
             return;

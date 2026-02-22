@@ -53,22 +53,17 @@ public class EditorGizmo extends SpatialComponent implements NotSerializeCompone
         xAxisSpr = xAxisObj.getFirstComponent(SpriteRenderer.class);
         yAxisSpr = yAxisObj.getFirstComponent(SpriteRenderer.class);
 
-        LogicServer.currentScene().queueForObjectAddition(xAxisObj);
-        LogicServer.currentScene().queueForObjectAddition(yAxisObj);
+        LogicServer.currentScene().queueForObjectAddition(xAxisObj, null);
+        LogicServer.currentScene().queueForObjectAddition(yAxisObj, null);
     }
 
     private GameObject2D createGizmoObject(String name, Sprite sprite) {
         GameObject2D go2D = new GameObject2D(name);
-
-        // Make gizmo not store to level save file.
         go2D.setNotSerialize();
-
         go2D.addComponent(new IsNotSelectable());
-
         SpriteRenderer renderer = new SpriteRenderer();
         renderer.zIndex(100);
         renderer.sprite(sprite);
-
         go2D.addComponent(renderer);
         return go2D;
     }

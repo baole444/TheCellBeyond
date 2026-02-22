@@ -51,21 +51,18 @@ public class EditorGizmoCtrl extends Component {
     }
 
     private void completeInit() {
-        if (gizmo == null) return;
-
+        if (gizmo == null || gameObject == null) return;
         Sprite gizmoMove = gizmo.spriteIndex(1);
         Sprite gizmoScale = gizmo.spriteIndex(2);
-
         if (gizmoMove == null || gizmoScale == null) return;
-
         gameObject.addComponent(new EditorGizmoMove(gizmoMove));
         gameObject.addComponent(new EditorGizmoScale(gizmoScale));
-
         isInitialized = true;
     }
 
     @Override
     public void onEditorUpdate(float dt) {
+        if (gameObject == null) return;
         if (gizmo == null) {
             initGizmoSprite();
             return;

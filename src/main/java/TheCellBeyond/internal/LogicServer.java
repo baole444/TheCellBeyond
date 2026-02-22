@@ -1,6 +1,7 @@
 package TheCellBeyond.internal;
 
 import TheCellBeyond.MouseListener;
+import TheCellBeyond.Viewport;
 import editor.Properties;
 import editor.SceneTree;
 import editor.preference.RecentProject;
@@ -10,6 +11,7 @@ import eventviewer.EngineEventListener;
 import eventviewer.event.EditorEvent;
 import eventviewer.event.RuntimeEvent;
 import eventviewer.event.Event;
+import eventviewer.event.SceneEvent;
 import physic2d.Physic2D;
 import project.Project;
 import project.ProjectPreference;
@@ -55,18 +57,42 @@ public class LogicServer implements EngineEventListener {
         changeScene(new SceneEditor(), sceneName);
     }
 
+    /**
+     * Get the current scene.
+     * @return the current scene or null if there is no scene
+     */
     public static Scene currentScene() {
         return currentScene;
     }
 
+    /**
+     * Get the name of the current scene.
+     * @return name string of the scene or null if there is no scene
+     */
     public static String currentSceneName() {
         return currentScene == null ? null : currentScene.name();
     }
 
-    public static Physic2D physic2D() {
-        return currentScene.getPhysic2D();
+    /**
+     * Get the viewport of the current scene.
+     * @return the viewport or null if there is no scene
+     */
+    public static Viewport currentSceneViewport() {
+        return currentScene == null ? null : currentScene.viewport();
     }
 
+    /**
+     * Get the physic 2D world of the current scene.
+     * @return the physic world or null if there is no scene
+     */
+    public static Physic2D currentScenePhysic2D() {
+        return currentScene == null ? null : currentScene.getPhysic2D();
+    }
+
+    /**
+     * Check if the engine is in runtime or not.
+     * @return true if runtime started
+     */
     public static boolean runtimeMode() {
         return runtimeMode;
     }
@@ -119,8 +145,17 @@ public class LogicServer implements EngineEventListener {
 
     @Override
     public void onEventEmit(Object object, Event event) {
-        if (event instanceof EditorEvent editorEvent) handleEditorEvent(object, editorEvent);
-        if (event instanceof RuntimeEvent runtimeEvent) handleRuntimeEvent(object, runtimeEvent);
+        switch (event) {
+            case SceneEvent sceneEvent -> handleSceneEvent(object, sceneEvent);
+            case EditorEvent editorEvent -> handleEditorEvent(object, editorEvent);
+            case RuntimeEvent runtimeEvent -> handleRuntimeEvent(object, runtimeEvent);
+            default -> {}
+        }
+    }
+
+    private void handleSceneEvent(Object object, SceneEvent event) {
+        if (!event.type.equals(SceneEvent.Type.SceneLeaved)) return;
+        currentScene = null;
     }
 
     private void handleRuntimeEvent(Object object, RuntimeEvent event) {

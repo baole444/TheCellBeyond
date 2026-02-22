@@ -149,7 +149,7 @@ public class ImGuiLayer {
             return;
         }
 
-        currentScene.imgui();
+        if (currentScene != null) currentScene.imgui();
         sceneEditorViewport.imgui();
         Properties.imgui();
         SceneTree.imgui();

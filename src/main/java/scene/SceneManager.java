@@ -63,14 +63,14 @@ public final class SceneManager {
      */
     public static void saveCurrentScene() {
         if (runtimeMode()) return;
+        Scene currentScene = LogicServer.currentScene();
+        if (currentScene == null) {
+            Logger.warning(String.format(CannotSaveFormat, "unknown", SceneNotLoaded));
+            return;
+        }
         String currentName = LogicServer.currentSceneName();
         if (currentName == null) {
             SaveSceneAsDialog.show(SceneManager::saveCurrentScene);
-            return;
-        }
-        Scene currentScene = LogicServer.currentScene();
-        if (currentScene == null) {
-            Logger.warning(String.format(CannotSaveFormat, currentName, SceneNotLoaded));
             return;
         }
         saveScene(currentName, currentScene);
@@ -96,7 +96,8 @@ public final class SceneManager {
         }
         GameObject root = scene.root();
         if (root != null) root.prepareForSerialization();
-        List<GameObject> objects = scene.getSerializedObject();
+        List<GameObject> objects = scene.getSerializedObjects();
+        objects.removeIf(go -> go == root);
         objects.forEach(GameObject::prepareForSerialization);
         String type = root == null ? "" : root.getClass().getCanonicalName();
         SceneFile file = new SceneFile(scene.sceneUUID(), sceneName, type, SceneFile.SaveVersion, root, objects);
@@ -270,8 +271,8 @@ public final class SceneManager {
             sceneMap = new ProjectSceneMap(newPath);
             if (!Project.addScene(sceneName, sceneMap)) {
                 Logger.error(String.format(CannotSaveFormat, sceneName, RegisterSceneFailed));
-                return false;
-            }
+            }                return false;
+
         }
         String path = UnifiedPaths.resolveToAbsolute(Project.projectRoot(), sceneMap.path());
         try (FileWriter writer = new FileWriter(path)) {

@@ -14,82 +14,60 @@ import static org.lwjgl.glfw.GLFW.*;
 public class EditorSceneCtrl extends Component {
     private boolean isBackTo0 = false;
     private boolean isResetZ = false;
-    private float lerpT = 0.0f;
     private float dragInit = 0.032f;
-    private final float dragSensitivity = 24.0f; // in pixel
-    private final float scrollSensitivity = 0.1f; // zoom step
-    private final Viewport workViewport;
-    private Vector2f clickOrigin;
-    private final float MAX_ZOOM = 10.0f;
-    private final float MIN_ZOOM = 0.01f;
+    private static final float pixelDragSensitivity = 24.0f; // in pixel
+    private static final float scrollSensitivity = 0.1f; // zoom step
+    private final Viewport workingViewport;
+    private final Vector2f clickOrigin = new Vector2f();
+    private static final float MaxZoom = 10.0f;
+    private static final float MinZoom = 0.01f;
 
-    public EditorSceneCtrl(Viewport workViewport) {
-        this.workViewport = workViewport;
-        this.clickOrigin = new Vector2f();
+    public EditorSceneCtrl(Viewport targetViewport) {
+        workingViewport = targetViewport;
     }
 
     @Override
     public void editorUpdate(float dt) {
         if (!ImGuiLayer.editorWantCaptureMouse() || !ImGuiLayer.editorWantCaptureKeyboard() || ImGui.isPopupOpen("", ImGuiPopupFlags.AnyPopup)) return;
-
         if (MouseListener.isButtonPressed(GLFW_MOUSE_BUTTON_MIDDLE) && dragInit > 0) {
-            this.clickOrigin = MouseListener.getWorldPosition();
+            clickOrigin.set(MouseListener.getWorldPosition());
             dragInit -= dt;
             return;
-
-        } else if (MouseListener.isButtonPressed(GLFW_MOUSE_BUTTON_MIDDLE)) {
+        }
+        if (MouseListener.isButtonPressed(GLFW_MOUSE_BUTTON_MIDDLE)) {
             Vector2f cursorPos = MouseListener.getWorldPosition();
             Vector2f delta = new Vector2f(cursorPos).sub(this.clickOrigin);
-            workViewport.position.sub(delta.mul(dt).mul(dragSensitivity));
+            workingViewport.position.sub(delta.mul(dt).mul(pixelDragSensitivity));
             this.clickOrigin.lerp(cursorPos, dt);
-
         }
-
-        if (dragInit <= 0.0f && !MouseListener.isButtonPressed(GLFW_MOUSE_BUTTON_MIDDLE)) {
-            dragInit = 0.032f;
-        }
-
-        if (MouseListener.getScrollY() != 0.0f) {
-            float absScroll = Math.abs(MouseListener.getScrollY()) * scrollSensitivity;
-            float addVal = (float) Math.pow(absScroll, 1.0f / workViewport.getZoom());
-            addVal *= -Math.signum(MouseListener.getScrollY());
-            float finalZoom = workViewport.getZoom() + addVal;
-            finalZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, finalZoom));
-            workViewport.setZoom(finalZoom);
-
-        }
-
-        if (KeyListener.isKeyPressed(GLFW_KEY_Z)) {
-            isResetZ = true;
-        }
-
+        if (dragInit <= 0.0f && !MouseListener.isButtonPressed(GLFW_MOUSE_BUTTON_MIDDLE)) dragInit = 0.032f;
+        handleZoom();
+        if (KeyListener.isKeyPressed(GLFW_KEY_Z)) isResetZ = true;
         if (isResetZ) {
-                workViewport.setZoom(1.0f);
-                isResetZ= false;
+            workingViewport.setZoom(1.0f);
+            isResetZ= false;
         }
-
-        if (KeyListener.isKeyPressed(GLFW_KEY_HOME)) {
-            isBackTo0 = true;
-        }
-
+        if (KeyListener.isKeyPressed(GLFW_KEY_HOME)) isBackTo0 = true;
         if (isBackTo0) {
-            workViewport.position.lerp(new Vector2f(0, 0), lerpT);
-
-            // Lerp function for the zoom
-            workViewport.setZoom(this.workViewport.getZoom() + (1.0f - workViewport.getZoom()) * lerpT);
-
-            // Unity fix on lerp to origin
-            this.lerpT += 0.1f + dt;
-
-            if (Math.abs(workViewport.position.x) <= 5.0f &&
-                    Math.abs(workViewport.position.y) <= 5.0f
-            ) {
-                this.lerpT = 0.0f;
-                workViewport.position.set(0f, 0f);
-                this.workViewport.setZoom(1.0f);
-                isBackTo0 = false;
-            }
+            workingViewport.position.set(0.0f);
+            workingViewport.setZoom(1.0f);
+            isBackTo0 = false;
         }
     }
 
+    private void handleZoom() {
+        float scroll = MouseListener.getScrollY();
+        if (Math.abs(scroll) == 0.0f) return;
+        Vector2f currentZoom = new Vector2f(workingViewport.getZoom());
+        float zoomStep = Math.abs(scroll) * scrollSensitivity * -Math.signum(scroll);
+        float addValue;
+        if (zoomStep < 0.0f) {
+            float min = currentZoom.get(currentZoom.minComponent());
+            addValue = -Math.abs(Math.min(Math.abs(MinZoom - min), Math.abs(zoomStep)));
+        } else {
+            float max = currentZoom.get(currentZoom.maxComponent());
+            addValue = Math.min(MaxZoom - max, zoomStep);
+        }
+        workingViewport.addZoom(addValue);
+    }
 }

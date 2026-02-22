@@ -1,6 +1,7 @@
 package editor;
 
 import TheCellBeyond.MouseListener;
+import TheCellBeyond.Viewport;
 import TheCellBeyond.Window;
 import TheCellBeyond.internal.LogicServer;
 import editor.dialog.SaveSceneAsDialog;
@@ -20,6 +21,9 @@ import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
 import org.joml.Vector2f;
 import render.FrameBuffer;
+
+import javax.swing.text.View;
+import java.util.Objects;
 
 public class SceneEditorViewport implements EngineEventListener {
     public static volatile String WINDOW_ID = "2D Scene###Editor_Scene_Viewport";
@@ -144,8 +148,9 @@ public class SceneEditorViewport implements EngineEventListener {
             currentWidth = usableWidth;
             currentHeight = usableHeight;
         }
-        if (!LogicServer.runtimeMode()) {
-            LogicServer.currentScene().viewport().adjustSceneScale(usableHeight);
+        Viewport viewport = LogicServer.currentSceneViewport();
+        if (!LogicServer.runtimeMode() && viewport != null) {
+            viewport.adjustSceneScale(usableHeight);
         }
         return new ImVec2(usableWidth, usableHeight);
     }

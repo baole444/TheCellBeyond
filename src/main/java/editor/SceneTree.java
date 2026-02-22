@@ -49,7 +49,8 @@ public class SceneTree {
         float availHeight = ImGui.getContentRegionAvailY() - ReservedButtonHeight * 1.1f;
         ImGui.beginChild(SceneTreeID, 0, availHeight, ImGuiChildFlags.Border);
         renderHierarchyTree(root, scene);
-
+        boolean openOrphans = ImGui.collapsingHeader("Orphan Objects##SceneTree_Orphan_Object_Header");
+        if (openOrphans) renderOrphans(scene);
         if (ImGui.isWindowHovered()
                 && !ImGui.isAnyItemHovered()
                 && ImGui.isMouseClicked(ImGuiMouseButton.Right)
@@ -81,9 +82,14 @@ public class SceneTree {
         renderTree(go, scene);
     }
 
+    private static void renderOrphans(Scene scene) {
+        if (scene == null) return;
+        List<GameObject> orphans = scene.getOrphanObjects();
+        orphans.forEach(go -> renderTree(go, scene));
+    }
+
     private static void renderTree(GameObject go, Scene scene) {
         ImGui.pushID(go.getUUID().toString());
-
         int flags = ImGuiTreeNodeFlags.OpenOnArrow
                 | ImGuiTreeNodeFlags.SpanAvailWidth
                 | ImGuiTreeNodeFlags.FramePadding
@@ -122,7 +128,6 @@ public class SceneTree {
             ImGui.endDragDropTarget();
             return;
         }
-
         if (scene.reparentObject(dropGo, go)) Logger.info(String.format("Reparented '%s' to '%s'", dropGo.name(), go.name()));
         else Logger.warning(String.format("Reparented '%s' to '%s' is not allowed!", dropGo.name(), go.name()));
         ImGui.endDragDropTarget();
@@ -134,7 +139,6 @@ public class SceneTree {
             if (ImGui.menuItem("Delete")) {
                 scene.queueObjectForRemoval(go);
             }
-
             if (ImGui.beginMenu("Duplicate...")) {
                 GameObject copy = null;
                 if (ImGui.menuItem("Without children")) copy = go.copy();
@@ -145,24 +149,17 @@ public class SceneTree {
                 }
                 ImGui.endMenu();
             }
-
-            if (go.getParent() != null && ImGui.menuItem("Move to Root")) {
-                scene.reparentObject(go, null);
-            }
-
+            if (go.getParent() != null && ImGui.menuItem("Move to Root")) scene.reparentObject(go, null);
             ImGui.separator();
             if (ImGui.menuItem("Add child Object...")) {
                 AddObjectDialog.show(go);
             }
-
             ImGui.separator();
-
             if (ImGui.beginMenu("Save as Prefab...")) {
                 if (ImGui.menuItem("Without children")) savePrefabDialog(go, false);
                 if (!go.getChildren().isEmpty() && ImGui.menuItem("With children")) savePrefabDialog(go, true);
                 ImGui.endMenu();
             }
-
             ImGui.endPopup();
         }
     }

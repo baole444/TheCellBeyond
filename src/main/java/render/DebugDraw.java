@@ -1,5 +1,6 @@
 package render;
 
+import TheCellBeyond.Viewport;
 import TheCellBeyond.internal.LogicServer;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
@@ -56,8 +57,16 @@ public class DebugDraw {
     }
 
     public static void draw() {
+        if (LogicServer.currentScene() == null) {
+            Lines.clear();
+            return;
+        }
         if (Lines.isEmpty() || !init || shader == null) return;
-
+        Viewport viewport = LogicServer.currentSceneViewport();
+        if (viewport == null) {
+            Lines.clear();
+            return;
+        }
         int index = 0;
         for (Line2D line: Lines) {
             for (int i = 0; i < 2; i++) {
@@ -81,10 +90,9 @@ public class DebugDraw {
 
         glBindBuffer(GL_ARRAY_BUFFER, vboID);
         glBufferData(GL_ARRAY_BUFFER, vertices, GL_DYNAMIC_DRAW);
-
         shader.use();
-        shader.loadMat4f("uProject", LogicServer.currentScene().viewport().getProjectionMatrix());
-        shader.loadMat4f("uView", LogicServer.currentScene().viewport().getViewMatrix());
+        shader.loadMat4f("uProject", viewport.getProjectionMatrix());
+        shader.loadMat4f("uView", viewport.getViewMatrix());
 
         glBindVertexArray(vaoID);
         glEnableVertexAttribArray(0);

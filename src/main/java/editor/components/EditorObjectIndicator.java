@@ -22,7 +22,7 @@ public final class EditorObjectIndicator extends SpriteRenderer implements NotSe
     public EditorObjectIndicator() {
         String name = EditorObjectIndicator.class.getSimpleName();
         super(name);
-        zIndex(Viewport.farZIndex);
+        zIndex(Viewport.FarZIndex);
         localTransform2D.relativeZIndex = false;
     }
 

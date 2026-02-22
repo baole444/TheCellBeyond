@@ -67,7 +67,7 @@ public class SceneEditor extends SceneLoader implements EngineEventListener {
                 new EditorTileMapGrid(), new EditorTileMapCtrl(),
                 new EditorSceneCtrl(scene.viewport()), new EditorGizmoCtrl()
         );
-        scene.queueForObjectAddition(levelEditorObject);
+        scene.queueForObjectAddition(levelEditorObject, null);
     }
 
     public void reloadResource() {

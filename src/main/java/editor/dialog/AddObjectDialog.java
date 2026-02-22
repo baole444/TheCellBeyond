@@ -1,5 +1,6 @@
 package editor.dialog;
 
+import TheCellBeyond.Camera2D;
 import TheCellBeyond.GameObject;
 import TheCellBeyond.GameObject2D;
 import TheCellBeyond.internal.LogicServer;
@@ -48,7 +49,9 @@ public class AddObjectDialog {
         CharacterBody2D("CharacterBody2D", "A specialized 2D physic object that is not affected by physics at all, but it affects other physic objects in its path. " +
                 "It is used to provide API to move objects in a specific way, as is often the case with user-controlled characters or logic driven NPCs."),
 
-        TileMap("TileMap", "A 2D tile map object. Tile map can have static or kinematic physic body and physic collision defined by tiles in the map's tile set.");
+        TileMap("TileMap", "A 2D tile map object. Tile map can have static or kinematic physic body and physic collision defined by tiles in the map's tile set."),
+
+        Camera2D("Camera2D", "A 2D camera object, allow update its targeted viewport's transform");
 
         private final String displayLabel;
         private final String description;
@@ -155,6 +158,7 @@ public class AddObjectDialog {
             case KinematicBody2D -> newObject = new KinematicBody2D(type.label());
             case CharacterBody2D -> newObject = new CharacterBody2D(type.label());
             case TileMap -> newObject = new TileMap(type.label());
+            case Camera2D -> newObject = new Camera2D(type.label());
 
             default -> newObject = null;
         }
