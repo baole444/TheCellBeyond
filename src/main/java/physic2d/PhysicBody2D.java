@@ -16,15 +16,12 @@ import physic2d.enums.PhysicBodyType;
 
 public abstract class PhysicBody2D extends GameObject2D {
     protected PhysicBodyType physicBodyType;
-
     private int collisionLayer = PhysicLayer.layerToBit(0);
     private int collisionMask = PhysicLayer.layerToBit(0);
-
     protected float friction = 0.0f;
     protected boolean isSensor = false;
     protected boolean isActive = true;
     protected transient Body physicBodyRef = null;
-
     private transient boolean needFixtureUpdate = false;
 
     public PhysicBody2D(PhysicBodyType bodyType) {
@@ -164,9 +161,18 @@ public abstract class PhysicBody2D extends GameObject2D {
         needFixtureUpdate = false;
     }
 
+    /**
+     * Configure the physic body definition base on what is required by the physic body type and implement.
+     * @param bodyDef the physic body definition to configure
+     */
     public abstract void configureBodyDef(BodyDef bodyDef);
 
-    public abstract void configureBody();
+    /**
+     * Configure the physic body reference base on what is required by the physic body type and implement.
+     * <p>
+     * This is called after the physic body reference is assigned to the physic object.
+     */
+    public abstract void configurePhysicBodyRef();
 
     /**
      * Add movement velocity to this physic body using the given vector.

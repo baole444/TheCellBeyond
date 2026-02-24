@@ -88,7 +88,7 @@ public class EditorMouseCtrl extends Component implements NotSerializeComponent 
             go2D.position(targetPos);
         } else if (holdObj instanceof GameObject go) {
             for (Component c : go.getComponents()) {
-                if (c instanceof SpatialComponent sC) sC.setWorldPosition(targetPos);
+                if (c instanceof Component2D sC) sC.globalPosition(targetPos);
             }
         }
 

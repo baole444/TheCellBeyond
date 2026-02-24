@@ -36,7 +36,7 @@ class DefaultEditorLayout {
         ImGui.dockBuilderDockWindow(SceneTree.WindowID, leftDock.get());
         ImGui.dockBuilderDockWindow(SceneEditor.WINDOW_ID, bottomLeftDock.get());
         ImGui.dockBuilderDockWindow(SceneEditorViewport.WINDOW_ID, mainDock.get());
-        ImGui.dockBuilderDockWindow(BottomPanel.WINDOW_ID, bottomMainDock.get());
+        ImGui.dockBuilderDockWindow(BottomPanel.WindowID, bottomMainDock.get());
         ImGui.dockBuilderDockWindow(Properties.WINDOW_ID, rightDock.get());
 
         ImGui.dockBuilderFinish(dockID);

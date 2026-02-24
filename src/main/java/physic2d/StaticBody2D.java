@@ -18,7 +18,7 @@ public class StaticBody2D extends PhysicBody2D {
     public void configureBodyDef(BodyDef bodyDef) {}
 
     @Override
-    public void configureBody() {}
+    public void configurePhysicBodyRef() {}
 
     @Override
     public StaticBody2D copy() {

@@ -21,7 +21,7 @@ import java.util.UUID;
  * Exposing B and C to A's owning {@link GameObject} is not always desired.
  * In this situation, A need to chain B and C's logic into its own life cycle.
  * </p>
- * <b>Inherited by:</b> {@link SpatialComponent}, {@link TheCellBeyond.Transform2D}, {@link Controller2D}, {@link StateEngine}
+ * <b>Inherited by:</b> {@link Component2D}, {@link TheCellBeyond.Transform2D}, {@link Controller2D}, {@link StateEngine}
  * <p>
  * Example for nested component scenario:
  * {@snippet lang = java:
@@ -84,11 +84,18 @@ public abstract class Component {
      */
     private String componentName;
 
+    /**
+     * Create a new {@link Component} instance.
+     */
     public Component() {
         String name = Component.class.getSimpleName();
         this(name);
     }
 
+    /**
+     * Create a new {@link Component} instance using the given name.
+     * @param name the new name for the component
+     */
     public Component(String name) {
         if (invalidName(name)) name = this.getClass().getSimpleName();
         componentName = name.trim();
@@ -99,7 +106,7 @@ public abstract class Component {
      * Initialize the component's state when its {@link GameObject} started.
      * If a component is added to an already running game object, it will be automatically started.
      * <p>
-     * Mainly called by the owning game object {@link GameObject#()} logic.
+     * Mainly called by the owning game object {@link GameObject#start()} logic.
      * </p>
      * Unless there is a very specific use case, it is suggested to override {@link #onStart()} instead of this.
      * @see Component#onStart() Add additional component startup logic
@@ -206,18 +213,59 @@ public abstract class Component {
      */
     protected void onUpdate(float dt) {}
 
+    /**
+     * Step the physic logic of this component by the delta time of the physic system.
+     * <p>
+     * Called once per iteration of the game's loop by the owning game object {@link GameObject#physicUpdate(float)}.
+     * </p>
+     * @param dt the fixed delta time of physic tick
+     * @see #onPhysicUpdate(float) Add optional physic update hook
+     * @apiNote
+     * Unless for the purpose of implement custom game physic logic, <b><u>do not</u></b> call this manually,
+     * as it can cause unwanted physic step.
+     * <p>
+     * If this must be called, ensure that, for an instance of {@link Component}, this is only called once.
+     */
     public void physicUpdate(float dt) {
         onPhysicUpdate(dt);
     }
 
+    /**
+     * Optional hook for additional component's physic logic.
+     * @param dt the fixed delta time of physic tick
+     */
     protected void onPhysicUpdate(float dt) {}
 
+    /**
+     * Callback at the start of physic collision.
+     * @param targetObj the contacted object
+     * @param contact the physic contact
+     * @param hitNormalization normalization vector
+     */
     public void startCollision(GameObject targetObj, Contact contact, Vector2f hitNormalization) {}
 
+    /**
+     * Callback at the end of physic collision.
+     * @param targetObj the contacted object
+     * @param contact the physic contact
+     * @param hitNormalization normalization vector
+     */
     public void endCollision(GameObject targetObj, Contact contact, Vector2f hitNormalization) {}
 
+    /**
+     * Callback before resolving physic collision.
+     * @param targetObj the contacted object
+     * @param contact the physic contact
+     * @param hitNormalization normalization vector
+     */
     public void preSolve(GameObject targetObj, Contact contact, Vector2f hitNormalization) {}
 
+    /**
+     * Callback after physic collision is resolved.
+     * @param targetObj the contacted object
+     * @param contact the physic contact
+     * @param hitNormalization normalization vector
+     */
     public void postSolve(GameObject targetObj, Contact contact, Vector2f hitNormalization) {}
 
     /**
@@ -294,26 +342,59 @@ public abstract class Component {
         componentName = name.trim();
     }
 
+    /**
+     * Get the hierarchy path that leads to this component.
+     * @return the {@link HierarchyPath} of this component
+     */
     public HierarchyPath asPath() {
         return HierarchyPaths.of(this);
     }
 
+    /**
+     * Get a component at the given hierarchy path.
+     * @param absolutePath the absolute hierarchy path that leads to the component
+     * @return a {@link Component} or null there is none
+     */
     public static Component getComponent(HierarchyPath absolutePath) {
         return HierarchyPaths.toComponent(absolutePath);
     }
 
+    /**
+     * Get a component at the given hierarchy path.
+     * @param path the relative hierarchy path that leads to the component
+     * @param context the context object to resolve the relative path from
+     * @return a {@link Component} or null there is none
+     */
     public static Component getComponent(HierarchyPath path, GameObject context) {
         return HierarchyPaths.toComponent(path, context);
     }
 
+    /**
+     * Get a component at the given hierarchy path.
+     * @param path the relative hierarchy path string that leads to the component
+     * @param context the context object to resolve the relative path from
+     * @return a {@link Component} or null there is none
+     */
     public static Component getComponent(String path, GameObject context) {
         return HierarchyPaths.toComponent(path, context);
     }
 
+    /**
+     * Get a component at the given hierarchy path.
+     * @param absolutePath the absolute hierarchy path string that leads to the component
+     * @return a {@link Component} or null there is none
+     */
     public static Component getComponent(String absolutePath) {
         return HierarchyPaths.toComponent(absolutePath);
     }
 
+    /**
+     * Check if the name given to a component is invalid.
+     * <p>
+     * A name is considered invalid if it is null, blank or contain the component delimit symbol from {@link HierarchyPath#ComponentDelimiter}.
+     * @param name the component name to check for
+     * @return true if the name is invalid
+     */
     protected static boolean invalidName(String name) {
         return name == null || name.isBlank() || name.contains(HierarchyPath.ComponentDelimiter);
     }

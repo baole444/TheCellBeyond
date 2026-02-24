@@ -14,12 +14,18 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * The auxiliary inspector panel beneath the scene editor viewport.
+ */
 public class BottomPanel {
-    public static final String WINDOW_ID = "###Editor_Bottom_Panel";
-    private static final String TABLE_ID = "##Bottom Panel Tab Buttons";
-    private static final float TAB_BUTTON_RESERVE = ImGui.getFrameHeightWithSpacing();
-    private static final float SEPARATOR_RESERVE = ImGui.getStyle().getItemSpacingY();
-    private static final float padding = 4.0f;
+    /**
+     * The ID string of the bottom panel for layout control.
+     */
+    public static final String WindowID = "##Editor_Bottom_Panel";
+    private static final String TableID = "##Bottom Panel Tab Buttons";
+    private static final float TabButtonReserve = ImGui.getFrameHeightWithSpacing();
+    private static final float SeparatorReserve = ImGui.getStyle().getItemSpacingY();
+    private static final float Padding = 4.0f;
     private static float tabWidth;
     private static boolean widthCalculated = false;
     private static TabName selectedTab = TabName.Output;
@@ -41,6 +47,14 @@ public class BottomPanel {
         }
     }
 
+    /**
+     * Create the bottom panel module.
+     */
+    private BottomPanel() {}
+
+    /**
+     * Clear and reset state of the auxiliary panels.
+     */
     public static void clear() {
         selectedTab = TabName.Output;
         workingTab = null;
@@ -50,6 +64,10 @@ public class BottomPanel {
         TileMapEditor.clearDialogData();
     }
 
+    /**
+     * Pass a component into the auxiliary inspector if supported.
+     * @param component the component to open with
+     */
     public static void interacted(Component component) {
         if (component == null) return;
         switch (component) {
@@ -64,21 +82,22 @@ public class BottomPanel {
             case AnimationPlayer animationPlayer -> {
                 workingTab = selectedTab = TabName.AnimationPlayer;
             }
-
             default -> clear();
         }
     }
 
+    /**
+     * Pass a game object into the auxiliary inspector if supported.
+     * @param go the game object to open with
+     */
     public static void interacted(GameObject go) {
         if (go == null) {
             clear();
             return;
         }
-
         if (go == currentObject) return;
         clear();
         currentObject = go;
-
         if (go instanceof TileMap tileMap) {
             TileSetEditor.edit(tileMap);
             TileMapEditor.edit(tileMap);
@@ -86,25 +105,24 @@ public class BottomPanel {
         }
     }
 
-    public static void imgui() {
+    /**
+     * Render the panel on screen.
+     */
+    static void imgui() {
         if (currentObject != null && currentObject.isRemoved()) clear();
-
         ImGui.setNextWindowSizeConstraints(
-                new ImVec2(0, TAB_BUTTON_RESERVE + SEPARATOR_RESERVE + padding),
+                new ImVec2(0, TabButtonReserve + SeparatorReserve + Padding),
                 new ImVec2(Float.MAX_VALUE, Float.MAX_VALUE)
         );
-
-        if (!ImGui.begin(WINDOW_ID)) {
+        if (!ImGui.begin(WindowID)) {
             ImGui.end();
             return;
         }
-
-        float contentReserve = ImGui.getContentRegionAvailY() - TAB_BUTTON_RESERVE - SEPARATOR_RESERVE;
-        if (contentReserve <= TAB_BUTTON_RESERVE) {
+        float contentReserve = ImGui.getContentRegionAvailY() - TabButtonReserve - SeparatorReserve;
+        if (contentReserve <= TabButtonReserve) {
             ImGui.end();
             return;
         }
-
         if (!ImGui.beginChild("##Multipurpose_tab_region", 0.0f, contentReserve, false)) {
             ImGui.endChild();
             ImGui.end();
@@ -114,7 +132,6 @@ public class BottomPanel {
         ImGui.endChild();
         ImGui.separator();
         renderTabButtons();
-
         ImGui.end();
     }
 
@@ -141,14 +158,14 @@ public class BottomPanel {
 
         List<TabName> workingTabs = getWorkingTabs();
         ImVec2 remainTableSize = ImGui.getContentRegionAvail();
-        if (!ImGui.beginTable(TABLE_ID, workingTabs.size(), ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.SizingStretchProp, remainTableSize)) {
+        if (!ImGui.beginTable(TableID, workingTabs.size(), ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.SizingStretchProp, remainTableSize)) {
             ImGui.endChild();
             return;
         }
 
         for (TabName tab : workingTabs) {
             String id = "##Bottom panel " + tab.name + " column";
-            ImGui.tableSetupColumn(id, ImGuiTableColumnFlags.WidthFixed, tabWidth + padding);
+            ImGui.tableSetupColumn(id, ImGuiTableColumnFlags.WidthFixed, tabWidth + Padding);
         }
 
         ImVec2 availSpace;

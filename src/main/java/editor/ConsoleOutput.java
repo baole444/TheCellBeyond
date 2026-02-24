@@ -15,7 +15,10 @@ import utility.log.LogEntry;
 import java.util.EnumMap;
 import java.util.List;
 
-public class ConsoleOutput implements EngineLogListener {
+/**
+ * Panel for displaying engine's log in the Editor UI.
+ */
+public final class ConsoleOutput implements EngineLogListener {
     private static ConsoleOutput instance;
 
     private static final ImVec4 debugColor = new ImVec4(0.35f, 0.35f, 0.35f, 1.0f);
@@ -39,6 +42,9 @@ public class ConsoleOutput implements EngineLogListener {
         init();
     }
 
+    /**
+     * Create the module and register it with {@link EngineLogCallback}.
+     */
     private ConsoleOutput() {
         entries = new RingBuffer<>(1024);
         logFilter = new EnumMap<>(EngineLog.Level.class);
@@ -46,12 +52,10 @@ public class ConsoleOutput implements EngineLogListener {
         logFilter.put(EngineLog.Level.Info, enableInfo);
         logFilter.put(EngineLog.Level.Warning, enableWarning);
         logFilter.put(EngineLog.Level.Error, enableError);
-
         List<LogEntry> backlogs = EngineLog.logs();
         for (LogEntry entry : backlogs) {
             entries.add(entry);
         }
-
         EngineLogCallback.register(this);
     }
 
@@ -59,7 +63,6 @@ public class ConsoleOutput implements EngineLogListener {
         if (instance != null) {
             EngineLogCallback.unregister(instance);
         }
-
         instance = new ConsoleOutput();
     }
 
@@ -73,15 +76,12 @@ public class ConsoleOutput implements EngineLogListener {
             ImGui.textDisabled("Failed to load console log table");
             return;
         }
-
         ImGui.tableSetupColumn("##Log_History_Column", ImGuiTableColumnFlags.WidthStretch);
         ImGui.tableSetupColumn("##Log_Filter_Buttons_Column", ImGuiTableColumnFlags.WidthFixed);
         ImGui.tableNextColumn();
         drawLogsRegion();
-
         ImGui.tableNextColumn();
         drawLogFilter();
-
         ImGui.endTable();
     }
 
@@ -113,7 +113,6 @@ public class ConsoleOutput implements EngineLogListener {
 
     private static String formatEntry(LogEntry entry) {
         if (entry == null) return "NULL LOG ENTRY";
-
         return "[" + entry.formatedTimeStamp() + "]["
                 + entry.source() + "]["
                 + entry.level().prefix + "]: "
@@ -129,7 +128,6 @@ public class ConsoleOutput implements EngineLogListener {
             case Warning -> warningColor;
             case Error -> errorColor;
         };
-
         ImGui.pushStyleColor(ImGuiCol.Text, color);
         ImGui.textWrapped(log);
         ImGui.popStyleColor(1);

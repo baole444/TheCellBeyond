@@ -164,7 +164,7 @@ class ProjectPreferenceTab {
     }
 
     private static int inputInt(String label, int target, int minValue) {
-        String id = label + "_" + EditProjectSettingsDialog.ID_POOL().newId();
+        String id = label + "_" + EditProjectSettingsDialog.IDPool().newId();
         ImGui.pushID(id);
         final boolean modified;
         final ImInt destination = new ImInt(target);
@@ -178,7 +178,7 @@ class ProjectPreferenceTab {
     }
 
     private static float inputFloat(String label, float target, float minValue) {
-        String id = label + "_" + EditProjectSettingsDialog.ID_POOL().newId();
+        String id = label + "_" + EditProjectSettingsDialog.IDPool().newId();
         ImGui.pushID(id);
         final boolean modified;
         final ImFloat destination = new ImFloat(target);

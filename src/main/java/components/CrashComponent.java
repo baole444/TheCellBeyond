@@ -1,8 +1,19 @@
 package components;
 
-public class CrashComponent extends Component {
+/**
+ * This component entire purpose is to invoke a runtime exception to test runtime crash handling.
+ */
+public final class CrashComponent extends Component {
     private static final float waitTime = 3.0f;
     private transient float currentTime = 0.0f;
+
+    /**
+     * Create a new {@link CrashComponent} component.
+     */
+    public CrashComponent() {
+        String name = CrashComponent.class.getSimpleName();
+        super(name);
+    }
 
     @Override
     protected void onUpdate(float dt) {
@@ -13,7 +24,6 @@ public class CrashComponent extends Component {
             currentTime = 0.0f;
             return;
         }
-
         throw new RuntimeException("Crash test triggered, if the editor did not crash, it is good");
     }
 }

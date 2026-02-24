@@ -13,7 +13,7 @@ import utility.WorldUnit;
 
 import java.util.Objects;
 
-public class TextRenderer extends SpatialComponent implements FontStatusCallback {
+public class TextRenderer extends Component2D implements FontStatusCallback {
     private String text = "Text";
     private AssetReference assetReference = new AssetReference(Settings.FontPath.NotoSansMono);
     private float point = 12;
@@ -56,7 +56,7 @@ public class TextRenderer extends SpatialComponent implements FontStatusCallback
         this.point = point;
         if (color != null) this.color.set(color);
         this.glyphRangeName = glyphRange.name();
-        setWorldPosition(position);
+        globalPosition(position);
     }
 
     private void requestLoadFont() {
@@ -150,8 +150,8 @@ public class TextRenderer extends SpatialComponent implements FontStatusCallback
     }
 
     @Override
-    protected void additionalDirtyFlagLogic() {
-        if (!isTextDirty()) isTextDirty = true;
+    protected void onTransformDirty() {
+        isTextDirty = true;
     }
 
     @Override

@@ -2,6 +2,9 @@ package render.texture;
 
 import static org.lwjgl.opengl.GL11.glDeleteTextures;
 
+/**
+ * Command used by engine's render pipeline to dispose a texture safely.
+ */
 public class DisposeTextureCommand extends TextureCommand {
     final TextureHandle handle;
 

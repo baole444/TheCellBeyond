@@ -17,7 +17,7 @@ import utility.HierarchyPaths;
  *
  * @apiNote RemoteTransform2D use its global transform as update source regardless of {@link #useGlobalTransform}.
  */
-public class RemoteTransform2D extends SpatialComponent {
+public class RemoteTransform2D extends Component2D {
     private String targetPath = "";
 
     /**

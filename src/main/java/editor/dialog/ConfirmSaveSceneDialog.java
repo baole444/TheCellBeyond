@@ -11,19 +11,36 @@ import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
 
+/**
+ * Editor dialogue for confirm saving current editing scene.
+ */
 public class ConfirmSaveSceneDialog {
-    private static final String POPUP_ID = "Save current scene?";
-    private static final ImVec2 DIALOG_SIZE = new ImVec2(400, 160);
+    private static final String PopupID = "Save current scene?";
+    private static final ImVec2 DialogSize = new ImVec2(400, 160);
     private static boolean showDialog = false;
     private static Runnable onCompleteDecision = null;
     private static Runnable onCancelDecision = null;
     private static boolean isAutoSaveOnSceneChange = false;
     private static final ImBoolean enableSaveOnChangeScene = new ImBoolean(false);
 
+    /**
+     * Create the dialogue module.
+     */
+    private ConfirmSaveSceneDialog() {}
+
+    /**
+     * Toggle the show flag of this dialogue.
+     * @param decisionCallback callback to execute on decision accept
+     */
     public static void show(Runnable decisionCallback) {
         show(decisionCallback, null);
     }
 
+    /**
+     * Toggle the show flag of this dialogue.
+     * @param decisionCallback callback to execute on decision accept
+     * @param cancelCallback callback to execute on decision reject
+     */
     public static void show(Runnable decisionCallback, Runnable cancelCallback) {
         isAutoSaveOnSceneChange = UserPreference.editorPreferences().autoSaveOnChangeScene();
         showDialog = true;
@@ -31,6 +48,9 @@ public class ConfirmSaveSceneDialog {
         onCancelDecision = cancelCallback;
     }
 
+    /**
+     * Render this dialogue on screen.
+     */
     public static void imgui() {
         if (!showDialog) return;
         if (LogicServer.currentScene() == null) {
@@ -42,43 +62,37 @@ public class ConfirmSaveSceneDialog {
             closeConfirmation();
             return;
         }
-        ImGui.openPopup(POPUP_ID);
+        ImGui.openPopup(PopupID);
         ImVec2 centre = ImGui.getMainViewport().getCenter();
         float pivotXY = 0.5f;
         ImGui.setNextWindowPos(centre.x, centre.y, ImGuiCond.Appearing, pivotXY, pivotXY);
-        ImGui.setNextWindowSize(DIALOG_SIZE);
-
-        if (ImGui.beginPopupModal(POPUP_ID, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)) {
+        ImGui.setNextWindowSize(DialogSize);
+        if (ImGui.beginPopupModal(PopupID, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)) {
             ImGui.textWrapped("Save before change scene? All unsaved changes will be lost.");
             ImGui.setCursorPosY(ImGui.getCursorPosY() + ImGui.getTextLineHeight());
             ImGui.separator();
             ImGui.spacing();
             ImGui.checkbox("Enable auto save on change scene", enableSaveOnChangeScene);
-
             float buttonReserverY = ImGui.getFrameHeightWithSpacing();
             ImGui.setCursorPosY(ImGui.getWindowHeight() - buttonReserverY - ImGui.getStyle().getWindowPaddingY());
-
             float buttonWidth = 100;
             float buttonPivotX = buttonWidth * 0.5f;
             float availX = ImGui.getContentRegionAvailX();
             float saveX = (availX * 0.15f) - (buttonPivotX);
             float noSaveX = (availX * 0.5f) - (buttonPivotX);
             float cancelX = (availX * 0.85f) - (buttonPivotX);
-
             ImGui.setCursorPosX(saveX);
             if (ImGui.button("Save", buttonWidth, 0)) {
                 if (enableSaveOnChangeScene.get()) setAutoSaveOn();
                 EngineEventCallback.emit(null, new EditorEvent(EditorEvent.Type.SaveEditingSceneToDisk));
                 closeConfirmation();
             }
-
             ImGui.sameLine();
             ImGui.setCursorPosX(noSaveX);
             if (ImGui.button("Don't save")) {
                 if (enableSaveOnChangeScene.get()) setAutoSaveOn();
                 closeConfirmation();
             }
-
             ImGui.sameLine();
             ImGui.setCursorPosX(cancelX);
             if (ImGui.button("Cancel", buttonWidth, 0)) {
@@ -87,14 +101,11 @@ public class ConfirmSaveSceneDialog {
                 Runnable cancelCallback = onCancelDecision;
                 onCancelDecision = null;
                 ImGui.closeCurrentPopup();
-
                 if (cancelCallback != null)  cancelCallback.run();
             }
-
             ImGui.endPopup();
         }
-
-        if (!ImGui.isPopupOpen(POPUP_ID)) {
+        if (!ImGui.isPopupOpen(PopupID)) {
             showDialog = false;
             onCompleteDecision = null;
             onCancelDecision = null;
@@ -113,11 +124,8 @@ public class ConfirmSaveSceneDialog {
 
     private static void setAutoSaveOn() {
         EditorPreferences current = UserPreference.reloadEditorPreferences();
-
         if (current.autoSaveOnChangeScene()) return;
-
         EditorPreferences update = new EditorPreferences(current.autoSaveOnExit(), true, current.showGridLine());
-
         UserPreference.updateEditorPreferences(update);
     }
 }

@@ -50,18 +50,15 @@ class ControllerBindingEditor {
             ImGui.textWrapped("Selected a Controller2D component from Inspector panel to start editing its details");
             return;
         }
-
         if (editingController.gameObject == null || editingController.gameObject.isRemoved() || editingController.getUUID() == null) {
             clearDialogData();
             return;
         }
-
         if (wantToEditInputMap) {
             wantToEditInputMap = false;
             EditProjectSettingsDialog.showToInputMap();
             return;
         }
-
         if (!ImGui.beginTable("##CBE_layout_table", 2, ImGuiTableFlags.NoBordersInBody | ImGuiTableFlags.SizingStretchProp, ImGui.getContentRegionAvail())) return;
         float remainWidth = Math.max(bindingListWidth, ImGui.getContentRegionAvailX() * bindingListXPercentage);
         ImGui.tableSetupColumn("##CBE_BindingList_Column", ImGuiTableColumnFlags.WidthFixed, remainWidth);
@@ -69,10 +66,8 @@ class ControllerBindingEditor {
         ImGui.tableNextColumn();
         if (ImGui.beginChild(CONTROL_SECTION, 0, CONTROL_RESERVE + padding, false)) renderControllerControl();
         ImGui.endChild();
-
         if (ImGui.beginChild("##CBE_BindingList", ImGui.getContentRegionAvail(), true)) renderBindingList();
         ImGui.endChild();
-
         ImGui.tableNextColumn();
         if (ImGui.beginChild("##CBE_BindingConfigs", ImGui.getContentRegionAvail(), true)) {
             if (selectedName == null) {
@@ -83,19 +78,17 @@ class ControllerBindingEditor {
                 renderBindingContent();
             }
         }
-
         ImGui.endChild();
-
         ImGui.endTable();
     }
 
     private static void renderControllerControl() {
-        if (EditorWidget.iconButton("Add##Add_New_ControllerBinding_CBE", EditorIcons.Icons.New, "Create new binding")) editingController.newBinding();
+        if (EditorWidget.iconButton("Add##Add_New_ControllerBinding_CBE", EditorIcons.Icons.New, "Create new binding")) {
+            selectedName = editingController.newBinding();
+        }
         if (selectedName == null) return;
-
         ImGui.sameLine();
         if (EditorWidget.iconButton("Duplicate##Duplicate_ControllerBinding_CBE", EditorIcons.Icons.Copy, "Duplicate selected binding")) editingController.duplicateBinding(selectedName);
-
         ImGui.sameLine();
         if (EditorWidget.iconButton("Delete##Delete_ControllerBinding_CBE", EditorIcons.Icons.Delete, "Delete selected binding")) {
             editingController.removeBinding(selectedName);
@@ -109,23 +102,19 @@ class ControllerBindingEditor {
 
     private static void renderBindingList() {
         HashMap<String, ControllerBinding> bindings = editingController.getBindings();
-
         for (Map.Entry<String, ControllerBinding> entry : bindings.entrySet()) {
             boolean isSelected = Objects.equals(selectedName, entry.getKey());
             ImVec2 cursorPos = ImGui.getCursorPos();
             float height = ImGui.getTextLineHeight() + ImGui.getStyle().getWindowPaddingY() * 2;
             ImGui.setNextItemAllowOverlap();
             if (ImGui.selectable("##" + entry.getKey(), isSelected, 0.0f, height) && !isSelected) selectedName = entry.getKey();
-
             if (renderBindingNameEdit(entry.getKey(), cursorPos, isSelected)) continue;
-
             if (ImGui.isItemHovered() && ImGui.isMouseDoubleClicked(GLFW_MOUSE_BUTTON_1)) {
                 editingName = entry.getKey();
                 editingNameBuffer.set(editingName);
                 ImGui.spacing();
                 continue;
             }
-
             ImGui.setCursorPos(cursorPos.x, cursorPos.y + (height - ImGui.getTextLineHeight()) / 2.0f);
             ImGui.text(entry.getKey());
             ImGui.spacing();

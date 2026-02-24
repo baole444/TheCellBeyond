@@ -2,7 +2,7 @@ package TCBTest;
 
 import TheCellBeyond.GameObject;
 import components.AnimatedSpriteRenderer;
-import components.SpatialComponent;
+import components.Component2D;
 import components.SpriteRenderer;
 import org.junit.jupiter.api.Test;
 import java.util.List;
@@ -17,7 +17,7 @@ public class GameObjectTest {
 
         gameObject.addComponent(spriteRenderer);
         assertNotNull(gameObject.getFirstComponent(SpriteRenderer.class), "The component should have been added");
-        assertNotNull(gameObject.getFirstComponent(SpatialComponent.class), "SpriteRenderer is subclass of SpatialComponent and should have been returned");
+        assertNotNull(gameObject.getFirstComponent(Component2D.class), "SpriteRenderer is subclass of Component2D and should have been returned");
         assertNull(gameObject.getFirstComponent(AnimatedSpriteRenderer.class), "There is no AnimatedSpriteRenderer added, the return should have been null");
 
         gameObject = new GameObject("Test Object 2");
@@ -47,8 +47,8 @@ public class GameObjectTest {
         assertTrue(spriteRenderers.contains(animatedRenderer),
                 "AnimatedSpriteRenderer is subclass of SpriteRenderer and should exist in a list of SpriteRenderer");
 
-        List<SpatialComponent> spatialComponents = gameObject.getComponents(SpatialComponent.class);
+        List<Component2D> spatialComponents = gameObject.getComponents(Component2D.class);
         assertTrue(spatialComponents.contains(renderer) && spatialComponents.contains(animatedRenderer),
-                "Both AnimatedSpriteRenderer and SpriteRenderer are subclasses of SpatialComponent and should exist in a list of SpatialComponent");
+                "Both AnimatedSpriteRenderer and SpriteRenderer are subclasses of Component2D and should exist in a list of Component2D");
     }
 }

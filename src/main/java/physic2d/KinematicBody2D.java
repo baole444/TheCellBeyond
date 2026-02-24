@@ -32,7 +32,7 @@ public class KinematicBody2D extends PhysicBody2D {
     }
 
     @Override
-    public void configureBody() {
+    public void configurePhysicBodyRef() {
         if (physicBodyRef == null) return;
         physicBodyRef.setLinearVelocity(new Vec2(velocity.x, velocity.y));
         physicBodyRef.setAngularVelocity((float) Math.toRadians(angularVelocity));

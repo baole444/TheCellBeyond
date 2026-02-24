@@ -22,6 +22,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * The component facilitates animation playback over time and default animation that autoplay on start.
  */
 public class AnimatedSpriteRenderer extends SpriteRenderer {
+    /**
+     * The default FPS value given to a new animation if not specified.
+     */
     public static final float DefaultFPS = 5.0f;
     private final ConcurrentHashMap<String, Animation> animations = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Float> animationFPS = new ConcurrentHashMap<>();
@@ -32,11 +35,18 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
     private transient boolean play = false;
     private transient boolean backward = false;
 
+    /**
+     * Create a new {@link AnimatedSpriteRenderer} component.
+     */
     public AnimatedSpriteRenderer() {
         String name = AnimatedSpriteRenderer.class.getSimpleName();
         this(name);
     }
 
+    /**
+     * Create a new {@link AnimatedSpriteRenderer} component using the given name.
+     * @param name the new name for the component
+     */
     public AnimatedSpriteRenderer(String name) {
         if (invalidName(name)) name = AnimatedSpriteRenderer.class.getSimpleName();
         super(name);
@@ -60,9 +70,7 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
             defaultAnimation = null;
             return;
         }
-
         if (name.isBlank() || !animations.containsKey(name)) return;
-
         defaultAnimation = name;
     }
 

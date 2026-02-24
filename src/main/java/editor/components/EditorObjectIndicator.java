@@ -45,7 +45,7 @@ public final class EditorObjectIndicator extends SpriteRenderer implements NotSe
                 );
             }
 
-            textureUnit = AssetsPool.loadTextureUnit(PATH);
+            textureUnit = AssetsPool.getTextureUnit(PATH);
             setActive();
             completeInit();
         } catch (Exception e) {

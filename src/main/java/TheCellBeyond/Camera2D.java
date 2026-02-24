@@ -13,6 +13,16 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Camera2D is the camera object for 2D scene.
+ * It is an efficient way to set up scrollable scene instead of manually moving the scene's root object.
+ * <p>
+ * Cameras register themselves with their targeted custom viewport or scene's global viewport.
+ * Only one camera can be active per viewport.
+ * @apiNote
+ * The position of the Camera2D's transform does not represent the actual position of the screen,
+ * which may be differed due to smoothing or limits.
+ */
 public class Camera2D extends GameObject2D {
     /**
      * Control how the position of the camera is mapped to the viewport.
@@ -195,24 +205,40 @@ public class Camera2D extends GameObject2D {
     private transient boolean currentlyActive = false;
     private transient boolean initialized = false;
     private transient final Vector2f cameraPosition = new Vector2f();
-    private transient float cameraRotation = 0.0f;
+    private transient float cameraRotationDegrees = 0.0f;
 
+    /**
+     * Create a new {@link Camera2D} object.
+     */
     public Camera2D() {
         String name = Camera2D.class.getSimpleName();
         super(name);
     }
 
+    /**
+     * Create a new {@link Camera2D} object with the given name.
+     * @param name the new name for the object
+     */
     public Camera2D(String name) {
         if (invalidName(name)) name = Camera2D.class.getSimpleName();
         super(name);
     }
 
+    /**
+     * Create a new {@link Camera2D} object and assign it to a custom viewport.
+     * @param customViewport the custom viewport to target
+     */
     public Camera2D(Viewport customViewport) {
         String name = Camera2D.class.getSimpleName();
         super(name);
         this.customViewport = customViewport;
     }
 
+    /**
+     * Create a new {@link Camera2D} object with the given name and assign it to a custom viewport.
+     * @param name the new name for the object
+     * @param customViewport the custom viewport to target
+     */
     public Camera2D(String name, Viewport customViewport) {
         if (invalidName(name)) name = Camera2D.class.getSimpleName();
         super(name);
@@ -237,6 +263,7 @@ public class Camera2D extends GameObject2D {
         if (updateProcess == UpdateProcess.LogicFrame) updateCamera(dt);
     }
 
+    @Override
     protected void onPhysicUpdate(float dt) {
         if (updateProcess == UpdateProcess.PhysicFrame) updateCamera(dt);
     }
@@ -303,17 +330,34 @@ public class Camera2D extends GameObject2D {
         return currentlyActive && resolveViewport() == target;
     }
 
+    /**
+     * Check if this camera is enabled or not.
+     * @return true if the camera is enabled
+     */
     public boolean enabled() {
         return enabled;
     }
 
+    /**
+     * Set the enabled state of the camera.
+     * <p>
+     * If set to true, this camera will attempt to make itself the main camera for its targeting viewport.
+     * </p>
+     * If set to false, this camera will attempt to make the next camera targeting the same viewport the main camera.
+     * @param enable the new enabled state
+     */
     public void enabled(boolean enable) {
         if (enabled == enable) return;
         enabled = enable;
-        if (enabled || !currentlyActive) return;
-        currentlyActive = false;
-        initialized = false;
-        makeNextCameraActive(resolveViewport());
+        if (enable) {
+            if (!viewportHasActiveCamera(resolveViewport())) makeCurrent();
+            return;
+        }
+        if (currentlyActive) {
+            currentlyActive = false;
+            initialized = false;
+            makeNextCameraActive(resolveViewport());
+        }
     }
 
     @Override
@@ -335,14 +379,14 @@ public class Camera2D extends GameObject2D {
         Vector2f visibleSize = new Vector2f(viewport.getProjectionSize()).mul(zoom);
         if (!initialized) {
             cameraPosition.set(calculateBaseTarget(visibleSize));
-            cameraRotation = ignoreRotation ? 0.0f : globalRotation();
+            cameraRotationDegrees = ignoreRotation ? 0.0f : globalRotation();
             initialized = true;
         }
         updatePosition(dt, visibleSize);
         updateRotation(dt);
         viewport.position.set(cameraPosition).add(offset);
         viewport.setZoom(zoom);
-        viewport.setRotation(cameraRotation);
+        viewport.setRotation(cameraRotationDegrees);
         viewport.adjustProjection();
     }
 
@@ -362,11 +406,11 @@ public class Camera2D extends GameObject2D {
     private void updateRotation(float dt) {
         float targetRotation = ignoreRotation ? 0.0f : globalRotation();
         if (ignoreRotation || !enableRotationSmoothing) {
-            cameraRotation = targetRotation;
+            cameraRotationDegrees = targetRotation;
             return;
         }
         float alpha = 1.0f - (float) Math.exp(-rotationSmoothingSpeed * dt);
-        cameraRotation += (targetRotation - cameraRotation) * alpha;
+        cameraRotationDegrees += (targetRotation - cameraRotationDegrees) * alpha;
     }
 
     private Vector2f calculateBaseTarget(Vector2f visibleSize) {

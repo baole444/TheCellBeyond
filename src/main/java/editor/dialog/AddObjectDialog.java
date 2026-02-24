@@ -16,11 +16,14 @@ import physic2d.RigidBody2D;
 import physic2d.StaticBody2D;
 import scene.Scene;
 
-public class AddObjectDialog {
-    private static final String POPUP_ID = "Add New Object";
-    private static final String OBJECT_LIST_ID = "Object_Type_List";
-    private static final String DESCRIPTION_SECTION_ID = "Description_section";
-    private static final ImVec2 DIALOG_SIZE = new ImVec2(600.0f, 600.0f);
+/**
+ * Editor dialogue for adding game object to scene.
+ */
+public final class AddObjectDialog {
+    private static final String PopupID = "Add New Object";
+    private static final String ObjectListID = "Object_Type_List";
+    private static final String DescriptionSectionID = "Description_section";
+    private static final ImVec2 DialogSize = new ImVec2(600.0f, 600.0f);
     private static boolean showDialog = false;
 
     private static GameObject parentObject = null;
@@ -35,22 +38,15 @@ public class AddObjectDialog {
     private enum ObjectType {
         GameObject("GameObject", "A plain game object, the base of other object types. " +
                 "It support data serialization, object hierarchy tree and mounting components."),
-
         GameObject2D("GameObject2D", "A 2D game object, the base of all 2D-related object types. " +
                 "It exists in the logic spatial world and can supports transformation."),
-
         StaticBody2D("StaticBody2D", "A 2D static physic object. It exists in both logic spatial and physic world. The object is immovable."),
-
         RigidBody2D("RigidBody2D", "A 2D rigid physic object with full physic simulation. " +
                 "It exists in both logic spatial and physic world. The transformation of the object is the result of physic simulation via applied forces."),
-
         KinematicBody2D("KinematicBody2D", "A 2D physic object suitable for scripted movement, control via velocity. It is not affected by physic at all."),
-
         CharacterBody2D("CharacterBody2D", "A specialized 2D physic object that is not affected by physics at all, but it affects other physic objects in its path. " +
                 "It is used to provide API to move objects in a specific way, as is often the case with user-controlled characters or logic driven NPCs."),
-
         TileMap("TileMap", "A 2D tile map object. Tile map can have static or kinematic physic body and physic collision defined by tiles in the map's tile set."),
-
         Camera2D("Camera2D", "A 2D camera object, allow update its targeted viewport's transform");
 
         private final String displayLabel;
@@ -70,39 +66,45 @@ public class AddObjectDialog {
         }
     }
 
+    /**
+     * Create the dialogue module.
+     */
+    private AddObjectDialog() {}
+
+    /**
+     * Toggle the show flag for this dialogue.
+     * @param parent the optional parent object for the new game object
+     */
     public static void show(GameObject parent) {
         showDialog = true;
         parentObject = parent;
     }
 
+    /**
+     * Render the dialogue on screen.
+     */
     public static void imgui() {
         if (!showDialog) return;
-
-        ImGui.openPopup(POPUP_ID);
-
+        ImGui.openPopup(PopupID);
         ImVec2 centre = ImGui.getMainViewport().getCenter();
         float pivotXY = 0.5f;
-
         ImGui.setNextWindowPos(centre.x, centre.y, ImGuiCond.Appearing, pivotXY, pivotXY);
-        ImGui.setNextWindowSize(DIALOG_SIZE);
-
-        if (ImGui.beginPopupModal(POPUP_ID, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)) {
+        ImGui.setNextWindowSize(DialogSize);
+        if (ImGui.beginPopupModal(PopupID, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)) {
             ImGui.text("Select one object type:");
-            int sectionY = (int) (DIALOG_SIZE.y * listYPercentage);
-            ImGui.beginChild(OBJECT_LIST_ID, ImGuiWindowFlags.None, sectionY, enableBorder);
+            int sectionY = (int) (DialogSize.y * listYPercentage);
+            ImGui.beginChild(ObjectListID, ImGuiWindowFlags.None, sectionY, enableBorder);
             for (ObjectType type : ObjectType.values()) {
                 boolean isSelected = selectedType == type;
-
                 if (ImGui.selectable(type.label() + "##" + type.name(), isSelected)) {
                     selectedType = type;
                 }
             }
             ImGui.endChild();
             ImGui.separator();
-
             ImGui.text("Description:");
-            sectionY = (int) (DIALOG_SIZE.y * descriptionYPercentage);
-            ImGui.beginChild(DESCRIPTION_SECTION_ID, ImGuiWindowFlags.None, sectionY, enableBorder);
+            sectionY = (int) (DialogSize.y * descriptionYPercentage);
+            ImGui.beginChild(DescriptionSectionID, ImGuiWindowFlags.None, sectionY, enableBorder);
             if (selectedType != null) {
                 ImGui.textWrapped(selectedType.description());
             } else {
@@ -110,10 +112,8 @@ public class AddObjectDialog {
             }
             ImGui.endChild();
             ImGui.separator();
-
             float buttonReserverY = ImGui.getFrameHeightWithSpacing();
             ImGui.setCursorPosY(ImGui.getWindowHeight() - buttonReserverY - ImGui.getStyle().getWindowPaddingY());
-
             float buttonWidth = 120;
             float buttonPivotX = buttonWidth * 0.5f;
             float availX = ImGui.getContentRegionAvailX();
@@ -127,7 +127,6 @@ public class AddObjectDialog {
                 ImGui.button("Create", buttonWidth, 0);
                 ImGui.endDisabled();
             }
-
             ImGui.sameLine();
             ImGui.setCursorPosX(cancelX);
             if (ImGui.button("Cancel", buttonWidth, 0)) {
@@ -135,11 +134,9 @@ public class AddObjectDialog {
                 selectedType = null;
                 ImGui.closeCurrentPopup();
             }
-
             ImGui.endPopup();
         }
-
-        if (!ImGui.isPopupOpen(POPUP_ID)) {
+        if (!ImGui.isPopupOpen(PopupID)) {
             showDialog = false;
             selectedType = null;
         }
@@ -148,7 +145,6 @@ public class AddObjectDialog {
     private static void createObject(ObjectType type) {
         Scene scene = LogicServer.currentScene();
         if (scene == null) return;
-
         GameObject newObject;
         switch (type) {
             case GameObject2D -> newObject = new GameObject2D(type.label());
@@ -159,13 +155,10 @@ public class AddObjectDialog {
             case CharacterBody2D -> newObject = new CharacterBody2D(type.label());
             case TileMap -> newObject = new TileMap(type.label());
             case Camera2D -> newObject = new Camera2D(type.label());
-
             default -> newObject = null;
         }
-
         scene.queueForObjectAddition(newObject, parentObject);
         Properties.setActiveGameObject(newObject);
-
         showDialog = false;
         selectedType = null;
         ImGui.closeCurrentPopup();

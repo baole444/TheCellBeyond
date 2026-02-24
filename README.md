@@ -19,14 +19,14 @@ A Java-based game editor with project compile ability, code auto-generation, and
 - N/A
 
 ## Solved problems:
-- Saving while in test run (runtime mode) will cause override on scene's file.
-- Upon creating a new project, create an object and press play immediately without creating the first scene, popup failed to prevent entering runtime mode, cause lost of scene data.
+- N/A
 
 ## Additional maintenance:
 - Update ImGui to [latest release](https://github.com/SpaiR/imgui-java/releases).
 - Maintain compatibility of the project loading system.
 
 ## Current work:
+- [ ] Documentation the Engine's API.
 - [ ] Implement API for Sound effect.
 
 ### Finished work:

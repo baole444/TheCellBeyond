@@ -3,6 +3,7 @@ package TheCellBeyond;
 import TheCellBeyond.internal.LogicServer;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import components.Component2D;
 import components.ComponentSerializer;
 import components.Component;
 import editor.template.EditorTemplate;
@@ -359,15 +360,15 @@ public class GameObject {
      * <p>
      * The return of this method includes subclasses of type {@code T}.
      * For example, 3 components were added to a game object as follows:
-     * {@snippet lang="java":
+     * {@snippet lang = "java":
      * import components.AnimatedSpriteRenderer;
-     * import components.SpatialComponent;
+     * import components.Component2D;
      * import components.SpriteRenderer;
      * import components.TextRenderer;
      * public class Game() {
      *     public static void run() {
      *         GameObject object = newGameObject();
-     *         List<SpatialComponent> spatialComponents = getSpatialComponents(object); // size = 3
+     *         List<Component2D> spatialComponents = getSpatialComponents(object); // size = 3
      *     }
      *
      *     public static GameObject newGameObject() {
@@ -380,16 +381,16 @@ public class GameObject {
      *         return newObject;
      *     }
      *
-     *     public static SpatialComponent getSpatialComponents(GameObject gameObject) {
+     *     public static Component2D getSpatialComponents(GameObject gameObject) {
      *         if (gameObject == null) return List.of();
-     *         return gameObject.getComponents(SpatialComponent.class);
+     *         return gameObject.getComponents(Component2D.class);
      *     }
      * }
-     * }
+     *}
      * <br>
      * The content returns from {@code getSpatialComponents} when passing the game object created from {@code newGameObject}
      * will contain all 3 components {@code spriteRenderer},
-     * {@code animatedSpriteRenderer} and {@code textRenderer} as they are subclasses of {@link components.SpatialComponent}.
+     * {@code animatedSpriteRenderer} and {@code textRenderer} as they are subclasses of {@link Component2D}.
      * @param componentClass the class of the component
      * @return the list of {@link Component} with type {@code T} and its subclasses
      * @param <T> the component's type, must be subclass of {@link Component}
@@ -559,17 +560,23 @@ public class GameObject {
      * This first executes the logic in {@link #onPhysicUpdate(float)},
      * then iterates the component list and executes {@link Component#physicUpdate(float)}
      * </p>
-     *
-     * @param dt
+     * Unless there is a very specific use case, it is suggested to override {@link #onPhysicUpdate(float)} instead of this.
+     * @param dt the fixed delta time of physic tick
+     * @apiNote
+     * Unless for the purpose of implement custom game physic logic, <b><u>do not</u></b> call this manually,
+     * as it can cause unwanted physic step.
+     * <p>
+     * If this must be called, ensure that, for an instance of {@link GameObject}, this is only called once.
      */
     public void physicUpdate(float dt) {
         onPhysicUpdate(dt);
-
-        for (Component component : components) {
-            component.physicUpdate(dt);
-        }
+        for (Component component : components) component.physicUpdate(dt);
     }
 
+    /**
+     * Optional hook for additional game object's physic logic before updating its components.
+     * @param dt the fixed delta time of physic tick
+     */
     protected void onPhysicUpdate(float dt) {}
 
     /**
@@ -580,9 +587,7 @@ public class GameObject {
     public final void start() {
         onStart();
         isStarted = true;
-
-        for (Component component : components) component.start();
-
+        components.forEach(Component::start);
         isDirty = true;
     }
 
@@ -601,9 +606,7 @@ public class GameObject {
     public final void editorStart() {
         onEditorStart();
         isStarted = true;
-
-        for (Component component : components) component.editorStart();
-
+        components.forEach(Component::editorStart);
         isDirty = true;
     }
 
@@ -686,10 +689,8 @@ public class GameObject {
      */
     public GameObject copy(boolean copyHierarchy) {
         GameObject copy = copySingleObject();
-
         boolean isChildrenEmpty = children.isEmpty() && (childrenUUIDs == null || childrenUUIDs.isEmpty());
         if (copyHierarchy && !isChildrenEmpty) copyDescendants(this, copy);
-
         return copy;
     }
 
@@ -809,7 +810,6 @@ public class GameObject {
                 parentGO.children.add(this);
             }
         }
-
         if (childrenUUIDs == null) return;
         children.clear();
         for (UUID childUUID : childrenUUIDs) {
@@ -840,18 +840,14 @@ public class GameObject {
                 .registerTypeHierarchyAdapter(GameObject.class, new GameObjectSerializer())
                 .enableComplexMapKeySerialization()
                 .create();
-
         String oJson = gson.toJson(this);
         GameObject obj = gson.fromJson(oJson, GameObject.class);
-
         obj.uuid = UUID.randomUUID();
         obj.cachedID = idCounter.newId();
-
         obj.parent = null;
         obj.parentUUID = null;
         obj.children.clear();
         obj.childrenUUIDs.clear();
-
         for (Component c : obj.getComponents()) c.setUUID(UUID.randomUUID());
         return obj;
     }
@@ -864,9 +860,7 @@ public class GameObject {
     protected void copyDescendants(GameObject source, GameObject target) {
         for (GameObject sourceChild : source.children) {
             GameObject copyChild = sourceChild.copySingleObject();
-
             target.addChild(copyChild);
-
             if (!sourceChild.children.isEmpty()) copyDescendants(sourceChild, copyChild);
         }
     }

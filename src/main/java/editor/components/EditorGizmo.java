@@ -16,7 +16,7 @@ import static org.lwjgl.glfw.GLFW.*;
  * It will appear at the position of the editing game object (if the object exists in the spatial logic world).
  * @see EditorGizmoCtrl Handling gizmo's type and movement
  */
-public class EditorGizmo extends SpatialComponent implements NotSerializeComponent {
+public class EditorGizmo extends Component2D implements NotSerializeComponent {
     private final Vector4f resetColor = new Vector4f(0, 0, 0 , 0);
     private final Vector4f xAxisColor = new Vector4f(0.7f, 0.2f, 0.2f, 1.0f);
     private final Vector4f xHover = new Vector4f(0.85f, 0.35f, 0.35f, 1.0f);
@@ -108,7 +108,7 @@ public class EditorGizmo extends SpatialComponent implements NotSerializeCompone
         }
 
         Vector2f targetPos = go2D.globalPosition();
-        setWorldPosition(targetPos);
+        globalPosition(targetPos);
 
         gizmoWorldPos.set(getObjectWorldPosition());
 

@@ -53,7 +53,7 @@ public class RigidBody2D extends PhysicBody2D {
     }
 
     @Override
-    public void configureBody() {
+    public void configurePhysicBodyRef() {
         if (physicBodyRef == null) return;
         setMass(mass);
         physicBodyRef.setLinearVelocity(new Vec2(initialVelocity.x, initialVelocity.y));

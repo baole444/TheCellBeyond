@@ -4,16 +4,26 @@ import imgui.ImGui;
 import imgui.flag.ImGuiCol;
 
 /**
- * Common colors used by editor UI.
+ * Common colours used by editor UI.
  */
 public final class EditorColors {
-
+    private EditorColors() {}
     /**
      * Common red button style.
      */
     public static final class RedButton {
+        private RedButton() {}
+        /**
+         * Base colour of the button's background.
+         */
         public static final int Base = ImGui.colorConvertFloat4ToU32(0.7f, 0.2f, 0.2f, 1.0f);
+        /**
+         * Colour of the button's background when it is hovered.
+         */
         public static final int Hovered = ImGui.colorConvertFloat4ToU32(0.8f, 0.3f, 0.3f, 1.0f);
+        /**
+         * Colour of the button's background when it is activated.
+         */
         public static final int Active = ImGui.colorConvertFloat4ToU32(0.7f, 0.1f, 0.1f, 1.0f);
 
         /**
@@ -45,11 +55,21 @@ public final class EditorColors {
     }
 
     /**
-     * Common green button style
+     * Common green button style.
      */
     public static final class GreenButton {
+        private GreenButton() {}
+        /**
+         * Base colour of the button's background.
+         */
         public static final int Base = ImGui.colorConvertFloat4ToU32(0.2f, 0.7f, 0.2f, 1.0f);
+        /**
+         * Colour of the button's background when it is hovered.
+         */
         public static final int Hovered = ImGui.colorConvertFloat4ToU32(0.3f, 0.8f, 0.3f, 1.0f);
+        /**
+         * Colour of the button's background when it is activated.
+         */
         public static final int Active = ImGui.colorConvertFloat4ToU32(0.1f, 0.7f, 0.1f, 1.0f);
 
         /**
@@ -80,6 +100,12 @@ public final class EditorColors {
         }
     }
 
+    /**
+     * Yellow highlight colour.
+     */
     public static final int YellowHighLight = ImGui.colorConvertFloat4ToU32(0.9f, 0.9f, 0.3f, 1.0f);
+    /**
+     * Light pale green colour for instruction text.
+     */
     public static final int InstructionHighLight = ImGui.colorConvertFloat4ToU32(0.3f, 0.9f, 0.6f, 1.0f);
 }

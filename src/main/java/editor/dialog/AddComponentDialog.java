@@ -12,7 +12,10 @@ import physic2d.collider.CapsuleCollider2D;
 import physic2d.collider.CircleCollider2D;
 import scene.Scene;
 
-public class AddComponentDialog {
+/**
+ * Editor dialogue for adding component to game object.
+ */
+public final class AddComponentDialog {
     private static final String POPUP_ID = "Add New Component";
     private static final String COMPONENT_LIST_ID = "Component_Type_List";
     private static final String DESCRIPTION_SECTION_ID = "Description_section";
@@ -65,36 +68,42 @@ public class AddComponentDialog {
         }
     }
 
+    /**
+     * Create the dialogue module.
+     */
+    private AddComponentDialog() {}
+
+    /**
+     * Toggle the show flag for this dialogue.
+     * @param selected the object to add component to
+     */
     public static void show(GameObject selected) {
         showDialog = true;
         selectedObject = selected;
     }
 
+    /**
+     * Render the dialogue on screen.
+     */
     public static void imgui() {
         if (!showDialog) return;
-
         ImGui.openPopup(POPUP_ID);
-
         ImVec2 centre = ImGui.getMainViewport().getCenter();
         float pivotXY = 0.5f;
-
         ImGui.setNextWindowPos(centre.x, centre.y, ImGuiCond.Appearing, pivotXY, pivotXY);
         ImGui.setNextWindowSize(DIALOG_SIZE);
-
         if (ImGui.beginPopupModal(POPUP_ID, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)) {
             ImGui.text("Select one component type:");
             int sectionY = (int) (DIALOG_SIZE.y * listYPercentage);
             ImGui.beginChild(COMPONENT_LIST_ID, ImGuiWindowFlags.None, sectionY, enableBorder);
             for (ComponentType type : ComponentType.values()) {
                 boolean isSelected = selectedType == type;
-
                 if (ImGui.selectable(type.label() + "##" + type.name(), isSelected)) {
                     selectedType = type;
                 }
             }
             ImGui.endChild();
             ImGui.separator();
-            
             ImGui.text("Description:");
             sectionY = (int) (DIALOG_SIZE.y * descriptionYPercentage);
             ImGui.beginChild(DESCRIPTION_SECTION_ID, ImGuiWindowFlags.None, sectionY, enableBorder);
@@ -105,10 +114,8 @@ public class AddComponentDialog {
             }
             ImGui.endChild();
             ImGui.separator();
-
             float buttonReserverY = ImGui.getFrameHeightWithSpacing();
             ImGui.setCursorPosY(ImGui.getWindowHeight() - buttonReserverY - ImGui.getStyle().getWindowPaddingY());
-
             float buttonWidth = 120;
             float buttonPivotX = buttonWidth * 0.5f;
             float availX = ImGui.getContentRegionAvailX();
@@ -122,7 +129,6 @@ public class AddComponentDialog {
                 ImGui.button("Add", buttonWidth, 0);
                 ImGui.endDisabled();
             }
-
             ImGui.sameLine();
             ImGui.setCursorPosX(cancelX);
             if (ImGui.button("Cancel", buttonWidth, 0)) {
@@ -130,10 +136,8 @@ public class AddComponentDialog {
                 selectedType = null;
                 ImGui.closeCurrentPopup();
             }
-
             ImGui.endPopup();
         }
-
         if (!ImGui.isPopupOpen(POPUP_ID)) {
             showDialog = false;
             selectedType = null;
@@ -143,7 +147,6 @@ public class AddComponentDialog {
     private static void addComponent(ComponentType type) {
         Scene scene = LogicServer.currentScene();
         if (scene == null || selectedObject == null) return;
-
         Component c;
         switch (type) {
             case SpriteRenderer -> c = new SpriteRenderer();
@@ -158,7 +161,6 @@ public class AddComponentDialog {
         }
 
         if (c != null) selectedObject.addComponent(c);
-
         showDialog = false;
         selectedType = null;
         ImGui.closeCurrentPopup();

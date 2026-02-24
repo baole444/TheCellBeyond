@@ -140,7 +140,7 @@ public final class EditorIcons {
                 );
             }
 
-            icons = AssetsPool.loadSpriteSheet(PATH);
+            icons = AssetsPool.getSpriteSheet(PATH);
             isInitialized = true;
         } catch (Exception e) {
             System.err.println("Failed to initialize editor icons: " + e.getMessage());

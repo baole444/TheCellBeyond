@@ -15,14 +15,27 @@ import utility.WorldUnit;
 
 import java.util.HashSet;
 
-public class EditorGrid extends Component implements NotSerializeComponent {
+/**
+ * EditorGrid hold the logic to draw debug lines in grid pattern when editing a scene.
+ */
+public final class EditorGrid extends Component implements NotSerializeComponent {
+    /**
+     * The minimum gap between two line in world units before one is skipped.
+     */
+    public static final float minimumGap = 0.01f;
     private static final Vector4f normalGridColor = new Vector4f(0.5f, 0.5f, 0.35f, 0.35f);
     private static final Vector4f centralLinesColor = new Vector4f(0.75f);
     private static final Vector4f verticalBoundColor = new Vector4f(0.5f, 0.5f, 1.0f, 0.75f);
     private static final Vector4f horizontalBoundColor = new Vector4f(1.0f, 0.0f, 1.0f, 0.75f);
-    public static final float minimumGap = 0.01f;
-
     private static final HashSet<Class<?>> prioritizing = new HashSet<>();
+
+    /**
+     * Create a new {@link EditorGizmo} component.
+     */
+    public EditorGrid() {
+        String name = EditorGrid.class.getSimpleName();
+        super(name);
+    }
 
     @Override
     public void editorUpdate(float dt) {

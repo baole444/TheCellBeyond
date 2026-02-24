@@ -100,7 +100,7 @@ class SpriteFrameEditor {
 
     private static void renderAnimationControl() {
         if (selectedName == null) {
-            if (EditorWidget.iconButton("Add##Add_New_Animation_SFC", EditorIcons.Icons.New, "Create new animation")) editingAnimatedSprite.newAnimation();
+            if (EditorWidget.iconButton("Add##Add_New_Animation_SFC", EditorIcons.Icons.New, "Create new animation")) selectedName = editingAnimatedSprite.newAnimation();
             return;
         }
 

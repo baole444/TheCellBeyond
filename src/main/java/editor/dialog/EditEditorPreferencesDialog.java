@@ -4,43 +4,49 @@ import editor.preference.EditorPreferences;
 import editor.preference.UserPreference;
 import imgui.ImGui;
 import imgui.ImVec2;
+import imgui.flag.ImGuiChildFlags;
 import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
 
-public class EditEditorPreferencesDialog {
-    private static final String POPUP_ID = "Editor Preferences";
-    private static final String PREFERENCE_ID = "Preference_Editor";
-    private static final ImVec2 DIALOG_SIZE = new ImVec2(720.0f, 400.0f);
+/**
+ * Editor dialogue for editing the editor behaviour and preferences.
+ */
+public final class EditEditorPreferencesDialog {
+    private static final String PopupID = "Editor Preferences";
+    private static final String PreferenceID = "Preference_Editor";
+    private static final ImVec2 DialogSize = new ImVec2(720.0f, 400.0f);
     private static boolean showDialog = false;
-    private static final boolean enableBorder = true;
-
     private static final ImBoolean autoSaveOnExit = new ImBoolean(false);
     private static final ImBoolean autoSaveOnChangeScene = new ImBoolean(false);
-
     private static final float metaYPercentage = 0.85f;
 
+    /**
+     * Create the dialogue module.
+     */
+    private EditEditorPreferencesDialog() {}
+
+    /**
+     * Toggle the show flag for this dialogue.
+     */
     public static void show() {
         showDialog = true;
         loadFromPreference();
     }
 
+    /**
+     * Render the dialogue on screen.
+     */
     public static void imgui() {
         if (!showDialog) return;
-
-        ImGui.openPopup(POPUP_ID);
-
+        ImGui.openPopup(PopupID);
         ImVec2 centre = ImGui.getMainViewport().getCenter();
         float pivotXY = 0.5f;
-
         ImGui.setNextWindowPos(centre.x, centre.y, ImGuiCond.Appearing, pivotXY, pivotXY);
-        ImGui.setNextWindowSize(DIALOG_SIZE);
-
-
-        if (ImGui.beginPopupModal(POPUP_ID, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)) {
+        ImGui.setNextWindowSize(DialogSize);
+        if (ImGui.beginPopupModal(PopupID, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)) {
             ImGui.text("Adjust editor's references");
             renderPreferenceEditor();
-
             float buttonWidth = 120;
             float buttonHeight = 30;
             float buttonReserverY = ImGui.getFrameHeightWithSpacing();
@@ -52,7 +58,6 @@ public class EditEditorPreferencesDialog {
             float cancelX = (availX * 0.85f) - buttonPivotX;
             ImGui.setCursorPosX(applyX);
             if (ImGui.button("Apply", buttonWidth, buttonHeight)) savePreference();
-
             ImGui.sameLine();
             ImGui.setCursorPosX(saveX);
             if (ImGui.button("Save", buttonWidth, buttonHeight)) {
@@ -60,23 +65,20 @@ public class EditEditorPreferencesDialog {
                 showDialog = false;
                 ImGui.closeCurrentPopup();
             }
-
             ImGui.sameLine();
             ImGui.setCursorPosX(cancelX);
             if (ImGui.button("Cancel", buttonWidth, buttonHeight)) {
                 showDialog = false;
                 ImGui.closeCurrentPopup();
             }
-
             ImGui.endPopup();
         }
-
-        if (!ImGui.isPopupOpen(POPUP_ID)) showDialog = false;
+        if (!ImGui.isPopupOpen(PopupID)) showDialog = false;
     }
 
     private static void renderPreferenceEditor() {
         int sectionY = (int) (ImGui.getContentRegionAvailY() * metaYPercentage);
-        ImGui.beginChild(PREFERENCE_ID, 0, sectionY, enableBorder);
+        ImGui.beginChild(PreferenceID, new ImVec2(0.0f, sectionY), ImGuiChildFlags.Border);
         ImGui.text("Auto save:");
         ImGui.spacing();
         ImGui.checkbox("On exit", autoSaveOnExit);
@@ -84,7 +86,6 @@ public class EditEditorPreferencesDialog {
         ImGui.beginDisabled();
         ImGui.textWrapped("(auto save scene on exiting editor)");
         ImGui.endDisabled();
-
         ImGui.spacing();
         ImGui.checkbox("On change scene", autoSaveOnChangeScene);
         ImGui.sameLine();
@@ -92,9 +93,7 @@ public class EditEditorPreferencesDialog {
         ImGui.textWrapped("(auto save scene on switching to different scene)");
         ImGui.endDisabled();
         ImGui.spacing();
-
         ImGui.separator();
-
         ImGui.endChild();
     }
 

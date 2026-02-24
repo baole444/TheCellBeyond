@@ -14,7 +14,7 @@ import java.util.Objects;
  * The sprite dirty flag is set when Sprite, tint color or transformation updated.
  * This flag is volatile and clear by the Renderer.
  */
-public class SpriteRenderer extends SpatialComponent {
+public class SpriteRenderer extends Component2D {
     private final Vector4f color = new Vector4f(1, 1, 1 , 1);
     private volatile Sprite sprite = new Sprite();
     private volatile boolean flipHorizontally = false;
@@ -38,7 +38,7 @@ public class SpriteRenderer extends SpatialComponent {
     }
 
     @Override
-    protected void additionalDirtyFlagLogic() {
+    protected void onTransformDirty() {
         isSpriteDirty = true;
     }
 

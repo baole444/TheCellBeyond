@@ -7,36 +7,64 @@ import utility.IdPool;
 
 import java.util.*;
 
-public class EditProjectSettingsDialog {
+/**
+ * Editor dialogue for editing the user project preferences.
+ */
+public final class EditProjectSettingsDialog {
+    /**
+     * Tabs of project preferences
+     */
     enum TabName {
+        /**
+         * General settings.
+         */
         General("General"),
+        /**
+         * Input mapping.
+         */
         InputMap("Input Map");
 
+        /**
+         * Name of the tab.
+         */
         final String name;
 
+        /**
+         * Create a new {@link TabName} with the given name
+         * @param name the new name for the tab
+         */
         TabName(String name) {
             this.name = name;
         }
 
+        /**
+         * Get the total number of tabs.
+         * @return tab count value
+         */
         static int size() {
             return values().length;
         }
     }
 
-    private static final IdPool ID_POOL = new IdPool(0, false);
-    private static final String POPUP_ID = "Project Preferences";
-    private static final ImVec2 DIALOG_SIZE = new ImVec2(720.0f, 640.0f);
-
-
-    private static final float BUTTON_RESERVE = ImGui.getFrameHeightWithSpacing();
-    private static final float SEPARATOR_RESERVE = ImGui.getStyle().getItemSpacingY();
+    private static final IdPool IDPool = new IdPool(0, false);
+    private static final String PopupID = "Project Preferences";
+    private static final ImVec2 DialogSize = new ImVec2(720.0f, 640.0f);
+    private static final float ButtonReserve = ImGui.getFrameHeightWithSpacing();
+    private static final float SeparatorReserve = ImGui.getStyle().getItemSpacingY();
     private static final float padding = 4.0f;
     private static boolean showDialog = false;
-    private static final boolean enableBorder = true;
     private static float tabWidth;
     private static boolean widthCalculated = false;
     private static TabName selectedTab = TabName.General;
 
+    /**
+     * Create the dialogue module.
+     */
+    private EditProjectSettingsDialog() {}
+
+    /**
+     * Toggle the show flag for this dialogue.
+     */
     public static void show() {
         showDialog = true;
         resetTab();
@@ -44,13 +72,20 @@ public class EditProjectSettingsDialog {
         syncWithProject();
     }
 
+    /**
+     * Toggle the show flag for this dialogue and switch to the input mapping tab.
+     */
     public static void showToInputMap() {
         show();
         selectedTab = TabName.InputMap;
     }
 
-    static IdPool ID_POOL() {
-        return ID_POOL;
+    /**
+     * Get the ID pool use by this dialogue.
+     * @return the {@link IdPool}
+     */
+    static IdPool IDPool() {
+        return IDPool;
     }
 
     private static void resetTab() {
@@ -62,48 +97,41 @@ public class EditProjectSettingsDialog {
         InputMapTab.reloadInputActionData();
     }
 
+    /**
+     * Render the dialogue on screen.
+     */
     public static void imgui() {
         if (!showDialog) return;
         syncWithProject();
-
         if (InputMapTab.isShowListeningDialog()) {
             ListenForInputDialog.imgui();
             return;
         }
-
-        ImGui.openPopup(POPUP_ID);
-
+        ImGui.openPopup(PopupID);
         ImVec2 centre = ImGui.getMainViewport().getCenter();
         float pivotXY = 0.5f;
-
         ImGui.setNextWindowPos(centre.x, centre.y, ImGuiCond.Appearing, pivotXY, pivotXY);
-        ImGui.setNextWindowSize(DIALOG_SIZE);
-
-        if (ImGui.beginPopupModal(POPUP_ID, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)) {
+        ImGui.setNextWindowSize(DialogSize);
+        if (ImGui.beginPopupModal(PopupID, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)) {
             renderTabButtons();
             ImGui.separator();
-
             float buttonWidth = 120;
             float buttonHeight = 30;
-            float regionHeight = ImGui.getContentRegionAvailY() - BUTTON_RESERVE - SEPARATOR_RESERVE - buttonHeight - padding;
-            if (ImGui.beginChild("##EPPD_Tab_Region", 0.0f, regionHeight, enableBorder)) {
+            float regionHeight = ImGui.getContentRegionAvailY() - ButtonReserve - SeparatorReserve - buttonHeight - padding;
+            if (ImGui.beginChild("##EPPD_Tab_Region", new ImVec2(0.0f, regionHeight), ImGuiChildFlags.Border)) {
                 renderTabContent();
                 ImGui.endChild();
             }
-
             if (selectedTab == TabName.General) ProjectPreferenceTab.autoSavePreferences();
-
             renderCloseButton(buttonWidth, buttonHeight);
-
             ImGui.endPopup();
-            ID_POOL.reset();
+            IDPool.reset();
         }
-
-        if (!ImGui.isPopupOpen(POPUP_ID)) showDialog = false;
+        if (!ImGui.isPopupOpen(PopupID)) showDialog = false;
     }
 
     private static void renderCloseButton(float buttonWidth, float buttonHeight) {
-        ImGui.setCursorPosY(ImGui.getWindowHeight() - BUTTON_RESERVE - (buttonHeight / 2) - ImGui.getStyle().getWindowPaddingY());
+        ImGui.setCursorPosY(ImGui.getWindowHeight() - ButtonReserve - (buttonHeight / 2) - ImGui.getStyle().getWindowPaddingY());
         float buttonPivotX = buttonWidth * 0.5f;
         float availX = ImGui.getContentRegionAvailX();
         float cancelX = (availX * 0.5f) - buttonPivotX;
@@ -122,27 +150,23 @@ public class EditProjectSettingsDialog {
     }
 
     private static void renderTabButtons() {
-        if (!ImGui.beginChild("##EPPD_Tabs", 0.0f, BUTTON_RESERVE, ImGuiChildFlags.None, ImGuiWindowFlags.NoScrollbar)) {
+        if (!ImGui.beginChild("##EPPD_Tabs", 0.0f, ButtonReserve, ImGuiChildFlags.None, ImGuiWindowFlags.NoScrollbar)) {
             ImGui.endChild();
             return;
         }
-
         if (!widthCalculated) {
             tabWidth = getMaxTabNameWidth();
             widthCalculated = true;
         }
-
         ImVec2 remainTableSize = ImGui.getContentRegionAvail();
         if (!ImGui.beginTable("##EPPD Tab Buttons", TabName.size(), ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.SizingStretchProp, remainTableSize)) {
             ImGui.endChild();
             return;
         }
-
         for (TabName tab : TabName.values()) {
             String id = "##EPPD " + tab.name + " column";
             ImGui.tableSetupColumn(id, ImGuiTableColumnFlags.WidthFixed, tabWidth + padding);
         }
-
         ImVec2 availSpace;
         ImVec2 cursorPos;
         TabName pastTab = selectedTab;
@@ -162,7 +186,6 @@ public class EditProjectSettingsDialog {
             ImGui.setCursorPos(cursorPos.x + offset, cursorPos.y);
             ImGui.text(tab.name);
         }
-
         ImGui.endTable();
         ImGui.endChild();
     }

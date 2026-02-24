@@ -71,7 +71,7 @@ public class Physic2D {
         physicBody2D.configureBodyDef(bodyDef);
         Body obj = world.createBody(bodyDef);
         physicBody2D.setPhysicBodyRef(obj);
-        physicBody2D.configureBody();
+        physicBody2D.configurePhysicBodyRef();
 
         for (CollisionShape2D shape : collisionShapes) {
             if (!shape.hasPhysicBody() || shape.getPhysicBody2D() != physicBody2D) continue;

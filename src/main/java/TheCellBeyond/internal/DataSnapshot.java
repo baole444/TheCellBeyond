@@ -29,6 +29,16 @@ public record DataSnapshot(
         Physic2D physic2D,
         AtomicBoolean updated
 ) {
+    /**
+     * Compact constructure ensure data is never null.
+     * @param viewport the viewport of the scene
+     * @param gameObjects the list of game object in the scene (ordered)
+     * @param cachedIDs the cache of object shader ids mapped by the object uuid
+     * @param cachedObjectsByUUID the map of the game objects in the scene
+     * @param componentsByUUID the map of components in the scene
+     * @param physic2D the physic world of the scene
+     * @param updated the update state of this snapshot
+     */
     public DataSnapshot {
         if (viewport == null) viewport = new Viewport(new Vector2f());
         if (gameObjects == null) gameObjects = new CopyOnWriteArrayList<>();
@@ -38,6 +48,9 @@ public record DataSnapshot(
         if (updated == null) updated = new AtomicBoolean(false);
     }
 
+    /**
+     * Create a blank data snapshot.
+     */
     public DataSnapshot() {
         this(new Viewport(new Vector2f()), new ArrayList<>(),
                 new HashMap<>(), new HashMap<>(), new HashMap<>(),
@@ -45,10 +58,18 @@ public record DataSnapshot(
         );
     }
 
+    /**
+     * Check if the data snapshot is updated or not.
+     * @return true if updated
+     */
     public boolean isUpdated() {
         return updated.get();
     }
 
+    /**
+     * Extract dirty object from this snapshot for rendering.
+     * @return a rendering snapshot
+     */
     public RenderUpdateSnapshot extractRenderData() {
         if (!updated.get()) return null;
         List<GameObject> updateObject = cachedObjectsByUUID.values().stream()
@@ -60,6 +81,10 @@ public record DataSnapshot(
         return snapshot;
     }
 
+    /**
+     * Remove a game object from the data snapshot.
+     * @param go the object to remove
+     */
     public void removeObject(GameObject go) {
         if (go == null) return;
         cachedIDs.remove(go.getUID());
@@ -68,6 +93,9 @@ public record DataSnapshot(
         physic2D.destroyObject(go);
     }
 
+    /**
+     * Clear the data inside this snapshot.
+     */
     public void clear() {
         gameObjects.clear();
         cachedIDs.clear();

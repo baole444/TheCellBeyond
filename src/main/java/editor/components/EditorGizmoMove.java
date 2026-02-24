@@ -6,9 +6,13 @@ import org.joml.Vector2f;
 import render.texture.Sprite;
 
 /**
- * EditorGizmo used for moving an object around in the editor.
+ * EditorGizmo used for moving an object around in the editor..
  */
 public class EditorGizmoMove extends EditorGizmo {
+    /**
+     * Create a new {@link EditorGizmoMove} component with the given arrow sprite.
+     * @param arrowSprite the arrow sprite for the new component
+     */
     public EditorGizmoMove(Sprite arrowSprite) {
         super("translate_", arrowSprite);
     }

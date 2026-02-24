@@ -103,13 +103,11 @@ public final class Controller2D extends Component {
             physicBody2D = body2D;
             isGameObjectPhysicCompatible = true;
         }
-
         if (!isGameObjectSpatialCompatible && !isGameObjectPhysicCompatible) {
             controlMode = ControlMode.Incompatible;
             LOGGER.warning(String.format("Mounting %s to unsupported '%s' object", this.getClass().getSimpleName(), gameObject.name()));
             return;
         }
-
         if (!isGameObjectPhysicCompatible) controlMode = ControlMode.SpatialLogic;
     }
 
@@ -127,17 +125,14 @@ public final class Controller2D extends Component {
     @Override
     public void update(float dt) {
         if (controlMode == ControlMode.Incompatible) return;
-
         Vector2f finalDirection = getCombinedDirection(dt);
         if (finalDirection.lengthSquared() == 0.0f) return;
         if (normalizeDiagonalSpeed) finalDirection.normalize();
         finalDirection.mul(movementSpeed);
-
         if (controlMode == ControlMode.PhysicalLogic) {
             applyPhysicalMovement(finalDirection);
             return;
         }
-
         if (controlMode == ControlMode.SpatialLogic) applySpatialMovement(finalDirection, dt);
     }
 
@@ -151,33 +146,28 @@ public final class Controller2D extends Component {
             controlMode = ControlMode.Incompatible;
             return;
         }
-
         if (!isGameObjectSpatialCompatible) return;
-
         if (!isGameObjectPhysicCompatible) {
             controlMode = ControlMode.SpatialLogic;
             return;
         }
-
         controlMode = mode;
     }
 
-    public void newBinding() {
+    public String newBinding() {
         String newName = "binding";
-
         if (controllerBindings.isEmpty()) {
             controllerBindings.put(newName, new ControllerBinding());
-            return;
+            return newName;
         }
-
         String uniqueName = newName;
         int i = controllerBindings.size();
-        if (controllerBindings.containsKey(uniqueName)) {
+        while (controllerBindings.containsKey(uniqueName)) {
             uniqueName = newName + "_" + i;
             i++;
         }
-
         controllerBindings.put(uniqueName, new ControllerBinding());
+        return uniqueName;
     }
 
     public boolean renameBinding(String oldName, String newName) {

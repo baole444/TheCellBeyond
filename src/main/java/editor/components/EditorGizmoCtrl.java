@@ -43,7 +43,7 @@ public class EditorGizmoCtrl extends Component {
                 );
             }
 
-            gizmo = AssetsPool.loadSpriteSheet(PATH);
+            gizmo = AssetsPool.getSpriteSheet(PATH);
             completeInit();
         } catch (Exception e) {
             System.err.println("Failed to initialize EditorGizmo texture: " + e.getMessage());

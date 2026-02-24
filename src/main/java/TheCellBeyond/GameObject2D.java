@@ -25,7 +25,7 @@ import java.util.List;
  * GameObject2D utilizes transform dirty flag to passively update its global transform.
  * This flag can propagate down the hierarchy tree from the current object to all its descendants of this type or its subclasses.
  * <p>
- * GameObject2D also responsible for informing its {@link SpatialComponent} and set the component's transform dirty flag.
+ * GameObject2D also responsible for informing its {@link Component2D} and set the component's transform dirty flag.
  * </p>
  * <b>Inherited by:</b> {@link physic2d.PhysicBody2D}
  * @see Transform2D Transform2D data structure
@@ -42,7 +42,7 @@ public class GameObject2D extends GameObject {
     private transient final Transform2D globalTransform2D;
 
     /**
-     * Is this 2D object's global transform need update.
+     * Is this 2D object's global transform needs update.
      */
     private transient boolean isTransformDirty = true;
 
@@ -95,7 +95,7 @@ public class GameObject2D extends GameObject {
      * <p>
      * The local position is relative to this object's nearest ancestor of {@link GameObject2D} type or its subclasses.
      * @return the local position vector
-     * @see #position(float, float) set the local position for this 2D object
+     * @see #position(float, float) Set the local position for this 2D object
      * @apiNote
      * Directly modify the vector returned by this method will not trigger the transform dirty flag.
      */
@@ -170,14 +170,12 @@ public class GameObject2D extends GameObject {
      */
     public void globalPosition(float x, float y) {
         GameObject2D parent2D = getParent2D();
-
         if (parent2D == null) localTransform2D.position.set(x, y);
         else {
             parent2D.updateGlobalTransform();
             parent2D.tmpMatrix.set(parent2D.globalMatrix).invert();
             parent2D.tmpMatrix.transformPosition(x, y, localTransform2D.position);
         }
-
         setTransformDirty();
     }
 
@@ -195,10 +193,10 @@ public class GameObject2D extends GameObject {
      * Set the local rotation of this 2D object using the given angle.
      * <p>
      * This will trigger the transform dirty flag.
-     * @param rotation the rotation angle (in Degrees) to update the local rotation with
+     * @param rotationDegrees the rotation angle (in Degrees) to update the local rotation with
      */
-    public void rotation(float rotation) {
-        localTransform2D.rotation = rotation;
+    public void rotation(float rotationDegrees) {
+        localTransform2D.rotation = rotationDegrees;
         setTransformDirty();
     }
 
@@ -220,17 +218,15 @@ public class GameObject2D extends GameObject {
      * Set the global rotation of this 2D object using the given angle.
      * <p>
      * This will trigger the transform dirty flag.
-     * @param globalRotation the rotation angle (in Degrees) to update the global rotation with
+     * @param globalRotationDegrees the rotation angle (in Degrees) to update the global rotation with
      * @apiNote
      * This is an indirect calculation of local rotation for this 2D object,
      * useful for when the targeted final angle is known or easier to obtain.
      */
-    public void globalRotation(float globalRotation) {
+    public void globalRotation(float globalRotationDegrees) {
         GameObject2D parent2D = getParent2D();
-
-        if (parent2D == null) localTransform2D.rotation = globalRotation;
-        else localTransform2D.rotation = globalRotation - parent2D.globalRotation();
-
+        if (parent2D == null) localTransform2D.rotation = globalRotationDegrees;
+        else localTransform2D.rotation = globalRotationDegrees - parent2D.globalRotation();
         setTransformDirty();
     }
 
@@ -314,7 +310,6 @@ public class GameObject2D extends GameObject {
      */
     public void globalScale(float x, float y) {
         GameObject2D parent2D = getParent2D();
-
         if (parent2D == null) localTransform2D.scale.set(x, y);
         else {
             Vector2f parentScale = parent2D.globalScale();
@@ -323,10 +318,8 @@ public class GameObject2D extends GameObject {
                 setTransformDirty();
                 return;
             }
-
             localTransform2D.scale.set(x, y).div(parentScale);
         }
-
         setTransformDirty();
     }
 
@@ -414,14 +407,10 @@ public class GameObject2D extends GameObject {
      */
     public GameObject2D getParent2D() {
         GameObject parent = getParent();
-
-        // Recursive search until finding supported parent
         while (parent != null) {
             if (parent instanceof GameObject2D parent2D) return parent2D;
-
             parent = parent.getParent();
         }
-
         return null;
     }
 
@@ -527,10 +516,8 @@ public class GameObject2D extends GameObject {
     public Vector2f toGlobal(Vector2f localPosition) {
         if (localPosition == null) return new Vector2f();
         updateGlobalTransform();
-
         Vector2f result = new Vector2f();
         globalMatrix.transformPosition(localPosition, result);
-
         return result;
     }
 
@@ -561,11 +548,9 @@ public class GameObject2D extends GameObject {
     public Vector2f toLocal(Vector2f globalPosition) {
         if (globalPosition == null) return new Vector2f();
         updateGlobalTransform();
-
         tmpMatrix.set(globalMatrix).invert();
         Vector2f result = new Vector2f();
         tmpMatrix.transformPosition(globalPosition, result);
-
         return result;
     }
 
@@ -574,70 +559,83 @@ public class GameObject2D extends GameObject {
      * <p>
      * Matrix order: L = Translate * Rotate * Scale.
      * This is read from right to left, result in SRT transformation.
-     * @see <a href="https://gamedev.stackexchange.com/questions/29260/transform-matrix-multiplication-order">Order explaination</a>
+     * @see <a href="https://gamedev.stackexchange.com/questions/29260/transform-matrix-multiplication-order">Order explanation</a>
      */
     private void updateGlobalTransform() {
         if (!isTransformDirty || isTransformUpdating) return;
-
-        // Circular reference prevention
         isTransformUpdating = true;
-
         try {
-            localMatrix.identity()
-                    .translate(localTransform2D.position)
-                    .rotate((float) Math.toRadians(localTransform2D.rotation))
-                    .scale(localTransform2D.scale);
-
             GameObject2D parent2D = getParent2D();
-            if (parent2D != null) {
-                parent2D.updateGlobalTransform();
-                globalMatrix.set(parent2D.globalMatrix).mul(localMatrix);
-            } else {
-                globalMatrix.set(localMatrix);
-            }
-
-            Vector2f translation = new Vector2f(globalMatrix.m20(), globalMatrix.m21());
-            globalTransform2D.position.set(translation);
-
+            updateGlobalPosition(parent2D);
             globalTransform2D.rotation = (float) Math.toDegrees(Math.atan2(globalMatrix.m01(), globalMatrix.m00()));
-
-            float scaleX = (float) Math.sqrt(globalMatrix.m00() * globalMatrix.m00()
-                    + globalMatrix.m01() * globalMatrix.m01());
-            // Many thanks to "Whiteaxe" for finding the bug here: "globalMatrix.m10() * globalMatrix.m11()" <- supposed to be "m10()"
-            float scaleY = (float) Math.sqrt(globalMatrix.m10() * globalMatrix.m10()
-                    + globalMatrix.m11() * globalMatrix.m11());
-
-            globalTransform2D.scale.set(scaleX, scaleY);
-
-            globalTransform2D.relativeZIndex = localTransform2D.relativeZIndex;
-            if (localTransform2D.relativeZIndex) {
-                if (parent2D != null) globalTransform2D.zIndex = parent2D.globalTransform2D.zIndex + localTransform2D.zIndex;
-                else globalTransform2D.zIndex = localTransform2D.zIndex;
-            } else {
-                globalTransform2D.zIndex = localTransform2D.zIndex;
-            }
-
+            updateGlobalScale();
+            updateGlobalZIndex(parent2D);
             isTransformDirty = false;
-
-            updateSpatialComponents();
+            updateComponent2Ds();
         } finally {
             isTransformUpdating = false;
         }
     }
 
     /**
+     * Internal update of global transform's ZIndex.
+     * @param parent2D the parent 2D object
+     * @see #updateGlobalTransform() internal update of global transform
+     */
+    private void updateGlobalZIndex(GameObject2D parent2D) {
+        globalTransform2D.relativeZIndex = localTransform2D.relativeZIndex;
+        if (localTransform2D.relativeZIndex && parent2D != null) {
+            globalTransform2D.zIndex = parent2D.globalTransform2D.zIndex + localTransform2D.zIndex;
+            return;
+        }
+        globalTransform2D.zIndex = localTransform2D.zIndex;
+    }
+
+    /**
+     * Internal update of global transform's position.
+     * @param parent2D the parent 2D object
+     * @see #updateGlobalTransform() internal update of global transform
+     */
+    private void updateGlobalPosition(GameObject2D parent2D) {
+        localMatrix.identity()
+                .translate(localTransform2D.position)
+                .rotate((float) Math.toRadians(localTransform2D.rotation))
+                .scale(localTransform2D.scale);
+        if (parent2D != null) {
+            parent2D.updateGlobalTransform();
+            globalMatrix.set(parent2D.globalMatrix).mul(localMatrix);
+        } else {
+            globalMatrix.set(localMatrix);
+        }
+        Vector2f translation = new Vector2f(globalMatrix.m20(), globalMatrix.m21());
+        globalTransform2D.position.set(translation);
+    }
+
+    /**
+     * Internal update of global transform's scale.
+     * @see #updateGlobalTransform() internal update of global transform
+     * @apiNote
+     * Many thanks to "Whiteaxe" for finding the bug here: "globalMatrix.m10() * globalMatrix.m11()" <- supposed to be "m10()"
+     */
+    private void updateGlobalScale() {
+        float m00Sqr = globalMatrix.m00() * globalMatrix.m00();
+        float m01Sqr = globalMatrix.m01() * globalMatrix.m01();
+        float m10Sqr = globalMatrix.m10() * globalMatrix.m10();
+        float m11Sqr = globalMatrix.m11() * globalMatrix.m11();
+        float scaleX = (float) Math.sqrt(m00Sqr + m01Sqr);
+        float scaleY = (float) Math.sqrt(m10Sqr + m11Sqr);
+        globalTransform2D.scale.set(scaleX, scaleY);
+    }
+
+    /**
      * Inform spatial components of this object that their effective transform is outdated.
      */
-    private void updateSpatialComponents() {
+    private void updateComponent2Ds() {
         if (isNotifyingComponent) return;
-
         isNotifyingComponent = true;
         try {
-            List<SpatialComponent> components = getComponents(SpatialComponent.class);
-
-            for (SpatialComponent c : components) {
-                c.setTransformDirty();
-            }
+            List<Component2D> components = getComponents(Component2D.class);
+            components.forEach(Component2D::setTransformDirty);
         } finally {
             isNotifyingComponent = false;
         }
@@ -670,20 +668,19 @@ public class GameObject2D extends GameObject {
     }
 
     /**
-     * Trigger the {@link #isTransformDirty} flag of this 2D object
-     * and propagate it down to all descendants of type {@link GameObject2D} or its subclasses.
+     * Trigger the {@link #isTransformDirty} flag of this 2D object.
+     * This first call {@link #onTransformDirty()}, then the flag is
+     * propagated down to all descendants of type {@link GameObject2D} or its subclasses.
      */
     private void setTransformDirty() {
         onTransformDirty();
         if (!isTransformDirty) {
             isTransformDirty = true;
-            if (!isNotifyingComponent) updateSpatialComponents();
+            if (!isNotifyingComponent) updateComponent2Ds();
         }
-
         for (GameObject child : getChildren()) {
-            if (child instanceof GameObject2D child2D) {
-                child2D.setTransformDirty();
-            }
+            if (!(child instanceof GameObject2D child2D)) continue;
+            child2D.setTransformDirty();
         }
     }
 
@@ -766,9 +763,7 @@ public class GameObject2D extends GameObject {
     @Override
     public GameObject2D copy(boolean copyHierarchy) {
         GameObject2D copy = (GameObject2D) copySingleObject();
-
         if (copyHierarchy && !getChildren().isEmpty()) copyDescendants(this, copy);
-
         return copy;
     }
 
