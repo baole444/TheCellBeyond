@@ -121,7 +121,7 @@ public class RemoteTransform2D extends Component2D {
         HierarchyPath path = new HierarchyPath(targetPath);
         GameObject resolved = HierarchyPaths.toGameObject(path, gameObject);
 
-        if (!(resolved instanceof GameObject2D go2D) || gameObject.isAncestor(go2D)) return;
+        if (!(resolved instanceof GameObject2D go2D) || gameObject.isDescendantOf(go2D)) return;
         target = go2D;
     }
 

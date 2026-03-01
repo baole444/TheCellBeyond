@@ -4,7 +4,6 @@ import TheCellBeyond.internal.LogicServer;
 import editor.EditorWidget;
 import imgui.ImGui;
 import imgui.flag.ImGuiTreeNodeFlags;
-import imgui.type.ImBoolean;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.BodyDef;
 import org.joml.Vector2f;
@@ -29,13 +28,23 @@ public class CharacterBody2D extends PhysicBody2D {
      * The vector that define the upward direction, used for determine if the surface is floor,
      * wall or ceiling.
      */
-    private final Vector2f UpDirection = new Vector2f(0.0f, 1.0f);
+    private final Vector2f upDirection = new Vector2f(0.0f, 1.0f);
 
     /**
      * The maximum angle in degrees for a surface to still be considered a floor.
      */
     private float maxFloorAngle = 45.0f;
-    private float floorSnapDistance = 0.01f;
+
+    /**
+     * The snapping distance in world units, keeping the character attached to slopes when calling {@link #moveAndSlide()}.
+     * The snapping vector is calculated using this distance and the opposite of {@link #upDirection()} vector.
+     * <p>
+     * When set to value other than {@code 0.0}, a ray is cast opposite to {@link #upDirection()} by this distance.
+     * As long as this ray hit the ground, the character will remain attached to the surface.
+     * Snapping is not applied when the character moves along the {@link #upDirection()} vector,
+     * allow it to be detached from the ground (jumping for example.)
+     */
+    public float floorSnapDistance = 0.01f;
 
     /**
      * The motion mode of the character, which define the behaviour of {@link #moveAndSlide()}.
@@ -99,7 +108,7 @@ public class CharacterBody2D extends PhysicBody2D {
      * @return a copy of the up direction vector
      */
     public Vector2f upDirection() {
-        return new Vector2f(UpDirection);
+        return new Vector2f(upDirection);
     }
 
     /**
@@ -110,7 +119,7 @@ public class CharacterBody2D extends PhysicBody2D {
      */
     public void upDirection(Vector2f upDirection) {
         if (upDirection == null) return;
-        UpDirection.set(upDirection).normalize();
+        this.upDirection.set(upDirection).normalize();
     }
 
     /**
@@ -127,14 +136,6 @@ public class CharacterBody2D extends PhysicBody2D {
      */
     public void maxFloorAngle(float degrees) {
         maxFloorAngle = Math.max(0.0f, Math.min(90.0f, degrees));
-    }
-
-    public float floorSnapDistance() {
-        return floorSnapDistance;
-    }
-
-    public void floorSnapDistance(float meters) {
-        floorSnapDistance = Math.max(0.0f, meters);
     }
 
     public float safeMargin() {
@@ -246,7 +247,7 @@ public class CharacterBody2D extends PhysicBody2D {
     public Vector2f getCollisionNormal() {
         if (isOnFloor) return floorNormal();
         if (isOnWall) return  wallNormal();
-        if (isOnCeiling) return new Vector2f(UpDirection).negate();
+        if (isOnCeiling) return new Vector2f(upDirection).negate();
         return new Vector2f();
     }
 
@@ -264,7 +265,7 @@ public class CharacterBody2D extends PhysicBody2D {
         }
         if (motionMode == MotionMode.Grounded) {
             checkFloorState();
-            if (!isOnFloor && velocity.y <= 0.0f) floorSnap();
+            if (!isOnFloor && velocity.dot(upDirection) <= 0.0f) floorSnap();
         }
         return collided;
     }
@@ -296,9 +297,11 @@ public class CharacterBody2D extends PhysicBody2D {
             return;
         }
         categorizeCollision(normal);
-        if ((isFloorNormal(normal) && velocity.y <= 0.0f) || (isCeilingNormal(normal) && velocity.y >= 0.0f)) {
-            velocity.y = 0.0f;
-            slideVelocity.y = 0.0f;
+        float upComponent = velocity.dot(upDirection);
+        if ((isFloorNormal(normal) && upComponent <= 0.0f) || (isCeilingNormal(normal) && upComponent >= 0.0f)) {
+            velocity.sub(upDirection.x * upComponent, upDirection.y * upComponent);
+            float slideUpComponent = slideVelocity.dot(upDirection);
+            slideVelocity.sub(upDirection.x * slideUpComponent, upDirection.y * slideUpComponent);
         }
     }
 
@@ -308,7 +311,7 @@ public class CharacterBody2D extends PhysicBody2D {
             wallNormal.set(normal);
             return;
         }
-        float angle = angleInDegree(normal, UpDirection);
+        float angle = angleInDegree(normal, upDirection);
         if (angle <= maxFloorAngle) {
             isOnFloor = true;
             floorNormal.set(normal);
@@ -324,13 +327,13 @@ public class CharacterBody2D extends PhysicBody2D {
 
     private boolean isFloorNormal(Vector2f normal) {
         if (motionMode != MotionMode.Grounded) return false;
-        float angle = angleInDegree(normal, UpDirection);
+        float angle = angleInDegree(normal, upDirection);
         return angle <= maxFloorAngle;
     }
 
     private boolean isCeilingNormal(Vector2f normal) {
         if (motionMode != MotionMode.Grounded) return false;
-        float angle = angleInDegree(normal, UpDirection);
+        float angle = angleInDegree(normal, upDirection);
         return angle >= 180.0f - maxFloorAngle;
     }
 
@@ -340,7 +343,7 @@ public class CharacterBody2D extends PhysicBody2D {
         if (motionMode != MotionMode.Grounded) return;
         if (physicBodyRef == null) return;
         Vector2f pos = globalPosition();
-        Vector2f safeDistance = new Vector2f(UpDirection).mul(-safeMargin * 2.0f);
+        Vector2f safeDistance = new Vector2f(upDirection).mul(-safeMargin * 2.0f);
         Vector2f targetPos = new Vector2f(pos).add(safeDistance);
         RayCastInfo rayCast = physic2D.rayCastInfo(this, pos, targetPos);
         if (rayCast.hit && isFloorNormal(rayCast.normalDirection)) {
@@ -353,9 +356,9 @@ public class CharacterBody2D extends PhysicBody2D {
         Physic2D physic2D = LogicServer.currentScenePhysic2D();
         if (physic2D == null) return;
         if (motionMode != MotionMode.Grounded) return;
-        if (physicBodyRef == null || floorSnapDistance <= 0.0f) return;
+        if (physicBodyRef == null || floorSnapDistance == 0.0f) return;
         Vector2f currentPos = globalPosition();
-        Vector2f snapDistance = new Vector2f(UpDirection).mul(-floorSnapDistance);
+        Vector2f snapDistance = new Vector2f(upDirection).mul(-floorSnapDistance);
         Vector2f targetPos = new Vector2f(currentPos).add(snapDistance);
         RayCastInfo rayCast = physic2D.rayCastInfo(this, currentPos, targetPos);
         if (!rayCast.hit || !isFloorNormal(rayCast.normalDirection)) return;
@@ -364,7 +367,8 @@ public class CharacterBody2D extends PhysicBody2D {
         physicBodyRef.setTransform(new Vec2(nextPos.x, nextPos.y), physicBodyRef.getAngle());
         isOnFloor = true;
         floorNormal.set(rayCast.normalDirection);
-        velocity.y = 0.0f;
+        float upComponent = velocity.dot(upDirection);
+        velocity.sub(upDirection.x * upComponent, upDirection.y * upComponent);
     }
 
     private static float angleInDegree(Vector2f normal, Vector2f upDirection) {
@@ -375,7 +379,7 @@ public class CharacterBody2D extends PhysicBody2D {
         isOnFloor = false;
         isOnWall = false;
         isOnCeiling = false;
-        floorNormal.set(UpDirection);
+        floorNormal.set(upDirection);
         wallNormal.zero();
     }
 
@@ -411,14 +415,14 @@ public class CharacterBody2D extends PhysicBody2D {
             ImGui.endCombo();
         }
         ImGui.spacing();
-        Vector2f upDir = new Vector2f(UpDirection);
+        Vector2f upDir = new Vector2f(upDirection);
         if (EditorWidget.dragVec2Ctrl("Up Direction", upDir, 0.0f, 1.0f, 0.1f, this)) upDirection(upDir);
         if (motionMode == MotionMode.Grounded) {
             ImGui.spacing();
             float slopeAngle = EditorWidget.dragFloatCtrl("Max Slope Angle", maxFloorAngle, 45.0f, 1.0f, this, 0.0f, 90.0f);
             if (Float.compare(slopeAngle, maxFloorAngle) != 0) maxFloorAngle(slopeAngle);
-            float snapDistance = EditorWidget.dragFloatCtrl("Floor Snapping Distance", floorSnapDistance, 0.1f, 0.1f, this, 0.0f);
-            if (Float.compare(snapDistance, floorSnapDistance) != 0) floorSnapDistance(snapDistance);
+            float snapDistance = EditorWidget.dragFloatCtrl("Floor Snapping Distance", floorSnapDistance, 0.1f, 0.1f, this);
+            if (Float.compare(snapDistance, floorSnapDistance) != 0) floorSnapDistance = snapDistance;
         }
         ImGui.spacing();
         float margin = EditorWidget.dragFloatCtrl("Safe Margin", safeMargin, 0.01f, this, 0.001f);

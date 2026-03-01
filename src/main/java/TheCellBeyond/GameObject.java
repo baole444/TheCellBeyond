@@ -176,7 +176,7 @@ public class GameObject {
      */
     public void addChild(GameObject child) {
         if (child == null || child == this) return;
-        if (isAncestor(child)) {
+        if (isDescendantOf(child)) {
             System.err.println("Cannot add parent as child.");
             return;
         }
@@ -202,6 +202,37 @@ public class GameObject {
     }
 
     /**
+     * Reorder a child object relative to the context sibling within this object's children.
+     * <p>
+     * If no context sibling are provided, this is considered reordering to last.
+     * </p>
+     * The child object will not be reordered if it is null, the same as the context sibling or not a child
+     * of this game object.
+     * If a context sibling is provided, it is also required to be child of this game object.
+     * @param child the child object to reordered
+     * @param contextSibling the optional context sibling object
+     * @param insertBeforeSibling should the child object be inserted before the context sibling (if provided)
+     */
+    public void reorderChild(GameObject child, GameObject contextSibling, boolean insertBeforeSibling) {
+        if (child == null || !children.contains(child) || child == contextSibling) return;
+        if (contextSibling != null && !children.contains(contextSibling)) return;
+        if (contextSibling == null) {
+            children.remove(child);
+            children.addLast(child);
+            updateChildrenUUIDs();
+            return;
+        }
+        List<GameObject> gameObjects = new ArrayList<>(children);
+        gameObjects.remove(child);
+        int index = gameObjects.indexOf(contextSibling);
+        if (!insertBeforeSibling) index++;
+        gameObjects.add(index, child);
+        children.clear();
+        children.addAll(gameObjects);
+        updateChildrenUUIDs();
+    }
+
+    /**
      * Set the parent object for this game object using the given parent.
      * The new parent object adds this as its child.
      * <p>
@@ -221,20 +252,17 @@ public class GameObject {
     }
 
     /**
-     * Check if a game object is this game object's ancestor or not.
-     * @param ancestorAble the potential ancestor object
+     * Check if the given game object is this game object's ancestor or not,
+     * a.k.a. is this game object a descendant of the given object.
+     * @param potentialAncestor the potential ancestor object
      * @return true if this object belong to the ancestor's hierarchy tree
      */
-    public boolean isAncestor(GameObject ancestorAble) {
+    public boolean isDescendantOf(GameObject potentialAncestor) {
         GameObject current = this.parent;
         while (current != null) {
-            if (current == ancestorAble) {
-                return true;
-            }
-
+            if (current == potentialAncestor) return true;
             current = current.parent;
         }
-
         return false;
     }
 
@@ -252,10 +280,7 @@ public class GameObject {
      */
     public GameObject getRoot() {
         GameObject current = this;
-        while (current.parent != null) {
-            current = current.parent;
-        }
-
+        while (current.parent != null) current = current.parent;
         return current;
     }
 
@@ -267,7 +292,6 @@ public class GameObject {
     public List<GameObject> getAllDescendants() {
         List<GameObject> descendants = new ArrayList<>();
         addDescendantsRecursive(descendants);
-
         return descendants;
     }
 
@@ -301,7 +325,6 @@ public class GameObject {
         for (Component c : components) {
             if (c != null && c.name().equals(componentName)) return c;
         }
-
         return null;
     }
 
@@ -344,12 +367,11 @@ public class GameObject {
      */
     public <T extends Component> T getFirstComponent(Class<T> componentClass) {
         for (Component c : components) {
-            if (componentClass.isAssignableFrom(c.getClass())) {
-                try {
-                    return componentClass.cast(c);
-                } catch (ClassCastException e) {
-                    assert false : "FATAL: Casting component failed.";
-                }
+            if (!componentClass.isAssignableFrom(c.getClass())) continue;
+            try {
+                return componentClass.cast(c);
+            } catch (ClassCastException e) {
+                assert false : "FATAL: Casting component failed.";
             }
         }
         return null;
@@ -462,7 +484,6 @@ public class GameObject {
         if (!removed) return false;
         Scene scene = LogicServer.currentScene();
         if (scene != null) scene.queueForComponentRemoval(component);
-
         setDirty(true);
         return true;
     }
@@ -475,11 +496,9 @@ public class GameObject {
      */
     public void addComponent(Component component) {
         if (component == null) return;
-
         GameObject otherOwner = component.gameObject;
         if (otherOwner != null && otherOwner != this) return;
         if (component.getUUID() == null) component.setUUID(UUID.randomUUID());
-
         components.add(component);
         component.gameObject = this;
         if (isStarted) {
@@ -521,7 +540,6 @@ public class GameObject {
      */
     public void editorUpdate(float dt) {
         onUpdate(dt);
-
         for (Component component : components) {
             component.editorUpdate(dt);
         }
@@ -789,10 +807,7 @@ public class GameObject {
      * Prepare this game object for serialization. This will sync the parent object's UUID and the children's UUIDs.
      */
     public void prepareForSerialization() {
-        if (parent != null) {
-            parentUUID = parent.uuid;
-        }
-
+        if (parent != null) parentUUID = parent.uuid;
         updateChildrenUUIDs();
     }
 
@@ -802,7 +817,6 @@ public class GameObject {
      */
     public void restoreHierarchy(Scene scene) {
         if (scene == null) return;
-
         if (parentUUID != null && isParentNotValid()) {
             GameObject parentGO = scene.getGameObject(parentUUID);
             if (parentGO != null) {
@@ -826,7 +840,6 @@ public class GameObject {
      */
     private boolean isParentNotValid() {
         if (parent == null) return true;
-
         return !parentUUID.equals(parent.uuid);
     }
 

@@ -12,14 +12,14 @@ import eventviewer.event.Event;
 public interface EngineEventListener {
     /**
      * If the implement of {@link EngineEventListener} is registered with {@link EngineEventCallback},
-     * this method is called, upon which will execute the implementor's logic.
+     * this method will be called when an event is emitted, upon which will execute the implementor's logic.
      * @param object nullable data that the event emitter can pass along with the event
      * @param event the event type
      */
     void onEventEmit(Object object, Event event);
 
     /**
-     * Be default, register a listener will register it with {@link EngineEventCallback}.
+     * Be default, registering a listener will register it with {@link EngineEventCallback}.
      */
     default void register() {
         EngineEventCallback.register(this);

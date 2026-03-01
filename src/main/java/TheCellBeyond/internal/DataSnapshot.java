@@ -16,7 +16,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @param gameObjects the list of game object in the scene (ordered)
  * @param cachedIDs the cache of object shader ids mapped by the object uuid
  * @param cachedObjectsByUUID the map of the game objects in the scene
- * @param componentsByUUID the map of components in the scene
  * @param physic2D the physic world of the scene
  * @param updated the update state of this snapshot
  */
@@ -25,7 +24,6 @@ public record DataSnapshot(
         List<GameObject> gameObjects,
         HashMap<Integer, UUID> cachedIDs,
         HashMap<UUID, GameObject> cachedObjectsByUUID,
-        Map<UUID, Component> componentsByUUID,
         Physic2D physic2D,
         AtomicBoolean updated
 ) {
@@ -35,7 +33,6 @@ public record DataSnapshot(
      * @param gameObjects the list of game object in the scene (ordered)
      * @param cachedIDs the cache of object shader ids mapped by the object uuid
      * @param cachedObjectsByUUID the map of the game objects in the scene
-     * @param componentsByUUID the map of components in the scene
      * @param physic2D the physic world of the scene
      * @param updated the update state of this snapshot
      */
@@ -43,7 +40,6 @@ public record DataSnapshot(
         if (viewport == null) viewport = new Viewport(new Vector2f());
         if (gameObjects == null) gameObjects = new CopyOnWriteArrayList<>();
         if (cachedIDs == null) cachedIDs = new HashMap<>();
-        if (componentsByUUID == null) componentsByUUID = new HashMap<>();
         if (physic2D == null) physic2D = new Physic2D();
         if (updated == null) updated = new AtomicBoolean(false);
     }
@@ -53,7 +49,7 @@ public record DataSnapshot(
      */
     public DataSnapshot() {
         this(new Viewport(new Vector2f()), new ArrayList<>(),
-                new HashMap<>(), new HashMap<>(), new HashMap<>(),
+                new HashMap<>(), new HashMap<>(),
                 new Physic2D(), new AtomicBoolean(false)
         );
     }
@@ -100,6 +96,5 @@ public record DataSnapshot(
         gameObjects.clear();
         cachedIDs.clear();
         cachedObjectsByUUID.clear();
-        componentsByUUID.clear();
     }
 }

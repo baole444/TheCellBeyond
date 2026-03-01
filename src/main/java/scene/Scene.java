@@ -79,7 +79,6 @@ public class Scene {
         sceneData.gameObjects().forEach(go -> {
             go.start();
             sceneData.physic2D().add(go);
-            cacheComponents(go);
         });
         sceneLoader.onSceneStarted(this);
         updateQueues();
@@ -91,10 +90,7 @@ public class Scene {
     public void editorStart() {
         sceneStarted = true;
         EngineEventCallback.emit(new SceneEvent(SceneEvent.Type.SceneEntered, this));
-        sceneData.gameObjects().forEach(go -> {
-            go.editorStart();
-            cacheComponents(go);
-        });
+        sceneData.gameObjects().forEach(GameObject::editorStart);
         sceneLoader.onSceneStarted(this);
         updateQueues();
     }
@@ -268,21 +264,59 @@ public class Scene {
     }
 
     /**
+     * Reorder a game object in the scene's hierarchy. If the reordering object and the context sibling
+     * does not share the same parent, it will be reparented to the sibling's parent.
+     * <p>
+     * This operation conformed to the hierarchy rules,
+     * and will trigger object order update in scene if the reordering is valid.
+     * @param reordering the object that need to be reordered
+     * @param contextSibling the context object to provide position to reorder around
+     * @param insertBeforeSibling should the reordering object be inserted before or after the context sibling
+     * @return true if the operation was valid and reordered
+     */
+    public boolean reorderObject(GameObject reordering, GameObject contextSibling, boolean insertBeforeSibling) {
+        if (reordering == null || contextSibling == null || reordering == contextSibling) return false;
+        if (reordering == root) return false;
+        if (reordering.isDescendantOf(contextSibling)) return false;
+        GameObject targetParent = contextSibling.getParent();
+        if (reordering.getParent() != targetParent) {
+            if (invalidReparent(reordering, targetParent)) return false;
+            reordering.setParent(targetParent);
+        }
+        if (targetParent != null) targetParent.reorderChild(reordering, contextSibling, insertBeforeSibling);
+        reorderGameObjects();
+        return true;
+    }
+
+    /**
      * Reparent a child object with its new parent. This follows the hierarchy rule of no circular reference.
      * @param child the object to reparent
      * @param newParent the target parent object to receive the child
      * @return true if reparent successfully
      */
     public boolean reparentObject(GameObject child, GameObject newParent) {
-        if (child == null || child == newParent) return false;
-        if (child == root) {
-            Logger.warning("Cannot reparent scene root object");
-            return false;
-        }
-        if (newParent != null && newParent.isAncestor(child)) return false;
+        if (invalidReparent(child, newParent)) return false;
         child.setParent(newParent);
         reorderGameObjects();
         return true;
+    }
+
+    /**
+     * Check if reparenting the given child to a new parent object is an invalid hierarchy restructure or not.
+     * <p>
+     * A reparent operation is considered invalid if the child is null, or is root object of scene,
+     * the new parent is the child itself, or the child is the ancestor of the new parent.
+     * @param child the child object to reparent
+     * @param newParent the parent object to for the child
+     * @return true if the operation is invalid
+     */
+    public boolean invalidReparent(GameObject child, GameObject newParent) {
+        if (child == null || child == newParent) return true;
+        if (child == root) {
+            Logger.warning("Cannot reparent scene root object");
+            return true;
+        }
+        return newParent != null && newParent.isDescendantOf(child);
     }
 
     /**
@@ -325,18 +359,6 @@ public class Scene {
         this.name = name;
     }
 
-    private void cacheComponents(GameObject go) {
-        for (Component c : go.getComponents()) {
-            sceneData.componentsByUUID().put(c.getUUID(), c);
-        }
-    }
-
-    private void uncacheComponents(GameObject go) {
-        for (Component c : go.getComponents()) {
-            sceneData.componentsByUUID().remove(c.getUUID());
-        }
-    }
-
     private void addObjectToScene(GameObject go, GameObject parent) {
         if (go == null || sceneData.cachedObjectsByUUID().containsKey(go.getUUID())) return;
         sceneData.cachedIDs().put(go.getUID(), go.getUUID());
@@ -351,7 +373,6 @@ public class Scene {
                 sceneData.physic2D().add(go);
             }
             else go.editorStart();
-            cacheComponents(go);
         }
         go.getChildren().stream()
                 .filter(child -> !sceneData.cachedObjectsByUUID().containsKey(child.getUUID()))
@@ -373,12 +394,10 @@ public class Scene {
 
     private void removeFromData(GameObject go) {
         sceneData.removeObject(go);
-        uncacheComponents(go);
     }
 
     private void removeComponentFromScene(Component component) {
         if (component == null) return;
-        sceneData.componentsByUUID().remove(component.getUUID());
         component.destroy();
         EngineEventCallback.emit(new SceneEvent(SceneEvent.Type.ComponentRemoved, this, component));
     }
@@ -398,7 +417,7 @@ public class Scene {
             GameObject parent = toAddParent.get(go);
             addObjectToScene(go, parent);
         });
-        if (toAdd.isEmpty() && toRemove.isEmpty()) return;
+        if (toAdd.isEmpty()) return;
         reorderGameObjects();
     }
 

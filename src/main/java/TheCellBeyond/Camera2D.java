@@ -71,7 +71,7 @@ public class Camera2D extends GameObject2D {
      * The camera's zoom. Higher values zoom out and smaller value zoom in.
      * <p>
      * For example a zoom of (2.0,2.0) will be twice as zoom out on each axis (the view cover an area 4 times larger.)
-     * In contrast, a zoom of (0.5,0.5) will be twice as zoomed in on each axis (the view cover an area 5 times smaller.)
+     * In contrast, a zoom of (0.5,0.5) will be twice as zoomed in on each axis (the view cover an area 4 times smaller.)
      * <p>
      * The x and y component should be set to the same value unless stretch camera view is desired.
      */

@@ -5,6 +5,7 @@ import TheCellBeyond.internal.LogicServer;
 import editor.dialog.AddObjectDialog;
 import editor.payload.GameObjectDragDropPayload;
 import imgui.ImGui;
+import imgui.ImVec2;
 import imgui.flag.ImGuiChildFlags;
 import imgui.flag.ImGuiMouseButton;
 import imgui.flag.ImGuiTreeNodeFlags;
@@ -21,7 +22,7 @@ public class SceneTree {
     private static final String SceneTreeID = "Scene_Tree_Section";
     private static final String NewPopupID = "New_Add_Object_Popup";
     private static final int ReservedButtonHeight = 36;
-    private static final boolean enableBorder = true;
+    private static final float ReorderingSpace = 4.0f;
     private static GameObject selectedObject = null;
 
     public static void imgui() {
@@ -35,7 +36,6 @@ public class SceneTree {
             ImGui.end();
             return;
         }
-
         GameObject root = scene.root();
         if (root == null) {
             ImGui.text("Scene root object not found");
@@ -46,35 +46,18 @@ public class SceneTree {
         float buttonH = ReservedButtonHeight * 0.9f;
         if (ImGui.button("Add new Object", buttonW, buttonH)) AddObjectDialog.show(root);
         ImGui.separator();
-        float availHeight = ImGui.getContentRegionAvailY() - ReservedButtonHeight * 1.1f;
-        ImGui.beginChild(SceneTreeID, 0, availHeight, ImGuiChildFlags.Border);
+        ImGui.beginChild(SceneTreeID, new ImVec2(0.0f, 0.0f), ImGuiChildFlags.Border);
         renderHierarchyTree(root, scene);
         boolean openOrphans = ImGui.collapsingHeader("Orphan Objects##SceneTree_Orphan_Object_Header");
         if (openOrphans) renderOrphans(scene);
-        if (ImGui.isWindowHovered()
-                && !ImGui.isAnyItemHovered()
-                && ImGui.isMouseClicked(ImGuiMouseButton.Right)
-        ) ImGui.openPopup(NewPopupID);
+        if (ImGui.isWindowHovered() && !ImGui.isAnyItemHovered() && ImGui.isMouseClicked(ImGuiMouseButton.Right)) ImGui.openPopup(NewPopupID);
         if (ImGui.beginPopup(NewPopupID)) {
             if (ImGui.menuItem("New Object...")) AddObjectDialog.show(root);
             ImGui.endPopup();
         }
         ImGui.endChild();
-        beginToRootDragDrop(scene);
         AddObjectDialog.imgui();
         ImGui.end();
-    }
-
-    private static void beginToRootDragDrop(Scene scene) {
-        if (!ImGui.beginDragDropTarget()) return;
-
-        Object payload = ImGui.acceptDragDropPayload(GameObjectDragDropPayload.getPayloadType());
-        if (payload instanceof GameObject dropGo) {
-            if (scene.reparentObject(dropGo, scene.root())) {
-                Logger.info(String.format("Moved '%s' to scene's root", dropGo.name()));
-            }
-        }
-        ImGui.endDragDropTarget();
     }
 
     private static void renderHierarchyTree(GameObject go, Scene scene) {
@@ -116,9 +99,31 @@ public class SceneTree {
             ImGui.popID();
             return;
         }
-        children.forEach(child -> renderTree(child, scene));
+        children.forEach(child -> {
+            renderInsertZone(child, scene, true);
+            renderTree(child, scene);
+        });
+        renderInsertZone(children.getLast(), scene, false);
         ImGui.treePop();
         ImGui.popID();
+    }
+
+    private static void renderInsertZone(GameObject sibling, Scene scene, boolean insertBefore) {
+        String order = insertBefore ? "before" : "after";
+        String zoneID = "##" + "Reordering_Zone_" + order + "_" + sibling.getUUID();
+        ImGui.invisibleButton(zoneID, ImGui.getContentRegionAvailX(), ReorderingSpace);
+        if (!ImGui.beginDragDropTarget()) return;
+        Object payload = ImGui.acceptDragDropPayload(GameObjectDragDropPayload.getPayloadType());
+        if (!(payload instanceof GameObject dropGO)) {
+            ImGui.endDragDropTarget();
+            return;
+        }
+        if (scene.reorderObject(dropGO, sibling, insertBefore)) {
+            Logger.info(String.format("Reordered '%s' %s '%s'", dropGO.name(), order, sibling.name()));
+        } else {
+            Logger.warning(String.format("Cannot reorder '%s' %s '%s'", dropGO.name(), order, sibling.name()));
+        }
+        ImGui.endDragDropTarget();
     }
 
     private static void beginReparentDragDrop(GameObject go, Scene scene) {
