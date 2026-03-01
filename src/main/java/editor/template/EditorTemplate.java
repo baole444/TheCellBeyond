@@ -9,7 +9,9 @@ import components.SpriteRenderer;
 /**
  * Editor UI rendering for supported types of Component or GameObject.
  */
-public class EditorTemplate {
+public final class EditorTemplate {
+    private EditorTemplate() {}
+
     /**
      * For component and its subclasses.
      * @param component context

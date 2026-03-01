@@ -43,7 +43,7 @@ public class Renderer implements EngineEventListener {
     }
 
     private Renderer() {
-        EngineEventCallback.register(this);
+        register();
     }
 
     public static synchronized Renderer get() {

@@ -10,16 +10,31 @@ import utility.Settings;
  * EditorGizmoCtrl manage {@link EditorGizmo}'s appearance and how the gizmo function.
  */
 public class EditorGizmoCtrl extends Component {
-    private static final String PATH = Settings.TexturePath.Gizmo;
+    private static final String Path = Settings.TexturePath.Gizmo;
     private static EditorGizmoType gizmoType = EditorGizmoType.Translate;
-
     private transient SpriteSheet gizmo;
     private transient boolean isInitialized = false;
 
+    /**
+     * Create a new {@link EditorGizmoCtrl} component.
+     */
+    public EditorGizmoCtrl() {
+        String name = EditorGizmoCtrl.class.getSimpleName();
+        super(name);
+    }
+
+    /**
+     * Get the current type of Gizmo.
+     * @return the Gizmo type
+     */
     public static EditorGizmoType getGizmoType() {
         return gizmoType;
     }
 
+    /**
+     * Set the current type of Gizmo.
+     * @param gizmoType the gizmo type to switch to
+     */
     public static void setGizmoType(EditorGizmoType gizmoType) {
         if (gizmoType == null) return;
         EditorGizmoCtrl.gizmoType = gizmoType;
@@ -32,18 +47,16 @@ public class EditorGizmoCtrl extends Component {
 
     private void initGizmoSprite() {
         if (isInitialized || gameObject == null) return;
-
         try {
-            if (!AssetsPool.hasSpriteSheet(PATH)) {
+            if (!AssetsPool.hasSpriteSheet(Path)) {
                 int w = 16;
                 int h = 48;
                 int count = 3;
-                AssetsPool.addSpriteSheet(PATH,
-                        new SpriteSheet(AssetsPool.loadTexture(PATH), w, h, count, 0)
+                AssetsPool.addSpriteSheet(Path,
+                        new SpriteSheet(AssetsPool.loadTexture(Path), w, h, count, 0)
                 );
             }
-
-            gizmo = AssetsPool.getSpriteSheet(PATH);
+            gizmo = AssetsPool.getSpriteSheet(Path);
             completeInit();
         } catch (Exception e) {
             System.err.println("Failed to initialize EditorGizmo texture: " + e.getMessage());
@@ -67,18 +80,15 @@ public class EditorGizmoCtrl extends Component {
             initGizmoSprite();
             return;
         }
-
         if (!isInitialized) {
             completeInit();
             return;
         }
-
         if (gizmoType == EditorGizmoType.Translate) {
             gameObject.getFirstComponent(EditorGizmoMove.class).use();
             gameObject.getFirstComponent(EditorGizmoScale.class).stopUse();
             return;
         }
-
         if (gizmoType == EditorGizmoType.Scale) {
             gameObject.getFirstComponent(EditorGizmoMove.class).stopUse();
             gameObject.getFirstComponent(EditorGizmoScale.class).use();

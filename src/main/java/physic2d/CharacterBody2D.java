@@ -11,14 +11,44 @@ import org.joml.Vector2f;
 import physic2d.enums.MotionMode;
 import physic2d.enums.PhysicBodyType;
 
+/**
+ * CharacterBody2D is a specialized physic body that are meant for user control.
+ * They are not affected by physic, but will affect other physic body in its path.
+ * <p>
+ * The main purpose of this class is to provide API to move objects with wall and slope detection,
+ * in additional to collision detection. This make it useful for physic bodies that must move
+ * in specific ways and collide with the world, which is often the case for user-controlled characters.
+ */
 public class CharacterBody2D extends PhysicBody2D {
+    /**
+     * The limit on how many times can the character change direction per {@link #moveAndSlide()} call.
+     */
     private static final int MaxCollisionSlide = 4;
+
+    /**
+     * The vector that define the upward direction, used for determine if the surface is floor,
+     * wall or ceiling.
+     */
     private final Vector2f UpDirection = new Vector2f(0.0f, 1.0f);
-    private float maxSlopeAngle = 45.0f;
-    private float floorSnapDistance = 0.1f;
-    public boolean snapToFloor = true;
-    private MotionMode motionMode = MotionMode.Grounded;
+
+    /**
+     * The maximum angle in degrees for a surface to still be considered a floor.
+     */
+    private float maxFloorAngle = 45.0f;
+    private float floorSnapDistance = 0.01f;
+
+    /**
+     * The motion mode of the character, which define the behaviour of {@link #moveAndSlide()}.
+     */
+    public MotionMode motionMode = MotionMode.Grounded;
     private float safeMargin = 0.01f;
+
+    /**
+     * The current velocity vector of the character in world units, used and modified by calls to {@link #moveAndSlide()}.
+     * @apiNote
+     * It is a common mistake to set the value of the desired velocity using a motion vector's value,
+     * which is velocity multiplied by {@code delta}.
+     */
     public transient final Vector2f velocity = new Vector2f();
     private transient boolean isOnFloor = false;
     private transient boolean isOnWall = false;
@@ -84,27 +114,27 @@ public class CharacterBody2D extends PhysicBody2D {
     }
 
     /**
-     * Get the max slope angle that the character can tolerate.
-     * @return the slope angle in degrees
+     * Get the maximum angle for a surface to still be considered a floor.
+     * @return the max floor angle in degrees
      */
-    public float maxSlopeAngle() {
-        return maxSlopeAngle;
+    public float maxFloorAngle() {
+        return maxFloorAngle;
     }
 
     /**
-     * Set the max slope angle that the character can tolerate.
+     * Set the maximum angle for a surface to still be considered a floor.
      * @param degrees the new slope angle in degrees
      */
-    public void maxSlopeAngle(float degrees) {
-        maxSlopeAngle = Math.max(0.0f, Math.min(90.0f, degrees));
+    public void maxFloorAngle(float degrees) {
+        maxFloorAngle = Math.max(0.0f, Math.min(90.0f, degrees));
     }
 
     public float floorSnapDistance() {
         return floorSnapDistance;
     }
 
-    public void floorSnapDistance(float length) {
-        floorSnapDistance = Math.max(0.0f, length);
+    public void floorSnapDistance(float meters) {
+        floorSnapDistance = Math.max(0.0f, meters);
     }
 
     public float safeMargin() {
@@ -115,51 +145,104 @@ public class CharacterBody2D extends PhysicBody2D {
         safeMargin = Math.max(0.001f, margin);
     }
 
-    public MotionMode motionMode() {
-        return motionMode;
-    }
-
-    public void motionMode(MotionMode mode) {
-        if (mode == null || motionMode == mode) return;
-        motionMode = mode;
-    }
-
+    /**
+     * Check if the character collided with the floor since the last call of {@link #moveAndSlide()}.
+     * <p>
+     * A surface is considered a floor base on the {@link #upDirection()} vector and {@link #maxFloorAngle()}.
+     * Only characters in {@link MotionMode#Grounded} have floor collision.
+     * @return true if collided with a floor
+     */
     public boolean isOnFloor() {
         return motionMode == MotionMode.Grounded && isOnFloor;
     }
 
+    /**
+     * Check if the character only collided with the floor since the last call of {@link #moveAndSlide()}.
+     * <p>
+     * A surface is considered a floor base on the {@link #upDirection()} vector and {@link #maxFloorAngle()}.
+     * Only characters in {@link MotionMode#Grounded} have floor collision.
+     * @return true if collided with a floor, but not wall or ceiling
+     */
     public boolean isOnFloorOnly() {
         return motionMode == MotionMode.Grounded && isOnFloor && !isOnWall && !isOnCeiling;
     }
 
+    /**
+     * Check if the character collided with the wall since the last call of {@link #moveAndSlide()}.
+     * <p>
+     * A surface is considered a wall base on the {@link #upDirection()} vector and {@link #maxFloorAngle()}.
+     * Characters in {@link MotionMode#Floating} have all their collision classified as wall collision.
+     * @return true if collided with a wall
+     */
     public boolean isOnWall() {
         return isOnWall;
     }
 
+    /**
+     * Check if the character only collided with the wall since the last call of {@link #moveAndSlide()}.
+     * <p>
+     * A surface is considered a wall base on the {@link #upDirection()} vector and {@link #maxFloorAngle()}.
+     * Characters in {@link MotionMode#Floating} have all their collision classified as wall collision.
+     * @return true if collided with a wall, but not floor or ceiling
+     */
     public boolean isOnWallOnly() {
         return isOnWall && !isOnFloor && !isOnCeiling;
     }
 
+    /**
+     * Check if the character collided with the ceiling since the last call of {@link #moveAndSlide()}.
+     * <p>
+     * A surface is considered a ceiling base on the {@link #upDirection()} vector and {@link #maxFloorAngle()}.
+     * Characters in {@link MotionMode#Floating} have all their collision classified as wall collision.
+     * @return true if collided with a ceiling
+     */
     public boolean isOnCeiling() {
         return motionMode == MotionMode.Grounded && isOnCeiling;
     }
 
+    /**
+     * Check if the character is only on ceiling.
+     * @return true if the character is currently only on ceiling
+     */
     public boolean isOnCeilingOnly() {
         return motionMode == MotionMode.Grounded && isOnCeiling && !isOnFloor && !isOnWall;
     }
 
+    /**
+     * Check if the character had collided with wall, floor or ceiling.
+     * @return true if one of the 3 surface had collided
+     */
     public boolean isCollided() {
         return isOnFloor || isOnWall || isOnCeiling;
     }
 
+    /**
+     * Get the collision normal of the floor at last collision point.
+     * <p>
+     * The value returned is only valid after calling {@link #moveAndSlide()} and {@link #isOnFloor()} return true.
+     * @return a copy of the floor normal vector
+     */
     public Vector2f floorNormal() {
         return new Vector2f(floorNormal);
     }
 
+    /**
+     * Get the collision normal of the wall and the last collision point.
+     * <p>
+     * The value returned is only valid after calling {@link #moveAndSlide()} and {@link #isOnWall()} return true.
+     * @return a copy of the wall normal vector
+     */
     public Vector2f wallNormal() {
         return new Vector2f(wallNormal);
     }
 
+    /**
+     * Get the collision normal of at the last collision point.
+     * <p>
+     * The method prioritize floor -> wall -> ceiling normal as return order.
+     * If no collision happened, a zero vector is return.
+     * @return a copy of one of the collision normal vector
+     */
     public Vector2f getCollisionNormal() {
         if (isOnFloor) return floorNormal();
         if (isOnWall) return  wallNormal();
@@ -181,7 +264,7 @@ public class CharacterBody2D extends PhysicBody2D {
         }
         if (motionMode == MotionMode.Grounded) {
             checkFloorState();
-            if (snapToFloor && !isOnFloor && velocity.y <= 0.0f) floorSnap();
+            if (!isOnFloor && velocity.y <= 0.0f) floorSnap();
         }
         return collided;
     }
@@ -207,12 +290,11 @@ public class CharacterBody2D extends PhysicBody2D {
     }
 
     private void handleCollision(Vector2f normal, Vector2f slideVelocity) {
-        if (motionMode == MotionMode.Floating) {
+        if (motionMode != MotionMode.Grounded) {
             isOnWall = true;
             wallNormal.set(normal);
             return;
         }
-        if (motionMode != MotionMode.Grounded) return;
         categorizeCollision(normal);
         if ((isFloorNormal(normal) && velocity.y <= 0.0f) || (isCeilingNormal(normal) && velocity.y >= 0.0f)) {
             velocity.y = 0.0f;
@@ -221,18 +303,18 @@ public class CharacterBody2D extends PhysicBody2D {
     }
 
     private void categorizeCollision(Vector2f normal) {
-        if (motionMode == MotionMode.Floating) {
+        if (motionMode != MotionMode.Grounded) {
             isOnWall = true;
             wallNormal.set(normal);
             return;
         }
         float angle = angleInDegree(normal, UpDirection);
-        if (angle <= maxSlopeAngle) {
+        if (angle <= maxFloorAngle) {
             isOnFloor = true;
             floorNormal.set(normal);
             return;
         }
-        if (angle >= 180.0f - maxSlopeAngle) {
+        if (angle >= 180.0f - maxFloorAngle) {
             isOnCeiling = true;
             return;
         }
@@ -243,13 +325,13 @@ public class CharacterBody2D extends PhysicBody2D {
     private boolean isFloorNormal(Vector2f normal) {
         if (motionMode != MotionMode.Grounded) return false;
         float angle = angleInDegree(normal, UpDirection);
-        return angle <= maxSlopeAngle;
+        return angle <= maxFloorAngle;
     }
 
     private boolean isCeilingNormal(Vector2f normal) {
         if (motionMode != MotionMode.Grounded) return false;
         float angle = angleInDegree(normal, UpDirection);
-        return angle >= 180.0f - maxSlopeAngle;
+        return angle >= 180.0f - maxFloorAngle;
     }
 
     private void checkFloorState() {
@@ -305,9 +387,7 @@ public class CharacterBody2D extends PhysicBody2D {
     @Override
     public CharacterBody2D copy(boolean copyHierarchy) {
         CharacterBody2D copy = (CharacterBody2D) copySingleObject();
-
         if (copyHierarchy && !getChildren().isEmpty()) copyDescendants(this, copy);
-
         return copy;
     }
 
@@ -326,7 +406,7 @@ public class CharacterBody2D extends PhysicBody2D {
             for (MotionMode mode : MotionMode.values()) {
                 String display = mode.name();
                 String label = display + "##Select_" + display + "_Selectable_" + getUUID();
-                if (ImGui.selectable(label, mode == currentMode)) motionMode(mode);
+                if (ImGui.selectable(label, mode == currentMode)) motionMode = mode;
             }
             ImGui.endCombo();
         }
@@ -335,14 +415,10 @@ public class CharacterBody2D extends PhysicBody2D {
         if (EditorWidget.dragVec2Ctrl("Up Direction", upDir, 0.0f, 1.0f, 0.1f, this)) upDirection(upDir);
         if (motionMode == MotionMode.Grounded) {
             ImGui.spacing();
-            float slopeAngle = EditorWidget.dragFloatCtrl("Max Slope Angle", maxSlopeAngle, 45.0f, 1.0f, this, 0.0f, 90.0f);
-            if (Float.compare(slopeAngle, maxSlopeAngle) != 0) maxSlopeAngle(slopeAngle);
-            ImBoolean floorSnap = new ImBoolean(snapToFloor);
-            if (ImGui.checkbox("Snap to floor##CharacterBody2D_SnapToFloor_CheckBox_" + getUUID(), floorSnap)) snapToFloor = floorSnap.get();
-            if (snapToFloor) {
-                float snapDistance = EditorWidget.dragFloatCtrl("Floor Snapping Distance", floorSnapDistance, 0.1f, 0.1f, this, 0.0f);
-                if (Float.compare(snapDistance, floorSnapDistance) != 0) floorSnapDistance(snapDistance);
-            }
+            float slopeAngle = EditorWidget.dragFloatCtrl("Max Slope Angle", maxFloorAngle, 45.0f, 1.0f, this, 0.0f, 90.0f);
+            if (Float.compare(slopeAngle, maxFloorAngle) != 0) maxFloorAngle(slopeAngle);
+            float snapDistance = EditorWidget.dragFloatCtrl("Floor Snapping Distance", floorSnapDistance, 0.1f, 0.1f, this, 0.0f);
+            if (Float.compare(snapDistance, floorSnapDistance) != 0) floorSnapDistance(snapDistance);
         }
         ImGui.spacing();
         float margin = EditorWidget.dragFloatCtrl("Safe Margin", safeMargin, 0.01f, this, 0.001f);

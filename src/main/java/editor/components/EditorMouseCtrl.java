@@ -23,48 +23,56 @@ import java.util.Set;
 import static org.lwjgl.glfw.GLFW.*;
 
 /**
- * A class dedicated to processing mouse's events for the editor.
- * Handle object's position and placement.
+ * Handler for mouse input on scene in Editor UI.
  */
 public class EditorMouseCtrl extends Component implements NotSerializeComponent {
     private static final Vector4f resetColor = new Vector4f(1.0f, 1.0f, 1.0f, 1.0f);
     private static final Vector4f pickUpColor = new Vector4f(1f, 1f, 1f, 0.35f);
-
     GameObject holdObj = null;
-
     private boolean mouseButtonHeld = false;
     private final float clickResetTime = 0.2f;
     private float clickInit = clickResetTime;
     private boolean isBoxSelectionInit = false;
-
     private Vector2f boxSelectionBegin = new Vector2f();
     private Vector2f boxSelectionEnd = new Vector2f();
 
-    public void pickObj(GameObject obj) {
+    /**
+     * Create a new {@link EditorMouseCtrl} component.
+     */
+    public EditorMouseCtrl() {
+        String name = EditorMouseCtrl.class.getSimpleName();
+        super(name);
+    }
+
+    /**
+     * Pick up an object on scene.
+     * @param obj the object to pick up
+     */
+    public void pickObject(GameObject obj) {
         if (holdObj != null) holdObj.destroy();
         holdObj = obj;
-
         for (SpriteRenderer sprite : holdObj.getComponents(SpriteRenderer.class)) {
             sprite.color(pickUpColor);
         }
         holdObj.addComponent(new IsNotSelectable());
         holdObj.setNotSerialize();
-
-        LogicServer.currentScene().queueForObjectAddition(obj);
+        Scene scene = LogicServer.currentScene();
+        if (scene != null) scene.queueForObjectAddition(obj);
     }
 
-    public void placeObj() {
+    /**
+     * Place the holding object.
+     */
+    public void placeObject() {
         GameObject newObj;
         newObj = holdObj.copy(true);
-
         for (SpriteRenderer sprite : newObj.getComponents(SpriteRenderer.class)) {
             sprite.color(resetColor);
         }
-
         newObj.removeComponents(IsNotSelectable.class);
         newObj.setSerialize(true);
-
-        LogicServer.currentScene().queueForObjectAddition(newObj);
+        Scene scene = LogicServer.currentScene();
+        if (scene != null) scene.queueForObjectAddition(newObj);
     }
 
     @Override
@@ -73,17 +81,49 @@ public class EditorMouseCtrl extends Component implements NotSerializeComponent 
             holdObj.destroy();
             holdObj = null;
         }
-
         clickInit -= dt;
-
         if (!ImGuiLayer.editorWantCaptureMouse() || ImGui.isPopupOpen("", ImGuiPopupFlags.AnyPopup)) return;
-
         if (holdObj == null) {
             onNotHoldingObject();
             return;
         }
-
         Vector2f targetPos = getTargetPos();
+        moveHoldingObject(targetPos);
+        if (cancelHoldingObject()) return;
+        placeHoldingObject(targetPos);
+    }
+
+    private void placeHoldingObject(Vector2f targetPos) {
+        if (!MouseListener.isButtonPressed(GLFW_MOUSE_BUTTON_LEFT)) {
+            if (!MouseListener.isDragging() && !MouseListener.isButtonPressed(GLFW_MOUSE_BUTTON_LEFT) && mouseButtonHeld) {
+                placeObject();
+                mouseButtonHeld = false;
+            }
+            return;
+        }
+        float halfWidth = Settings.GRID_WIDTH / 2.0f;
+        float halfHeight = Settings.GRID_HEIGHT / 2.0f;
+        if (MouseListener.isDragging() && !isGridSquareOccupied(targetPos.x - halfWidth, targetPos.y - halfHeight)) {
+            if (mouseButtonHeld) mouseButtonHeld = false;
+            placeObject();
+            return;
+        }
+        if (!MouseListener.isDragging() && clickInit < 0) {
+            mouseButtonHeld = true;
+            clickInit = clickResetTime;
+        }
+    }
+
+    private boolean cancelHoldingObject() {
+        if (KeyListener.isKeyTapped(GLFW_KEY_ESCAPE)) {
+            holdObj.destroy();
+            holdObj = null;
+            return true;
+        }
+        return false;
+    }
+
+    private void moveHoldingObject(Vector2f targetPos) {
         if (holdObj instanceof GameObject2D go2D) {
             go2D.position(targetPos);
         } else if (holdObj instanceof GameObject go) {
@@ -91,65 +131,28 @@ public class EditorMouseCtrl extends Component implements NotSerializeComponent 
                 if (c instanceof Component2D sC) sC.globalPosition(targetPos);
             }
         }
-
-        if (KeyListener.isKeyTapped(GLFW_KEY_ESCAPE)) {
-            holdObj.destroy();
-            holdObj = null;
-            return;
-        }
-
-        if (!MouseListener.isButtonPressed(GLFW_MOUSE_BUTTON_LEFT)) {
-            if (!MouseListener.isDragging() && !MouseListener.isButtonPressed(GLFW_MOUSE_BUTTON_LEFT) && mouseButtonHeld) {
-                placeObj();
-                mouseButtonHeld = false;
-            }
-            return;
-        }
-
-        float halfWidth = Settings.GRID_WIDTH / 2.0f;
-        float halfHeight = Settings.GRID_HEIGHT / 2.0f;
-
-        if (MouseListener.isDragging() && !isGridSquareOccupied(targetPos.x - halfWidth, targetPos.y - halfHeight)) {
-            if (mouseButtonHeld) mouseButtonHeld = false;
-            placeObj();
-            return;
-        }
-
-        if (!MouseListener.isDragging() && clickInit < 0) {
-            mouseButtonHeld = true;
-            clickInit = clickResetTime;
-        }
     }
 
     private static Vector2f getTargetPos() {
         float targetX, targetY;
-
         if (EditorTileMapGrid.draw()) {
             TileMap editingTileMap = TileMapEditor.getEditingTileMap();
-
             if (editingTileMap != null && editingTileMap.tileSet() != null) {
                 Vector2f tileMapPos = editingTileMap.globalPosition();
                 Vector2i gridSize = editingTileMap.tileSet().gridSize();
-
                 float gridWidth = WorldUnit.pixelToWorld(gridSize.x);
                 float gridHeight = WorldUnit.pixelToWorld(gridSize.y);
-
                 float mouseX = MouseListener.getWorldPositionX();
                 float mouseY = MouseListener.getWorldPositionY();
-
                 float relativeX = mouseX - tileMapPos.x;
                 float relativeY = mouseY - tileMapPos.y;
-
                 float gridX = Math.round(relativeX / gridWidth) * gridWidth;
                 float gridY = Math.round(relativeY / gridHeight) * gridHeight;
-
                 targetX = tileMapPos.x + gridX + gridWidth / 2.0f;
                 targetY = tileMapPos.y + gridY + gridHeight / 2.0f;
-
                 return new Vector2f(targetX, targetY);
             }
         }
-
         if (!UserPreference.editorPreferences().showGridLine()) {
             targetX = MouseListener.getWorldPositionX();
             targetY = MouseListener.getWorldPositionY();
@@ -159,7 +162,6 @@ public class EditorMouseCtrl extends Component implements NotSerializeComponent 
             targetX = Math.round(x / Settings.GRID_WIDTH) * Settings.GRID_WIDTH + Settings.GRID_WIDTH / 2.0f;
             targetY = Math.round(y / Settings.GRID_HEIGHT) * Settings.GRID_HEIGHT + Settings.GRID_HEIGHT / 2.0f;
         }
-
         return new Vector2f(targetX, targetY);
     }
 

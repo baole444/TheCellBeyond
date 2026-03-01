@@ -3,10 +3,11 @@ package utility.log;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
- * EngineLogCallback notify its listener when new log entry emerged from engine and editor activities.
+ * EngineLogCallback notify its listeners when a new log entry emerged from engine and editor activities.
  */
 public final class EngineLogCallback {
     private static final CopyOnWriteArrayList<EngineLogListener> listeners = new CopyOnWriteArrayList<>();
+    private EngineLogCallback() {}
 
     /**
      * Register a listener to start receiving notification.
@@ -35,7 +36,7 @@ public final class EngineLogCallback {
         for (EngineLogListener listener : listeners) {
             try {
                 listener.onNewLog(entry);
-            } catch (Exception ignore) {}
+            } catch (Exception _) {}
         }
     }
 }

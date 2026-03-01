@@ -71,12 +71,11 @@ public final class Window implements EngineEventListener {
         this.width = 640;
         this.height = 480;
         this.title = "TheCellBeyond";
-        EngineEventCallback.register(this);
-
         r = 0.027f;
         g = 0.122f;
         b = 0.067f;
         a = 1.0f;
+        register();
     }
 
     /**

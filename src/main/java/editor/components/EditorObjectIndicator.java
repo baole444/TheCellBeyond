@@ -12,13 +12,21 @@ import render.texture.TextureUnit;
 import utility.AssetsPool;
 import utility.Settings;
 
+/**
+ * EditorObjectIndicator is an indicator sprite mounted to 2D object in scenes if the object is serialized.
+ * It allows selecting 2D object that does not contain visible or selectable element on screen.
+ * <p>
+ * The indicator components is only mounted and active outside runtime mode.
+ */
 public final class EditorObjectIndicator extends SpriteRenderer implements NotSerializeComponent {
-    private static final String PATH = Settings.TexturePath.ObjectIndicator;
-
+    private static final String IndicatorPath = Settings.TexturePath.ObjectIndicator;
     private transient TextureUnit textureUnit;
     private transient boolean isInitialized = false;
     private transient boolean active = false;
 
+    /**
+     * Create a new {@link EditorObjectIndicator} component.
+     */
     public EditorObjectIndicator() {
         String name = EditorObjectIndicator.class.getSimpleName();
         super(name);
@@ -37,15 +45,13 @@ public final class EditorObjectIndicator extends SpriteRenderer implements NotSe
                 || !gameObject.isSerialize()
                 || !(gameObject instanceof GameObject2D)
         ) return;
-
         try {
-            if (!AssetsPool.hasTextureUnit(PATH)) {
-                AssetsPool.addTextureUnit(PATH,
-                        new TextureUnit(AssetsPool.loadTexture(PATH), 12, 12)
+            if (!AssetsPool.hasTextureUnit(IndicatorPath)) {
+                AssetsPool.addTextureUnit(IndicatorPath,
+                        new TextureUnit(AssetsPool.loadTexture(IndicatorPath), 12, 12)
                 );
             }
-
-            textureUnit = AssetsPool.getTextureUnit(PATH);
+            textureUnit = AssetsPool.getTextureUnit(IndicatorPath);
             setActive();
             completeInit();
         } catch (Exception e) {
@@ -64,19 +70,15 @@ public final class EditorObjectIndicator extends SpriteRenderer implements NotSe
     @Override
     public void editorUpdate(float dt) {
         if (gameObject == null || !gameObject.isSerialize()) return;
-
         if (textureUnit == null) {
             initIndicator();
             return;
         }
-
         if (!isInitialized) {
             completeInit();
             return;
         }
-
         if (!active) setActive();
-
         super.editorUpdate(dt);
     }
 

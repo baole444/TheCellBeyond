@@ -31,7 +31,7 @@ public class LogicServer implements EngineEventListener {
     private static boolean runtimeCrashed = false;
 
     private LogicServer() {
-        EngineEventCallback.register(this);
+        register();
     }
 
     private static void changeScene(SceneLoader sceneLoader) {

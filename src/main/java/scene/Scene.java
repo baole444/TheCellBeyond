@@ -281,6 +281,7 @@ public class Scene {
         }
         if (newParent != null && newParent.isAncestor(child)) return false;
         child.setParent(newParent);
+        reorderGameObjects();
         return true;
     }
 
@@ -397,6 +398,34 @@ public class Scene {
             GameObject parent = toAddParent.get(go);
             addObjectToScene(go, parent);
         });
+        if (toAdd.isEmpty() && toRemove.isEmpty()) return;
+        reorderGameObjects();
+    }
+
+    /**
+     * Reorder the array of objects in scene so that they conform to the hierarchy order when flattened.
+     */
+    private void reorderGameObjects() {
+        List<GameObject> ordered = new ArrayList<>();
+        collectHierarchy(root, ordered);
+        sceneData.gameObjects().stream()
+                .filter(go -> go != root && go.isRoot())
+                .forEach(ordered::add);
+        sceneData.gameObjects().clear();
+        sceneData.gameObjects().addAll(ordered);
+    }
+
+    /**
+     * Collect the hierarchy of an object into a flat array list.
+     * This method collect in depth first order.
+     * @param context the object to start searching
+     * @param collector the array that will receive the list
+     */
+    private void collectHierarchy(GameObject context, List<GameObject> collector) {
+        if (context == null || !sceneData.cachedObjectsByUUID().containsKey(context.getUUID())) return;
+        collector.add(context);
+        context.getChildren().forEach(child -> collectHierarchy(child, collector));
+
     }
 
     /**
@@ -414,5 +443,6 @@ public class Scene {
         objects.addFirst(root);
         objects.forEach(go -> addObjectToScene(go, null));
         objects.forEach(go -> go.restoreHierarchy(this));
+        reorderGameObjects();
     }
 }

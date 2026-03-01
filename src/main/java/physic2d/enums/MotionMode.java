@@ -2,6 +2,12 @@ package physic2d.enums;
 
 /**
  * Motion mode will affect physic interpretation of wall, floor and celling on the body.
+ * <p>
+ * Types of motion:
+ * <ul>
+ *     <li>{@link #Grounded}</li>
+ *     <li>{@link #Floating}</li>
+ * </ul>
  */
 public enum MotionMode {
     /**

@@ -11,7 +11,10 @@ import org.joml.Vector2f;
 
 import static org.lwjgl.glfw.GLFW.*;
 
-public class EditorSceneCtrl extends Component {
+/**
+ * Handler for controls while editing scene in Editor UI.
+ */
+public final class EditorSceneCtrl extends Component {
     private boolean isBackTo0 = false;
     private boolean isResetZ = false;
     private float dragInit = 0.032f;
@@ -22,6 +25,10 @@ public class EditorSceneCtrl extends Component {
     private static final float MaxZoom = 10.0f;
     private static final float MinZoom = 0.01f;
 
+    /**
+     * Create a new handler with the given viewport.
+     * @param targetViewport the scene's global viewport
+     */
     public EditorSceneCtrl(Viewport targetViewport) {
         workingViewport = targetViewport;
     }

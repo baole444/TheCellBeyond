@@ -34,7 +34,7 @@ public class SceneEditorViewport implements EngineEventListener {
     public transient float currentHeight;
 
     SceneEditorViewport() {
-        EngineEventCallback.register(this);
+        register();
     }
 
     public void imgui() {

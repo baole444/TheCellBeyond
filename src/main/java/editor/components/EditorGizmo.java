@@ -30,21 +30,32 @@ public class EditorGizmo extends Component2D implements NotSerializeComponent {
     private final float gizWidth = 0.16f;
     private final float gizHeight = 0.48f;
 
+    /**
+     * Is currently dragging on the x-axis.
+     */
     protected boolean xActiveDrag = false;
+
+    /**
+     * Is currently dragging on the y-axis.
+     */
     protected boolean yActiveDrag = false;
     private boolean isUsed = false;
-    protected GameObject activeGameObj = null;
 
+    /**
+     * The game object that the gizmo is working with.
+     */
+    protected GameObject activeGameObj = null;
     private final GameObject2D xAxisObj;
     private final GameObject2D yAxisObj;
     private final SpriteRenderer xAxisSpr;
     private final SpriteRenderer yAxisSpr;
-
     private transient final Vector2f gizmoWorldPos = new Vector2f();
 
-    // Create EditorGizmo, position, and color.
-    // Mark EditorGizmo arrow is not a selectable object.
-    // Push gizmo to the scene.
+    /**
+     * Create a new {@link EditorGizmo} component.
+     * @param type name of the gizmo
+     * @param arrowSprite the sprite for the gizmo
+     */
     public EditorGizmo(String type, Sprite arrowSprite) {
         xAxisObj = createGizmoObject(type + "gizmoX", arrowSprite);
         yAxisObj = createGizmoObject(type + "gizmoY", arrowSprite);
@@ -52,7 +63,6 @@ public class EditorGizmo extends Component2D implements NotSerializeComponent {
         yAxisObj.rotate(180);
         xAxisSpr = xAxisObj.getFirstComponent(SpriteRenderer.class);
         yAxisSpr = yAxisObj.getFirstComponent(SpriteRenderer.class);
-
         LogicServer.currentScene().queueForObjectAddition(xAxisObj, null);
         LogicServer.currentScene().queueForObjectAddition(yAxisObj, null);
     }
@@ -172,11 +182,17 @@ public class EditorGizmo extends Component2D implements NotSerializeComponent {
         return false;
     }
 
+    /**
+     * Set the gizmo to be active.
+     */
     public void use() {
         isUsed = true;
         setActive();
     }
 
+    /**
+     * Set the gizmo to be inactive.
+     */
     public void stopUse() {
         isUsed = false;
         setInactive();

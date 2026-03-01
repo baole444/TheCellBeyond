@@ -28,7 +28,16 @@ import static org.lwjgl.glfw.GLFW.*;
  * Note: This will change soon, where this will be refactored into processing key event from the game.
  * Engine keybind and shortcut processing will be moved to different class.
  */
-public class EditorKeyCtrl extends Component implements NotSerializeComponent {
+public final class EditorKeyCtrl extends Component implements NotSerializeComponent {
+
+    /**
+     * Create a new {@link EditorKeyCtrl} component.
+     */
+    public EditorKeyCtrl() {
+        String name = EditorKeyCtrl.class.getSimpleName();
+        super(name);
+    }
+
     @Override
     public void editorUpdate(float dt) {
         if (!ImGuiLayer.editorWantCaptureKeyboard() || ImGui.isPopupOpen("", ImGuiPopupFlags.AnyPopup)) return;
