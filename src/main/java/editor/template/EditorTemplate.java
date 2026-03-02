@@ -1,5 +1,6 @@
 package editor.template;
 
+import TheCellBeyond.Camera2D;
 import TheCellBeyond.GameObject;
 import TheCellBeyond.Transform2D;
 import components.Component;
@@ -15,6 +16,9 @@ public final class EditorTemplate {
     /**
      * For component and its subclasses.
      * @param component context
+     * @apiNote To maintainer:<br>
+     * The cases are inheritance sensitive. Therefore, classes that is higher up in the inheritance,
+     * should be placed after its subclasses' cases.
      */
     public static void render(Component component) {
         if (component == null) return;
@@ -29,10 +33,14 @@ public final class EditorTemplate {
     /**
      * For game object and its subclasses.
      * @param object context
+     * @apiNote To maintainer:<br>
+     * The cases are inheritance sensitive. Therefore, classes that is higher up in the inheritance,
+     * should be placed after its subclasses' cases.
      */
     public static void render(GameObject object) {
         if (object == null) return;
         switch (object) {
+            case Camera2D camera2D -> Camera2DTemplate.render(camera2D);
             case GameObject go -> GameObjectTemplate.render(go);
         }
     }

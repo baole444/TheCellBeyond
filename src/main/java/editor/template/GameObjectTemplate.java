@@ -31,6 +31,7 @@ class GameObjectTemplate implements ObjectTemplate<GameObject>{
      */
     @Override
     public void editorUI(GameObject object) {
+        if (object == null) return;
         String newName = EditorWidget.inputText("Name", object.name(), object);
         if (!newName.equals(object.name())) object.name(newName);
         object.additionalImGuiLogic();
@@ -63,7 +64,6 @@ class GameObjectTemplate implements ObjectTemplate<GameObject>{
             ImGui.endChild();
             ImGui.spacing();
         }
-
         ImGui.unindent();
         ImGui.spacing();
     }

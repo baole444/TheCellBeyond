@@ -26,6 +26,7 @@ class Transform2DTemplate implements ComponentTemplate<Transform2D> {
      */
     @Override
     public void editorUI(Transform2D component) {
+        if (component == null) return;
         UUID uuid = component.getUUID();
         ImGui.pushStyleColor(ImGuiCol.Header, 0.0f, 0.0f, 0.0f, 0.0f);
         boolean open = ImGui.collapsingHeader("Transform2D##Transform2D_Header_" + uuid);

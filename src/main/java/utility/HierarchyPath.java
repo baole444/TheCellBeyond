@@ -26,6 +26,10 @@ public final class HierarchyPath {
     public final String originPath;
     public final boolean absolute;
 
+    /**
+     * Create a new {@link HierarchyPath} with the given path string.
+     * @param path the path string that has hierarchy path format
+     */
     public HierarchyPath(String path) {
         if (path == null) path = "";
         originPath = path.trim();
@@ -43,19 +47,54 @@ public final class HierarchyPath {
         this.absolute = absolute;
     }
 
+    /**
+     * Get the number of segment separated by the {@link #Separator} in this hierarchy path.
+     * <p>
+     * For example, the path {@code /root/Niko::Lightbulb} has 2 segments.
+     * @return the segment count of the path
+     */
     public int segmentCount() {
         return segments.size();
     }
 
+    /**
+     * Get the segment string at a specified index of the hierarchy path.
+     * If the provided index is out of bound (index < 0 or index >= {@link #segmentCount()}), this will return {@code null}.
+     * <p>
+     * The string return by this method could be the name or the class of the game object,
+     * special symbols like relative, parent or root.
+     * It could also be the name or class of the component in case of relative component path,
+     * for example {@code ::SpriteRenderer} is the current object's sprite renderer component.
+     * @param index the index of the wanted segment
+     * @return the string of the wanted segment, without the {@link #Separator}
+     */
     public String segment(int index) {
         if (index < 0 || index >= segments.size()) return null;
         return segments.get(index);
     }
 
+    /**
+     * Get the segment string at the first index of the hierarchy path.
+     * <p>
+     * The string return by this method could be the name or the class of the game object,
+     * special symbols like relative, parent or root.
+     * It could also be the name or class of the component in case of relative component path,
+     * for example {@code ::SpriteRenderer} is the current object's sprite renderer component.
+     * @return the string of the wanted segment, without the {@link #Separator}
+     */
     public String firstSegment() {
         return segments.getFirst();
     }
 
+    /**
+     * Get the segment string at the last index of the hierarchy path.
+     * <p>
+     * The string return by this method could be the name or the class of the game object,
+     * special symbols like relative, parent or root.
+     * It could also be the name or class of the component in case of relative component path,
+     * for example {@code ::SpriteRenderer} is the current object's sprite renderer component.
+     * @return the string of the wanted segment, without the {@link #Separator}
+     */
     public String lastSegment() {
         return segments.getLast();
     }
@@ -66,7 +105,6 @@ public final class HierarchyPath {
         endIndex = Math.max(0, Math.min(endIndex, size));
         if (starIndex > endIndex) starIndex = endIndex;
         if (starIndex == endIndex) return new HierarchyPath("");
-
         List<String> subSegments = segments.subList(starIndex, endIndex);
         boolean sliceAbs = starIndex == 0 && absolute;
         StringBuilder builder = new StringBuilder();
@@ -75,10 +113,14 @@ public final class HierarchyPath {
             if (i > 0) builder.append(Separator);
             builder.append(subSegments.get(i));
         }
-
         return new HierarchyPath(builder.toString(), subSegments, sliceAbs);
     }
 
+    /**
+     * Check if the hierarchy path is empty or not. If the path is empty,
+     * this mean the path that used to create it was improperly formated, blank or null.
+     * @return true if there is no segment
+     */
     public boolean isEmpty() {
         return segments.isEmpty();
     }

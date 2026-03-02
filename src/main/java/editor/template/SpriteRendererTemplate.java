@@ -29,9 +29,9 @@ class SpriteRendererTemplate implements ComponentTemplate<SpriteRenderer> {
      */
     @Override
     public void editorUI(SpriteRenderer component) {
+        if (component == null) return;
         float availX = ImGui.getContentRegionAvailX();
         ImGui.text("Sprite: ");
-
         UUID uuid = component.getUUID();
         Sprite sprite = component.sprite();
         if (sprite != null && sprite.getTexture() != null) {
@@ -42,7 +42,6 @@ class SpriteRendererTemplate implements ComponentTemplate<SpriteRenderer> {
             if (ImGui.button("Clear sprite##SpriteRenderer_ClearSprite_" + uuid)) component.sprite(null);
             ImGui.popStyleColor(3);
         }
-
         float previewLimitY = 160.0f;
         if (sprite == null || sprite.getTexture() == null) {
             if (ImGui.beginChild("##SpriteRender_DropTarget_Region_" + component.getUUID(), ImGui.getContentRegionAvailX(), previewLimitY, true)) {
@@ -54,7 +53,6 @@ class SpriteRendererTemplate implements ComponentTemplate<SpriteRenderer> {
         } else {
             int textureId = sprite.getTextureID();
             Vector2f[] textureCoordinates = sprite.getTextureCoordinates();
-
             Vector2f previewSize = TextureScale.calculateFitDimension(sprite.getWidth(), sprite.getHeight(), availX, previewLimitY);
             ImGui.image(textureId, previewSize.x, previewSize.y,
                     textureCoordinates[2].x, textureCoordinates[0].y,
@@ -62,12 +60,10 @@ class SpriteRendererTemplate implements ComponentTemplate<SpriteRenderer> {
             );
         }
         acceptDragDrop(component);
-
         Vector4f color = new Vector4f(component.color());
         if (EditorWidget.colorCtrl("Color", color, component)) {
             component.color(color);
         }
-
         ImGui.indent();
         ImBoolean flipHState = new ImBoolean(component.flipHorizontally());
         ImBoolean flipVState = new ImBoolean(component.flipVertically());

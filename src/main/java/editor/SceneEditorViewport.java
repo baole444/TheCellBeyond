@@ -49,12 +49,10 @@ public class SceneEditorViewport implements EngineEventListener {
             ImGui.end();
             return;
         }
-
         if (!ImGui.beginMenuBar()) {
             ImGui.end();
             return;
         }
-
         if (!ImGui.beginTable("##ESV_MenuBar_Table_Div", 3, ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.SizingFixedFit)) {
             ImGui.endMenuBar();
             ImGui.end();
@@ -63,7 +61,6 @@ public class SceneEditorViewport implements EngineEventListener {
         ImGui.tableSetupColumn("##Runtime_switch_column_ESV", ImGuiTableColumnFlags.WidthFixed);
         ImGui.tableSetupColumn("Scene_name_column_ESV", ImGuiTableColumnFlags.WidthStretch);
         ImGui.tableSetupColumn("Scene_Editing_Controls_ESV", ImGuiTableColumnFlags.WidthFixed);
-
         ImGui.tableNextColumn();
         if (ImGui.menuItem("Play","", isPlaying, !isPlaying)) {
             if (LogicServer.currentSceneName() == null) {
@@ -76,18 +73,14 @@ public class SceneEditorViewport implements EngineEventListener {
                 EngineEventCallback.emit(null, new RuntimeEvent(RuntimeEvent.Type.RuntimeStarted));
             }
         }
-
         if (ImGui.menuItem("Stop","", !isPlaying, isPlaying)) {
             isPlaying = false;
             EngineEventCallback.emit(null, new RuntimeEvent(RuntimeEvent.Type.RuntimeStopped));
         }
-
         ImGui.sameLine();
         ImGui.text(" ");
-
         ImGui.tableNextColumn();
         EditorWidget.textCenterAlign(currentSceneName);
-
         ImGui.tableNextColumn();
         ImBoolean snapGrid = new ImBoolean(UserPreference.editorPreferences().showGridLine());
         if (ImGui.checkbox("Grid snapping##Ctrl_Grid_Snap_nd_Show_ESV", snapGrid)) {
@@ -96,15 +89,11 @@ public class SceneEditorViewport implements EngineEventListener {
             EditorPreferences newPrefs = new EditorPreferences(currentPrefs.autoSaveOnExit(), currentPrefs.autoSaveOnChangeScene(), enable);
             UserPreference.updateEditorPreferences(newPrefs);
         }
-
         ImGui.endTable();
         ImGui.endMenuBar();
-
         ImVec2 winSize = getMaxViewportSize();
         ImVec2 winPos = getViewportToCentral(winSize);
-
         ImGui.setCursorPos(winPos.x, winPos.y);
-
         ImVec2 topLeft = ImGui.getCursorScreenPos();
         topLeft.x -= ImGui.getScrollX();
         topLeft.y -= ImGui.getScrollY();
@@ -112,15 +101,24 @@ public class SceneEditorViewport implements EngineEventListener {
         rightX = winPos.x + winSize.x + ImGui.getWindowPosX();
         bottomY =  winPos.y + ImGui.getWindowPosY();
         topY = winPos.y + winSize.y + ImGui.getWindowPosY();
-
         int texID = Window.getFrameBuffer().getTextureID();
-
+        ImGui.beginGroup();
+        ImVec2 cursorPos = ImGui.getCursorPos();
         ImGui.image(texID, winSize.x, winSize.y, 0, 1, 1, 0);
-
+        renderFPS(cursorPos);
+        ImGui.endGroup();
         MouseListener.setCurrentViewportPosition(new Vector2f(leftX, bottomY));
         MouseListener.setCurrentViewportSize(new Vector2f(winSize.x, winSize.y));
-
         ImGui.end();
+    }
+
+    private void renderFPS(ImVec2 cursorPos) {
+        String fps = String.format("%.2f FPS", Window.FPS);
+        float remainWidth = ImGui.getContentRegionAvailX();
+        float textWidth = ImGui.calcTextSizeX(fps);
+        float offset = Math.max(remainWidth - textWidth, 0.0f);
+        ImGui.setCursorPos(cursorPos.x + offset, cursorPos.y);
+        ImGui.text(fps);
     }
 
     public boolean getWantCaptureMouse() {

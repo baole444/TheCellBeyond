@@ -43,20 +43,22 @@ import static org.lwjgl.system.MemoryUtil.NULL;
  * The main window of TCB, responsible for initializing GLFW window and IO callbacks.
  */
 public final class Window implements EngineEventListener {
-    private static final EngineLog LOGGER = new EngineLog(Window.class);
+    private static final EngineLog Logger = new EngineLog(Window.class);
+    /**
+     * Engine main loop's average frame rate,
+     * calculated using {@code accumulated frame/accumulated delta} at 1 delta interval.
+     */
+    public static float FPS = 0.0f;
     private int width;
     private int height;
     private final String title;
-
     private long windowPtr;
     public float r, g, b, a;
     public boolean overrideClearColor = false;
     private static Window window = null;
-
     private ImGuiLayer imGuiLayer;
     private FrameBuffer frameBuffer;
     private ObjectSelection objectSelection;
-
     private final IconLoader iconFile = IconLoader.loadIcon(Settings.TexturePath.TCBIcon);
     private boolean shouldClose;
     private boolean forceClose = false;
@@ -91,29 +93,25 @@ public final class Window implements EngineEventListener {
      * Start the window life cycle.
      */
     public void run() {
-        LOGGER.info("Starting LWJGL " + Version.getVersion());
+        Logger.info("Starting LWJGL " + Version.getVersion());
         initWindow();
         Renderer.init();
+        String renderer = glGetString(GL_RENDERER);
+        String version = glGetString(GL_VERSION);
+        Logger.info("Active GPU: " + renderer + " Driver version: " + version);
         if (!projectLoaded) {
             StartupWindow.show(windowPtr, imGuiLayer, width, height);
             projectLoaded = (Project.currentProject() != null && Project.projectRoot() != null);
-
             if (glfwWindowShouldClose(windowPtr)) {
                 endScreen();
                 return;
             }
         }
-
         if (projectLoaded) {
             String projectDetail = " - [" + Project.preference().name() + "] [" + Project.projectRoot() + "]";
             glfwSetWindowTitle(windowPtr, this.title + projectDetail);
             loop();
         }
-
-        String renderer = glGetString(GL_RENDERER);
-        String version = glGetString(GL_VERSION);
-        LOGGER.info("Active GPU: " + renderer + " Driver version: " + version);
-
         endScreen();
         Objects.requireNonNull(glfwSetErrorCallback(null)).free();
     }
@@ -121,7 +119,7 @@ public final class Window implements EngineEventListener {
     private void initWindow() {
         GLFWErrorCallback.createPrint(System.err).set();
         if (!glfwInit()) {
-            LOGGER.error("Failed to initialize window: GLFW init failed");
+            Logger.error("Failed to initialize window: GLFW init failed");
             System.exit(-1);
         }
         String glslVer = "#version 330 core";
@@ -130,9 +128,9 @@ public final class Window implements EngineEventListener {
         height = windowSize.y;
         applyWindowHints();
         windowPtr = glfwCreateWindow(width, height, title, NULL, NULL);
-        LOGGER.info("Creating new window, dimension: " + width + " x " + height);
+        Logger.info("Creating new window, dimension: " + width + " x " + height);
         if (windowPtr == NULL) {
-            LOGGER.error("Failed to create GLFW window: null pointer");
+            Logger.error("Failed to create GLFW window: null pointer");
             System.exit(-1);
         }
         setupWindowCallback();
@@ -140,7 +138,6 @@ public final class Window implements EngineEventListener {
         glfwSwapInterval(1);
         glfwShowWindow(windowPtr);
         setupAudioDevice();
-
         GL.createCapabilities();
         glEnable(GL_BLEND);
         glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
@@ -150,14 +147,16 @@ public final class Window implements EngineEventListener {
         imGuiLayer = new ImGuiLayer(windowPtr);
         imGuiLayer.initImGui(glslVer);
         glfwMaximizeWindow(windowPtr);
+        loadIcon();
+    }
 
-        if (iconFile != null) {
-            GLFWImage icon = GLFWImage.malloc();
-            GLFWImage.Buffer bufferIcon = GLFWImage.malloc(1);
-            icon.set(iconFile.width(), iconFile.height(), iconFile.icon());
-            bufferIcon.put(0, icon);
-            glfwSetWindowIcon(windowPtr, bufferIcon);
-        }
+    private void loadIcon() {
+        if (iconFile == null) return;
+        GLFWImage icon = GLFWImage.malloc();
+        GLFWImage.Buffer bufferIcon = GLFWImage.malloc(1);
+        icon.set(iconFile.width(), iconFile.height(), iconFile.icon());
+        bufferIcon.put(0, icon);
+        glfwSetWindowIcon(windowPtr, bufferIcon);
     }
 
     private void setupAudioDevice() {
@@ -169,7 +168,7 @@ public final class Window implements EngineEventListener {
         ALCCapabilities alcCapabilities = ALC.createCapabilities(audioDevice);
         ALCapabilities alCapabilities = AL.createCapabilities(alcCapabilities);
         if (!alCapabilities.OpenAL10) {
-            LOGGER.warning("OpenAL10 is not supported on this device");
+            Logger.warning("OpenAL10 is not supported on this device");
             System.exit(-2);
         }
     }
@@ -195,7 +194,6 @@ public final class Window implements EngineEventListener {
             }
             glViewport(0, 0, width, height);
         });
-
         glfwSetCursorPosCallback(windowPtr, MouseListener::mousePosCallback);
         glfwSetMouseButtonCallback(windowPtr, MouseListener::mouseButtonCallback);
         glfwSetScrollCallback(windowPtr, MouseListener::mouseScrollCallback);
@@ -226,7 +224,6 @@ public final class Window implements EngineEventListener {
         GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
         int w = device.getDisplayMode().getWidth();
         int h = device.getDisplayMode().getHeight();
-
         return new Vector2i(w, h);
     }
 
@@ -235,47 +232,47 @@ public final class Window implements EngineEventListener {
         AssetsPool.clearCache();
         RendererState.cleanup();
         EngineEventCallback.dispose();
-
         imGuiLayer.getImGuiGl3().shutdown();
         imGuiLayer.getImGuiGlfw().shutdown();
         ImGui.destroyContext();
-
         alcDestroyContext(soundContext);
         alcCloseDevice(audioDevice);
-
         frameBuffer.dispose();
         glfwFreeCallbacks(window.windowPtr);
         glfwDestroyWindow(window.windowPtr);
-
         glfwTerminate();
     }
 
     /**
      * Engine main loop.
      */
-    public void loop () {
+    public void loop() {
         float beginTime = (float) glfwGetTime();
         float endTime;
         float dt = -1.0f;
-
+        float accumulatedDT = 0.0f;
+        int accumulatedFrame = 0;
         Shader defaultShader = AssetsPool.loadShader(Settings.ShaderPath.DefaultTextureShader);
         Shader objectSelectShader = AssetsPool.loadShader(Settings.ShaderPath.ObjectSelectionShader);
         Shader debugLineShader = AssetsPool.loadShader(Settings.ShaderPath.DebugLine2Shader);
         DebugDraw.init(debugLineShader);
         RendererState rendererState = RendererState.get();
-
         while (!glfwWindowShouldClose(windowPtr)) {
             glfwPollEvents();
-
             LogicServer.updatePhysic(dt);
             if (dt >= 0.0f) {
+                accumulatedDT += dt;
+                accumulatedFrame++;
+                if (calculatedFPS(accumulatedFrame, accumulatedDT)) {
+                    accumulatedDT = 0.0f;
+                    accumulatedFrame = 0;
+                }
                 DebugDraw.startFrame();
                 LogicServer.update(dt);
                 objectSelectionPass(rendererState, objectSelectShader);
                 normalPass(rendererState, defaultShader, dt);
                 imGuiLayer.update(dt, LogicServer.currentScene());
             }
-
             MouseListener.endFrame();
             KeyListener.endFrame();
             glfwSwapBuffers(windowPtr);
@@ -284,6 +281,19 @@ public final class Window implements EngineEventListener {
             beginTime = endTime;
             if (forceClose) glfwSetWindowShouldClose(windowPtr, true);
         }
+    }
+
+    /**
+     * Calculate FPS per 1.0 delta.
+     * When this method return true, it means the FPS is calculated and accumulation should be reset.
+     * @param accumulatedFrame the frame count since last FPS calculation
+     * @param accumulatedDT the delta since last FPS calculation
+     * @return the accumulating delta if it is not time to calculate the FPS yet, otherwise 0.0
+     */
+    private static boolean calculatedFPS(int accumulatedFrame, float accumulatedDT) {
+        if (accumulatedDT < 1.0f) return false;
+        FPS = accumulatedFrame / accumulatedDT;
+        return true;
     }
 
     private void objectSelectionPass(RendererState rendererState, Shader objectSelectShader) {
@@ -307,7 +317,6 @@ public final class Window implements EngineEventListener {
             Vector4f clearColor = Project.preference().clearColor().toVector();
             glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
         }
-
         glClear(GL_COLOR_BUFFER_BIT);
         Renderer.get().render();
         DebugDraw.draw();
@@ -320,13 +329,11 @@ public final class Window implements EngineEventListener {
         if (editorEvent.type != EditorEvent.Type.ProjectLoaded) return;
         projectLoaded = Project.currentProject() != null && Project.projectRoot() != null;
         if (!projectLoaded) return;
-
         ClearColor clearColor = Project.preference().clearColor();
         r = clearColor.r();
         g = clearColor.g();
         b = clearColor.b();
         a = clearColor.a();
-
         String projectDetail = " - [" + Project.preference().name() + "] [" + Project.projectRoot() + "]";
         glfwSetWindowTitle(windowPtr, title + projectDetail);
     }

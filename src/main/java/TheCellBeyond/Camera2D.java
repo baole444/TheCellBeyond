@@ -1,17 +1,11 @@
 package TheCellBeyond;
 
 import TheCellBeyond.internal.LogicServer;
-import editor.EditorWidget;
-import imgui.ImGui;
-import imgui.flag.ImGuiCol;
-import imgui.flag.ImGuiTreeNodeFlags;
-import imgui.type.ImBoolean;
+import editor.template.EditorTemplate;
 import org.joml.Vector2f;
 import scene.Scene;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Camera2D is the camera object for 2D scene.
@@ -496,80 +490,7 @@ public class Camera2D extends GameObject2D {
 
     @Override
     public void additionalImGuiLogic() {
-        ImGui.spacing();
-        boolean openCamera = ImGui.collapsingHeader("Camera2D##Camera2D_Properties_Header_" + getUUID(), ImGuiTreeNodeFlags.DefaultOpen);
-        if (!openCamera) {
-            super.additionalImGuiLogic();
-            return;
-        }
-        ImBoolean enableState = new ImBoolean(enabled);
-        if (ImGui.checkbox("Enabled##Camera2D_Enabled_CheckBox_" + getUUID(), enableState)) enabled(enableState.get());
-        ImGui.spacing();
-        ImGui.text("Camera Anchor Mode:");
-        if (ImGui.beginCombo("##Camera2D_Select_Camera_Anchor_Mode_" + getUUID(), anchorMode == null ? "Select an anchor mode..." : anchorMode.toString())) {
-            List<AnchorMode> anchorModes = Arrays.stream(AnchorMode.values()).toList();
-            for (AnchorMode mode : anchorModes) {
-                String name = anchorMode.toString();
-                String label = name + "##Select_" + name + "_Camera2D__AnchorMode_Selectable_" + getUUID();
-                if (ImGui.selectable(label, Objects.equals(mode, anchorMode))) anchorMode = mode;
-            }
-            ImGui.endCombo();
-        }
-        ImGui.spacing();
-        ImGui.text("Camera Update Process:");
-        if (ImGui.beginCombo("##Camera2D_Select_Camera_Update_Process_" + getUUID(), updateProcess == null ? "Select an update process..." : updateProcess.toString())) {
-            List<UpdateProcess> updateProcesses = Arrays.stream(UpdateProcess.values()).toList();
-            for (UpdateProcess process : updateProcesses) {
-                String name = process.toString();
-                String label = name + "##Select_" + name + "_Camera2D_UpdateProcess_Selectable_" + getUUID();
-                if (ImGui.selectable(label, Objects.equals(process, updateProcess))) updateProcess = process;
-            }
-            ImGui.endCombo();
-        }
-        ImGui.spacing();
-        Vector2f zoomLevel = new Vector2f(zoom);
-        if (EditorWidget.dragVec2Ctrl("Zoom", zoomLevel, 1.0f, 0.01f, this)) zoom.set(zoomLevel);
-        String compositeDragID = "Camera Drag##Camera2D_Drag_Properties_Header_" + getUUID();
-        ImGui.pushStyleColor(ImGuiCol.Header, 0.0f, 0.0f, 0.0f, 0.0f);
-        boolean openDrag = ImGui.collapsingHeader(compositeDragID, ImGuiTreeNodeFlags.DefaultOpen);
-        ImGui.popStyleColor(1);
-        if (openDrag) {
-            ImBoolean dragHState = new ImBoolean(enableHorizontalDrag);
-            ImBoolean dragVState = new ImBoolean(enableVerticalDrag);
-            if (ImGui.checkbox("Enable Horizontal Drag##Camera2D_EnableHorizontalDrag_CheckBox_" + getUUID(), dragHState)) enableHorizontalDrag = dragHState.get();
-            leftDragMargin = EditorWidget.dragFloatCtrl("Left Drag Margin", leftDragMargin, 0.2f, 0.01f, this);
-            rightDragMargin = EditorWidget.dragFloatCtrl("Right Drag Margin", rightDragMargin, 0.2f, 0.01f, this);
-            if (ImGui.checkbox("Enable Vertical Drag##Camera2D_Enable_Vertical_Drag_CheckBox_" + getUUID(), dragVState)) enableVerticalDrag = dragVState.get();
-            topDragMargin = EditorWidget.dragFloatCtrl("Top Drag Margin", topDragMargin, 0.2f, 0.01f, this);
-            bottomDragMargin = EditorWidget.dragFloatCtrl("Bottom Drag Margin", bottomDragMargin, 0.2f, 0.01f, this);
-            ImGui.spacing();
-            horizontalDragOffset = Math.max(-1.0f, Math.min(1.0f, EditorWidget.dragFloatCtrl("Horizontal Drag Offset", horizontalDragOffset, 0.0f, 0.01f, this, -1.0f, 1.0f)));
-            verticalDragOffset = Math.max(-1.0f, Math.min(1.0f, EditorWidget.dragFloatCtrl("Vertical Drag Offset", verticalDragOffset, 0.0f, 0.01f, this, -1.0f, 1.0f)));
-            ImGui.spacing();
-        }
-        String compositeLimitID = "Camera Limit##Camera2D_Limit_Properties_Header_" + getUUID();
-        ImGui.pushStyleColor(ImGuiCol.Header, 0.0f, 0.0f, 0.0f, 0.0f);
-        boolean openLimit = ImGui.collapsingHeader(compositeLimitID, ImGuiTreeNodeFlags.DefaultOpen);
-        ImGui.popStyleColor(1);
-        if (openLimit) {
-            ImBoolean limitState = new ImBoolean(enableLimit);
-            ImBoolean limitSmoothingState = new ImBoolean(enableLimitSmoothing);
-            if (ImGui.checkbox("Enable Limit##Camera2D_EnableLimit_CheckBox_" + getUUID(), limitState)) enableLimit = limitState.get();
-            leftLimit = EditorWidget.dragFloatCtrl("Left Limit", leftLimit, -1024.0f, 1.0f, this);
-            rightLimit = EditorWidget.dragFloatCtrl("Right Limit", rightLimit, 1024.0f, 1.0f, this);
-            topLimit = EditorWidget.dragFloatCtrl("Top Limit", topLimit, 1024.0f, 1.0f, this);
-            bottomLimit = EditorWidget.dragFloatCtrl("Bottom Limit", bottomLimit, -1024.0f, 1.0f, this);
-            if (ImGui.checkbox("Enable Limit Smoothing##Camera2D_EnableLimitSmoothing_CheckBox_" + getUUID(), limitSmoothingState)) enableLimitSmoothing = limitSmoothingState.get();
-            ImGui.spacing();
-        }
-        ImBoolean positionSmoothingState = new ImBoolean(enablePositionSmoothing);
-        if (ImGui.checkbox("Enable Position Smoothing##Camera2D_EnablePositionSmoothing_CheckBox_" + getUUID(), positionSmoothingState)) enablePositionSmoothing = positionSmoothingState.get();
-        positionSmoothingSpeed = Math.max(0.1f, EditorWidget.dragFloatCtrl("Position Smoothing Speed", positionSmoothingSpeed, 4.0f, 0.1f, this, 0.1f));
-        ImBoolean ignoreRotationState = new ImBoolean(ignoreRotation);
-        if (ImGui.checkbox("Ignore Rotation##Camera2D_IgnoreRotation_CheckBox_" + getUUID(), ignoreRotationState)) ignoreRotation = ignoreRotationState.get();
-        ImBoolean rotationSmoothingState = new ImBoolean(enableRotationSmoothing);
-        if (ImGui.checkbox("Enable Rotation Smoothing##Camera2D_EnableRotationSmoothing_CheckBox_" + getUUID(), rotationSmoothingState)) enableRotationSmoothing = rotationSmoothingState.get();
-        rotationSmoothingSpeed = Math.max(0.1f, EditorWidget.dragFloatCtrl("Rotation Smoothing Speed", rotationSmoothingSpeed, 4.0f, this, 0.1f));
+        EditorTemplate.render(this);
         super.additionalImGuiLogic();
     }
 }

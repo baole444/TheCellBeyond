@@ -29,6 +29,7 @@ class RemoteTransform2DTemplate implements ComponentTemplate<RemoteTransform2D> 
      */
     @Override
     public void editorUI(RemoteTransform2D component) {
+        if (component == null) return;
         boolean accept = false;
         if (ImGui.beginChild("##RemoteTransform2D_DropTarget_Region_" + component.getUUID(), new ImVec2(0.0f, 0.0f), ImGuiChildFlags.AutoResizeY)) {
             accept = inputPath(component);
@@ -40,17 +41,14 @@ class RemoteTransform2DTemplate implements ComponentTemplate<RemoteTransform2D> 
         ImBoolean useGlobal = new ImBoolean(component.useGlobalTransform);
         if (ImGui.checkbox("Use Global Transform##RemoteTransform2D_UseGlobalTransform_CheckBox_" + component.getUUID(), useGlobal)) component.useGlobalTransform = useGlobal.get();
         useGlobalTooTip(component);
-
         ImGui.spacing();
         ImBoolean updatePos = new ImBoolean(component.updatePosition);
         if (ImGui.checkbox("Update Position##RemoteTransform2D_UpdatePosition_Checkbox_" + component.getUUID(), updatePos)) component.updatePosition = updatePos.get();
         broadcastTooltips("updatePosition = %s", component.updatePosition, "If true, position will be broadcast to the targeted object.");
-
         ImGui.spacing();
         ImBoolean updateRot = new ImBoolean(component.updateRotation);
         if (ImGui.checkbox("Update Rotation##RemoteTransform2D_UpdateRotation_Checkbox_" + component.getUUID(), updateRot)) component.updateRotation = updateRot.get();
         broadcastTooltips("updateRotation = %s", component.updateRotation, "If true, rotation will be broadcast to the targeted object.");
-
         ImGui.spacing();
         ImBoolean updateSl = new ImBoolean(component.updateScale);
         if (ImGui.checkbox("Update Scale##RemoteTransform2D_UpdateScale_Checkbox_" + component.getUUID(), updateSl)) component.updateScale = updateSl.get();
@@ -132,7 +130,7 @@ class RemoteTransform2DTemplate implements ComponentTemplate<RemoteTransform2D> 
     }
 
     /**
-     * Render the content of {@link #editorUI(RemoteTransform2D)}
+     * Render the content of {@link #editorUI(RemoteTransform2D)}.
      * @param remoteTransform2D the context component
      */
     static void render(RemoteTransform2D remoteTransform2D) {
