@@ -13,5 +13,5 @@ public interface ResourceType {
         public String toString() {
             return "Undefined";
         }
-    }
+    };
 }
