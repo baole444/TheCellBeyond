@@ -62,19 +62,19 @@ class CreateTextureCommand extends TextureCommand {
                 stbi_image_free(image);
                 textureManager.stepCreatedTexture();
 
-                TextureManager.LOGGER.debug("Created texture with id " + textureId + " for " + canonicalPath);
+                TextureManager.Logger.debug("Created texture with id " + textureId + " for " + canonicalPath);
             } else {
                 glDeleteTextures(textureId);
                 handle.setError("Failed to load image data");
 
                 textureManager.removeTextureHandle(canonicalPath);
-                TextureManager.LOGGER.warning("Failed to load texture from " + canonicalPath);
+                TextureManager.Logger.warning("Failed to load texture from " + canonicalPath);
             }
         } catch (Exception e) {
             handle.setError("OpenGL texture creation failed: " + e.getMessage());
 
             textureManager.removeTextureHandle(canonicalPath);
-            TextureManager.LOGGER.error("Failed to create texture for " + canonicalPath + "Error: " + e);
+            TextureManager.Logger.error("Failed to create texture for " + canonicalPath + "Error: " + e);
         }
     }
 

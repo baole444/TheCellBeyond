@@ -5,8 +5,14 @@ import utility.log.EngineLog;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * IdPool is a pooling system designed to increment and dispatch unique value to a pool instance.
+ * <p>
+ * IdPool also support recycling the value by releasing it back to the pool,
+ * which can be dispatch again via {@link #newId()}.
+ */
 public class IdPool {
-    private static final EngineLog LOGGER = new EngineLog(IdPool.class);
+    private static final EngineLog Logger = new EngineLog(IdPool.class);
     // Use for when respect floating point limit is enabled
     private static final int FLOAT_PRECISION_LIMIT = 16777216;
 
@@ -27,6 +33,31 @@ public class IdPool {
 
     /**
      * Get a unique id from the pool.
+     * If the pool has discarded IDs, they will be polled for dispatch again.
+     * This is to prevent the needs to increment the pool to higher value.
+     * <p>
+     * If the pool has float precision limit respected,
+     * there will be warning upon reaching this limit.
+     * <p>
+     * After a new id is created and used, also consider
+     * releasing them back to the pool when done using.
+     *
+     * @return integer from the sequence.
+     * @see IdPool#releaseId(int) Release ID back to the pool
+     * @see IdPool#newIdOnly() Get a newly incremented ID
+     */
+    public int newId() {
+        Integer id = discardedIds.poll();
+        if (id == null) id = nextId.getAndIncrement();
+        if (isFPLViolated(id)) {
+            Logger.warning("ID '" + id + "' is beyond float point precision limit. \nCasting this value to float will cause lost of accuracy.");
+        }
+        return id;
+    }
+
+    /**
+     * Get a unique id from the pool.
+     * This will increment the poll value without recycling the discarded IDs, if there is any.
      * <p>
      * If the pool has float precision limit respected,
      * there will be warning upon reaching this limit.
@@ -37,15 +68,11 @@ public class IdPool {
      * @return integer from the sequence.
      * @see IdPool#releaseId(int) Release ID back to the pool
      */
-    public int newId() {
-        Integer id = discardedIds.poll();
-
-        if (id == null) id = nextId.getAndIncrement();
-
+    public int newIdOnly() {
+        int id = nextId.getAndIncrement();
         if (isFPLViolated(id)) {
-            LOGGER.warning("ID '" + id + "' is beyond float point precision limit. \nCasting this value to float will cause lost of accuracy.");
+            Logger.warning("ID '" + id + "' is beyond float point precision limit. \nCasting this value to float will cause lost of accuracy.");
         }
-
         return id;
     }
 
@@ -55,15 +82,16 @@ public class IdPool {
      * @param id value to be released.
      */
     public void releaseId(int id) {
-        if (id > 0) {
-            discardedIds.offer(id);
-        }
+        if (id >= startValue && !discardedIds.contains(id)) discardedIds.offer(id);
     }
 
-    // Check if
+    /**
+     * Check if a value had pass the precision limit of Float.
+     * @param value the integer to check
+     * @return true if {@link #shouldRespectFloatPrecisionLimit} is {@code true} and the value pass {@link #FLOAT_PRECISION_LIMIT}
+     */
     private boolean isFPLViolated(int value) {
         if (shouldRespectFloatPrecisionLimit) return value >= FLOAT_PRECISION_LIMIT;
-
         return false;
     }
 
