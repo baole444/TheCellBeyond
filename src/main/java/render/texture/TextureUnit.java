@@ -1,5 +1,9 @@
 package render.texture;
 
+import TheCellBeyond.internal.ResourceID;
+import TheCellBeyond.internal.ResourceStatus;
+import TheCellBeyond.internal.ResourceStatusCallback;
+import TheCellBeyond.internal.ResourceStatusListener;
 import org.joml.Vector2i;
 import render.Texture;
 
@@ -8,7 +12,7 @@ import render.Texture;
  * TextureUnit will pass the texture's size and canonical path to the sprite once the texture is ready.
  * @see SpriteSheet calculate multiple sprites from a texture.
  */
-public class TextureUnit implements TextureStatusListener {
+public class TextureUnit implements ResourceStatusListener {
     private Texture texture;
     private final Sprite sprite = new Sprite();
     private transient Vector2i size = null;
@@ -44,31 +48,25 @@ public class TextureUnit implements TextureStatusListener {
 
     private void textureReadyCheck(Texture texture) {
         if (texture == null) return;
-
         int currentId = texture.getHandleId();
         if (currentId == lastHandleId) return;
         lastHandleId = currentId;
-
         if (texture.isReady()) {
             requireCompute = true;
             computeSprite();
         }
-
         if (isRegistered) return;
-        TextureStatusCallback.register(this);
+        ResourceStatusCallback.register(this);
         isRegistered = true;
         requireCompute = true;
     }
 
     private void computeSprite() {
         if (!requireCompute || texture == null || !texture.isReady()) return;
-
         if (size == null) size = new Vector2i(texture.getWidth(), texture.getHeight());
-
         sprite.setTexture(texture);
         sprite.setWidth(size.x);
         sprite.setHeight(size.y);
-
         requireCompute = false;
     }
 
@@ -78,18 +76,13 @@ public class TextureUnit implements TextureStatusListener {
 
     public void setTexture(Texture newTexture, Vector2i size) {
         if (texture == newTexture) return;
-
         this.size = null;
-
         if (size != null && size.x > 0 && size.y > 0) this.size = new Vector2i(size);
-
         if (isRegistered) {
-            TextureStatusCallback.unRegister(this);
+            ResourceStatusCallback.unregister(this);
             isRegistered = false;
         }
-
         texture = newTexture;
-
         textureReadyCheck(newTexture);
     }
 
@@ -99,33 +92,31 @@ public class TextureUnit implements TextureStatusListener {
      */
     public Sprite getSprite() {
         if (requireCompute) return null;
-
         return sprite;
     }
 
-    @Override
-    public void onTextureStatusChange(int handleId, TextureHandle.Status status) {
-        if (texture == null || texture.getHandleId() != handleId) return;
+    public void dispose() {
+        if (isRegistered) {
+            ResourceStatusCallback.unregister(this);
+            isRegistered = false;
+        }
+    }
 
+    @Override
+    public void onResourceStatusChange(ResourceID RID, ResourceStatus status) {
+        if (texture == null || texture.getHandleId() != RID.id) return;
         switch (status) {
             case READY -> {
                 if (requireCompute) computeSprite();
             }
             case DISPOSED, FAILED -> {
                 if (isRegistered) {
-                    TextureStatusCallback.unRegister(this);
+                    ResourceStatusCallback.unregister(this);
                     isRegistered = false;
                 }
                 requireCompute = false;
                 lastHandleId = -1;
             }
-        }
-    }
-
-    public void dispose() {
-        if (isRegistered) {
-            TextureStatusCallback.unRegister(this);
-            isRegistered = false;
         }
     }
 }

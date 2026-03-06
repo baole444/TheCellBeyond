@@ -1,5 +1,9 @@
 package render.texture;
 
+import TheCellBeyond.internal.ResourceID;
+import TheCellBeyond.internal.ResourceStatus;
+import TheCellBeyond.internal.ResourceStatusCallback;
+import TheCellBeyond.internal.ResourceStatusListener;
 import org.joml.Vector2f;
 import org.joml.Vector2i;
 import render.Texture;
@@ -12,14 +16,12 @@ import java.util.List;
  * SpriteSheet will calculate its sprites' texture coordinate and size once the texture assigned to it is ready.
  * @see TextureUnit calculate sprite as a full texture.
  */
-public class SpriteSheet implements TextureStatusListener {
+public class SpriteSheet implements ResourceStatusListener {
     private Texture texture;
     private final List<Sprite> sprites;
-
     private transient boolean requireCompute = false;
     private transient boolean isRegistered = false;
     private transient int lastHandleId = -1;
-
     private final transient int numberOfSprites;
     private final transient Vector2i spriteSize, startPosition, spriteSpacing;
 
@@ -43,33 +45,27 @@ public class SpriteSheet implements TextureStatusListener {
         this.numberOfSprites = numberOfSprites;
         this.spriteSpacing = new Vector2i(spriteSpacing);
         this.startPosition = new Vector2i(startPosition);
-
         textureReadyCheck(texture);
     }
 
     private void textureReadyCheck(Texture texture) {
         if (texture == null) return;
-
         int currentId = texture.getHandleId();
         if (currentId == lastHandleId) return;
         lastHandleId = currentId;
-
         if (texture.isReady()) {
             requireCompute = true;
             computeSprites();
         }
-
         if (isRegistered) return;
-        TextureStatusCallback.register(this);
+        ResourceStatusCallback.register(this);
         isRegistered = true;
         requireCompute = true;
     }
 
     private void computeSprites() {
         if (!requireCompute || texture == null || !texture.isReady()) return;
-
         sprites.clear();
-
         int instX = startPosition.x;
         int instY = texture.getHeight() - startPosition.y - spriteSize.y;
         for (int i = 0; i < numberOfSprites; i++) {
@@ -77,18 +73,14 @@ public class SpriteSheet implements TextureStatusListener {
                 instX = startPosition.x;
                 instY -= spriteSize.y + spriteSpacing.y;
             }
-
             if (instY < 0) {
                 System.err.println("Error extracting sprite " + i + ". Sheet successfully extracted " + sprites.size() + " sprite(s)");
                 break;
             }
-
             Sprite sprite = getSprite(instY, instX);
             sprites.add(sprite);
-
             instX += spriteSize.x + spriteSpacing.x;
         }
-
         requireCompute = false;
     }
 
@@ -127,13 +119,11 @@ public class SpriteSheet implements TextureStatusListener {
     public void setTexture(Texture newTexture) {
         if (texture == newTexture) return;
         if (isRegistered) {
-            TextureStatusCallback.unRegister(this);
+            ResourceStatusCallback.unregister(this);
             isRegistered = false;
         }
-
         texture = newTexture;
         sprites.clear();
-
         textureReadyCheck(newTexture);
     }
 
@@ -153,31 +143,29 @@ public class SpriteSheet implements TextureStatusListener {
         return spriteSpacing;
     }
 
-    @Override
-    public void onTextureStatusChange(int handleId, TextureHandle.Status status) {
-        if (texture == null || texture.getHandleId() != handleId) return;
+    public void dispose() {
+        if (isRegistered) {
+            ResourceStatusCallback.unregister(this);
+            isRegistered = false;
+        }
+        sprites.clear();
+    }
 
+    @Override
+    public void onResourceStatusChange(ResourceID RID, ResourceStatus status) {
+        if (texture == null || texture.getHandleId() != RID.id) return;
         switch (status) {
             case READY -> {
                 if (requireCompute) computeSprites();
             }
             case DISPOSED, FAILED -> {
                 if (isRegistered) {
-                    TextureStatusCallback.unRegister(this);
+                    ResourceStatusCallback.unregister(this);
                     isRegistered = false;
                 }
                 requireCompute = false;
                 lastHandleId = -1;
             }
         }
-    }
-
-    public void dispose() {
-        if (isRegistered) {
-            TextureStatusCallback.unRegister(this);
-            isRegistered = false;
-        }
-
-        sprites.clear();
     }
 }

@@ -1,6 +1,8 @@
 package render;
 
-public enum RenderResourceType {
+import TheCellBeyond.internal.ResourceType;
+
+public enum RenderResourceType implements ResourceType {
     Texture(16),
     FontAtlas(32);
 
@@ -8,5 +10,10 @@ public enum RenderResourceType {
 
     RenderResourceType(int value) {
         this.value = value;
+    }
+
+    @Override
+    public int value() {
+        return value;
     }
 }

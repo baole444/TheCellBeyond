@@ -1,5 +1,6 @@
 package render;
 
+import TheCellBeyond.internal.ResourceStatus;
 import org.lwjgl.BufferUtils;
 import render.texture.TextureHandle;
 import render.texture.TextureManager;
@@ -32,13 +33,11 @@ public class Texture {
 
     private void loadTextureData() {
         UnifiedPaths resolver = UnifiedPaths.get();
-
         try (InputStream stream = resolver.getAssetStream(assetReference.resolvedPath())) {
             byte[] data = stream.readAllBytes();
             ByteBuffer buffer = BufferUtils.createByteBuffer(data.length);
             buffer.put(data);
             buffer.flip();
-
             this.handle = TextureManager.get().getTextureHandle(buffer, assetReference);
         } catch (IOException e) {
             System.err.println("Failed to load texture: " + assetReference.canonicalPath());
@@ -49,9 +48,7 @@ public class Texture {
     public void bind() {
         checkInitialization();
         int textureId = getID();
-        if (textureId > 0) {
-            glBindTexture(GL_TEXTURE_2D, textureId);
-        }
+        if (textureId > 0) glBindTexture(GL_TEXTURE_2D, textureId);
     }
 
     public void unbind() {
@@ -61,38 +58,25 @@ public class Texture {
     public int getWidth() {
         checkInitialization();
         if (handle == null) return width;
-
-        if (!isSizeInitialized && handle.isReady()) {
-            updateSizeFromHandle();
-        }
-
+        if (!isSizeInitialized && handle.isReady()) updateSizeFromHandle();
         return width;
     }
 
     public int getHeight() {
         checkInitialization();
         if (handle == null) return height;
-        if (!isSizeInitialized && handle.isReady()) {
-            updateSizeFromHandle();
-        }
-
+        if (!isSizeInitialized && handle.isReady()) updateSizeFromHandle();
         return height;
     }
 
     public int getID() {
         checkInitialization();
-        if (handle != null && handle.isReady()) {
-            return handle.getTextureId();
-        }
-
+        if (handle != null && handle.isReady()) return handle.getTextureId();
         return -1;
     }
 
     public int getHandleId() {
-        if (handle != null) {
-            return handle.getHandleId();
-        }
-
+        if (handle != null) return handle.getHandleId();
         return -1;
     }
 
@@ -109,8 +93,8 @@ public class Texture {
         return handle != null && handle.isFailed();
     }
 
-    public TextureHandle.Status getStatus() {
-        return handle != null ? handle.getStatus() : TextureHandle.Status.WAITING;
+    public ResourceStatus getStatus() {
+        return handle != null ? handle.getStatus() : ResourceStatus.WAITING;
     }
 
     public String getErrorMessage() {
@@ -125,7 +109,6 @@ public class Texture {
         if (handle == null) return;
         String canonicalPath = getCanonicalPath();
         TextureManager.get().disposeTexture(handle, canonicalPath);
-
         handle = null;
     }
 
@@ -151,28 +134,19 @@ public class Texture {
     public boolean equals(Object obj) {
         if (obj == null) return false;
         if (!(obj instanceof Texture objTex)) return false;
-
         if (this.getCanonicalPath() != null && objTex.getCanonicalPath() != null) {
             return Objects.equals(this.getCanonicalPath(), objTex.getCanonicalPath());
         }
-
         if (this.handle != null && objTex.handle != null) {
             return this.handle.getHandleId() == objTex.handle.getHandleId();
         }
-
         return false;
     }
 
     @Override
     public int hashCode() {
-        if (getCanonicalPath() != null) {
-            return Objects.hash(getCanonicalPath());
-        }
-
-        if (handle != null) {
-            return Objects.hash(handle.getHandleId());
-        }
-
+        if (getCanonicalPath() != null) return Objects.hash(getCanonicalPath());
+        if (handle != null) return Objects.hash(handle.getHandleId());
         return Objects.hash(width, height);
     }
 
@@ -182,13 +156,11 @@ public class Texture {
         if (assetReference != null) {
             builder.append("path=").append(assetReference.canonicalPath()).append("', ");
         }
-
         builder.append("size=").append(getWidth()).append("x").append(getHeight());
         if (handle != null) {
             builder.append(", status=").append(handle.getStatus());
             builder.append(", handleId=").append(handle.getHandleId());
         }
-
         builder.append("}");
         return builder.toString();
     }
