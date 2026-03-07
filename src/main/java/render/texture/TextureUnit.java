@@ -48,7 +48,7 @@ public class TextureUnit implements ResourceStatusListener {
 
     private void textureReadyCheck(Texture texture) {
         if (texture == null) return;
-        int currentId = texture.getHandleId();
+        int currentId = texture.RID.id;
         if (currentId == lastHandleId) return;
         lastHandleId = currentId;
         if (texture.isReady()) {
@@ -104,7 +104,7 @@ public class TextureUnit implements ResourceStatusListener {
 
     @Override
     public void onResourceStatusChange(ResourceID RID, ResourceStatus status) {
-        if (texture == null || texture.getHandleId() != RID.id) return;
+        if (texture == null || texture.RID.id != RID.id) return;
         switch (status) {
             case READY -> {
                 if (requireCompute) computeSprite();

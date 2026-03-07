@@ -2,14 +2,13 @@ package render.texture;
 
 import org.joml.Vector2f;
 import render.Texture;
+import utility.AssetManager;
 import utility.AssetReference;
-import utility.AssetsPool;
 
 /**
  * Sprite store the canonical path to the texture image, the texture UV coordinates and the size of the sprite.<br>
  * Sprite will mark itself dirty (volatile) when its parameters are updated,
- * which will be cleared by its responsible SpriteRenderer.<br>
- * All texture creation in Sprite is pass into {@link AssetsPool#loadTexture(String)} using the sanctioned canonical path.
+ * which will be cleared by its responsible SpriteRenderer.
  */
 public class Sprite {
     private float width, height;
@@ -25,8 +24,7 @@ public class Sprite {
 
     public Texture getTexture() {
         if (textureCanonicalPath == null) return null;
-
-        return AssetsPool.loadTexture(textureCanonicalPath);
+        return AssetManager.get().getTexture(AssetManager.get().loadTexture(textureCanonicalPath));
     }
 
     public Vector2f[] getTextureCoordinates() {
@@ -39,10 +37,9 @@ public class Sprite {
             textureCanonicalPath = null;
             return;
         }
-
         String canonPath = texture.getCanonicalPath();
         textureCanonicalPath = canonPath;
-        if (canonPath != null) AssetsPool.loadTexture(canonPath);
+        if (canonPath != null) AssetManager.get().loadTexture(canonPath);
     }
 
     public void setTexture(String textureCanonicalPath) {
@@ -51,10 +48,9 @@ public class Sprite {
             this.textureCanonicalPath = null;
             return;
         }
-
         AssetReference assetReference = new AssetReference(textureCanonicalPath);
         this.textureCanonicalPath = assetReference.canonicalPath();
-        AssetsPool.loadTexture(this.textureCanonicalPath);
+        AssetManager.get().loadTexture(this.textureCanonicalPath);
     }
 
     public void setTextureCoordinates(Vector2f[] texCrd) {
@@ -82,9 +78,8 @@ public class Sprite {
 
     public int getTextureID() {
         if (textureCanonicalPath == null) return -1;
-
-        Texture texture = AssetsPool.loadTexture(textureCanonicalPath);
-        return texture.getID();
+        Texture texture = AssetManager.get().getTexture(AssetManager.get().loadTexture(textureCanonicalPath));
+        return texture != null ? texture.getID() : -1;
     }
 
     /**

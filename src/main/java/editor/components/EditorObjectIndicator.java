@@ -9,7 +9,7 @@ import components.SpriteRenderer;
 import org.joml.Vector4f;
 import render.texture.Sprite;
 import render.texture.TextureUnit;
-import utility.AssetsPool;
+import utility.AssetManager;
 import utility.Settings;
 
 /**
@@ -46,12 +46,13 @@ public final class EditorObjectIndicator extends SpriteRenderer implements NotSe
                 || !(gameObject instanceof GameObject2D)
         ) return;
         try {
-            if (!AssetsPool.hasTextureUnit(IndicatorPath)) {
-                AssetsPool.addTextureUnit(IndicatorPath,
-                        new TextureUnit(AssetsPool.loadTexture(IndicatorPath), 12, 12)
+            AssetManager manager = AssetManager.get();
+            if (!manager.hasTextureUnit(IndicatorPath)) {
+                manager.addTextureUnit(IndicatorPath,
+                        new TextureUnit(manager.getTexture(manager.loadTexture(IndicatorPath)), 12, 12)
                 );
             }
-            textureUnit = AssetsPool.getTextureUnit(IndicatorPath);
+            textureUnit = manager.getTextureUnit(IndicatorPath);
             setActive();
             completeInit();
         } catch (Exception e) {

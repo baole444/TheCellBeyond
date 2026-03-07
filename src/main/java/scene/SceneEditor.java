@@ -27,7 +27,7 @@ import org.joml.Vector2i;
 import render.texture.Sprite;
 import render.texture.SpriteSheet;
 import render.texture.TextureUnit;
-import utility.AssetsPool;
+import utility.AssetManager;
 import utility.UnifiedPaths;
 import utility.TextureScale;
 import utility.prefabrication.PrefabData;
@@ -385,7 +385,7 @@ public class SceneEditor extends SceneLoader implements EngineEventListener {
                 ProjectSheetMap sM = sheets.getValue();
                 String path = UnifiedPaths.resolveToAbsolute(Project.projectRoot(), sM.path());
 
-                SpriteSheet spriteSheet = AssetsPool.getSpriteSheet(path);
+                SpriteSheet spriteSheet = AssetManager.get().getSpriteSheet(path);
                 if (spriteSheet != null) categorySheets.put(name, spriteSheet);
             }
 
@@ -403,7 +403,7 @@ public class SceneEditor extends SceneLoader implements EngineEventListener {
             UUID uuid = entry.getKey();
             String path = entry.getValue().path();
             if (path == null || path.isEmpty()) continue;
-            TextureUnit unit = AssetsPool.getTextureUnit(path);
+            TextureUnit unit = AssetManager.get().getTextureUnit(path);
 
             if (unit != null) textureUnits.put(uuid, unit);
         }

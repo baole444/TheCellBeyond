@@ -2,7 +2,7 @@ package editor;
 
 import render.texture.Sprite;
 import render.texture.SpriteSheet;
-import utility.AssetsPool;
+import utility.AssetManager;
 import utility.Settings;
 
 /**
@@ -182,13 +182,14 @@ public final class EditorIcons {
      */
     public static void init() {
         if (isInitialized) return;
+        AssetManager manager = AssetManager.get();
         try {
-            if (!AssetsPool.hasSpriteSheet(Path)) {
-                AssetsPool.addSpriteSheet(Path,
-                        new SpriteSheet(AssetsPool.loadTexture(Path), width, height, iconCount, 0)
+            if (!manager.hasSpriteSheet(Path)) {
+                manager.addSpriteSheet(Path,
+                        new SpriteSheet(manager.getTexture(manager.loadTexture(Path)), width, height, iconCount, 0)
                 );
             }
-            icons = AssetsPool.getSpriteSheet(Path);
+            icons = manager.getSpriteSheet(Path);
             isInitialized = true;
         } catch (Exception e) {
             System.err.println("Failed to initialize editor icons: " + e.getMessage());

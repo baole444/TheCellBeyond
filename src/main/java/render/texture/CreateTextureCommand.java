@@ -49,7 +49,6 @@ class CreateTextureCommand extends TextureCommand {
                     throw new RuntimeException("Unsupported channel count: " + c);
                 }
                 handle.setTextureId(textureId);
-                handle.setSize(w, h);
                 handle.markReady();
                 stbi_image_free(image);
                 textureManager.stepCreatedTexture();
@@ -67,6 +66,6 @@ class CreateTextureCommand extends TextureCommand {
 
     @Override
     public String toString() {
-        return String.format("%s{path='%s', handle=%d}", CreateTextureCommand.class.getSimpleName(), assetReference.canonicalPath(), handle.getHandleId());
+        return String.format("%s{path='%s', RID=%d}", CreateTextureCommand.class.getSimpleName(), assetReference.canonicalPath(), handle.resourceID().id);
     }
 }

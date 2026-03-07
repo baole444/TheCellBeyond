@@ -11,7 +11,7 @@ import render.texture.TextureUnit;
 import tools.jackson.core.exc.JacksonIOException;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.dataformat.yaml.YAMLFactory;
-import utility.AssetsPool;
+import utility.AssetManager;
 import utility.UnifiedPaths;
 
 import java.io.File;
@@ -510,28 +510,24 @@ public class Project {
 
     public static void loadProjectData() {
         if (CurrentProject == null) return;
-
         for (Map.Entry<String, Map<String, ProjectSheetMap>> categories : CurrentProject.sheets().entrySet()) {
             for (Map.Entry<String, ProjectSheetMap> sheets : categories.getValue().entrySet()) {
                 ProjectSheetMap sheetMap = sheets.getValue();
                 String projectPath = UnifiedPaths.ProjectPrefix + sheetMap.path();
-                Texture texture = AssetsPool.loadTexture(projectPath);
+                Texture texture = AssetManager.get().getTexture(AssetManager.get().loadTexture(projectPath));
                 SpriteSheet sheet = new SpriteSheet(texture, sheetMap.spriteSizeX(), sheetMap.spriteSizeY(),
                         sheetMap.numberOfSprite(), sheetMap.spriteSpacingX(), sheetMap.spriteSpacingY(),
                         sheetMap.spriteStartPosX(), sheetMap.spriteStartPosY()
                 );
-
-                AssetsPool.addSpriteSheet(projectPath, sheet);
+                AssetManager.get().addSpriteSheet(projectPath, sheet);
             }
         }
-
         for (Map.Entry<UUID, ProjectAssetMap> entry : CurrentProject.assets().entrySet()) {
             ProjectAssetMap assetMap = entry.getValue();
             String projectPath = UnifiedPaths.ProjectPrefix + assetMap.path();
-            Texture texture = AssetsPool.loadTexture(projectPath);
+            Texture texture = AssetManager.get().getTexture(AssetManager.get().loadTexture(projectPath));
             TextureUnit unit = new TextureUnit(texture, assetMap.sizeX(), assetMap.sizeY());
-
-            AssetsPool.addTextureUnit(projectPath, unit);
+            AssetManager.get().addTextureUnit(projectPath, unit);
         }
     }
 

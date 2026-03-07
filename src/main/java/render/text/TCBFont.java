@@ -1,5 +1,6 @@
 package render.text;
 
+import TheCellBeyond.internal.ResourceID;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
@@ -9,8 +10,8 @@ import org.lwjgl.util.msdfgen.MSDFGenBitmap;
 import org.lwjgl.util.msdfgen.MSDFGenBounds;
 import org.lwjgl.util.msdfgen.MSDFGenTransform;
 import render.FontAtlasTexture;
+import utility.AssetManager;
 import utility.AssetReference;
-import utility.AssetsPool;
 import utility.UnifiedPaths;
 
 import java.io.IOException;
@@ -62,9 +63,7 @@ public class TCBFont {
         numGlyphs = font.numGlyphs;
         atlasWidth = font.atlasWidth;
         atlasHeight = font.atlasHeight;
-
         updateFontSize();
-
         isLoaded.set(true);
     }
 
@@ -173,16 +172,12 @@ public class TCBFont {
         try {
             int glyphIndex = FT_Get_Char_Index(face, ch);
             FT_Load_Glyph(face, glyphIndex, FT_LOAD_DEFAULT);
-
             FT_GlyphSlot slot = face.glyph();
-
             float ft_float_factor = 64.0f;
             float advance;
             advance = slot.advance().x() / ft_float_factor;
-
             CharInfo currentChar = getCharInfo(ch);
             if (currentChar == null) return;
-
             CharInfo newChar = new CharInfo(
                     currentChar.x0(), currentChar.y0(), currentChar.x1(), currentChar.y1(),
                     currentChar.xOffset(), currentChar.yOffset(), advance, fontSizePixel * TEXTURE_SIZE_MULTIPLIER);
@@ -426,9 +421,9 @@ public class TCBFont {
 
     public int getTextureID() {
         if (assetReference == null || assetReference.canonicalPath() == null) return -1;
-
-        FontAtlasTexture texture = AssetsPool.loadFontAtlasTexture(assetReference.canonicalPath(), glyphRange, atlasWidth, atlasHeight, colorChannelCount);
-        return texture.getID();
+        ResourceID RID = AssetManager.get().loadFontAtlas(assetReference.canonicalPath(), glyphRange, atlasWidth, atlasHeight, colorChannelCount);
+        FontAtlasTexture texture = AssetManager.get().getFontAtlas(RID);
+        return texture != null ? texture.getID() : -1;
     }
 
     public int getAtlasWidth() {

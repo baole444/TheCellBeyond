@@ -46,7 +46,7 @@ public class AssetManager {
         if (RID != null) return RID;
         Texture texture = new Texture();
         texture.init(canonicalPath);
-        RID = new ResourceID(AssetResourceType.Texture);
+        RID = texture.RID;
         textureIDs.put(canonicalPath, RID);
         textureRegistry.register(RID, texture);
         return RID;
@@ -59,7 +59,7 @@ public class AssetManager {
         if (RID != null) return RID;
         FontAtlasTexture atlas = new FontAtlasTexture();
         atlas.init(canonicalPath, glyphRange, width, height, channels);
-        RID = new ResourceID(AssetResourceType.FontAtlas);
+        RID = atlas.RID;
         fontAtlasIDs.put(key, RID);
         fontAtlasRegistry.register(RID, atlas);
         return RID;
@@ -119,6 +119,21 @@ public class AssetManager {
 
     public boolean hasTextureUnit(String path) {
         return textureUnitIDs.containsKey(asCanonicalPath(path));
+    }
+
+    public Shader getShader(String path) {
+        ResourceID RID = shaderIDs.get(asCanonicalPath(path));
+        return RID != null ? shaderRegistry.get(RID) : null;
+    }
+
+    public SpriteSheet getSpriteSheet(String path) {
+        ResourceID RID = spriteSheetIDs.get(asCanonicalPath(path));
+        return RID != null ? spriteSheetRegistry.get(RID) : null;
+    }
+
+    public TextureUnit getTextureUnit(String path) {
+        ResourceID RID = textureUnitIDs.get(asCanonicalPath(path));
+        return RID != null ? textureUnitRegistry.get(RID) : null;
     }
 
     public void reloadShader(ResourceID RID) {

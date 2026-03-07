@@ -1,5 +1,6 @@
 package render.texture;
 
+import TheCellBeyond.internal.ResourceID;
 import render.RenderResourceType;
 import render.text.GlyphRange;
 import utility.AssetReference;
@@ -44,34 +45,34 @@ public class TextureManager {
         this.disposedTextures++;
     }
 
-    void removeActiveHandle(int handleId) {
-        activeHandles.remove(handleId);
+    void removeActiveHandle(int RID) {
+        activeHandles.remove(RID);
     }
 
     /**
      * Get or create a new texture handle for the asset.
      * This prevents creating multiple OpenGL textures on the same asset.
      */
-    TextureHandle getTextureHandle(ByteBuffer imageData, AssetReference assetReference) {
+    public TextureHandle getTextureHandle(ByteBuffer imageData, AssetReference assetReference, ResourceID RID) {
         String canonicalPath = assetReference.canonicalPath();
         TextureHandle handle = textureHandles.get(canonicalPath);
         if (handle != null) return handle;
-        handle = new TextureHandle(RenderResourceType.Texture);
+        handle = new TextureHandle(RID);
         textureHandles.put(canonicalPath, handle);
         commandQueue.offer(new CreateTextureCommand(handle, imageData, assetReference));
-        activeHandles.put(handle.getHandleId(), handle);
+        activeHandles.put(RID.id, handle);
         Logger.debug("Created new handle for " + canonicalPath);
         return handle;
     }
 
-    TextureHandle getFontAtlasHandle(ByteBuffer atlasData, AssetReference assetReference, GlyphRange glyphRange, int width, int height, int channels) {
+    public TextureHandle getFontAtlasHandle(ByteBuffer atlasData, AssetReference assetReference, GlyphRange glyphRange, int width, int height, int channels, ResourceID RID) {
         AtlasKey key = new AtlasKey(assetReference.canonicalPath(), glyphRange);
         TextureHandle handle = fontAtlasHandles.get(key);
         if (handle != null) return handle;
-        handle = new TextureHandle(RenderResourceType.FontAtlas);
+        handle = new TextureHandle(RID);
         fontAtlasHandles.put(key, handle);
         commandQueue.offer(new CreateFontAtlasTextureCommand(handle, atlasData, assetReference, width, height, channels));
-        activeHandles.put(handle.getHandleId(), handle);
+        activeHandles.put(RID.id, handle);
         Logger.debug("Created new atlas handle for " + assetReference.canonicalPath() + " with glyph " + glyphRange.toString());
         return handle;
     }

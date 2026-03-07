@@ -41,7 +41,6 @@ class CreateFontAtlasTextureCommand extends TextureCommand {
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
             glGenerateMipmap(GL_TEXTURE_2D);
             handle.setTextureId(textureId);
-            handle.setSize(width, height);
             handle.markReady();
             textureManager.stepCreatedTexture();
             TextureManager.Logger.debug("Created texture with id " + textureId);
@@ -53,6 +52,6 @@ class CreateFontAtlasTextureCommand extends TextureCommand {
 
     @Override
     public String toString() {
-        return String.format("%s{path='%s', handle=%d}", CreateFontAtlasTextureCommand.class.getSimpleName(), assetReference.canonicalPath(), handle.getHandleId());
+        return String.format("%s{path='%s', RID=%d}", CreateFontAtlasTextureCommand.class.getSimpleName(), assetReference.canonicalPath(), handle.resourceID().id);
     }
 }

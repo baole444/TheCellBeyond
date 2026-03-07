@@ -20,7 +20,7 @@ public class DisposeTextureCommand extends TextureCommand {
             textureManager.stepDisposedTexture();
             TextureManager.Logger.debug("Disposed OpenGL texture " + handle.getTextureId());
         }
-        textureManager.removeActiveHandle(handle.getHandleId());
+        textureManager.removeActiveHandle(handle.resourceID().id);
         handle.markDisposed();
     }
 }

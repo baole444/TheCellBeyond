@@ -20,20 +20,14 @@ public class TextureHandle {
     private final ResourceID RID;
     private final AtomicReference<InternalStatus> status = new AtomicReference<>(InternalStatus.WAITING);
     private final AtomicInteger textureId = new AtomicInteger(-1);
-    private final AtomicInteger width = new AtomicInteger(-1);
-    private final AtomicInteger height = new AtomicInteger(-1);
     private volatile String errorMsg;
 
-    public TextureHandle(RenderResourceType type) {
-        RID = new ResourceID(type);
+    public TextureHandle(ResourceID RID) {
+        this.RID = RID;
     }
 
     public ResourceID resourceID() {
         return RID;
-    }
-
-    public int getHandleId() {
-        return RID.id;
     }
 
     public ResourceStatus getStatus() {
@@ -54,14 +48,6 @@ public class TextureHandle {
 
     public int getTextureId() {
         return textureId.get();
-    }
-
-    public int getWidth() {
-        return width.get();
-    }
-
-    public int getHeight() {
-        return height.get();
     }
 
     public String getErrorMsg() {
@@ -96,11 +82,6 @@ public class TextureHandle {
         textureId.set(id);
     }
 
-    protected void setSize(int width, int height) {
-        this.width.set(width);
-        this.height.set(height);
-    }
-
     private static ResourceStatus asResourceStatus(InternalStatus internalStatus) {
         return switch (internalStatus) {
             case WAITING, LOADING -> ResourceStatus.WAITING;
@@ -121,10 +102,9 @@ public class TextureHandle {
 
     @Override
     public String toString() {
-        return String.format("%s{id=%d, status=%s, textureId=%d, size=(%d,%d)}",
+        return String.format("%s{id=%d, status=%s, textureId=%d}",
                 TextureHandle.class.getSimpleName(), RID.id,
-                status.get(), textureId.get(),
-                width.get(), height.get()
+                status.get(), textureId.get()
         );
     }
 }

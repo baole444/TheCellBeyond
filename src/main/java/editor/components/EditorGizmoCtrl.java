@@ -3,7 +3,7 @@ package editor.components;
 import components.Component;
 import render.texture.Sprite;
 import render.texture.SpriteSheet;
-import utility.AssetsPool;
+import utility.AssetManager;
 import utility.Settings;
 
 /**
@@ -48,15 +48,16 @@ public class EditorGizmoCtrl extends Component {
     private void initGizmoSprite() {
         if (isInitialized || gameObject == null) return;
         try {
-            if (!AssetsPool.hasSpriteSheet(Path)) {
+            AssetManager manager = AssetManager.get();
+            if (!manager.hasSpriteSheet(Path)) {
                 int w = 16;
                 int h = 48;
                 int count = 3;
-                AssetsPool.addSpriteSheet(Path,
-                        new SpriteSheet(AssetsPool.loadTexture(Path), w, h, count, 0)
+                manager.addSpriteSheet(Path,
+                        new SpriteSheet(manager.getTexture(manager.loadTexture(Path)), w, h, count, 0)
                 );
             }
-            gizmo = AssetsPool.getSpriteSheet(Path);
+            gizmo = manager.getSpriteSheet(Path);
             completeInit();
         } catch (Exception e) {
             System.err.println("Failed to initialize EditorGizmo texture: " + e.getMessage());

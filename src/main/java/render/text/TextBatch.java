@@ -7,7 +7,7 @@ import org.joml.Vector2f;
 import org.joml.Vector4f;
 import render.RendererState;
 import render.Shader;
-import utility.AssetsPool;
+import utility.AssetManager;
 import utility.Settings;
 import utility.WorldUnit;
 
@@ -55,7 +55,7 @@ public class TextBatch implements Comparable<TextBatch> {
         this.hasSpace = true;
 
         if (shader == null) {
-            shader = AssetsPool.loadShader(Settings.ShaderPath.DefaultFontShader);
+            shader = AssetManager.get().getShader(AssetManager.get().loadShader(Settings.ShaderPath.DefaultFontShader));
         }
     }
 
