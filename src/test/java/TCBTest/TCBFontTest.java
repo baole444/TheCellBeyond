@@ -1,44 +1,64 @@
 package TCBTest;
 
+import TheCellBeyond.internal.ResourceID;
+import TheCellBeyond.internal.ResourceStatus;
+import TheCellBeyond.internal.ResourceStatusCallback;
+import TheCellBeyond.internal.ResourceStatusListener;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import render.text.GlyphRange;
 import render.text.TCBFont;
+import utility.AssetManager;
 import utility.Settings;
+import utility.UnifiedPaths;
 
 import java.io.IOException;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 
 public class TCBFontTest {
-    @Test
-    public void loadFontCorrectly() {
-        String correctPath = Settings.FontPath.Caudex;
-        TCBFont font = null;
-        try {
-            font = new TCBFont(correctPath, 16, GlyphRange.ASCII);
-        } catch (IOException _) {}
-
-        assertNotNull(font);
+    @BeforeAll
+    static void setup() {
+        UnifiedPaths.initialize(null);
     }
 
     @Test
-    public void loadNoneExistingFontThrowIOException() {
-        try {
-            String incorrectPath = "engine://assets/fonts/NoneExistenceFile.ttf";
-            TCBFont font = new TCBFont(incorrectPath, 16, GlyphRange.ASCII);
-        } catch (IOException e) {
-            assertNotNull(e);
-        }
+    public void loadFontCorrectly() throws InterruptedException {
+        ResourceStatus status = awaitFont(Settings.FontPath.Caudex, GlyphRange.ASCII, 16, 16);
+        assertEquals(ResourceStatus.READY, status);
     }
 
     @Test
-    public void loadFontWithGlyphASCII_EXTENDED() {
-        String correctPath = Settings.FontPath.NotoSansMono;
-        TCBFont font = null;
-        try {
-            font = new TCBFont(correctPath, 16, GlyphRange.ASCII_EXTENDED);
-        } catch (IOException _) {}
+    public void loadNoneExistingFontThrowIOException() throws InterruptedException {
+        ResourceStatus status = awaitFont("engine://assets/fonts/NoneExistenceFile.ttf", GlyphRange.ASCII, 12, 10);
+        assertEquals(ResourceStatus.FAILED, status);
+    }
 
-        assertNotNull(font);
+    @Test
+    public void loadFontWithGlyphASCII_EXTENDED() throws InterruptedException {
+        ResourceStatus status = awaitFont(Settings.FontPath.NotoSansMono, GlyphRange.ASCII_EXTENDED, 13, 16);
+        assertEquals(ResourceStatus.READY, status);
+    }
+
+    private static ResourceStatus awaitFont(String path, GlyphRange range, float point, long timeOut) throws InterruptedException {
+        AtomicReference<ResourceStatus> result = new AtomicReference<>();
+        AtomicReference<ResourceID> RIDHolder = new AtomicReference<>();
+        CountDownLatch latch = new CountDownLatch(1);
+        ResourceStatusListener listener = (RID, status) -> {
+            if (RID.equals(RIDHolder.get()) && result.compareAndSet(null, status)) latch.countDown();
+        };
+        ResourceStatusCallback.register(listener);
+        ResourceID RID = AssetManager.get().loadFont(path, range, point);
+        RIDHolder.set(RID);
+        TCBFont font = AssetManager.get().getFont(RID);
+        if (font != null && font.loaded() && result.compareAndSet(null, ResourceStatus.READY)) latch.countDown();
+        latch.await(timeOut, TimeUnit.SECONDS);
+        ResourceStatusCallback.unregister(listener);
+        return result.get();
     }
 }

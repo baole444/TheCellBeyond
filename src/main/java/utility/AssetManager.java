@@ -6,7 +6,9 @@ import TheCellBeyond.internal.ResourceRegistry;
 import render.FontAtlasTexture;
 import render.Shader;
 import render.Texture;
+import render.text.FontManager;
 import render.text.GlyphRange;
+import render.text.TCBFont;
 import render.texture.SpriteSheet;
 import render.texture.TextureManager;
 import render.texture.TextureUnit;
@@ -17,10 +19,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class AssetManager {
     private record AtlasKey(String canonicalPath, GlyphRange glyphRange) {}
+    private record FontKey(String canonicalPath, GlyphRange glyphRange, float points) {}
     private static AssetManager instance;
 
     private final Map<String, ResourceID> textureIDs = new ConcurrentHashMap<>();
     private final Map<AtlasKey, ResourceID> fontAtlasIDs = new ConcurrentHashMap<>();
+    private final Map<FontKey, ResourceID> fontIDs = new ConcurrentHashMap<>();
     private final Map<String, ResourceID> shaderIDs = new ConcurrentHashMap<>();
     private final Map<String, ResourceID> spriteSheetIDs = new ConcurrentHashMap<>();
     private final Map<String, ResourceID> textureUnitIDs = new ConcurrentHashMap<>();
@@ -28,6 +32,7 @@ public class AssetManager {
 
     private final ResourceRegistry<Texture> textureRegistry = new ResourceRegistry<>();
     private final ResourceRegistry<FontAtlasTexture> fontAtlasRegistry = new ResourceRegistry<>();
+    private final ResourceRegistry<TCBFont> fontRegistry = new ResourceRegistry<>();
     private final ResourceRegistry<Shader> shaderRegistry = new ResourceRegistry<>();
     private final ResourceRegistry<SpriteSheet> spriteSheetRegistry = new ResourceRegistry<>();
     private final ResourceRegistry<TextureUnit> textureUnitRegistry = new ResourceRegistry<>();
@@ -52,16 +57,36 @@ public class AssetManager {
         return RID;
     }
 
-    public ResourceID loadFontAtlas(String path, GlyphRange glyphRange, int width, int height, int channels) {
+    /**
+     * Load or get the RID of the {@link FontAtlasTexture} for the given font path and glyph range.
+     * @param path the unified path or system file path to the font atlas
+     * @param glyphRange the glyph range used by that font atlas
+     * @return a {@link ResourceID} of an existing font atlas or from a new one
+     */
+    public ResourceID loadFontAtlas(String path, GlyphRange glyphRange) {
         String canonicalPath = asCanonicalPath(path);
         AtlasKey key = new AtlasKey(canonicalPath, glyphRange);
         ResourceID RID = fontAtlasIDs.get(key);
         if (RID != null) return RID;
         FontAtlasTexture atlas = new FontAtlasTexture();
-        atlas.init(canonicalPath, glyphRange, width, height, channels);
+        atlas.init(canonicalPath, glyphRange);
         RID = atlas.RID;
         fontAtlasIDs.put(key, RID);
         fontAtlasRegistry.register(RID, atlas);
+        return RID;
+    }
+
+    public ResourceID loadFont(String path, GlyphRange glyphRange, float point) {
+        String canonicalPath = asCanonicalPath(path);
+        FontKey key = new FontKey(canonicalPath, glyphRange, point);
+        ResourceID RID = fontIDs.get(key);
+        if (RID != null) return RID;
+        ResourceID atlasID = loadFontAtlas(canonicalPath, glyphRange);
+        TCBFont font = new TCBFont(new AssetReference(canonicalPath), glyphRange, point);
+        RID = font.RID;
+        fontIDs.put(key, RID);
+        fontRegistry.register(RID, font);
+        FontManager.get().processFont(font, atlasID);
         return RID;
     }
 
@@ -153,6 +178,10 @@ public class AssetManager {
         return fontAtlasRegistry.get(RID);
     }
 
+    public TCBFont getFont(ResourceID RID) {
+        return fontRegistry.get(RID);
+    }
+
     public Shader getShader(ResourceID RID) {
         return shaderRegistry.get(RID);
     }
@@ -173,6 +202,7 @@ public class AssetManager {
         for (Shader shader : shaderRegistry.values()) shader.dispose();
         releaseAll(textureIDs.values());
         releaseAll(fontAtlasIDs.values());
+        releaseAll(fontIDs.values());
         releaseAll(shaderIDs.values());
         releaseAll(spriteSheetIDs.values());
         releaseAll(textureUnitIDs.values());
@@ -180,12 +210,14 @@ public class AssetManager {
 
         textureIDs.clear();
         fontAtlasIDs.clear();
+        fontIDs.clear();
         shaderIDs.clear();
         spriteSheetIDs.clear();
         textureUnitIDs.clear();
         soundIDs.clear();
         textureRegistry.clear();
         fontAtlasRegistry.clear();
+        fontRegistry.clear();
         shaderRegistry.clear();
         spriteSheetRegistry.clear();
         textureUnitRegistry.clear();

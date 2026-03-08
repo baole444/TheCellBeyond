@@ -1,6 +1,7 @@
 package render;
 
 import TheCellBeyond.internal.ResourceID;
+import render.text.FontAtlasLayout;
 import render.text.FontManager;
 import render.text.GlyphRange;
 import render.texture.TextureHandle;
@@ -19,23 +20,21 @@ public class FontAtlasTexture {
     private transient TextureHandle handle;
     private transient int width = -1;
     private transient int height = -1;
-    private transient int channels = 3;
 
     public FontAtlasTexture() {}
 
-    public void init(String filepath, GlyphRange glyphRange, int width, int height, int channels) {
+    public void init(String filepath, GlyphRange glyphRange) {
         assetReference = new AssetReference(filepath);
         this.glyphRange = glyphRange;
-        this.width = width;
-        this.height = height;
-        this.channels = channels;
+        width = FontAtlasLayout.atlasWidth(glyphRange);
+        height = FontAtlasLayout.atlasHeight(glyphRange);
     }
 
     private void loadTextureData() {
         if (assetReference == null || glyphRange == null) return;
         ByteBuffer atlasData = FontManager.get().getFontAtlas(assetReference, glyphRange);
         if (atlasData == null) return;
-        handle = TextureManager.get().getFontAtlasHandle(atlasData, assetReference, glyphRange, width, height, channels, RID);
+        handle = TextureManager.get().getFontAtlasHandle(atlasData, assetReference, glyphRange, width, height, FontAtlasLayout.Channels, RID);
     }
 
     public void bind() {
