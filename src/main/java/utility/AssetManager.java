@@ -96,7 +96,7 @@ public class AssetManager {
         if (RID != null) return RID;
         Shader shader = new Shader(canonicalPath);
         shader.compile();
-        RID = new ResourceID(AssetResourceType.Shader);
+        RID = shader.RID;
         shaderIDs.put(canonicalPath, RID);
         shaderRegistry.register(RID, shader);
         return RID;
@@ -128,7 +128,7 @@ public class AssetManager {
         if (RID != null) return RID;
         UnifiedPaths.AssetPath assetPath = UnifiedPaths.get().resolvePath(path);
         Sound sound = new Sound(assetPath.resolvedPath(), isLoop);
-        RID = new ResourceID(AssetResourceType.Sound);
+        RID = sound.RID;
         soundIDs.put(canonicalPath, RID);
         soundRegistry.register(RID, sound);
         return RID;
@@ -200,6 +200,7 @@ public class AssetManager {
 
     public void clearCache() {
         for (Shader shader : shaderRegistry.values()) shader.dispose();
+        for (Sound sound : soundRegistry.values()) sound.dispose();
         releaseAll(textureIDs.values());
         releaseAll(fontAtlasIDs.values());
         releaseAll(fontIDs.values());

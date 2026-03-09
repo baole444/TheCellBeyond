@@ -1,5 +1,12 @@
 package TheCellBeyond;
 
+import TheCellBeyond.internal.ResourceID;
+import TheCellBeyond.internal.ResourceStatus;
+import TheCellBeyond.internal.ResourceStatusCallback;
+import org.lwjgl.system.MemoryStack;
+import utility.AssetReference;
+import utility.AssetResourceType;
+
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 
@@ -9,63 +16,45 @@ import static org.lwjgl.system.MemoryStack.*;
 import static org.lwjgl.system.libc.LibCStdlib.free;
 
 public class Sound {
+    public final ResourceID RID = new ResourceID(AssetResourceType.Sound);
     private int bufferId;
     private int sourceId;
-    private final String filepath;
-
-    private boolean isPlaying = false;
+    private final AssetReference assetReference;
+    private transient boolean isPlaying = false;
 
     public Sound(String filepath, boolean isLoop) {
-        this.filepath = filepath;
-
-        // push to allocate memory for values from stb
-        stackPush();
-        IntBuffer channelBuffer = stackMallocInt(1);
-        stackPush();
-        IntBuffer sampleRateBuffer = stackMallocInt(1);
-
-        ShortBuffer rawSoundBuffer = stb_vorbis_decode_filename(filepath, channelBuffer, sampleRateBuffer);
-
-        if (rawSoundBuffer == null) {
-            System.out.println("Error: failed to load sound file '" + filepath + "'");
-            stackPop();
-            stackPop();
-            return;
+        assetReference = new AssetReference(filepath);
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            IntBuffer channelBuffer = stack.mallocInt(1);
+            IntBuffer sampleRateBuffer = stack.mallocInt(1);
+            ShortBuffer rawSoundBuffer = stb_vorbis_decode_filename(filepath, channelBuffer, sampleRateBuffer);
+            if (rawSoundBuffer == null) {
+                System.out.println("Error: failed to load sound file '" + filepath + "'");
+                ResourceStatusCallback.emit(RID, ResourceStatus.FAILED);
+                return;
+            }
+            int channels = channelBuffer.get();
+            int sampleRate = sampleRateBuffer.get();
+            int format = -1;
+            if (channels == 1) format = AL_FORMAT_MONO16;
+            else if (channels == 2) format = AL_FORMAT_STEREO16;
+            bufferId = alGenBuffers();
+            alBufferData(bufferId, format, rawSoundBuffer, sampleRate);
+            sourceId = alGenSources();
+            alSourcei(sourceId, AL_BUFFER, bufferId);
+            alSourcei(sourceId, AL_LOOPING, isLoop ? 1 : 0);
+            alSourcei(sourceId, AL_POSITION, 0);
+            alSourcef(sourceId, AL_GAIN, 1f);
+            free(rawSoundBuffer);
         }
-
-        // Collect information from buffer
-        int channels = channelBuffer.get();
-        int sampleRate = sampleRateBuffer.get();
-
-        // Free stack
-        stackPop();
-        stackPop();
-
-        // Determine a correct AL format from channels;
-        int format = -1;
-        if (channels == 1) {
-            format = AL_FORMAT_MONO16;
-        } else if (channels == 2) {
-            format = AL_FORMAT_STEREO16;
-        }
-
-        bufferId = alGenBuffers();
-        alBufferData(bufferId, format, rawSoundBuffer, sampleRate);
-
-        // Create the sound source
-        sourceId = alGenSources();
-        alSourcei(sourceId, AL_BUFFER, bufferId);
-        alSourcei(sourceId, AL_LOOPING, isLoop ? 1 : 0);
-        alSourcei(sourceId, AL_POSITION, 0);
-        alSourcef(sourceId, AL_GAIN, 1f);
-
-        // Free raw audio buffer
-        free(rawSoundBuffer);
+        ResourceStatusCallback.emit(RID, ResourceStatus.READY);
     }
 
-    public void delete() {
+    public void dispose() {
         alDeleteSources(sourceId);
         alDeleteBuffers(bufferId);
+        ResourceStatusCallback.emit(RID, ResourceStatus.DISPOSED);
+        RID.release();
     }
 
     public void play() {
@@ -74,29 +63,24 @@ public class Sound {
             isPlaying = false;
             alSourcei(sourceId, AL_POSITION, 0);
         }
-
-        if (!isPlaying) {
-            alSourcePlay(sourceId);
-            isPlaying = true;
-        }
+        if (isPlaying) return;
+        alSourcePlay(sourceId);
+        isPlaying = true;
     }
 
     public void stop() {
-        if (isPlaying) {
-            alSourceStop(sourceId);
-            isPlaying = false;
-        }
+        if (!isPlaying) return;
+        alSourceStop(sourceId);
+        isPlaying = false;
     }
 
     public String getFilepath() {
-        return this.filepath;
+        return assetReference != null ? assetReference.canonicalPath() : null;
     }
 
     public boolean isPlaying() {
         int state = alGetSourcei(sourceId, AL_SOURCE_STATE);
-        if (state == AL_STOPPED) {
-            isPlaying = false;
-        }
+        if (state == AL_STOPPED) isPlaying = false;
         return  isPlaying;
     }
 }

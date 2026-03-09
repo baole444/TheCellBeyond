@@ -1,7 +1,6 @@
 package render;
 
 import TheCellBeyond.GameObject;
-import TheCellBeyond.TileMap;
 import components.Component;
 import components.SpriteRenderer;
 import editor.components.EditorObjectIndicator;
