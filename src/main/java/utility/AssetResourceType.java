@@ -3,10 +3,8 @@ package utility;
 import TheCellBeyond.internal.ResourceType;
 
 public enum AssetResourceType implements ResourceType {
-    Shader(6),
     SpriteSheet(8),
-    TextureUnit(10),
-    Sound(12);
+    TextureUnit(10);
 
     private final int value;
 

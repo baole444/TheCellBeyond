@@ -6,7 +6,6 @@ import TheCellBeyond.internal.ResourceStatusCallback;
 import org.joml.*;
 import org.lwjgl.BufferUtils;
 import utility.AssetReference;
-import utility.AssetResourceType;
 import utility.UnifiedPaths;
 import utility.log.EngineLog;
 
@@ -24,7 +23,7 @@ import static org.lwjgl.opengl.GL20.glGetShaderInfoLog;
 public class Shader {
     private static final Pattern ShaderRegex = Pattern.compile("#type\\s+(\\w+)\\s*\\n");
     private static final EngineLog Logger = new EngineLog(Shader.class);
-    public final ResourceID RID = new ResourceID(AssetResourceType.Shader);
+    public final ResourceID RID = new ResourceID(RenderResourceType.Shader);
     private int shaderProgramID;
     private String vertexSrc;
     private String fragmentSrc;

@@ -1,16 +1,13 @@
-package render;
+package TheCellBeyond;
 
 import TheCellBeyond.internal.ResourceType;
 
-public enum RenderResourceType implements ResourceType {
-    Shader(0),
-    Texture(16),
-    FontAtlas(32),
-    Font(48);
+public enum AudioResourceType implements ResourceType {
+    Clip(3);
 
     public final int value;
 
-    RenderResourceType(int value) {
+    AudioResourceType(int value) {
         this.value = value;
     }
 

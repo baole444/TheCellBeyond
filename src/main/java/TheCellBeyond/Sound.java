@@ -5,18 +5,16 @@ import TheCellBeyond.internal.ResourceStatus;
 import TheCellBeyond.internal.ResourceStatusCallback;
 import org.lwjgl.system.MemoryStack;
 import utility.AssetReference;
-import utility.AssetResourceType;
 
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 
 import static org.lwjgl.openal.AL10.*;
 import static org.lwjgl.stb.STBVorbis.stb_vorbis_decode_filename;
-import static org.lwjgl.system.MemoryStack.*;
 import static org.lwjgl.system.libc.LibCStdlib.free;
 
 public class Sound {
-    public final ResourceID RID = new ResourceID(AssetResourceType.Sound);
+    public final ResourceID RID = new ResourceID(AudioResourceType.Clip);
     private int bufferId;
     private int sourceId;
     private final AssetReference assetReference;
