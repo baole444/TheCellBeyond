@@ -163,13 +163,13 @@ public class TextBatch implements Comparable<TextBatch> {
             // Alignment offsets
             float xOffset = 0;
             switch (textRenderer.getHorizontalAlignment()) {
-                case CENTER -> xOffset = -textDimensions.x / 2.0f;
-                case RIGHT -> xOffset = -textDimensions.x;
+                case Centre -> xOffset = -textDimensions.x / 2.0f;
+                case Right -> xOffset = -textDimensions.x;
             }
             float yOffset = 0;
             switch (textRenderer.getVerticalAlignment()) {
-                case MIDDLE -> yOffset = textDimensions.y / 2.0f;
-                case BOTTOM -> yOffset = textDimensions.y;
+                case Middle -> yOffset = textDimensions.y / 2.0f;
+                case Bottom -> yOffset = textDimensions.y;
             }
             float x = position.x + xOffset;
             float y = position.y - yOffset;

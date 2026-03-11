@@ -1,5 +1,6 @@
 package components;
 
+import TheCellBeyond.Transform2D;
 import TheCellBeyond.internal.ResourceID;
 import TheCellBeyond.internal.ResourceStatus;
 import TheCellBeyond.internal.ResourceStatusCallback;
@@ -9,29 +10,21 @@ import imgui.ImGui;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import render.DebugDraw;
+import render.commands.RenderCommand;
+import render.commands.TextCommand;
 import render.text.*;
 import utility.*;
 
 import java.util.Objects;
 
 public class TextRenderer extends Component2D implements ResourceStatusListener {
-    public enum HorizontalAlignment {
-        LEFT, CENTER, RIGHT
-    }
-
-    public enum VerticalAlignment {
-        TOP, MIDDLE, BOTTOM
-    }
-
     private String text = "Text";
     private AssetReference assetReference = new AssetReference(Settings.FontPath.NotoSansMono);
     private float point = 12;
     private final Vector4f color = new Vector4f(1.0f, 1.0f, 1.0f, 1.0f);
-    private boolean isTextDirty = true;
     private String glyphRangeName = "ASCII";
-    private HorizontalAlignment hAlign = HorizontalAlignment.LEFT;
-    private VerticalAlignment vAlign = VerticalAlignment.TOP;
-    private transient TCBFont font;
+    private HorizontalAlignment hAlign = HorizontalAlignment.Left;
+    private VerticalAlignment vAlign = VerticalAlignment.Top;
     private transient ResourceID fontRID;
     private final transient Vector2f textDimensions = new Vector2f();
 
@@ -51,8 +44,8 @@ public class TextRenderer extends Component2D implements ResourceStatusListener 
     @Override
     public void onResourceStatusChange(ResourceID RID, ResourceStatus status) {
         if (status != ResourceStatus.READY || !RID.equals(fontRID)) return;
-        TCBFont loaded = AssetManager.get().getFont(RID);
-        if (loaded != null) applyFont(loaded);
+        calculateTextDimensions();
+        renderDirty = true;
     }
 
     @Override
@@ -69,20 +62,20 @@ public class TextRenderer extends Component2D implements ResourceStatusListener 
 
     @Override
     protected void onUpdate(float dt) {
-        if (font == null || fontRID == null) requestLoadFont();
+        if (fontRID == null) requestLoadFont();
         super.onUpdate(dt);
     }
 
     @Override
     protected void onEditorUpdate(float dt) {
-        Vector2f pos = new Vector2f(getEffectiveTransform().position);
+        Vector2f pos = new Vector2f(effectiveTransform().position);
         DebugDraw.addLine2(pos, new Vector2f(pos).add(textDimensions.x, 0), new Vector4f(0.8f, 0.2f, 0.2f, 1.0f), 1);
         super.onEditorUpdate(dt);
     }
 
     @Override
     protected void onTransformDirty() {
-        isTextDirty = true;
+        renderDirty = true;
     }
 
     @Override
@@ -104,14 +97,14 @@ public class TextRenderer extends Component2D implements ResourceStatusListener 
             this.point = Math.abs(fontSizeInput);
             requestLoadFont();
         }
-        if (EditorWidget.colorCtrl("Color", color, this)) isTextDirty = true;
+        if (EditorWidget.colorCtrl("Color", color, this)) renderDirty = true;
         ImGui.text("Alignment");
         ImGui.indent();
         if (ImGui.beginCombo("Horizontal", hAlign.toString())) {
             for (HorizontalAlignment align : HorizontalAlignment.values()) {
                 if (!ImGui.selectable(align.toString(), align == hAlign)) continue;
                 hAlign = align;
-                isTextDirty = true;
+                renderDirty = true;
             }
             ImGui.endCombo();
         }
@@ -119,7 +112,7 @@ public class TextRenderer extends Component2D implements ResourceStatusListener 
             for (VerticalAlignment align : VerticalAlignment.values()) {
                 if (ImGui.selectable(align.toString(), align == vAlign)) continue;
                 vAlign = align;
-                isTextDirty = true;
+                renderDirty = true;
             }
             ImGui.endCombo();
         }
@@ -144,7 +137,7 @@ public class TextRenderer extends Component2D implements ResourceStatusListener 
     public void setText(String text) {
         if (this.text.equals(text)) return;
         this.text = text;
-        this.isTextDirty = true;
+        renderDirty = true;
         calculateTextDimensions();
     }
 
@@ -153,8 +146,7 @@ public class TextRenderer extends Component2D implements ResourceStatusListener 
     }
 
     public TCBFont getFont() {
-        if (font == null) requestLoadFont();
-        return font;
+        return fontRID != null ? AssetManager.get().getFont(fontRID) : null;
     }
 
     public Vector4f getColor() {
@@ -164,7 +156,7 @@ public class TextRenderer extends Component2D implements ResourceStatusListener 
     public void setColor(Vector4f color) {
         if (this.color.equals(color)) return;
         this.color.set(color);
-        isTextDirty = true;
+        renderDirty = true;
     }
 
     public String getFontPath() {
@@ -172,7 +164,7 @@ public class TextRenderer extends Component2D implements ResourceStatusListener 
     }
 
     public void setFontPath(String fontPathInput) {
-        if  (fontPathInput == null) return;
+        if (fontPathInput == null) return;
         AssetReference newRef = new AssetReference(fontPathInput);
         if (Objects.equals(newRef, assetReference)) return;
         UnifiedPaths resolver = UnifiedPaths.get();
@@ -182,11 +174,11 @@ public class TextRenderer extends Component2D implements ResourceStatusListener 
     }
 
     public boolean isTextDirty() {
-        return isTextDirty;
+        return renderDirty;
     }
 
     public void clearDirty() {
-        isTextDirty = false;
+        renderDirty = false;
     }
 
     public Vector2f getTextDimensions() {
@@ -200,7 +192,7 @@ public class TextRenderer extends Component2D implements ResourceStatusListener 
     public void setHorizontalAlignment(HorizontalAlignment hAlign) {
         if (this.hAlign == hAlign) return;
         this.hAlign = hAlign;
-        isTextDirty = true;
+        renderDirty = true;
     }
 
     public VerticalAlignment getVerticalAlignment() {
@@ -210,7 +202,7 @@ public class TextRenderer extends Component2D implements ResourceStatusListener 
     public void setVerticalAlignment(VerticalAlignment vAlign) {
         if (this.vAlign == vAlign) return;
         this.vAlign = vAlign;
-        isTextDirty = true;
+        renderDirty = true;
     }
 
     public GlyphRange getGlyphRange() {
@@ -225,10 +217,11 @@ public class TextRenderer extends Component2D implements ResourceStatusListener 
         if (Objects.equals(this.glyphRangeName, glyphRange.name())) return;
         glyphRangeName = glyphRange.name();
         requestLoadFont();
-        isTextDirty = true;
+        renderDirty = true;
     }
 
     private void calculateTextDimensions() {
+        TCBFont font = fontRID != null ? AssetManager.get().getFont(fontRID) : null;
         if (font == null || text.isEmpty()) {
             textDimensions.zero();
             return;
@@ -260,12 +253,25 @@ public class TextRenderer extends Component2D implements ResourceStatusListener 
         if (Objects.equals(newRID, fontRID)) return;
         fontRID = newRID;
         TCBFont existing = AssetManager.get().getFont(fontRID);
-        if (existing != null && existing.loaded()) applyFont(existing);
+        if (existing == null || !existing.loaded()) return;
+        calculateTextDimensions();
+        renderDirty = true;
     }
 
-    private void applyFont(TCBFont loadedFont) {
-        font = loadedFont;
-        calculateTextDimensions();
-        isTextDirty = true;
+    @Override
+    public RenderCommand buildRenderCommand() {
+        TextCommand command = TextCommand.acquire();
+        command.submitterID = gameObject != null ? gameObject.getUID() : 0;
+        command.text = text;
+        command.fontRID = fontRID;
+        command.points = point;
+        command.horizontalAlignment = hAlign;
+        command.verticalAlignment = vAlign;
+        command.modulate.set(color);
+        Transform2D transform2D = effectiveTransform();
+        command.position.set(transform2D.position);
+        command.rotationDegrees = transform2D.rotation;
+        command.scale.set(transform2D.scale);
+        return command;
     }
 }

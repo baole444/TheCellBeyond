@@ -30,7 +30,7 @@ import java.util.List;
  * <b>Inherited by:</b> {@link physic2d.PhysicBody2D}
  * @see Transform2D Transform2D data structure
  */
-public class GameObject2D extends GameObject {
+public class GameObject2D extends RenderableObject {
     /**
      * This 2D object's local transform.
      */
@@ -778,5 +778,10 @@ public class GameObject2D extends GameObject {
             ImGui.unindent();
             if (!editing.equals(localTransform2D)) setTransformDirty();
         }
+    }
+
+    @Override
+    public int renderZIndex() {
+        return globalZIndex();
     }
 }

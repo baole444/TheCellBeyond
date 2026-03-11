@@ -1,5 +1,6 @@
 package render.texture;
 
+import TheCellBeyond.internal.ResourceID;
 import org.joml.Vector2f;
 import render.Texture;
 import utility.AssetManager;
@@ -21,6 +22,11 @@ public class Sprite {
     };
 
     private volatile transient boolean dirty = true;
+
+    public ResourceID textureRID() {
+        if (textureCanonicalPath == null) return null;
+        return AssetManager.get().loadTexture(textureCanonicalPath);
+    }
 
     public Texture getTexture() {
         if (textureCanonicalPath == null) return null;

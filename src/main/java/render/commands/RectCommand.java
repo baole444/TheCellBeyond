@@ -2,6 +2,7 @@ package render.commands;
 
 import TheCellBeyond.internal.ResourceID;
 import org.joml.Vector2f;
+import org.joml.Vector4f;
 
 public class RectCommand extends RenderCommand {
     public ResourceID textureRID = null;
@@ -13,7 +14,7 @@ public class RectCommand extends RenderCommand {
     };
     public boolean flipHorizontally = false;
     public boolean flipVertically = false;
-    public final Vector2f modulate = new Vector2f(1.0f);
+    public final Vector4f modulate = new Vector4f(1.0f);
 
     public final Vector2f position = new Vector2f();
     public float rotationDegrees = 0.0f;

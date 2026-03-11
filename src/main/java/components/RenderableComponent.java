@@ -1,0 +1,34 @@
+package components;
+
+import render.RenderNode;
+import render.Renderable;
+import render.commands.RenderCommand;
+
+public abstract class RenderableComponent extends Component implements Renderable {
+    protected boolean renderDirty = true;
+    private RenderNode renderNode = null;
+
+    protected RenderableComponent(String name) {
+        super(name);
+    }
+
+    @Override
+    public RenderCommand buildRenderCommand() {
+        return null;
+    }
+
+    @Override
+    public boolean renderDirty() {
+        return renderDirty;
+    }
+
+    @Override
+    public void renderDirty(boolean dirty) {
+        renderDirty = dirty;
+    }
+
+    @Override
+    public RenderNode renderNode() {
+        return renderNode;
+    }
+}

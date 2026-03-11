@@ -3,19 +3,10 @@ package render.commands;
 import TheCellBeyond.internal.ResourceID;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
+import render.text.HorizontalAlignment;
+import render.text.VerticalAlignment;
 
 public class TextCommand extends RenderCommand {
-    //TODO: remove the enums from TextRenderer from the future
-    public enum HorizontalAlignment {
-        Left,
-        Centre,
-        Right
-    }
-    public enum VerticalAlignment {
-        Top,
-        Middle,
-        Bottom
-    }
     public String text = "";
     public ResourceID fontRID = null;
     public float points = 12.0f;
@@ -23,7 +14,7 @@ public class TextCommand extends RenderCommand {
     public VerticalAlignment verticalAlignment = VerticalAlignment.Top;
     public final Vector4f modulate = new Vector4f(1.0f);
 
-    public final Vector4f position = new Vector4f();
+    public final Vector2f position = new Vector2f();
     public float rotationDegrees = 0.0f;
     public final Vector2f scale = new Vector2f(1.0f);
 
