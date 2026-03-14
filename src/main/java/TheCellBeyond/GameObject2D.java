@@ -1,10 +1,13 @@
 package TheCellBeyond;
 
 import components.*;
+import editor.template.EditorTemplate;
 import imgui.ImGui;
 import imgui.flag.ImGuiTreeNodeFlags;
 import org.joml.Matrix3x2f;
 import org.joml.Vector2f;
+import render.commands.RenderCommand;
+import render.commands.TransformCommand;
 
 import java.util.List;
 
@@ -659,6 +662,18 @@ public class GameObject2D extends RenderableObject {
     }
 
     /**
+     * Set the values of this 2D object's local transform using the given transform.
+     * <p>
+     * This will trigger the transform dirty flag if the values are different.
+     * @param newTransform the transform to copy values from
+     */
+    public void localTransform(Transform2D newTransform) {
+        if (!localTransform2D.equals(newTransform)) return;
+        Transform2D.copy(newTransform, localTransform2D);
+        setTransformDirty();
+    }
+
+    /**
      * Get a copy for the global transform of this 2D object.
      * @return a new {@link Transform2D}
      */
@@ -769,19 +784,24 @@ public class GameObject2D extends RenderableObject {
 
     @Override
     public void additionalImGuiLogic() {
-        ImGui.spacing();
-        boolean openTransform = ImGui.collapsingHeader("GameObject2D##Transform_GO2D_Properties_" + getUUID(), ImGuiTreeNodeFlags.DefaultOpen);
-        if (openTransform) {
-            Transform2D editing = new Transform2D(localTransform2D);
-            ImGui.indent();
-            localTransform2D.imgui();
-            ImGui.unindent();
-            if (!editing.equals(localTransform2D)) setTransformDirty();
-        }
+        EditorTemplate.render(this);
     }
 
     @Override
     public int renderZIndex() {
         return globalZIndex();
+    }
+
+    @Override
+    public RenderCommand buildRenderCommand() {
+        TransformCommand command = TransformCommand.acquire();
+        command.submitterID = getUID();
+        command.position.set(globalPosition());
+        command.rotationDegrees = globalRotation();
+        command.scale.set(globalScale());
+        command.zIndex = globalZIndex();
+        command.visible = visible;
+        command.modulate.set(selfModulate);
+        return command;
     }
 }

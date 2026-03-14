@@ -73,46 +73,37 @@ public class TileSetEditor {
             ImGui.textWrapped("Select a Tile Map component from Inspector panel to start editing its details");
             return;
         }
-
         if (editingTileMap.isRemoved() || editingTileMap.getUUID() == null) {
             clearDialogData();
             return;
         }
-
         float remainWidth = Math.max(120.0f, ImGui.getContentRegionAvailX() * tileSetEditPercentage);
         if (!ImGui.beginTable("##TSE_Main_Region_Layout", 3, ImGuiTableFlags.SizingStretchProp, ImGui.getContentRegionAvail())) return;
         ImGui.tableSetupColumn("##TSE_TileSet_SpriteList_Column", ImGuiTableColumnFlags.WidthFixed, remainWidth);
         ImGui.tableSetupColumn("##TSE_TileSet_Tile_Properties_Column", ImGuiTableColumnFlags.WidthFixed, remainWidth);
         ImGui.tableSetupColumn("##TSE_TileSet_Image_Column", ImGuiTableColumnFlags.WidthStretch);
-
         ImGui.tableNextColumn();
         renderTileSetSpriteList();
-
         ImGui.tableNextColumn();
         renderTileProperties();
-
         ImGui.tableNextColumn();
         renderTileSetControl();
         renderTileSetImage();
-
         ImGui.endTable();
     }
 
     private static void renderTileSetSpriteList() {
         if (editingTileMap == null) return;
-
         if (!ImGui.beginChild("##TSE_TileSet_Sprite_List_Region", ImGui.getContentRegionAvail(), ImGuiChildFlags.Border)) {
             ImGui.endChild();
             return;
         }
-
         TileSet tileSet = editingTileMap.tileSet();
         if (tileSet == null) {
             if (ImGui.button("Create new Tile set", ImGui.getContentRegionAvailX(), 0.0f)) editingTileMap.tileSet(new TileSet());
             ImGui.endChild();
             return;
         }
-
         Sprite mainSprite = tileSet.tileSetSprite();
         if (mainSprite == null) {
             ImGui.beginDisabled();
@@ -122,7 +113,6 @@ public class TileSetEditor {
             setTileSetSprite();
             return;
         }
-
         if (!ImGui.beginTable("##TSE_TileSet_Sprite_List_Selectable_Layout", 2, ImGuiTableFlags.SizingStretchProp)) {
             ImGui.endChild();
             return;

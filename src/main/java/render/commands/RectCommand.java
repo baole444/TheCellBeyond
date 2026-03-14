@@ -16,20 +16,12 @@ public class RectCommand extends RenderCommand {
     public boolean flipVertically = false;
     public final Vector4f modulate = new Vector4f(1.0f);
 
-    public final Vector2f position = new Vector2f();
-    public float rotationDegrees = 0.0f;
-    public final Vector2f scale = new Vector2f(1.0f);
-
     RectCommand() {
         super(CommandType.Rect);
     }
 
     public static RectCommand acquire() {
         return RenderCommandPool.get().acquire(RectCommand.class, RectCommand::new);
-    }
-
-    public static void release(RectCommand command) {
-        RenderCommandPool.get().release(command);
     }
 
     @Override
@@ -43,8 +35,5 @@ public class RectCommand extends RenderCommand {
         flipHorizontally = false;
         flipVertically = false;
         modulate.set(1.0f);
-        position.zero();
-        rotationDegrees = 0.0f;
-        scale.set(1.0f);
     }
 }

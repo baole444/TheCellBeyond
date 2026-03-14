@@ -1,5 +1,6 @@
 package render;
 
+import org.joml.Vector4f;
 import render.commands.RenderCommand;
 
 public interface Renderable {
@@ -7,5 +8,4 @@ public interface Renderable {
     boolean renderDirty();
     void renderDirty(boolean dirty);
     int renderZIndex();
-    RenderNode renderNode();
 }

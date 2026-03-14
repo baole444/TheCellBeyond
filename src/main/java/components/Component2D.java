@@ -409,14 +409,15 @@ public abstract class Component2D extends RenderableComponent {
     private void updateEffectiveTransform() {
         if (!isTransformDirty && effectiveTransform2D != null) return;
         if (effectiveTransform2D == null) effectiveTransform2D = new Transform2D();
-        if (gameObject instanceof GameObject2D go2D) {
-            if (go2D.isTransformUpdating()) return;
-            Transform2D goTransform2D = go2D.globalTransform();
-            effectiveTransform2D.copy(goTransform2D);
-            addTransforms(effectiveTransform2D, localTransform2D);
-        } else {
-            effectiveTransform2D.copy(localTransform2D);
+        if (!(gameObject instanceof GameObject2D go2D)) {
+            Transform2D.copy(effectiveTransform2D, localTransform2D);
+            isTransformDirty = false;
+            return;
         }
+        if (go2D.isTransformUpdating()) return;
+        Transform2D goTransform2D = go2D.globalTransform();
+        Transform2D.copy(effectiveTransform2D, goTransform2D);
+        addTransforms(effectiveTransform2D, localTransform2D);
         isTransformDirty = false;
     }
 

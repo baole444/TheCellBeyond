@@ -20,7 +20,6 @@ public class Sprite {
                 new Vector2f(0, 0),
                 new Vector2f(0, 1)
     };
-
     private volatile transient boolean dirty = true;
 
     public ResourceID textureRID() {

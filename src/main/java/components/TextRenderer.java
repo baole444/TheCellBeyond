@@ -1,6 +1,5 @@
 package components;
 
-import TheCellBeyond.Transform2D;
 import TheCellBeyond.internal.ResourceID;
 import TheCellBeyond.internal.ResourceStatus;
 import TheCellBeyond.internal.ResourceStatusCallback;
@@ -268,10 +267,6 @@ public class TextRenderer extends Component2D implements ResourceStatusListener 
         command.horizontalAlignment = hAlign;
         command.verticalAlignment = vAlign;
         command.modulate.set(color);
-        Transform2D transform2D = effectiveTransform();
-        command.position.set(transform2D.position);
-        command.rotationDegrees = transform2D.rotation;
-        command.scale.set(transform2D.scale);
         return command;
     }
 }

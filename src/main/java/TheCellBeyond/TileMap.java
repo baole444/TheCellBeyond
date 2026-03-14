@@ -17,6 +17,7 @@ import physic2d.StaticBody2D;
 import physic2d.collider.TileCollider2D;
 import render.commands.MeshCommand;
 import render.commands.RenderCommand;
+import render.commands.TransformCommand;
 import render.texture.Tile;
 import render.texture.TileSet;
 import scene.Scene;
@@ -208,7 +209,6 @@ public class TileMap extends GameObject2D {
             super.additionalImGuiLogic();
             return;
         }
-
         ImBoolean enableCollision = new ImBoolean(this.enableCollision);
         if (ImGui.checkbox("Enable Collision##TileMap_Enable_Collision_" + getUUID(), enableCollision)) this.enableCollision = enableCollision.get();
         if (ImGui.isItemHovered()) {
@@ -302,14 +302,12 @@ public class TileMap extends GameObject2D {
 
     @Override
     public RenderCommand buildRenderCommand() {
+        RenderCommand renderCommand = super.buildRenderCommand();
         MeshCommand command = MeshCommand.acquire();
         command.submitterID = getUID();
         command.tilePlacements = tilePlacements();
-        command.tileSetRID = null;
-        Transform2D transform2D = globalTransform();
-        command.position.set(transform2D.position);
-        command.rotationDegrees = transform2D.rotation;
-        command.scale.set(transform2D.scale);
+        command.tileSet = tileSet;
+        command.next = renderCommand;
         return command;
     }
 }

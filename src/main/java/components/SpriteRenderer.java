@@ -193,20 +193,15 @@ public class SpriteRenderer extends Component2D {
         RectCommand command = RectCommand.acquire();
         command.submitterID = gameObject != null ? gameObject.getUID() : 0;
         ResourceID textureRID = sprite != null ? sprite.textureRID() : null;
-        if (textureRID != null) {
-            command.textureRID = textureRID;
-            Vector2f[] uvs = textureCoordinates();
-            if (uvs != null) {
-                for (int i = 0; i < 4; i++) command.uvCoordinates[i].set(uvs[i]);
-            }
-        }
         command.flipVertically = flipVertically;
         command.flipHorizontally = flipHorizontally;
         command.modulate.set(color());
-        Transform2D transform2D = effectiveTransform();
-        command.position.set(transform2D.position);
-        command.rotationDegrees = transform2D.rotation;
-        command.scale.set(transform2D.scale);
+        if (textureRID == null) return command;
+        command.textureRID = textureRID;
+        Vector2f[] uvs = textureCoordinates();
+        if (uvs != null) {
+            for (int i = 0; i < 4; i++) command.uvCoordinates[i].set(uvs[i]);
+        }
         return command;
     }
 }

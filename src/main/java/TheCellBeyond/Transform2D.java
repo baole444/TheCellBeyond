@@ -106,23 +106,26 @@ public class Transform2D extends Component {
     }
 
     /**
-     * Copy the values of this transform's component to that of the designated transform.
-     * @param destination the transform that needs copying
-     */
-    public void copy(Transform2D destination) {
-        this.position.set(destination.position);
-        this.scale.set(destination.scale);
-        this.rotation = destination.rotation;
-        this.zIndex = destination.zIndex;
-        this.relativeZIndex = destination.relativeZIndex;
-    }
-
-    /**
      * Create a new {@link Transform2D} and initialize its component to that of this transform.
      * @return a new {@link Transform2D}
      */
     public Transform2D copy() {
         return new Transform2D(this);
+    }
+
+    /**
+     * Apply the values of the source transform to the destination transform.
+     * If either of the source or destination is null, this will do nothing.
+     * @param source the transform to get values from
+     * @param destination the transform to apply values to
+     */
+    public static void copy(Transform2D source,Transform2D destination) {
+        if (source == null || destination == null) return;
+        destination.position.set(source.position);
+        destination.scale.set(source.scale);
+        destination.rotation = source.rotation;
+        destination.zIndex = source.zIndex;
+        destination.relativeZIndex = source.relativeZIndex;
     }
 
     @Override
