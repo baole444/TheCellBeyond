@@ -302,11 +302,12 @@ public class TileMap extends GameObject2D {
 
     @Override
     public RenderCommand buildRenderCommand() {
-        RenderCommand renderCommand = super.buildRenderCommand();
         MeshCommand command = MeshCommand.acquire();
         command.submitterID = getUID();
         command.tilePlacements = tilePlacements();
         command.tileSet = tileSet;
+        RenderCommand renderCommand = super.buildRenderCommand();
+        if (renderCommand == null) return command;
         renderCommand.next = command;
         return renderCommand;
     }

@@ -106,6 +106,34 @@ public class Transform2D extends Component {
     }
 
     /**
+     * Check if this transform is identity transform.
+     * <p>
+     * This means that the position is at (0,0), scale at (1,1),
+     * rotation at 0, is relative z-Index, and z-Index at 0.
+     * @return true if is identity transform
+     */
+    public boolean isIdentity() {
+        return position.x == 0.0f && position.y == 0.0f
+                && scale.x == 1.0f && scale.y == 1.0f
+                && rotation == 0.0f
+                && relativeZIndex && zIndex == 0;
+    }
+
+    /**
+     * Set this transform values to that of the identity transform.
+     * <p>
+     * This will set the position to (0,0), scale to (1,1),
+     * rotation to 0, relative z-Index to true, and z-Index to 0.
+     */
+    public void identity() {
+        position.zero();
+        scale.set(1.0f);
+        rotation = 0.0f;
+        relativeZIndex = true;
+        zIndex = 0;
+    }
+
+    /**
      * Create a new {@link Transform2D} and initialize its component to that of this transform.
      * @return a new {@link Transform2D}
      */
@@ -137,7 +165,6 @@ public class Transform2D extends Component {
     public boolean equals(Object o) {
         if (o == null) return false;
         if (!(o instanceof Transform2D t)) return false;
-
         return t.position.equals(this.position) &&
                 t.scale.equals(this.scale) &&
                 t.rotation == this.rotation &&

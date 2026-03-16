@@ -267,6 +267,9 @@ public class TextRenderer extends Component2D implements ResourceStatusListener 
         command.horizontalAlignment = hAlign;
         command.verticalAlignment = vAlign;
         command.modulate.set(color);
-        return command;
+        RenderCommand renderCommand = super.buildRenderCommand();
+        if (renderCommand == null) return command;
+        renderCommand.next = command;
+        return renderCommand;
     }
 }

@@ -4,6 +4,8 @@ import TheCellBeyond.GameObject2D;
 import TheCellBeyond.Transform2D;
 import imgui.ImGui;
 import org.joml.Vector2f;
+import render.commands.RenderCommand;
+import render.commands.TransformCommand;
 
 /**
  * Component2D is an abstract 2D component, used as base class for all component types that need spatial world present.
@@ -437,5 +439,17 @@ public abstract class Component2D extends RenderableComponent {
             return;
         }
         target.zIndex = offset.zIndex;
+    }
+
+    @Override
+    public RenderCommand buildRenderCommand() {
+        if (localTransform2D.isIdentity()) return null;
+        TransformCommand command = TransformCommand.acquire();
+        Transform2D effectiveTransform = effectiveTransform();
+        command.position.set(effectiveTransform.position);
+        command.scale.set(effectiveTransform.scale);
+        command.rotationDegrees = effectiveTransform.rotation;
+        command.zIndex = effectiveTransform.zIndex;
+        return command;
     }
 }

@@ -4,7 +4,7 @@ import render.Renderable;
 import render.commands.RenderCommand;
 
 public abstract class RenderableComponent extends Component implements Renderable {
-    protected boolean renderDirty = true;
+    protected transient boolean renderDirty = true;
 
     protected RenderableComponent(String name) {
         super(name);
