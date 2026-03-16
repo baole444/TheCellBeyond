@@ -784,7 +784,15 @@ public class GameObject2D extends RenderableObject {
 
     @Override
     public void additionalImGuiLogic() {
-        EditorTemplate.render(this);
+        ImGui.spacing();
+        boolean openTransform = ImGui.collapsingHeader("GameObject2D##Transform_GO2D_Properties_" + getUUID(), ImGuiTreeNodeFlags.DefaultOpen);
+        if (openTransform) {
+            Transform2D editing = new Transform2D(localTransform2D);
+            ImGui.indent();
+            localTransform2D.imgui();
+            ImGui.unindent();
+            if (!editing.equals(localTransform2D)) setTransformDirty();
+        }
     }
 
     @Override

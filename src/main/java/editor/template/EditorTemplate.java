@@ -42,7 +42,7 @@ public final class EditorTemplate {
         if (object == null) return;
         switch (object) {
             case Camera2D camera2D -> Camera2DTemplate.render(camera2D);
-            case GameObject2D go2D -> GameObject2DTemplate.render(go2D);
+            //case GameObject2D go2D -> GameObject2DTemplate.render(go2D);
             case GameObject go -> GameObjectTemplate.render(go);
         }
     }
