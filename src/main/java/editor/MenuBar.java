@@ -59,6 +59,7 @@ final class MenuBar {
             ImGui.text("No scene added yet.");
             if (ImGui.menuItem("Create new Scene?##MenuBar_Scene_Menu_Ask_New_Scene")) showNewSceneDialog();
             ImGui.endMenu();
+            ImGui.endMenu();
             return;
         }
         for (String name : sceneNameList) {
