@@ -129,7 +129,7 @@ public class Scene {
     }
 
     private boolean rootIsFreed() {
-        if (root.isRemoved()) {
+        if (root == null || root.isRemoved()) {
             Logger.info(String.format("Root object had been freed, exiting scene '%s'", name));
             destroy();
             return true;
