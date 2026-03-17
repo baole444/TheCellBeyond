@@ -1,6 +1,7 @@
 package TheCellBeyond;
 
 import TheCellBeyond.internal.LogicServer;
+import TheCellBeyond.internal.RenderingServer;
 import editor.ImGuiLayer;
 import editor.StartupWindow;
 import editor.preference.UserPreference;
@@ -95,6 +96,7 @@ public final class Window implements EngineEventListener {
     public void run() {
         Logger.info("Starting LWJGL " + Version.getVersion());
         initWindow();
+        RenderingServer.init();
         Renderer.init();
         String renderer = glGetString(GL_RENDERER);
         String version = glGetString(GL_VERSION);
@@ -270,8 +272,10 @@ public final class Window implements EngineEventListener {
                 }
                 DebugDraw.startFrame();
                 LogicServer.update(dt);
+                RenderingServer.get().update();
                 objectSelectionPass(rendererState, objectSelectShader);
                 normalPass(rendererState, defaultShader, dt);
+                RenderingServer.get().postFrameClear();
                 imGuiLayer.update(dt, LogicServer.currentScene());
             }
             MouseListener.endFrame();

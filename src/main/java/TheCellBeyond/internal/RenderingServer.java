@@ -18,13 +18,18 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class RenderingServer implements EngineEventListener {
-    private static final RenderingServer instance = new RenderingServer();
+    private static volatile RenderingServer instance;
     private final CopyOnWriteArrayList<RenderNode> roots = new CopyOnWriteArrayList<>();
     private final ConcurrentHashMap<Renderable, RenderNode> nodes = new ConcurrentHashMap<>();
     private final List<RenderCommand> nodeLinks = new ArrayList<>();
+    private RenderCommand chainHead = null;
 
     private RenderingServer() {
         register();
+    }
+
+    public static void init() {
+        if (instance == null) instance = new RenderingServer();
     }
 
     public static RenderingServer get() {
@@ -35,12 +40,17 @@ public class RenderingServer implements EngineEventListener {
         refreshCommands(roots);
         nodeLinks.clear();
         RenderCommand[] previousTail = {null};
-        chainNodes(roots, nodeLinks, previousTail);
+        chainHead = chainNodes(roots, nodeLinks, previousTail);
+    }
+
+    public RenderCommand chainHead() {
+        return chainHead;
     }
 
     public void postFrameClear() {
         for (RenderCommand tail : nodeLinks) tail.next = null;
         nodeLinks.clear();
+        chainHead = null;
     }
 
     @Override
@@ -169,8 +179,9 @@ public class RenderingServer implements EngineEventListener {
     private static void refreshCommands(List<RenderNode> nodes) {
         for (RenderNode node : nodes) {
             if (node.nodeOwner.renderDirty()) {
-                releaseCommandChain(node.commandHeader);
+                RenderCommand oldHeader = node.commandHeader;
                 node.commandHeader = node.nodeOwner.buildRenderCommand();
+                releaseCommandChain(oldHeader);
                 node.nodeOwner.renderDirty(false);
                 accumulateTransform(node);
             }
@@ -178,12 +189,15 @@ public class RenderingServer implements EngineEventListener {
         }
     }
 
-    private static void chainNodes(List<RenderNode> nodes, List<RenderCommand> nodeLinks, RenderCommand[] previousTail) {
+    private static RenderCommand chainNodes(List<RenderNode> nodes, List<RenderCommand> nodeLinks, RenderCommand[] previousTail) {
+        RenderCommand head = null;
         for (RenderNode node : nodes) {
             if (node.commandHeader == null) {
-                chainNodes(node.renderingChildren, nodeLinks, previousTail);
+                RenderCommand childHead = chainNodes(node.renderingChildren, nodeLinks, previousTail);
+                if (head == null) head = childHead;
                 continue;
             }
+            if (head == null) head = node.commandHeader;
             if (previousTail[0] != null) {
                 previousTail[0].next = node.commandHeader;
                 nodeLinks.add(previousTail[0]);
@@ -193,5 +207,6 @@ public class RenderingServer implements EngineEventListener {
             previousTail[0] = tail;
             chainNodes(node.renderingChildren, nodeLinks, previousTail);
         }
+        return head;
     }
 }

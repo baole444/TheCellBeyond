@@ -15,6 +15,7 @@ public class RectCommand extends RenderCommand {
     public boolean flipHorizontally = false;
     public boolean flipVertically = false;
     public final Vector4f modulate = new Vector4f(1.0f);
+    public final Vector2f size = new Vector2f(0.0f);
 
     RectCommand() {
         super(CommandType.Rect);
@@ -35,5 +36,6 @@ public class RectCommand extends RenderCommand {
         flipHorizontally = false;
         flipVertically = false;
         modulate.set(1.0f);
+        size.set(0.0f);
     }
 }

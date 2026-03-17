@@ -2,7 +2,6 @@ package TheCellBeyond.internal;
 
 import TheCellBeyond.GameObject;
 import TheCellBeyond.Viewport;
-import components.Component;
 import org.joml.Vector2f;
 import physic2d.Physic2D;
 
@@ -60,21 +59,6 @@ public record DataSnapshot(
      */
     public boolean isUpdated() {
         return updated.get();
-    }
-
-    /**
-     * Extract dirty object from this snapshot for rendering.
-     * @return a rendering snapshot
-     */
-    public RenderUpdateSnapshot extractRenderData() {
-        if (!updated.get()) return null;
-        List<GameObject> updateObject = cachedObjectsByUUID.values().stream()
-                .filter(go -> go.isDirty() && !go.isRemoved())
-                .toList();
-        if (updateObject.isEmpty()) return null;
-        RenderUpdateSnapshot snapshot = new RenderUpdateSnapshot(updateObject);
-        updateObject.forEach(go -> go.setDirty(false));
-        return snapshot;
     }
 
     /**

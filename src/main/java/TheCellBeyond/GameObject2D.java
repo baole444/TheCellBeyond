@@ -702,7 +702,9 @@ public class GameObject2D extends RenderableObject {
     /**
      * Optional hook for additional 2D object's transform dirty logic.
      */
-    protected void onTransformDirty() {}
+    protected void onTransformDirty() {
+        renderDirty = true;
+    }
 
     /**
      * Check if this 2D object is in the process of updating its global transform.

@@ -196,6 +196,7 @@ public class SpriteRenderer extends Component2D {
         command.flipVertically = flipVertically;
         command.flipHorizontally = flipHorizontally;
         command.modulate.set(color());
+        command.size.set(spriteSizeAsWorldUnit());
         if (textureRID != null) {
             command.textureRID = textureRID;
             Vector2f[] uvs = textureCoordinates();

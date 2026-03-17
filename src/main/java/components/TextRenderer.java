@@ -49,12 +49,14 @@ public class TextRenderer extends Component2D implements ResourceStatusListener 
 
     @Override
     protected void onStart() {
+        validateFields();
         ResourceStatusCallback.register(this);
         requestLoadFont();
     }
 
     @Override
     protected void onEditorStart() {
+        validateFields();
         ResourceStatusCallback.register(this);
         requestLoadFont();
     }
@@ -67,8 +69,22 @@ public class TextRenderer extends Component2D implements ResourceStatusListener 
 
     @Override
     protected void onEditorUpdate(float dt) {
-        Vector2f pos = new Vector2f(effectiveTransform().position);
-        DebugDraw.addLine2(pos, new Vector2f(pos).add(textDimensions.x, 0), new Vector4f(0.8f, 0.2f, 0.2f, 1.0f), 1);
+        float xOffset = 0;
+        if (hAlign != null) {
+            switch (hAlign) {
+                case Centre -> xOffset = -textDimensions.x / 2.0f;
+                case Right -> xOffset = -textDimensions.x;
+            }
+        }
+        float yOffset = 0;
+        if (vAlign != null) {
+            switch (vAlign) {
+                case Middle -> yOffset = -textDimensions.y / 2.0f;
+                case Bottom -> yOffset = -textDimensions.y;
+            }
+        }
+        Vector2f start = new Vector2f(effectiveTransform().position).add(xOffset, yOffset);
+        DebugDraw.addLine2(start, new Vector2f(start).add(textDimensions.x, 0), new Vector4f(0.8f, 0.2f, 0.2f, 1.0f), 1);
         super.onEditorUpdate(dt);
     }
 
@@ -99,7 +115,7 @@ public class TextRenderer extends Component2D implements ResourceStatusListener 
         if (EditorWidget.colorCtrl("Color", color, this)) renderDirty = true;
         ImGui.text("Alignment");
         ImGui.indent();
-        if (ImGui.beginCombo("Horizontal", hAlign.toString())) {
+        if (ImGui.beginCombo("Horizontal", hAlign == null ? "Select one..." : hAlign.toString())) {
             for (HorizontalAlignment align : HorizontalAlignment.values()) {
                 if (!ImGui.selectable(align.toString(), align == hAlign)) continue;
                 hAlign = align;
@@ -107,7 +123,7 @@ public class TextRenderer extends Component2D implements ResourceStatusListener 
             }
             ImGui.endCombo();
         }
-        if (ImGui.beginCombo("Vertical", vAlign.toString())) {
+        if (ImGui.beginCombo("Vertical", vAlign == null ? "Select one..." : vAlign.toString())) {
             for (VerticalAlignment align : VerticalAlignment.values()) {
                 if (ImGui.selectable(align.toString(), align == vAlign)) continue;
                 vAlign = align;
@@ -189,7 +205,7 @@ public class TextRenderer extends Component2D implements ResourceStatusListener 
     }
 
     public void setHorizontalAlignment(HorizontalAlignment hAlign) {
-        if (this.hAlign == hAlign) return;
+        if (hAlign == null || this.hAlign == hAlign) return;
         this.hAlign = hAlign;
         renderDirty = true;
     }
@@ -199,7 +215,7 @@ public class TextRenderer extends Component2D implements ResourceStatusListener 
     }
 
     public void setVerticalAlignment(VerticalAlignment vAlign) {
-        if (this.vAlign == vAlign) return;
+        if (vAlign == null || this.vAlign == vAlign) return;
         this.vAlign = vAlign;
         renderDirty = true;
     }
@@ -257,6 +273,13 @@ public class TextRenderer extends Component2D implements ResourceStatusListener 
         renderDirty = true;
     }
 
+    //TODO: need proper null safe resolution later
+    private void validateFields() {
+        if (text == null) text = "";
+        if (hAlign == null) hAlign = HorizontalAlignment.Left;
+        if (vAlign == null) vAlign = VerticalAlignment.Top;
+    }
+
     @Override
     public RenderCommand buildRenderCommand() {
         TextCommand command = TextCommand.acquire();
@@ -264,8 +287,8 @@ public class TextRenderer extends Component2D implements ResourceStatusListener 
         command.text = text;
         command.fontRID = fontRID;
         command.points = point;
-        command.horizontalAlignment = hAlign;
-        command.verticalAlignment = vAlign;
+        command.horizontalAlignment = hAlign == null ? HorizontalAlignment.Left : hAlign;
+        command.verticalAlignment = vAlign == null ? VerticalAlignment.Top : vAlign;
         command.modulate.set(color);
         RenderCommand renderCommand = super.buildRenderCommand();
         if (renderCommand == null) return command;
