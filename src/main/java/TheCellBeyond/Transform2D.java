@@ -106,15 +106,31 @@ public class Transform2D extends Component {
     }
 
     /**
-     * Copy the values of this transform's component to that of the designated transform.
-     * @param destination the transform that needs copying
+     * Check if this transform is identity transform.
+     * <p>
+     * This means that the position is at (0,0), scale at (1,1),
+     * rotation at 0, is relative z-Index, and z-Index at 0.
+     * @return true if is identity transform
      */
-    public void copy(Transform2D destination) {
-        this.position.set(destination.position);
-        this.scale.set(destination.scale);
-        this.rotation = destination.rotation;
-        this.zIndex = destination.zIndex;
-        this.relativeZIndex = destination.relativeZIndex;
+    public boolean isIdentity() {
+        return position.x == 0.0f && position.y == 0.0f
+                && scale.x == 1.0f && scale.y == 1.0f
+                && rotation == 0.0f
+                && relativeZIndex && zIndex == 0;
+    }
+
+    /**
+     * Set this transform values to that of the identity transform.
+     * <p>
+     * This will set the position to (0,0), scale to (1,1),
+     * rotation to 0, relative z-Index to true, and z-Index to 0.
+     */
+    public void identity() {
+        position.zero();
+        scale.set(1.0f);
+        rotation = 0.0f;
+        relativeZIndex = true;
+        zIndex = 0;
     }
 
     /**
@@ -123,6 +139,21 @@ public class Transform2D extends Component {
      */
     public Transform2D copy() {
         return new Transform2D(this);
+    }
+
+    /**
+     * Apply the values of the source transform to the destination transform.
+     * If either of the source or destination is null, this will do nothing.
+     * @param source the transform to get values from
+     * @param destination the transform to apply values to
+     */
+    public static void copy(Transform2D source,Transform2D destination) {
+        if (source == null || destination == null) return;
+        destination.position.set(source.position);
+        destination.scale.set(source.scale);
+        destination.rotation = source.rotation;
+        destination.zIndex = source.zIndex;
+        destination.relativeZIndex = source.relativeZIndex;
     }
 
     @Override
@@ -134,7 +165,6 @@ public class Transform2D extends Component {
     public boolean equals(Object o) {
         if (o == null) return false;
         if (!(o instanceof Transform2D t)) return false;
-
         return t.position.equals(this.position) &&
                 t.scale.equals(this.scale) &&
                 t.rotation == this.rotation &&

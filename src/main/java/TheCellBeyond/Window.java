@@ -1,6 +1,7 @@
 package TheCellBeyond;
 
 import TheCellBeyond.internal.LogicServer;
+import TheCellBeyond.internal.RenderingServer;
 import editor.ImGuiLayer;
 import editor.StartupWindow;
 import editor.preference.UserPreference;
@@ -25,7 +26,7 @@ import org.lwjgl.opengl.GL;
 import render.*;
 import render.text.FontManager;
 import scene.SceneManager;
-import utility.AssetsPool;
+import utility.AssetManager;
 import editor.dialog.ExitConfirmDialog;
 import utility.Settings;
 import utility.log.EngineLog;
@@ -95,6 +96,7 @@ public final class Window implements EngineEventListener {
     public void run() {
         Logger.info("Starting LWJGL " + Version.getVersion());
         initWindow();
+        RenderingServer.init();
         Renderer.init();
         String renderer = glGetString(GL_RENDERER);
         String version = glGetString(GL_VERSION);
@@ -229,7 +231,7 @@ public final class Window implements EngineEventListener {
 
     private void endScreen() {
         FontManager.get().dispose();
-        AssetsPool.clearCache();
+        AssetManager.get().clearCache();
         RendererState.cleanup();
         EngineEventCallback.dispose();
         imGuiLayer.getImGuiGl3().shutdown();
@@ -252,9 +254,10 @@ public final class Window implements EngineEventListener {
         float dt = -1.0f;
         float accumulatedDT = 0.0f;
         int accumulatedFrame = 0;
-        Shader defaultShader = AssetsPool.loadShader(Settings.ShaderPath.DefaultTextureShader);
-        Shader objectSelectShader = AssetsPool.loadShader(Settings.ShaderPath.ObjectSelectionShader);
-        Shader debugLineShader = AssetsPool.loadShader(Settings.ShaderPath.DebugLine2Shader);
+        AssetManager assetManager = AssetManager.get();
+        Shader defaultShader = assetManager.getShader(assetManager.loadShader(Settings.ShaderPath.DefaultTextureShader));
+        Shader objectSelectShader = assetManager.getShader(assetManager.loadShader(Settings.ShaderPath.ObjectSelectionShader));
+        Shader debugLineShader = assetManager.getShader(assetManager.loadShader(Settings.ShaderPath.DebugLine2Shader));
         DebugDraw.init(debugLineShader);
         RendererState rendererState = RendererState.get();
         while (!glfwWindowShouldClose(windowPtr)) {
@@ -269,8 +272,10 @@ public final class Window implements EngineEventListener {
                 }
                 DebugDraw.startFrame();
                 LogicServer.update(dt);
+                RenderingServer.get().update();
                 objectSelectionPass(rendererState, objectSelectShader);
                 normalPass(rendererState, defaultShader, dt);
+                RenderingServer.get().postFrameClear();
                 imGuiLayer.update(dt, LogicServer.currentScene());
             }
             MouseListener.endFrame();

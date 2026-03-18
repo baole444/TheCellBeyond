@@ -1,10 +1,13 @@
 package TheCellBeyond;
 
 import components.*;
+import editor.template.EditorTemplate;
 import imgui.ImGui;
 import imgui.flag.ImGuiTreeNodeFlags;
 import org.joml.Matrix3x2f;
 import org.joml.Vector2f;
+import render.commands.RenderCommand;
+import render.commands.TransformCommand;
 
 import java.util.List;
 
@@ -30,7 +33,7 @@ import java.util.List;
  * <b>Inherited by:</b> {@link physic2d.PhysicBody2D}
  * @see Transform2D Transform2D data structure
  */
-public class GameObject2D extends GameObject {
+public class GameObject2D extends RenderableObject {
     /**
      * This 2D object's local transform.
      */
@@ -659,6 +662,18 @@ public class GameObject2D extends GameObject {
     }
 
     /**
+     * Set the values of this 2D object's local transform using the given transform.
+     * <p>
+     * This will trigger the transform dirty flag if the values are different.
+     * @param newTransform the transform to copy values from
+     */
+    public void localTransform(Transform2D newTransform) {
+        if (!localTransform2D.equals(newTransform)) return;
+        Transform2D.copy(newTransform, localTransform2D);
+        setTransformDirty();
+    }
+
+    /**
      * Get a copy for the global transform of this 2D object.
      * @return a new {@link Transform2D}
      */
@@ -687,7 +702,9 @@ public class GameObject2D extends GameObject {
     /**
      * Optional hook for additional 2D object's transform dirty logic.
      */
-    protected void onTransformDirty() {}
+    protected void onTransformDirty() {
+        renderDirty = true;
+    }
 
     /**
      * Check if this 2D object is in the process of updating its global transform.
@@ -778,5 +795,23 @@ public class GameObject2D extends GameObject {
             ImGui.unindent();
             if (!editing.equals(localTransform2D)) setTransformDirty();
         }
+    }
+
+    @Override
+    public int renderZIndex() {
+        return globalZIndex();
+    }
+
+    @Override
+    public RenderCommand buildRenderCommand() {
+        TransformCommand command = TransformCommand.acquire();
+        command.submitterID = getUID();
+        command.position.set(globalPosition());
+        command.rotationDegrees = globalRotation();
+        command.scale.set(globalScale());
+        command.zIndex = globalZIndex();
+        command.visible = visible;
+        command.modulate.set(selfModulate);
+        return command;
     }
 }

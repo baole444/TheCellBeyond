@@ -2,15 +2,22 @@ package editor.components;
 
 import TheCellBeyond.GameObject;
 import TheCellBeyond.GameObject2D;
+import TheCellBeyond.Transform2D;
 import TheCellBeyond.Viewport;
+import components.Component2D;
 import components.IsNotSelectable;
 import components.NotSerializeComponent;
 import components.SpriteRenderer;
+import org.joml.Vector2f;
 import org.joml.Vector4f;
+import render.commands.RectCommand;
+import render.commands.RenderCommand;
+import render.commands.TransformCommand;
 import render.texture.Sprite;
 import render.texture.TextureUnit;
-import utility.AssetsPool;
+import utility.AssetManager;
 import utility.Settings;
+import utility.WorldUnit;
 
 /**
  * EditorObjectIndicator is an indicator sprite mounted to 2D object in scenes if the object is serialized.
@@ -18,9 +25,12 @@ import utility.Settings;
  * <p>
  * The indicator components is only mounted and active outside runtime mode.
  */
-public final class EditorObjectIndicator extends SpriteRenderer implements NotSerializeComponent {
+public final class EditorObjectIndicator extends Component2D implements NotSerializeComponent {
     private static final String IndicatorPath = Settings.TexturePath.ObjectIndicator;
+    private static final int VerticesPerQuad = 4;
     private transient TextureUnit textureUnit;
+    private transient Sprite sprite;
+    private transient final Vector4f color = new Vector4f();
     private transient boolean isInitialized = false;
     private transient boolean active = false;
 
@@ -46,12 +56,13 @@ public final class EditorObjectIndicator extends SpriteRenderer implements NotSe
                 || !(gameObject instanceof GameObject2D)
         ) return;
         try {
-            if (!AssetsPool.hasTextureUnit(IndicatorPath)) {
-                AssetsPool.addTextureUnit(IndicatorPath,
-                        new TextureUnit(AssetsPool.loadTexture(IndicatorPath), 12, 12)
+            AssetManager manager = AssetManager.get();
+            if (!manager.hasTextureUnit(IndicatorPath)) {
+                manager.addTextureUnit(IndicatorPath,
+                        new TextureUnit(manager.getTexture(manager.loadTexture(IndicatorPath)), 12, 12)
                 );
             }
-            textureUnit = AssetsPool.getTextureUnit(IndicatorPath);
+            textureUnit = manager.getTextureUnit(IndicatorPath);
             setActive();
             completeInit();
         } catch (Exception e) {
@@ -63,7 +74,8 @@ public final class EditorObjectIndicator extends SpriteRenderer implements NotSe
         if (textureUnit == null) return;
         Sprite sprite = textureUnit.getSprite();
         if (sprite == null) return;
-        sprite(sprite);
+        this.sprite = sprite;
+        renderDirty = true;
         isInitialized = true;
     }
 
@@ -107,11 +119,34 @@ public final class EditorObjectIndicator extends SpriteRenderer implements NotSe
 
     private void setInactive() {
         active = false;
-        color(new Vector4f(0.0f));
+        color.zero();
+        renderDirty = true;
     }
 
     private void setActive() {
         active = true;
-        color(new Vector4f(1.0f, 1.0f, 1.0f, 0.8f));
+        color.set(1.0f, 1.0f, 1.0f, 0.8f);
+        renderDirty = true;
+    }
+
+    @Override
+    public RenderCommand buildRenderCommand() {
+        RectCommand rect = RectCommand.acquire();
+        rect.submitterID = gameObject != null ? gameObject.getUID() : 0;
+        rect.modulate.set(color);
+        if (sprite != null) {
+            rect.size.set(WorldUnit.pixelToWorld(sprite.getWidth(), sprite.getHeight()));
+            if (sprite.textureRID() != null) {
+                rect.textureRID = sprite.textureRID();
+                Vector2f[] uv = sprite.getTextureCoordinates();
+                if (uv != null) for (int i = 0; i < VerticesPerQuad; i++) rect.uvCoordinates[i].set(uv[i]);
+            }
+        }
+        Transform2D effectiveTransform = effectiveTransform();
+        TransformCommand transform = TransformCommand.acquire();
+        transform.position.set(effectiveTransform.position);
+        transform.zIndex = effectiveTransform.zIndex;
+        transform.next = rect;
+        return transform;
     }
 }

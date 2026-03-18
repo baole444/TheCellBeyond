@@ -3,7 +3,6 @@ package scene;
 import TheCellBeyond.*;
 import TheCellBeyond.internal.DataSnapshot;
 import TheCellBeyond.internal.LogicServer;
-import TheCellBeyond.internal.RenderUpdateSnapshot;
 import components.Component;
 import editor.components.EditorObjectIndicator;
 import eventviewer.EngineEventCallback;
@@ -106,10 +105,6 @@ public class Scene {
         });
         updateQueues();
         sceneData.updated().set(true);
-        RenderUpdateSnapshot snapshot = sceneData.extractRenderData();
-        if (snapshot != null) {
-            EngineEventCallback.emit(new SceneEvent(SceneEvent.Type.ObjectUpdated, this, snapshot));
-        }
     }
 
     /**
@@ -155,8 +150,6 @@ public class Scene {
         });
         updateQueues();
         sceneData.updated().set(true);
-        RenderUpdateSnapshot snapshot = sceneData.extractRenderData();
-        if (snapshot != null) EngineEventCallback.emit(new SceneEvent(SceneEvent.Type.ObjectUpdated, this, snapshot));
     }
 
     /**

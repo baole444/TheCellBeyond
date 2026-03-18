@@ -1,5 +1,7 @@
 package render;
 
+import TheCellBeyond.internal.ResourceID;
+import TheCellBeyond.internal.ResourceStatus;
 import org.lwjgl.BufferUtils;
 import render.texture.TextureHandle;
 import render.texture.TextureManager;
@@ -9,21 +11,20 @@ import utility.UnifiedPaths;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.util.Objects;
 
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.stb.STBImage.stbi_info_from_memory;
 
 public class Texture {
+    public final ResourceID RID = new ResourceID(RenderResourceType.Texture);
     private AssetReference assetReference;
     private transient TextureHandle handle;
-    private transient int width, height;
+    private transient int width = -1; 
+    private transient int height = -1;
 
-    private transient boolean isSizeInitialized = false;
-
-    public Texture() {
-        width = -1;
-        height = -1;
-    }
+    public Texture() {}
 
     public void init(String filepath) {
         assetReference = new AssetReference(filepath);
@@ -32,14 +33,19 @@ public class Texture {
 
     private void loadTextureData() {
         UnifiedPaths resolver = UnifiedPaths.get();
-
         try (InputStream stream = resolver.getAssetStream(assetReference.resolvedPath())) {
             byte[] data = stream.readAllBytes();
             ByteBuffer buffer = BufferUtils.createByteBuffer(data.length);
             buffer.put(data);
             buffer.flip();
-
-            this.handle = TextureManager.get().getTextureHandle(buffer, assetReference);
+            IntBuffer wBuffer = BufferUtils.createIntBuffer(1);
+            IntBuffer hBuffer = BufferUtils.createIntBuffer(1);
+            IntBuffer cBuffer = BufferUtils.createIntBuffer(1);
+            if (stbi_info_from_memory(buffer, wBuffer, hBuffer, cBuffer)) {
+                width = wBuffer.get(0);
+                height = hBuffer.get(0);
+            }
+            this.handle = TextureManager.get().getTextureHandle(buffer, assetReference, RID);
         } catch (IOException e) {
             System.err.println("Failed to load texture: " + assetReference.canonicalPath());
             System.err.println("Cause: " + e.getMessage());
@@ -49,9 +55,7 @@ public class Texture {
     public void bind() {
         checkInitialization();
         int textureId = getID();
-        if (textureId > 0) {
-            glBindTexture(GL_TEXTURE_2D, textureId);
-        }
+        if (textureId > 0) glBindTexture(GL_TEXTURE_2D, textureId);
     }
 
     public void unbind() {
@@ -60,44 +64,18 @@ public class Texture {
 
     public int getWidth() {
         checkInitialization();
-        if (handle == null) return width;
-
-        if (!isSizeInitialized && handle.isReady()) {
-            updateSizeFromHandle();
-        }
-
         return width;
     }
 
     public int getHeight() {
         checkInitialization();
-        if (handle == null) return height;
-        if (!isSizeInitialized && handle.isReady()) {
-            updateSizeFromHandle();
-        }
-
         return height;
     }
 
     public int getID() {
         checkInitialization();
-        if (handle != null && handle.isReady()) {
-            return handle.getTextureId();
-        }
-
+        if (handle != null && handle.isReady()) return handle.getTextureId();
         return -1;
-    }
-
-    public int getHandleId() {
-        if (handle != null) {
-            return handle.getHandleId();
-        }
-
-        return -1;
-    }
-
-    public TextureHandle getHandle() {
-        return handle;
     }
 
     public boolean isReady() {
@@ -109,8 +87,8 @@ public class Texture {
         return handle != null && handle.isFailed();
     }
 
-    public TextureHandle.Status getStatus() {
-        return handle != null ? handle.getStatus() : TextureHandle.Status.WAITING;
+    public ResourceStatus getStatus() {
+        return handle != null ? handle.getStatus() : ResourceStatus.WAITING;
     }
 
     public String getErrorMessage() {
@@ -125,16 +103,7 @@ public class Texture {
         if (handle == null) return;
         String canonicalPath = getCanonicalPath();
         TextureManager.get().disposeTexture(handle, canonicalPath);
-
         handle = null;
-    }
-
-    private void updateSizeFromHandle() {
-        if (handle != null && handle.isReady() && !isSizeInitialized) {
-            this.width = handle.getWidth();
-            this.height = handle.getHeight();
-            this.isSizeInitialized = true;
-        }
     }
 
     private void checkInitialization() {
@@ -150,30 +119,17 @@ public class Texture {
     @Override
     public boolean equals(Object obj) {
         if (obj == null) return false;
-        if (!(obj instanceof Texture objTex)) return false;
-
-        if (this.getCanonicalPath() != null && objTex.getCanonicalPath() != null) {
-            return Objects.equals(this.getCanonicalPath(), objTex.getCanonicalPath());
+        if (!(obj instanceof Texture other)) return false;
+        if (this.getCanonicalPath() != null && other.getCanonicalPath() != null) {
+            return Objects.equals(this.getCanonicalPath(), other.getCanonicalPath());
         }
-
-        if (this.handle != null && objTex.handle != null) {
-            return this.handle.getHandleId() == objTex.handle.getHandleId();
-        }
-
-        return false;
+        return this.RID.id == other.RID.id;
     }
 
     @Override
     public int hashCode() {
-        if (getCanonicalPath() != null) {
-            return Objects.hash(getCanonicalPath());
-        }
-
-        if (handle != null) {
-            return Objects.hash(handle.getHandleId());
-        }
-
-        return Objects.hash(width, height);
+        if (getCanonicalPath() != null) return Objects.hash(getCanonicalPath());
+        return Objects.hash(RID.id);
     }
 
     @Override
@@ -182,13 +138,11 @@ public class Texture {
         if (assetReference != null) {
             builder.append("path=").append(assetReference.canonicalPath()).append("', ");
         }
-
-        builder.append("size=").append(getWidth()).append("x").append(getHeight());
+        builder.append("size=").append(width).append("x").append(height);
         if (handle != null) {
             builder.append(", status=").append(handle.getStatus());
-            builder.append(", handleId=").append(handle.getHandleId());
         }
-
+        builder.append(", RID=").append(RID.id);
         builder.append("}");
         return builder.toString();
     }

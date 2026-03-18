@@ -1,5 +1,7 @@
 package render;
 
+import TheCellBeyond.internal.ResourceID;
+import render.text.FontAtlasLayout;
 import render.text.FontManager;
 import render.text.GlyphRange;
 import render.texture.TextureHandle;
@@ -12,40 +14,33 @@ import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL11.glBindTexture;
 
 public class FontAtlasTexture {
+    public final ResourceID RID = new ResourceID(RenderResourceType.FontAtlas);
     private AssetReference assetReference;
     private GlyphRange glyphRange;
     private transient TextureHandle handle;
-    private transient int width, height, channels;
-    private transient boolean isSizeInitialized = false;
+    private transient int width = -1;
+    private transient int height = -1;
 
-    public FontAtlasTexture() {
-        width = -1;
-        height = -1;
-    }
+    public FontAtlasTexture() {}
 
-    public void init(String filepath, GlyphRange glyphRange, int width, int height, int channels) {
+    public void init(String filepath, GlyphRange glyphRange) {
         assetReference = new AssetReference(filepath);
         this.glyphRange = glyphRange;
-        this.width = width;
-        this.height = height;
-        this.channels = channels;
+        width = FontAtlasLayout.atlasWidth(glyphRange);
+        height = FontAtlasLayout.atlasHeight(glyphRange);
     }
 
     private void loadTextureData() {
         if (assetReference == null || glyphRange == null) return;
-
         ByteBuffer atlasData = FontManager.get().getFontAtlas(assetReference, glyphRange);
         if (atlasData == null) return;
-
-        handle = TextureManager.get().getFontAtlasHandle(atlasData, assetReference, glyphRange, width, height, channels);
+        handle = TextureManager.get().getFontAtlasHandle(atlasData, assetReference, glyphRange, width, height, FontAtlasLayout.Channels, RID);
     }
 
     public void bind() {
         checkInitialization();
         int textureId = getID();
-        if (textureId > 0) {
-            glBindTexture(GL_TEXTURE_2D, textureId);
-        }
+        if (textureId > 0) glBindTexture(GL_TEXTURE_2D, textureId);
     }
 
     public void unbind() {
@@ -53,46 +48,17 @@ public class FontAtlasTexture {
     }
 
     public int getWidth() {
-        checkInitialization();
-        if (handle == null) return width;
-
-        if (!isSizeInitialized && handle.isReady()) {
-            updateSizeFromHandle();
-        }
-
         return width;
     }
 
     public int getHeight() {
-        checkInitialization();
-        if (handle == null) return height;
-
-        if (!isSizeInitialized && handle.isReady()) {
-            updateSizeFromHandle();
-        }
-
         return height;
     }
 
     public int getID() {
         checkInitialization();
-        if (handle != null && handle.isReady()) {
-            return handle.getTextureId();
-        }
-
+        if (handle != null && handle.isReady()) return handle.getTextureId();
         return -1;
-    }
-
-    public int getHandleId() {
-        if (handle != null) {
-            return handle.getHandleId();
-        }
-
-        return -1;
-    }
-
-    public TextureHandle getHandle() {
-        return handle;
     }
 
     public boolean isReady() {
@@ -110,19 +76,8 @@ public class FontAtlasTexture {
 
     public void dispose() {
         if (handle == null) return;
-
-        String canonicalPath = getCanonicalPath();
-        TextureManager.get().disposeFontAtlasTexture(handle, canonicalPath, glyphRange);
-
+        TextureManager.get().disposeFontAtlasTexture(handle, getCanonicalPath(), glyphRange);
         handle = null;
-    }
-
-    private void updateSizeFromHandle() {
-        if (handle != null && handle.isReady() && !isSizeInitialized) {
-            this.width = handle.getWidth();
-            this.height = handle.getHeight();
-            this.isSizeInitialized = true;
-        }
     }
 
     private void checkInitialization() {

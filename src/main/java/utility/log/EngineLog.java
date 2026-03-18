@@ -26,7 +26,7 @@ public class EngineLog {
     public final String source;
 
     public EngineLog(Class<?> source) {
-        String simpleName = source.getSimpleName();
+        String simpleName = source != null ? source.getSimpleName() : "Unknown";
         this.source = "TCB/" + simpleName;
     }
 

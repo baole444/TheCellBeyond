@@ -28,9 +28,8 @@ class CreateFontAtlasTextureCommand extends TextureCommand {
     @Override
     void execute() {
         TextureManager textureManager = TextureManager.get();
-        handle.setStatus(TextureHandle.Status.LOADING);
+        handle.markLoading();
         String canonicalPath = assetReference.canonicalPath();
-
         try {
             int textureId = glGenTextures();
             glBindTexture(GL_TEXTURE_2D, textureId);
@@ -41,24 +40,18 @@ class CreateFontAtlasTextureCommand extends TextureCommand {
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
             glGenerateMipmap(GL_TEXTURE_2D);
-
             handle.setTextureId(textureId);
-            handle.setSize(width, height);
-            handle.setStatus(TextureHandle.Status.READY);
-
+            handle.markReady();
             textureManager.stepCreatedTexture();
-            TextureManager.LOGGER.debug("Created texture with id " + textureId);
+            TextureManager.Logger.debug("Created texture with id " + textureId);
         } catch (Exception e) {
-            handle.setError("OpenGL texture creation failed: " + e.getMessage());
-
-            TextureManager.LOGGER.error("Failed to create texture for " + canonicalPath + e);
+            handle.markFailed("OpenGL texture creation failed: " + e.getMessage());
+            TextureManager.Logger.error("Failed to create texture for " + canonicalPath + e);
         }
     }
 
     @Override
     public String toString() {
-        return "CreateFontAtlasTextureCommand{path=" + assetReference.canonicalPath() +
-                ", handle=" + handle.getHandleId() +
-                "}";
+        return String.format("%s{path='%s', RID=%d}", CreateFontAtlasTextureCommand.class.getSimpleName(), assetReference.canonicalPath(), handle.resourceID().id);
     }
 }

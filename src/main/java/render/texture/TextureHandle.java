@@ -1,14 +1,15 @@
 package render.texture;
 
-import utility.IdPool;
+import TheCellBeyond.internal.ResourceID;
+import TheCellBeyond.internal.ResourceStatus;
+import TheCellBeyond.internal.ResourceStatusCallback;
+import render.RenderResourceType;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class TextureHandle {
-    private static final IdPool ID_POOL = new IdPool(1, false);
-
-    public enum Status {
+    enum InternalStatus {
         WAITING,
         LOADING,
         READY,
@@ -16,88 +17,94 @@ public class TextureHandle {
         DISPOSED
     }
 
-    private final int handleId;
-    private final AtomicReference<Status> status;
-    private final AtomicInteger textureId;
-    private final AtomicInteger width;
-    private final AtomicInteger height;
+    private final ResourceID RID;
+    private final AtomicReference<InternalStatus> status = new AtomicReference<>(InternalStatus.WAITING);
+    private final AtomicInteger textureId = new AtomicInteger(-1);
     private volatile String errorMsg;
 
-    public TextureHandle() {
-        handleId = ID_POOL.newId();
-        status = new AtomicReference<>(Status.WAITING);
-        textureId = new AtomicInteger(-1);
-        width = new AtomicInteger(-1);
-        height = new AtomicInteger(-1);
+    public TextureHandle(ResourceID RID) {
+        this.RID = RID;
     }
 
-    public int getHandleId() {
-        return handleId;
+    public ResourceID resourceID() {
+        return RID;
     }
 
-    public Status getStatus() {
-        return status.get();
+    public ResourceStatus getStatus() {
+        return asResourceStatus(status.get());
     }
 
     public boolean isReady() {
-        return status.get() == Status.READY;
+        return status.get() == InternalStatus.READY;
     }
 
     public boolean isFailed() {
-        return status.get() == Status.FAILED;
+        return status.get() == InternalStatus.FAILED;
     }
 
     public boolean isDisposed() {
-        return status.get() == Status.DISPOSED;
+        return status.get() == InternalStatus.DISPOSED;
     }
 
     public int getTextureId() {
         return textureId.get();
     }
 
-    public int getWidth() {
-        return width.get();
-    }
-
-    public int getHeight() {
-        return height.get();
-    }
-
     public String getErrorMsg() {
         return errorMsg;
     }
 
-    protected void setStatus(Status newStatus) {
-        this.status.set(newStatus);
+    void markLoading() {
+        if (invalidTransition(InternalStatus.LOADING)) return;
+        status.set(InternalStatus.LOADING);
+    }
 
-        TextureStatusCallback.emit(getHandleId(), getStatus());
+    void markReady() {
+        if (invalidTransition(InternalStatus.READY)) return;
+        status.set(InternalStatus.READY);
+        ResourceStatusCallback.emit(RID, ResourceStatus.READY);
+    }
+
+    void markFailed(String message) {
+        if (invalidTransition(InternalStatus.FAILED)) return;
+        errorMsg = message;
+        status.set(InternalStatus.FAILED);
+        ResourceStatusCallback.emit(RID, ResourceStatus.FAILED);
+    }
+
+    void markDisposed() {
+        if (invalidTransition(InternalStatus.DISPOSED)) return;
+        status.set(InternalStatus.DISPOSED);
+        ResourceStatusCallback.emit(RID, ResourceStatus.DISPOSED);
     }
 
     protected void setTextureId(int id) {
         textureId.set(id);
     }
 
-    protected void setSize(int width, int height) {
-        this.width.set(width);
-        this.height.set(height);
+    private static ResourceStatus asResourceStatus(InternalStatus internalStatus) {
+        return switch (internalStatus) {
+            case WAITING, LOADING -> ResourceStatus.WAITING;
+            case READY -> ResourceStatus.READY;
+            case FAILED -> ResourceStatus.FAILED;
+            case DISPOSED -> ResourceStatus.DISPOSED;
+        };
     }
 
-    protected void setError(String message) {
-        errorMsg = message;
-        status.set(Status.FAILED);
-    }
-
-    protected void releaseId() {
-        ID_POOL.releaseId(handleId);
+    private boolean invalidTransition(InternalStatus nextStatus) {
+        InternalStatus current = status.get();
+        if (current == InternalStatus.DISPOSED) return true;
+        if (nextStatus == InternalStatus.WAITING || nextStatus == InternalStatus.LOADING) {
+            return current == InternalStatus.READY || current == InternalStatus.FAILED;
+        }
+        return false;
     }
 
     @Override
     public String toString() {
-        return "TextureHandle{" +
-                "id=" + handleId +
-                ", status=" + status.get() +
-                ", textureId=" + textureId.get() +
-                ", size=" + width.get() + "x" + height.get() +
-                "}";
+        return String.format("%s{id=%d, status=%s, textureId=%d}",
+                TextureHandle.class.getSimpleName(), RID.id,
+                status.get(), textureId.get()
+        );
     }
 }

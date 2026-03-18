@@ -90,20 +90,17 @@ public class EditorGizmo extends Component2D implements NotSerializeComponent {
     @Override
     public void editorUpdate(float dt) {
         if (!isUsed) return;
-
         activeGameObj = Properties.getActiveGameObject();
         if (activeGameObj == null || activeGameObj.isRemoved()) {
             activeGameObj = null;
             setInactive();
             return;
         }
-
         if (activeGameObj.getFirstComponent(IsNotSelectable.class) != null) {
             activeGameObj = null;
             setInactive();
             return;
         }
-
         setActive();
         updatePosition();
         handleInteraction();
@@ -111,17 +108,13 @@ public class EditorGizmo extends Component2D implements NotSerializeComponent {
 
     private void updatePosition() {
         if (activeGameObj == null) return;
-
         if (!(activeGameObj instanceof GameObject2D go2D)) {
             setInactive();
             return;
         }
-
         Vector2f targetPos = go2D.globalPosition();
         globalPosition(targetPos);
-
-        gizmoWorldPos.set(getObjectWorldPosition());
-
+        gizmoWorldPos.set(objectWorldPosition());
         xAxisObj.position(new Vector2f(gizmoWorldPos).add(xOffset));
         yAxisObj.position(new Vector2f(gizmoWorldPos).add(yOffset));
     }
@@ -129,7 +122,6 @@ public class EditorGizmo extends Component2D implements NotSerializeComponent {
     private void handleInteraction() {
         boolean xAxisHover = isHoverX();
         boolean yAxisHover = isHoverY();
-
         if ((xAxisHover || xActiveDrag) && MouseListener.isDragging() && MouseListener.isButtonPressed(GLFW_MOUSE_BUTTON_RIGHT)) {
             xActiveDrag = true;
             yActiveDrag = false;

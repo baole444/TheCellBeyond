@@ -7,6 +7,8 @@ import components.Component2D;
 import components.ComponentSerializer;
 import components.Component;
 import editor.template.EditorTemplate;
+import eventviewer.EngineEventCallback;
+import eventviewer.event.SceneEvent;
 import scene.Scene;
 import utility.HierarchyPath;
 import utility.HierarchyPaths;
@@ -504,6 +506,7 @@ public class GameObject {
         if (isStarted) {
             if (LogicServer.runtimeMode()) component.start();
             else component.editorStart();
+            EngineEventCallback.emit(new SceneEvent(SceneEvent.Type.ComponentAdded, LogicServer.currentScene()));
         }
         setDirty(true);
     }

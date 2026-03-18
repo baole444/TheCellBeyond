@@ -15,6 +15,9 @@ import physic2d.KinematicBody2D;
 import physic2d.PhysicBody2D;
 import physic2d.StaticBody2D;
 import physic2d.collider.TileCollider2D;
+import render.commands.MeshCommand;
+import render.commands.RenderCommand;
+import render.commands.TransformCommand;
 import render.texture.Tile;
 import render.texture.TileSet;
 import scene.Scene;
@@ -43,8 +46,6 @@ public class TileMap extends GameObject2D {
     private final ConcurrentHashMap<Vector2i, TilePlacement> tiles = new ConcurrentHashMap<>();
     public boolean enableCollision = true;
     public boolean useKinematicBody = false;
-
-    private volatile transient boolean isTileDirty = true;
     private transient PhysicBody2D physicBody2D = null;
     private transient boolean physicBodyDirty = false;
 
@@ -93,18 +94,17 @@ public class TileMap extends GameObject2D {
     }
 
     public boolean isTileDirty() {
-        if (tileSet != null && tileSet.requestRendererUpdate()) isTileDirty = true;
-        return isTileDirty;
+        if (tileSet != null && tileSet.requestRendererUpdate()) renderDirty = true;
+        return renderDirty;
     }
 
     public void setTileDirty(boolean needsUpdate) {
-        isTileDirty = needsUpdate;
+        renderDirty = needsUpdate;
         if (!needsUpdate && tileSet != null) tileSet.rendererUpdated();
     }
 
     public Vector2f getTileSetSize() {
         if (tileSet == null) return new Vector2f(1.0f);
-
         return new Vector2f(tileSet.width(), tileSet.height());
     }
 
@@ -114,14 +114,11 @@ public class TileMap extends GameObject2D {
 
     public HashMap<Vector2i, Tile> tiles() {
         if (tileSet == null || tiles.isEmpty()) return new HashMap<>();
-
         HashMap<Vector2i, Tile> result = new HashMap<>();
-
         for (Map.Entry<Vector2i, TilePlacement> entry : tiles.entrySet()) {
             Tile tile = tileSet.tile(entry.getValue().sourceCoordinate);
             if (tile != null) result.put(entry.getKey(), tile);
         }
-
         return result;
     }
 
@@ -137,7 +134,7 @@ public class TileMap extends GameObject2D {
         if (Objects.equals(this.tileSet, tileSet)) return;
         this.tileSet = tileSet;
         tiles.clear();
-        isTileDirty = true;
+        renderDirty = true;
     }
 
     public void placeTile(Vector2i mapCoordinate, Vector2i tileSetCoordinate) {
@@ -149,15 +146,13 @@ public class TileMap extends GameObject2D {
         Tile tile = tileSet.tile(tileSetCoordinate);
         if (tile == null) return;
         tiles.put(mapCoordinate, new TilePlacement(tileSetCoordinate, quarterRotations, flipVertical, flipHorizontal));
-        isTileDirty = true;
+        renderDirty = true;
     }
 
     public void placeTiles(Vector2i startingMapCoordinate, List<Vector2i> tileSetCoordinates) {
         if (tileSet == null || startingMapCoordinate == null || tileSetCoordinates == null || tileSetCoordinates.isEmpty()) return;
-
         Vector2i firstCoordinate = tileSetCoordinates.getFirst();
         if (firstCoordinate == null) return;
-
         for (Vector2i grid : tileSetCoordinates) {
             if (grid == null) continue;
             Tile tile = tileSet.tile(grid);
@@ -165,35 +160,33 @@ public class TileMap extends GameObject2D {
             Vector2i offset = new Vector2i(grid.x - firstCoordinate.x, firstCoordinate.y - grid.y);
             tiles.put(new Vector2i(startingMapCoordinate).add(offset), new TilePlacement(grid));
         }
-
-        isTileDirty = true;
+        renderDirty = true;
     }
 
     public boolean removeTile(Vector2i mapCoordinate) {
         if (mapCoordinate == null) return false;
-
         TilePlacement placement = tiles.remove(mapCoordinate);
         boolean removed = placement != null;
-        if (removed) isTileDirty = true;
+        if (removed) renderDirty = true;
         return removed;
     }
 
     public void deleteTileSet() {
         tiles.clear();
         tileSet = null;
-        isTileDirty = true;
+        renderDirty = true;
     }
 
     public void resetToDefault() {
         if (tileSet == null) return;
         tiles.clear();
         tileSet.resetDefault();
-        isTileDirty = true;
+        renderDirty = true;
     }
 
     @Override
     protected void onTransformDirty() {
-        isTileDirty = true;
+        renderDirty = true;
     }
 
     @Override
@@ -216,7 +209,6 @@ public class TileMap extends GameObject2D {
             super.additionalImGuiLogic();
             return;
         }
-
         ImBoolean enableCollision = new ImBoolean(this.enableCollision);
         if (ImGui.checkbox("Enable Collision##TileMap_Enable_Collision_" + getUUID(), enableCollision)) this.enableCollision = enableCollision.get();
         if (ImGui.isItemHovered()) {
@@ -296,5 +288,27 @@ public class TileMap extends GameObject2D {
         ImGui.spacing();
         ImGui.unindent();
         super.additionalImGuiLogic();
+    }
+
+    @Override
+    public boolean renderDirty() {
+        return isTileDirty();
+    }
+
+    @Override
+    public void renderDirty(boolean dirty) {
+        setTileDirty(dirty);
+    }
+
+    @Override
+    public RenderCommand buildRenderCommand() {
+        MeshCommand command = MeshCommand.acquire();
+        command.submitterID = getUID();
+        command.tilePlacements = tilePlacements();
+        command.tileSet = tileSet;
+        RenderCommand renderCommand = super.buildRenderCommand();
+        if (renderCommand == null) return command;
+        renderCommand.next = command;
+        return renderCommand;
     }
 }

@@ -96,4 +96,11 @@ public enum GlyphRange {
     public boolean hasUnicodeRanges() {
         return unicodeRange != null;
     }
+
+    public int totalGlyphCount() {
+        if (unicodeRange == null) return numGlyphs;
+        int count = 0;
+        for (int[] range : unicodeRange) count += range[1] - range[0] + 1;
+        return count;
+    }
 }

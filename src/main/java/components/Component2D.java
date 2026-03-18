@@ -4,6 +4,8 @@ import TheCellBeyond.GameObject2D;
 import TheCellBeyond.Transform2D;
 import imgui.ImGui;
 import org.joml.Vector2f;
+import render.commands.RenderCommand;
+import render.commands.TransformCommand;
 
 /**
  * Component2D is an abstract 2D component, used as base class for all component types that need spatial world present.
@@ -15,7 +17,7 @@ import org.joml.Vector2f;
  * Mounting a 2D component to a normal {@link TheCellBeyond.GameObject} will make its local transform to become global transform.
  *
  */
-public abstract class Component2D extends Component implements Transformation {
+public abstract class Component2D extends RenderableComponent {
     /**
      * This 2D component's local transform.
      */
@@ -49,6 +51,11 @@ public abstract class Component2D extends Component implements Transformation {
     }
 
     @Override
+    public int renderZIndex() {
+        return globalZIndex();
+    }
+
+    @Override
     public void start() {
         super.start();
         setTransformDirty();
@@ -60,25 +67,22 @@ public abstract class Component2D extends Component implements Transformation {
         setTransformDirty();
     }
 
-    @Override
-    public Transform2D getLocalTransform() {
-        return localTransform2D;
-    }
-
-    @Override
-    public Transform2D getEffectiveTransform() {
+    /**
+     * Get the global (effective) transform of this 2D component.
+     * @return the global transform
+     */
+    public Transform2D effectiveTransform() {
         updateEffectiveTransform();
         return effectiveTransform2D;
     }
 
-    @Override
-    public void setLocalTransform(Transform2D transform2D) {
-        this.localTransform2D.copy(transform2D);
-        setTransformDirty();
-    }
-
-    @Override
-    public Vector2f getObjectWorldPosition() {
+    /**
+     * Get the global position from the owning 2D object of this 2D component.
+     * If the owning object of this component is not at least of class {@link GameObject2D},
+     * this will return a copy of this component's local position.
+     * @return the global positon vector
+     */
+    public Vector2f objectWorldPosition() {
         if (gameObject instanceof GameObject2D go2D) return go2D.globalPosition();
         return new Vector2f(localTransform2D.position);
     }
@@ -142,7 +146,7 @@ public abstract class Component2D extends Component implements Transformation {
      * Directly modify the vector returned by this method will not trigger the transform dirty flag.
      */
     public Vector2f globalPosition() {
-        return getEffectiveTransform().position;
+        return effectiveTransform().position;
     }
 
     /**
@@ -209,7 +213,7 @@ public abstract class Component2D extends Component implements Transformation {
      * @return the global rotation angle (in Degree)
      */
     public float globalRotation() {
-        return getEffectiveTransform().rotation;
+        return effectiveTransform().rotation;
     }
 
     /**
@@ -279,7 +283,7 @@ public abstract class Component2D extends Component implements Transformation {
      * Directly modify the vector returned by this method will not trigger the transform dirty flag.
      */
     public Vector2f globalScale() {
-        return getEffectiveTransform().scale;
+        return effectiveTransform().scale;
     }
 
     /**
@@ -353,7 +357,7 @@ public abstract class Component2D extends Component implements Transformation {
      * @return the global z-index value
      */
     public int globalZIndex() {
-        return getEffectiveTransform().zIndex;
+        return effectiveTransform().zIndex;
     }
 
     /**
@@ -407,14 +411,15 @@ public abstract class Component2D extends Component implements Transformation {
     private void updateEffectiveTransform() {
         if (!isTransformDirty && effectiveTransform2D != null) return;
         if (effectiveTransform2D == null) effectiveTransform2D = new Transform2D();
-        if (gameObject instanceof GameObject2D go2D) {
-            if (go2D.isTransformUpdating()) return;
-            Transform2D goTransform2D = go2D.globalTransform();
-            effectiveTransform2D.copy(goTransform2D);
-            addTransforms(effectiveTransform2D, localTransform2D);
-        } else {
-            effectiveTransform2D.copy(localTransform2D);
+        if (!(gameObject instanceof GameObject2D go2D)) {
+            Transform2D.copy(localTransform2D, effectiveTransform2D);
+            isTransformDirty = false;
+            return;
         }
+        if (go2D.isTransformUpdating()) return;
+        Transform2D goTransform2D = go2D.globalTransform();
+        Transform2D.copy(goTransform2D, effectiveTransform2D);
+        addTransforms(effectiveTransform2D, localTransform2D);
         isTransformDirty = false;
     }
 
@@ -434,5 +439,17 @@ public abstract class Component2D extends Component implements Transformation {
             return;
         }
         target.zIndex = offset.zIndex;
+    }
+
+    @Override
+    public RenderCommand buildRenderCommand() {
+        if (localTransform2D.isIdentity()) return null;
+        TransformCommand command = TransformCommand.acquire();
+        Transform2D effectiveTransform = effectiveTransform();
+        command.position.set(effectiveTransform.position);
+        command.scale.set(effectiveTransform.scale);
+        command.rotationDegrees = effectiveTransform.rotation;
+        command.zIndex = effectiveTransform.zIndex;
+        return command;
     }
 }

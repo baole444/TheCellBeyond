@@ -82,9 +82,9 @@ public class CapsuleCollider2D extends CollisionShape2D {
     }
 
     private void updateNestColliderTransform() {
-        headCircle.getEffectiveTransform();
-        footCircle.getEffectiveTransform();
-        bodyBox.getEffectiveTransform();
+        headCircle.effectiveTransform();
+        footCircle.effectiveTransform();
+        bodyBox.effectiveTransform();
     }
 
     /**

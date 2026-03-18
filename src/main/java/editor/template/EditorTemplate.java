@@ -2,6 +2,7 @@ package editor.template;
 
 import TheCellBeyond.Camera2D;
 import TheCellBeyond.GameObject;
+import TheCellBeyond.GameObject2D;
 import TheCellBeyond.Transform2D;
 import components.Component;
 import components.RemoteTransform2D;
@@ -41,6 +42,7 @@ public final class EditorTemplate {
         if (object == null) return;
         switch (object) {
             case Camera2D camera2D -> Camera2DTemplate.render(camera2D);
+            //case GameObject2D go2D -> GameObject2DTemplate.render(go2D);
             case GameObject go -> GameObjectTemplate.render(go);
         }
     }

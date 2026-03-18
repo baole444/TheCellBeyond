@@ -1,13 +1,16 @@
 package render.text;
 
-import TheCellBeyond.GameObject;
+import TheCellBeyond.internal.ResourceID;
 import components.TextRenderer;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
+import render.FontAtlasTexture;
 import render.RendererState;
 import render.Shader;
-import utility.AssetsPool;
+import render.commands.TextCommand;
+import render.commands.TransformCommand;
+import utility.AssetManager;
 import utility.Settings;
 import utility.WorldUnit;
 
@@ -18,7 +21,7 @@ import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL30.*;
 
-public class TextBatch implements Comparable<TextBatch> {
+public class TextBatch {
     // |Position| |   Color  | |Coordinate|
     // |  f, f  | |f, f, f, f| |   f, f   |
     private static final int PositionSize = 2;
@@ -26,288 +29,237 @@ public class TextBatch implements Comparable<TextBatch> {
     private static final int TextureCoordinateSize = 2;
     private static final int ObjectIdSize = 1;
     private static final int VertexSize = PositionSize + ColorSize + TextureCoordinateSize + ObjectIdSize;
+    private static final int VerticesPerChar = 6;
+    private static final int ColorOffset = PositionSize;
 
-    private final int zIndex;
-    private final int maxBatchSize;
-    private final List<TextRenderer> textRenderers;
+    private static class CachedTextData {
+        TransformCommand transform;
+        float[] vertices = new float[0];
+        boolean dirty = true;
+        boolean seen = false;
+    }
 
-    private final Map<TCBFont, List<TextRenderer>> fontGroups = new HashMap<>();
+    private final IdentityHashMap<TextCommand, CachedTextData> commandCache = new IdentityHashMap<>();
 
     private int vaoID, vboID;
-    private boolean hasSpace;
-    private static Shader shader;
+    private int bufferCapacity;
+    private boolean initialized = false;
+    private static Shader fontShader;
 
-    private Matrix4f projectionMatrix = null;
-    private Matrix4f viewMatrix = null;
-
-    public void setProjectionMatrix(Matrix4f projectionMatrix) {
-        this.projectionMatrix = projectionMatrix;
+    public TextBatch(int maxBatchSize) {
+        bufferCapacity = maxBatchSize;
+        if (fontShader == null) fontShader = AssetManager.get().getShader(AssetManager.get().loadShader(Settings.ShaderPath.DefaultFontShader));
     }
 
-    public void setViewMatrix(Matrix4f viewMatrix) {
-        this.viewMatrix = viewMatrix;
-    }
-
-    public TextBatch(int maxBatchSize, int zIndex) {
-        this.maxBatchSize = maxBatchSize;
-        this.zIndex = zIndex;
-        this.textRenderers = new ArrayList<>();
-        this.hasSpace = true;
-
-        if (shader == null) {
-            shader = AssetsPool.loadShader(Settings.ShaderPath.DefaultFontShader);
-        }
-    }
-
-    public void start() {
+    public void init() {
+        if (initialized) return;
         vaoID = glGenVertexArrays();
         glBindVertexArray(vaoID);
-
         vboID = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, vboID);
-        glBufferData(GL_ARRAY_BUFFER, (long) maxBatchSize * 6 * VertexSize * Float.BYTES, GL_DYNAMIC_DRAW);
-
-        // Enable vertex attributes
-        glVertexAttribPointer(0, PositionSize, GL_FLOAT, false, VertexSize * Float.BYTES, 0);
+        int stride = VertexSize * Float.BYTES;
+        glBufferData(GL_ARRAY_BUFFER, (long) bufferCapacity * VerticesPerChar * stride, GL_DYNAMIC_DRAW);
+        glVertexAttribPointer(0, PositionSize, GL_FLOAT, false, stride, 0);
         glEnableVertexAttribArray(0);
-
-        glVertexAttribPointer(1, ColorSize, GL_FLOAT, false, VertexSize * Float.BYTES, PositionSize * Float.BYTES);
+        glVertexAttribPointer(1, ColorSize, GL_FLOAT, false, stride, PositionSize * Float.BYTES);
         glEnableVertexAttribArray(1);
-
-        glVertexAttribPointer(2, TextureCoordinateSize, GL_FLOAT, false, VertexSize * Float.BYTES, (PositionSize + ColorSize) * Float.BYTES);
+        glVertexAttribPointer(2, TextureCoordinateSize, GL_FLOAT, false, stride, (PositionSize + ColorSize) * Float.BYTES);
         glEnableVertexAttribArray(2);
-
-        glVertexAttribPointer(4, ObjectIdSize, GL_FLOAT, false, VertexSize * Float.BYTES, (PositionSize + ColorSize + TextureCoordinateSize) * Float.BYTES);
+        glVertexAttribPointer(4, ObjectIdSize, GL_FLOAT, false, stride, (PositionSize + ColorSize + TextureCoordinateSize) * Float.BYTES);
         glEnableVertexAttribArray(4);
-
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
+        initialized = true;
     }
 
-    public void add(TextRenderer textRenderer) {
-        if (textRenderers.size() >= maxBatchSize) {
-            hasSpace = false;
+    public void beginFrame() {
+        for (CachedTextData data : commandCache.values()) data.seen = false;
+    }
+
+    public void endFrame() {
+        commandCache.entrySet().removeIf(entry -> !entry.getValue().seen);
+    }
+
+    public void submit(TextCommand command, TransformCommand transform) {
+        CachedTextData cached = commandCache.get(command);
+        if (cached != null) {
+            cached.seen = true;
+            if (cached.transform != transform) {
+                cached.transform = transform;
+                cached.dirty = true;
+            }
             return;
         }
-        if (!textRenderers.contains(textRenderer)) {
-            textRenderers.add(textRenderer);
-            regroupComponent(textRenderer);
-        }
+        cached = new CachedTextData();
+        cached.transform = transform;
+        cached.seen = true;
+        commandCache.put(command, cached);
     }
 
-    public void render() {
-        if (textRenderers.isEmpty()) return;
-        boolean requireRegroup = false;
-        for (TextRenderer component : textRenderers) {
-            if (!component.isTextDirty()) continue;
-            component.clearDirty();
-            requireRegroup = true;
+    public void clearSubmitted() {
+        commandCache.clear();
+    }
+
+    public void render(Matrix4f projectionMatrix, Matrix4f viewMatrix) {
+        if (commandCache.isEmpty()) return;
+        if (!initialized) init();
+        Map<ResourceID,  List<TextCommand>> fontGroups = new LinkedHashMap<>();
+        for (TextCommand command : commandCache.keySet()) {
+            if (command.fontRID == null || command.text == null || command.text.isEmpty()) continue;
+            fontGroups.computeIfAbsent(command.fontRID, f -> new ArrayList<>()).add(command);
         }
-        if (requireRegroup) regroupComponents();
-        Shader instShader = shader;
-        if (RendererState.isSelectionPass()) instShader = RendererState.getCurrentShader();
+        if (fontGroups.isEmpty()) return;
+        boolean selectionPass = RendererState.isSelectionPass();
+        Shader instShader = selectionPass ? RendererState.getCurrentShader() : fontShader;
         instShader.use();
-        Matrix4f projMatrix;
-        Matrix4f vMatrix;
-        if (projectionMatrix != null) {
-            projMatrix = projectionMatrix;
-        } else projMatrix = new Matrix4f().identity();
-        if (viewMatrix != null) {
-            vMatrix = viewMatrix;
-        } else vMatrix = new Matrix4f().identity();
-        instShader.loadMat4f("uProject", projMatrix);
-        instShader.loadMat4f("uView", vMatrix);
+        if (projectionMatrix == null) projectionMatrix = new Matrix4f().identity();
+        if (viewMatrix == null) viewMatrix = new Matrix4f().identity();
+        instShader.loadMat4f("uProject", projectionMatrix);
+        instShader.loadMat4f("uView", viewMatrix);
         glBindVertexArray(vaoID);
         glBindBuffer(GL_ARRAY_BUFFER, vboID);
-        renderFontGroups(instShader);
+        renderFontGroups(instShader, fontGroups, selectionPass);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
-        if (RendererState.isNormalPass()) instShader.detach();
+        if (!selectionPass) instShader.detach();
     }
 
-    private void renderFontGroups(Shader instShader) {
-        for (Map.Entry<TCBFont, List<TextRenderer>> entry : fontGroups.entrySet()) {
-            TCBFont font = entry.getKey();
-            List<TextRenderer> components = entry.getValue();
-            if (components.isEmpty()) continue;
-            if (font == null || !font.isLoaded()) continue;
-            if (RendererState.isNormalPass()) {
-                int textureId = font.getTextureID();
-                if (textureId < 0) continue;
+    private void renderFontGroups(Shader instShader, Map<ResourceID,  List<TextCommand>> fontGroups, boolean selectionPass) {
+        for (Map.Entry<ResourceID, List<TextCommand>> entry : fontGroups.entrySet()) {
+            ResourceID fontRID = entry.getKey();
+            List<TextCommand> commands = entry.getValue();
+            TCBFont font = AssetManager.get().getFont(fontRID);
+            if (font == null || !font.loaded()) continue;
+            if (!selectionPass) {
+                ResourceID atlasRID = font.atlasRID();
+                if (atlasRID == null) continue;
+                FontAtlasTexture atlas = AssetManager.get().getFontAtlas(atlasRID);
+                if (atlas == null || !atlas.isReady()) continue;
                 glActiveTexture(GL_TEXTURE0);
-                glBindTexture(GL_TEXTURE_2D, textureId);
+                glBindTexture(GL_TEXTURE_2D, atlas.getID());
                 instShader.loadInt("uFontTex", 0);
             }
-            float[] vertices = genVertices(components, font);
-            if (vertices.length == 0) continue;
-            glBufferSubData(GL_ARRAY_BUFFER, 0, vertices);
-            int charCount = countChars(components);
-            glDrawArrays(GL_TRIANGLES, 0 , charCount * 6);
+            int totalLength = 0;
+            int totalChars = 0;
+            for (TextCommand command : commands) {
+                CachedTextData cached = commandCache.get(command);
+                if (cached.dirty) {
+                    cached.vertices = genCommandVertices(command, cached.transform, font);
+                    cached.dirty = false;
+                }
+                totalLength += cached.vertices.length;
+                totalChars += countChars(command.text);
+            }
+            if (totalLength == 0) continue;
+            float[] combined = new float[totalLength];
+            linkCachedVertexArray(commands, combined);
+            overrideSelectionColor(selectionPass, combined);
+            adjustBufferCapacity(totalLength);
+            glBufferSubData(GL_ARRAY_BUFFER, 0, combined);
+            glDrawArrays(GL_TRIANGLES, 0, totalChars * VerticesPerChar);
         }
     }
 
-    private float[] genVertices(List<TextRenderer> components, TCBFont font) {
-        int charCount = countChars(components);
+    private static void overrideSelectionColor(boolean selectionPass, float[] combined) {
+        if (!selectionPass) return;
+        for (int i = ColorOffset; i < combined.length; i += VertexSize) {
+            combined[i] = 1.0f;
+            combined[i + 1] = 1.0f;
+            combined[i + 2] = 1.0f;
+            combined[i + 3] = 1.0f;
+        }
+    }
+
+    private void linkCachedVertexArray(List<TextCommand> commands, float[] combined) {
+        int offset = 0;
+        for (TextCommand command : commands) {
+            float[] vertices = commandCache.get(command).vertices;
+            System.arraycopy(vertices, 0, combined, offset, vertices.length);
+            offset += vertices.length;
+        }
+    }
+
+    private float[] genCommandVertices(TextCommand command, TransformCommand transform, TCBFont font) {
+        int charCount = countChars(command.text);
         if (charCount == 0) return new float[0];
-        float[] vertices = new float[charCount * 6 * VertexSize];
+        float[] vertices = new float[charCount * VerticesPerChar * VertexSize];
         int vertexOffset = 0;
-        for (TextRenderer textRenderer : components) {
-            String text = textRenderer.getText();
-            if (text.isEmpty()) continue;
-
-            Vector2f positon = textRenderer.globalPosition();
-            Vector4f color;
-            if (RendererState.isSelectionPass()) {
-                color = new Vector4f(1.0f, 1.0f, 1.0f, 1.0f);
-            } else {
-                color = textRenderer.getColor();
-            }
-            Vector2f textDimensions = textRenderer.getTextDimensions();
-
-            float objectId = 0;
-            if (textRenderer.gameObject != null) {
-                objectId = textRenderer.gameObject.getUID();
-            }
-
-            // Alignment offsets
-            float xOffset = 0;
-            switch (textRenderer.getHorizontalAlignment()) {
-                case CENTER -> xOffset = - textDimensions.x / 2.0f;
-                case RIGHT -> xOffset = - textDimensions.x;
-            }
-
-            float yOffset = 0;
-            switch (textRenderer.getVerticalAlignment()) {
-                case MIDDLE -> yOffset = textDimensions.y / 2.0f;
-                case BOTTOM -> yOffset = textDimensions.y;
-            }
-
-            float x = positon.x + xOffset;
-            float y = positon.y - yOffset;
-            float initialX = x;
-
-            for (int i = 0; i < text.length(); i++) {
-                char c = text.charAt(i);
-                if (c == '\n') {
-                    y -= WorldUnit.pixelToWorld(font.getFontSizePixel());
-                    x = initialX;
-                    continue;
-                }
-                CharInfo charInfo = font.getCharInfo(c);
-                if (charInfo == null) continue;
-                float charX = x - WorldUnit.pixelToWorld((float) charInfo.xOffset());
-                float charY = y - WorldUnit.pixelToWorld((float) charInfo.yOffset());
-                float width = WorldUnit.pixelToWorld(charInfo.fontSize());
-                float height = WorldUnit.pixelToWorld(charInfo.fontSize());
-                float texX0 = charInfo.x0() / (float) font.getAtlasWidth();
-                float texY0 = charInfo.y0() / (float) font.getAtlasHeight();
-                float texX1 = charInfo.x1() / (float) font.getAtlasWidth();
-                float texY1 = charInfo.y1() / (float) font.getAtlasHeight();
-                float[][] verticesData = {
-                        {charX,             charY,          texX0, texY1},
-                        {charX,             charY + height, texX0, texY0},
-                        {charX + width,     charY,          texX1, texY1},
-                        {charX + width,     charY + height, texX1, texY0}
-                };
-                int[] indices = {0, 1, 2, 1, 3, 2};
-                for (int index : indices) {
-                    float[] vertexData = verticesData[index];
-                    vertices[vertexOffset++] = vertexData[0];
-                    vertices[vertexOffset++] = vertexData[1];
-                    vertices[vertexOffset++] = color.x;
-                    vertices[vertexOffset++] = color.y;
-                    vertices[vertexOffset++] = color.z;
-                    vertices[vertexOffset++] = color.w;
-                    vertices[vertexOffset++] = vertexData[2];
-                    vertices[vertexOffset++] = vertexData[3];
-                    vertices[vertexOffset++] = objectId;
-                }
-
-                // advance cursor position
-                x += WorldUnit.pixelToWorld(charInfo.advance());
+        Vector2f position = transform.position;
+        Vector4f color = command.modulate;
+        Vector2f textDimension = command.textDimension;
+        int objectID = command.submitterID;
+        float xOffset = 0.0f;
+        if (command.horizontalAlignment != null) {
+            switch (command.horizontalAlignment) {
+                case Centre -> xOffset = -textDimension.x / 2.0f;
+                case Right -> xOffset = - textDimension.x;
             }
         }
-
+        float yOffset = 0.0f;
+        if (command.verticalAlignment != null) {
+            switch (command.verticalAlignment) {
+                case Middle -> yOffset = -textDimension.y / 2.0f;
+                case Bottom -> yOffset = -textDimension.y;
+            }
+        }
+        float x = position.x + xOffset;
+        float y = position.y + yOffset;
+        float initialX = x;
+        String text = command.text != null ? command.text : "";
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (c == '\n') {
+                y -= WorldUnit.pixelToWorld(command.fontSizePixel);
+                x = initialX;
+                continue;
+            }
+            CharUV uv = font.charUV(c);
+            CharMetric metric = font.charMetric(c);
+            if (uv == null || metric == null) continue;
+            float charX = x - WorldUnit.pixelToWorld((float) uv.xOffset());
+            float charY = y - WorldUnit.pixelToWorld((float) uv.yOffset());
+            float size = WorldUnit.pixelToWorld(metric.fontSize());
+            float texX0 = uv.x0() / (float) font.atlasWidth;
+            float texY0 = uv.y0() / (float) font.atlasHeight;
+            float texX1 = uv.x1() / (float) font.atlasWidth;
+            float texY1 = uv.y1() / (float) font.atlasHeight;
+            float[][] verticesData = {
+                    {charX,         charY,          texX0,  texY1},
+                    {charX,         charY + size,   texX0,  texY0},
+                    {charX + size,  charY,          texX1,  texY1},
+                    {charX + size,  charY + size,   texX1,  texY0}
+            };
+            int[] indices = {0, 1, 2, 1, 3, 2};
+            for (int index : indices) {
+                float[] vertexData = verticesData[index];
+                vertices[vertexOffset++] = vertexData[0];
+                vertices[vertexOffset++] = vertexData[1];
+                vertices[vertexOffset++] = color.x;
+                vertices[vertexOffset++] = color.y;
+                vertices[vertexOffset++] = color.z;
+                vertices[vertexOffset++] = color.w;
+                vertices[vertexOffset++] = vertexData[2];
+                vertices[vertexOffset++] = vertexData[3];
+                vertices[vertexOffset++] = objectID;
+            }
+            x += WorldUnit.pixelToWorld(metric.advance());
+        }
         return vertices;
     }
 
-    private int countChars(List<TextRenderer> components) {
+    private int countChars(String text) {
+        if (text == null || text.isEmpty()) return 0;
         int count = 0;
-        for (TextRenderer textRenderer : components) {
-            String text = textRenderer.getText();
-            for (int i = 0; i < text.length(); i++) {
-                if (text.charAt(i) != '\n') {
-                    count++;
-                }
-            }
+        for (int i = 0; i < text.length(); i++) {
+            if (text.charAt(i) != '\n') count++;
         }
-
         return count;
     }
 
-    private void regroupComponent(TextRenderer component) {
-        TCBFont font = component.getFont();
-        if (font != null) {
-            List<TextRenderer> components = fontGroups.computeIfAbsent(font, k -> new ArrayList<>());
-            if (!components.contains(component)) {
-                components.add(component);
-            }
-        }
-    }
-
-    private void regroupComponents() {
-        List<TextRenderer> allComponents = new ArrayList<>(textRenderers);
-
-        fontGroups.clear();
-
-        for (TextRenderer component : allComponents) {
-            regroupComponent(component);
-        }
-    }
-
-    public boolean removeIfExist(GameObject go) {
-        if (go == null) return false;
-
-        List<TextRenderer> trs = go.getComponents(TextRenderer.class);
-        if (trs.isEmpty()) return false;
-
-        int removed = 0;
-        for (TextRenderer textRenderer : trs) {
-            if (removeComponent(textRenderer)) removed++;
-        }
-
-        return removed > 0;
-    }
-
-    public boolean removeComponent(TextRenderer textRenderer) {
-        if (textRenderer == null) return false;
-
-        boolean removed = textRenderers.remove(textRenderer);
-        if (removed) {
-            for (List<TextRenderer> components : fontGroups.values()) {
-                components.remove(textRenderer);
-            }
-
-            fontGroups.entrySet().removeIf(entry -> entry.getValue().isEmpty());
-
-            if (textRenderers.size() < maxBatchSize) {
-                hasSpace = true;
-            }
-        }
-
-        return removed;
-    }
-
-    public boolean hasSpace() {
-        return hasSpace;
-    }
-
-    public int getzIndex() {
-        return zIndex;
-    }
-
-    @Override
-    public int compareTo(TextBatch other) {
-        return Integer.compare(this.zIndex, other.zIndex);
+    private void adjustBufferCapacity(int requiredFloats) {
+        int currentCap = bufferCapacity * VerticesPerChar * VertexSize;
+        if (requiredFloats <= currentCap) return;
+        bufferCapacity = (requiredFloats / (VerticesPerChar * VertexSize)) + 64;
+        glBufferData(GL_ARRAY_BUFFER, (long) bufferCapacity * VerticesPerChar * VertexSize * Float.BYTES, GL_DYNAMIC_DRAW);
     }
 }

@@ -1,183 +1,132 @@
 package render.text;
 
+import TheCellBeyond.internal.ResourceID;
+import TheCellBeyond.internal.ResourceStatus;
+import TheCellBeyond.internal.ResourceStatusCallback;
 import org.lwjgl.BufferUtils;
 import utility.AssetReference;
 import utility.UnifiedPaths;
+import utility.log.EngineLog;
 
+import java.io.IOException;
 import java.io.InputStream;
-import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class FontManager {
-    static final Logger LOGGER = Logger.getLogger(FontManager.class.getName());
+    private static final EngineLog Logger = new EngineLog(FontManager.class);
+    private record FontLoadingJob(TCBFont font, ResourceID atlasRID) {}
 
     private static FontManager instance;
     private static Thread processor;
-    private final ExecutorService executorService;
 
-    private final Map<FontRequest, TCBFont> fontCache = new ConcurrentHashMap<>();
-    private final BlockingQueue<FontRequestEntry> pendingRequests = new LinkedBlockingQueue<>();
-    private final Map<FontRequest, FontRequestEntry> requests = new ConcurrentHashMap<>();
-    private final Map<AssetReference, Map<GlyphRange, ByteBuffer>> atlases = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<AssetReference, Map<GlyphRange, TCBFont>> atlasSources = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<AssetReference, ByteBuffer> fontDataCache = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<AssetReference, Map<GlyphRange, ByteBuffer>> atlases = new ConcurrentHashMap<>();
+    private final BlockingQueue<FontLoadingJob> pendingRequests = new LinkedBlockingQueue<>();
 
     private FontManager() {
-        this.executorService = Executors.newVirtualThreadPerTaskExecutor();
         startProcessingThread();
     }
 
     public static synchronized FontManager get() {
-        if (instance == null) {
-            instance = new FontManager();
-        }
-
+        if (instance == null) instance = new FontManager();
         return instance;
+    }
+
+    public void processFont(TCBFont font, ResourceID atlasRID) {
+        if (!pendingRequests.offer(new FontLoadingJob(font, atlasRID))) {
+            Logger.warning(String.format("Failed to queue font job for '%s'", font.canonicalPath()));
+            ResourceStatusCallback.emit(font.RID, ResourceStatus.FAILED);
+        }
     }
 
     private void startProcessingThread() {
         processor = new Thread(() -> {
             while (!Thread.currentThread().isInterrupted()) {
                 try {
-                    FontRequestEntry entry = pendingRequests.take();
-
+                    FontLoadingJob job = pendingRequests.take();
                     do {
-                        processFontRequest(entry);
-                        requests.remove(entry.request);
-                    } while ((entry = pendingRequests.poll()) != null);
+                        processJob(job);
+                    } while ((job= pendingRequests.poll()) != null);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     break;
                 }
             }
         }, "FontProcessor");
-
         processor.setDaemon(true);
         processor.start();
     }
 
-    private void processFontRequest(FontRequestEntry entry) {
-        if (entry == null) return;
-
-        FontRequest request = entry.request;
-        TCBFont font = fontCache.get(request);
-        if (font != null) {
-            notifyCallbacks(font, request, entry.callbacks);
-            return;
-        }
-
+    private void processJob(FontLoadingJob job) {
+        TCBFont font = job.font;
+        ResourceID atlasRID = job.atlasRID;
+        AssetReference assetReference = font.assetReference;
+        GlyphRange glyphRange = font.glyphRange;
+        int fontSizePixels = font.fontSizePixels();
         try {
-            TCBFont currentSimilar = getSimilarFont(request);
-
-            if (currentSimilar != null) {
-                font = new TCBFont(currentSimilar, request.getPixelSize());
-                fontCache.put(request, font);
-                notifyCallbacks(font, request, entry.callbacks);
+            TCBFont source = getAtlasSource(assetReference, glyphRange);
+            if (source != null && source.loaded()) {
+                ByteBuffer fontData = fontDataCache.get(assetReference);
+                if (fontData != null) {
+                    Map<Character, CharMetric> charMetrics = TCBFontLoader.computeMetrics(fontData, source.charUVs, fontSizePixels, assetReference);
+                    font.populateExisting(source, charMetrics);
+                    ResourceStatusCallback.emit(font.RID, ResourceStatus.READY);
+                    return;
+                }
+            }
+            ByteBuffer fontData = loadFontData(assetReference);
+            if (fontData == null) {
+                Logger.error(String.format("Failed to load font file '%s'", assetReference.canonicalPath()));
+                ResourceStatusCallback.emit(font.RID, ResourceStatus.FAILED);
                 return;
             }
-        } catch (Exception ignored) {}
-
-        try {
-            AssetReference assetRef = request.fontAsset();
-            UnifiedPaths resolver = UnifiedPaths.get();
-
-            try (InputStream stream = resolver.getAssetStream(assetRef.resolvedPath())) {
-                byte[] fontData = stream.readAllBytes();
-                ByteBuffer fontBuffer = BufferUtils.createByteBuffer(fontData.length);
-                fontBuffer.put(fontData);
-                fontBuffer.flip();
-
-                font = new TCBFont(fontBuffer, assetRef, request.getPixelSize(), request.glyphRange());
-
-                fontCache.put(request, font);
-
-                notifyCallbacks(font, request, entry.callbacks);
-            }
+            TCBFontLoader.LoadResult result = TCBFontLoader.generate(fontData, glyphRange, fontSizePixels);
+            cacheFontAtlas(assetReference, glyphRange, result.atlasData());
+            font.populate(result.charUVs(), result.charMetrics(), atlasRID);
+            atlasSources.computeIfAbsent(assetReference, k -> new ConcurrentHashMap<>()).put(glyphRange, font);
+            ResourceStatusCallback.emit(font.RID, ResourceStatus.READY);
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Failed to load font: " + request, e);
+            Logger.error(String.format("Failed to process font '%s': %s", font.canonicalPath(), e.getMessage()));
+            ResourceStatusCallback.emit(font.RID, ResourceStatus.FAILED);
         }
     }
 
-    private TCBFont getSimilarFont(FontRequest request) {
-        return fontCache.values().stream()
-                .filter(TCBFont::isLoaded)
-                .filter(f -> resizeable(f, request))
-                .findFirst().orElse(null);
+    private TCBFont getAtlasSource(AssetReference assetReference, GlyphRange glyphRange) {
+        Map<GlyphRange, TCBFont> ranges = atlasSources.get(assetReference);
+        return ranges != null ? ranges.get(glyphRange) : null;
     }
 
-    private boolean resizeable(TCBFont font, FontRequest request) {
-        if (font.getCanonicalPath() == null || request.fontAsset().canonicalPath() == null) return false;
-
-        return Objects.equals(font.getCanonicalPath(), request.fontAsset().canonicalPath())
-                && Objects.equals(font.getGlyphRange(), request.glyphRange())
-                && font.getFontSizePixel() != request.getPixelSize();
-    }
-
-    private void notifyCallbacks(TCBFont font, FontRequest request, List<WeakReference<FontStatusCallback>> callbacks) {
-        List<WeakReference<FontStatusCallback>> expiredCallbacks = new ArrayList<>();
-
-        for (WeakReference<FontStatusCallback> ref : callbacks) {
-            FontStatusCallback callback = ref.get();
-
-            if (callback != null) {
-                try {
-                    callback.onFontReady(font, request);
-                } catch (Exception e) {
-                    LOGGER.log(Level.WARNING, "Exception in font load callback", e);
-                }
-            } else {
-                expiredCallbacks.add(ref);
-            }
+    private ByteBuffer loadFontData(AssetReference assetReference) {
+        ByteBuffer cached = fontDataCache.get(assetReference);
+        if (cached != null) return cached;
+        try (InputStream stream = UnifiedPaths.get().getAssetStream(assetReference.resolvedPath())) {
+            byte[] bytes = stream.readAllBytes();
+            ByteBuffer buffer = BufferUtils.createByteBuffer(bytes.length);
+            buffer.put(bytes).flip();
+            fontDataCache.put(assetReference, buffer);
+            return buffer;
+        } catch (IOException e) {
+            Logger.error(String.format("Cannot read font file '%s': %s", assetReference.canonicalPath(), e.getMessage()));
+            return null;
         }
-
-        callbacks.removeAll(expiredCallbacks);
     }
 
     void cacheFontAtlas(AssetReference assetReference, GlyphRange glyphRange, ByteBuffer atlasData) {
         if (assetReference == null || glyphRange == null || atlasData == null) return;
-
         atlases.computeIfAbsent(assetReference, k -> new ConcurrentHashMap<>()).put(glyphRange, atlasData);
     }
 
     public ByteBuffer getFontAtlas(AssetReference assetReference, GlyphRange glyphRange) {
         if (assetReference == null || glyphRange == null) return null;
-
         return atlases.getOrDefault(assetReference, Map.of()).get(glyphRange);
     }
 
-    public void requestFont(FontRequest request, FontStatusCallback callback) {
-        TCBFont existingFont = fontCache.get(request);
-
-        if (existingFont != null) {
-            if (callback != null) callback.onFontReady(existingFont, request);
-            return;
-        }
-
-        FontRequestEntry existingEntry = requests.get(request);
-        if (existingEntry != null) {
-            existingEntry.addCallback(callback);
-            return;
-        }
-
-        FontRequestEntry newEntry = new FontRequestEntry(request, callback);
-        FontRequestEntry current = requests.putIfAbsent(request, newEntry);
-
-        if (current != null) {
-            current.addCallback(callback);
-            return;
-        }
-
-        if (!pendingRequests.offer(newEntry)) {
-            LOGGER.log(Level.WARNING, "Failed to queue font request: " + request);
-            requests.remove(request);
-        }
-    }
-
     public void cleanup() {
-        executorService.shutdown();
-        fontCache.clear();
+        fontDataCache.clear();
+        atlasSources.clear();
         pendingRequests.clear();
     }
 
@@ -191,9 +140,8 @@ public class FontManager {
             }
             processor = null;
         }
-
         cleanup();
-        LOGGER.log(Level.INFO, "Thread shutdown completed");
+        Logger.info("Thread shutdown completed");
         instance = null;
     }
 }

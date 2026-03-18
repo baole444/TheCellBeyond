@@ -1,9 +1,13 @@
 package components;
 
+import TheCellBeyond.Transform2D;
+import TheCellBeyond.internal.ResourceID;
 import editor.template.EditorTemplate;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import render.Texture;
+import render.commands.RectCommand;
+import render.commands.RenderCommand;
 import render.texture.Sprite;
 import utility.WorldUnit;
 
@@ -19,8 +23,6 @@ public class SpriteRenderer extends Component2D {
     private volatile Sprite sprite = new Sprite();
     private volatile boolean flipHorizontally = false;
     private volatile boolean flipVertically = false;
-
-    private volatile transient boolean isSpriteDirty = true;
 
     public SpriteRenderer() {
         String name = SpriteRenderer.class.getSimpleName();
@@ -39,7 +41,7 @@ public class SpriteRenderer extends Component2D {
 
     @Override
     protected void onTransformDirty() {
-        isSpriteDirty = true;
+        renderDirty = true;
     }
 
     /**
@@ -47,7 +49,7 @@ public class SpriteRenderer extends Component2D {
      * @param needsUpdate true to set sprite dirty
      */
     public void spriteDirty(boolean needsUpdate) {
-        isSpriteDirty = needsUpdate;
+        renderDirty = needsUpdate;
         if (!needsUpdate && sprite != null) sprite.rendererUpdated();
     }
 
@@ -111,7 +113,7 @@ public class SpriteRenderer extends Component2D {
     public void sprite(Sprite sprite) {
         if (Objects.equals(this.sprite, sprite)) return;
         this.sprite = sprite;
-        isSpriteDirty = true;
+        renderDirty = true;
     }
 
     /**
@@ -123,7 +125,7 @@ public class SpriteRenderer extends Component2D {
     public void color(Vector4f color) {
         if(color == null) return;
         if (Objects.equals(this.color, color)) return;
-        isSpriteDirty = true;
+        renderDirty = true;
         this.color.set(color);
     }
 
@@ -135,9 +137,8 @@ public class SpriteRenderer extends Component2D {
      */
     public void flipHorizontally(boolean flip) {
         if (flip == flipHorizontally) return;
-
         flipHorizontally = flip;
-        isSpriteDirty = true;
+        renderDirty = true;
     }
 
     /**
@@ -148,9 +149,8 @@ public class SpriteRenderer extends Component2D {
      */
     public void flipVertically(boolean flip) {
         if (flip == flipVertically) return;
-
         flipVertically = flip;
-        isSpriteDirty = true;
+        renderDirty = true;
     }
 
     /**
@@ -158,8 +158,8 @@ public class SpriteRenderer extends Component2D {
      * @return true if the sprite needs update
      */
     public boolean isSpriteDirty() {
-        if (sprite != null && sprite.requestRendererUpdate()) isSpriteDirty = true;
-        return isSpriteDirty;
+        if (sprite != null && sprite.requestRendererUpdate()) renderDirty = true;
+        return renderDirty;
     }
 
     /**
@@ -176,5 +176,37 @@ public class SpriteRenderer extends Component2D {
      */
     public boolean flipVertically() {
         return flipVertically;
+    }
+
+    @Override
+    public boolean renderDirty() {
+        return isSpriteDirty();
+    }
+
+    @Override
+    public void renderDirty(boolean dirty) {
+        spriteDirty(dirty);
+    }
+
+    @Override
+    public RenderCommand buildRenderCommand() {
+        RectCommand command = RectCommand.acquire();
+        command.submitterID = gameObject != null ? gameObject.getUID() : 0;
+        ResourceID textureRID = sprite != null ? sprite.textureRID() : null;
+        command.flipVertically = flipVertically;
+        command.flipHorizontally = flipHorizontally;
+        command.modulate.set(color());
+        command.size.set(spriteSizeAsWorldUnit());
+        if (textureRID != null) {
+            command.textureRID = textureRID;
+            Vector2f[] uvs = textureCoordinates();
+            if (uvs != null) {
+                for (int i = 0; i < 4; i++) command.uvCoordinates[i].set(uvs[i]);
+            }
+        }
+        RenderCommand renderCommand = super.buildRenderCommand();
+        if (renderCommand == null) return command;
+        renderCommand.next = command;
+        return renderCommand;
     }
 }
