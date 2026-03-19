@@ -697,7 +697,7 @@ public class GameObject {
     public static <T extends GameObject> T changeType(GameObject source, Class<T> targetType) {
         if (source == null || targetType == null) return null;
         if (LogicServer.runtimeMode()) return null;
-        if (targetType.isInstance(source)) return targetType.cast(source);
+        if (source.getClass() == targetType) return targetType.cast(source);
         T newObject;
         try {
             newObject = targetType.getDeclaredConstructor(String.class).newInstance(source.name());
@@ -714,6 +714,7 @@ public class GameObject {
             component.gameObject = null;
             newObject.addComponent(component);
         }
+        source.isRemoved = true;
         return newObject;
     }
 
