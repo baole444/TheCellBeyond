@@ -45,6 +45,11 @@ public final class EditorObjectIndicator extends Component2D implements NotSeria
     }
 
     @Override
+    protected void onTransformDirty() {
+        renderDirty = true;
+    }
+
+    @Override
     protected void onEditorStart() {
         initIndicator();
     }

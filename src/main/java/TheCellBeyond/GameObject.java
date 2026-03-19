@@ -506,7 +506,7 @@ public class GameObject {
         if (isStarted) {
             if (LogicServer.runtimeMode()) component.start();
             else component.editorStart();
-            EngineEventCallback.emit(new SceneEvent(SceneEvent.Type.ComponentAdded, LogicServer.currentScene()));
+            EngineEventCallback.emit(new SceneEvent(SceneEvent.Type.ComponentAdded, LogicServer.currentScene(), component));
         }
         setDirty(true);
     }
