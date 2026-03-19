@@ -35,7 +35,7 @@ public class GameObject {
     /**
      * Logger for game objects.
      */
-    protected static final EngineLog LOGGER = new EngineLog(GameObject.class);
+    protected static final EngineLog Logger = new EngineLog(GameObject.class);
 
     /**
      * Unique ID distributor for {@link GameObject}, managed the {@link #cachedID} of each object.
@@ -687,6 +687,37 @@ public class GameObject {
     protected void onDestroy() {}
 
     /**
+     * Create a new {@link GameObject} of the targeted type,
+     * transferring the source object's hierarchy and component to the new object.
+     * @param source the source object to change type
+     * @param targetType the class for to change to
+     * @return a new instance of the targeted type from source
+     * @param <T> the target type, must be subclass of {@link GameObject}
+     */
+    public static <T extends GameObject> T changeType(GameObject source, Class<T> targetType) {
+        if (source == null || targetType == null) return null;
+        if (LogicServer.runtimeMode()) return null;
+        if (targetType.isInstance(source)) return targetType.cast(source);
+        T newObject;
+        try {
+            newObject = targetType.getDeclaredConstructor(String.class).newInstance(source.name());
+        } catch (Exception e) {
+            Logger.error(String.format("Failed to create new instance of '%s': %s", targetType.getSimpleName(), e.getMessage()));
+            return null;
+        }
+        ((GameObject) newObject).uuid = source.uuid;
+        List<GameObject> children = new ArrayList<>(source.children);
+        for (GameObject child : children) newObject.addChild(child);
+        List<Component> components = new ArrayList<>(source.components);
+        for (Component component : components) {
+            source.components.remove(component);
+            component.gameObject = null;
+            newObject.addComponent(component);
+        }
+        return newObject;
+    }
+
+    /**
      * Create a new {@link GameObject} from this game object and its components without the hierarchy.
      * <p>
      * The copy process use serialization, ensure all subclasses of {@link GameObject} are supported.
@@ -925,7 +956,14 @@ public class GameObject {
         isDirty = dirty;
     }
 
-    protected static boolean invalidName(String name) {
+    /**
+     * Check if the given name is invalid for a game object.
+     * <p>
+     * A name is considered invalid if it is null or blank, or is the same as the special name {@link HierarchyPath#Root}.
+     * @param name the name to check for
+     * @return true if invalid
+     */
+    public static boolean invalidName(String name) {
         return name == null || name.isBlank() || name.trim().equals(HierarchyPath.Root);
     }
 }

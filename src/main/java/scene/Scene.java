@@ -457,4 +457,31 @@ public class Scene {
         objects.forEach(go -> go.restoreHierarchy(this));
         reorderGameObjects();
     }
+
+    /**
+     * Initialize this scene wit the given root object as an unsaved scene.
+     * The scene will have no name and the uuid is randomized.
+     * @param root the root object to initialize with
+     */
+    void initWithRoot(GameObject root) {
+        if (root == null) return;
+        sceneUUID = UUID.randomUUID();
+        name = null;
+        this.root = root;
+        addObjectToScene(root, null);
+    }
+
+    /**
+     * Replace the root object of this scene with the given new root.
+     * The new root object should have transferred all the children and component from the old root.
+     * @param newRoot the new root object for the scene
+     */
+    void replaceRoot(GameObject newRoot) {
+       if (newRoot == null) return;
+       GameObject oldRoot = root;
+       if (oldRoot != null) sceneData.removeObject(oldRoot);
+       root = newRoot;
+       addObjectToScene(newRoot, null);
+       reorderGameObjects();
+    }
 }

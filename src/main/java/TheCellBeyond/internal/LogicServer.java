@@ -1,5 +1,6 @@
 package TheCellBeyond.internal;
 
+import TheCellBeyond.GameObject;
 import TheCellBeyond.MouseListener;
 import TheCellBeyond.Viewport;
 import editor.Properties;
@@ -34,27 +35,22 @@ public class LogicServer implements EngineEventListener {
         register();
     }
 
-    private static void changeScene(SceneLoader sceneLoader) {
-        String sceneName = currentScene == null ? null : currentScene.name();
-        changeScene(sceneLoader, sceneName);
-    }
-
-    private static void changeScene(SceneLoader sceneLoader, String sceneName) {
+    /**
+     * Create and load an unsaved scene with the given root object.
+     * The scene will not be registered with the project until saved.
+     * <p>
+     * This requires the engine to be out of play test mode or {@link #runtimeMode()} false to work properly.
+     * @param root the root object for the new scene
+     */
+    public static void loadUnsavedScene(GameObject root) {
+        if (root == null || runtimeMode) return;
         if (currentScene != null) currentScene.destroy();
         Properties.clearSelection();
         SceneTree.clearSelection();
-        currentScene = new Scene(sceneLoader);
-        if (SceneManager.validSceneName(sceneName)) SceneManager.loadScene(currentScene, sceneName);
+        currentScene = new Scene(new SceneEditor());
+        SceneManager.initUnsavedScene(currentScene, root);
         currentScene.init();
-        if (runtimeMode) currentScene.start();
-        else currentScene.editorStart();
-    }
-
-    private static void reloadScene() {
-        if (currentScene == null) return;
-        String sceneName = currentScene.name();
-        if (!SceneManager.validSceneName(sceneName)) return;
-        changeScene(new SceneEditor(), sceneName);
+        currentScene.editorStart();
     }
 
     /**
@@ -97,6 +93,12 @@ public class LogicServer implements EngineEventListener {
         return runtimeMode;
     }
 
+    /**
+     * Step the scene's physic world by fixed delta time.
+     * <p>
+     * The delta provide to this method is use to step physic world step.
+     * @param dt variable delta time
+     */
     public static void updatePhysic(float dt) {
         if (!runtimeMode || runtimeCrashed || currentScene == null) return;
         try {
@@ -109,6 +111,10 @@ public class LogicServer implements EngineEventListener {
         }
     }
 
+    /**
+     * Step the scene's spatial world by the given delta time.
+     * @param dt variable delta time
+     */
     public static void update(float dt)  {
         if (runtimeCrashed || currentScene == null) return;
         if (runtimeMode) {
@@ -153,6 +159,29 @@ public class LogicServer implements EngineEventListener {
         }
     }
 
+    private static void changeScene(SceneLoader sceneLoader) {
+        String sceneName = currentScene == null ? null : currentScene.name();
+        changeScene(sceneLoader, sceneName);
+    }
+
+    private static void changeScene(SceneLoader sceneLoader, String sceneName) {
+        if (currentScene != null) currentScene.destroy();
+        Properties.clearSelection();
+        SceneTree.clearSelection();
+        currentScene = new Scene(sceneLoader);
+        if (SceneManager.validSceneName(sceneName)) SceneManager.loadScene(currentScene, sceneName);
+        currentScene.init();
+        if (runtimeMode) currentScene.start();
+        else currentScene.editorStart();
+    }
+
+    private static void reloadScene() {
+        if (currentScene == null) return;
+        String sceneName = currentScene.name();
+        if (!SceneManager.validSceneName(sceneName)) return;
+        changeScene(new SceneEditor(), sceneName);
+    }
+
     private void handleSceneEvent(Object object, SceneEvent event) {
         if (!event.type.equals(SceneEvent.Type.SceneLeaved)) return;
         currentScene = null;
@@ -164,12 +193,12 @@ public class LogicServer implements EngineEventListener {
                 SceneManager.saveCurrentScene();
                 runtimeMode = true;
                 reloadScene();
-                Logger.info("Test play started.");
+                Logger.info(String.format("Test play started for '%s'", currentSceneName()));
             }
             case RuntimeEvent.Type.RuntimeStopped -> {
                 runtimeMode = false;
                 reloadScene();
-                Logger.info("Test play stopped.");
+                Logger.info(String.format("Test play stopped for '%s'", currentSceneName()));
             }
             case RuntimeEvent.Type.RuntimeCrashed -> {
                 runtimeMode = false;
@@ -193,10 +222,7 @@ public class LogicServer implements EngineEventListener {
                 if (!projectLoaded) return;
                 MouseListener.setStartupMode(false);
                 List<String> availScenes = Project.getSceneNames();
-                if (availScenes.isEmpty()) {
-                    LogicServer.changeScene(new SceneEditor());
-                    return;
-                }
+                if (availScenes.isEmpty()) return;
                 RecentProject project = UserPreference.recentProject(projectPath);
                 String lastOpenScene = project != null ? project.lastOpenScene() : null;
                 if (lastOpenScene == null || !availScenes.contains(lastOpenScene)) lastOpenScene = availScenes.getFirst();

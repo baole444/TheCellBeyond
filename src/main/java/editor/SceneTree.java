@@ -1,8 +1,10 @@
 package editor;
 
 import TheCellBeyond.GameObject;
+import TheCellBeyond.GameObject2D;
 import TheCellBeyond.internal.LogicServer;
 import editor.dialog.AddObjectDialog;
+import editor.dialog.ChooseRootTypeDialog;
 import editor.payload.GameObjectDragDropPayload;
 import imgui.ImGui;
 import imgui.ImVec2;
@@ -10,6 +12,7 @@ import imgui.flag.ImGuiChildFlags;
 import imgui.flag.ImGuiMouseButton;
 import imgui.flag.ImGuiTreeNodeFlags;
 import imgui.flag.ImGuiWindowFlags;
+import physic2d.CharacterBody2D;
 import scene.Scene;
 import utility.log.EngineLog;
 import utility.prefabrication.PrefabManager;
@@ -32,7 +35,7 @@ public class SceneTree {
         }
         Scene scene = LogicServer.currentScene();
         if (scene == null) {
-            ImGui.text("No scene loaded");
+            renderQuickCreate();
             ImGui.end();
             return;
         }
@@ -184,5 +187,19 @@ public class SceneTree {
 
     public static void clearSelection() {
         selectedObject = null;
+    }
+
+    private static void renderQuickCreate() {
+        ImGui.text("Create a new scene:");
+        ImGui.separator();
+        ImGui.spacing();
+        float buttonW = ImGui.getContentRegionAvailX();
+        if (ImGui.button("Create 2D Scene##ST_Quick_Create_2D_Scene", buttonW, 0.0f)) LogicServer.loadUnsavedScene(new GameObject2D());
+        if (ImGui.isItemHovered()) ImGui.setTooltip("Create a new scene with root type as GameObject2D");
+        ImGui.spacing();
+        if (ImGui.button("Create 2D Character Scene##Quick_Create_2D_Character_Scene", buttonW, 0.0f)) LogicServer.loadUnsavedScene(new CharacterBody2D());
+        if (ImGui.isItemHovered()) ImGui.setTooltip("Create a new scene with root type as CharacterBody2D");
+        ImGui.spacing();
+        if (ImGui.button("Other Scene type...", buttonW, 0.0f)) ChooseRootTypeDialog.show();
     }
 }

@@ -17,6 +17,7 @@ import utility.log.EngineLog;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
@@ -37,6 +38,11 @@ public final class SceneManager {
     private static final String CannotCreateFormat = "Cannot create scene '%s': %s";
     private static final String CannotLoadFormat = "Cannot load scene '%s': %s";
 
+    /**
+     * Field order: Old name -> New name -> Reason.
+     */
+    private static final String CannotRenameFormat = "Cannot rename scene '%s' to '%s': %s";
+
     private SceneManager() {}
 
     /**
@@ -56,6 +62,26 @@ public final class SceneManager {
     public static boolean sceneNameAvailable(String name) {
         if (!validSceneName(name) || !Project.loaded()) return false;
         return Project.getScene(name.trim()) == null;
+    }
+
+    /**
+     * Initialize the given scene with a root object as an unsaved scene.
+     * @param scene the scene to initialize
+     * @param root the root object for the scene
+     */
+    public static void initUnsavedScene(Scene scene, GameObject root) {
+        if (scene == null || root == null) return;
+        scene.initWithRoot(root);
+    }
+
+    /**
+     * Replace the root object of the given scene.
+     * @param scene the scene to replace root object
+     * @param newRoot the new root object for the scene
+     */
+    public static void replaceSceneRoot(Scene scene, GameObject newRoot) {
+        if (scene == null || newRoot == null) return;
+        scene.replaceRoot(newRoot);
     }
 
     /**
@@ -136,6 +162,7 @@ public final class SceneManager {
             Logger.error(String.format(CannotSaveAsFormat, newSceneName, SaveFileFailed));
             return false;
         }
+        currentScene.name(newSceneName);
         Logger.info(String.format("Saved scene as '%s'", newSceneName));
         return true;
     }
@@ -168,6 +195,54 @@ public final class SceneManager {
             return false;
         }
         Logger.info(String.format("Created new scene '%s'", sceneName));
+        return true;
+    }
+
+    public static boolean renameScene(String oldName, String newName) {
+        if (runtimeMode()) return false;
+        if (invalidName(oldName) || invalidName(newName)) return false;
+        oldName = oldName.trim();
+        newName = newName.trim();
+        if (oldName.equals(newName)) return false;
+        if (!Project.loaded()) {
+            Logger.error(String.format(CannotRenameFormat, oldName, newName, ProjectNotLoaded));
+            return false;
+        }
+        if (!sceneNameAvailable(newName)) {
+            Logger.error(String.format(CannotRenameFormat, oldName, newName, SceneAlreadyExist));
+            return false;
+        }
+        ProjectSceneMap oldSceneMap = Project.getScene(oldName);
+        if (oldSceneMap == null) {
+            Logger.error(String.format(CannotRenameFormat, oldName, newName, NoSuchScene));
+            return false;
+        }
+        String oldPath = UnifiedPaths.resolveToAbsolute(Project.projectRoot(), oldSceneMap.path());
+        String newRelativePath = createScenePath(newName);
+        String newAbsolutePath = UnifiedPaths.resolveToAbsolute(Project.projectRoot(), newRelativePath);
+        Path source = Paths.get(oldPath);
+        Path destination = Paths.get(newAbsolutePath);
+        try {
+            Files.move(source, destination);
+        } catch (IOException e) {
+            Logger.error(String.format(CannotRenameFormat, oldName, newName, e.getMessage()));
+            return false;
+        }
+        Project.removeScene(oldName);
+        ProjectSceneMap newSceneMap = new ProjectSceneMap(newRelativePath);
+        if (!Project.addScene(newName, newSceneMap)) {
+            try {
+                Files.move(destination, source);
+            } catch (IOException _) {}
+            Logger.error(String.format(CannotRenameFormat, oldName, newName, RegisterSceneFailed));
+            return false;
+        }
+        Scene currentScene = LogicServer.currentScene();
+        if (currentScene != null && oldName.equals(currentScene.name())) {
+            currentScene.name(newName);
+            saveScene(newName, currentScene);
+        }
+        Logger.info(String.format("Renamed scene '%s' to '%s'", oldName, newName));
         return true;
     }
 

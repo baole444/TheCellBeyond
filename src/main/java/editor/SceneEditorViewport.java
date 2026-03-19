@@ -10,26 +10,29 @@ import editor.preference.UserPreference;
 import eventviewer.EngineEventListener;
 import eventviewer.event.RuntimeEvent;
 import eventviewer.event.Event;
+import eventviewer.event.SceneEvent;
+import imgui.flag.*;
+import imgui.type.ImString;
 import project.Project;
 import eventviewer.EngineEventCallback;
 import imgui.ImGui;
 import imgui.ImVec2;
-import imgui.flag.ImGuiPopupFlags;
-import imgui.flag.ImGuiTableColumnFlags;
-import imgui.flag.ImGuiTableFlags;
-import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
 import org.joml.Vector2f;
 import render.FrameBuffer;
+import scene.SceneManager;
 
-import javax.swing.text.View;
-import java.util.Objects;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_ENTER;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
 
 public class SceneEditorViewport implements EngineEventListener {
     public static volatile String WINDOW_ID = "2D Scene###Editor_Scene_Viewport";
     private float leftX, rightX, topY, bottomY;
     private boolean isPlaying = false;
-    private String currentSceneName = "New scene";
+    private String currentSceneName = null;
+    private boolean renaming = false;
+    private boolean renameFocus = false;
+    private final ImString renameBuffer = new ImString(128);
     public transient float currentWidth;
     public transient float currentHeight;
 
@@ -38,9 +41,7 @@ public class SceneEditorViewport implements EngineEventListener {
     }
 
     public void imgui() {
-        String sceneName = LogicServer.currentSceneName();
-        if (sceneName == null) currentSceneName = "Untitled";
-        if (sceneName != null && !currentSceneName.equals(sceneName)) currentSceneName = sceneName;
+        currentSceneName = resolveDisplaySceneName();
         if (!ImGui.begin(WINDOW_ID, ImGuiWindowFlags.NoScrollbar
                 | ImGuiWindowFlags.NoScrollWithMouse
                 | ImGuiWindowFlags.MenuBar
@@ -80,7 +81,7 @@ public class SceneEditorViewport implements EngineEventListener {
         ImGui.sameLine();
         ImGui.text(" ");
         ImGui.tableNextColumn();
-        EditorWidget.textCenterAlign(currentSceneName);
+        renderSceneName();
         ImGui.tableNextColumn();
         ImBoolean snapGrid = new ImBoolean(UserPreference.editorPreferences().showGridLine());
         if (ImGui.checkbox("Grid snapping##Ctrl_Grid_Snap_nd_Show_ESV", snapGrid)) {
@@ -119,6 +120,51 @@ public class SceneEditorViewport implements EngineEventListener {
         float offset = Math.max(remainWidth - textWidth, 0.0f);
         ImGui.setCursorPos(cursorPos.x + offset, cursorPos.y);
         ImGui.text(fps);
+    }
+
+    private void renderSceneName() {
+        if (renaming) {
+            ImGui.pushItemWidth(ImGui.getContentRegionAvailX());
+            ImGui.setKeyboardFocusHere();
+            ImGui.inputTextWithHint("New name:##SEV_RenameScene", "Enter a new name or press Escape key to cancel...", renameBuffer);
+            boolean focus = ImGui.isItemFocused();
+            if (focus && ImGui.isKeyPressed(GLFW_KEY_ESCAPE)) {
+                renaming = false;
+                renameFocus = false;
+                ImGui.popItemWidth();
+                return;
+            }
+            if ((focus && ImGui.isKeyPressed(GLFW_KEY_ENTER)) || (renameFocus && !focus)) rename();
+            renameFocus = focus;
+            ImGui.popItemWidth();
+            return;
+        }
+        boolean noScene = currentSceneName == null;
+        if (noScene) ImGui.beginDisabled();
+        EditorWidget.textCenterAlign(noScene ? "Empty" : currentSceneName);
+        if (noScene) {
+            ImGui.endDisabled();
+            return;
+        }
+        if (!ImGui.isItemHovered()) return;
+        if (LogicServer.currentSceneName() == null) {
+            ImGui.setTooltip("Double click to save the scene");
+            if (ImGui.isMouseDoubleClicked(ImGuiMouseButton.Left)) SaveSceneAsDialog.show();
+            return;
+        }
+        ImGui.setTooltip("Double click to rename the scene");
+        if (!ImGui.isMouseDoubleClicked(ImGuiMouseButton.Left)) return;
+        renaming = true;
+        renameFocus = false;
+        renameBuffer.set(currentSceneName);
+    }
+
+    private void rename() {
+        renaming = false;
+        renameFocus = false;
+        String newName = renameBuffer.get().trim();
+        if (newName.isEmpty() || newName.equals(currentSceneName)) return;
+        if (SceneManager.renameScene(currentSceneName, newName)) currentSceneName = newName;
     }
 
     public boolean getWantCaptureMouse() {
@@ -165,10 +211,27 @@ public class SceneEditorViewport implements EngineEventListener {
 
     @Override
     public void onEventEmit(Object object, Event event) {
-        if (!(event instanceof RuntimeEvent runtimeEvent)) return;
-        switch (runtimeEvent.type) {
-            case RuntimeStopped, RuntimeCrashed -> isPlaying = false;
-            case RuntimeStarted -> isPlaying = true;
+        if (event instanceof RuntimeEvent runtimeEvent) {
+            switch (runtimeEvent.type) {
+                case RuntimeStopped, RuntimeCrashed -> isPlaying = false;
+                case RuntimeStarted -> isPlaying = true;
+            }
+            renaming = false;
+            renameFocus = false;
+            return;
         }
+        if (!(event instanceof SceneEvent sceneEvent)) return;
+        SceneEvent.Type type = sceneEvent.type;
+        if (type != SceneEvent.Type.SceneEntered && type != SceneEvent.Type.SceneLeaved) return;
+        renaming = false;
+        renameFocus = false;
+    }
+
+    private String resolveDisplaySceneName() {
+        if (LogicServer.currentScene() == null) return null;
+        String sceneName = LogicServer.currentSceneName();
+        if (sceneName == null) return "Untitled";
+        if (currentSceneName == null || !currentSceneName.equals(sceneName)) return sceneName;
+        return currentSceneName;
     }
 }

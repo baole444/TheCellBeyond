@@ -57,7 +57,7 @@ public class ConfirmSaveSceneDialog {
             closeConfirmation();
             return;
         }
-        if (isAutoSaveOnSceneChange) {
+        if (isAutoSaveOnSceneChange && LogicServer.currentSceneName() != null) {
             EngineEventCallback.emit(null, new EditorEvent(EditorEvent.Type.SaveEditingSceneToDisk));
             closeConfirmation();
             return;
@@ -82,10 +82,13 @@ public class ConfirmSaveSceneDialog {
             float noSaveX = (availX * 0.5f) - (buttonPivotX);
             float cancelX = (availX * 0.85f) - (buttonPivotX);
             ImGui.setCursorPosX(saveX);
-            if (ImGui.button("Save", buttonWidth, 0)) {
+            if (ImGui.button("Save", buttonWidth, 0.0f)) {
                 if (enableSaveOnChangeScene.get()) setAutoSaveOn();
-                EngineEventCallback.emit(null, new EditorEvent(EditorEvent.Type.SaveEditingSceneToDisk));
-                closeConfirmation();
+                if (LogicServer.currentSceneName() == null) SaveSceneAsDialog.show(ConfirmSaveSceneDialog::closeConfirmation);
+                else {
+                    EngineEventCallback.emit(null, new EditorEvent(EditorEvent.Type.SaveEditingSceneToDisk));
+                    closeConfirmation();
+                }
             }
             ImGui.sameLine();
             ImGui.setCursorPosX(noSaveX);
