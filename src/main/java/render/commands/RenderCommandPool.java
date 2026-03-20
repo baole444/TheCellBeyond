@@ -25,8 +25,20 @@ public class RenderCommandPool {
      * @apiNote Let hopes this does not become {@code AbstractFactoryProviderFactory}.
      */
     <T extends RenderCommand> T acquire(Class<T> commandType, Supplier<T> factory) {
-        RenderCommand command = pools.computeIfAbsent(commandType, k -> new ConcurrentLinkedDeque<>()).pollFirst();
+        RenderCommand command = pools.computeIfAbsent(commandType, _ -> new ConcurrentLinkedDeque<>()).pollFirst();
         return command != null ? commandType.cast(command) : factory.get();
+    }
+
+    /**
+     * Acquire a command from the pool and copy the source's data into it.
+     * @param sourced the command to copy from
+     * @return a {@link RenderCommand} from the pool with source's data
+     */
+    RenderCommand acquireCopy(RenderCommand sourced) {
+        if (sourced == null) return null;
+        RenderCommand clone = sourced.acquireInstance();
+        clone.copyFrom(sourced);
+        return clone;
     }
 
     /**
@@ -39,6 +51,6 @@ public class RenderCommandPool {
         if (command == null) return;
         command.next = null;
         command.reset();
-        pools.computeIfAbsent(command.getClass(), k -> new ConcurrentLinkedDeque<>()).offerLast(command);
+        pools.computeIfAbsent(command.getClass(), _ -> new ConcurrentLinkedDeque<>()).offerLast(command);
     }
 }

@@ -13,10 +13,20 @@ public abstract class RenderCommand {
         RenderCommandPool.get().release(this);
     }
 
+    public void copyFrom(RenderCommand source) {
+        submitterID = source.submitterID;
+    }
+
     public static void release(RenderCommand command) {
         if (command == null) return;
         RenderCommandPool.get().release(command);
     }
+
+    public static RenderCommand acquireCopy(RenderCommand source) {
+        return RenderCommandPool.get().acquireCopy(source);
+    }
+
+    protected abstract RenderCommand acquireInstance();
 
     protected void reset() {
         next = null;

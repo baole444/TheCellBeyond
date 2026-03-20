@@ -23,6 +23,20 @@ public class MeshCommand extends RenderCommand {
     }
 
     @Override
+    protected RenderCommand acquireInstance() {
+        return acquire();
+    }
+
+    @Override
+    public void copyFrom(RenderCommand source) {
+        super.copyFrom(source);
+        if (!(source instanceof MeshCommand mesh)) return;
+        tilePlacements = mesh.tilePlacements;
+        tileSet = mesh.tileSet;
+        modulate.set(mesh.modulate);
+    }
+
+    @Override
     protected void reset() {
         super.reset();
         tilePlacements = null;

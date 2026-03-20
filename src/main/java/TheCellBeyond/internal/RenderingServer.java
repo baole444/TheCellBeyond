@@ -7,6 +7,7 @@ import components.RenderableComponent;
 import eventviewer.EngineEventListener;
 import eventviewer.event.Event;
 import eventviewer.event.SceneEvent;
+import org.joml.Vector2f;
 import render.RenderNode;
 import render.Renderable;
 import render.commands.RenderCommand;
@@ -22,6 +23,7 @@ public class RenderingServer implements EngineEventListener {
     private final CopyOnWriteArrayList<RenderNode> roots = new CopyOnWriteArrayList<>();
     private final ConcurrentHashMap<Renderable, RenderNode> nodes = new ConcurrentHashMap<>();
     private final List<RenderCommand> nodeLinks = new ArrayList<>();
+    private final List<RenderCommand> cloneChainHeads = new ArrayList<>();
     private RenderCommand chainHead = null;
 
     private RenderingServer() {
@@ -40,7 +42,7 @@ public class RenderingServer implements EngineEventListener {
         refreshCommands(roots);
         nodeLinks.clear();
         RenderCommand[] previousTail = {null};
-        chainHead = chainNodes(roots, nodeLinks, previousTail);
+        chainHead = chainNodes(roots, nodeLinks, previousTail, cloneChainHeads);
     }
 
     public RenderCommand chainHead() {
@@ -50,6 +52,8 @@ public class RenderingServer implements EngineEventListener {
     public void postFrameClear() {
         for (RenderCommand tail : nodeLinks) tail.next = null;
         nodeLinks.clear();
+        for (RenderCommand head : cloneChainHeads) releaseCommandChain(head);
+        cloneChainHeads.clear();
         chainHead = null;
     }
 
@@ -189,11 +193,11 @@ public class RenderingServer implements EngineEventListener {
         }
     }
 
-    private static RenderCommand chainNodes(List<RenderNode> nodes, List<RenderCommand> nodeLinks, RenderCommand[] previousTail) {
+    private static RenderCommand chainNodes(List<RenderNode> nodes, List<RenderCommand> nodeLinks, RenderCommand[] previousTail, List<RenderCommand> clonedChainHeads) {
         RenderCommand head = null;
         for (RenderNode node : nodes) {
             if (node.commandHeader == null) {
-                RenderCommand childHead = chainNodes(node.renderingChildren, nodeLinks, previousTail);
+                RenderCommand childHead = chainNodes(node.renderingChildren, nodeLinks, previousTail, clonedChainHeads);
                 if (head == null) head = childHead;
                 continue;
             }
@@ -205,8 +209,54 @@ public class RenderingServer implements EngineEventListener {
             RenderCommand tail = node.commandHeader;
             while (tail.next != null) tail = tail.next;
             previousTail[0] = tail;
-            chainNodes(node.renderingChildren, nodeLinks, previousTail);
+            chainNodes(node.renderingChildren, nodeLinks, previousTail, clonedChainHeads);
+            if (!(node.nodeOwner instanceof RenderableObject go) || !go.repeatSource || go.repeatTime <= 1) continue;
+            for (int i = 1; i < go.repeatTime; i++) {
+                Vector2f offset = new Vector2f(go.repeatSize).mul(i);
+                RenderCommand cloneHead = cloneSubTree(node, offset, nodeLinks, clonedChainHeads);
+                if (cloneHead == null || previousTail[0] == null) continue;
+                previousTail[0].next = cloneHead;
+                nodeLinks.add(previousTail[0]);
+                RenderCommand cloneTail = cloneHead;
+                while (cloneTail.next != null) cloneTail = cloneTail.next;
+                previousTail[0] = cloneTail;
+            }
         }
         return head;
+    }
+
+    private static RenderCommand cloneSubTree(RenderNode node, Vector2f offset, List<RenderCommand> nodeLinks, List<RenderCommand> cloneChainHeads) {
+        RenderCommand head = cloneChain(node.commandHeader, offset);
+        if (head != null) cloneChainHeads.add(head);
+        RenderCommand tail = head;
+        if (tail != null) while (tail.next != null) tail = tail.next;
+        for (RenderNode child : node.renderingChildren) {
+            RenderCommand childHead = cloneSubTree(child, offset, nodeLinks, cloneChainHeads);
+            if (childHead == null) continue;
+            if (tail != null) {
+                tail.next = childHead;
+                nodeLinks.add(tail);
+            } else head = childHead;
+            tail = childHead;
+            while (tail.next != null) tail = tail.next;
+        }
+        return head;
+    }
+
+    private static RenderCommand cloneChain(RenderCommand chainHeader, Vector2f offset) {
+        if (chainHeader == null) return null;
+        RenderCommand cloneHead = null, cloneTail = null;
+        RenderCommand current = chainHeader;
+        while (current != null) {
+            RenderCommand clone = RenderCommand.acquireCopy(current);
+            if (clone != null) {
+                if (clone instanceof  TransformCommand transform) transform.position.add(offset);
+                if (cloneHead == null) cloneHead = clone;
+                if (cloneTail != null) cloneTail.next = clone;
+                cloneTail = clone;
+            }
+            current = current.next;
+        }
+        return cloneHead;
     }
 }

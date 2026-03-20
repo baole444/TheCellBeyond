@@ -1,6 +1,9 @@
 package TheCellBeyond;
 
+import TheCellBeyond.internal.LogicServer;
+import editor.template.EditorTemplate;
 import org.joml.Vector2f;
+import scene.Scene;
 
 public class Parallax2D extends GameObject2D {
     /**
@@ -32,23 +35,6 @@ public class Parallax2D extends GameObject2D {
      * Positive value scroll toward the right, while negative will scroll toward the left.
      */
     public final Vector2f autoScrollVelocity = new Vector2f();
-
-    /**
-     * Control how many times the texture repeats. Each texture copy spreads evenly from the original
-     * by {@link #repeatSize}. This can be used to fill up spaces when the camera is zoomed out.
-     */
-    public int repeatTimes = 1;
-
-    /**
-     * The offset for texture, in world units. The textures of this object's components and children are repeated,
-     * and offset by this value.
-     * <p>
-     * When scrolling, the position of objects and components loops, create the illusion of an infinite scrolling background.
-     * This will only work properly if the size are larger than the screen size.
-     * </p>
-     * If an axis is set to {@code 0.0}, the textures will not be repeated on that axis.
-     */
-    public final Vector2f repeatSize = new Vector2f();
 
     /**
      * The bottom left corner limit for scrolling to start, in world units.
@@ -92,4 +78,46 @@ public class Parallax2D extends GameObject2D {
     public transient final Vector2f screenOffset = new Vector2f();
 
     private final transient Vector2f accumulatedScroll = new Vector2f();
+
+    public Parallax2D() {
+        String name = Parallax2D.class.getSimpleName();
+        super(name);
+        repeatSource = true;
+    }
+
+    public Parallax2D(String name) {
+        if (invalidName(name)) name = Parallax2D.class.getSimpleName();
+        super(name);
+        repeatSource = true;
+    }
+
+    @Override
+    protected void onUpdate(float dt) {
+        accumulatedScroll.add(autoScrollVelocity.x * dt, autoScrollVelocity.y * dt);
+        float viewX = 0.0f, viewY = 0.0f;
+        if (followViewport && !ignoreViewportScroll) {
+            Scene scene = LogicServer.currentScene();
+            if (scene != null) {
+                Vector2f viewportPosition = scene.viewport().position;
+                viewX = bottomLeftLimit.x < topRightLimit.x ? Math.clamp(viewportPosition.x, bottomLeftLimit.x, topRightLimit.y) : viewportPosition.x;
+                viewY = bottomLeftLimit.y < topRightLimit.y ? Math.clamp(viewportPosition.y, bottomLeftLimit.y, topRightLimit.y) : viewportPosition.y;
+            }
+        }
+        float offsetX = viewX * scrollScale.x + screenOffset.x + accumulatedScroll.x;
+        float offsetY = viewY * scrollScale.y + screenOffset.y + accumulatedScroll.y;
+        if (repeatSize.x != 0.0f) offsetX = mod(offsetX, repeatSize.x);
+        if (repeatSize.y != 0.0f) offsetY = mod(offsetY, repeatSize.y);
+        if (!ignoreViewportScroll) screenOffset.set(offsetX, offsetY);
+        position(screenOffset.x, screenOffset.y);
+    }
+
+    private static float mod(float value, float mod) {
+        return ((value % mod) + mod) % mod;
+    }
+
+    @Override
+    public void additionalImGuiLogic() {
+        EditorTemplate.render(this);
+        super.additionalImGuiLogic();
+    }
 }

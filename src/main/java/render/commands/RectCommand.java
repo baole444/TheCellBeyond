@@ -26,6 +26,23 @@ public class RectCommand extends RenderCommand {
     }
 
     @Override
+    protected RenderCommand acquireInstance() {
+        return acquire();
+    }
+
+    @Override
+    public void copyFrom(RenderCommand source) {
+        super.copyFrom(source);
+        if (!(source instanceof RectCommand rect)) return;
+        textureRID = rect.textureRID;
+        for (int i = 0; i < 4; i++) uvCoordinates[i].set(rect.uvCoordinates[i]);
+        flipHorizontally = rect.flipHorizontally;
+        flipVertically = rect.flipVertically;
+        modulate.set(rect.modulate);
+        size.set(rect.size);
+    }
+
+    @Override
     protected void reset() {
         super.reset();
         textureRID = null;

@@ -20,6 +20,23 @@ public class TransformCommand extends RenderCommand {
     }
 
     @Override
+    protected RenderCommand acquireInstance() {
+        return acquire();
+    }
+
+    @Override
+    public void copyFrom(RenderCommand source) {
+        super.copyFrom(source);
+        if (!(source instanceof TransformCommand transform)) return;
+        position.set(transform.position);
+        rotationDegrees = transform.rotationDegrees;
+        scale.set(transform.scale);
+        zIndex = transform.zIndex;
+        visible = transform.visible;
+        modulate.set(transform.modulate);
+    }
+
+    @Override
     protected void reset() {
         super.reset();
         position.zero();

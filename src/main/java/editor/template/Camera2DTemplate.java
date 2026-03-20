@@ -28,20 +28,19 @@ public class Camera2DTemplate implements ObjectTemplate<Camera2D> {
      */
     @Override
     public void editorUI(Camera2D object) {
-        if (object == null) return;
         ImGui.spacing();
         UUID uuid = object.getUUID();
         boolean openCamera = ImGui.collapsingHeader("Camera2D##Camera2D_Properties_Header_" + uuid, ImGuiTreeNodeFlags.DefaultOpen);
         if (!openCamera) return;
         ImBoolean enableState = new ImBoolean(object.enabled());
         if (ImGui.checkbox("Enabled##Camera2D_Enabled_CheckBox_" + uuid, enableState)) object.enabled(enableState.get());
-        renderAnchorModeCombo(object);
-        renderUpdateProcessCombo(object);
+        renderAnchorModeCombo(object, uuid);
+        renderUpdateProcessCombo(object, uuid);
         ImGui.spacing();
         Vector2f zoomLevel = new Vector2f(object.zoom);
         if (EditorWidget.dragVec2Ctrl("Zoom", zoomLevel, 1.0f, 0.01f, object)) object.zoom.set(zoomLevel);
-        renderDragProperties(object);
-        renderLimitProperties(object);
+        renderDragProperties(object, uuid);
+        renderLimitProperties(object, uuid);
         ImBoolean positionSmoothingState = new ImBoolean(object.enablePositionSmoothing);
         if (ImGui.checkbox("Enable Position Smoothing##Camera2D_EnablePositionSmoothing_CheckBox_" + uuid, positionSmoothingState)) object.enablePositionSmoothing = positionSmoothingState.get();
         object.positionSmoothingSpeed = Math.max(0.1f, EditorWidget.dragFloatCtrl("Position Smoothing Speed", object.positionSmoothingSpeed, 4.0f, 0.1f, object, 0.1f));
@@ -52,8 +51,7 @@ public class Camera2DTemplate implements ObjectTemplate<Camera2D> {
         object.rotationSmoothingSpeed = Math.max(0.1f, EditorWidget.dragFloatCtrl("Rotation Smoothing Speed", object.rotationSmoothingSpeed, 4.0f, object, 0.1f));
     }
 
-    private static void renderUpdateProcessCombo(Camera2D object) {
-        UUID uuid = object.getUUID();
+    private static void renderUpdateProcessCombo(Camera2D object, UUID uuid) {
         ImGui.spacing();
         ImGui.text("Camera Update Process:");
         String hint = object.updateProcess == null ? "Select an update process..." : object.updateProcess.toString();
@@ -67,8 +65,7 @@ public class Camera2DTemplate implements ObjectTemplate<Camera2D> {
         ImGui.endCombo();
     }
 
-    private static void renderAnchorModeCombo(Camera2D object) {
-        UUID uuid = object.getUUID();
+    private static void renderAnchorModeCombo(Camera2D object, UUID uuid) {
         ImGui.spacing();
         ImGui.text("Camera Anchor Mode:");
         String hint = object.anchorMode == null ? "Select an anchor mode..." : object.anchorMode.toString();
@@ -82,8 +79,7 @@ public class Camera2DTemplate implements ObjectTemplate<Camera2D> {
         ImGui.endCombo();
     }
 
-    private static void renderDragProperties(Camera2D object) {
-        UUID uuid = object.getUUID();
+    private static void renderDragProperties(Camera2D object, UUID uuid) {
         String compositeDragID = "Camera Drag##Camera2D_Drag_Properties_Header_" + uuid;
         ImGui.pushStyleColor(ImGuiCol.Header, 0.0f, 0.0f, 0.0f, 0.0f);
         boolean openDrag = ImGui.collapsingHeader(compositeDragID, ImGuiTreeNodeFlags.DefaultOpen);
@@ -102,8 +98,7 @@ public class Camera2DTemplate implements ObjectTemplate<Camera2D> {
         ImGui.spacing();
     }
 
-    private static void renderLimitProperties(Camera2D object) {
-        UUID uuid = object.getUUID();
+    private static void renderLimitProperties(Camera2D object, UUID uuid) {
         String compositeLimitID = "Camera Limit##Camera2D_Limit_Properties_Header_" + uuid;
         ImGui.pushStyleColor(ImGuiCol.Header, 0.0f, 0.0f, 0.0f, 0.0f);
         boolean openLimit = ImGui.collapsingHeader(compositeLimitID, ImGuiTreeNodeFlags.DefaultOpen);

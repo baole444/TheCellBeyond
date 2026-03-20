@@ -25,6 +25,25 @@ public class TextCommand extends RenderCommand {
     }
 
     @Override
+    protected RenderCommand acquireInstance() {
+        return acquire();
+    }
+
+    @Override
+    public void copyFrom(RenderCommand source) {
+        super.copyFrom(source);
+        if (!(source instanceof TextCommand t)) return;
+        text = t.text;
+        fontRID = t.fontRID;
+        points = t.points;
+        horizontalAlignment = t.horizontalAlignment;
+        verticalAlignment = t.verticalAlignment;
+        modulate.set(t.modulate);
+        fontSizePixel = t.fontSizePixel;
+        textDimension.set(t.textDimension);
+    }
+
+    @Override
     protected void reset() {
         super.reset();
         text = "";

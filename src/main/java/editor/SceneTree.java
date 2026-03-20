@@ -114,6 +114,7 @@ public class SceneTree {
     private static void renderInsertZone(GameObject sibling, Scene scene, boolean insertBefore) {
         String order = insertBefore ? "before" : "after";
         String zoneID = "##" + "Reordering_Zone_" + order + "_" + sibling.getUUID();
+        if (ImGui.getContentRegionAvailX() <= 0.0f || ImGui.getContentRegionAvailY() <= 0.0f) return;
         ImGui.invisibleButton(zoneID, ImGui.getContentRegionAvailX(), ReorderingSpace);
         if (!ImGui.beginDragDropTarget()) return;
         Object payload = ImGui.acceptDragDropPayload(GameObjectDragDropPayload.getPayloadType());
