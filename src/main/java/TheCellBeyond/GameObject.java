@@ -203,6 +203,23 @@ public class GameObject {
         updateChildrenUUIDs();
     }
 
+    public void replaceChild(GameObject oldChild, GameObject newChild) {
+        if (oldChild == null || newChild == null || oldChild == newChild) return;
+        if (!children.contains(oldChild) || children.contains(newChild)) return;
+        List<GameObject> children = new ArrayList<>(this.children);
+        int index = children.indexOf(oldChild);
+        children.set(index, newChild);
+        this.children.clear();
+        this.children.addAll(children);
+        if (oldChild.parent == this) {
+            oldChild.parent = null;
+            oldChild.parentUUID = null;
+        }
+        newChild.parent = this;
+        newChild.parentUUID = this.getUUID();
+        updateChildrenUUIDs();
+    }
+
     /**
      * Reorder a child object relative to the context sibling within this object's children.
      * <p>

@@ -28,7 +28,7 @@ final class MenuBar {
         ExitToProjectListDialog.imgui();
         SaveSceneAsDialog.imgui();
         ConfirmSaveSceneDialog.imgui();
-        ChooseRootTypeDialog.imgui();
+        ChooseObjectTypeDialog.imgui();
         RenameSceneDialog.imgui();
     }
 
@@ -81,7 +81,7 @@ final class MenuBar {
             if (unsaved) ImGui.beginDisabled();
             if (ImGui.menuItem("Rename Scene...##MenuBar_Scene_Edit_Rename")) RenameSceneDialog.show();
             if (unsaved) ImGui.endDisabled();
-            if (ImGui.menuItem("Change Root Type...##MenuBar_Scene_Edit_ChangeRootType")) ChooseRootTypeDialog.showReplace();
+            if (ImGui.menuItem("Change Root Type...##MenuBar_Scene_Edit_ChangeRootType")) ChooseObjectTypeDialog.showReplace();
             ImGui.endMenu();
         }
         if (noScene && ImGui.isItemHovered(ImGuiHoveredFlags.AllowWhenDisabled)) ImGui.setTooltip("No scene loaded");
@@ -89,8 +89,8 @@ final class MenuBar {
     }
 
     private static void showCreateSceneDialog() {
-        if (LogicServer.currentScene() != null) ConfirmSaveSceneDialog.show(ChooseRootTypeDialog::show);
-        else ChooseRootTypeDialog.show();
+        if (LogicServer.currentScene() != null) ConfirmSaveSceneDialog.show(ChooseObjectTypeDialog::show);
+        else ChooseObjectTypeDialog.show();
     }
 }
 

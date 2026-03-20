@@ -472,16 +472,56 @@ public class Scene {
     }
 
     /**
-     * Replace the root object of this scene with the given new root.
-     * The new root object should have transferred all the children and component from the old root.
+     * Replace the root object of this scene with the given new root,
+     * mostly use in conjunction with {@link GameObject#changeType(GameObject, Class)} to change root type.
+     * <p>
+     * The new root object should have transferred all the children and component from the old root to retain scene's semantic
      * @param newRoot the new root object for the scene
      */
     void replaceRoot(GameObject newRoot) {
        if (newRoot == null) return;
        GameObject oldRoot = root;
-       if (oldRoot != null) sceneData.removeObject(oldRoot);
-       root = newRoot;
+        root = newRoot;
+       if (oldRoot != null) {
+           orphanNoneTransferredChildren(oldRoot, newRoot);
+           sceneData.removeObject(oldRoot);
+       }
        addObjectToScene(newRoot, null);
        reorderGameObjects();
+    }
+
+    /**
+     * Replace the object in this scene with the given new object,
+     * mostly use in conjunction with {@link GameObject#changeType(GameObject, Class)} to change object type.
+     * @param oldObject the old object to replace
+     * @param newObject the new object to take its place
+     */
+    void replaceObject(GameObject oldObject, GameObject newObject) {
+        if (oldObject == null || newObject == null) return;
+        if (oldObject == root) {
+            replaceRoot(newObject);
+            return;
+        }
+        GameObject parent = oldObject.getParent();
+        orphanNoneTransferredChildren(oldObject, newObject);
+        sceneData.removeObject(oldObject);
+        if (parent != null) parent.replaceChild(oldObject, newObject);
+        addObjectToScene(newObject, null);
+        reorderGameObjects();
+    }
+
+    /**
+     * Make children of a removing object to become orphan if they were not transfered to the replacing object.
+     * <p>
+     * After this call, the removing object can be safely remove without data losses.
+     * @param removingObject the object that is being removed
+     * @param replacingObject the object that will take the place
+     */
+    private void orphanNoneTransferredChildren(GameObject removingObject, GameObject replacingObject) {
+        Set<UUID> transferredUUIDs = new HashSet<>();
+        replacingObject.getChildren().forEach(child -> transferredUUIDs.add(child.getUUID()));
+        for (GameObject child : new ArrayList<>(removingObject.getChildren())) {
+            if (!transferredUUIDs.contains(child.getUUID())) removingObject.removeChild(child);
+        }
     }
 }

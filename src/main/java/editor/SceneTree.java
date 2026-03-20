@@ -4,7 +4,7 @@ import TheCellBeyond.GameObject;
 import TheCellBeyond.GameObject2D;
 import TheCellBeyond.internal.LogicServer;
 import editor.dialog.AddObjectDialog;
-import editor.dialog.ChooseRootTypeDialog;
+import editor.dialog.ChooseObjectTypeDialog;
 import editor.payload.GameObjectDragDropPayload;
 import imgui.ImGui;
 import imgui.ImVec2;
@@ -158,6 +158,7 @@ public class SceneTree {
                 ImGui.endMenu();
             }
             if (go.getParent() != null && ImGui.menuItem("Move to Root")) scene.reparentObject(go, null);
+            if (ImGui.menuItem("Change type...")) ChooseObjectTypeDialog.showReplace(go);
             ImGui.separator();
             if (ImGui.menuItem("Add child Object...")) {
                 AddObjectDialog.show(go);
@@ -200,6 +201,6 @@ public class SceneTree {
         if (ImGui.button("Create 2D Character Scene##Quick_Create_2D_Character_Scene", buttonW, 0.0f)) LogicServer.loadUnsavedScene(new CharacterBody2D());
         if (ImGui.isItemHovered()) ImGui.setTooltip("Create a new scene with root type as CharacterBody2D");
         ImGui.spacing();
-        if (ImGui.button("Other Scene type...", buttonW, 0.0f)) ChooseRootTypeDialog.show();
+        if (ImGui.button("Other Scene type...", buttonW, 0.0f)) ChooseObjectTypeDialog.show();
     }
 }

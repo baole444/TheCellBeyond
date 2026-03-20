@@ -11,18 +11,19 @@ import imgui.flag.ImGuiWindowFlags;
 import scene.Scene;
 import scene.SceneManager;
 
-public final class ChooseRootTypeDialog {
-    private static final String PopupID = "Choose Root Type";
-    private static final String ObjectListID = "Root_Type_List";
-    private static final String DescriptionSectionID = "Root_Description_Section";
+public final class ChooseObjectTypeDialog {
+    private static final String PopupID = "Choose Object Type";
+    private static final String ObjectListID = "Object_Type_List";
+    private static final String DescriptionSectionID = "Object_Description_Section";
     private static final ImVec2 DialogSize = new ImVec2(600.0f, 600.0f);
     private static final float ListYPercentage = 0.6f;
     private static final float DescriptionYPercentage = 0.2f;
     private static boolean showDialog = false;
     private static boolean replaceMode = false;
     private static ObjectType selectedType = null;
+    private static GameObject targetObject = null;
 
-    private ChooseRootTypeDialog() {}
+    private ChooseObjectTypeDialog() {}
 
     public static void show() {
         showDialog = true;
@@ -31,9 +32,14 @@ public final class ChooseRootTypeDialog {
     }
 
     public static void showReplace() {
+        showReplace(null);
+    }
+
+    public static void showReplace(GameObject target) {
         showDialog = true;
         replaceMode = true;
         selectedType = null;
+        targetObject = target;
     }
 
     public static void imgui() {
@@ -44,7 +50,7 @@ public final class ChooseRootTypeDialog {
         ImGui.setNextWindowPos(centre.x, centre.y, ImGuiCond.Appearing, pivotXY, pivotXY);
         ImGui.setNextWindowSize(DialogSize);
         if (ImGui.beginPopupModal(PopupID, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)) {
-            String header = replaceMode ? "Select new root object type:" : "Select root object type for the new scene:";
+            String header = replaceMode ? "Select new object type:" : "Select root object type for the new scene:";
             ImGui.text(header);
             int sectionY = (int) (DialogSize.y * ListYPercentage);
             ImGui.beginChild(ObjectListID, new ImVec2(0.0f, sectionY), ImGuiChildFlags.Border);
@@ -83,6 +89,7 @@ public final class ChooseRootTypeDialog {
             showDialog = false;
             selectedType = null;
             replaceMode = false;
+            targetObject = null;
         }
     }
 
@@ -95,10 +102,12 @@ public final class ChooseRootTypeDialog {
             return;
         }
         Scene scene = LogicServer.currentScene();
-        if (scene == null || scene.root() == null) return;
-        GameObject newRoot = GameObject.changeType(scene.root(), ObjectType.getClassFromType(selectedType));
-        if (newRoot == null) return;
-        SceneManager.replaceSceneRoot(scene, newRoot);
+        if (scene == null) return;
+        GameObject source = targetObject != null ? targetObject : scene.root();
+        if (source == null) return;
+        GameObject newObject = GameObject.changeType(source, ObjectType.getClassFromType(selectedType));
+        if (newObject == null) return;
+        SceneManager.replaceObject(scene, source, newObject);
         clearDialogDataAndClose();
     }
 
@@ -106,6 +115,7 @@ public final class ChooseRootTypeDialog {
         showDialog = false;
         selectedType = null;
         replaceMode = false;
+        targetObject = null;
         ImGui.closeCurrentPopup();
     }
 }

@@ -75,7 +75,10 @@ public final class SceneManager {
     }
 
     /**
-     * Replace the root object of the given scene.
+     * Replace the root object of the given scene,
+     * mostly use in conjunction with {@link GameObject#changeType(GameObject, Class)} to change object type.
+     * <p>
+     * THe new root object should have transfer its uuid, hierarchies and components to preserve scene's semantic if needed.
      * @param scene the scene to replace root object
      * @param newRoot the new root object for the scene
      */
@@ -85,10 +88,24 @@ public final class SceneManager {
     }
 
     /**
+     * Replace an object in the given scene,
+     * mostly use in conjunction with {@link GameObject#changeType(GameObject, Class)} to change object type.
+     * <p>
+     * Unless uuid, components or hierarchies are transferred to the new object, this is basically a remove and add.
+     * @param scene the scene to replace the object
+     * @param oldObject the old object to replace
+     * @param newObject the new object to take its place
+     */
+    public static void replaceObject(Scene scene, GameObject oldObject, GameObject newObject) {
+        if (scene == null || oldObject == null || newObject == null) return;
+        scene.replaceObject(oldObject, newObject);
+    }
+
+    /**
      * Save the current scene to disk.
      */
     public static void saveCurrentScene() {
-        if (runtimeMode()) return;
+        if (runtimeMode("save current scene")) return;
         Scene currentScene = LogicServer.currentScene();
         if (currentScene == null) {
             Logger.warning(String.format(CannotSaveFormat, "unknown", SceneNotLoaded));
@@ -109,7 +126,7 @@ public final class SceneManager {
      * @return true if saved successfully
      */
     public static boolean saveScene(String sceneName, Scene scene) {
-        if (runtimeMode()) return false;
+        if (runtimeMode("save scene")) return false;
         if (invalidName(sceneName)) return false;
         sceneName = sceneName.trim();
         if (scene == null) {
@@ -136,7 +153,7 @@ public final class SceneManager {
      * @return true if save successfully
      */
     public static boolean saveSceneAs(String newSceneName) {
-        if (runtimeMode() || invalidName(newSceneName)) return false;
+        if (runtimeMode("save scene as") || invalidName(newSceneName)) return false;
         newSceneName = newSceneName.trim();
         if (!Project.loaded()) {
             Logger.error(String.format(CannotSaveAsFormat, newSceneName, ProjectNotLoaded));
@@ -173,7 +190,7 @@ public final class SceneManager {
      * @return true if create successfully
      */
     public static boolean createNewScene(String sceneName) {
-        if (runtimeMode() || invalidName(sceneName)) return false;
+        if (runtimeMode("create new scene") || invalidName(sceneName)) return false;
         sceneName = sceneName.trim();
         if (!Project.loaded()) {
             Logger.error(String.format(CannotCreateFormat, sceneName, ProjectNotLoaded));
@@ -199,7 +216,7 @@ public final class SceneManager {
     }
 
     public static boolean renameScene(String oldName, String newName) {
-        if (runtimeMode()) return false;
+        if (runtimeMode("renaming scene")) return false;
         if (invalidName(oldName) || invalidName(newName)) return false;
         oldName = oldName.trim();
         newName = newName.trim();
@@ -361,11 +378,12 @@ public final class SceneManager {
 
     /**
      * Runtime mode check to prevent override scene data.
+     * @param operation the name of the operation to log if is in runtime mode
      * @return true if currently in runtime mode
      */
-    private static boolean runtimeMode() {
+    private static boolean runtimeMode(String operation) {
         if (LogicServer.runtimeMode()) {
-            Logger.warning("Cannot save scene: currently in runtime mode");
+            Logger.warning(String.format("Cannot %s: currently in runtime mode", operation));
             return true;
         }
         return false;

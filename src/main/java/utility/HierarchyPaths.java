@@ -25,14 +25,12 @@ public class HierarchyPaths {
         if (path.targetComponent()) {
             String lastSegment = path.lastSegment();
             String object = HierarchyPath.toObjectName(lastSegment);
-
             if (object == null || object.isEmpty()) {
                 if (path.segmentCount() == 1) return context;
                 HierarchyPath objectPath = path.slice(0, path.segmentCount() - 1);
                 return toGameObject(objectPath, context);
             }
         }
-
         GameObject current = startingObject(path, context);
         if (current == null) return null;
         for (int i = beginSearchIndex(path); i < path.segmentCount(); i++) {
@@ -67,11 +65,10 @@ public class HierarchyPaths {
             Logger.warning(String.format("Cannot resolve '%s' to component: no component specified at final agr", path));
             return null;
         }
-
         String lastSegment = path.lastSegment();
         String componentName = HierarchyPath.toComponentName(lastSegment);
         if (componentName == null || componentName.isEmpty()) {
-            Logger.error(String.format("Cannot resolve '%s' to component: invalid component delimiter!", path));
+            Logger.error(String.format("Cannot resolve '%s' to component: invalid component delimiter", path));
             return null;
         }
 
@@ -88,7 +85,6 @@ public class HierarchyPaths {
             Logger.warning(String.format("Cannot resolve '%s' to component: missing object '%s'.", path, objectName));
             return null;
         }
-
         Component component = findComponent(targetObject, componentName);
         if (component == null) Logger.warning(String.format("Cannot resolve '%s' to component: component '%s' does not exist for object '%s'.", path, componentName, targetObject.name()));
         return component;
@@ -120,16 +116,13 @@ public class HierarchyPaths {
         String objPath = buildObjectPath(component.gameObject);
         if (objPath == null) return null;
         String componentName = component.name();
-        if (componentName == null || componentName.isEmpty()) {
-            componentName = component.getClass().getSimpleName();
-        }
-
+        if (componentName == null || componentName.isEmpty()) componentName = component.getClass().getSimpleName();
         return new HierarchyPath(objPath + HierarchyPath.ComponentDelimiter + componentName);
     }
 
     private static GameObject startingObject(HierarchyPath path, GameObject context) {
         if (path.absolute) return fromSceneRoot(path);
-        if (context == null) Logger.error(String.format("Cannot resolve relative path '%s': missing context object!", path));
+        if (context == null) Logger.error(String.format("Cannot resolve relative path '%s': missing context object", path));
         return context;
     }
 
@@ -141,33 +134,32 @@ public class HierarchyPaths {
     private static GameObject fromSceneRoot(HierarchyPath path) {
         Scene scene = LogicServer.currentScene();
         if (scene == null) {
-            Logger.error(String.format("Cannot resolve absolute path '%s': no active scene!", path));
+            Logger.error(String.format("Cannot resolve absolute path '%s': no active scene", path));
             return null;
         }
-
-        if (path.segmentCount() == 1 && path.fromRoot()) {
-            return scene.root();
-        }
-
-        String segment = path.segment(path.fromRoot() ? 1 : 0);
-        if (segment == null) {
-            Logger.error(String.format("Invalid absolute path '%s': no object defined at the first argument!", path));
-            return null;
-        }
-
         GameObject root = scene.root();
         if (root == null) {
-            Logger.error(String.format("Cannot resolve absolute path '%s': no root object in scene!", path));
+            Logger.error(String.format("Cannot resolve absolute path '%s': no root object in scene", path));
             return null;
         }
-
-        for (GameObject go : root.getChildren()) {
-            if (go.name() != null && go.name().equals(segment)) return go;
-            if (go.getClass().getSimpleName().equals(segment)) return go;
+        if (path.segmentCount() == 1 && path.fromRoot()) return scene.root();
+        String segment = path.segment(path.fromRoot() ? 1 : 0);
+        if (segment == null) {
+            Logger.error(String.format("Invalid absolute path '%s': no object defined at the first argument", path));
+            return null;
         }
-
-        Logger.warning(String.format("No root object named '%s' for '%s' founded!", segment, path));
+        if (matchObject(root, segment)) return root;
+        for (GameObject go : root.getChildren()) {
+            if (matchObject(go, segment)) return go;
+        }
+        Logger.warning(String.format("No root object named '%s' for '%s' founded", segment, path));
         return null;
+    }
+
+    private static boolean matchObject(GameObject go, String segment) {
+        if (go == null || segment == null) return false;
+        if (go.name() != null && go.name().equals(segment)) return true;
+        return go.getClass().getSimpleName().equals(segment);
     }
 
     private static GameObject navigateSubSegment(GameObject current, String segment, HierarchyPath path, int segmentIndex) {
@@ -175,16 +167,14 @@ public class HierarchyPaths {
         if (segment.equals(HierarchyPath.Current)) return current;
         if (segment.equals(HierarchyPath.Parent)) {
             GameObject parent = current.getParent();
-            if (parent == null) Logger.warning(String.format("Cannot resolve '%s' at arg %d: object '%s' has no parent!", path, segmentIndex, current.name()));
+            if (parent == null) Logger.warning(String.format("Cannot resolve '%s' at arg %d: object '%s' has no parent", path, segmentIndex, current.name()));
             return parent;
         }
-
         String objectName = HierarchyPath.toObjectName(segment);
         if (objectName == null) {
-            Logger.error(String.format("Cannot resolve '%s' at arg %d: invalid segment '%s'!", path, segmentIndex, segment));
+            Logger.error(String.format("Cannot resolve '%s' at arg %d: invalid segment '%s'", path, segmentIndex, segment));
             return null;
         }
-
         GameObject child = findChildObject(current, objectName);
         if (child == null) Logger.warning(String.format("Cannot resolve '%s' at arg %d: no child '%s' of '%s'", path, segmentIndex, objectName, current.name()));
         return child;
@@ -196,7 +186,6 @@ public class HierarchyPaths {
         for (GameObject child : parent.getChildren()) {
             if (child.getClass().getSimpleName().equals(name)) return child;
         }
-
         return null;
     }
 
@@ -217,14 +206,12 @@ public class HierarchyPaths {
             segments.add(current.name());
             current = current.getParent();
         }
-
         Collections.reverse(segments);
         StringBuilder builder = new StringBuilder();
         for (String segment : segments) {
             builder.append(HierarchyPath.Separator);
             builder.append(segment);
         }
-
         return builder.toString();
     }
 
