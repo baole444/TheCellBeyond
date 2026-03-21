@@ -13,7 +13,7 @@ public abstract class RenderableObject extends GameObject implements Renderable 
     public  int lightMask = 1;
     public final Vector4f selfModulate = new Vector4f(1.0f);
 
-    public boolean repeatSource = false;
+    public transient boolean repeatSource = false;
 
     /**
      * Control how many times the texture repeats. Each texture copy spreads evenly from the original

@@ -240,6 +240,7 @@ public class RenderingServer implements EngineEventListener {
         RenderCommand tail = head;
         if (tail != null) while (tail.next != null) tail = tail.next;
         for (RenderNode child : node.renderingChildren) {
+            if (child.nodeOwner.nonRepeatable()) continue;
             RenderCommand childHead = cloneSubTree(child, offset, nodeLinks, cloneChainHeads);
             if (childHead == null) continue;
             if (tail != null) {

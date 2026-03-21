@@ -81,13 +81,11 @@ public class Parallax2D extends GameObject2D {
     public Parallax2D() {
         String name = Parallax2D.class.getSimpleName();
         super(name);
-        repeatSource = true;
     }
 
     public Parallax2D(String name) {
         if (invalidName(name)) name = Parallax2D.class.getSimpleName();
         super(name);
-        repeatSource = true;
     }
 
     @Override

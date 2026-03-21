@@ -135,6 +135,11 @@ public final class EditorObjectIndicator extends Component2D implements NotSeria
     }
 
     @Override
+    public boolean nonRepeatable() {
+        return true;
+    }
+
+    @Override
     public RenderCommand buildRenderCommand() {
         RectCommand rect = RectCommand.acquire();
         rect.submitterID = gameObject != null ? gameObject.getUID() : 0;
