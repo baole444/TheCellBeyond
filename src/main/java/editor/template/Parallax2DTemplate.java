@@ -50,7 +50,7 @@ public class Parallax2DTemplate implements ObjectTemplate<Parallax2D> {
 
     private static void renderRepeatProperties(Parallax2D object) {
         ImGui.indent();
-        EditorWidget.dragIntCtrl("Repeat Time", object.repeatTime, 1, object, 1);
+        object.repeatTime = EditorWidget.dragIntCtrl("Repeat Time", object.repeatTime, 1, object, 1);
         EditorWidget.dragVec2Ctrl("Repeat Size", object.repeatSize, 0.0f, 0.1f, object);
         EditorWidget.dragVec2Ctrl("Autoscroll Velocity", object.autoScrollVelocity, 0.0f, 0.1f, object);
         ImGui.unindent();

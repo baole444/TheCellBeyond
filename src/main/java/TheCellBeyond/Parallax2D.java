@@ -1,7 +1,6 @@
 package TheCellBeyond;
 
 import TheCellBeyond.internal.LogicServer;
-import editor.template.EditorTemplate;
 import org.joml.Vector2f;
 import scene.Scene;
 
@@ -92,19 +91,25 @@ public class Parallax2D extends GameObject2D {
     }
 
     @Override
+    protected void onStart() {
+        repeatSource = true;
+    }
+
+    @Override
     protected void onUpdate(float dt) {
+        if (!LogicServer.runtimeMode()) return;
         accumulatedScroll.add(autoScrollVelocity.x * dt, autoScrollVelocity.y * dt);
         float viewX = 0.0f, viewY = 0.0f;
         if (followViewport && !ignoreViewportScroll) {
             Scene scene = LogicServer.currentScene();
             if (scene != null) {
                 Vector2f viewportPosition = scene.viewport().position;
-                viewX = bottomLeftLimit.x < topRightLimit.x ? Math.clamp(viewportPosition.x, bottomLeftLimit.x, topRightLimit.y) : viewportPosition.x;
+                viewX = bottomLeftLimit.x < topRightLimit.x ? Math.clamp(viewportPosition.x, bottomLeftLimit.x, topRightLimit.x) : viewportPosition.x;
                 viewY = bottomLeftLimit.y < topRightLimit.y ? Math.clamp(viewportPosition.y, bottomLeftLimit.y, topRightLimit.y) : viewportPosition.y;
             }
         }
-        float offsetX = viewX * scrollScale.x + screenOffset.x + accumulatedScroll.x;
-        float offsetY = viewY * scrollScale.y + screenOffset.y + accumulatedScroll.y;
+        float offsetX = viewX * scrollScale.x + scrollOffset.x + accumulatedScroll.x;
+        float offsetY = viewY * scrollScale.y + scrollOffset.y + accumulatedScroll.y;
         if (repeatSize.x != 0.0f) offsetX = mod(offsetX, repeatSize.x);
         if (repeatSize.y != 0.0f) offsetY = mod(offsetY, repeatSize.y);
         if (!ignoreViewportScroll) screenOffset.set(offsetX, offsetY);
@@ -113,11 +118,5 @@ public class Parallax2D extends GameObject2D {
 
     private static float mod(float value, float mod) {
         return ((value % mod) + mod) % mod;
-    }
-
-    @Override
-    public void additionalImGuiLogic() {
-        EditorTemplate.render(this);
-        super.additionalImGuiLogic();
     }
 }

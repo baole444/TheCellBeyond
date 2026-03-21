@@ -10,6 +10,7 @@ import imgui.flag.ImGuiTreeNodeFlags;
  */
 class GameObject2DTemplate implements ObjectTemplate<GameObject2D> {
     private static final GameObject2DTemplate instance = new GameObject2DTemplate();
+    private static final Transform2D editing = new Transform2D("Template cache");
     private GameObject2DTemplate() {}
 
     /**
@@ -20,11 +21,10 @@ class GameObject2DTemplate implements ObjectTemplate<GameObject2D> {
      */
     @Override
     public void editorUI(GameObject2D object) {
-        if (object == null) return;
         ImGui.spacing();
-        boolean openTransform = ImGui.collapsingHeader("GameObject2D##Transform_GO2D_Properties_" + object.getUUID(), ImGuiTreeNodeFlags.DefaultOpen);
+        boolean openTransform = ImGui.collapsingHeader("GameObject2D##Transform_GameObject2D_Properties_" + object.getUUID(), ImGuiTreeNodeFlags.DefaultOpen);
         if (!openTransform) return;
-        Transform2D editing = object.localTransform();
+        Transform2D.copy(object.localTransform(), editing);
         ImGui.indent();
         editing.imgui();
         ImGui.unindent();

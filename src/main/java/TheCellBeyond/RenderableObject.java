@@ -1,11 +1,7 @@
 package TheCellBeyond;
 
-import editor.EditorWidget;
-import imgui.ImGui;
-import imgui.type.ImBoolean;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
-import render.RenderNode;
 import render.Renderable;
 import render.commands.RenderCommand;
 
@@ -38,16 +34,6 @@ public abstract class RenderableObject extends GameObject implements Renderable 
 
     protected RenderableObject(String name) {
         super(name);
-    }
-
-    @Override
-    public void  additionalImGuiLogic() {
-        ImGui.spacing();
-        boolean openRender = ImGui.collapsingHeader("RenderableObject##RenderableObject_Render_Properties_Header_" + getUUID());
-        if (!openRender) return;
-        ImBoolean tmp = new ImBoolean(visible);
-        if (ImGui.checkbox("Visible##RenderableObject_Visible_Checkbox_" + getUUID(), tmp)) visible = tmp.get();
-        EditorWidget.colorCtrl("Self Modulate", selfModulate, this);
     }
 
     @Override

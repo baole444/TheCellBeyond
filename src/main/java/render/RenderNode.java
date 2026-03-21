@@ -10,6 +10,7 @@ public class RenderNode {
     public RenderNode renderingParent;
     public final List<RenderNode> renderingChildren = new CopyOnWriteArrayList<>();
     public RenderCommand commandHeader = null;
+    public RenderCommand commandTail = null;
 
     public RenderNode(Renderable nodeOwner, RenderNode renderingParent) {
         this.nodeOwner = nodeOwner;

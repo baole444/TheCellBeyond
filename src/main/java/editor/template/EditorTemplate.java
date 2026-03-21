@@ -31,16 +31,9 @@ public final class EditorTemplate {
     /**
      * For game object and its subclasses.
      * @param object context
-     * @apiNote To maintainer:<br>
-     * The cases are inheritance sensitive. Therefore, classes that is higher up in the inheritance,
-     * should be placed after its subclasses' cases.
      */
     public static void render(GameObject object) {
         if (object == null) return;
-        switch (object) {
-            case Camera2D camera2D -> Camera2DTemplate.render(camera2D);
-            case Parallax2D parallax2D -> Parallax2DTemplate.render(parallax2D);
-            case GameObject go -> GameObjectTemplate.render(go);
-        }
+        GameObjectTemplate.render(object);
     }
 }

@@ -1,7 +1,6 @@
 package TheCellBeyond;
 
 import TheCellBeyond.internal.LogicServer;
-import editor.template.EditorTemplate;
 import org.joml.Vector2f;
 import scene.Scene;
 
@@ -486,11 +485,5 @@ public class Camera2D extends GameObject2D {
                 .filter(go -> go instanceof Camera2D && go != context && !go.isRemoved())
                 .map(go -> (Camera2D) go)
                 .toList();
-    }
-
-    @Override
-    public void additionalImGuiLogic() {
-        EditorTemplate.render(this);
-        super.additionalImGuiLogic();
     }
 }

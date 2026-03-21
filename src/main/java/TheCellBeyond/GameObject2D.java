@@ -1,9 +1,6 @@
 package TheCellBeyond;
 
 import components.*;
-import editor.template.EditorTemplate;
-import imgui.ImGui;
-import imgui.flag.ImGuiTreeNodeFlags;
 import org.joml.Matrix3x2f;
 import org.joml.Vector2f;
 import render.commands.RenderCommand;
@@ -654,11 +651,11 @@ public class GameObject2D extends RenderableObject {
     }
 
     /**
-     * Get a copy for the local transform of this 2D object.
+     * Get the local transform of this 2D object.
      * @return a new {@link Transform2D}
      */
     public Transform2D localTransform() {
-        return new Transform2D(localTransform2D);
+        return localTransform2D;
     }
 
     /**
@@ -668,18 +665,18 @@ public class GameObject2D extends RenderableObject {
      * @param newTransform the transform to copy values from
      */
     public void localTransform(Transform2D newTransform) {
-        if (!localTransform2D.equals(newTransform)) return;
+        if (localTransform2D.equals(newTransform)) return;
         Transform2D.copy(newTransform, localTransform2D);
         setTransformDirty();
     }
 
     /**
-     * Get a copy for the global transform of this 2D object.
+     * Get the global transform of this 2D object.
      * @return a new {@link Transform2D}
      */
     public Transform2D globalTransform() {
         updateGlobalTransform();
-        return new Transform2D(globalTransform2D);
+        return globalTransform2D;
     }
 
     /**
@@ -782,22 +779,6 @@ public class GameObject2D extends RenderableObject {
         GameObject2D copy = (GameObject2D) copySingleObject();
         if (copyHierarchy && !getChildren().isEmpty()) copyDescendants(this, copy);
         return copy;
-    }
-
-    @Override
-    public void additionalImGuiLogic() {
-        ImGui.spacing();
-        boolean openTransform = ImGui.collapsingHeader("GameObject2D##Transform_GameObject2D_Properties_" + getUUID(), ImGuiTreeNodeFlags.DefaultOpen);
-        if (!openTransform) {
-            super.additionalImGuiLogic();
-            return;
-        }
-        Transform2D editing = new Transform2D(localTransform2D);
-        ImGui.indent();
-        localTransform2D.imgui();
-        ImGui.unindent();
-        if (!editing.equals(localTransform2D)) setTransformDirty();
-        super.additionalImGuiLogic();
     }
 
     @Override

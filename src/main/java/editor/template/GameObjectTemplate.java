@@ -1,6 +1,6 @@
 package editor.template;
 
-import TheCellBeyond.GameObject;
+import TheCellBeyond.*;
 import components.Component;
 import components.NotSerializeComponent;
 import editor.BottomPanel;
@@ -31,9 +31,9 @@ class GameObjectTemplate implements ObjectTemplate<GameObject>{
      */
     @Override
     public void editorUI(GameObject object) {
-        if (object == null) return;
         String newName = EditorWidget.inputText("Name", object.name(), object);
         if (!newName.equals(object.name())) object.name(newName);
+        renderInheritingLayer(object);
         object.additionalImGuiLogic();
         ImGui.spacing();
         boolean openComponent = ImGui.collapsingHeader("Components##GO_Components_Header_" + object.getUUID(), ImGuiTreeNodeFlags.DefaultOpen);
@@ -68,8 +68,18 @@ class GameObjectTemplate implements ObjectTemplate<GameObject>{
         ImGui.spacing();
     }
 
+    private static void renderInheritingLayer(GameObject go) {
+        switch (go) {
+            case Camera2D camera2D -> Camera2DTemplate.render(camera2D);
+            case Parallax2D parallax2D -> Parallax2DTemplate.render(parallax2D);
+            default -> {}
+        }
+        if (go instanceof GameObject2D go2D) GameObject2DTemplate.render(go2D);
+        if (go instanceof RenderableObject rgo) RenderableObjectTemplate.render(rgo);
+    }
+
     /**
-     * Render the content of {@link #editorUI(GameObject)}
+     * Render the content of {@link #editorUI(GameObject)}.
      * @param gameObject the context object
      */
     static void render(GameObject gameObject) {

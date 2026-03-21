@@ -123,6 +123,7 @@ public class RenderingServer implements EngineEventListener {
         if (node == null) return;
         releaseCommandChain(node.commandHeader);
         node.commandHeader = null;
+        node.commandTail = null;
         if (node.renderingParent != null) node.renderingParent.removeChild(node);
         else roots.remove(node);
         for (RenderNode child : node.renderingChildren) {
@@ -139,6 +140,7 @@ public class RenderingServer implements EngineEventListener {
         if (node == null) return;
         releaseCommandChain(node.commandHeader);
         node.commandHeader = null;
+        node.commandTail = null;
         if (node.renderingParent != null) node.renderingParent.removeChild(node);
     }
 
@@ -185,6 +187,10 @@ public class RenderingServer implements EngineEventListener {
             if (node.nodeOwner.renderDirty()) {
                 RenderCommand oldHeader = node.commandHeader;
                 node.commandHeader = node.nodeOwner.buildRenderCommand();
+                node.commandTail = node.commandHeader;
+                if (node.commandTail != null) {
+                    while (node.commandTail.next != null) node.commandTail = node.commandTail.next;
+                }
                 releaseCommandChain(oldHeader);
                 node.nodeOwner.renderDirty(false);
                 accumulateTransform(node);
@@ -208,7 +214,7 @@ public class RenderingServer implements EngineEventListener {
             }
             RenderCommand tail = node.commandHeader;
             while (tail.next != null) tail = tail.next;
-            previousTail[0] = tail;
+            previousTail[0] = node.commandTail;
             chainNodes(node.renderingChildren, nodeLinks, previousTail, clonedChainHeads);
             if (!(node.nodeOwner instanceof RenderableObject go) || !go.repeatSource || go.repeatTime <= 1) continue;
             for (int i = 1; i < go.repeatTime; i++) {
@@ -226,7 +232,7 @@ public class RenderingServer implements EngineEventListener {
     }
 
     private static RenderCommand cloneSubTree(RenderNode node, Vector2f offset, List<RenderCommand> nodeLinks, List<RenderCommand> cloneChainHeads) {
-        RenderCommand head = cloneChain(node.commandHeader, offset);
+        RenderCommand head = cloneChain(node.commandHeader, node.commandTail, offset);
         if (head != null) cloneChainHeads.add(head);
         RenderCommand tail = head;
         if (tail != null) while (tail.next != null) tail = tail.next;
@@ -243,18 +249,19 @@ public class RenderingServer implements EngineEventListener {
         return head;
     }
 
-    private static RenderCommand cloneChain(RenderCommand chainHeader, Vector2f offset) {
+    private static RenderCommand cloneChain(RenderCommand chainHeader, RenderCommand chainTail, Vector2f offset) {
         if (chainHeader == null) return null;
         RenderCommand cloneHead = null, cloneTail = null;
         RenderCommand current = chainHeader;
         while (current != null) {
             RenderCommand clone = RenderCommand.acquireCopy(current);
             if (clone != null) {
-                if (clone instanceof  TransformCommand transform) transform.position.add(offset);
+                if (clone instanceof TransformCommand transform) transform.position.add(offset);
                 if (cloneHead == null) cloneHead = clone;
                 if (cloneTail != null) cloneTail.next = clone;
                 cloneTail = clone;
             }
+            if (current == chainTail) break;
             current = current.next;
         }
         return cloneHead;
