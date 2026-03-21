@@ -70,11 +70,11 @@ public class Parallax2DTemplate implements ObjectTemplate<Parallax2D> {
         ImBoolean tmp = new ImBoolean(object.followViewport);
         if (ImGui.checkbox("Follow Viewport##Parallax2D_FollowViewport_Checkbox_" + uuid, tmp)) object.followViewport = tmp.get();
         tmp.set(object.ignoreViewportScroll);
-        if (ImGui.checkbox("Follow Viewport##Parallax2D_FollowViewport_Checkbox_" + uuid, tmp)) object.ignoreViewportScroll = tmp.get();
+        if (ImGui.checkbox("Ignore Viewport Scroll##Parallax2D_IgnoreViewportScroll_Checkbox_" + uuid, tmp)) object.ignoreViewportScroll = tmp.get();
         boolean ignoreVPScroll = object.ignoreViewportScroll;
-        if (ignoreVPScroll) ImGui.beginDisabled();
-        EditorWidget.dragVec2Ctrl("Screen Offset", object.scrollOffset, 0.0f, 0.1f, object);
-        if (ignoreVPScroll) ImGui.endDisabled();
+        if (!ignoreVPScroll) ImGui.beginDisabled();
+        EditorWidget.dragVec2Ctrl("Screen Offset", object.screenOffset, 0.0f, 0.1f, object);
+        if (!ignoreVPScroll) ImGui.endDisabled();
         ImGui.unindent();
     }
 

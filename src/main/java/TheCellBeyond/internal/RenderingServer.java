@@ -216,8 +216,11 @@ public class RenderingServer implements EngineEventListener {
             while (tail.next != null) tail = tail.next;
             previousTail[0] = node.commandTail;
             chainNodes(node.renderingChildren, nodeLinks, previousTail, clonedChainHeads);
-            if (!(node.nodeOwner instanceof RenderableObject go) || !go.repeatSource || go.repeatTime <= 1) continue;
-            for (int i = 1; i < go.repeatTime; i++) {
+            if (!(node.nodeOwner instanceof RenderableObject go) || !go.repeatSource || go.repeatTime < 1) continue;
+            int positive = (go.repeatTime + 1) / 2;
+            int negative = go.repeatTime / 2;
+            for (int i = -negative; i <= positive; i++) {
+                if (i == 0) continue;
                 Vector2f offset = new Vector2f(go.repeatSize).mul(i);
                 RenderCommand cloneHead = cloneSubTree(node, offset, nodeLinks, clonedChainHeads);
                 if (cloneHead == null || previousTail[0] == null) continue;

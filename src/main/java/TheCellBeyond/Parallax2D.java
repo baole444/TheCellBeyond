@@ -99,8 +99,10 @@ public class Parallax2D extends GameObject2D {
     protected void onUpdate(float dt) {
         if (!LogicServer.runtimeMode()) return;
         accumulatedScroll.add(autoScrollVelocity.x * dt, autoScrollVelocity.y * dt);
+        if (repeatSize.x != 0.0f) accumulatedScroll.x = mod(accumulatedScroll.x, repeatSize.x);
+        if (repeatSize.y != 0.0f) accumulatedScroll.y = mod(accumulatedScroll.y, repeatSize.y);
         float viewX = 0.0f, viewY = 0.0f;
-        if (followViewport && !ignoreViewportScroll) {
+        if (!ignoreViewportScroll) {
             Scene scene = LogicServer.currentScene();
             if (scene != null) {
                 Vector2f viewportPosition = scene.viewport().position;
@@ -108,11 +110,18 @@ public class Parallax2D extends GameObject2D {
                 viewY = bottomLeftLimit.y < topRightLimit.y ? Math.clamp(viewportPosition.y, bottomLeftLimit.y, topRightLimit.y) : viewportPosition.y;
             }
         }
-        float offsetX = viewX * scrollScale.x + scrollOffset.x + accumulatedScroll.x;
-        float offsetY = viewY * scrollScale.y + scrollOffset.y + accumulatedScroll.y;
-        if (repeatSize.x != 0.0f) offsetX = mod(offsetX, repeatSize.x);
-        if (repeatSize.y != 0.0f) offsetY = mod(offsetY, repeatSize.y);
-        if (!ignoreViewportScroll) screenOffset.set(offsetX, offsetY);
+        float offsetX = scrollOffset.x + accumulatedScroll.x;
+        float offsetY = scrollOffset.y + accumulatedScroll.y;
+        float posX, posY;
+        if (repeatSize.x != 0.0f) posX = viewX - mod(viewX * scrollScale.x - offsetX, repeatSize.x);
+        else posX = viewX + offsetX - viewX * scrollScale.x;
+        if (repeatSize.y != 0.0f) posY = viewY - mod(viewY * scrollScale.y - offsetY, repeatSize.y);
+        else posY = viewY + offsetY - viewY * scrollScale.y;
+        if (!followViewport) {
+            posX -= viewX;
+            posY -= viewY;
+        }
+        if (!ignoreViewportScroll) screenOffset.set(posX, posY);
         position(screenOffset.x, screenOffset.y);
     }
 
