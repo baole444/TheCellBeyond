@@ -9,6 +9,7 @@ import eventviewer.EngineEventCallback;
 import eventviewer.event.SceneEvent;
 import physic2d.PhysicBody2D;
 import physic2d.Physic2D;
+import signal.Callable;
 import utility.log.EngineLog;
 
 import java.util.*;
@@ -22,6 +23,8 @@ import java.util.stream.Collectors;
  * When an object is added or remove from scene, it is first queued and then process at the end of logic process update.
  */
 public class Scene {
+    private record DeferredCall(Callable callable, Object[] args) {}
+
     private static final EngineLog Logger = new EngineLog(Scene.class);
     private final SceneLoader sceneLoader;
     private final DataSnapshot sceneData;
@@ -29,6 +32,7 @@ public class Scene {
     private final List<GameObject> removedGameObjects;
     private final List<Component> removedComponents;
     private final HashMap<GameObject, GameObject> addedGameObjectWithParents;
+    private final List<DeferredCall> deferredCalls;
     private UUID sceneUUID;
     private String name;
     private GameObject root;
@@ -45,6 +49,7 @@ public class Scene {
         removedGameObjects = new ArrayList<>();
         removedComponents = new ArrayList<>();
         addedGameObjectWithParents = new HashMap<>();
+        deferredCalls = new ArrayList<>();
     }
 
     /**
@@ -115,9 +120,7 @@ public class Scene {
     public void updatePhysic(float dt) {
         if (!sceneStarted) return;
         if (rootIsFreed()) return;
-        sceneData.physic2D().update(dt, (fixedDT) -> {
-            sceneData.gameObjects().forEach(go -> go.physicUpdate(fixedDT));
-        });
+        sceneData.physic2D().update(dt, (fixedDT) -> sceneData.gameObjects().forEach(go -> go.physicUpdate(fixedDT)));
         for (GameObject go : sceneData.gameObjects()) {
             if (go instanceof PhysicBody2D physicBody2D) physicBody2D.syncTransformFromPhysic();
         }
@@ -254,6 +257,16 @@ public class Scene {
     public void queueForComponentRemoval(Component component) {
         if (component == null) return;
         if (!removedComponents.contains(component)) removedComponents.add(component);
+    }
+
+    /**
+     * Queue a callable to be invoked at the end of the current frame, on logic (idle) process.
+     * @param callable the callable to be invoked
+     * @param args the arguments to pass to the callable
+     */
+    public void queueDeferredCallable(Callable callable, Object... args) {
+        if (callable == null) return;
+        deferredCalls.add(new DeferredCall(callable, args));
     }
 
     /**
@@ -400,18 +413,20 @@ public class Scene {
         HashMap<GameObject, GameObject> toAddParent = new HashMap<>(addedGameObjectWithParents);
         List<GameObject> toRemove = new ArrayList<>(removedGameObjects);
         List<Component> componentToRemove = new ArrayList<>(removedComponents);
+        List<DeferredCall> pendingCalls = new ArrayList<>(deferredCalls);
         addedGameObjects.clear();
         addedGameObjectWithParents.clear();
         removedGameObjects.clear();
         removedComponents.clear();
+        deferredCalls.clear();
         componentToRemove.forEach(this::removeComponentFromScene);
         toRemove.forEach(this::removeObjectFromScene);
         toAdd.forEach(go -> {
             GameObject parent = toAddParent.get(go);
             addObjectToScene(go, parent);
         });
-        if (toAdd.isEmpty()) return;
-        reorderGameObjects();
+        if (!toAdd.isEmpty()) reorderGameObjects();
+        pendingCalls.forEach(dc -> dc.callable.call(dc.args));
     }
 
     /**

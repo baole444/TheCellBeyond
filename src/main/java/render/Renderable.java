@@ -71,6 +71,4 @@ public interface Renderable {
     default TransformCommand previousTransformCommand() {
         return null;
     }
-
-
 }

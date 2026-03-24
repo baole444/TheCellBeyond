@@ -1,14 +1,10 @@
 package utility.prefabrication;
 
 import TheCellBeyond.GameObject;
-import TheCellBeyond.GameObjectSerializer;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import components.Component;
-import components.ComponentSerializer;
 import project.Project;
+import serialization.EngineSerializer;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -22,81 +18,62 @@ import java.util.stream.Stream;
 public class PrefabManager {
     private static PrefabManager prefabManager;
     private final Map<String, PrefabData> loadedPrefabs = new ConcurrentHashMap<>();
-    private final String PREFAB_NAME = "prefab_name";
-    private final String ROOT_UUID = "rootUUID";
-    private final String TIMESTAMP = "timestamp";
-    private final String DATA = "data";
-    private final String PREFABS_DIR = "prefabs";
-    private final String EXTENSION = ".prefab";
-    private final String INCLUDE_CHILD = "includesChildren";
-    private final String NAME_PATTERN = "[^a-zA-Z0-9_-]";
+    private final String PrefabName = "prefab_name";
+    private final String RootUUID = "rootUUID";
+    private final String Timestamp = "timestamp";
+    private final String Data = "data";
+    private final String PrefabDir = "prefabs";
+    private final String Extension = ".prefab";
+    private final String IncludeChild = "includesChildren";
+    private final String NamePattern = "[^a-zA-Z0-9_-]";
 
     private PrefabManager() {}
 
     public static PrefabManager get() {
         if (prefabManager == null) prefabManager = new PrefabManager();
-
         return prefabManager;
     }
 
     public boolean savePrefab(GameObject gameObject, String prefabName, boolean includeChildren) {
         if (gameObject == null || prefabName == null || prefabName.isEmpty()) return false;
-
         String root = Project.projectRoot();
-
         if (root == null) {
             System.err.println("No project loaded to save prefab. How did you managed to call this anyways?");
             return false;
         }
-
         try {
-            Path prefabsPath = Paths.get(root, PREFABS_DIR);
-
+            Path prefabsPath = Paths.get(root, PrefabDir);
             if (!Files.exists(prefabsPath)) Files.createDirectories(prefabsPath);
-
             List<GameObject> gosToPrefab = new ArrayList<>();
-
             if (includeChildren) {
                 GameObject prefabRoot = gameObject.copy(true);
-
                 gosToPrefab.add(prefabRoot);
                 gosToPrefab.addAll(prefabRoot.getAllDescendants());
-
-                for (GameObject go : gosToPrefab) {
-                    go.prepareForSerialization();
-                }
+                for (GameObject go : gosToPrefab) go.prepareForSerialization();
             } else {
                 GameObject prefabRoot = gameObject.copy(false);
                 prefabRoot.prepareForSerialization();
                 gosToPrefab.add(prefabRoot);
             }
-
-            Gson gson = createGson();
-
+            EngineSerializer serializer = EngineSerializer.prettyPrint();
             JsonObject prefabJson = new JsonObject();
-            prefabJson.addProperty(PREFAB_NAME, prefabName);
-            prefabJson.addProperty(INCLUDE_CHILD, includeChildren);
-            prefabJson.addProperty(TIMESTAMP, System.currentTimeMillis());
-            prefabJson.addProperty(ROOT_UUID, gosToPrefab.getFirst().getUUID().toString());
-
-            JsonElement objectData = gson.toJsonTree(gosToPrefab);
-
-            prefabJson.add(DATA, objectData);
-
-            String filename = prefabName.replaceAll(NAME_PATTERN, "_") + EXTENSION;
+            prefabJson.addProperty(PrefabName, prefabName);
+            prefabJson.addProperty(IncludeChild, includeChildren);
+            prefabJson.addProperty(Timestamp, System.currentTimeMillis());
+            prefabJson.addProperty(RootUUID, gosToPrefab.getFirst().getUUID().toString());
+            JsonElement objectData = serializer.toJsonTree(gosToPrefab);
+            prefabJson.add(Data, objectData);
+            String filename = prefabName.replaceAll(NamePattern, "_") + Extension;
             Path prefabFile = prefabsPath.resolve(filename);
-
             try (FileWriter writer = new FileWriter(prefabFile.toFile())) {
-                gson.toJson(prefabJson, writer);
+                serializer.serialize(prefabJson, writer);
             }
-
-            String jsonString = gson.toJson(prefabJson);
+            String jsonString = serializer.serialize(prefabJson);
             loadedPrefabs.put(prefabName, new PrefabData(
                     prefabName,
                     jsonString,
                     gameObject.name()+ (includeChildren ? " (with children)" : "")
             ));
-
             System.out.println("Saved prefab: " + prefabName + " to " + prefabFile);
             return true;
         } catch (IOException e) {
@@ -107,17 +84,12 @@ public class PrefabManager {
 
     public void loadAllPrefabs() {
         String root = Project.projectRoot();
-
         if (root == null) return;
-
         loadedPrefabs.clear();
-
-        Path prefabsPath = Paths.get(root, PREFABS_DIR);
-
+        Path prefabsPath = Paths.get(root, PrefabDir);
         if (!Files.exists(prefabsPath)) return;
-
         try (Stream<Path> paths = Files.walk(prefabsPath, 1)) {
-            paths.filter(p -> p.toString().endsWith(EXTENSION)).forEach(this::loadPrefabFile);
+            paths.filter(p -> p.toString().endsWith(Extension)).forEach(this::loadPrefabFile);
         } catch (IOException e) {
             System.err.println("Failed to load prefabs: " + e.getMessage());
         }
@@ -129,35 +101,29 @@ public class PrefabManager {
             System.err.println("Prefab not found: '" + prefabName + "'");
             return null;
         }
-
         try {
-            Gson gson = createGson();
-            JsonObject prefabJson = gson.fromJson(prefabData.json(), JsonObject.class);
-            JsonElement objectData = prefabJson.get(DATA);
+            EngineSerializer serializer = EngineSerializer.standard();
+            JsonObject prefabJson = serializer.deserialize(prefabData.json(), JsonObject.class);
+            JsonElement objectData = prefabJson.get(Data);
             List<GameObject> gameObjects = new ArrayList<>();
-
             if (objectData.isJsonArray()) {
                 for (JsonElement goElement : objectData.getAsJsonArray()) {
-                    GameObject go = gson.fromJson(goElement, GameObject.class);
+                    GameObject go = serializer.deserialize(goElement, GameObject.class);
                     gameObjects.add(go);
                 }
             }
-
             if (gameObjects.isEmpty()) {
                 System.err.println("No valid GameObject found in prefab: '" + prefabName + "'");
             }
-
             Map<UUID, GameObject> goMap = new HashMap<>();
             for (GameObject go : gameObjects) {
                 goMap.put(go.getUUID(), go);
             }
-
             for (GameObject go : gameObjects) {
                 if (go.getParentUUID() != null) {
                     GameObject parent = goMap.get(go.getParentUUID());
                     if (parent != null) parent.addChild(go);
                 }
-
                 if (go.getChildrenUUIDs() != null && !go.getChildrenUUIDs().isEmpty()) {
                     for (UUID childUUID : go.getChildrenUUIDs()) {
                         GameObject child = goMap.get(childUUID);
@@ -165,21 +131,16 @@ public class PrefabManager {
                     }
                 }
             }
-
-            JsonElement rootUUID = prefabJson.get(ROOT_UUID);
+            JsonElement rootUUID = prefabJson.get(RootUUID);
             GameObject root = goMap.get(UUID.fromString(rootUUID.getAsString()));
-
             if (root == null) {
                 System.err.println("Root object of prefab not found");
                 return null;
             }
-
             boolean includeChildren = false;
-
-            if (prefabJson.has(INCLUDE_CHILD)) {
-                includeChildren = prefabJson.get(INCLUDE_CHILD).getAsBoolean();
+            if (prefabJson.has(IncludeChild)) {
+                includeChildren = prefabJson.get(IncludeChild).getAsBoolean();
             }
-
             return root.copy(includeChildren);
         } catch (Exception e) {
             System.err.println("Failed to instantiate prefab: " + e.getMessage());
@@ -189,12 +150,9 @@ public class PrefabManager {
 
     public boolean deletePrefab(String prefabName) {
         String root = Project.projectRoot();
-
         if (root == null) return false;
-
-        String filename = prefabName.replaceAll(NAME_PATTERN, "_") + EXTENSION;
-        Path prefabFile = Paths.get(root, PREFABS_DIR, filename);
-
+        String filename = prefabName.replaceAll(NamePattern, "_") + Extension;
+        Path prefabFile = Paths.get(root, PrefabDir, filename);
         try {
             if (Files.exists(prefabFile)) {
                 Files.delete(prefabFile);
@@ -204,7 +162,6 @@ public class PrefabManager {
         } catch (IOException e) {
             System.err.println("Failed to delete prefab: " + e.getMessage());
         }
-
         return false;
     }
 
@@ -219,29 +176,15 @@ public class PrefabManager {
     private void loadPrefabFile(Path file) {
         try {
             String content = new String(Files.readAllBytes(file));
-            Gson gson = createGson();
-            JsonObject prefabJson = gson.fromJson(content, JsonObject.class);
-
-            String name = prefabJson.get(PREFAB_NAME).getAsString();
-
+            EngineSerializer serializer = EngineSerializer.standard();
+            JsonObject prefabJson = serializer.deserialize(content, JsonObject.class);
+            String name = prefabJson.get(PrefabName).getAsString();
             String description = name;
-            if (prefabJson.has(INCLUDE_CHILD)
-                    && prefabJson.get(INCLUDE_CHILD).getAsBoolean()
-            ) description += " (with children)";
-
+            if (prefabJson.has(IncludeChild) && prefabJson.get(IncludeChild).getAsBoolean()) description += " (with children)";
             loadedPrefabs.put(name, new PrefabData(name, content, description));
         } catch (Exception e) {
             System.err.println("Failed to load prefab file '" + file + "': " + e.getMessage());
         }
-    }
-
-    private Gson createGson() {
-        return new GsonBuilder()
-                .setPrettyPrinting()
-                .registerTypeAdapter(Component.class, new ComponentSerializer())
-                .registerTypeHierarchyAdapter(GameObject.class, new GameObjectSerializer())
-                .enableComplexMapKeySerialization()
-                .create();
     }
 
     public void clear() {

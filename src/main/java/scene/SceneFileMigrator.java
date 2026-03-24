@@ -1,10 +1,10 @@
 package scene;
 
 import TheCellBeyond.GameObject;
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import serialization.EngineSerializer;
 import utility.log.EngineLog;
 
 import java.util.Arrays;
@@ -80,13 +80,13 @@ class SceneFileMigrator {
      * @return the updated JSON object
      */
     private static JsonObject migrateToV2(JsonObject jsonObject) {
-        Gson gson = SceneManager.buildGson();
+        EngineSerializer serializer = EngineSerializer.standard();
         JsonArray jsonArray = jsonObject.has(SceneFile.ObjectsKey) ? jsonObject.getAsJsonArray(SceneFile.ObjectsKey) : new JsonArray();
-        GameObject[] objects = gson.fromJson(jsonArray, GameObject[].class);
+        GameObject[] objects = serializer.deserialize(jsonArray, GameObject[].class);
         GameObject root = SceneFile.defaultRoot();
         if (objects != null) Arrays.stream(objects).filter(go -> go.getParentUUID() == null).forEach(root::addChild);
         root.prepareForSerialization();
-        jsonObject.add(SceneFile.RootKey, gson.toJsonTree(root));
+        jsonObject.add(SceneFile.RootKey, serializer.toJsonTree(root));
         jsonObject.addProperty(SceneFile.VersionKey, 2);
         return jsonObject;
     }

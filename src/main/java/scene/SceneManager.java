@@ -1,16 +1,14 @@
 package scene;
 
 import TheCellBeyond.GameObject;
-import TheCellBeyond.GameObjectSerializer;
 import TheCellBeyond.internal.LogicServer;
 import com.google.gson.*;
-import components.Component;
-import components.ComponentSerializer;
 import editor.dialog.SaveSceneAsDialog;
 import eventviewer.EngineEventCallback;
 import eventviewer.event.EditorEvent;
 import project.Project;
 import project.ProjectSceneMap;
+import serialization.EngineSerializer;
 import utility.UnifiedPaths;
 import utility.log.EngineLog;
 
@@ -337,11 +335,11 @@ public final class SceneManager {
             return newFile;
         }
         try {
-            Gson gson = buildGson();
+            EngineSerializer serializer = EngineSerializer.standard();
             JsonElement element = JsonParser.parseString(fileContent);
             JsonObject jsonObject = SceneFileMigrator.migrateToLatest(element, sceneName);
             if (jsonObject == null) throw new JsonSyntaxException("Unknown scene data format");
-            return gson.fromJson(jsonObject, SceneFile.class);
+            return serializer.deserialize(jsonObject, SceneFile.class);
         } catch (JsonSyntaxException e) {
             Logger.error(String.format("Failed to parse scene file for '%s': ", e.getMessage()));
             return new SceneFile(sceneName);
@@ -368,7 +366,7 @@ public final class SceneManager {
         }
         String path = UnifiedPaths.resolveToAbsolute(Project.projectRoot(), sceneMap.path());
         try (FileWriter writer = new FileWriter(path)) {
-            writer.write(buildGson().toJson(file));
+            writer.write(EngineSerializer.standard().serialize(file));
             return true;
         } catch (IOException e) {
             Logger.error(String.format(CannotSaveFormat, sceneName, e.getMessage()));
@@ -409,18 +407,5 @@ public final class SceneManager {
      */
     private static String createScenePath(String name) {
         return String.format("scenes/%s.cell", name.replaceAll("[^a-zA-Z0-9_-]", "_"));
-    }
-
-    /**
-     * Build gson for scene data serialization.
-     * This consist of 2 type adapter for component and game object.
-     * @return the configured Gson instance
-     */
-    static Gson buildGson() {
-        return new GsonBuilder()
-                .registerTypeAdapter(Component.class, new ComponentSerializer())
-                .registerTypeHierarchyAdapter(GameObject.class, new GameObjectSerializer())
-                .enableComplexMapKeySerialization()
-                .create();
     }
 }

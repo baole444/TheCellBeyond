@@ -1,15 +1,13 @@
 package TheCellBeyond;
 
 import TheCellBeyond.internal.LogicServer;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import components.Component2D;
-import components.ComponentSerializer;
 import components.Component;
 import editor.template.EditorTemplate;
 import eventviewer.EngineEventCallback;
 import eventviewer.event.SceneEvent;
 import scene.Scene;
+import serialization.EngineSerializer;
 import utility.HierarchyPath;
 import utility.HierarchyPaths;
 import utility.IdPool;
@@ -900,13 +898,9 @@ public class GameObject {
      * @return a new {@link GameObject}
      */
     protected GameObject copySingleObject() {
-        Gson gson = new GsonBuilder()
-                .registerTypeAdapter(Component.class, new ComponentSerializer())
-                .registerTypeHierarchyAdapter(GameObject.class, new GameObjectSerializer())
-                .enableComplexMapKeySerialization()
-                .create();
-        String oJson = gson.toJson(this);
-        GameObject obj = gson.fromJson(oJson, GameObject.class);
+        EngineSerializer serializer = EngineSerializer.standard();
+        String oJson = serializer.serialize(this);
+        GameObject obj = serializer.deserialize(oJson, GameObject.class);
         obj.uuid = UUID.randomUUID();
         obj.cachedID = idCounter.newId();
         obj.parent = null;

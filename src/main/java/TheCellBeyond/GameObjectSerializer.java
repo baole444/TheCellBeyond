@@ -3,6 +3,7 @@ package TheCellBeyond;
 import com.google.gson.*;
 import components.Component;
 import components.NotSerializeComponent;
+import signal.Signal;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -39,20 +40,21 @@ public class GameObjectSerializer implements JsonSerializer<GameObject>, JsonDes
         for (Field field : fields) {
             int modifier = field.getModifiers();
             if (Modifier.isTransient(modifier) || Modifier.isStatic(modifier)) continue;
+            if (Signal.class.isAssignableFrom(field.getType())) continue;
             try {
                 field.setAccessible(true);
                 Object val = field.get(go);
-                if (field.getName().equals(Component) && val instanceof Collection) {
-                    JsonArray components = new JsonArray();
-                    for (Object c : (Collection<?>) val) {
-                        if (c instanceof Component && !(c instanceof NotSerializeComponent)) {
-                            components.add(context.serialize(c, Component.class));
-                        }
-                    }
-                    properties.add(Component, components);
-                } else if (val != null) {
-                    properties.add(field.getName(), context.serialize(val));
+                if (!field.getName().equals(Component) || !(val instanceof Collection<?> collection)) {
+                    if (val != null) properties.add(field.getName(), context.serialize(val));
+                    continue;
                 }
+                JsonArray components = new JsonArray();
+                for (Object c : collection) {
+                    if (c instanceof Component && !(c instanceof NotSerializeComponent)) {
+                        components.add(context.serialize(c, Component.class));
+                    }
+                }
+                properties.add(Component, components);
             } catch (IllegalAccessException e) {
                 System.err.println("Failed to serialize field: " + field.getName());
             }
@@ -67,11 +69,8 @@ public class GameObjectSerializer implements JsonSerializer<GameObject>, JsonDes
         try {
             Class<?> goClass = Class.forName(className);
             String name;
-            if (properties.has("name")) {
-                name = properties.get("name").getAsString();
-            } else {
-                name = "Unnamed object";
-            }
+            if (properties.has("name")) name = properties.get("name").getAsString();
+            else name = "Unnamed object";
             GameObject go = createInstance(goClass, name);
             deserializeField(go, goClass, properties, context);
             return go;
@@ -97,25 +96,26 @@ public class GameObjectSerializer implements JsonSerializer<GameObject>, JsonDes
         for (Field field : fields) {
             int modifier = field.getModifiers();
             if (Modifier.isTransient(modifier) || Modifier.isStatic(modifier)) continue;
+            if (Signal.class.isAssignableFrom(field.getType())) continue;
             String fieldName = field.getName();
             if (!properties.has(fieldName)) continue;
             try {
                 field.setAccessible(true);
                 JsonElement element = properties.get(fieldName);
-                if (!element.isJsonNull()) {
-                    if (fieldName.equals(Component) && element.isJsonArray()) {
-                        JsonArray components = element.getAsJsonArray();
-                        for (JsonElement c : components) {
-                            Component component = context.deserialize(c, Component.class);
-                            go.addComponent(component);
-                        }
-                    } else {
-                        Object val = context.deserialize(element, field.getGenericType());
-                        field.set(go, val);
-                    }
+                if (element.isJsonNull()) continue;
+                if (!fieldName.equals(Component) || !element.isJsonArray()) {
+                    Object val = context.deserialize(element, field.getGenericType());
+                    field.set(go, val);
+                    continue;
+                }
+                JsonArray components = element.getAsJsonArray();
+                for (JsonElement c : components) {
+                    Component component = context.deserialize(c, Component.class);
+                    go.addComponent(component);
                 }
             } catch (IllegalAccessException e) {
                 System.err.println("Failed to deserialize field: " + fieldName);
+                System.err.println(e.getMessage());
             }
         }
     }
