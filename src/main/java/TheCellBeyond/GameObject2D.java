@@ -787,7 +787,7 @@ public class GameObject2D extends RenderableObject {
     }
 
     @Override
-    public RenderCommand buildRenderCommand() {
+    public TransformCommand buildTransformCommand() {
         TransformCommand command = TransformCommand.acquire();
         command.submitterID = getUID();
         command.position.set(globalPosition());
@@ -796,6 +796,7 @@ public class GameObject2D extends RenderableObject {
         command.zIndex = globalZIndex();
         command.visible = visible;
         command.modulate.set(selfModulate);
+        command.markChanged();
         return command;
     }
 }

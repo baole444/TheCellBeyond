@@ -1,7 +1,6 @@
 package render.text;
 
 import TheCellBeyond.internal.ResourceID;
-import components.TextRenderer;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
@@ -34,6 +33,8 @@ public class TextBatch {
 
     private static class CachedTextData {
         TransformCommand transform;
+        long commandVersion;
+        long transformVersion;
         float[] vertices = new float[0];
         boolean dirty = true;
         boolean seen = false;
@@ -86,12 +87,20 @@ public class TextBatch {
             cached.seen = true;
             if (cached.transform != transform) {
                 cached.transform = transform;
+                cached.transformVersion = transform.version;
                 cached.dirty = true;
+                return;
             }
+            if (command.version == cached.commandVersion && transform.version == cached.transformVersion) return;
+            cached.commandVersion = command.version;
+            cached.transformVersion = transform.version;
+            cached.dirty = true;
             return;
         }
         cached = new CachedTextData();
         cached.transform = transform;
+        cached.commandVersion = command.version;
+        cached.transformVersion = transform.version;
         cached.seen = true;
         commandCache.put(command, cached);
     }

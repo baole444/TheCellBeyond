@@ -1,10 +1,6 @@
 package render;
 
-import TheCellBeyond.GameObject;
 import TheCellBeyond.internal.ResourceID;
-import components.Component;
-import components.SpriteRenderer;
-import editor.components.EditorObjectIndicator;
 import org.joml.Math;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
@@ -39,8 +35,10 @@ public class TextureBatch {
     private static final int TextureSlotOffset = PositionSize + ColorSize + TextureCoordinateSize;
     private int maxBindingTexture = 8;
     private final IdentityHashMap<RectCommand, Integer> commandIndex = new IdentityHashMap<>();
-    private final ArrayList<RectCommand> registeredCommands = new ArrayList<>();
-    private final ArrayList<TransformCommand> registeredTransforms = new ArrayList<>();
+    private final List<RectCommand> registeredCommands = new ArrayList<>();
+    private final List<TransformCommand> registeredTransforms = new ArrayList<>();
+    private final List<Long> registeredCommandVersions = new ArrayList<>();
+    private final List<Long> registeredTransformVersions = new ArrayList<>();
     private boolean[] seen = new boolean[0];
     private boolean bufferDirty = false;
     private int vaoID, vboID, eboID;
@@ -102,6 +100,8 @@ public class TextureBatch {
             commandIndex.remove(registeredCommands.get(i));
             registeredCommands.remove(i);
             registeredTransforms.remove(i);
+            registeredCommandVersions.remove(i);
+            registeredTransformVersions.remove(i);
             removed = true;
         }
         if (!removed) return;
@@ -116,13 +116,21 @@ public class TextureBatch {
             seen[index] = true;
             if (registeredTransforms.get(index) != transform) {
                 registeredTransforms.set(index, transform);
+                registeredTransformVersions.set(index, transform.version);
                 bufferDirty = true;
+                return;
             }
+            if (command.version == registeredCommandVersions.get(index) && transform.version == registeredTransformVersions.get(index)) return;
+            registeredCommandVersions.set(index, command.version);
+            registeredTransformVersions.set(index, transform.version);
+            bufferDirty = true;
             return;
         }
         int newIndex = registeredCommands.size();
         registeredCommands.add(command);
         registeredTransforms.add(transform);
+        registeredCommandVersions.add(command.version);
+        registeredTransformVersions.add(transform.version);
         commandIndex.put(command, newIndex);
         if (seen.length <= newIndex) seen = Arrays.copyOf(seen, newIndex + SeenBuffer);
         seen[newIndex] = true;
@@ -133,6 +141,8 @@ public class TextureBatch {
         commandIndex.clear();
         registeredCommands.clear();
         registeredTransforms.clear();
+        registeredCommandVersions.clear();
+        registeredTransformVersions.clear();
         bufferDirty = false;
     }
 

@@ -89,6 +89,11 @@ public class Parallax2D extends GameObject2D {
     }
 
     @Override
+    protected void onEditorStart() {
+        repeatSource = true;
+    }
+
+    @Override
     protected void onStart() {
         repeatSource = true;
     }

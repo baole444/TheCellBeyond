@@ -50,4 +50,29 @@ public abstract class RenderableObject extends GameObject implements Renderable 
     public void renderDirty(boolean dirty) {
         renderDirty = dirty;
     }
+
+    @Override
+    public boolean visible() {
+        return visible;
+    }
+
+    @Override
+    public Vector4f selfModulate() {
+        return selfModulate;
+    }
+
+    @Override
+    public boolean repeatSource() {
+        return repeatSource;
+    }
+
+    @Override
+    public int repeatTime() {
+        return repeatTime;
+    }
+
+    @Override
+    public Vector2f repeatSize() {
+        return repeatSize;
+    }
 }

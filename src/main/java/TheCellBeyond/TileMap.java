@@ -306,9 +306,7 @@ public class TileMap extends GameObject2D {
         command.submitterID = getUID();
         command.tilePlacements = tilePlacements();
         command.tileSet = tileSet;
-        RenderCommand renderCommand = super.buildRenderCommand();
-        if (renderCommand == null) return command;
-        renderCommand.next = command;
-        return renderCommand;
+        command.markChanged();
+        return command;
     }
 }

@@ -35,6 +35,8 @@ public class TileBatch {
         int[] indices;
         int tileCount;
         TransformCommand transform;
+        long commandVersion;
+        long transformVersion;
         boolean dirty = true;
     }
 
@@ -93,14 +95,22 @@ public class TileBatch {
             seen[index] = true;
             if (cached.transform != transform) {
                 cached.transform = transform;
+                cached.transformVersion = transform.version;
                 cached.dirty = true;
+                return;
             }
+            if (command.version == cached.commandVersion && transform.version == cached.transformVersion) return;
+            cached.commandVersion = command.version;
+            cached.transformVersion = transform.version;
+            cached.dirty = true;
             return;
         }
         int newIndex = registeredCommands.size();
         registeredCommands.add(command);
         CachedTileData newCache = new CachedTileData();
         newCache.transform = transform;
+        newCache.commandVersion = command.version;
+        newCache.transformVersion = transform.version;
         newCache.dirty = true;
         commandCache.put(command, newCache);
         if (seen.length <= newIndex) seen = Arrays.copyOf(seen, newIndex + SeenBuffer);

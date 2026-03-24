@@ -1,6 +1,9 @@
 package render;
 
+import org.joml.Vector2f;
+import org.joml.Vector4f;
 import render.commands.RenderCommand;
+import render.commands.TransformCommand;
 
 public interface Renderable {
     /**
@@ -27,6 +30,7 @@ public interface Renderable {
      * @param dirty the flag state
      */
     void renderDirty(boolean dirty);
+
     int renderZIndex();
 
     /**
@@ -38,6 +42,34 @@ public interface Renderable {
      */
     default boolean nonRepeatable() {
         return false;
+    }
+
+    default boolean visible() {
+        return true;
+    }
+
+    default Vector4f selfModulate() {
+        return null;
+    }
+
+    default boolean repeatSource() {
+        return false;
+    }
+
+    default int repeatTime() {
+        return 0;
+    }
+
+    default Vector2f repeatSize() {
+        return null;
+    }
+
+    default TransformCommand buildTransformCommand() {
+        return null;
+    }
+
+    default TransformCommand previousTransformCommand() {
+        return null;
     }
 
 

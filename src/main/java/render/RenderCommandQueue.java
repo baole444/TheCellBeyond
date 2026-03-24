@@ -14,23 +14,17 @@ public class RenderCommandQueue {
         rectEntries.clear();
         meshEntries.clear();
         textEntries.clear();
-        TransformCommand currentTransform = null;
-        boolean visible = true;
         RenderCommand current = chainHead;
         while (current != null) {
-            if (current instanceof TransformCommand transform) {
-                currentTransform = transform;
-                visible = transform.visible;
+            if (current.transform == null || !current.transform.visible) {
                 current = current.next;
                 continue;
             }
-            if (visible && currentTransform != null) {
-                switch (current) {
-                    case RectCommand rect -> rectEntries.add(new RectEntry(rect, currentTransform));
-                    case MeshCommand mesh -> meshEntries.add(new MeshEntry(mesh, currentTransform));
-                    case TextCommand text -> textEntries.add(new TextEntry(text, currentTransform));
-                    default -> {}
-                }
+            switch (current) {
+                case RectCommand rect -> rectEntries.add(new RectEntry(rect, current.transform));
+                case MeshCommand mesh -> meshEntries.add(new MeshEntry(mesh, current.transform));
+                case TextCommand text -> textEntries.add(new TextEntry(text, current.transform));
+                default -> {}
             }
             current = current.next;
         }

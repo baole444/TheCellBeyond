@@ -1,6 +1,7 @@
 package render;
 
 import render.commands.RenderCommand;
+import render.commands.TransformCommand;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -11,6 +12,8 @@ public class RenderNode {
     public final List<RenderNode> renderingChildren = new CopyOnWriteArrayList<>();
     public RenderCommand commandHeader = null;
     public RenderCommand commandTail = null;
+    public TransformCommand transform = null;
+    public TransformCommand previousTransform = null;
 
     public RenderNode(Renderable nodeOwner, RenderNode renderingParent) {
         this.nodeOwner = nodeOwner;

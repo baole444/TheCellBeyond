@@ -1,6 +1,5 @@
 package components;
 
-import TheCellBeyond.Transform2D;
 import TheCellBeyond.internal.ResourceID;
 import editor.template.EditorTemplate;
 import org.joml.Vector2f;

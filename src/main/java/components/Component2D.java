@@ -442,7 +442,7 @@ public abstract class Component2D extends RenderableComponent {
     }
 
     @Override
-    public RenderCommand buildRenderCommand() {
+    public TransformCommand buildTransformCommand() {
         if (localTransform2D.isIdentity()) return null;
         TransformCommand command = TransformCommand.acquire();
         Transform2D effectiveTransform = effectiveTransform();
@@ -450,6 +450,7 @@ public abstract class Component2D extends RenderableComponent {
         command.scale.set(effectiveTransform.scale);
         command.rotationDegrees = effectiveTransform.rotation;
         command.zIndex = effectiveTransform.zIndex;
+        command.markChanged();
         return command;
     }
 }

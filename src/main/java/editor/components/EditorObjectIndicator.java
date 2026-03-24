@@ -7,7 +7,6 @@ import TheCellBeyond.Viewport;
 import components.Component2D;
 import components.IsNotSelectable;
 import components.NotSerializeComponent;
-import components.SpriteRenderer;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import render.commands.RectCommand;
@@ -140,6 +139,16 @@ public final class EditorObjectIndicator extends Component2D implements NotSeria
     }
 
     @Override
+    public TransformCommand buildTransformCommand() {
+        Transform2D effectiveTransform = effectiveTransform();
+        TransformCommand transform = TransformCommand.acquire();
+        transform.position.set(effectiveTransform.position);
+        transform.zIndex = effectiveTransform.zIndex;
+        transform.markChanged();
+        return transform;
+    }
+
+    @Override
     public RenderCommand buildRenderCommand() {
         RectCommand rect = RectCommand.acquire();
         rect.submitterID = gameObject != null ? gameObject.getUID() : 0;
@@ -152,11 +161,7 @@ public final class EditorObjectIndicator extends Component2D implements NotSeria
                 if (uv != null) for (int i = 0; i < VerticesPerQuad; i++) rect.uvCoordinates[i].set(uv[i]);
             }
         }
-        Transform2D effectiveTransform = effectiveTransform();
-        TransformCommand transform = TransformCommand.acquire();
-        transform.position.set(effectiveTransform.position);
-        transform.zIndex = effectiveTransform.zIndex;
-        transform.next = rect;
-        return transform;
+        rect.markChanged();
+        return rect;
     }
 }

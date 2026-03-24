@@ -2,11 +2,17 @@ package render.commands;
 
 public abstract class RenderCommand {
     public final CommandType type;
+    public TransformCommand transform = null;
     public RenderCommand next = null;
     public int submitterID = 0;
+    public long version = 0;
 
     protected RenderCommand(CommandType type) {
         this.type = type;
+    }
+
+    public void markChanged() {
+        version++;
     }
 
     public void release() {
@@ -15,6 +21,8 @@ public abstract class RenderCommand {
 
     public void copyFrom(RenderCommand source) {
         submitterID = source.submitterID;
+        transform = source.transform;
+        markChanged();
     }
 
     public static void release(RenderCommand command) {
@@ -30,6 +38,8 @@ public abstract class RenderCommand {
 
     protected void reset() {
         next = null;
+        transform = null;
         submitterID = 0;
+        version = 0;
     }
 }
