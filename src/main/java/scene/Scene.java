@@ -7,7 +7,7 @@ import components.Component;
 import editor.components.EditorObjectIndicator;
 import eventviewer.EngineEventCallback;
 import eventviewer.event.SceneEvent;
-import physic2d.PhysicBody2D;
+import physic2d.CollisionObject2D;
 import physic2d.Physic2D;
 import signal.Callable;
 import utility.log.EngineLog;
@@ -122,7 +122,7 @@ public class Scene {
         if (rootIsFreed()) return;
         sceneData.physic2D().update(dt, (fixedDT) -> sceneData.gameObjects().forEach(go -> go.physicUpdate(fixedDT)));
         for (GameObject go : sceneData.gameObjects()) {
-            if (go instanceof PhysicBody2D physicBody2D) physicBody2D.syncTransformFromPhysic();
+            if (go instanceof CollisionObject2D collisionObject) collisionObject.syncTransformFromPhysic();
         }
     }
 

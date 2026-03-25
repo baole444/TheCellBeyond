@@ -17,7 +17,6 @@ import physic2d.StaticBody2D;
 import physic2d.collider.TileCollider2D;
 import render.commands.MeshCommand;
 import render.commands.RenderCommand;
-import render.commands.TransformCommand;
 import render.texture.Tile;
 import render.texture.TileSet;
 import scene.Scene;
@@ -79,7 +78,7 @@ public class TileMap extends GameObject2D {
         physicBody2D = useKinematicBody ? new KinematicBody2D(physicName) : new StaticBody2D(physicName);
         physicBody2D.setNotSerialize();
         physicBody2D.addComponents(new IsNotSelectable(), new TileCollider2D());
-        physicBody2D.setFriction(1.0f);
+        physicBody2D.friction(1.0f);
         if (tileSet != null) {
             physicBody2D.setCollisionLayer(tileSet.getCollisionLayer());
             physicBody2D.setCollisionMask(tileSet.getCollisionMask());

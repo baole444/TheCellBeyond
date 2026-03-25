@@ -49,41 +49,31 @@ public class Physic2D {
     }
 
     public void add(GameObject go) {
-        if (!(go instanceof PhysicBody2D physicBody2D)) return;
-
-        List<CollisionShape2D> collisionShapes = physicBody2D.getComponents(CollisionShape2D.class);
-        if (physicBody2D.getPhysicBodyRef() != null) return;
-
-        Vector2f initialPos = physicBody2D.globalPosition();
-        float initialRot = physicBody2D.globalRotation();
-
+        if (!(go instanceof CollisionObject2D collisionObject)) return;
+        List<CollisionShape2D> collisionShapes = collisionObject.getComponents(CollisionShape2D.class);
+        if (collisionObject.getPhysicBodyRef() != null) return;
+        Vector2f initialPos = collisionObject.globalPosition();
+        float initialRot = collisionObject.globalRotation();
         BodyDef bodyDef = new BodyDef();
         bodyDef.angle = Math.toRadians(initialRot);
         bodyDef.position.set(initialPos.x, initialPos.y);
-        bodyDef.userData = physicBody2D;
-
-        bodyDef.type = switch (physicBody2D.getPhysicBodyType()) {
-            case Kinematic -> BodyType.KINEMATIC;
-            case Static -> BodyType.STATIC;
-            case Dynamic -> BodyType.DYNAMIC;
-        };
-
-        physicBody2D.configureBodyDef(bodyDef);
+        bodyDef.userData = collisionObject;
+        bodyDef.type = collisionObject.bodyType();
+        collisionObject.configureBodyDef(bodyDef);
         Body obj = world.createBody(bodyDef);
-        physicBody2D.setPhysicBodyRef(obj);
-        physicBody2D.configurePhysicBodyRef();
-
+        collisionObject.setPhysicBodyRef(obj);
+        collisionObject.configurePhysicBodyRef();
         for (CollisionShape2D shape : collisionShapes) {
-            if (!shape.hasPhysicBody() || shape.getPhysicBody2D() != physicBody2D) continue;
-            addCollider2D(physicBody2D, shape);
+            if (!shape.hasCollisionObject() || shape.collisionObject2D() != collisionObject) continue;
+            addCollider2D(collisionObject, shape);
         }
     }
 
     public void destroyObject(GameObject go) {
-        if (!(go instanceof PhysicBody2D physicBody2D)) return;
-        if (physicBody2D.getPhysicBodyRef() != null) {
-            world.destroyBody(physicBody2D.getPhysicBodyRef());
-            physicBody2D.setPhysicBodyRef(null);
+        if (!(go instanceof CollisionObject2D collisionObject)) return;
+        if (collisionObject.getPhysicBodyRef() != null) {
+            world.destroyBody(collisionObject.getPhysicBodyRef());
+            collisionObject.setPhysicBodyRef(null);
         }
     }
 
@@ -110,29 +100,25 @@ public class Physic2D {
         update(dt, null);
     }
 
-    private void createFixture(PhysicBody2D physicBody2D, Body body, Shape shape) {
+    private void createFixture(CollisionObject2D collisionObject, Body body, Shape shape) {
         FixtureDef fixtureDef = new FixtureDef();
-
         fixtureDef.shape = shape;
         fixtureDef.density = 1.0f;
-        fixtureDef.friction = physicBody2D.getFriction();
+        fixtureDef.friction = collisionObject.friction();
         fixtureDef.restitution = 0.0f;
-        fixtureDef.userData = physicBody2D;
-        fixtureDef.isSensor = physicBody2D.isSensor();
-        fixtureDef.filter.categoryBits = physicBody2D.getCollisionLayer();
-        fixtureDef.filter.maskBits = physicBody2D.getCollisionMask();
+        fixtureDef.userData = collisionObject;
+        fixtureDef.isSensor = collisionObject.isSensor();
+        fixtureDef.filter.categoryBits = collisionObject.getCollisionLayer();
+        fixtureDef.filter.maskBits = collisionObject.getCollisionMask();
         fixtureDef.filter.groupIndex = 0;
-
         body.createFixture(fixtureDef);
     }
 
-    public void updateBodyFilters(PhysicBody2D physicBody2D) {
-        Body body = physicBody2D.getPhysicBodyRef();
+    public void updateBodyFilters(CollisionObject2D collisionObject) {
+        Body body = collisionObject.getPhysicBodyRef();
         if (body == null) return;
-
-        int collisionLayer = physicBody2D.getCollisionLayer();
-        int collisionMask = physicBody2D.getCollisionMask();
-
+        int collisionLayer = collisionObject.getCollisionLayer();
+        int collisionMask = collisionObject.getCollisionMask();
         Fixture fixture = body.getFixtureList();
         while (fixture != null) {
             fixture.m_filter.categoryBits = collisionLayer;
@@ -141,69 +127,63 @@ public class Physic2D {
         }
     }
 
-    private void addBoxCollider2D(PhysicBody2D physicBody2D, BoxCollider2D boxCollider2D) {
-        Body body = physicBody2D.getPhysicBodyRef();
+    private void addBoxCollider2D(CollisionObject2D collisionObject, BoxCollider2D boxCollider2D) {
+        Body body = collisionObject.getPhysicBodyRef();
         if (body == null) return;
-
         Shape shape = boxCollider2D.createCollisionShape();
-        createFixture(physicBody2D, body, shape);
+        createFixture(collisionObject, body, shape);
     }
 
-    private void addCircleCollider2D(PhysicBody2D physicBody2D, CircleCollider2D circleCollider2D) {
-        Body body = physicBody2D.getPhysicBodyRef();
+    private void addCircleCollider2D(CollisionObject2D collisionObject, CircleCollider2D circleCollider2D) {
+        Body body = collisionObject.getPhysicBodyRef();
         if (body == null) return;
         Shape shape = circleCollider2D.createCollisionShape();
-        createFixture(physicBody2D, body, shape);
+        createFixture(collisionObject, body, shape);
     }
 
-    private void addCapsuleCollider(PhysicBody2D physicBody2D, CapsuleCollider2D capsuleCollider2D) {
-        Body body = physicBody2D.getPhysicBodyRef();
+    private void addCapsuleCollider(CollisionObject2D collisionObject, CapsuleCollider2D capsuleCollider2D) {
+        Body body = collisionObject.getPhysicBodyRef();
         if (body == null) return;
-
-        addBoxCollider2D(physicBody2D, capsuleCollider2D.bodyBox());
-        addCircleCollider2D(physicBody2D, capsuleCollider2D.headCircle());
-        addCircleCollider2D(physicBody2D, capsuleCollider2D.footCircle());
+        addBoxCollider2D(collisionObject, capsuleCollider2D.bodyBox());
+        addCircleCollider2D(collisionObject, capsuleCollider2D.headCircle());
+        addCircleCollider2D(collisionObject, capsuleCollider2D.footCircle());
     }
 
-    private void addTileCollider2D(PhysicBody2D physicBody2D, TileCollider2D tileCollider2D) {
-        Body body = physicBody2D.getPhysicBodyRef();
+    private void addTileCollider2D(CollisionObject2D collisionObject, TileCollider2D tileCollider2D) {
+        Body body = collisionObject.getPhysicBodyRef();
         if (body == null) return;
         Set<Shape> shapes = tileCollider2D.createCollisionShapes();
         for (Shape shape : shapes) {
-            if (shape != null) createFixture(physicBody2D, body, shape);
+            if (shape != null) createFixture(collisionObject, body, shape);
         }
     }
 
-    public void addCollider2D(PhysicBody2D physicBody2D, CollisionShape2D collisionShape2D) {
+    public void addCollider2D(CollisionObject2D collisionObject, CollisionShape2D collisionShape2D) {
         try {
             switch (collisionShape2D) {
-                case BoxCollider2D boxCollider2D -> addBoxCollider2D(physicBody2D, boxCollider2D);
-                case CircleCollider2D circleCollider2D -> addCircleCollider2D(physicBody2D, circleCollider2D);
-                case CapsuleCollider2D capsuleCollider2D -> addCapsuleCollider(physicBody2D, capsuleCollider2D);
-                case TileCollider2D tileCollider2D -> addTileCollider2D(physicBody2D, tileCollider2D);
+                case BoxCollider2D boxCollider2D -> addBoxCollider2D(collisionObject, boxCollider2D);
+                case CircleCollider2D circleCollider2D -> addCircleCollider2D(collisionObject, circleCollider2D);
+                case CapsuleCollider2D capsuleCollider2D -> addCapsuleCollider(collisionObject, capsuleCollider2D);
+                case TileCollider2D tileCollider2D -> addTileCollider2D(collisionObject, tileCollider2D);
                 default -> {}
             }
         } catch (Exception e) {
-            LOGGER.error(String.format("Failed to add collider %s of %s : %s", collisionShape2D.name(), physicBody2D.name(), e.getMessage()));
+            LOGGER.error(String.format("Failed to add collider %s of %s : %s", collisionShape2D.name(), collisionObject.name(), e.getMessage()));
         }
 
     }
 
-    public void resetCollider(PhysicBody2D physicBody2D, CollisionShape2D collisionShape2D) {
+    public void resetCollider(CollisionObject2D collisionObject, CollisionShape2D collisionShape2D) {
         try {
-            Body body = physicBody2D.getPhysicBodyRef();
+            Body body = collisionObject.getPhysicBodyRef();
             if (body == null) return;
-
             int size = fixtureListSize(body);
-            for (int i = 0; i < size; i++) {
-                body.destroyFixture(body.getFixtureList());
-            }
-            addCollider2D(physicBody2D, collisionShape2D);
+            for (int i = 0; i < size; i++) body.destroyFixture(body.getFixtureList());
+            addCollider2D(collisionObject, collisionShape2D);
             body.resetMassData();
         } catch (Exception e) {
-            LOGGER.error(String.format("Failed to reset collider %s of %s : %s", collisionShape2D.name(), physicBody2D.name(), e.getMessage()));
+            LOGGER.error(String.format("Failed to reset collider %s of %s : %s", collisionShape2D.name(), collisionObject.name(), e.getMessage()));
         }
-
     }
 
     public RayCastInfo rayCastInfo(GameObject originObject, Vector2f origin, Vector2f target) {
@@ -211,27 +191,23 @@ public class Physic2D {
         world.raycast(callback,
                 new Vec2(origin.x, origin.y),
                 new Vec2(target.x, target.y));
-
         return callback;
     }
 
     private int fixtureListSize(Body body) {
         if (body == null) return 0;
         int size = 0;
-
         Fixture fixture = body.getFixtureList();
         while (fixture != null) {
             size++;
             fixture = fixture.m_next;
         }
-
         return size;
     }
 
-    public void setIsSensor(PhysicBody2D physicBody2D, boolean val) {
-        Body body = physicBody2D.getPhysicBodyRef();
+    public void setIsSensor(CollisionObject2D collisionObject, boolean val) {
+        Body body = collisionObject.getPhysicBodyRef();
         if (body == null) return;
-
         Fixture fixture = body.getFixtureList();
         while (fixture != null) {
             fixture.m_isSensor = val;

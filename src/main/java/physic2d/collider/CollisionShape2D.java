@@ -6,14 +6,15 @@ import org.jbox2d.collision.shapes.ChainShape;
 import org.jbox2d.collision.shapes.PolygonShape;
 import org.jbox2d.collision.shapes.Shape;
 import org.jbox2d.common.Vec2;
+import physic2d.CollisionObject2D;
 import physic2d.Physic2D;
 import physic2d.PhysicBody2D;
 
 /**
  * CollisionShape2D is an abstract 2D shape, used as base class for all 2D collision shape component types.
  * <p>
- * CollisionShape2D and its subclasses require the game object that mounted it to be implementation of type {@link PhysicBody2D}.
- * This is because physic collision shape can only be defined with physic body reference presented.
+ * CollisionShape2D require the object that mount it to be of type {@link CollisionObject2D} or its subclasses
+ * to have full physic interaction.
  */
 public abstract class CollisionShape2D extends Component2D {
     /**
@@ -22,9 +23,9 @@ public abstract class CollisionShape2D extends Component2D {
     public static final float MinimumShapeDimension = 0.001f;
 
     /**
-     * The reference of the physic body that mount this component.
+     * The reference of the collision object that mount this component.
      */
-    protected transient PhysicBody2D physicBody2D = null;
+    protected transient CollisionObject2D collisionObject2D = null;
 
     /**
      * IS the fixture of this collision shape outdated and need to be updated.
@@ -60,7 +61,7 @@ public abstract class CollisionShape2D extends Component2D {
 
     @Override
     protected void onDestroy() {
-        physicBody2D = null;
+        collisionObject2D = null;
     }
 
     @Override
@@ -84,16 +85,16 @@ public abstract class CollisionShape2D extends Component2D {
      * Check if this collision shape has physic body reference.
      * @return true if physic body exist for this component
      */
-    public boolean hasPhysicBody() {
-        return physicBody2D != null;
+    public boolean hasCollisionObject() {
+        return collisionObject2D != null;
     }
 
     /**
      * Get the physic body reference of this collision shape.
-     * @return the {@link PhysicBody2D} object that mounted this component
+     * @return the {@link CollisionObject2D} object that mounted this component
      */
-    public PhysicBody2D getPhysicBody2D() {
-        return physicBody2D;
+    public CollisionObject2D collisionObject2D() {
+        return collisionObject2D;
     }
 
     /**
@@ -116,8 +117,8 @@ public abstract class CollisionShape2D extends Component2D {
             return;
         }
         needsFixtureReset = false;
-        if (physicBody2D == null) return;
-        physic2D.resetCollider(physicBody2D, this);
+        if (collisionObject2D == null) return;
+        physic2D.resetCollider(collisionObject2D, this);
     }
 
     /**
@@ -230,8 +231,8 @@ public abstract class CollisionShape2D extends Component2D {
     }
 
     private void init() {
-        if (!(gameObject instanceof PhysicBody2D body2D)) return;
-        physicBody2D = body2D;
+        if (!(gameObject instanceof CollisionObject2D go)) return;
+        collisionObject2D = go;
         needsFixtureReset = true;
         resetFixture();
     }

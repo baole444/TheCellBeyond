@@ -1,28 +1,16 @@
 package physic2d;
 
-import TheCellBeyond.GameObject2D;
-import TheCellBeyond.internal.LogicServer;
 import editor.EditorWidget;
 import imgui.ImGui;
-import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiTreeNodeFlags;
 import imgui.type.ImBoolean;
-import org.jbox2d.common.Vec2;
-import org.jbox2d.dynamics.Body;
-import org.jbox2d.dynamics.BodyDef;
-import org.joml.Math;
+import org.jbox2d.dynamics.BodyType;
 import org.joml.Vector2f;
 import physic2d.enums.PhysicBodyType;
 
-public abstract class PhysicBody2D extends GameObject2D {
+public abstract class PhysicBody2D extends CollisionObject2D {
     protected PhysicBodyType physicBodyType;
-    private int collisionLayer = PhysicLayer.layerToBit(0);
-    private int collisionMask = PhysicLayer.layerToBit(0);
     protected float friction = 0.0f;
-    protected boolean isSensor = false;
-    protected boolean isActive = true;
-    protected transient Body physicBodyRef = null;
-    private transient boolean needFixtureUpdate = false;
 
     public PhysicBody2D(PhysicBodyType bodyType) {
         String name = PhysicBody2D.class.getSimpleName();
@@ -36,48 +24,21 @@ public abstract class PhysicBody2D extends GameObject2D {
     }
 
     @Override
-    public void update(float dt) {
-        super.update(dt);
-        if (needFixtureUpdate) updateFixtureFilter();
-    }
-
-    /**
-     * Sync this physic body's spatial transform with its physical transform.
-     */
-    public void syncTransformFromPhysic() {
-        if (physicBodyRef == null) return;
-        Vec2 physicPos = physicBodyRef.getPosition();
-        float physicRot = Math.toDegrees(physicBodyRef.getAngle());
-        position(physicPos.x, physicPos.y);
-        rotation(physicRot);
-    }
-
-    public float getFriction() {
+    public float friction() {
         return friction;
     }
 
-    public void setFriction(float friction) {
+    @Override
+    public BodyType bodyType() {
+        return switch (physicBodyType) {
+            case Kinematic -> BodyType.KINEMATIC;
+            case Static -> BodyType.STATIC;
+            case Dynamic -> BodyType.DYNAMIC;
+        };
+    }
+
+    public void friction(float friction) {
         this.friction = friction;
-    }
-
-    public boolean isSensor() {
-        return isSensor;
-    }
-
-    public boolean isActive() {
-        return isActive;
-    }
-
-    public void setSensor(boolean sensor) {
-        this.isSensor = sensor;
-        if (physicBodyRef != null) {
-            LogicServer.currentScenePhysic2D().setIsSensor(this, sensor);
-        }
-    }
-
-    public void setActive(boolean active) {
-        isActive = active;
-        if (physicBodyRef != null) physicBodyRef.setActive(active);
     }
 
     public PhysicBodyType getPhysicBodyType() {
@@ -87,92 +48,6 @@ public abstract class PhysicBody2D extends GameObject2D {
     public void setPhysicBodyType(PhysicBodyType physicBodyType) {
         this.physicBodyType = physicBodyType;
     }
-
-    public Body getPhysicBodyRef() {
-        return physicBodyRef;
-    }
-
-    public void setPhysicBodyRef(Body physicBodyRef) {
-        this.physicBodyRef = physicBodyRef;
-
-        if (physicBodyRef == null) return;
-        Vector2f currentPos = globalPosition();
-        float currentRot = globalRotation();
-
-        this.physicBodyRef.setTransform(new Vec2(currentPos.x, currentPos.y), Math.toRadians(currentRot));
-        this.physicBodyRef.setActive(isActive);
-    }
-
-    public int getCollisionLayer() {
-        return collisionLayer;
-    }
-
-    public void addCollisionLayer(int layerIndex) {
-        int pastVal = collisionLayer;
-        collisionLayer = PhysicLayer.addLayerToMask(collisionLayer, layerIndex);
-        if (pastVal != collisionLayer) needFixtureUpdate = true;
-    }
-
-    public void removeCollisionLayer(int layerIndex) {
-        int pastVal = collisionLayer;
-        collisionLayer = PhysicLayer.removeLayerFromMask(collisionLayer, layerIndex);
-        if (pastVal != collisionLayer) needFixtureUpdate = true;
-    }
-
-    public int getCollisionMask() {
-        return collisionMask;
-    }
-
-    public void addCollisionMask(int layerIndex) {
-        int pastVal = collisionMask;
-        collisionMask = PhysicLayer.addLayerToMask(collisionMask, layerIndex);
-        if (pastVal != collisionMask) needFixtureUpdate = true;
-    }
-
-    public void removeCollisionMask(int layerIndex) {
-        int pastVal = collisionMask;
-        collisionMask = PhysicLayer.removeLayerFromMask(collisionMask, layerIndex);
-        if (pastVal != collisionMask) needFixtureUpdate = true;
-    }
-
-    public void setCollisionMask(int newMasks) {
-        if (newMasks == collisionMask || !PhysicLayer.isMaskValid(newMasks)) return;
-        collisionMask = newMasks;
-        needFixtureUpdate = true;
-    }
-
-    public void setCollisionLayer(int newMasks) {
-        if (newMasks == collisionLayer || !PhysicLayer.isMaskValid(newMasks)) return;
-        collisionLayer = newMasks;
-        needFixtureUpdate = true;
-    }
-
-    private void updateFixtureFilter() {
-        if (!needFixtureUpdate) return;
-
-        Physic2D physic2D = LogicServer.currentScenePhysic2D();
-        if (physic2D == null || physic2D.isLock()) return;
-        if (physicBodyRef == null) {
-            needFixtureUpdate = false;
-            return;
-        }
-
-        physic2D.updateBodyFilters(this);
-        needFixtureUpdate = false;
-    }
-
-    /**
-     * Configure the physic body definition base on what is required by the physic body type and implement.
-     * @param bodyDef the physic body definition to configure
-     */
-    public abstract void configureBodyDef(BodyDef bodyDef);
-
-    /**
-     * Configure the physic body reference base on what is required by the physic body type and implement.
-     * <p>
-     * This is called after the physic body reference is assigned to the physic object.
-     */
-    public abstract void configurePhysicBodyRef();
 
     /**
      * Add movement velocity to this physic body using the given vector.
@@ -191,32 +66,10 @@ public abstract class PhysicBody2D extends GameObject2D {
             super.additionalImGuiLogic();
             return;
         }
-        ImGui.indent();
         float friction = EditorWidget.dragFloatCtrl("Friction", this.friction, this);
-        if (friction != this.friction) setFriction(friction);
-
+        if (friction != this.friction) friction(friction);
         ImBoolean sensor = new ImBoolean(isSensor);
         if (ImGui.checkbox("Sensor Mode##PhysicBody2D_isSensor_" + getUUID(), sensor)) setSensor(sensor.get());
-
-        ImBoolean active = new ImBoolean(isActive);
-        if (ImGui.checkbox("Active##PhysicBody2D_isActive_" + getUUID(), active)) setActive(active.get());
-
-        ImGui.indent();
-        ImGui.pushStyleColor(ImGuiCol.Header, 0.0f, 0.0f, 0.0f, 0.0f);
-        boolean open = ImGui.collapsingHeader("Physic Layers##Physic_Body_Physic_Layers_" + getUUID());
-        ImGui.popStyleColor(1);
-        if (open) {
-            ImGui.separator();
-            int collisionLayer = EditorWidget.physicLayerSelectable("Collision Layer", this.collisionLayer, this);
-            ImGui.spacing();
-            int collisionMask = EditorWidget.physicLayerSelectable("Collision Mask", this.collisionMask, this);
-            setCollisionLayer(collisionLayer);
-            setCollisionMask(collisionMask);
-            ImGui.separator();
-            ImGui.spacing();
-        }
-        ImGui.unindent();
-        ImGui.unindent();
         super.additionalImGuiLogic();
     }
 }
