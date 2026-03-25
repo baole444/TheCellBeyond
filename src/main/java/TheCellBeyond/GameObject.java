@@ -80,6 +80,11 @@ public class GameObject {
     private transient boolean isStarted = false;
 
     /**
+     * Is this game object and its descendants finished initialization.
+     */
+    private transient boolean isReadied = false;
+
+    /**
      * Is this game object dirty and need to be updated.
      */
     private transient boolean isDirty = false;
@@ -519,7 +524,10 @@ public class GameObject {
         components.add(component);
         component.gameObject = this;
         if (isStarted) {
-            if (LogicServer.runtimeMode()) component.start();
+            if (LogicServer.runtimeMode()) {
+                component.start();
+                if (isReadied) component.ready();
+            }
             else component.editorStart();
             EngineEventCallback.emit(new SceneEvent(SceneEvent.Type.ComponentAdded, LogicServer.currentScene(), component));
         }
@@ -647,7 +655,7 @@ public class GameObject {
     }
 
     /**
-     * * Optional hook for additional game object's editor start logic before starting its components.
+     * Optional hook for additional game object's editor start logic before starting its components.
      */
     protected void onEditorStart() {}
 
@@ -658,6 +666,23 @@ public class GameObject {
     public boolean started() {
         return isStarted;
     }
+
+    /**
+     * Notify this game object that it and all its descendant have been started.
+     * <p>
+     * By default, this is call from the last descendant up the hierarchy tree.
+     */
+    public final void ready() {
+        if (!isStarted || isReadied) return;
+        isReadied = true;
+        components.forEach(Component::ready);
+        onReady();
+    }
+
+    /**
+     * Optional hook for additional game object's ready logic, after all its components are readied.
+     */
+    protected void onReady() {}
 
     /**
      * Export this game object's properties for editing in the Editor UI.

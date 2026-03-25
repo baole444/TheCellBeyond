@@ -84,6 +84,8 @@ public class Scene {
             go.start();
             sceneData.physic2D().add(go);
         });
+        List<GameObject> objects = sceneData.gameObjects();
+        for (int i = objects.size() - 1; i >= 0; i--) objects.get(i).ready();
         sceneLoader.onSceneStarted(this);
         updateQueues();
     }
@@ -409,23 +411,32 @@ public class Scene {
     }
 
     private void updateQueues() {
-        List<GameObject> toAdd = new ArrayList<>(addedGameObjects);
-        HashMap<GameObject, GameObject> toAddParent = new HashMap<>(addedGameObjectWithParents);
         List<GameObject> toRemove = new ArrayList<>(removedGameObjects);
         List<Component> componentToRemove = new ArrayList<>(removedComponents);
         List<DeferredCall> pendingCalls = new ArrayList<>(deferredCalls);
-        addedGameObjects.clear();
-        addedGameObjectWithParents.clear();
         removedGameObjects.clear();
         removedComponents.clear();
         deferredCalls.clear();
         componentToRemove.forEach(this::removeComponentFromScene);
         toRemove.forEach(this::removeObjectFromScene);
-        toAdd.forEach(go -> {
-            GameObject parent = toAddParent.get(go);
-            addObjectToScene(go, parent);
-        });
-        if (!toAdd.isEmpty()) reorderGameObjects();
+        List<GameObject> newlyAdded = new ArrayList<>();
+        while (!addedGameObjects.isEmpty()) {
+            List<GameObject> toAdd = new ArrayList<>(addedGameObjects);
+            HashMap<GameObject, GameObject> toAddParent  = new HashMap<>(addedGameObjectWithParents);
+            addedGameObjects.clear();
+            addedGameObjectWithParents.clear();
+            toAdd.forEach(go -> {
+                GameObject parent = toAddParent.get(go);
+                addObjectToScene(go, parent);
+            });
+            newlyAdded.addAll(toAdd);
+        }
+        if (!newlyAdded.isEmpty()) {
+            if (LogicServer.runtimeMode()) {
+                for (int i = newlyAdded.size() - 1; i >= 0; i--) newlyAdded.get(i).ready();
+            }
+            reorderGameObjects();
+        }
         pendingCalls.forEach(dc -> dc.callable.call(dc.args));
     }
 

@@ -145,7 +145,7 @@ public abstract class Component {
      * <p>
      * Mainly called by the owning game object {@link GameObject#editorStart()} logic.
      * </p>
-     * Unless there is a very specific use case, it is suggested to override {@link #onEditorStart()} instead of this.
+     * Unless there is a very specific use case, it is suggested to override {@link #onEditorStart()} instead.
      * @see Component#onEditorStart()  Add additional component startup logic
      * @apiNote Do not use this method, unless there are specific initialization for the component
      * that need to be reflected in editor mode.
@@ -160,6 +160,20 @@ public abstract class Component {
      * Unless there is specific changes that need to reflect in editor, do not use this method.
      */
     protected void onEditorStart() {}
+
+    /**
+     * Called when the component's {@link GameObject} and all of its descendants are started.
+     * <p>
+     * Unless there is a very specific use case, it is suggested to override {@link #onReady()} instead.
+     */
+    public void ready() {
+        onReady();
+    }
+
+    /**
+     * Optional hook for additional component's ready logic.
+     */
+    protected void onReady() {}
 
     /**
      * Step the editor logic of this component by the given delta time.
