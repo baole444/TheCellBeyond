@@ -13,7 +13,6 @@ public class TextCommand extends RenderCommand {
     public HorizontalAlignment horizontalAlignment = HorizontalAlignment.Left;
     public VerticalAlignment verticalAlignment = VerticalAlignment.Top;
     public final Vector4f modulate = new Vector4f(1.0f);
-    public float fontSizePixel = 0.0f;
     public final Vector2f textDimension = new Vector2f();
 
     TextCommand() {
@@ -39,7 +38,6 @@ public class TextCommand extends RenderCommand {
         horizontalAlignment = t.horizontalAlignment;
         verticalAlignment = t.verticalAlignment;
         modulate.set(t.modulate);
-        fontSizePixel = t.fontSizePixel;
         textDimension.set(t.textDimension);
     }
 
@@ -53,6 +51,5 @@ public class TextCommand extends RenderCommand {
         verticalAlignment = VerticalAlignment.Top;
         modulate.set(1.0f);
         textDimension.zero();
-        fontSizePixel = 0.0f;
     }
 }

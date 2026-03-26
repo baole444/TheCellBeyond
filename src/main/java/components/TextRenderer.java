@@ -125,7 +125,7 @@ public class TextRenderer extends Component2D implements ResourceStatusListener 
         }
         if (ImGui.beginCombo("Vertical", vAlign == null ? "Select one..." : vAlign.toString())) {
             for (VerticalAlignment align : VerticalAlignment.values()) {
-                if (ImGui.selectable(align.toString(), align == vAlign)) continue;
+                if (!ImGui.selectable(align.toString(), align == vAlign)) continue;
                 vAlign = align;
                 renderDirty = true;
             }
@@ -290,6 +290,7 @@ public class TextRenderer extends Component2D implements ResourceStatusListener 
         command.horizontalAlignment = hAlign == null ? HorizontalAlignment.Left : hAlign;
         command.verticalAlignment = vAlign == null ? VerticalAlignment.Top : vAlign;
         command.modulate.set(color);
+        command.textDimension.set(textDimensions);
         command.markChanged();
         return command;
     }

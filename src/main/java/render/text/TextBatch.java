@@ -218,7 +218,7 @@ public class TextBatch {
         for (int i = 0; i < text.length(); i++) {
             char c = text.charAt(i);
             if (c == '\n') {
-                y -= WorldUnit.pixelToWorld(command.fontSizePixel);
+                y -= WorldUnit.pixelToWorld(font.fontSizePixels());
                 x = initialX;
                 continue;
             }
