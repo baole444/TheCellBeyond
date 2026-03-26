@@ -3,4 +3,4 @@ package render;
 import render.commands.RectCommand;
 import render.commands.TransformCommand;
 
-public record RectEntry(RectCommand command, TransformCommand transform) {}
+public record RectEntry(RectCommand command, TransformCommand transform) implements BatchEntry {}

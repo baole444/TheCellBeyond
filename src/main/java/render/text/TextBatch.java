@@ -41,11 +41,15 @@ public class TextBatch {
     }
 
     private final IdentityHashMap<TextCommand, CachedTextData> commandCache = new IdentityHashMap<>();
+    private final IdentityHashMap<TextCommand, Integer> commandZIndex = new IdentityHashMap<>();
+    private final TreeMap<Integer, List<TextCommand>> zBuckets = new TreeMap<>();
 
     private int vaoID, vboID;
     private int bufferCapacity;
     private boolean initialized = false;
     private static Shader fontShader;
+    private Matrix4f projectionMatrix;
+    private Matrix4f viewMatrix;
 
     public TextBatch(int maxBatchSize) {
         bufferCapacity = maxBatchSize;
@@ -78,13 +82,33 @@ public class TextBatch {
     }
 
     public void endFrame() {
-        commandCache.entrySet().removeIf(entry -> !entry.getValue().seen);
+        Iterator<Map.Entry<TextCommand, CachedTextData>> iterator = commandCache.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<TextCommand, CachedTextData> entry = iterator.next();
+            if (entry.getValue().seen) continue;
+            TextCommand command = entry.getKey();
+            Integer zIndex = commandZIndex.remove(command);
+            if (zIndex != null) {
+                List<TextCommand> bucket = zBuckets.get(zIndex);
+                if (bucket != null) bucket.remove(command);
+            }
+            iterator.remove();
+        }
+        zBuckets.entrySet().removeIf(entry -> entry.getValue().isEmpty());
     }
 
     public void submit(TextCommand command, TransformCommand transform) {
+        int zIndex = transform.zIndex;
         CachedTextData cached = commandCache.get(command);
         if (cached != null) {
             cached.seen = true;
+            Integer previousZIndex = commandZIndex.get(command);
+            if (previousZIndex != null && previousZIndex != zIndex) {
+                List<TextCommand> oldBucket = zBuckets.get(previousZIndex);
+                if (oldBucket != null) oldBucket.remove(command);
+                zBuckets.computeIfAbsent(zIndex, _ -> new ArrayList<>()).add(command);
+                commandZIndex.put(command, zIndex);
+            }
             if (cached.transform != transform) {
                 cached.transform = transform;
                 cached.transformVersion = transform.version;
@@ -103,37 +127,49 @@ public class TextBatch {
         cached.transformVersion = transform.version;
         cached.seen = true;
         commandCache.put(command, cached);
+        commandZIndex.put(command, zIndex);
+        zBuckets.computeIfAbsent(zIndex, _ -> new ArrayList<>()).add(command);
     }
 
     public void clearSubmitted() {
         commandCache.clear();
+        commandZIndex.clear();
+        zBuckets.clear();
     }
 
-    public void render(Matrix4f projectionMatrix, Matrix4f viewMatrix) {
+    public void prepareRender(Matrix4f projectionMatrix, Matrix4f viewMatrix) {
         if (commandCache.isEmpty()) return;
         if (!initialized) init();
-        Map<ResourceID,  List<TextCommand>> fontGroups = new LinkedHashMap<>();
-        for (TextCommand command : commandCache.keySet()) {
-            if (command.fontRID == null || command.text == null || command.text.isEmpty()) continue;
-            fontGroups.computeIfAbsent(command.fontRID, f -> new ArrayList<>()).add(command);
-        }
-        if (fontGroups.isEmpty()) return;
+        this.projectionMatrix = projectionMatrix != null ? projectionMatrix : new Matrix4f().identity();
+        this.viewMatrix = viewMatrix != null ? viewMatrix : new Matrix4f().identity();
+    }
+
+    public void renderZIndex(int zIndex) {
+        List<TextCommand> bucket = zBuckets.get(zIndex);
+        if (bucket == null || bucket.isEmpty()) return;
         boolean selectionPass = RendererState.isSelectionPass();
         Shader instShader = selectionPass ? RendererState.getCurrentShader() : fontShader;
         instShader.use();
-        if (projectionMatrix == null) projectionMatrix = new Matrix4f().identity();
-        if (viewMatrix == null) viewMatrix = new Matrix4f().identity();
         instShader.loadMat4f("uProject", projectionMatrix);
         instShader.loadMat4f("uView", viewMatrix);
         glBindVertexArray(vaoID);
         glBindBuffer(GL_ARRAY_BUFFER, vboID);
+        Map<ResourceID,  List<TextCommand>> fontGroups = new LinkedHashMap<>();
+        for (TextCommand command : bucket) {
+            if (command.fontRID == null || command.text == null || command.text.isEmpty()) continue;
+            fontGroups.computeIfAbsent(command.fontRID, _ -> new ArrayList<>()).add(command);
+        }
+        if (fontGroups.isEmpty()) {
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            glBindVertexArray(0);
+            return;
+        }
         renderFontGroups(instShader, fontGroups, selectionPass);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
-        if (!selectionPass) instShader.detach();
     }
 
-    private void renderFontGroups(Shader instShader, Map<ResourceID,  List<TextCommand>> fontGroups, boolean selectionPass) {
+    private void renderFontGroups(Shader instShader, Map<ResourceID, List<TextCommand>> fontGroups, boolean selectionPass) {
         for (Map.Entry<ResourceID, List<TextCommand>> entry : fontGroups.entrySet()) {
             ResourceID fontRID = entry.getKey();
             List<TextCommand> commands = entry.getValue();

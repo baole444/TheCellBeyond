@@ -28,7 +28,6 @@ public class TileBatch {
     private static final int IndicesPerQuad = 6;
     private static final int VertexSize = PosSize + ColorSize + TextureCoordinateSize + TextureIdSize + ObjectIdSize;
     private static final int[] TextureSlot = {0, 1, 2, 3, 4, 5, 6, 7};
-    private static final int SeenBuffer = 16;
 
     private static class CachedTileData {
         float[] vertices;
@@ -38,13 +37,16 @@ public class TileBatch {
         long commandVersion;
         long transformVersion;
         boolean dirty = true;
+        boolean seen = false;
     }
 
     private final IdentityHashMap<MeshCommand, CachedTileData> commandCache = new IdentityHashMap<>();
-    private final List<MeshCommand> registeredCommands = new ArrayList<>();
-    private boolean[] seen = new boolean[0];
+    private final IdentityHashMap<MeshCommand, Integer> commandZIndex = new IdentityHashMap<>();
+    private final TreeMap<Integer, List<MeshCommand>> zBuckets = new TreeMap<>();
 
     private int vaoID, vboID, eboID;
+    private Matrix4f projectionMatrix;
+    private Matrix4f viewMatrix;
     private boolean initialized = false;
 
     public TileBatch() {}
@@ -75,24 +77,37 @@ public class TileBatch {
     }
 
     public void beginFrame() {
-        int size = registeredCommands.size();
-        if (seen.length < size) seen = new boolean[size + SeenBuffer];
-        Arrays.fill(seen, 0, size, false);
+        for (CachedTileData data : commandCache.values()) data.seen = false;
     }
 
     public void endFrame() {
-        for (int i = registeredCommands.size() - 1; i >= 0; i--) {
-            if (seen[i]) continue;
-            MeshCommand command = registeredCommands.remove(i);
-            commandCache.remove(command);
+        Iterator<Map.Entry<MeshCommand, CachedTileData>> iterator = commandCache.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<MeshCommand, CachedTileData> entry = iterator.next();
+            if (entry.getValue().seen) continue;
+            MeshCommand command = entry.getKey();
+            Integer zIndex = commandZIndex.remove(command);
+            if (zIndex != null) {
+                List<MeshCommand> bucket = zBuckets.get(zIndex);
+                if (bucket != null) bucket.remove(command);
+            }
+            iterator.remove();
         }
+        zBuckets.entrySet().removeIf(entry -> entry.getValue().isEmpty());
     }
 
     public void submit(MeshCommand command, TransformCommand transform) {
+        int zIndex= transform.zIndex;
         CachedTileData cached = commandCache.get(command);
         if (cached != null) {
-            int index = registeredCommands.indexOf(command);
-            seen[index] = true;
+            cached.seen = true;
+            Integer previousZIndex = commandZIndex.get(command);
+            if (previousZIndex != null && previousZIndex != zIndex) {
+                List<MeshCommand> oldBucket = zBuckets.get(previousZIndex);
+                if (oldBucket != null) oldBucket.remove(command);
+                zBuckets.computeIfAbsent(zIndex, _ -> new ArrayList<>()).add(command);
+                commandZIndex.put(command, zIndex);
+            }
             if (cached.transform != transform) {
                 cached.transform = transform;
                 cached.transformVersion = transform.version;
@@ -105,34 +120,38 @@ public class TileBatch {
             cached.dirty = true;
             return;
         }
-        int newIndex = registeredCommands.size();
-        registeredCommands.add(command);
-        CachedTileData newCache = new CachedTileData();
-        newCache.transform = transform;
-        newCache.commandVersion = command.version;
-        newCache.transformVersion = transform.version;
-        newCache.dirty = true;
-        commandCache.put(command, newCache);
-        if (seen.length <= newIndex) seen = Arrays.copyOf(seen, newIndex + SeenBuffer);
-        seen[newIndex] = true;
+        cached = new CachedTileData();
+        cached.transform = transform;
+        cached.commandVersion = command.version;
+        cached.transformVersion = transform.version;
+        cached.seen = true;
+        commandCache.put(command, cached);
+        commandZIndex.put(command, zIndex);
+        zBuckets.computeIfAbsent(zIndex, _ -> new ArrayList<>()).add(command);
     }
 
     public void clearSubmitted() {
         commandCache.clear();
-        registeredCommands.clear();
+        commandZIndex.clear();
+        zBuckets.clear();
     }
 
-    public void render(Matrix4f projectionMatrix, Matrix4f viewMatrix) {
-        if (registeredCommands.isEmpty()) return;
+    public void prepareRender(Matrix4f projectionMatrix, Matrix4f viewMatrix) {
+        if (commandCache.isEmpty()) return;
         if (!initialized) init();
+        this.projectionMatrix = projectionMatrix != null ? projectionMatrix : new Matrix4f().identity();
+        this.viewMatrix = viewMatrix != null ? viewMatrix : new Matrix4f().identity();
+    }
+
+    public void renderZIndex(int zIndex) {
+        List<MeshCommand> bucket = zBuckets.get(zIndex);
+        if (bucket == null) return;
         Shader shader = RendererState.getCurrentShader();
         shader.use();
-        if (projectionMatrix == null) projectionMatrix = new Matrix4f().identity();
-        if (viewMatrix == null) viewMatrix = new Matrix4f().identity();
         shader.loadMat4f("uProject", projectionMatrix);
         shader.loadMat4f("uView", viewMatrix);
         shader.loadIntA("uTex", TextureSlot);
-        for (MeshCommand command : registeredCommands) {
+        for (MeshCommand command : bucket) {
             if (command.tileSet == null || command.tilePlacements == null) continue;
             CachedTileData cached = commandCache.get(command);
             if (cached == null) continue;
@@ -159,7 +178,6 @@ public class TileBatch {
             glBindVertexArray(0);
             if (texture != null) texture.unbind();
         }
-        shader.detach();
     }
 
     private void genTileVertices(MeshCommand command, CachedTileData cached) {

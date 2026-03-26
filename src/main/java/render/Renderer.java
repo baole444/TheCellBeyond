@@ -11,7 +11,14 @@ import render.text.TextBatch;
 import render.texture.TextureManager;
 import scene.Scene;
 
+import java.util.HashSet;
+
 public class Renderer implements EngineEventListener {
+    private enum RenderMode {
+        Sprite,
+        Text
+    }
+
     private static volatile Renderer instance;
     public static final int DefaultBatchCapacity = 512;
     private final TextureBatch textureBatch;
@@ -20,6 +27,9 @@ public class Renderer implements EngineEventListener {
     private final RenderCommandQueue queue;
     private final Matrix4f projectionMatrix = new Matrix4f().identity();
     private final Matrix4f viewMatrix = new Matrix4f().identity();
+    private final HashSet<Integer> renderedTileZIndex = new HashSet<>();
+    private final HashSet<Integer> renderedTextureZIndex = new HashSet<>();
+    private final HashSet<Integer> renderedTextZIndex = new HashSet<>();
     private Scene currentScene;
 
     public static void init() {
@@ -27,7 +37,7 @@ public class Renderer implements EngineEventListener {
     }
 
     private Renderer() {
-        textureBatch = new TextureBatch(DefaultBatchCapacity);
+        textureBatch = new TextureBatch();
         tileBatch = new TileBatch();
         textBatch = new TextBatch(DefaultBatchCapacity);
         queue = new RenderCommandQueue();
@@ -55,10 +65,38 @@ public class Renderer implements EngineEventListener {
         textureBatch.endFrame();
         textBatch.endFrame();
         if (RendererState.isNormalPass()) state.enableSpriteRendering();
-        tileBatch.render(projectionMatrix, viewMatrix);
-        textureBatch.render(projectionMatrix, viewMatrix);
+        tileBatch.prepareRender(projectionMatrix, viewMatrix);
+        textureBatch.prepareRender(projectionMatrix, viewMatrix);
+        textBatch.prepareRender(projectionMatrix, viewMatrix);
+        renderedTileZIndex.clear();
+        renderedTextureZIndex.clear();
+        renderedTextZIndex.clear();
+        RenderMode currentMode = RenderMode.Sprite;
+        for (RenderCommandQueue.ZIndexGroup group : queue.zIndexGroups) {
+            boolean rendered = switch (group.batchType()) {
+                case Tile -> !renderedTileZIndex.add(group.zIndex());
+                case Sprite -> !renderedTextureZIndex.add(group.zIndex());
+                case Text -> !renderedTextZIndex.add(group.zIndex());
+            };
+            if (rendered) continue;
+            RenderMode mode = group.batchType() == RenderCommandQueue.BatchType.Text ? RenderMode.Text : RenderMode.Sprite;
+            if (mode != currentMode) {
+                switchRenderMode(state, mode);
+                currentMode = mode;
+            }
+            switch (group.batchType()) {
+                case Tile -> tileBatch.renderZIndex(group.zIndex());
+                case Sprite -> textureBatch.renderZIndex(group.zIndex());
+                case Text -> textBatch.renderZIndex(group.zIndex());
+            }
+        }
         if (RendererState.isNormalPass()) state.enableTextRendering();
-        textBatch.render(projectionMatrix, viewMatrix);
+    }
+
+    private void switchRenderMode(RendererState state, RenderMode mode) {
+        if (!RendererState.isNormalPass()) return;
+        if (mode == RenderMode.Text) state.enableTextRendering();
+        else state.enableSpriteRendering();
     }
 
     private void adjustViewport() {

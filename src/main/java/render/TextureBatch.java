@@ -15,15 +15,15 @@ import java.util.*;
 
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
-import static org.lwjgl.opengl.GL30.glBindVertexArray;
-import static org.lwjgl.opengl.GL30.glGenVertexArrays;
+import static org.lwjgl.opengl.GL30.*;
 
 public class TextureBatch {
     // Vertices
-    // |Position| |   Color  | |Coordinate| |TexID|
-    // |  f, f  | |f, f, f, f| |   f, f   | |  f  |
+    // |Position| |   Color  | |Coordinate| |TexID| |ObjID|
+    // |  f, f  | |f, f, f, f| |   f, f   | |  f  | |  f  |
     private static final int[] TextureSlot = {0, 1, 2, 3, 4, 5, 6, 7};
     private static final int SeenBuffer = 16;
+    private static final int DefaultBucketCapacity = 64;
     private static final int PositionSize = 2;
     private static final int ColorSize = 4;
     private static final int TextureCoordinateSize = 2;
@@ -34,21 +34,161 @@ public class TextureBatch {
     private static final int IndicesPerQuad = 6;
     private static final int TextureSlotOffset = PositionSize + ColorSize + TextureCoordinateSize;
     private int maxBindingTexture = 8;
-    private final IdentityHashMap<RectCommand, Integer> commandIndex = new IdentityHashMap<>();
-    private final List<RectCommand> registeredCommands = new ArrayList<>();
-    private final List<TransformCommand> registeredTransforms = new ArrayList<>();
-    private final List<Long> registeredCommandVersions = new ArrayList<>();
-    private final List<Long> registeredTransformVersions = new ArrayList<>();
-    private boolean[] seen = new boolean[0];
-    private boolean bufferDirty = false;
-    private int vaoID, vboID, eboID;
-    private float[] vertices;
-    private int bufferCapacity;
-    private boolean initialized = false;
+    private final TreeMap<Integer, ZBucket> zBuckets = new TreeMap<>();
+    private final IdentityHashMap<RectCommand, Integer> commandZIndex = new IdentityHashMap<>();
     private final List<Texture> drawTextures = new ArrayList<>();
+    private Matrix4f projectionMatrix;
+    private Matrix4f viewMatrix;
 
-    public TextureBatch(int maxBatchingSize) {
-        bufferCapacity = maxBatchingSize;
+    private static class ZBucket {
+        final IdentityHashMap<RectCommand, Integer> commandIndex = new IdentityHashMap<>();
+        final List<RectCommand> commands = new ArrayList<>();
+        final List<TransformCommand> transforms = new ArrayList<>();
+        final List<Long> commandVersions = new ArrayList<>();
+        final List<Long> transformVersions = new ArrayList<>();
+        boolean[] seen = new boolean[0];
+        float[] vertices;
+        int vaoID, vboID, eboID;
+        int capacity;
+        boolean bufferDirty = false;
+        boolean initialized = false;
+
+        ZBucket(int initialCapacity) {
+            capacity = initialCapacity;
+            vertices = new float[capacity * VerticesPerQuad * VertexSize];
+        }
+
+        void init() {
+            if (initialized) return;
+            vaoID = glGenVertexArrays();
+            glBindVertexArray(vaoID);
+            vboID = glGenBuffers();
+            glBindBuffer(GL_ARRAY_BUFFER, vboID);
+            glBufferData(GL_ARRAY_BUFFER, (long) vertices.length * Float.BYTES, GL_DYNAMIC_DRAW);
+            eboID = glGenBuffers();
+            int[] indices = genIndicesForBuffer(capacity);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboID);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW);
+            int stride = VertexSize * Float.BYTES;
+            int offset = 0;
+            glVertexAttribPointer(0, PositionSize, GL_FLOAT, false, stride, offset);
+            glEnableVertexAttribArray(0);
+            offset += PositionSize;
+            glVertexAttribPointer(1, ColorSize, GL_FLOAT, false, stride, offset * Float.BYTES);
+            glEnableVertexAttribArray(1);
+            offset += ColorSize;
+            glVertexAttribPointer(2, TextureCoordinateSize, GL_FLOAT, false, stride, offset * Float.BYTES);
+            glEnableVertexAttribArray(2);
+            offset += TextureCoordinateSize;
+            glVertexAttribPointer(3, TextureSlotIdSize, GL_FLOAT, false, stride, offset * Float.BYTES);
+            glEnableVertexAttribArray(3);
+            offset += TextureSlotIdSize;
+            glVertexAttribPointer(4, ObjectIdSize, GL_FLOAT, false, stride, offset * Float.BYTES);
+            glEnableVertexAttribArray(4);
+            initialized = true;
+        }
+
+        void beginFrame() {
+            int size = commands.size();
+            if (seen.length < size) seen = new boolean[size + SeenBuffer];
+            Arrays.fill(seen, 0, size, false);
+        }
+
+        List<RectCommand> endFrame() {
+            List<RectCommand> removed = new ArrayList<>();
+            for (int i = commands.size() - 1; i >= 0; i--) {
+                if (seen[i]) continue;
+                removed.add(commands.get(i));
+                commandIndex.remove(commands.get(i));
+                commands.remove(i);
+                transforms.remove(i);
+                commandVersions.remove(i);
+                transformVersions.remove(i);
+            }
+            if (removed.isEmpty()) return removed;
+            commandIndex.clear();
+            for (int i = 0; i < commands.size(); i++) commandIndex.put(commands.get(i), i);
+            bufferDirty = true;
+            return removed;
+        }
+
+        public void submit(RectCommand command, TransformCommand transform) {
+            Integer index = commandIndex.get(command);
+            if (index != null) {
+                seen[index] = true;
+                if (transforms.get(index) != transform) {
+                    transforms.set(index, transform);
+                    transformVersions.set(index, transform.version);
+                    bufferDirty = true;
+                    return;
+                }
+                if (command.version == commandVersions.get(index) && transform.version == transformVersions.get(index)) return;
+                commandVersions.set(index, command.version);
+                transformVersions.set(index, transform.version);
+                bufferDirty = true;
+                return;
+            }
+            int newIndex = commands.size();
+            commands.add(command);
+            transforms.add(transform);
+            commandVersions.add(command.version);
+            transformVersions.add(transform.version);
+            commandIndex.put(command, newIndex);
+            if (seen.length <= newIndex) seen = Arrays.copyOf(seen, newIndex + SeenBuffer);
+            seen[newIndex] = true;
+            bufferDirty = true;
+        }
+
+        boolean isEmpty() {
+            return commands.isEmpty();
+        }
+
+        void clear() {
+            commandIndex.clear();
+            commands.clear();
+            transforms.clear();
+            commandVersions.clear();
+            transformVersions.clear();
+            bufferDirty = false;
+        }
+
+        void dispose() {
+            if (!initialized) return;
+            glDeleteBuffers(vboID);
+            glDeleteBuffers(eboID);
+            glDeleteVertexArrays(vaoID);
+            initialized = false;
+        }
+
+        void adjustCapacity(int required) {
+            if (required <= capacity) return;
+            capacity = required + (required >> 1);
+            vertices = new float[capacity * VerticesPerQuad * VertexSize];
+            glBindBuffer(GL_ARRAY_BUFFER, vboID);
+            glBufferData(GL_ARRAY_BUFFER, (long) vertices.length * Float.BYTES, GL_DYNAMIC_DRAW);
+            int[] indices = genIndicesForBuffer(capacity);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboID);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW);
+        }
+
+        void rebuildAllVertices() {
+            for (int i = 0; i < commands.size(); i++) genCommandVertexProperties(vertices, i, commands.get(i), transforms.get(i));
+        }
+
+        void uploadIfDirty() {
+            if (!bufferDirty) return;
+            int count = commands.size();
+            if (count == 0) return;
+            if (!initialized) init();
+            adjustCapacity(count);
+            rebuildAllVertices();
+            glBindBuffer(GL_ARRAY_BUFFER, vboID);
+            glBufferSubData(GL_ARRAY_BUFFER, 0, vertices);
+            bufferDirty = false;
+        }
+    }
+
+    public TextureBatch() {
         int trueBindingLimit = GL11.glGetInteger(GL_MAX_TEXTURE_IMAGE_UNITS);
         if (maxBindingTexture > trueBindingLimit) {
             EngineLog.debug(TextureBatch.class.getSimpleName(), String.format("GPU only support up to %d binding texture at a time, adjusting...", trueBindingLimit));
@@ -56,121 +196,67 @@ public class TextureBatch {
         }
     }
 
-    public void init() {
-        if (initialized) return;
-        vertices = new float[bufferCapacity * VerticesPerQuad * VertexSize];
-        vaoID = glGenVertexArrays();
-        glBindVertexArray(vaoID);
-        vboID = glGenBuffers();
-        glBindBuffer(GL_ARRAY_BUFFER, vboID);
-        glBufferData(GL_ARRAY_BUFFER, (long) vertices.length * Float.BYTES, GL_DYNAMIC_DRAW);
-        eboID = glGenBuffers();
-        int[] indices = genIndicesForBuffer(bufferCapacity);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboID);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW);
-        int stride = VertexSize * Float.BYTES;
-        int offset = 0;
-        glVertexAttribPointer(0, PositionSize, GL_FLOAT, false, stride, offset);
-        glEnableVertexAttribArray(0);
-        offset += PositionSize;
-        glVertexAttribPointer(1, ColorSize, GL_FLOAT, false, stride, (long) offset * Float.BYTES);
-        glEnableVertexAttribArray(1);
-        offset += ColorSize;
-        glVertexAttribPointer(2, TextureCoordinateSize, GL_FLOAT, false, stride, (long) offset * Float.BYTES);
-        glEnableVertexAttribArray(2);
-        offset += TextureCoordinateSize;
-        glVertexAttribPointer(3, TextureSlotIdSize, GL_FLOAT, false, stride, (long) offset * Float.BYTES);
-        glEnableVertexAttribArray(3);
-        offset += TextureSlotIdSize;
-        glVertexAttribPointer(4, ObjectIdSize, GL_FLOAT, false, stride, (long) offset * Float.BYTES);
-        glEnableVertexAttribArray(4);
-        initialized = true;
-    }
-
     public void beginFrame() {
-        int size = registeredCommands.size();
-        if (seen.length < size) seen = new boolean[size + SeenBuffer];
-        Arrays.fill(seen, 0, size, false);
+        for (ZBucket bucket : zBuckets.values()) bucket.beginFrame();
     }
 
     public void endFrame() {
-        boolean removed = false;
-        for (int i = registeredCommands.size() - 1; i >= 0; i--) {
-            if (seen[i]) continue;
-            commandIndex.remove(registeredCommands.get(i));
-            registeredCommands.remove(i);
-            registeredTransforms.remove(i);
-            registeredCommandVersions.remove(i);
-            registeredTransformVersions.remove(i);
-            removed = true;
+        for (ZBucket bucket : zBuckets.values()) {
+            List<RectCommand> removed = bucket.endFrame();
+            for (RectCommand command : removed) commandZIndex.remove(command);
         }
-        if (!removed) return;
-        commandIndex.clear();
-        for (int i = 0; i < registeredCommands.size(); i++) commandIndex.put(registeredCommands.get(i), i);
-        bufferDirty = true;
+        zBuckets.entrySet().removeIf(entry -> {
+           ZBucket bucket = entry.getValue();
+           if (!bucket.isEmpty()) return false;
+           bucket.dispose();
+           return true;
+        });
     }
 
     public void submit(RectCommand command, TransformCommand transform) {
-        Integer index = commandIndex.get(command);
-        if (index != null) {
-            seen[index] = true;
-            if (registeredTransforms.get(index) != transform) {
-                registeredTransforms.set(index, transform);
-                registeredTransformVersions.set(index, transform.version);
-                bufferDirty = true;
-                return;
-            }
-            if (command.version == registeredCommandVersions.get(index) && transform.version == registeredTransformVersions.get(index)) return;
-            registeredCommandVersions.set(index, command.version);
-            registeredTransformVersions.set(index, transform.version);
-            bufferDirty = true;
+        int zIndex= transform.zIndex;
+        Integer previousZIndex = commandZIndex.get(command);
+        if (previousZIndex != null && previousZIndex == zIndex) {
+            zBuckets.get(zIndex).submit(command, transform);
             return;
         }
-        int newIndex = registeredCommands.size();
-        registeredCommands.add(command);
-        registeredTransforms.add(transform);
-        registeredCommandVersions.add(command.version);
-        registeredTransformVersions.add(transform.version);
-        commandIndex.put(command, newIndex);
-        if (seen.length <= newIndex) seen = Arrays.copyOf(seen, newIndex + SeenBuffer);
-        seen[newIndex] = true;
-        bufferDirty = true;
+        ZBucket bucket = zBuckets.computeIfAbsent(zIndex, _ -> new ZBucket(DefaultBucketCapacity));
+        bucket.submit(command, transform);
+        commandZIndex.put(command, zIndex);
     }
 
     public void clearSubmitted() {
-        commandIndex.clear();
-        registeredCommands.clear();
-        registeredTransforms.clear();
-        registeredCommandVersions.clear();
-        registeredTransformVersions.clear();
-        bufferDirty = false;
+        for (ZBucket bucket : zBuckets.values()) {
+            bucket.clear();
+            bucket.dispose();
+        }
+        zBuckets.clear();
+        commandZIndex.clear();
     }
 
-    public void render(Matrix4f projectionMatrix, Matrix4f viewMatrix) {
-        int count = registeredCommands.size();
-        if (count == 0) return;
-        if (!initialized) init();
-        if (bufferDirty) {
-            adjustBufferCapacity(count);
-            rebuildAllVertices();
-            glBindBuffer(GL_ARRAY_BUFFER, vboID);
-            glBufferSubData(GL_ARRAY_BUFFER, 0, vertices);
-            bufferDirty = false;
-        }
+    public void prepareRender(Matrix4f projectionMatrix, Matrix4f viewMatrix) {
+        if (zBuckets.isEmpty()) return;
+        this.projectionMatrix = projectionMatrix != null ? projectionMatrix : new Matrix4f().identity();
+        this.viewMatrix = viewMatrix != null ? viewMatrix : new Matrix4f().identity();
+        for (ZBucket bucket : zBuckets.values()) bucket.uploadIfDirty();
+    }
+
+    public void renderZIndex(int zIndex) {
+        ZBucket bucket = zBuckets.get(zIndex);
+        if (bucket == null || bucket.commands.isEmpty()) return;
+        int count = bucket.commands.size();
         Shader shader = RendererState.getCurrentShader();
         shader.use();
-        if (projectionMatrix == null) projectionMatrix = new Matrix4f().identity();
-        if (viewMatrix == null) viewMatrix = new Matrix4f().identity();
         shader.loadMat4f("uProject", projectionMatrix);
         shader.loadMat4f("uView", viewMatrix);
         shader.loadIntA("uTex", TextureSlot);
-        glBindVertexArray(vaoID);
+        glBindVertexArray(bucket.vaoID);
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
         drawTextures.clear();
         int batchStart = 0;
         for (int i = 0; i < count; i++) {
-            RectCommand command = registeredCommands.get(i);
+            RectCommand command = bucket.commands.get(i);
             Texture texture = resolveTexture(command.textureRID);
             if (texture != null && !drawTextures.contains(texture)) {
                 if (drawTextures.size() >= maxBindingTexture) {
@@ -183,16 +269,16 @@ public class TextureBatch {
             int slotID = 0;
             if (texture != null) slotID = drawTextures.indexOf(texture) + 1;
             int baseOffset = i * VerticesPerQuad * VertexSize;
-            for (int v = 0; v < VerticesPerQuad; v++) vertices[baseOffset + v * VertexSize + TextureSlotOffset] = slotID;
+            for (int v = 0; v < VerticesPerQuad; v++) bucket.vertices[baseOffset + v * VertexSize + TextureSlotOffset] = slotID;
         }
-        glBindBuffer(GL_ARRAY_BUFFER, vboID);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, vertices);
+        glBindBuffer(GL_ARRAY_BUFFER, bucket.vboID);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, bucket.vertices);
         flushGroup(batchStart, count);
+        drawTextures.forEach(Texture::unbind);
+        drawTextures.clear();
         glDisableVertexAttribArray(0);
         glDisableVertexAttribArray(1);
         glBindVertexArray(0);
-        drawTextures.forEach(Texture::unbind);
-        shader.detach();
     }
 
     private void flushGroup(int startIndex, int endIndex) {
@@ -210,17 +296,6 @@ public class TextureBatch {
         return AssetManager.get().getTexture(textureRID);
     }
 
-    private void adjustBufferCapacity(int required) {
-        if (required <= bufferCapacity) return;
-        bufferCapacity = required + (required >> 1);
-        vertices = new float[bufferCapacity * VerticesPerQuad * VertexSize];
-        glBindBuffer(GL_ARRAY_BUFFER, vboID);
-        glBufferData(GL_ARRAY_BUFFER, (long) vertices.length * Float.BYTES, GL_DYNAMIC_DRAW);
-        int[] indices = genIndicesForBuffer(bufferCapacity);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboID);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW);
-    }
-
     private static int[] genIndicesForBuffer(int capacity) {
         int[] elements = new int[IndicesPerQuad * capacity];
         for (int i = 0; i < capacity; i++) {
@@ -236,13 +311,7 @@ public class TextureBatch {
         return elements;
     }
 
-    private void rebuildAllVertices() {
-        for (int i = 0; i < registeredCommands.size(); i++) genCommandVertexProperties(i);
-    }
-
-    private void genCommandVertexProperties(int index) {
-        RectCommand command = registeredCommands.get(index);
-        TransformCommand transform = registeredTransforms.get(index);
+    private static void genCommandVertexProperties(float[] vertices, int index, RectCommand command, TransformCommand transform) {
         int offset = index * VerticesPerQuad * VertexSize;
         Vector4f color = command.modulate;
         Vector2f[] uv = command.uvCoordinates;
