@@ -44,8 +44,9 @@ public abstract class CollisionObject2D extends GameObject2D {
         if (physicBodyRef == null) return;
         Vec2 physicPos = physicBodyRef.getPosition();
         float physicRot = Math.toDegrees(physicBodyRef.getAngle());
-        position(physicPos.x, physicPos.y);
-        rotation(physicRot);
+        Vector2f currentPos = position();
+        if (currentPos.x != physicPos.x || currentPos.y != physicPos.y) position(physicPos.x, physicPos.y);
+        if (rotation() != physicRot) rotation(physicRot);
     }
 
     public boolean isSensor() {

@@ -241,7 +241,7 @@ public class Camera2D extends GameObject2D {
     @Override
     protected void onStart() {
         if (!enabled) return;
-        if (!viewportHasActiveCamera(resolveViewport())) makeCurrent();
+        if (noActiveCameraInViewport(resolveViewport())) makeCurrent();
     }
 
     @Override
@@ -286,7 +286,7 @@ public class Camera2D extends GameObject2D {
         currentlyActive = false;
         initialized = false;
         makeNextCameraActive(oldTarget);
-        if (!viewportHasActiveCamera(newTarget)) makeCurrent();
+        if (noActiveCameraInViewport(newTarget)) makeCurrent();
     }
 
     /**
@@ -343,7 +343,7 @@ public class Camera2D extends GameObject2D {
         if (enabled == enable) return;
         enabled = enable;
         if (enable) {
-            if (!viewportHasActiveCamera(resolveViewport())) makeCurrent();
+            if (noActiveCameraInViewport(resolveViewport())) makeCurrent();
             return;
         }
         if (currentlyActive) {
@@ -424,14 +424,16 @@ public class Camera2D extends GameObject2D {
     private void applyHorizontalDrag(Vector2f objectPosition, Vector2f visibleSize, Vector2f result) {
         if (!enableHorizontalDrag) return;
         float shift = horizontalDragOffset * visibleSize.x;
-        float leftBound = cameraPosition.x + visibleSize.x * leftDragMargin + shift;
-        float rightBound = cameraPosition.x + visibleSize.x * (1.0f - rightDragMargin) + shift;
+        float halfLeft = 0.5f * (1.0f - leftDragMargin);
+        float halfRight = 0.5f * (1.0f + rightDragMargin);
+        float leftBound = cameraPosition.x + visibleSize.x * halfLeft + shift;
+        float rightBound = cameraPosition.x + visibleSize.x * halfRight + shift;
         if (objectPosition.x < leftBound) {
-            result.x = objectPosition.x - visibleSize.x * leftDragMargin - shift;
+            result.x = objectPosition.x - visibleSize.x * halfLeft - shift;
             return;
         }
         if (objectPosition.x > rightBound) {
-            result.x = objectPosition.x - visibleSize.x * (1.0f - rightDragMargin) - shift;
+            result.x = objectPosition.x - visibleSize.x * halfRight - shift;
             return;
         }
         result.x = cameraPosition.x;
@@ -440,32 +442,34 @@ public class Camera2D extends GameObject2D {
     private void applyVerticalDrag(Vector2f objectPosition, Vector2f visibleSize, Vector2f result) {
         if (!enableVerticalDrag) return;
         float shift = verticalDragOffset * visibleSize.y;
-        float bottomBound = cameraPosition.y + visibleSize.y * bottomDragMargin + shift;
-        float topBound = cameraPosition.y + visibleSize.y * (1.0f - topDragMargin) + shift;
+        float halfBottom = 0.5f * (1.0f - bottomDragMargin);
+        float halfTop = 0.5f * (1.0f + topDragMargin);
+        float bottomBound = cameraPosition.y + visibleSize.y * halfBottom + shift;
+        float topBound = cameraPosition.y + visibleSize.y * halfTop + shift;
         if (objectPosition.y < bottomBound) {
-            result.y = objectPosition.y - visibleSize.y * bottomDragMargin - shift;
+            result.y = objectPosition.y - visibleSize.y * halfBottom - shift;
             return;
         }
         if (objectPosition.y > topBound) {
-            result.y = objectPosition.y - visibleSize.y * (1.0f - topDragMargin) - shift;
+            result.y = objectPosition.y - visibleSize.y * halfTop - shift;
             return;
         }
         result.y = cameraPosition.y;
     }
 
     private void clampToLimits(Vector2f position, Vector2f visibleSize) {
-        position.x = Math.min(Math.max(position.x, leftLimit), rightLimit - visibleSize.x);
-        position.y = Math.min(Math.max(position.y, bottomLimit), topLimit - visibleSize.y);
+        position.x = Math.clamp(position.x, leftLimit, rightLimit - visibleSize.x);
+        position.y = Math.clamp(position.y, bottomLimit, topLimit - visibleSize.y);
     }
 
     private Viewport resolveViewport() {
         return customViewport != null ? customViewport : LogicServer.currentSceneViewport();
     }
 
-    private boolean viewportHasActiveCamera(Viewport target) {
-        if (target == null) return false;
+    private boolean noActiveCameraInViewport(Viewport target) {
+        if (target == null) return true;
         return getCameraInScene(LogicServer.currentScene(), this).stream()
-                .anyMatch(camera -> camera.currentlyActive && camera.resolveViewport() == target);
+                .noneMatch(camera -> camera.currentlyActive && camera.resolveViewport() == target);
     }
 
     private void makeNextCameraActive(Viewport target) {
