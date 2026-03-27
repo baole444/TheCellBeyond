@@ -237,17 +237,37 @@ publishing {
     }
     repositories {
         maven {
-            name = 'CentralPortal'
-            url = uri('https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/')
-
-            credentials {
-                username = findProperty('centralPortalUsername') ?: ''
-                password = findProperty('centralPortalPassword') ?: ''
-            }
+            name = 'LocalStaging'
+            url = uri(layout.buildDirectory.dir('staging-deploy'))
         }
     }
 }
 
 signing {
+    required { findProperty('signing.keyId') != null }
     sign publishing.publications.engineApi
+}
+
+tasks.register('publishToCentral', Exec) {
+    group = 'publishing'
+    description = 'Uploads the API bundle to Maven Central'
+    dependsOn 'publishEngineApiPublicationToLocalStagingRepository'
+
+    def stagingDir = layout.buildDirectory.dir('staging-deploy')
+    def bundleFile = layout.buildDirectory.file('thecellbeyond-api-bundle.zip')
+
+    doFirst {
+        ant.zip(destfile: bundleFile.get().asFile) {
+            fileset(dir: stagingDir.get().asFile)
+        }
+
+        def tokenUser = findProperty('centralPortalUsername') ?: ''
+        def tokenPass = findProperty('centralPortalPassword') ?: ''
+        def token = Base64.encoder.encodeToString("${tokenUser}:${tokenPass}".bytes)
+
+        commandLine 'curl', '--fail', '--request', 'POST',
+                '--header', "Authorization: Bearer ${token}",
+                '--form', "bundle=@${bundleFile.get().asFile.absolutePath}",
+                'https://central.sonatype.com/api/v1/publisher/upload?publishingType=AUTOMATIC'
+    }
 }
