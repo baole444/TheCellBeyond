@@ -19,7 +19,7 @@ repositories {
 
 dependencies {
     compileOnly "io.github.baole444:thecellbeyond-api:1.0"
-    compileOnly "jbox2d-library"
+    compileOnly ":jbox2d-library"
 }
 
 tasks.withType(JavaCompile).configureEach {
