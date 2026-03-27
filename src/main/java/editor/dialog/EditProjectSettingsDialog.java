@@ -22,7 +22,11 @@ public final class EditProjectSettingsDialog {
         /**
          * Input mapping.
          */
-        InputMap("Input Map");
+        InputMap("Input Map"),
+        /**
+         * Script loading.
+         */
+        Script("Scripts");
 
         /**
          * Name of the tab.
@@ -146,6 +150,7 @@ public final class EditProjectSettingsDialog {
         switch (selectedTab) {
             case General -> ProjectPreferenceTab.imgui();
             case InputMap -> InputMapTab.imgui();
+            case Script -> ScriptsTab.imgui();
         }
     }
 

@@ -5,12 +5,18 @@ import TheCellBeyond.internal.LogicServer;
 import components.*;
 import imgui.ImGui;
 import imgui.ImVec2;
+import imgui.flag.ImGuiChildFlags;
 import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiWindowFlags;
 import physic2d.collider.BoxCollider2D;
 import physic2d.collider.CapsuleCollider2D;
 import physic2d.collider.CircleCollider2D;
 import scene.Scene;
+import scripting.ScriptLoader;
+import scripting.TypeEntry;
+import utility.log.EngineLog;
+
+import java.util.List;
 
 /**
  * Editor dialogue for adding component to game object.
@@ -24,7 +30,7 @@ public final class AddComponentDialog {
 
     private static GameObject selectedObject = null;
     private static ComponentType selectedType = null;
-
+    private static TypeEntry selectedCustomType = null;
     private static final float listYPercentage = 0.55f;
     private static final float descriptionYPercentage = 0.2f;
     private static final boolean enableBorder = true;
@@ -95,18 +101,30 @@ public final class AddComponentDialog {
         if (ImGui.beginPopupModal(POPUP_ID, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)) {
             ImGui.text("Select one component type:");
             int sectionY = (int) (DIALOG_SIZE.y * listYPercentage);
-            ImGui.beginChild(COMPONENT_LIST_ID, ImGuiWindowFlags.None, sectionY, enableBorder);
+            ImGui.beginChild(COMPONENT_LIST_ID, 0.0f, sectionY, ImGuiChildFlags.Border);
             for (ComponentType type : ComponentType.values()) {
                 boolean isSelected = selectedType == type;
                 if (ImGui.selectable(type.label() + "##" + type.name(), isSelected)) {
                     selectedType = type;
+                    selectedCustomType = null;
+                }
+            }
+            List<TypeEntry> customTypes = ScriptLoader.componentTypes();
+            if (!customTypes.isEmpty()) {
+                ImGui.separator();
+                for (TypeEntry entry : customTypes) {
+                    boolean isSelected = selectedCustomType == entry;
+                    if (ImGui.selectable(entry.label() + "##Custom_" + entry.targetClass().getName(), isSelected)) {
+                        selectedCustomType = entry;
+                        selectedType = null;
+                    }
                 }
             }
             ImGui.endChild();
             ImGui.separator();
             ImGui.text("Description:");
             sectionY = (int) (DIALOG_SIZE.y * descriptionYPercentage);
-            ImGui.beginChild(DESCRIPTION_SECTION_ID, ImGuiWindowFlags.None, sectionY, enableBorder);
+            ImGui.beginChild(DESCRIPTION_SECTION_ID, 0.0f, sectionY, ImGuiChildFlags.Border);
             if (selectedType != null) {
                 ImGui.textWrapped(selectedType.description());
             } else {
@@ -122,26 +140,22 @@ public final class AddComponentDialog {
             float addX = (availX * 0.25f) - (buttonPivotX);
             float cancelX = (availX * 0.75f) - (buttonPivotX);
             ImGui.setCursorPosX(addX);
-            if (selectedType != null) {
-                if (ImGui.button("Add", buttonWidth, 0)) addComponent(selectedType);
-            } else {
-                ImGui.beginDisabled();
-                ImGui.button("Add", buttonWidth, 0);
-                ImGui.endDisabled();
+            boolean canAdd = selectedType != null || selectedCustomType != null;
+            if (!canAdd) ImGui.beginDisabled();
+            if (ImGui.button("Add", buttonWidth, 0)) {
+                if (selectedType != null) addComponent(selectedType);
+                else if (selectedCustomType != null) addCustomComponent(selectedCustomType);
             }
+            if (!canAdd) ImGui.endDisabled();
             ImGui.sameLine();
             ImGui.setCursorPosX(cancelX);
             if (ImGui.button("Cancel", buttonWidth, 0)) {
-                showDialog = false;
-                selectedType = null;
+                closeDialog();
                 ImGui.closeCurrentPopup();
             }
             ImGui.endPopup();
         }
-        if (!ImGui.isPopupOpen(POPUP_ID)) {
-            showDialog = false;
-            selectedType = null;
-        }
+        if (!ImGui.isPopupOpen(POPUP_ID)) closeDialog();
     }
 
     private static void addComponent(ComponentType type) {
@@ -161,9 +175,26 @@ public final class AddComponentDialog {
         }
 
         if (c != null) selectedObject.addComponent(c);
+        closeDialog();
+        ImGui.closeCurrentPopup();
+    }
+
+    private static void addCustomComponent(TypeEntry entry) {
+        if (selectedObject == null) return;
+        try {
+            Component c = (Component) entry.targetClass().getConstructor().newInstance();
+            selectedObject.addComponent(c);
+        } catch (Exception e) {
+            EngineLog.error("Scripting", String.format("Failed to create custom component '%s': %s", entry.label(), e.getMessage()));
+        }
+        closeDialog();
+        ImGui.closeCurrentPopup();
+    }
+
+    private static void closeDialog() {
         showDialog = false;
         selectedType = null;
-        ImGui.closeCurrentPopup();
+        selectedCustomType = null;
     }
 }
 

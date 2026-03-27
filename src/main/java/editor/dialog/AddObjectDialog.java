@@ -9,6 +9,11 @@ import imgui.ImVec2;
 import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiWindowFlags;
 import scene.Scene;
+import scripting.ScriptLoader;
+import scripting.TypeEntry;
+import utility.log.EngineLog;
+
+import java.util.List;
 
 /**
  * Editor dialogue for adding game object to scene.
@@ -21,6 +26,7 @@ public final class AddObjectDialog {
     private static boolean showDialog = false;
     private static GameObject parentObject = null;
     private static ObjectType selectedType = null;
+    private static TypeEntry selectedCustomType = null;
     private static final float listYPercentage = 0.6f;
     private static final float descriptionYPercentage = 0.2f;
     private static final boolean enableBorder = true;
@@ -54,6 +60,18 @@ public final class AddObjectDialog {
                 boolean isSelected = selectedType == type;
                 if (ImGui.selectable(type.label + "##" + type.name(), isSelected)) {
                     selectedType = type;
+                    selectedCustomType = null;
+                }
+            }
+            List<TypeEntry> customTypes = ScriptLoader.gameObjectTypes();
+            if (!customTypes.isEmpty()) {
+                ImGui.separator();
+                for (TypeEntry entry : customTypes) {
+                    boolean isSelected = selectedCustomType == entry;
+                    if (ImGui.selectable(entry.label() + "##Custom_" + entry.targetClass().getName(), isSelected)) {
+                        selectedCustomType = entry;
+                        selectedType = null;
+                    }
                 }
             }
             ImGui.endChild();
@@ -63,6 +81,8 @@ public final class AddObjectDialog {
             ImGui.beginChild(DescriptionSectionID, ImGuiWindowFlags.None, sectionY, enableBorder);
             if (selectedType != null) {
                 ImGui.textWrapped(selectedType.description);
+            } else if (selectedCustomType != null) {
+                ImGui.textWrapped(selectedCustomType.description());
             } else {
                 ImGui.textDisabled("Select an object type to see it's description.");
             }
@@ -76,26 +96,22 @@ public final class AddObjectDialog {
             float createX = (availX * 0.25f) - (buttonPivotX);
             float cancelX = (availX * 0.75f) - (buttonPivotX);
             ImGui.setCursorPosX(createX);
-            if (selectedType != null) {
-                if (ImGui.button("Create", buttonWidth, 0)) createObject(selectedType);
-            } else {
-                ImGui.beginDisabled();
-                ImGui.button("Create", buttonWidth, 0);
-                ImGui.endDisabled();
+            boolean canCreate = selectedType != null || selectedCustomType != null;
+            if (!canCreate) ImGui.beginDisabled();
+            if (ImGui.button("Create", buttonWidth, 0.0f)) {
+                if (selectedType != null) createObject(selectedType);
+                else if (selectedCustomType != null) createCustomObject(selectedCustomType);
             }
+            if (!canCreate) ImGui.endDisabled();
             ImGui.sameLine();
             ImGui.setCursorPosX(cancelX);
             if (ImGui.button("Cancel", buttonWidth, 0)) {
-                showDialog = false;
-                selectedType = null;
+                closeDialog();
                 ImGui.closeCurrentPopup();
             }
             ImGui.endPopup();
         }
-        if (!ImGui.isPopupOpen(PopupID)) {
-            showDialog = false;
-            selectedType = null;
-        }
+        if (!ImGui.isPopupOpen(PopupID)) closeDialog();
     }
 
     private static void createObject(ObjectType type) {
@@ -104,9 +120,33 @@ public final class AddObjectDialog {
         GameObject newObject = ObjectType.getObjectFromType(type);
         scene.queueForObjectAddition(newObject, parentObject);
         Properties.setActiveGameObject(newObject);
+        closeDialog();
+        ImGui.closeCurrentPopup();
+    }
+
+    private static void createCustomObject(TypeEntry entry) {
+        Scene scene = LogicServer.currentScene();
+        try {
+            GameObject newObject;
+            try {
+                newObject = (GameObject) entry.targetClass().getConstructor(String.class).newInstance(entry.label());
+            } catch (NoSuchMethodException e) {
+                newObject = (GameObject) entry.targetClass().getConstructor().newInstance();
+                newObject.name(entry.label());
+            }
+            scene.queueForObjectAddition(newObject, parentObject);
+            Properties.setActiveGameObject(newObject);
+        } catch (Exception e) {
+            EngineLog.error("Scripting", String.format("Failed to create custom object '%s': %s", entry.label(), e.getMessage()));
+        }
+        closeDialog();
+        ImGui.closeCurrentPopup();
+    }
+
+    private static void closeDialog() {
         showDialog = false;
         selectedType = null;
-        ImGui.closeCurrentPopup();
+        selectedCustomType = null;
     }
 }
 

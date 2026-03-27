@@ -1,12 +1,11 @@
 package serialization;
 
 import TheCellBeyond.GameObject;
-import TheCellBeyond.GameObjectSerializer;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import components.Component;
-import components.ComponentSerializer;
+import components.State;
 import signal.SignalExclusionStrategy;
 
 /**
@@ -19,6 +18,7 @@ public class EngineSerializer {
         GsonBuilder builder = new GsonBuilder()
                 .registerTypeAdapter(Component.class, new ComponentSerializer())
                 .registerTypeHierarchyAdapter(GameObject.class, new GameObjectSerializer())
+                .registerTypeHierarchyAdapter(State.class, new StateSerializer())
                 .setExclusionStrategies(new SignalExclusionStrategy())
                 .enableComplexMapKeySerialization();
         if (prettyPrint) builder.setPrettyPrinting();

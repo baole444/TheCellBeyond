@@ -2,6 +2,8 @@ import org.gradle.internal.os.OperatingSystem
 
 plugins {
     id 'java'
+    id 'maven-publish'
+    id 'signing'
 }
 
 group = project.project_group
@@ -91,4 +93,159 @@ tasks.withType(Javadoc).configureEach {
     if (targetJavaVersion >= 18) {
         it.options.addStringOption('-snippet-path', 'src/snippet-files')
     }
+}
+
+
+
+// Engine Scripting API
+// Packages and classes exposed to script authors via the API jar.
+// Add entries when new API are introduced.
+
+// Include a class and their inner classes
+def cls = { String path -> ["${path}.class", "${path}\$*.class"] }
+def TCB = 'TheCellBeyond/'
+def TCBClasses = [
+        'GameObject', 'GameObject2D', 'Camera2D', 'TileMap', 'Parallax2D',
+        'Transform2D', 'Viewport', 'RenderableObject', 'Sound'
+]
+def InputClasses = ['Input', 'InputAction', 'InputKey', 'InputType']
+def UTL = 'utility/'
+def UtilityClasses = [
+        'AssetReference', 'HierarchyPath', 'HierarchyPaths', 'WorldUnit',
+        'TCBMath', 'TextureScale', 'FontPT', 'IdPool', 'RingBuffer'
+]
+def SPT = 'scripting/'
+def ScriptingClasses = ['RegisterComponent', 'RegisterGameObject', 'TypeEntry']
+
+ext.apiIncludes = [
+        // Core classes
+        TCBClasses.collect { cls(TCB + it) },
+
+        // Scene and LogicServer
+        cls(TCB + 'internal/LogicServer'),
+        cls('scene/Scene'),
+        cls('scene/SceneLoader'),
+
+        // InputAction
+        InputClasses.collect { cls(TCB + it) },
+
+        // All components
+        'components/**',
+
+        // All physic
+        'physic2d/**',
+
+        // Signal
+        cls('signal/Signal'),
+        cls('signal/Callable'),
+
+        // Script annotations
+        ScriptingClasses.collect { cls(SPT + it) },
+
+        // Utils
+        UtilityClasses.collect { cls(UTL + it) },
+].flatten()
+
+def TCB_API = 'thecellbeyond-api'
+
+tasks.register('apiJar', Jar) {
+    group = 'build'
+    description = 'Build the engine API jar for compiled classes'
+    archiveBaseName = TCB_API
+    dependsOn compileJava
+    from(sourceSets.main.output.classesDirs) {
+        includes = apiIncludes
+    }
+}
+
+tasks.register('apiSourcesJar', Jar) {
+    group = 'build'
+    description = 'Package API sources for Maven Central publication'
+    archiveBaseName = TCB_API
+    archiveClassifier = 'sources'
+    from(sourceSets.main.java.srcDirs) {
+        includes = apiIncludes.collect { it.replace('.class', '.java').replace('$*', '') }
+    }
+}
+
+tasks.register('apiJavadoc', Javadoc) {
+    group = 'documentation'
+    description = 'Generates Javadoc for engine API classes'
+    source = sourceSets.main.java
+    classpath = sourceSets.main.compileClasspath
+    include apiIncludes.collect { it.replace('.class', '.java').replace('$*', '') }
+    options.encoding = "UTF-8"
+    options {
+        tags = [
+                "apiNote:a:API Note:",
+                "implSpec:a:Implementation Requirements:",
+                "implNote:a:Implementation Note:"
+        ]
+        source = "25"
+    }
+}
+
+tasks.register('apiJavadocJar', Jar) {
+    group = 'build'
+    description = 'Package API Javadoc for Maven Central publication'
+    archiveBaseName = TCB_API
+    archiveClassifier = 'javadoc'
+    dependsOn apiJavadoc
+    from apiJavadoc.destinationDir
+}
+
+publishing {
+    publications {
+        engineApi(MavenPublication) {
+            artifactId = TCB_API
+            artifact apiJar
+            artifact apiSourcesJar
+            artifact apiJavadocJar
+            pom {
+                name = 'TheCellBeyond API'
+                description = 'Scripting API for TheCellBeyond game engine'
+                url = 'https://github.com/baole444/TheCellBeyond'
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'https://opensource.org/licenses/MIT'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'baole444'
+                        name = 'baole444'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:git://github.com/baole444/TheCellBeyond.git'
+                    developerConnection = 'scm:git:ssh://github.com/baole444/TheCellBeyond.git'
+                    url = 'https://github.com/baole444/TheCellBeyond'
+                }
+                withXml {
+                    def deps = asNode().appendNode('dependencies')
+                    def joml = deps.appendNode('dependency')
+                    joml.appendNode('groupId', 'org.joml')
+                    joml.appendNode('artifactId', 'joml')
+                    joml.appendNode('version', joml_version)
+                    joml.appendNode('scope', 'compile')
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            name = 'CentralPortal'
+            url = uri('https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/')
+
+            credentials {
+                username = findProperty('centralPortalUsername') ?: ''
+                password = findProperty('centralPortalPassword') ?: ''
+            }
+        }
+    }
+}
+
+signing {
+    sign publishing.publications.engineApi
 }

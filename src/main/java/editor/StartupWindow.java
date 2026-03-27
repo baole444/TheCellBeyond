@@ -41,47 +41,36 @@ public class StartupWindow {
 
     public static void show(long windowPtr, ImGuiLayer imGuiLayer, int width, int height) {
         MouseListener.setStartupMode(true);
-
         boolean loaded = false;
-
         recentProjects.clear();
         recentProjects.putAll(UserPreference.recentProjects());
-
         while (!glfwWindowShouldClose(windowPtr) && !loaded) {
             glfwPollEvents();
-
             glClearColor(0.1f, 0.1f, 0.1f, 0.0f);
             glClear(GL_COLOR_BUFFER_BIT);
-
             imGuiLayer.getImGuiGlfw().newFrame();
             imGuiLayer.getImGuiGl3().newFrame();
             ImGui.newFrame();
-
             ImGui.setNextWindowPos(width / 2.0f, height / 2.0f, ImGuiCond.Always, 0.5f, 0.5f);
             ImGui.setNextWindowSize(IMGUI_WINDOW_SIZE);
             if (!ImGui.begin("Welcome to The Cell Beyond Editor", ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse)) {
                 ImGui.end();
                 continue;
             }
-
             ImGui.text("Project Manager");
             renderProjectList();
-
             ImGui.end();
             ImGui.render();
             imGuiLayer.getImGuiGl3().renderDrawData(ImGui.getDrawData());
-
             if (ImGui.getIO().hasConfigFlags(ImGuiConfigFlags.ViewportsEnable)) {
                 final long backupWindowPtr = glfwGetCurrentContext();
                 ImGui.updatePlatformWindows();
                 ImGui.renderPlatformWindowsDefault();
                 glfwMakeContextCurrent(backupWindowPtr);
             }
-
             glfwSwapBuffers(windowPtr);
             loaded = (Project.currentProject() != null && Project.projectRoot() != null);
         }
-
         recentProjects.clear();
         selectedProject = null;
         selectedUUID = null;
@@ -93,7 +82,6 @@ public class StartupWindow {
             ImGui.endChild();
             return;
         }
-
         ImVec2 remainTableSize = ImGui.getContentRegionAvail();
         if (!ImGui.beginTable(TABLE_ID, 2, ImGuiTableFlags.NoBordersInBody | ImGuiTableFlags.SizingStretchProp, remainTableSize)) {
             ImGui.endChild();
@@ -101,13 +89,10 @@ public class StartupWindow {
         }
         ImGui.tableSetupColumn("##Project_List_Column", ImGuiTableColumnFlags.WidthFixed, ImGui.getContentRegionAvailX() * projectListXPercentage);
         ImGui.tableSetupColumn("##Button_Control_Column", ImGuiTableColumnFlags.WidthStretch);
-
         ImGui.tableNextColumn();
         renderSelectableList();
-
         ImGui.tableNextColumn();
         renderButtonRegion();
-
         ImGui.endTable();
         ImGui.endChild();
         NewProjectDialog.imgui();
@@ -121,7 +106,6 @@ public class StartupWindow {
         }
         float buttonWidth = ImGui.getContentRegionAvailX();
         float buttonHeight = 30;
-
         if (selectedProject != null) {
             if (ImGui.button("Start Edit", buttonWidth, buttonHeight)) startEditing();
         } else {
@@ -129,12 +113,9 @@ public class StartupWindow {
             ImGui.button("Start Edit", buttonWidth, buttonHeight);
             ImGui.endDisabled();
         }
-
         ImGui.spacing();
-
         if (ImGui.button("Open...", buttonWidth, buttonHeight)) {
             Path selectedPath = OpenProjectDialog.openProjectDialog();
-
             if (selectedPath != null) {
                 boolean inList = false;
                 for (RecentProject project : recentProjects.values()) {
@@ -142,7 +123,6 @@ public class StartupWindow {
                     inList = true;
                     break;
                 }
-
                 if (!inList) {
                     ProjectData data = getFromYaml(selectedPath.toString());
                     if (data != null) {
@@ -150,7 +130,6 @@ public class StartupWindow {
                         UserPreference.addRecentProject(recentProject);
                     }
                 }
-
                 EngineEventCallback.emit(selectedPath.toString(), new EditorEvent(EditorEvent.Type.LoadProjectFromDisk));
             }
         }
@@ -177,7 +156,6 @@ public class StartupWindow {
             ImGui.endChild();
             return;
         }
-
         for (Map.Entry<UUID, RecentProject> entry : recentProjects.entrySet()) {
             UUID key = entry.getKey();
             RecentProject recentProject = entry.getValue();
@@ -188,13 +166,11 @@ public class StartupWindow {
                 selectedUUID = key;
                 selectedProject = recentProject;
             }
-
             if (ImGui.isItemHovered() && ImGui.isMouseDoubleClicked(GLFW_MOUSE_BUTTON_1)) {
                 selectedUUID = key;
                 selectedProject = recentProject;
                 startEditing();
             }
-
             ImGui.sameLine();
             ImVec2 cursorPos = ImGui.getCursorPos();
             ImGui.setCursorPos(cursorPos.x, cursorPos.y + ImGui.getTextLineHeight() * 0.3f);
@@ -221,20 +197,16 @@ public class StartupWindow {
         ProjectData selectedProject;
         try {
             File projectFile = new File(path);
-
             selectedProject = YAML_MAPPER.readValue(projectFile, ProjectData.class);
-
-            if (selectedProject != null) {
-                if (selectedProject.project() == null) {
-                    System.err.println("Project preference is missing, generating new preference...");
-                    selectedProject = new ProjectData(selectedProject.version(),
-                            new ProjectPreference(), selectedProject.assets(),
-                            selectedProject.sheets(), selectedProject.scenes(),
-                            selectedProject.inputActions(), selectedProject.physicLayers()
-                    );
-                }
+            if (selectedProject != null && selectedProject.project() == null) {
+                System.err.println("Project preference is missing, generating new preference...");
+                selectedProject = new ProjectData(selectedProject.version(),
+                        new ProjectPreference(), selectedProject.assets(),
+                        selectedProject.sheets(), selectedProject.scenes(),
+                        selectedProject.inputActions(), selectedProject.physicLayers(),
+                        selectedProject.scriptScanDirs()
+                );
             }
-
             return selectedProject;
         } catch (JacksonIOException e) {
             System.err.println("Failed to load project file: " + e.getMessage());
@@ -247,13 +219,11 @@ public class StartupWindow {
             EngineEventCallback.emit(selectedProject.path(), new EditorEvent(EditorEvent.Type.LoadProjectFromDisk));
             return;
         }
-
         RemoveMissingProjectDialog.show(() -> {
             if (selectedUUID == null) return;
             UserPreference.removeRecentProject(selectedUUID);
             recentProjects.clear();
             recentProjects.putAll(UserPreference.reloadRecentProject());
-
             selectedProject = null;
             selectedUUID = null;
         }, selectedProject);

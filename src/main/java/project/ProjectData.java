@@ -2,9 +2,7 @@ package project;
 
 import TheCellBeyond.InputAction;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public record ProjectData(
         String version, ProjectPreference project,
@@ -12,8 +10,11 @@ public record ProjectData(
         Map<String, Map<String, ProjectSheetMap>> sheets,
         Map<String, ProjectSceneMap> scenes,
         Map<String, InputAction> inputActions,
-        PhysicLayerName physicLayers
+        PhysicLayerName physicLayers,
+        List<String> scriptScanDirs
 ) {
+    private static final List<String> DefaultScriptScanDir = List.of("scripts");
+
     public ProjectData {
         if (project == null) project = new ProjectPreference();
         if (assets == null) assets = new HashMap<>();
@@ -21,9 +22,10 @@ public record ProjectData(
         if (scenes == null) scenes = new HashMap<>();
         if (inputActions == null) inputActions = new HashMap<>();
         if (physicLayers == null) physicLayers = new PhysicLayerName();
+        if (scriptScanDirs == null) scriptScanDirs = new ArrayList<>(DefaultScriptScanDir);
     }
 
     public ProjectData(String version, ProjectPreference preference) {
-        this(version, preference, new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new PhysicLayerName());
+        this(version, preference, new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new PhysicLayerName(), new ArrayList<>(DefaultScriptScanDir));
     }
 }

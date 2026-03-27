@@ -1,9 +1,12 @@
-package TheCellBeyond;
+package serialization;
 
+import TheCellBeyond.GameObject;
 import com.google.gson.*;
 import components.Component;
 import components.NotSerializeComponent;
+import scripting.ScriptLoader;
 import signal.Signal;
+import utility.log.EngineLog;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -14,6 +17,7 @@ import java.util.Collection;
  * Data serializer and deserializer for {@link GameObject} and its subclasses.
  */
 public class GameObjectSerializer implements JsonSerializer<GameObject>, JsonDeserializer<GameObject> {
+    private static final EngineLog Logger = new EngineLog(GameObjectSerializer.class);
     private final String Type = "type";
     private final String Property = "properties";
     private final String Component = "components";
@@ -67,13 +71,16 @@ public class GameObjectSerializer implements JsonSerializer<GameObject>, JsonDes
         String className = jsonObject.get(Type).getAsString();
         JsonObject properties = jsonObject.getAsJsonObject(Property);
         try {
-            Class<?> goClass = Class.forName(className);
+            Class<?> goClass = Class.forName(className, true, ScriptLoader.classLoader());
             String name;
             if (properties.has("name")) name = properties.get("name").getAsString();
             else name = "Unnamed object";
             GameObject go = createInstance(goClass, name);
             deserializeField(go, goClass, properties, context);
             return go;
+        } catch (ClassNotFoundException e) {
+            Logger.error(String.format("Skipping missing game object class %s", className));
+            return null;
         } catch (Exception e) {
             throw new JsonParseException("Failed to deserialize GameObject", e);
         }
@@ -111,7 +118,7 @@ public class GameObjectSerializer implements JsonSerializer<GameObject>, JsonDes
                 JsonArray components = element.getAsJsonArray();
                 for (JsonElement c : components) {
                     Component component = context.deserialize(c, Component.class);
-                    go.addComponent(component);
+                    if (component != null) go.addComponent(component);
                 }
             } catch (IllegalAccessException e) {
                 System.err.println("Failed to deserialize field: " + fieldName);

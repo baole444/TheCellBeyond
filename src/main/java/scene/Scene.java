@@ -476,6 +476,7 @@ public class Scene {
         name = file.name();
         root = file.root();
         List<GameObject> objects = new ArrayList<>(file.objects());
+        objects.removeIf(Objects::isNull);
         UUID rootUUID = root.getUUID();
         if (rootUUID != null) objects.removeIf(go -> rootUUID.equals(go.getUUID()));
         objects.addFirst(root);

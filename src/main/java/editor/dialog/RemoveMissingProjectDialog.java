@@ -31,24 +31,17 @@ public class RemoveMissingProjectDialog {
 
     public static void imgui() {
         if (!showDialog) return;
-
         ImGui.openPopup(POPUP_ID);
-
         ImVec2 centre = ImGui.getMainViewport().getCenter();
         float pivotXY = 0.5f;
-
         ImGui.setNextWindowPos(centre.x, centre.y, ImGuiCond.Appearing, pivotXY, pivotXY);
         ImGui.setNextWindowSize(DIALOG_SIZE);
-
         if (ImGui.beginPopupModal(POPUP_ID, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)) {
             ImGui.spacing();
             String title = "NULL";
-
             if (selectedProject != null) title = selectedProject.title() != null ? selectedProject.title() : "Unknow title";
-
             ImGui.textWrapped("Selected project '" + title + "'cannot be found. Remove it from the list?");
             ImGui.spacing();
-
             float buttonWidth = 120;
             float buttonHeight = 30;
             float buttonReserverY = ImGui.getFrameHeightWithSpacing();
@@ -57,7 +50,6 @@ public class RemoveMissingProjectDialog {
             float availX = ImGui.getContentRegionAvailX();
             float removeX = (availX * 0.25f) - buttonPivotX;
             float cancelX = (availX * 0.75f) - buttonPivotX;
-
             ImGui.setCursorPosX(removeX);
             if (ImGui.button("Remove", buttonWidth, buttonHeight)) {
                 if (onRemoveCallback != null) {
@@ -68,17 +60,14 @@ public class RemoveMissingProjectDialog {
                 showDialog = false;
                 ImGui.closeCurrentPopup();
             }
-
             ImGui.sameLine();
             ImGui.setCursorPosX(cancelX);
             if (ImGui.button("Cancel", buttonWidth, buttonHeight)) {
                 showDialog = false;
                 ImGui.closeCurrentPopup();
             }
-
             ImGui.endPopup();
         }
-
         if (!ImGui.isPopupOpen(POPUP_ID)) {
             showDialog = false;
             onRemoveCallback = null;
@@ -89,20 +78,16 @@ public class RemoveMissingProjectDialog {
         ProjectData selectedProject;
         try {
             File projectFile = new File(path);
-
             selectedProject = YAML_MAPPER.readValue(projectFile, ProjectData.class);
-
-            if (selectedProject != null) {
-                if (selectedProject.project() == null) {
-                    System.err.println("Project preference is missing, generating new preference...");
-                    selectedProject = new ProjectData(selectedProject.version(),
-                            new ProjectPreference(), selectedProject.assets(),
-                            selectedProject.sheets(), selectedProject.scenes(),
-                            selectedProject.inputActions(), selectedProject.physicLayers()
-                    );
-                }
+            if (selectedProject != null && selectedProject.project() == null) {
+                System.err.println("Project preference is missing, generating new preference...");
+                selectedProject = new ProjectData(selectedProject.version(),
+                        new ProjectPreference(), selectedProject.assets(),
+                        selectedProject.sheets(), selectedProject.scenes(),
+                        selectedProject.inputActions(), selectedProject.physicLayers(),
+                        selectedProject.scriptScanDirs()
+                );
             }
-
             return selectedProject;
         } catch (JacksonIOException e) {
             System.err.println("Failed to load project file: " + e.getMessage());

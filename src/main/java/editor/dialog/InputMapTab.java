@@ -132,7 +132,7 @@ class InputMapTab {
         ImGui.endTable();
 
         ImGui.separator();
-        if (!ImGui.beginChild("##EPPD_InputAction_List_region", ImGui.getContentRegionAvail(), false)) {
+        if (!ImGui.beginChild("##EPPD_InputAction_List_region", ImGui.getContentRegionAvail())) {
             ImGui.endChild();
             return;
         }
@@ -409,10 +409,10 @@ class InputMapTab {
         filterChanged = true;
     }
 
-    private static boolean canCreateNewAction(String newNew) {
-        if (newNew == null || newNew.isBlank()) return false;
+    private static boolean canCreateNewAction(String newActionName) {
+        if (newActionName == null || newActionName.isBlank()) return false;
 
-        String name = newNew.trim();
+        String name = newActionName.trim();
         if (name.isEmpty()) return false;
 
         if (Project.currentProject() == null) return false;
