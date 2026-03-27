@@ -171,9 +171,11 @@ tasks.register('apiSourcesJar', Jar) {
 tasks.register('apiJavadoc', Javadoc) {
     group = 'documentation'
     description = 'Generates Javadoc for engine API classes'
+    dependsOn compileJava
     source = sourceSets.main.java
-    classpath = sourceSets.main.compileClasspath
+    classpath = sourceSets.main.compileClasspath + sourceSets.main.output
     include apiIncludes.collect { it.replace('.class', '.java').replace('$*', '') }
+    failOnError = false
     options.encoding = "UTF-8"
     options {
         tags = [

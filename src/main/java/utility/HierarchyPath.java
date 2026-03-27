@@ -59,7 +59,7 @@ public final class HierarchyPath {
 
     /**
      * Get the segment string at a specified index of the hierarchy path.
-     * If the provided index is out of bound (index < 0 or index >= {@link #segmentCount()}), this will return {@code null}.
+     * If the provided index is out of bound ({index &lt; 0 or index &gt;= {@link #segmentCount()}), this will return {@code null}.
      * <p>
      * The string return by this method could be the name or the class of the game object,
      * special symbols like relative, parent or root.
