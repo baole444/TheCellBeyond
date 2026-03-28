@@ -85,6 +85,14 @@ public final class EditProjectSettingsDialog {
     }
 
     /**
+     * Toggle the show flag for this dialogue and switch to the scripting tab.
+     */
+    public static void showToScriptTab() {
+        show();
+        selectedTab = TabName.Script;
+    }
+
+    /**
      * Get the ID pool use by this dialogue.
      * @return the {@link IdPool}
      */

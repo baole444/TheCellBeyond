@@ -6,6 +6,7 @@ import imgui.flag.ImGuiHoveredFlags;
 import project.Project;
 import imgui.ImGui;
 import scene.SceneManager;
+import scripting.ScriptLoader;
 
 import java.util.List;
 
@@ -20,6 +21,7 @@ final class MenuBar {
         if (!ImGui.beginMenuBar()) return;
         renderEditorMenu();
         renderProjectMenu();
+        renderScriptingMenu();
         renderSceneMenu();
         ImGui.endMenuBar();
 
@@ -44,6 +46,14 @@ final class MenuBar {
         if (ImGui.menuItem("Preferences##MenuBar_Project_prefs")) EditProjectSettingsDialog.show();
         ImGui.separator();
         if (ImGui.menuItem("Exit to Project List##MenuBar_Exit_To_Project_List")) ExitToProjectListDialog.show();
+        ImGui.endMenu();
+    }
+
+    private static void renderScriptingMenu() {
+        if (!ImGui.beginMenu("Scripting##MenuBar_Scripting_Menu")) return;
+        if (ImGui.menuItem("Reload scripts##MenuBar_Scripting_Reload_Script")) ScriptLoader.reload();
+        ImGui.separator();
+        if (ImGui.menuItem("Edit scan directories##MenuBar_Scripting_Edit_ScanDir")) EditProjectSettingsDialog.showToScriptTab();
         ImGui.endMenu();
     }
 

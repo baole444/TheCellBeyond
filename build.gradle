@@ -168,6 +168,7 @@ ext.apiIncludes = [
 
         // Utils
         UtilityClasses.collect { cls(UTL + it) },
+        UTL + 'log/**'
 ].flatten()
 
 def TCB_API = 'thecellbeyond-api'
@@ -268,7 +269,7 @@ publishing {
 }
 
 signing {
-    required { findProperty('signing.keyId') != null }
+    required = findProperty('signing.keyId') != null
     sign publishing.publications.engineApi
 }
 

@@ -27,7 +27,9 @@ class ScriptsTab {
     static void imgui() {
         ImGui.spacing();
         ImGui.textWrapped("The engine scans these directories for .jar files for custom GameObject and Component classes.");
+        ImGui.pushStyleColor(ImGuiCol.Text, EditorColors.YellowHighLight);
         ImGui.textWrapped("You can organize the .jars into sub-directories for better organization.");
+        ImGui.popStyleColor(1);
         ImGui.spacing();
         ImGui.separator();
         if (!ImGui.beginTable("##ST_New_ScanDir_Table", 4, ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.SizingFixedFit)) return;
