@@ -149,7 +149,7 @@ public final class HierarchyPath {
     public static String toComponentName(String segment) {
         if (segment == null || !segment.contains(ComponentDelimiter)) return null;
         int delimiterIndex = segment.indexOf(ComponentDelimiter);
-        String component = segment.substring(delimiterIndex * ComponentDelimiter.length());
+        String component = segment.substring(delimiterIndex + ComponentDelimiter.length());
         return component.isEmpty() ? null : component;
     }
 
