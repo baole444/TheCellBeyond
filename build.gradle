@@ -106,12 +106,15 @@ def cls = { String path -> ["${path}.class", "${path}\$*.class"] }
 def TCB = 'TheCellBeyond/'
 def TCBClasses = [
         'GameObject', 'GameObject2D', 'Camera2D', 'TileMap', 'Parallax2D',
-        'Transform2D', 'Viewport', 'RenderableObject', 'Sound'
+        'Transform2D', 'Viewport', 'RenderableObject', 'Sound',
+        'AudioResourceType', 'KeyListener', 'MouseListener',
 ]
+def TCBInternals = ['LogicServer', 'ResourceID', 'ResourceStatus', 'ResourceStatusCallback']
 def InputClasses = ['Input', 'InputAction', 'InputKey', 'InputType']
 def UTL = 'utility/'
 def UtilityClasses = [
-        'AssetReference', 'HierarchyPath', 'HierarchyPaths', 'WorldUnit',
+        'AssetManager', 'AssetResourceType', 'AssetReference', 'UnifiedPaths',
+        'HierarchyPath', 'HierarchyPaths', 'WorldUnit', 'Settings',
         'TCBMath', 'TextureScale', 'FontPT', 'IdPool', 'RingBuffer'
 ]
 def SPT = 'scripting/'
@@ -122,12 +125,21 @@ ext.apiIncludes = [
         TCBClasses.collect { cls(TCB + it) },
 
         // Scene and LogicServer
-        cls(TCB + 'internal/LogicServer'),
+        TCBInternals.collect { cls(TCB + 'internal/' + it) },
         cls('scene/Scene'),
         cls('scene/SceneLoader'),
 
         // InputAction
         InputClasses.collect { cls(TCB + it) },
+
+        // Render
+        'render/commands/**',
+        'render/texture/**',
+        cls('render/Renderable'),
+        cls('render/FrameBuffer'),
+        'render/text/HorizontalAlignment.class',
+        'render/text/VerticalAlignment.class',
+        cls('render/text/TCBFont'),
 
         // All components
         'components/**',
@@ -138,6 +150,18 @@ ext.apiIncludes = [
         // Signal
         cls('signal/Signal'),
         cls('signal/Callable'),
+
+        // Event Viewer
+        cls('eventviewer/EngineEventCallback'),
+        cls('eventviewer/event/SceneEvent'),
+        cls('eventviewer/event/Event'),
+
+        // Project
+        cls('project/Project'),
+        cls('project/ProjectPreference'),
+
+        // Serialization
+        cls('serialization/EngineSerializer'),
 
         // Script annotations
         ScriptingClasses.collect { cls(SPT + it) },
