@@ -33,6 +33,7 @@ public class Properties {
         }
 
         if (activeGameObject.isRemoved()) {
+            updateActives();
             ImGui.end();
             return;
         }
@@ -78,7 +79,6 @@ public class Properties {
      */
     public static GameObject getActiveGameObject() {
         if (activeGameObjects.isEmpty()) return null;
-
         return activeGameObjects.getFirst();
     }
 
@@ -91,11 +91,10 @@ public class Properties {
     }
 
     public static void setActiveGameObject(GameObject go) {
-        if (go != null) {
-            if (go != getActiveGameObject()) BottomPanel.clear();
-            clearSelection();
-            activeGameObjects.add(go);
-        }
+        if (go == null) return;
+        if (go != getActiveGameObject()) BottomPanel.clear();
+        clearSelection();
+        activeGameObjects.add(go);
     }
 
     public static List<List<Vector4f>> getActiveObjTrueColor() {
@@ -125,11 +124,11 @@ public class Properties {
     }
 
     private static void updateActives() {
-        List<GameObject> actives = new ArrayList<>(activeGameObjects);
-        for (GameObject go : actives) {
-            if (go.isRemoved()) activeGameObjects.remove(go);
+        for (int i = activeGameObjects.size() - 1; i >= 0; i--) {
+            if (!activeGameObjects.get(i).isRemoved()) continue;
+            activeGameObjects.remove(i);
+            activeObjTrueColor.remove(i);
         }
-
     }
 }
 

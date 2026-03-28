@@ -147,6 +147,8 @@ public class SceneTree {
         if (ImGui.beginPopupContextItem()) {
             if (ImGui.menuItem("Delete")) {
                 scene.queueObjectForRemoval(go);
+                Properties.clearSelection();
+                clearSelection();
             }
             if (ImGui.beginMenu("Duplicate...")) {
                 GameObject copy = null;
