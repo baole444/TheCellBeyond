@@ -1,6 +1,7 @@
 package physic2d;
 
 import TheCellBeyond.GameObject;
+import org.jbox2d.callbacks.RayCastCallback;
 import org.jbox2d.collision.shapes.Shape;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.*;
@@ -16,11 +17,25 @@ import java.util.Set;
  * <a href="https://box2d.org">Reference Box2D code (C code)</a>
  */
 public class Physic2D {
-    public static final EngineLog LOGGER = new EngineLog(Physic2D.class);
-
+    /**
+     * Logger for Physic2D.
+     */
+    private static final EngineLog Logger = new EngineLog(Physic2D.class);
+    /**
+     * Maximum physic layer.
+     */
     public static final int MaxLayer = 16;
+    /**
+     * Physic delta time.
+     */
     public static final float PhysicDeltaRate = 1.0f / 60.0f;
+    /**
+     * Max velocity calculation pass per physic frame.
+     */
     public static final int MaxVelocityPass = 5;
+    /**
+     * Max position calculation pass per physic frame.
+     */
     public static final int MaxPositionPass = 3;
 
     private final Vec2 gravity = new Vec2(0, -9.80665f);
@@ -48,6 +63,11 @@ public class Physic2D {
         world.setContactListener(new Physic2DContactListener());
     }
 
+    /**
+     * Add an object to the physic world, require the object to be of type {@link CollisionObject2D} or its subclasses
+     * to be added to the physic world.
+     * @param go the object to add to the physic world
+     */
     public void add(GameObject go) {
         if (!(go instanceof CollisionObject2D collisionObject)) return;
         List<CollisionShape2D> collisionShapes = collisionObject.getComponents(CollisionShape2D.class);
@@ -69,6 +89,10 @@ public class Physic2D {
         }
     }
 
+    /**
+     * Destroy the physic representation of the object in the physic world.
+     * @param go the object to destroy
+     */
     public void destroyObject(GameObject go) {
         if (!(go instanceof CollisionObject2D collisionObject)) return;
         if (collisionObject.getPhysicBodyRef() != null) {
@@ -100,6 +124,117 @@ public class Physic2D {
         update(dt, null);
     }
 
+    /**
+     * Update the collision layers and mask of the given collision object.
+     * @param collisionObject the object to update
+     */
+    public void updateBodyFilters(CollisionObject2D collisionObject) {
+        Body body = collisionObject.getPhysicBodyRef();
+        if (body == null) return;
+        int collisionLayer = collisionObject.getCollisionLayer();
+        int collisionMask = collisionObject.getCollisionMask();
+        Fixture fixture = body.getFixtureList();
+        while (fixture != null) {
+            fixture.m_filter.categoryBits = collisionLayer;
+            fixture.m_filter.maskBits = collisionMask;
+            fixture = fixture.m_next;
+        }
+    }
+
+    /**
+     * Add a collision shape to the physic world for the given collision object.
+     * @param collisionObject the object to add the shape to
+     * @param collisionShape2D the shape to add
+     */
+    public void addCollider2D(CollisionObject2D collisionObject, CollisionShape2D collisionShape2D) {
+        try {
+            switch (collisionShape2D) {
+                case BoxCollider2D boxCollider2D -> addBoxCollider2D(collisionObject, boxCollider2D);
+                case CircleCollider2D circleCollider2D -> addCircleCollider2D(collisionObject, circleCollider2D);
+                case CapsuleCollider2D capsuleCollider2D -> addCapsuleCollider(collisionObject, capsuleCollider2D);
+                case TileCollider2D tileCollider2D -> addTileCollider2D(collisionObject, tileCollider2D);
+                default -> {}
+            }
+        } catch (Exception e) {
+            Logger.error(String.format("Failed to add collider %s of %s : %s", collisionShape2D.name(), collisionObject.name(), e.getMessage()));
+        }
+    }
+
+    /**
+     * Reset and update collision shape in the physic world for the given collision object.
+     * @param collisionObject the object to update
+     * @param collisionShape2D the shape to add
+     */
+    public void resetCollider(CollisionObject2D collisionObject, CollisionShape2D collisionShape2D) {
+        try {
+            Body body = collisionObject.getPhysicBodyRef();
+            if (body == null) return;
+            int size = fixtureListSize(body);
+            for (int i = 0; i < size; i++) body.destroyFixture(body.getFixtureList());
+            addCollider2D(collisionObject, collisionShape2D);
+            body.resetMassData();
+        } catch (Exception e) {
+            Logger.error(String.format("Failed to reset collider %s of %s : %s", collisionShape2D.name(), collisionObject.name(), e.getMessage()));
+        }
+    }
+
+    /**
+     * Toggle the sensor collision mod for a collision object.
+     * @param collisionObject the object to update
+     * @param val true to make collision object to sensor mode
+     */
+    public void setIsSensor(CollisionObject2D collisionObject, boolean val) {
+        Body body = collisionObject.getPhysicBodyRef();
+        if (body == null) return;
+        Fixture fixture = body.getFixtureList();
+        while (fixture != null) {
+            fixture.m_isSensor = val;
+            fixture = fixture.m_next;
+        }
+    }
+
+    /**
+     * Is the physic world currently locked.
+     * @return true if locked
+     */
+    public boolean isLock() {
+        return world.isLocked();
+    }
+
+    /**
+     * Get a copy of the physic world's gravity vector.
+     * @return the gravity vector
+     */
+    public Vector2f getGravity() {
+        Vec2 gravity = world.getGravity();
+        return new Vector2f(gravity.x, gravity.y);
+    }
+
+    /**
+     * Perform a raycast from an origin to the targeted world space point in the physic world.
+     * @param originObject the object that will initiate the raycast
+     * @param origin the ray origin in world space
+     * @param target the ray target in world space
+     * @return a new {@link RayCastInfo} contains the result of the raycast
+     */
+    public RayCastInfo rayCastInfo(GameObject originObject, Vector2f origin, Vector2f target) {
+        RayCastInfo callback = new RayCastInfo(originObject);
+        world.raycast(callback,
+                new Vec2(origin.x, origin.y),
+                new Vec2(target.x, target.y));
+        return callback;
+    }
+
+    /**
+     * Ensure that the callback's data is properly reset for clean result.
+     * @param callback the callback for the raycast result
+     * @param origin the ray origin in world space
+     * @param target the ray target in world space
+     */
+    void rayCast(RayCastCallback callback, Vector2f origin, Vector2f target) {
+        world.raycast(callback, new Vec2(origin.x, origin.y), new Vec2(target.x, target.y));
+    }
+
     private void createFixture(CollisionObject2D collisionObject, Body body, Shape shape) {
         FixtureDef fixtureDef = new FixtureDef();
         fixtureDef.shape = shape;
@@ -112,19 +247,6 @@ public class Physic2D {
         fixtureDef.filter.maskBits = collisionObject.getCollisionMask();
         fixtureDef.filter.groupIndex = 0;
         body.createFixture(fixtureDef);
-    }
-
-    public void updateBodyFilters(CollisionObject2D collisionObject) {
-        Body body = collisionObject.getPhysicBodyRef();
-        if (body == null) return;
-        int collisionLayer = collisionObject.getCollisionLayer();
-        int collisionMask = collisionObject.getCollisionMask();
-        Fixture fixture = body.getFixtureList();
-        while (fixture != null) {
-            fixture.m_filter.categoryBits = collisionLayer;
-            fixture.m_filter.maskBits = collisionMask;
-            fixture = fixture.m_next;
-        }
     }
 
     private void addBoxCollider2D(CollisionObject2D collisionObject, BoxCollider2D boxCollider2D) {
@@ -158,42 +280,6 @@ public class Physic2D {
         }
     }
 
-    public void addCollider2D(CollisionObject2D collisionObject, CollisionShape2D collisionShape2D) {
-        try {
-            switch (collisionShape2D) {
-                case BoxCollider2D boxCollider2D -> addBoxCollider2D(collisionObject, boxCollider2D);
-                case CircleCollider2D circleCollider2D -> addCircleCollider2D(collisionObject, circleCollider2D);
-                case CapsuleCollider2D capsuleCollider2D -> addCapsuleCollider(collisionObject, capsuleCollider2D);
-                case TileCollider2D tileCollider2D -> addTileCollider2D(collisionObject, tileCollider2D);
-                default -> {}
-            }
-        } catch (Exception e) {
-            LOGGER.error(String.format("Failed to add collider %s of %s : %s", collisionShape2D.name(), collisionObject.name(), e.getMessage()));
-        }
-
-    }
-
-    public void resetCollider(CollisionObject2D collisionObject, CollisionShape2D collisionShape2D) {
-        try {
-            Body body = collisionObject.getPhysicBodyRef();
-            if (body == null) return;
-            int size = fixtureListSize(body);
-            for (int i = 0; i < size; i++) body.destroyFixture(body.getFixtureList());
-            addCollider2D(collisionObject, collisionShape2D);
-            body.resetMassData();
-        } catch (Exception e) {
-            LOGGER.error(String.format("Failed to reset collider %s of %s : %s", collisionShape2D.name(), collisionObject.name(), e.getMessage()));
-        }
-    }
-
-    public RayCastInfo rayCastInfo(GameObject originObject, Vector2f origin, Vector2f target) {
-        RayCastInfo callback = new RayCastInfo(originObject);
-        world.raycast(callback,
-                new Vec2(origin.x, origin.y),
-                new Vec2(target.x, target.y));
-        return callback;
-    }
-
     private int fixtureListSize(Body body) {
         if (body == null) return 0;
         int size = 0;
@@ -203,24 +289,5 @@ public class Physic2D {
             fixture = fixture.m_next;
         }
         return size;
-    }
-
-    public void setIsSensor(CollisionObject2D collisionObject, boolean val) {
-        Body body = collisionObject.getPhysicBodyRef();
-        if (body == null) return;
-        Fixture fixture = body.getFixtureList();
-        while (fixture != null) {
-            fixture.m_isSensor = val;
-            fixture = fixture.m_next;
-        }
-    }
-
-    public boolean isLock() {
-        return world.isLocked();
-    }
-
-    public Vector2f getGravity() {
-        Vec2 gravity = world.getGravity();
-        return new Vector2f(gravity.x, gravity.y);
     }
 }

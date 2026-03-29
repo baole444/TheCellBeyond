@@ -79,13 +79,9 @@ public final class AddObjectDialog {
             ImGui.text("Description:");
             sectionY = (int) (DialogSize.y * descriptionYPercentage);
             ImGui.beginChild(DescriptionSectionID, ImGuiWindowFlags.None, sectionY, enableBorder);
-            if (selectedType != null) {
-                ImGui.textWrapped(selectedType.description);
-            } else if (selectedCustomType != null) {
-                ImGui.textWrapped(selectedCustomType.description());
-            } else {
-                ImGui.textDisabled("Select an object type to see it's description.");
-            }
+            if (selectedType != null) ImGui.textWrapped(selectedType.description);
+            else if (selectedCustomType != null) ImGui.textWrapped(selectedCustomType.description());
+            else ImGui.textDisabled("Select an object type to see it's description.");
             ImGui.endChild();
             ImGui.separator();
             float buttonReserverY = ImGui.getFrameHeightWithSpacing();

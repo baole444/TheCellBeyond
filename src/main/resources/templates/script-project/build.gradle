@@ -18,8 +18,12 @@ repositories {
 }
 
 dependencies {
-    compileOnly "io.github.baole444:thecellbeyond-api:1.0.2"
+    // Make sure to check for latest api version at
+    // https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api
+    compileOnly "io.github.baole444:thecellbeyond-api:1.0.3"
     compileOnly ":jbox2d-library"
+    // For any other library that you might use outside the engine,
+    // they need to be implementation instead of compile only for them to be import properly
 }
 
 tasks.withType(JavaCompile).configureEach {
@@ -33,6 +37,7 @@ tasks.withType(JavaCompile).configureEach {
     }
 }
 
+// Alternatively, open terminal in the same directory as this file and run ./gradlew jar
 jar {
     destinationDirectory = file('../scripts')
 }

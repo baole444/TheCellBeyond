@@ -19,7 +19,8 @@ public enum ObjectType {
     KinematicBody2D("KinematicBody2D", "A 2D physic object suitable for scripted movement, control via velocity. It is not affected by physic at all."),
     CharacterBody2D("CharacterBody2D", "A specialized 2D physic object that is not affected by physics at all, but it affects other physic objects in its path. " +
             "It is used to provide API to move objects in a specific way, as is often the case with user-controlled characters or logic driven NPCs."),
-    Area2D("Area2D", "A 2D region that can be use to detect and track body that enter or exit it.");
+    Area2D("Area2D", "A 2D region that can be use to detect and track body that enter or exit it."),
+    RayCast2D("RayCast2D", "A 2D raycast that is use to detect closest collision object and areas intersecting its vector");
 
     /**
      * Display label for menus and dialogues.
@@ -69,6 +70,7 @@ public enum ObjectType {
             case KinematicBody2D -> new KinematicBody2D(customName);
             case CharacterBody2D -> new CharacterBody2D(customName);
             case Area2D -> new Area2D(customName);
+            case RayCast2D -> new RayCast2D(customName);
         };
     }
 
@@ -84,6 +86,7 @@ public enum ObjectType {
             case KinematicBody2D -> KinematicBody2D.class;
             case CharacterBody2D -> CharacterBody2D.class;
             case Area2D -> Area2D.class;
+            case RayCast2D -> RayCast2D.class;
         };
     }
 }
