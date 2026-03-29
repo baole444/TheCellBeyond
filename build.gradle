@@ -136,7 +136,10 @@ tasks.register('packageApp', Exec) {
     def inputDir = layout.buildDirectory.dir('packaging/input')
     def outputDir = layout.buildDirectory.dir('packaging/output')
     def jarName = jar.archiveFileName.get()
-    commandLine 'jpackage',
+    def iconExt = OperatingSystem.current().windows ? 'ico' : OperatingSystem.current().macOsX ? 'icns' : 'png'
+    def iconFile = file("src/main/resources/assets/textures/TCB icon.${iconExt}")
+    def args = [
+            'jpackage',
             '--input', inputDir.get().asFile.absolutePath,
             '--dest', outputDir.get().asFile.absolutePath,
             '--name', 'TheCellBeyond_v' + version,
@@ -144,7 +147,9 @@ tasks.register('packageApp', Exec) {
             '--main-class', 'TheCellBeyond.Main',
             '--type', 'app-image',
             '--java-options', '--enable-native-access=ALL-UNNAMED',
-            '--icon', 'src/main/resources/assets/textures/TCB icon.ico'
+    ]
+    if (iconFile.exists()) args += ['--icon', iconFile.absolutePath]
+    commandLine args
 }
 
 // Engine Scripting API

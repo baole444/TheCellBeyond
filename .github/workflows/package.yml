@@ -26,19 +26,36 @@ jobs:
           java-version: '25'
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
+      - name: Generate icns icon on MacOS
+        if: runner.os == 'macOS'
+        run: |
+          ICON="src/main/resources/assets/textures/TCB icon"
+          mkdir -p icon.iconset
+          sips -z 16 16     "$ICON.png" --out icon.iconset/icon_16x16.png
+          sips -z 32 32     "$ICON.png" --out icon.iconset/icon_16x16@2x.png
+          sips -z 32 32     "$ICON.png" --out icon.iconset/icon_32x32.png
+          sips -z 64 64     "$ICON.png" --out icon.iconset/icon_32x32@2x.png
+          sips -z 128 128   "$ICON.png" --out icon.iconset/icon_128x128.png
+          sips -z 256 256   "$ICON.png" --out icon.iconset/icon_128x128@2x.png
+          sips -z 256 256   "$ICON.png" --out icon.iconset/icon_256x256.png
+          sips -z 512 512   "$ICON.png" --out icon.iconset/icon_256x256@2x.png
+          sips -z 512 512   "$ICON.png" --out icon.iconset/icon_512x512.png
+          sips -z 1024 1024 "$ICON.png" --out icon.iconset/icon_512x512@2x.png
+          iconutil -c icns icon.iconset -o "$ICON.icns"
       - name: Make gradlew executable
-        if: runner.os != 'Window'
+        if: runner.os != 'Windows'
         run: chmod +x gradlew
       - name: Build engine exe
+        shell: bash
         run: ./gradlew packageApp
       - name: Zip to bundle
         shell: bash
         run: |
           cd build/packaging/output
           if [ "${{ matrix.label }}" = "windows" ]; then
-            7z a -tzip "../TheCellBeyond-${{ matrix.label }}.zip" TheCellBeyond/
+            7z a -tzip "../TheCellBeyond-${{ matrix.label }}.zip" TheCellBeyond*/
           else
-            zip -r "../TheCellBeyond-${{ matrix.label }}.zip" TheCellBeyond/
+            zip -r "../TheCellBeyond-${{ matrix.label }}.zip" TheCellBeyond*/
           fi
       - name: Upload artifact
         uses: actions/upload-artifact@v4
