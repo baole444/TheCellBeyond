@@ -24,9 +24,14 @@ switch (OperatingSystem.current()) {
             project.ext.lwjglNatives += "-riscv64"
         }
         break
+    case OperatingSystem.MAC_OS:
+        project.ext.lwjglNatives = System.getProperty("os.arch").startsWith("aarch64") ? lwjgl_macos_arm64 : lwjgl_macos
+        project.ext.imguiNatives = imgui_macos
+        break
     case OperatingSystem.WINDOWS:
         project.ext.lwjglNatives = lwjgl_window
         project.ext.imguiNatives = imgui_window
+        break
 }
 
 repositories {
@@ -95,7 +100,52 @@ tasks.withType(Javadoc).configureEach {
     }
 }
 
+// Engine Executable packaging
+jar {
+    manifest {
+        attributes(
+                'Main-Class': 'TheCellBeyond.Main',
+                'Class-Path': configurations.runtimeClasspath.files
+                .collect { 'libs/' + it.name }.join(' ')
+        )
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
 
+tasks.register('collectDeps', Copy) {
+    group = 'distribution'
+    description = 'Collect all runtime dependencies into a single directory'
+    from configurations.runtimeClasspath
+    into layout.buildDirectory.dir('packaging/libs')
+}
+
+tasks.register('packageInput', Copy) {
+    group = 'distribution'
+    description = 'Prepare input directory for jpackage'
+    dependsOn clean, jar, collectDeps
+    mustRunAfter clean
+    from (jar.archiveFile) { into '.' }
+    from (layout.buildDirectory.dir('packaging/libs')) { into 'libs' }
+    into layout.buildDirectory.dir('packaging/input')
+}
+
+tasks.register('packageApp', Exec) {
+    group = 'distribution'
+    description = 'Create native application image with jpackage'
+    dependsOn packageInput
+    def inputDir = layout.buildDirectory.dir('packaging/input')
+    def outputDir = layout.buildDirectory.dir('packaging/output')
+    def jarName = jar.archiveFileName.get()
+    commandLine 'jpackage',
+            '--input', inputDir.get().asFile.absolutePath,
+            '--dest', outputDir.get().asFile.absolutePath,
+            '--name', 'TheCellBeyond_v' + version,
+            '--main-jar', jarName,
+            '--main-class', 'TheCellBeyond.Main',
+            '--type', 'app-image',
+            '--java-options', '--enable-native-access=ALL-UNNAMED',
+            '--icon', 'src/main/resources/assets/textures/TCB icon.ico'
+}
 
 // Engine Scripting API
 // Packages and classes exposed to script authors via the API jar.

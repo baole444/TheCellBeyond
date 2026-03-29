@@ -31,10 +31,11 @@ public class UserPreference {
 
     private static void loadConfigDirectory() {
         String OS = System.getProperty("os.name").toLowerCase();
-
-        String dataDir = OS.contains("win") ? System.getenv("APPDATA") :
-                System.getProperty("user.home") + File.separator + ".config";
-
+        String home = System.getProperty("user.home");
+        String dataDir;
+        if (OS.contains("win")) dataDir = System.getenv("APPDATA");
+        else if (OS.contains("mac")) dataDir = home + File.separator + "Library" + File.separator + "Application Support";
+        else dataDir = home + File.separator + ".config";
         Path tcbDir = Path.of(dataDir, APPLICATION);
 
         try {
