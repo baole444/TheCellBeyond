@@ -98,9 +98,23 @@ public class CharacterBody2D extends PhysicBody2D {
         resetMotionState();
     }
 
+    /**
+     * Set the movement velocity of this character, this allow you to control accumulation logic for the velocity.
+     * @param velocity the velocity vector to add (unit: m/s)
+     */
     @Override
     public void addMovement(Vector2f velocity) {
-        velocity.add(velocity);
+        this.velocity.set(velocity);
+    }
+
+    /**
+     * Reset the velocity for this character to zero, can be call at begin of frame to clear velocity.
+     * If the character is controlled via {@link components.Controller2D},
+     * calling this method can nullify the effect of the controller.
+     */
+    @Override
+    public void resetMovement() {
+        velocity.zero();
     }
 
     /**
@@ -135,7 +149,7 @@ public class CharacterBody2D extends PhysicBody2D {
      * @param degrees the new slope angle in degrees
      */
     public void maxFloorAngle(float degrees) {
-        maxFloorAngle = Math.max(0.0f, Math.min(90.0f, degrees));
+        maxFloorAngle = Math.clamp(degrees, 0.0f, 90.0f);
     }
 
     public float safeMargin() {

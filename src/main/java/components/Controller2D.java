@@ -126,7 +126,10 @@ public final class Controller2D extends Component {
     public void update(float dt) {
         if (controlMode == ControlMode.Incompatible) return;
         Vector2f finalDirection = getCombinedDirection(dt);
-        if (finalDirection.lengthSquared() == 0.0f) return;
+        if (finalDirection.lengthSquared() == 0.0f) {
+            if (controlMode == ControlMode.PhysicalLogic) physicBody2D.resetMovement();
+            return;
+        }
         if (normalizeDiagonalSpeed) finalDirection.normalize();
         finalDirection.mul(movementSpeed);
         if (controlMode == ControlMode.PhysicalLogic) {
