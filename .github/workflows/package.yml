@@ -13,9 +13,7 @@ jobs:
           - os: ubuntu-latest
             label: linux
           - os: macos-latest
-            label: macos-arm64
-          - os: macos-13
-            label: macos-intel
+            label: macos
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
