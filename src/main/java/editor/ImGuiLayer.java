@@ -40,7 +40,6 @@ public final class ImGuiLayer {
     private static boolean resetLayout = false;
     private static boolean exitFrameEarly = false;
     private static final AtomicBoolean wantedCaptureMouse = new AtomicBoolean(false);
-    private static final AtomicBoolean wantedCaptureKey = new AtomicBoolean(false);
     private static final AtomicBoolean prioritizeEngineInputCallback = new AtomicBoolean(false);
 
     /**
@@ -50,6 +49,7 @@ public final class ImGuiLayer {
     public ImGuiLayer(long windowPtr) {
         this.sceneEditorViewport = new SceneEditorViewport();
         this.windowPtr = windowPtr;
+        EditorEventHandler.init();
     }
 
     /**
@@ -168,7 +168,6 @@ public final class ImGuiLayer {
         glClearColor(0, 0,0,1);
         glClear(GL_COLOR_BUFFER_BIT);
         wantedCaptureMouse.set(io.getWantCaptureMouse());
-        wantedCaptureKey.set(io.getWantCaptureKeyboard());
         ImGui.render();
         imGuiGl3.renderDrawData(ImGui.getDrawData());
         if (ImGui.getIO().hasConfigFlags(ImGuiConfigFlags.ViewportsEnable)) {

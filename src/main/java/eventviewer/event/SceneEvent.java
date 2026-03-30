@@ -6,6 +6,7 @@ import java.util.List;
 
 public class SceneEvent extends Event {
     public enum Type {
+        SceneChanging,
         SceneEntered,
         SceneLeaved,
         ObjectAdded,

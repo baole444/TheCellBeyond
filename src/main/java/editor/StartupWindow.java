@@ -1,6 +1,5 @@
 package editor;
 
-import TheCellBeyond.MouseListener;
 import editor.dialog.NewProjectDialog;
 import editor.dialog.OpenProjectDialog;
 import editor.dialog.RemoveMissingProjectDialog;
@@ -19,7 +18,6 @@ import tools.jackson.databind.ObjectMapper;
 import tools.jackson.dataformat.yaml.YAMLFactory;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
@@ -40,7 +38,6 @@ public class StartupWindow {
     private static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory());
 
     public static void show(long windowPtr, ImGuiLayer imGuiLayer, int width, int height) {
-        MouseListener.setStartupMode(true);
         boolean loaded = false;
         recentProjects.clear();
         recentProjects.putAll(UserPreference.recentProjects());

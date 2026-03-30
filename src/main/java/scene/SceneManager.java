@@ -3,7 +3,6 @@ package scene;
 import TheCellBeyond.GameObject;
 import TheCellBeyond.internal.LogicServer;
 import com.google.gson.*;
-import editor.dialog.SaveSceneAsDialog;
 import eventviewer.EngineEventCallback;
 import eventviewer.event.EditorEvent;
 import project.Project;
@@ -111,7 +110,7 @@ public final class SceneManager {
         }
         String currentName = LogicServer.currentSceneName();
         if (currentName == null) {
-            SaveSceneAsDialog.show(SceneManager::saveCurrentScene);
+            EngineEventCallback.emit(new EditorEvent(EditorEvent.Type.RequestSaveSceneAs));
             return;
         }
         saveScene(currentName, currentScene);

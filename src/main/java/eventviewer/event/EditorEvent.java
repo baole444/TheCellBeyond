@@ -32,6 +32,10 @@ public class EditorEvent extends Event {
          * Request to reload a scene's resource.
          */
         ReloadSceneResource,
+        /**
+         * Request to show "Save scene as" dialogue.
+         */
+        RequestSaveSceneAs,
     }
 
     /**
