@@ -1,9 +1,6 @@
 package physic2d;
 
 import TheCellBeyond.internal.LogicServer;
-import editor.EditorWidget;
-import imgui.ImGui;
-import imgui.flag.ImGuiTreeNodeFlags;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.BodyDef;
 import org.joml.Vector2f;
@@ -421,41 +418,5 @@ public class CharacterBody2D extends PhysicBody2D {
         CharacterBody2D copy = (CharacterBody2D) copySingleObject();
         if (copyHierarchy && !getChildren().isEmpty()) copyDescendants(this, copy);
         return copy;
-    }
-
-    @Override
-    public void additionalImGuiLogic() {
-        ImGui.spacing();
-        boolean openChar = ImGui.collapsingHeader("CharacterBody2D##CharacterBody2D_Properties_Header_" + getUUID(), ImGuiTreeNodeFlags.DefaultOpen);
-        if (!openChar) {
-            super.additionalImGuiLogic();
-            return;
-        }
-        ImGui.indent();
-        ImGui.text("Motion Mode:");
-        MotionMode currentMode = motionMode;
-        if (ImGui.beginCombo("##Select_Character_Motion_Mode_Combo_" + getUUID(), currentMode.name())) {
-            for (MotionMode mode : MotionMode.values()) {
-                String display = mode.name();
-                String label = display + "##Select_" + display + "_Selectable_" + getUUID();
-                if (ImGui.selectable(label, mode == currentMode)) motionMode = mode;
-            }
-            ImGui.endCombo();
-        }
-        ImGui.spacing();
-        Vector2f upDir = new Vector2f(upDirection);
-        if (EditorWidget.dragVec2Ctrl("Up Direction", upDir, 0.0f, 1.0f, 0.1f, this)) upDirection(upDir);
-        if (motionMode == MotionMode.Grounded) {
-            ImGui.spacing();
-            float slopeAngle = EditorWidget.dragFloatCtrl("Max Slope Angle", maxFloorAngle, 45.0f, 1.0f, this, 0.0f, 90.0f);
-            if (Float.compare(slopeAngle, maxFloorAngle) != 0) maxFloorAngle = slopeAngle;
-            float snapDistance = EditorWidget.dragFloatCtrl("Floor Snapping Distance", floorSnapDistance, 0.1f, 0.1f, this);
-            if (Float.compare(snapDistance, floorSnapDistance) != 0) floorSnapDistance = snapDistance;
-        }
-        ImGui.spacing();
-        float margin = EditorWidget.dragFloatCtrl("Safe Margin", safeMargin, 0.01f, this, 0.001f);
-        if (Float.compare(margin, safeMargin) != 0) safeMargin = margin;
-        ImGui.unindent();
-        super.additionalImGuiLogic();
     }
 }

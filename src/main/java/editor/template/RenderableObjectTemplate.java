@@ -8,7 +8,7 @@ import imgui.type.ImBoolean;
 /**
  * Template for {@link RenderableObject}'s editor UI.
  */
-public class RenderableObjectTemplate implements ObjectTemplate<RenderableObject> {
+final class RenderableObjectTemplate implements ObjectTemplate<RenderableObject> {
     private static final RenderableObjectTemplate instance = new RenderableObjectTemplate();
     private RenderableObjectTemplate() {}
     /**

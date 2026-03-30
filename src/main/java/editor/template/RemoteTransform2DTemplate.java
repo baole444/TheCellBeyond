@@ -17,7 +17,7 @@ import imgui.type.ImBoolean;
 /**
  * Template for {@link RemoteTransform2D}'s editor UI
  */
-class RemoteTransform2DTemplate implements ComponentTemplate<RemoteTransform2D> {
+final class RemoteTransform2DTemplate implements ComponentTemplate<RemoteTransform2D> {
     private static final RemoteTransform2DTemplate instance = new RemoteTransform2DTemplate();
     private RemoteTransform2DTemplate() {}
 

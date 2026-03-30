@@ -19,10 +19,9 @@ import java.util.UUID;
 /**
  * Template for {@link GameObject}'s editor UI.
  */
-class GameObjectTemplate implements ObjectTemplate<GameObject>{
+final class GameObjectTemplate implements ObjectTemplate<GameObject> {
     private static final GameObjectTemplate instance = new GameObjectTemplate();
     private GameObjectTemplate() {}
-
     /**
      * Execute the rendering code for the Editor UI, related to this object.
      * This method is passive, and mst be call to render the UI.
@@ -33,10 +32,9 @@ class GameObjectTemplate implements ObjectTemplate<GameObject>{
     public void editorUI(GameObject object) {
         String newName = EditorWidget.inputText("Name", object.name(), object);
         if (!newName.equals(object.name())) object.name(newName);
-        renderInheritingLayer(object);
-        object.additionalImGuiLogic();
+        GameObjectTemplateHierarchy.render(object);
         ImGui.spacing();
-        boolean openComponent = ImGui.collapsingHeader("Components##GO_Components_Header_" + object.getUUID(), ImGuiTreeNodeFlags.DefaultOpen);
+        boolean openComponent = ImGui.collapsingHeader("Components##GameObject_Components_Header_" + object.getUUID(), ImGuiTreeNodeFlags.DefaultOpen);
         if (!openComponent) {
             ImGui.spacing();
             return;
@@ -66,16 +64,6 @@ class GameObjectTemplate implements ObjectTemplate<GameObject>{
         }
         ImGui.unindent();
         ImGui.spacing();
-    }
-
-    private static void renderInheritingLayer(GameObject go) {
-        switch (go) {
-            case Camera2D camera2D -> Camera2DTemplate.render(camera2D);
-            case Parallax2D parallax2D -> Parallax2DTemplate.render(parallax2D);
-            default -> {}
-        }
-        if (go instanceof GameObject2D go2D) GameObject2DTemplate.render(go2D);
-        if (go instanceof RenderableObject rgo) RenderableObjectTemplate.render(rgo);
     }
 
     /**

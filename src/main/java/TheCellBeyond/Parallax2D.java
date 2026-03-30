@@ -19,7 +19,6 @@ public class Parallax2D extends GameObject2D {
      * This is opposed to positive values where objects scroll as the camera is passing them.
      */
     public final Vector2f scrollScale = new Vector2f(1.0f);
-
     /**
      * The persistence scroll offset of the parallax effect, in world units.
      * This is the manual offset value that can be used to shift the parallax effect.
@@ -27,14 +26,12 @@ public class Parallax2D extends GameObject2D {
      * Unlike {@link #position()} and {@link #screenOffset}, this value is not overridden
      */
     public final Vector2f scrollOffset = new Vector2f();
-
     /**
      * The velocity at which the offset for the parallax effect scrolls automatically, in world units per second.
      * <p>
      * Positive value scroll toward the right, while negative will scroll toward the left.
      */
     public final Vector2f autoScrollVelocity = new Vector2f();
-
     /**
      * The bottom left corner limit for scrolling to start, in world units.
      * If the viewport's position is smaller than this value, the parallax effect is stopped.
@@ -42,7 +39,6 @@ public class Parallax2D extends GameObject2D {
      * This value must be smaller than {@link #topRightLimit} - {@code viewport size} to work.
      */
     public final Vector2f bottomLeftLimit = new Vector2f(-10240.0f);
-
     /**
      * The top right corner limit for the scrolling to end, in world units.
      * If the viewport's position is larger than this value, the parallax effect is stopped.
@@ -50,7 +46,6 @@ public class Parallax2D extends GameObject2D {
      * This value must be greater than the {@link #bottomLeftLimit} + {@code viewport size} to work.
      */
     public final Vector2f topRightLimit = new Vector2f(10240.0f);
-
     /**
      * Should the calculation of the parallax effect uses viewport's position as the base offset value.
      * This will make the viewport to become the origin for this parallax effect.
@@ -58,7 +53,6 @@ public class Parallax2D extends GameObject2D {
      * Set this to {@code false} to make the parallax effect independent of the viewport's position.
      */
     public boolean followViewport = true;
-
     /**
      * Should the parallax effect stop updating in response to the viewport's movements.
      * The effect will hold the last calculated position before this is set to {@code true}.
@@ -69,20 +63,25 @@ public class Parallax2D extends GameObject2D {
      * This must be set to {@code true} to control the {@link #screenOffset}.
      */
     public boolean ignoreViewportScroll = false;
-
     /**
      * Offset used to scroll this parallax effect. This value is updated automatically,
      * unless {@link #ignoreViewportScroll} is {@code true}.
      */
     public transient final Vector2f screenOffset = new Vector2f();
-
     private final transient Vector2f accumulatedScroll = new Vector2f();
 
+    /**
+     * Create a new {@link Parallax2D}.
+     */
     public Parallax2D() {
         String name = Parallax2D.class.getSimpleName();
         super(name);
     }
 
+    /**
+     * Create a new {@link Parallax2D} with the given name.
+     * @param name the new name for the parallax 2D
+     */
     public Parallax2D(String name) {
         if (invalidName(name)) name = Parallax2D.class.getSimpleName();
         super(name);

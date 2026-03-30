@@ -2,10 +2,6 @@ package physic2d;
 
 import TheCellBeyond.GameObject2D;
 import TheCellBeyond.internal.LogicServer;
-import editor.EditorWidget;
-import imgui.ImGui;
-import imgui.flag.ImGuiCol;
-import imgui.type.ImBoolean;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.BodyDef;
@@ -251,36 +247,4 @@ public abstract class CollisionObject2D extends GameObject2D {
      * This is called after the physic body reference is assigned to the physic object.
      */
     public abstract void configurePhysicBodyRef();
-
-    @Override
-    public void additionalImGuiLogic() {
-        ImGui.spacing();
-        boolean openCollision = ImGui.collapsingHeader("CollisionObject2D##CollisionObject2D_Properties_Header_" + getUUID());
-        if (!openCollision) {
-            super.additionalImGuiLogic();
-            return;
-        }
-        ImBoolean sensor = new ImBoolean(isSensor);
-        if (ImGui.checkbox("Sensor Mode##PhysicBody2D_isSensor_" + getUUID(), sensor)) setSensor(sensor.get());
-
-        ImBoolean active = new ImBoolean(isActive);
-        if (ImGui.checkbox("Active##PhysicBody2D_isActive_" + getUUID(), active)) setActive(active.get());
-
-        ImGui.indent();
-        ImGui.pushStyleColor(ImGuiCol.Header, 0.0f, 0.0f, 0.0f, 0.0f);
-        boolean open = ImGui.collapsingHeader("Physic Layers##Physic_Body_Physic_Layers_" + getUUID());
-        ImGui.popStyleColor(1);
-        if (open) {
-            ImGui.separator();
-            int collisionLayer = EditorWidget.physicLayerSelectable("Collision Layer", this.collisionLayer, this);
-            ImGui.spacing();
-            int collisionMask = EditorWidget.physicLayerSelectable("Collision Mask", this.collisionMask, this);
-            setCollisionLayer(collisionLayer);
-            setCollisionMask(collisionMask);
-            ImGui.separator();
-            ImGui.spacing();
-        }
-        ImGui.unindent();
-        super.additionalImGuiLogic();
-    }
 }

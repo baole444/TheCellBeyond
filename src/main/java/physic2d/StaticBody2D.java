@@ -28,9 +28,7 @@ public class StaticBody2D extends PhysicBody2D {
     @Override
     public StaticBody2D copy(boolean copyHierarchy) {
         StaticBody2D copy = (StaticBody2D) copySingleObject();
-
         if (copyHierarchy && !getChildren().isEmpty()) copyDescendants(this, copy);
-
         return copy;
     }
 }

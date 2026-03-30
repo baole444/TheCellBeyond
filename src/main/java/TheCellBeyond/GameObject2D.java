@@ -3,7 +3,6 @@ package TheCellBeyond;
 import components.*;
 import org.joml.Matrix3x2f;
 import org.joml.Vector2f;
-import render.commands.RenderCommand;
 import render.commands.TransformCommand;
 
 import java.util.List;
@@ -35,37 +34,30 @@ public class GameObject2D extends RenderableObject {
      * This 2D object's local transform.
      */
     private final Transform2D localTransform2D;
-
     /**
      * This 2D object's global transform.
      */
     private transient final Transform2D globalTransform2D;
-
     /**
      * Is this 2D object's global transform needs update.
      */
     private transient boolean isTransformDirty = true;
-
     /**
      * Is this 2D object's global transform in the process of updating.
      */
     private transient boolean isTransformUpdating = false;
-
     /**
      * Is this 2D object's in the process of triggering its components' transform dirty flag.
      */
     private transient boolean isNotifyingComponent = false;
-
     /**
      * Matrix use for calculating local transform.
      */
     private transient final Matrix3x2f localMatrix = new Matrix3x2f();
-
     /**
      * Matrix use for calculating global transform.
      */
     private transient final Matrix3x2f globalMatrix = new Matrix3x2f();
-
     /**
      * Temporary matrix for coordinate conversion.
      */

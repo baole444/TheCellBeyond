@@ -14,10 +14,9 @@ import java.util.UUID;
 /**
  * Template for {@link Transform2D}'s editor UI.
  */
-class Transform2DTemplate implements ComponentTemplate<Transform2D> {
+final class Transform2DTemplate implements ComponentTemplate<Transform2D> {
     private static final Transform2DTemplate instance = new Transform2DTemplate();
     private Transform2DTemplate() {}
-
     /**
      * Execute the rendering code for the Editor UI, related to this component.
      * This method is passive, and must be call to render the UI.
@@ -57,7 +56,7 @@ class Transform2DTemplate implements ComponentTemplate<Transform2D> {
     }
 
     /**
-     * Render the content of {@link #editorUI(Transform2D)}
+     * Render the content of {@link #editorUI(Transform2D)}.
      * @param transform2D the content component
      */
     static void render(Transform2D transform2D) {

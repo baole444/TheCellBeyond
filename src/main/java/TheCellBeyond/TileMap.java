@@ -2,13 +2,6 @@ package TheCellBeyond;
 
 import TheCellBeyond.internal.LogicServer;
 import components.IsNotSelectable;
-import editor.EditorIcons;
-import editor.EditorWidget;
-import imgui.ImGui;
-import imgui.flag.ImGuiCol;
-import imgui.flag.ImGuiTableColumnFlags;
-import imgui.flag.ImGuiTreeNodeFlags;
-import imgui.type.ImBoolean;
 import org.joml.Vector2f;
 import org.joml.Vector2i;
 import physic2d.KinematicBody2D;
@@ -33,7 +26,7 @@ public class TileMap extends GameObject2D {
         public TilePlacement {
             if (sourceCoordinate == null) sourceCoordinate = new Vector2i();
             else sourceCoordinate = new Vector2i(sourceCoordinate);
-            quarterRotations = Math.max(-4, Math.min(4, quarterRotations));
+            quarterRotations = Math.clamp(quarterRotations, -4, 4);
         }
 
         public TilePlacement(Vector2i sourceCoordinate) {
@@ -198,95 +191,6 @@ public class TileMap extends GameObject2D {
         TileMap copy = (TileMap) copySingleObject();
         if (copyHierarchy && !getChildren().isEmpty()) copyDescendants(this, copy);
         return copy;
-    }
-
-    @Override
-    public void additionalImGuiLogic() {
-        ImGui.spacing();
-        boolean openMap = ImGui.collapsingHeader("TileMap##TileMap_Properties_Header_" + getUUID(), ImGuiTreeNodeFlags.DefaultOpen);
-        if (!openMap) {
-            super.additionalImGuiLogic();
-            return;
-        }
-        ImBoolean enableCollision = new ImBoolean(this.enableCollision);
-        if (ImGui.checkbox("Enable Collision##TileMap_Enable_Collision_" + getUUID(), enableCollision)) this.enableCollision = enableCollision.get();
-        if (ImGui.isItemHovered()) {
-            ImGui.beginTooltip();
-            ImGui.text("enableCollision = " + this.enableCollision);
-            ImGui.separator();
-            ImGui.spacing();
-            ImGui.text("If false, all collision for this tile map will be disabled.");
-            ImGui.endTooltip();
-        }
-        ImGui.spacing();
-        ImBoolean useKinematicBody = new ImBoolean(this.useKinematicBody);
-        if (ImGui.checkbox("Use kinematic body##TileMap_Physic_Use_Kinematic_Body_" + getUUID(), useKinematicBody)) this.useKinematicBody = useKinematicBody.get();
-        if (ImGui.isItemHovered()) {
-            ImGui.beginTooltip();
-            ImGui.text("useKinematicBody = " + this.useKinematicBody);
-            ImGui.separator();
-            ImGui.spacing();
-            ImGui.text("If true, physic body of this tile map will be of kinematic type.");
-            ImGui.textWrapped("Can be used for creating moving platform.");
-            ImGui.endTooltip();
-        }
-
-        ImGui.indent();
-        boolean openSet = false;
-        if (ImGui.beginTable("##TileSet_TileMap_Properties_Layout" + getUUID(), 3, ImGuiTableColumnFlags.WidthFixed)) {
-            ImGui.tableSetupColumn("##TileSet_TileMap_Header_Column_" + getUUID(), ImGuiTableColumnFlags.WidthStretch);
-            ImGui.tableSetupColumn("##TileSet_TileMap_Reset_Column_" + getUUID(), ImGuiTableColumnFlags.WidthFixed);
-            ImGui.tableSetupColumn("##TileSet_TileMap_Delete_Column_" + getUUID(), ImGuiTableColumnFlags.WidthFixed);
-            ImGui.tableNextColumn();
-            ImGui.pushStyleColor(ImGuiCol.Header, 0.0f, 0.0f, 0.0f, 0.0f);
-            openSet = ImGui.collapsingHeader("TileSet##TileMap_TileSet_Properties_Header_" + getUUID(), ImGuiTreeNodeFlags.DefaultOpen);
-            ImGui.popStyleColor(1);
-            ImGui.tableNextColumn();
-            if (EditorWidget.iconButton("TileSet_TileMap_Reset_Button_" + getUUID(), EditorIcons.Icons.Reset, "Reset this tile set to default")) resetToDefault();
-            ImGui.tableNextColumn();
-            if (EditorWidget.iconButton("TileSet_TileMap_Delete_Button_" + getUUID(), EditorIcons.Icons.Delete, "Delete this tile set")) deleteTileSet();
-            ImGui.endTable();
-        }
-        if (!openSet) {
-            ImGui.unindent();
-            super.additionalImGuiLogic();
-            return;
-        }
-
-        if (tileSet == null) {
-            if (ImGui.button("Create new Tile set", ImGui.getContentRegionAvailX(), 0.0f)) tileSet(new TileSet());
-            ImGui.unindent();
-            super.additionalImGuiLogic();
-            return;
-        }
-
-        ImGui.text("Tile size:");
-        Vector2i size = tileSet.gridSize();
-        int x = EditorWidget.dragIntCtrl("With", size.x, 16, tileSet, 1);
-        int y = EditorWidget.dragIntCtrl("Height", size.y, 16, tileSet, 1);
-        if (x != size.x || y != size.y) tileSet.gridSize(size.set(x, y));
-
-        ImGui.separator();
-        ImGui.text("Start position offset:");
-        Vector2i startOffset = tileSet.startPosition();
-        int xF = EditorWidget.dragIntCtrl("X offset", startOffset.x, 0, tileSet, 0);
-        int yF = EditorWidget.dragIntCtrl("Y offset", startOffset.y, 0, tileSet, 0);
-        if (xF != startOffset.x || yF != startOffset.y) tileSet.startPosition(startOffset.set(xF, yF));
-
-        ImGui.separator();
-        ImGui.text("Physic layers");
-        ImGui.spacing();
-        ImGui.indent();
-        int collisionLayer = EditorWidget.physicLayerSelectable("Collision Layer", tileSet.getCollisionLayer(), this);
-        ImGui.spacing();
-        int collisionMask = EditorWidget.physicLayerSelectable("Collision Mask", tileSet.getCollisionMask(), this);
-        tileSet.setCollisionLayer(collisionLayer);
-        tileSet.setCollisionMask(collisionMask);
-        ImGui.unindent();
-        ImGui.separator();
-        ImGui.spacing();
-        ImGui.unindent();
-        super.additionalImGuiLogic();
     }
 
     @Override

@@ -1,9 +1,6 @@
 package physic2d;
 
 import TheCellBeyond.GameObject2D;
-import imgui.ImGui;
-import imgui.flag.ImGuiTreeNodeFlags;
-import imgui.type.ImBoolean;
 import org.jbox2d.dynamics.BodyDef;
 import org.jbox2d.dynamics.BodyType;
 import signal.Signal;
@@ -145,20 +142,5 @@ public class Area2D extends CollisionObject2D {
     void trackAreaExit(Area2D area) {
         if (area == null) return;
         overlappingAreas.remove(area);
-    }
-
-    @Override
-    public void additionalImGuiLogic() {
-        ImGui.spacing();
-        boolean openArea = ImGui.collapsingHeader("Area2D##Area2D_Properties_Header_" + getUUID(), ImGuiTreeNodeFlags.DefaultOpen);
-        if (!openArea) {
-            super.additionalImGuiLogic();
-            return;
-        }
-        ImBoolean tmp = new ImBoolean(monitoring);
-        if (ImGui.checkbox("Monitoring##Area2D_Monitoring_Checkbox_" + getUUID(), tmp)) monitoring = tmp.get();
-        tmp.set(monitorable);
-        if (ImGui.checkbox("Monitorable##Area2D_Monitorable_Checkbox_" + getUUID(), tmp)) monitorable = tmp.get();
-        super.additionalImGuiLogic();
     }
 }

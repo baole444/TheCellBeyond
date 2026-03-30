@@ -1,9 +1,5 @@
 package physic2d;
 
-import editor.EditorWidget;
-import imgui.ImGui;
-import imgui.flag.ImGuiTreeNodeFlags;
-import imgui.type.ImBoolean;
 import org.jbox2d.collision.shapes.MassData;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.BodyDef;
@@ -53,7 +49,7 @@ public class RigidBody2D extends PhysicBody2D {
     @Override
     public void configurePhysicBodyRef() {
         if (physicBodyRef == null) return;
-        setMass(mass);
+        mass(mass);
         physicBodyRef.setLinearVelocity(new Vec2(initialVelocity.x, initialVelocity.y));
     }
 
@@ -82,8 +78,24 @@ public class RigidBody2D extends PhysicBody2D {
         addForceToCenter(force);
     }
 
-    public Vector2f getInitialVelocity() {
+    /**
+     * Get the initial velocity of this rigid body when it is first added to te scene.
+     * This velocity is applied only once in the body's life cycle.
+     * @return a copy of the initial velocity vector
+     */
+    public Vector2f initialVelocity() {
         return new Vector2f(initialVelocity);
+    }
+
+    /**
+     * Set the initial velocity for this rigid body using the given velocity.
+     * If this is called during simulation, it will override the current linear velocity with the given initial velocity.
+     * @param initialVelocity the velocity vector to apply
+     */
+    public void initialVelocity(Vector2f initialVelocity) {
+        if (initialVelocity == null) return;
+        this.initialVelocity.set(initialVelocity);
+        if (physicBodyRef != null) physicBodyRef.setLinearVelocity(new Vec2(initialVelocity.x, initialVelocity.y));
     }
 
     public void addForceToCenter(Vector2f force) {
@@ -94,53 +106,56 @@ public class RigidBody2D extends PhysicBody2D {
         if (physicBodyRef != null) physicBodyRef.applyLinearImpulse(new Vec2(impulse.x, impulse.y), physicBodyRef.getWorldCenter());
     }
 
-    public void setInitialVelocity(Vector2f initialVelocity) {
-        if (initialVelocity == null) return;
-        this.initialVelocity.set(initialVelocity);
-        if (physicBodyRef != null) physicBodyRef.setLinearVelocity(new Vec2(initialVelocity.x, initialVelocity.y));
-    }
-
-    public float getRollResistance() {
+    public float rollResistance() {
         return rollResistance;
     }
 
-    public void setRollResistance(float rollResistance) {
+    public void rollResistance(float rollResistance) {
         this.rollResistance = rollResistance;
         if (physicBodyRef != null) physicBodyRef.setAngularDamping(rollResistance);
     }
 
-    public float getTranslateResistance() {
+    public float translateResistance() {
         return translateResistance;
     }
 
-    public void setTranslateResistance(float translateResistance) {
+    public void translateResistance(float translateResistance) {
         this.translateResistance = translateResistance;
         if (physicBodyRef != null) physicBodyRef.setLinearDamping(translateResistance);
     }
 
-    public float getAngularVelocity() {
+    /**
+     * Get the angular velocity of this rigid body.
+     * @return the angular velocity, in degrees / sec
+     */
+    public float angularVelocity() {
         return angularVelocity;
     }
 
-    public void setAngularVelocity(float degree) {
-        this.angularVelocity = degree;
-        if (physicBodyRef != null) physicBodyRef.setAngularVelocity((float) Math.toRadians(degree));
+    /**
+     * Set the angular velocity for this rigid body.
+     * If this is called during simulation, it will override the existing angular velocity with the given degrees
+     * @param degrees the angular velocity value, in degrees / sec
+     */
+    public void angularVelocity(float degrees) {
+        this.angularVelocity = degrees;
+        if (physicBodyRef != null) physicBodyRef.setAngularVelocity((float) Math.toRadians(degrees));
     }
 
-    public float getGravityScale() {
+    public float gravityScale() {
         return gravityScale;
     }
 
-    public void setGravityScale(float gravityScale) {
+    public void gravityScale(float gravityScale) {
         this.gravityScale = gravityScale;
         if (physicBodyRef != null) physicBodyRef.setGravityScale(gravityScale);
     }
 
-    public float getMass() {
+    public float mass() {
         return mass;
     }
 
-    public void setMass(float mass) {
+    public void mass(float mass) {
         mass = Math.max(0.001f, mass);
         this.mass = mass;
         if (physicBodyRef == null) return;
@@ -178,35 +193,5 @@ public class RigidBody2D extends PhysicBody2D {
         RigidBody2D copy = (RigidBody2D) copySingleObject();
         if (copyHierarchy && !getChildren().isEmpty()) copyDescendants(this, copy);
         return copy;
-    }
-
-    @Override
-    public void additionalImGuiLogic() {
-        ImGui.spacing();
-        boolean openRigid = ImGui.collapsingHeader("RigidBody2D##RigidBody2D_Properties_Header", ImGuiTreeNodeFlags.DefaultOpen);
-        if (!openRigid) {
-            super.additionalImGuiLogic();
-            return;
-        }
-        ImGui.indent();
-        Vector2f vTmp = new Vector2f(initialVelocity);
-        boolean vChanged = EditorWidget.dragVec2Ctrl("Velocity", vTmp, 0.0f, this);
-        float angularV = EditorWidget.dragFloatCtrl("Angular Velocity", angularVelocity, 0.0f, 1.0f,this);
-        float ms = EditorWidget.dragFloatCtrl("Mass", mass, 0.0f, this, 0.0f);
-        float rollResist = EditorWidget.dragFloatCtrl("Roll Resistance", rollResistance, 0.8f, this, 0.0f);
-        float translateResist = EditorWidget.dragFloatCtrl("Translate Resistance", translateResistance, 0.8f, this, 0.0f);
-        float gravScale = EditorWidget.dragFloatCtrl("Gravity Scale", gravityScale, 1.0f, this);
-        ImBoolean fixedRot = new ImBoolean(fixedRotation);
-        if (ImGui.checkbox("Fixed Rotation##RigidBody2D_fixedRotation_" + getUUID(), fixedRot)) fixedRotation(fixedRot.get());
-        ImBoolean b = new ImBoolean(bullet);
-        if (ImGui.checkbox("Bullet##RigidBody2D_bullet_" + getUUID(), b)) bullet(b.get());
-        if (vChanged) setInitialVelocity(vTmp);
-        if (Float.compare(angularV, angularVelocity) != 0) setAngularVelocity(angularV);
-        if (Float.compare(ms, mass) != 0) setMass(ms);
-        if (Float.compare(rollResist, rollResistance) != 0) setRollResistance(rollResist);
-        if (Float.compare(translateResist, translateResistance) != 0) setTranslateResistance(translateResist);
-        if (Float.compare(gravScale, gravityScale) != 0) setGravityScale(gravScale);
-        ImGui.unindent();
-        super.additionalImGuiLogic();
     }
 }

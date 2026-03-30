@@ -17,10 +17,9 @@ import java.util.UUID;
 /**
  * Template for {@link SpriteRenderer}'s editor UI.
  */
-class SpriteRendererTemplate implements ComponentTemplate<SpriteRenderer> {
+final class SpriteRendererTemplate implements ComponentTemplate<SpriteRenderer> {
     private static final SpriteRendererTemplate instance = new SpriteRendererTemplate();
     private SpriteRendererTemplate() {}
-
     /**
      * Execute the rendering code for the Editor UI, related to this component.
      * This method is passive, and must be call to render the UI.
@@ -29,7 +28,7 @@ class SpriteRendererTemplate implements ComponentTemplate<SpriteRenderer> {
      */
     @Override
     public void editorUI(SpriteRenderer component) {
-        if (component == null) return;
+        if (ImGui.getContentRegionAvailX() <= 0.0f || ImGui.getContentRegionAvailY() <= 0.0f) return;
         float availX = ImGui.getContentRegionAvailX();
         ImGui.text("Sprite: ");
         UUID uuid = component.getUUID();
@@ -94,7 +93,7 @@ class SpriteRendererTemplate implements ComponentTemplate<SpriteRenderer> {
     }
 
     /**
-     * Render the content of {@link #editorUI(SpriteRenderer)}
+     * Render the content of {@link #editorUI(SpriteRenderer)}.
      * @param spriteRenderer the context component
      */
     static void render(SpriteRenderer spriteRenderer) {

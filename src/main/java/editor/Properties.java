@@ -3,6 +3,7 @@ package editor;
 import TheCellBeyond.GameObject;
 import components.SpriteRenderer;
 import editor.dialog.AddComponentDialog;
+import editor.template.EditorTemplate;
 import imgui.ImGui;
 import imgui.flag.ImGuiWindowFlags;
 import org.joml.Vector4f;
@@ -10,18 +11,23 @@ import org.joml.Vector4f;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Properties hold the selected object inspector panel.
+ */
 public class Properties {
-    public static final String WINDOW_ID = "Inspector###Object_Properties";
-    private static final int BUTTON_RESERVED_HEIGHT = 36;
+    public static final String WindowID = "Inspector###Object_Properties";
+    private static final int ButtonReservedHeight = 36;
     private static final List<GameObject> activeGameObjects = new ArrayList<>();
     private static final List<List<Vector4f>> activeObjTrueColor = new ArrayList<>();
 
+    /**
+     * Render the inspector panel
+     */
     public static void imgui() {
-        if (!ImGui.begin(WINDOW_ID, ImGuiWindowFlags.NoCollapse)) {
+        if (!ImGui.begin(WindowID, ImGuiWindowFlags.NoCollapse)) {
             ImGui.end();
             return;
         }
-
         GameObject activeGameObject = getActiveGameObject();
         BottomPanel.interacted(activeGameObject);
         if (activeGameObject == null) {
@@ -31,23 +37,19 @@ public class Properties {
             ImGui.end();
             return;
         }
-
         if (activeGameObject.isRemoved()) {
             updateActives();
             ImGui.end();
             return;
         }
-
         float buttonW = ImGui.getContentRegionAvailX();
-        float buttonH = BUTTON_RESERVED_HEIGHT * 0.9f;
+        float buttonH = ButtonReservedHeight * 0.9f;
         if (ImGui.button("Add new Component##Properties_Inspector_Add_Component_Button", buttonW, buttonH)) AddComponentDialog.show(activeGameObject);
-
         ImGui.separator();
-        activeGameObject.imgui();
+        EditorTemplate.render(activeGameObject);
         renderContextMenu();
         AddComponentDialog.imgui();
         ImGui.end();
-
         updateActives();
     }
 
@@ -118,7 +120,6 @@ public class Properties {
                 }
             }
         }
-
         activeGameObjects.clear();
         activeObjTrueColor.clear();
     }

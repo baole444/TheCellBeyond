@@ -1,5 +1,6 @@
 package editor.template;
 
+import TheCellBeyond.GameObject2D;
 import TheCellBeyond.Parallax2D;
 import editor.EditorWidget;
 import imgui.ImGui;
@@ -12,7 +13,7 @@ import java.util.UUID;
 /**
  * Template for {@link Parallax2D}'s editor UI.
  */
-public class Parallax2DTemplate implements ObjectTemplate<Parallax2D> {
+final class Parallax2DTemplate implements ObjectTemplate<Parallax2D> {
     private static final Parallax2DTemplate instance = new Parallax2DTemplate();
     private Parallax2DTemplate() {}
 
@@ -79,11 +80,12 @@ public class Parallax2DTemplate implements ObjectTemplate<Parallax2D> {
     }
 
     /**
-     * Render the content of {@link #editorUI(Parallax2D)}.
+     * Render the content of {@link #editorUI(Parallax2D)} and call {@link GameObject2DTemplate#render(GameObject2D)}.
      * @param parallax2D the context object
      */
     static void render(Parallax2D parallax2D) {
         if (parallax2D == null) return;
         instance.editorUI(parallax2D);
+        GameObject2DTemplate.render(parallax2D);
     }
 }

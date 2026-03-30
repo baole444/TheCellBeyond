@@ -3,7 +3,6 @@ package TheCellBeyond;
 import TheCellBeyond.internal.LogicServer;
 import components.Component2D;
 import components.Component;
-import editor.template.EditorTemplate;
 import eventviewer.EngineEventCallback;
 import eventviewer.event.SceneEvent;
 import scene.Scene;
@@ -683,18 +682,6 @@ public class GameObject {
      * Optional hook for additional game object's ready logic, after all its components are readied.
      */
     protected void onReady() {}
-
-    /**
-     * Export this game object's properties for editing in the Editor UI.
-     */
-    public final void imgui() {
-        EditorTemplate.render(this);
-    }
-
-    /**
-     * Additional game object's properties export before exporting its component's properties.
-     */
-    public void additionalImGuiLogic() {}
 
     /**
      * Destroy this game object and all its descendant objects.

@@ -2,10 +2,6 @@ package physic2d;
 
 import TheCellBeyond.GameObject2D;
 import TheCellBeyond.internal.LogicServer;
-import editor.EditorWidget;
-import imgui.ImGui;
-import imgui.flag.ImGuiTreeNodeFlags;
-import imgui.type.ImBoolean;
 import org.jbox2d.callbacks.RayCastCallback;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Fixture;
@@ -152,35 +148,6 @@ public class RayCast2D extends GameObject2D {
         collider = callback.hitObject;
         collisionPoint.set(callback.hitPoint);
         collisionNormal.set(callback.hitNormal);
-    }
-
-    @Override
-    public void additionalImGuiLogic() {
-        ImGui.spacing();
-        boolean openRay = ImGui.collapsingHeader("RayCast2D##RayCast2D_Properties_Header_" + getUUID(), ImGuiTreeNodeFlags.DefaultOpen);
-        if (!openRay) {
-            super.additionalImGuiLogic();
-            return;
-        }
-        EditorWidget.dragVec2Ctrl("Target position", targetPosition, 0.0f, 0.15f, 0.01f, this);
-        ImGui.spacing();
-        ImBoolean tmp = new ImBoolean(collideWithAreas);
-        if (ImGui.checkbox("Collide with Areas##RayCast2D_Collide_With_Areas_Checkbox_" + getUUID(), tmp)) collideWithAreas = tmp.get();
-        tmp.set(collideWithBodies);
-        if (ImGui.checkbox("Collide with Bodies##RayCast2D_Collide_With_Bodies_Checkbox_" + getUUID(), tmp)) collideWithBodies = tmp.get();
-        ImGui.spacing();
-        ImGui.indent();
-        EditorWidget.physicLayerSelectable("Collision Mask", collisionMask, this);
-        ImGui.unindent();
-        ImGui.spacing();
-        tmp.set(excludeParent);
-        if (ImGui.checkbox("Exclude parent##RayCast2D_Exclude_Parent_Checkbox_" + getUUID(), tmp)) excludeParent = tmp.get();
-        tmp.set(hitFromInside);
-        if (ImGui.checkbox("Hit from inside##RayCast2D_Hit_From_Inside_Checkbox_" + getUUID(), tmp)) hitFromInside = tmp.get();
-        ImGui.spacing();
-        tmp.set(enabled);
-        if (ImGui.checkbox("Enabled##RayCast2D_Enabled_Checkbox_" + getUUID(), tmp)) enabled = tmp.get();
-        super.additionalImGuiLogic();
     }
 
     /**

@@ -1,6 +1,7 @@
 package editor.template;
 
 import TheCellBeyond.Camera2D;
+import TheCellBeyond.GameObject2D;
 import editor.EditorWidget;
 import imgui.ImGui;
 import imgui.flag.ImGuiCol;
@@ -16,7 +17,7 @@ import java.util.UUID;
 /**
  * Template for {@link Camera2D}'s editor UI.
  */
-public class Camera2DTemplate implements ObjectTemplate<Camera2D> {
+final class Camera2DTemplate implements ObjectTemplate<Camera2D> {
     private static final Camera2DTemplate instance = new Camera2DTemplate();
     private Camera2DTemplate() {}
 
@@ -93,8 +94,8 @@ public class Camera2DTemplate implements ObjectTemplate<Camera2D> {
         if (ImGui.checkbox("Enable Vertical Drag##Camera2D_Enable_Vertical_Drag_CheckBox_" + uuid, dragVState)) object.enableVerticalDrag = dragVState.get();
         object.topDragMargin = EditorWidget.dragFloatCtrl("Top Drag Margin", object.topDragMargin, 0.2f, 0.01f, object);
         object.bottomDragMargin = EditorWidget.dragFloatCtrl("Bottom Drag Margin", object.bottomDragMargin, 0.2f, 0.01f, object);
-        object.horizontalDragOffset = Math.max(-1.0f, Math.min(1.0f, EditorWidget.dragFloatCtrl("Horizontal Drag Offset", object.horizontalDragOffset, 0.0f, 0.01f, object, -1.0f, 1.0f)));
-        object.verticalDragOffset = Math.max(-1.0f, Math.min(1.0f, EditorWidget.dragFloatCtrl("Vertical Drag Offset", object.verticalDragOffset, 0.0f, 0.01f, object, -1.0f, 1.0f)));
+        object.horizontalDragOffset = Math.clamp(EditorWidget.dragFloatCtrl("Horizontal Drag Offset", object.horizontalDragOffset, 0.0f, 0.01f, object, -1.0f, 1.0f), -1.0f, 1.0f);
+        object.verticalDragOffset = Math.clamp(EditorWidget.dragFloatCtrl("Vertical Drag Offset", object.verticalDragOffset, 0.0f, 0.01f, object, -1.0f, 1.0f), -1.0f, 1.0f);
         ImGui.spacing();
     }
 
@@ -116,11 +117,12 @@ public class Camera2DTemplate implements ObjectTemplate<Camera2D> {
     }
 
     /**
-     * Render the content of {@link #editorUI(Camera2D)}.
+     * Render the content of {@link #editorUI(Camera2D)} and call {@link GameObject2DTemplate#render(GameObject2D)}.
      * @param camera2D the context object
      */
     static void render(Camera2D camera2D) {
         if (camera2D == null) return;
         instance.editorUI(camera2D);
+        GameObject2DTemplate.render(camera2D);
     }
 }

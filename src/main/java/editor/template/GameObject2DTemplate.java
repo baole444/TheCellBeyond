@@ -8,7 +8,7 @@ import imgui.flag.ImGuiTreeNodeFlags;
 /**
  * Template for {@link GameObject2D}'s editor UI.
  */
-class GameObject2DTemplate implements ObjectTemplate<GameObject2D> {
+final class GameObject2DTemplate implements ObjectTemplate<GameObject2D> {
     private static final GameObject2DTemplate instance = new GameObject2DTemplate();
     private static final Transform2D editing = new Transform2D("Template cache");
     private GameObject2DTemplate() {}
@@ -22,7 +22,7 @@ class GameObject2DTemplate implements ObjectTemplate<GameObject2D> {
     @Override
     public void editorUI(GameObject2D object) {
         ImGui.spacing();
-        boolean openTransform = ImGui.collapsingHeader("GameObject2D##Transform_GameObject2D_Properties_" + object.getUUID(), ImGuiTreeNodeFlags.DefaultOpen);
+        boolean openTransform = ImGui.collapsingHeader("GameObject2D##Transform_GameObject2D_Properties_" + object.getUUID());
         if (!openTransform) return;
         Transform2D.copy(object.localTransform(), editing);
         ImGui.indent();
@@ -32,11 +32,12 @@ class GameObject2DTemplate implements ObjectTemplate<GameObject2D> {
     }
 
     /**
-     * Render the content of {@link #editorUI(GameObject2D)}
+     * Render the content of {@link #editorUI(GameObject2D)} and call {@link RenderableObjectTemplate###render(GameObject2D)}
      * @param gameObject2D the context object
      */
     static void render(GameObject2D gameObject2D) {
         if (gameObject2D == null) return;
         instance.editorUI(gameObject2D);
+        RenderableObjectTemplate.render(gameObject2D);
     }
 }

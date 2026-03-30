@@ -1,9 +1,5 @@
 package physic2d;
 
-import editor.EditorWidget;
-import imgui.ImGui;
-import imgui.flag.ImGuiTreeNodeFlags;
-import imgui.type.ImBoolean;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.BodyDef;
 import org.joml.Vector2f;
@@ -47,6 +43,12 @@ public class KinematicBody2D extends PhysicBody2D {
     @Override
     public void addMovement(Vector2f velocity) {
         this.velocity.add(velocity);
+        updateVelocity();
+    }
+
+    @Override
+    public void resetMovement() {
+        velocity.zero();
         updateVelocity();
     }
 
@@ -114,32 +116,5 @@ public class KinematicBody2D extends PhysicBody2D {
         KinematicBody2D copy = (KinematicBody2D) copySingleObject();
         if (copyHierarchy && !getChildren().isEmpty()) copyDescendants(this, copy);
         return copy;
-    }
-
-    @Override
-    public void additionalImGuiLogic() {
-        ImGui.spacing();
-        boolean openKinematic = ImGui.collapsingHeader("KinematicBody2D##KinematicBody2D_Properties_Header_" + getUUID(), ImGuiTreeNodeFlags.DefaultOpen);
-        if (!openKinematic) {
-            super.additionalImGuiLogic();
-            return;
-        }
-
-        ImGui.indent();
-        Vector2f vec = new Vector2f(velocity);
-        if (EditorWidget.dragVec2Ctrl("Velocity", vec, 0.0f, this)) velocity(vec);
-
-        float angle = EditorWidget.dragFloatCtrl("Angular velocity", angularVelocity, 0.0f, 1.0f, this);
-        if (Float.compare(angle, angularVelocity) != 0) angularVelocity(angle);
-
-        ImGui.spacing();
-        ImBoolean rotation = new ImBoolean(fixedRotation);
-        if (ImGui.checkbox("Fixed rotation##KinematicBody2D_fixedRotation_CheckBox_" + getUUID(), rotation)) fixedRotation(rotation.get());
-
-        ImBoolean bullet = new ImBoolean(this.bullet);
-        if (ImGui.checkbox("Bullet##KinematicBody2D_bullet_CheckBox_" + getUUID(), bullet)) bullet(bullet.get());
-
-        ImGui.unindent();
-        super.additionalImGuiLogic();
     }
 }
