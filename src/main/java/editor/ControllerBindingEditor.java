@@ -14,6 +14,7 @@ import imgui.flag.ImGuiTableFlags;
 import imgui.type.ImString;
 import org.joml.Vector2f;
 import project.Project;
+import utility.log.EngineLog;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -91,7 +92,9 @@ class ControllerBindingEditor {
         if (EditorWidget.iconButton("Duplicate##Duplicate_ControllerBinding_CBE", EditorIcons.Icons.Copy, "Duplicate selected binding")) editingController.duplicateBinding(selectedName);
         ImGui.sameLine();
         if (EditorWidget.iconButton("Delete##Delete_ControllerBinding_CBE", EditorIcons.Icons.Delete, "Delete selected binding")) {
-            editingController.removeBinding(selectedName);
+            if (!editingController.removeBinding(selectedName)) {
+                EngineLog.error("Controller2D", String.format("Failed to remove binding %s from the controller", selectedName));
+            }
             if (Objects.equals(editingName, selectedName)) {
                 editingName = null;
                 editingNameBuffer.clear();

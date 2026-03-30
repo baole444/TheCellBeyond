@@ -138,6 +138,23 @@ public final class Input {
         return Project.currentProject().inputActions().get(action);
     }
 
+    /**
+     * Get the direction for 2 input actions.
+     * <p>
+     * If the {@code positive} action is pressed, the direction will be {@code 1}, and {@code -1} for {@code negative} action.
+     * If no action was pressed, or both were pressed, the direction will be {@code 0}.
+     * </p>
+     * @param positive the name of the positive action
+     * @param negative the name of the negative action
+     * @return the direction value, either -1, 0 , or 1
+     */
+    public static int actionDirection(String positive, String negative) {
+        boolean pos = isActionPresses(positive);
+        boolean neg = isActionPresses(negative);
+        if (pos == neg) return 0;
+        return pos ? 1 : -1;
+    }
+
     private static boolean isKeyComboPressed(Set<InputKey> keys) {
         boolean pressed;
         for (InputKey input : keys) {

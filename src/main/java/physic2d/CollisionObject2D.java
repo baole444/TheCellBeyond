@@ -13,19 +13,40 @@ import org.jbox2d.dynamics.BodyType;
 import org.joml.Math;
 import org.joml.Vector2f;
 
+/**
+ * CollisionObject2D is an abstract base class for 2D physics objects,
+ * it can hold any number of {@link physic2d.collider.CollisionShape2D}s for collision.
+ */
 public abstract class CollisionObject2D extends GameObject2D {
     private int collisionLayer = PhysicLayer.layerToBit(0);
     private int collisionMask = PhysicLayer.layerToBit(0);
+    /**
+     * Is this collision object a sensor or not. A sensor object does not participate in collision,
+     * it only detects collisions.
+     */
     protected boolean isSensor = false;
+    /**
+     * Is the physic body active in the physic world for this collision object.
+     */
     protected boolean isActive = true;
+    /**
+     * The physic body reference of this collision object in the physic world.
+     */
     protected transient Body physicBodyRef = null;
     private transient boolean needFixtureUpdate = false;
 
+    /**
+     * Create a new {@link CollisionObject2D}.
+     */
     public CollisionObject2D() {
         String name = CollisionObject2D.class.getSimpleName();
         super(name);
     }
 
+    /**
+     * Create a new {@link CollisionObject2D} with the given name.
+     * @param name the new name for the collision object
+     */
     public CollisionObject2D(String name) {
         if (invalidName(name)) name = CollisionObject2D.class.getSimpleName();
         super(name);
@@ -49,14 +70,27 @@ public abstract class CollisionObject2D extends GameObject2D {
         if (rotation() != physicRot) rotation(physicRot);
     }
 
+    /**
+     * Check if the collision object is a sensor or not.
+     * @return true if is a sensor
+     */
     public boolean isSensor() {
         return isSensor;
     }
 
+    /**
+     * Check if physic collision is active in the physic world for this collision object or not.
+     * @return true if is active
+     */
     public boolean isActive() {
         return isActive;
     }
 
+    /**
+     * Set the sensor mode for this collision object.
+     * When an object is a sensor, it will only detect collision, not participate in it.
+     * @param sensor true to set as sensor
+     */
     public void setSensor(boolean sensor) {
         this.isSensor = sensor;
         if (physicBodyRef == null) return;
@@ -65,64 +99,114 @@ public abstract class CollisionObject2D extends GameObject2D {
         physic2D.setIsSensor(this, sensor);
     }
 
+    /**
+     * Set the active state for the physic collision in the physic world for the collision object.
+     * @param active true to enable physic collision
+     */
     public void setActive(boolean active) {
         isActive = active;
         if (physicBodyRef != null) physicBodyRef.setActive(active);
     }
 
+    /**
+     * Get the physic world reference of this collision object.
+     * @return the physic body reference
+     */
     public Body getPhysicBodyRef() {
         return physicBodyRef;
     }
 
+    /**
+     * Set the physic body reference in the physic world for this collision object.
+     * @param physicBodyRef the physic body reference to assigned with
+     */
     public void setPhysicBodyRef(Body physicBodyRef) {
         this.physicBodyRef = physicBodyRef;
-
         if (physicBodyRef == null) return;
         Vector2f currentPos = globalPosition();
         float currentRot = globalRotation();
-
         this.physicBodyRef.setTransform(new Vec2(currentPos.x, currentPos.y), Math.toRadians(currentRot));
         this.physicBodyRef.setActive(isActive);
     }
 
+    /**
+     * Get the collision layer bit mask of this collision object.
+     * This is the mask that define the physic layers that this collision object is on.
+     * @return the collision layer mask value
+     */
     public int getCollisionLayer() {
         return collisionLayer;
     }
 
+    /**
+     * Add a physic layer to the collision layer mask of this collision object.
+     * This will request fixture request if the mask changed.
+     * @param layerIndex the index of the physic layer to add
+     */
     public void addCollisionLayer(int layerIndex) {
         int pastVal = collisionLayer;
         collisionLayer = PhysicLayer.addLayerToMask(collisionLayer, layerIndex);
         if (pastVal != collisionLayer) needFixtureUpdate = true;
     }
 
+    /**
+     * Remove a physic layer from the collision layer mask of this collision object.
+     * This will request fixture reset if the mask changed.
+     * @param layerIndex the index of the physic layer to remove
+     */
     public void removeCollisionLayer(int layerIndex) {
         int pastVal = collisionLayer;
         collisionLayer = PhysicLayer.removeLayerFromMask(collisionLayer, layerIndex);
         if (pastVal != collisionLayer) needFixtureUpdate = true;
     }
 
+    /**
+     * Get the collision mask of this collision object.
+     * This is the mask that define the physic layers that this collision object is scanning.
+     * @return the collision mask value
+     */
     public int getCollisionMask() {
         return collisionMask;
     }
 
+    /**
+     * Add a physic layer to the collision mask of this collision object.
+     * This will request fixture reset if the mask changed.
+     * @param layerIndex the index of the physic layer to add
+     */
     public void addCollisionMask(int layerIndex) {
         int pastVal = collisionMask;
         collisionMask = PhysicLayer.addLayerToMask(collisionMask, layerIndex);
         if (pastVal != collisionMask) needFixtureUpdate = true;
     }
 
+    /**
+     * Remove a physic layer from the collision mask of this collision object.
+     * This will request fixture reset if the mask changed.
+     * @param layerIndex the index of the physic layer to remove
+     */
     public void removeCollisionMask(int layerIndex) {
         int pastVal = collisionMask;
         collisionMask = PhysicLayer.removeLayerFromMask(collisionMask, layerIndex);
         if (pastVal != collisionMask) needFixtureUpdate = true;
     }
 
+    /**
+     * Directly set the bit values for the collision mask of this collision object, if the new mask is valid.
+     * This will request fixture reset if the mask changed.
+     * @param newMasks the bit values for the collision mask
+     */
     public void setCollisionMask(int newMasks) {
         if (newMasks == collisionMask || !PhysicLayer.isMaskValid(newMasks)) return;
         collisionMask = newMasks;
         needFixtureUpdate = true;
     }
 
+    /**
+     * Directly set the bit values for the collision layer mask of this collision object, if the new mask is valid.
+     * This will request fixture reset if the mask changed.
+     * @param newMasks the bit values for the collision layer mask
+     */
     public void setCollisionLayer(int newMasks) {
         if (newMasks == collisionLayer || !PhysicLayer.isMaskValid(newMasks)) return;
         collisionLayer = newMasks;
@@ -131,22 +215,28 @@ public abstract class CollisionObject2D extends GameObject2D {
 
     private void updateFixtureFilter() {
         if (!needFixtureUpdate) return;
-
         Physic2D physic2D = LogicServer.currentScenePhysic2D();
         if (physic2D == null || physic2D.isLock()) return;
         if (physicBodyRef == null) {
             needFixtureUpdate = false;
             return;
         }
-
         physic2D.updateBodyFilters(this);
         needFixtureUpdate = false;
     }
 
+    /**
+     * Get the friction ratio for this physic body.
+     * @return the friction ration
+     */
     public float friction() {
         return 0.0f;
     }
 
+    /**
+     * Get the body type of the collision object, which will be use to create the physic body reference in the physic world.
+     * @return the body type for the physic world
+     */
     public abstract BodyType bodyType();
 
     /**

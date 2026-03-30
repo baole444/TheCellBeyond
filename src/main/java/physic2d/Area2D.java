@@ -44,7 +44,7 @@ public class Area2D extends CollisionObject2D {
     private final transient Set<Area2D> overlappingAreas = new LinkedHashSet<>();
 
     /**
-     * Create a new {@link Area2D} instance.
+     * Create a new {@link Area2D}.
      */
     public Area2D() {
         String name = Area2D.class.getSimpleName();
@@ -52,6 +52,10 @@ public class Area2D extends CollisionObject2D {
         isSensor = true;
     }
 
+    /**
+     * Create a new {@link Area2D} with the given name.
+     * @param name the new name for the area
+     */
     public Area2D(String name) {
         if (invalidName(name)) name = Area2D.class.getSimpleName();
         super(name);

@@ -31,6 +31,10 @@ public interface Renderable {
      */
     void renderDirty(boolean dirty);
 
+    /**
+     * Get the final z-index used for rendering.
+     * @return the z-index value
+     */
     int renderZIndex();
 
     /**
@@ -64,6 +68,10 @@ public interface Renderable {
         return null;
     }
 
+    /**
+     * Build transform command for this renderable implement.
+     * @return the transform command
+     */
     default TransformCommand buildTransformCommand() {
         return null;
     }

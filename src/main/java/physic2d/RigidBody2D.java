@@ -17,10 +17,8 @@ public class RigidBody2D extends PhysicBody2D {
     private float angularVelocity = 0.0f;
     private float gravityScale = 1.0f;
     private float mass = 0.1f;
-
     private boolean fixedRotation = false;
     private boolean bullet = true;
-
     private transient final Vector2f currentVelocity = new Vector2f();
 
     public RigidBody2D() {
@@ -67,6 +65,11 @@ public class RigidBody2D extends PhysicBody2D {
         angularVelocity = (float) Math.toDegrees(physicBodyRef.getAngularVelocity());
     }
 
+    @Override
+    public Vector2f linearVelocity() {
+        return new Vector2f(currentVelocity);
+    }
+
     /**
      * Add force to the center by converting the movement vector
      * @param velocity the velocity vector to add (unit: m/s)
@@ -84,15 +87,11 @@ public class RigidBody2D extends PhysicBody2D {
     }
 
     public void addForceToCenter(Vector2f force) {
-        if (physicBodyRef != null) {
-            physicBodyRef.applyForceToCenter(new Vec2(force.x, force.y));
-        }
+        if (physicBodyRef != null) physicBodyRef.applyForceToCenter(new Vec2(force.x, force.y));
     }
 
     public void addImpulse(Vector2f impulse) {
-        if (physicBodyRef != null) {
-            physicBodyRef.applyLinearImpulse(new Vec2(impulse.x, impulse.y), physicBodyRef.getWorldCenter());
-        }
+        if (physicBodyRef != null) physicBodyRef.applyLinearImpulse(new Vec2(impulse.x, impulse.y), physicBodyRef.getWorldCenter());
     }
 
     public void setInitialVelocity(Vector2f initialVelocity) {
@@ -144,12 +143,11 @@ public class RigidBody2D extends PhysicBody2D {
     public void setMass(float mass) {
         mass = Math.max(0.001f, mass);
         this.mass = mass;
-        if (physicBodyRef != null) {
-            MassData massData = new MassData();
-            physicBodyRef.getMassData(massData);
-            massData.mass = mass;
-            physicBodyRef.setMassData(massData);
-        }
+        if (physicBodyRef == null) return;
+        MassData massData = new MassData();
+        physicBodyRef.getMassData(massData);
+        massData.mass = mass;
+        physicBodyRef.setMassData(massData);
     }
 
     public boolean fixedRotation() {
@@ -202,14 +200,12 @@ public class RigidBody2D extends PhysicBody2D {
         if (ImGui.checkbox("Fixed Rotation##RigidBody2D_fixedRotation_" + getUUID(), fixedRot)) fixedRotation(fixedRot.get());
         ImBoolean b = new ImBoolean(bullet);
         if (ImGui.checkbox("Bullet##RigidBody2D_bullet_" + getUUID(), b)) bullet(b.get());
-
         if (vChanged) setInitialVelocity(vTmp);
         if (Float.compare(angularV, angularVelocity) != 0) setAngularVelocity(angularV);
         if (Float.compare(ms, mass) != 0) setMass(ms);
         if (Float.compare(rollResist, rollResistance) != 0) setRollResistance(rollResist);
         if (Float.compare(translateResist, translateResistance) != 0) setTranslateResistance(translateResist);
         if (Float.compare(gravScale, gravityScale) != 0) setGravityScale(gravScale);
-
         ImGui.unindent();
         super.additionalImGuiLogic();
     }

@@ -40,7 +40,7 @@ public enum ObjectType {
     /**
      * Get an instance for a type of game object.
      * <p>
-     * The created object's name will be the {@link ObjectType###label}'s value.
+     * The created object's name will be the {@link ObjectType#label}'s value.
      * @param type the type to create instance with
      * @return a new {@link GameObject} of the given type
      */

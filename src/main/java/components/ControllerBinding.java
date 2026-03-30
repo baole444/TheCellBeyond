@@ -4,6 +4,9 @@ import org.joml.Vector2f;
 
 import java.util.HashSet;
 
+/**
+ * ControllerBinding contains the direction, activation mechanic, and triggering input actions for a binding of a {@link Controller2D}.
+ */
 public class ControllerBinding {
     public final ControllerDirection direction;
     public final InputActivation activation;

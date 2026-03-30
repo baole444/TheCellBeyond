@@ -21,7 +21,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * @see ControlMode Controller2D's control modes
  */
 public final class Controller2D extends Component {
-
     /**
      * ControlMode define how the controller apply movement.
      * <p>
@@ -32,12 +31,10 @@ public final class Controller2D extends Component {
      * </ul>
      */
     public enum ControlMode {
-
         /**
-         * The game object cannot be moved
+         * The game object cannot be moved as it lacks spatial transform support and physic movement support.
          */
         Incompatible,
-
         /**
          * Move the game object using spatial transformation logic.
          * Movement velocity is scaled by delta time.
@@ -45,7 +42,6 @@ public final class Controller2D extends Component {
          * Require the game object of the controller to be of type {@link GameObject2D} or its subclasses.
          */
         SpatialLogic,
-
         /**
          * Move the game object using physics logic.
          * Movement velocity is added to the physic body without delta time scaling.
@@ -59,19 +55,16 @@ public final class Controller2D extends Component {
      * Movement speed to apply to the direction vector, in world unit.
      */
     public float movementSpeed = 0.0f;
-
     /**
      * Is the controller only accept the first active action in a frame.
      */
     public boolean oneActionPerFrame = true;
-
     /**
      * Is the diagonal movement speed applied by this controller normalized.
      */
     public boolean normalizeDiagonalSpeed = true;
 
     private final ConcurrentHashMap<String, ControllerBinding> controllerBindings = new ConcurrentHashMap<>();
-
     /**
      * The control mode of this controller.
      */
@@ -81,12 +74,21 @@ public final class Controller2D extends Component {
     private transient PhysicBody2D physicBody2D = null;
     private transient boolean isGameObjectSpatialCompatible = false;
     private transient boolean isGameObjectPhysicCompatible = false;
+    private transient boolean hasPhysicMovement = false;
+    private transient final Vector2f pendingPhysicDirection = new Vector2f();
 
+    /**
+     * Create a new {@link Controller2D}.
+     */
     public Controller2D() {
         String name = Controller2D.class.getSimpleName();
         this(name);
     }
 
+    /**
+     * Create a new {@link Controller2D} with the given name.
+     * @param name the new name for the controller
+     */
     public Controller2D(String name) {
         if (invalidName(name)) name = Controller2D.class.getSimpleName();
         super(name);
@@ -123,26 +125,52 @@ public final class Controller2D extends Component {
     }
 
     @Override
-    public void update(float dt) {
+    protected void onUpdate(float dt) {
         if (controlMode == ControlMode.Incompatible) return;
         Vector2f finalDirection = getCombinedDirection(dt);
-        if (finalDirection.lengthSquared() == 0.0f) {
-            if (controlMode == ControlMode.PhysicalLogic) physicBody2D.resetMovement();
+        if (controlMode == ControlMode.PhysicalLogic) {
+            pendingPhysicDirection.set(finalDirection);
             return;
         }
+        if (finalDirection.lengthSquared() == 0.0f) return;
         if (normalizeDiagonalSpeed) finalDirection.normalize();
         finalDirection.mul(movementSpeed);
-        if (controlMode == ControlMode.PhysicalLogic) {
-            applyPhysicalMovement(finalDirection);
-            return;
-        }
         if (controlMode == ControlMode.SpatialLogic) applySpatialMovement(finalDirection, dt);
     }
 
+    @Override
+    protected void onPhysicUpdate(float dt) {
+        if (controlMode != ControlMode.PhysicalLogic) return;
+        if (pendingPhysicDirection.lengthSquared() == 0.0f) {
+            if (!hasPhysicMovement) return;
+            physicBody2D.resetMovement();
+            hasPhysicMovement = false;
+            return;
+        }
+        Vector2f direction = new Vector2f(pendingPhysicDirection);
+        if (normalizeDiagonalSpeed) direction.normalize();
+        direction.mul(movementSpeed);
+        applyPhysicalMovement(direction);
+        hasPhysicMovement = true;
+    }
+
+    /**
+     * Get the current control mode of this controller, if the object it mounted to has no spatial support,
+     * this will always be {@link ControlMode#Incompatible}.
+     * @return the {@link ControlMode}
+     */
     public ControlMode controlMode() {
         return controlMode;
     }
 
+    /**
+     * Set the control mode for this controller using the given mode.
+     * The setting mode cannot be null or is {@link ControlMode#Incompatible}.
+     * <p>
+     * For {@link ControlMode#PhysicalLogic}, this controller need to be mounted to ab object that is
+     * of type {@link PhysicBody2D} or its subclasses.
+     * @param mode the new control mode for this controller
+     */
     public void controlMode(ControlMode mode) {
         if (mode == null || mode == ControlMode.Incompatible) return;
         if (!isGameObjectPhysicCompatible && !isGameObjectSpatialCompatible) {
@@ -157,6 +185,11 @@ public final class Controller2D extends Component {
         controlMode = mode;
     }
 
+    /**
+     * Create a new control binding for this controller.
+     * This method ensures that the name for the new binding is unique.
+     * @return the name of the newly created binding
+     */
     public String newBinding() {
         String newName = "binding";
         if (controllerBindings.isEmpty()) {
@@ -173,78 +206,107 @@ public final class Controller2D extends Component {
         return uniqueName;
     }
 
+    /**
+     * Rename a control binding in this controller to the new given name. This method requires that
+     * the binding with the old name exists, and the new name is unique for this controller.
+     * @param oldName the old name of the binding
+     * @param newName the new name for the binding
+     * @return true if renamed successfully
+     */
     public boolean renameBinding(String oldName, String newName) {
         if (controllerBindings.isEmpty()) return false;
         if (oldName == null || newName == null || oldName.isBlank() || newName.isBlank()) return false;
         newName = newName.trim();
         if (!controllerBindings.containsKey(oldName) || controllerBindings.containsKey(newName)) return false;
-
         ControllerBinding binding = controllerBindings.remove(oldName);
         if (binding == null) return false;
-
         controllerBindings.put(newName, binding);
         return true;
     }
 
+    /**
+     * Duplicate an existing binding with the given name in this controller.
+     * This method ensures that the name for the duplicated binding is unique.
+     * @param name the name of an existing binding
+     */
     public void duplicateBinding(String name) {
         if (name == null || name.isBlank()) return;
         if (controllerBindings.isEmpty() || !controllerBindings.containsKey(name)) return;
-
         ControllerBinding binding = controllerBindings.get(name);
         if (binding == null) return;
-
         String newName = name + "_copy";
         int i = 1;
         while (controllerBindings.containsKey(newName)) {
             newName = name + "_copy" + i;
             i++;
         }
-
         controllerBindings.put(newName, new ControllerBinding(binding));
     }
 
+    /**
+     * Bind an {@link InputAction} of the given action name to a binding of the given name, in this controller.
+     * Binding will fail if the action or the binding does not exist.
+     * @param bindingName the name of the controller binding to add the action to
+     * @param actionName the name of the input action to bind
+     */
     public void bindAction(String bindingName, String actionName) {
         if (bindingName == null || actionName == null) return;
-
         ControllerBinding binding = controllerBindings.get(bindingName);
         if (binding == null) return;
-
         if (Input.getInputAction(actionName) == null) {
             LOGGER.warning(String.format("Input action '%s' does not exist", actionName));
             return;
         }
-
         binding.boundActionNames.add(actionName);
     }
 
+    /**
+     * Get the binding of the given name from this controller.
+     * @param bindingName the name of the controller binding
+     * @return a {@link ControllerBinding} or null if there is no match
+     */
     public ControllerBinding getBinding(String bindingName) {
         if (bindingName == null || bindingName.isBlank()) return null;
         return controllerBindings.get(bindingName);
     }
 
+    /**
+     * Remove the binding of the given name from this controller.
+     * @param bindingName the name of thee binding
+     * @return true if removed successfully, false if the name is null or there is no match
+     */
     public boolean removeBinding(String bindingName) {
         if (bindingName == null) return false;
         return controllerBindings.remove(bindingName) != null;
     }
 
+    /**
+     * Unbind an {@link InputAction} of the given action name from a binding of the given name, in this controller.
+     * @param bindingName the name of the controller binding to remove the action from
+     * @param actionName the name of the input action to unbind
+     */
     public void unbindAction(String bindingName, String actionName) {
         if (bindingName == null || bindingName.isBlank() || actionName == null) return;
-
         ControllerBinding binding = controllerBindings.get(bindingName);
         if (binding == null) return;
-
         binding.boundActionNames.remove(actionName);
     }
 
+    /**
+     * Removed all bound {@link InputAction}s from the binding of the given name, in this controller.
+     * @param bindingName the name of the binding to remove all actions from
+     */
     public void clearBindingAction(String bindingName) {
         if (bindingName == null || bindingName.isBlank()) return;
-
         ControllerBinding binding = controllerBindings.get(bindingName);
         if (binding == null) return;
-
         binding.boundActionNames.clear();
     }
 
+    /**
+     * Get a copy of map of the bindings in this controller
+     * @return the map of the bindings
+     */
     public HashMap<String, ControllerBinding> getBindings() {
         return new HashMap<>(controllerBindings);
     }
@@ -252,20 +314,16 @@ public final class Controller2D extends Component {
     private Vector2f getCombinedDirection(float dt) {
         Vector2f combinedDirection = new Vector2f();
         if (controllerBindings.isEmpty()) return combinedDirection;
-
         for (Map.Entry<String, ControllerBinding> entry : controllerBindings.entrySet()) {
             ControllerBinding binding = entry.getValue();
-
             boolean isPressed = false;
             for (String name : binding.boundActionNames) {
                 if (!Input.isActionPresses(name)) continue;
                 isPressed = true;
                 break;
             }
-
             if (!binding.isActive(isPressed, dt)) continue;
             combinedDirection.add(binding.directionVector());
-
             if (oneActionPerFrame) break;
         }
         return combinedDirection;
@@ -279,7 +337,6 @@ public final class Controller2D extends Component {
      */
     private void applySpatialMovement(Vector2f movementVelocity, float dt) {
         if (!isGameObjectSpatialCompatible || gameObject2D == null) return;
-
         Vector2f displacement = new Vector2f(movementVelocity).mul(dt);
         Vector2f currentPos = gameObject2D.globalPosition();
         gameObject2D.position(currentPos.x + displacement.x, currentPos.y + displacement.y);
@@ -300,7 +357,6 @@ public final class Controller2D extends Component {
         ImGui.spacing();
         boolean openController = ImGui.collapsingHeader("Controller2D##Controler2D_Properties_Header", ImGuiTreeNodeFlags.DefaultOpen);
         if (!openController) return;
-
         ImGui.indent();
         ControlMode current = controlMode;
         ImGui.text("Control Mode:");
@@ -316,11 +372,9 @@ public final class Controller2D extends Component {
             }
             ImGui.endCombo();
         }
-
         ImGui.spacing();
         float speed = EditorWidget.dragFloatCtrl("Movement Speed", movementSpeed, 0.0f, 0.1f, this);
         if (Float.compare(speed, movementSpeed) != 0) movementSpeed = speed;
-
         ImBoolean oneAction = new ImBoolean(oneActionPerFrame);
         ImBoolean normalizeDiagonal = new ImBoolean(normalizeDiagonalSpeed);
         if (ImGui.checkbox("Single Action##AllowOneActionPerFrame_" + getUUID(), oneAction)) oneActionPerFrame = oneAction.get();

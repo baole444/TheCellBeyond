@@ -10,15 +10,30 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * HierarchyPaths is a collection of static methods for resolving hierarchy path to {@link GameObject} or {@link Component}.
+ * Absolute hierarchy paths can be resolved without context object while relative paths do.
+ * @see HierarchyPath Hierarchy path format
+ */
 public class HierarchyPaths {
     private static final EngineLog Logger = new EngineLog(HierarchyPaths.class);
-
     private HierarchyPaths() {}
 
+    /**
+     * Resolve the absolute hierarchy path to the game object at the destination.
+     * @param absolutePath the absolute path to resolve from
+     * @return a {@link GameObject} at the destination or null if there is no match
+     */
     public static GameObject toGameObject(HierarchyPath absolutePath) {
         return toGameObject(absolutePath, null);
     }
 
+    /**
+     * Resolve the hierarchy path to the game object at the destination with the given context.
+     * @param path the path to resolve from
+     * @param context the object act as the starting point for the path
+     * @return a {@link GameObject} at the destination or null if there is no match
+     */
     public static GameObject toGameObject(HierarchyPath path, GameObject context) {
         if (nullPath(path)) return null;
         if (path.isEmpty()) return context;
@@ -38,23 +53,48 @@ public class HierarchyPaths {
             current = navigateSubSegment(current, segment, path, i);
             if (current == null) return null;
         }
-
         return current;
     }
 
+    /**
+     * Resolve the absolute hierarchy path string to the game object at the destination.
+     * The given string is converted to {@link HierarchyPath} first.
+     * @param absolutePath the absolute path to resolve from
+     * @return a {@link GameObject} at the destination or null if there is no match
+     */
     public static GameObject toGameObject(String absolutePath) {
         return toGameObject(absolutePath, null);
     }
 
+    /**
+     * Resolve the hierarchy path string to the game object at the destination with the given context.
+     * The given string is converted to {@link HierarchyPath} first.
+     * @param path the path to resolve from
+     * @param context the object act as the starting point for the path
+     * @return a {@link GameObject} at the destination or null if there is no match
+     */
     public static GameObject toGameObject(String path, GameObject context) {
         HierarchyPath hierarchyPath = new HierarchyPath(path);
         return toGameObject(hierarchyPath, context);
     }
 
+    /**
+     * Resolve the absolute hierarchy path to the component at the destination.
+     * Unlike game object path, the last segment needs to be a component with {@link HierarchyPath#ComponentDelimiter}.
+     * @param absolutePath the absolute path to resolve from
+     * @return a {@link Component} at the destination or null if there is no match
+     */
     public static Component toComponent(HierarchyPath absolutePath) {
         return toComponent(absolutePath, null);
     }
 
+    /**
+     * Resolve the hierarchy path to the component at the destination with the given context.
+     * Unlike game object path, the last segment needs to be a component with {@link HierarchyPath#ComponentDelimiter}.
+     * @param path the path to resolve from
+     * @param context the object act as the starting point for the path
+     * @return a {@link Component} at the destination or null if there is no match
+     */
     public static Component toComponent(HierarchyPath path, GameObject context) {
         if (nullPath(path)) return null;
         if (path.isEmpty()) {
@@ -71,7 +111,6 @@ public class HierarchyPaths {
             Logger.error(String.format("Cannot resolve '%s' to component: invalid component delimiter", path));
             return null;
         }
-
         String objectName = HierarchyPath.toObjectName(lastSegment);
         GameObject targetObject;
         if (objectName == null || objectName.isEmpty()) {
@@ -90,27 +129,59 @@ public class HierarchyPaths {
         return component;
     }
 
+    /**
+     * Resolve the absolute hierarchy path to the component at the destination.
+     * Unlike game object path, the last segment needs to be a component with {@link HierarchyPath#ComponentDelimiter}.
+     * The given string is converted to {@link HierarchyPath} first.
+     * @param absolutePath the absolute path to resolve from
+     * @return a {@link Component} at the destination or null if there is no match
+     */
     public static Component toComponent(String absolutePath) {
         return toComponent(absolutePath, null);
     }
 
+    /**
+     * Resolve the hierarchy path to the component at the destination with the given context.
+     * Unlike game object path, the last segment needs to be a component with {@link HierarchyPath#ComponentDelimiter}.
+     * The given string is converted to {@link HierarchyPath} first.
+     * @param path the path to resolve from
+     * @param context the object act as the starting point for the path
+     * @return a {@link Component} at the destination or null if there is no match
+     */
     public static Component toComponent(String path, GameObject context) {
         HierarchyPath hierarchyPath = new HierarchyPath(path);
         return toComponent(hierarchyPath, context);
     }
 
+    /**
+     * Resolve the hierarchy path to Java {@link Object} at the destination with the given context.
+     * The caller is responsible for casting the object to either {@link GameObject} or {@link Component}.
+     * @param path the path to resolve from
+     * @param context the object act as the starting point for the path
+     * @return a {@link Object} at the destination or null if there is no match
+     */
     public static Object resolve(HierarchyPath path, GameObject context) {
         if (path == null) return null;
         if (path.targetComponent()) return toComponent(path, context);
         return toGameObject(path, context);
     }
 
+    /**
+     * Get the hierarchy path represent the given game object.
+     * @param object the game object to get hierarchy for
+     * @return the {@link HierarchyPath} that is the absolute path to the object, or null if path build failed
+     */
     public static HierarchyPath of(GameObject object) {
         String objPath = buildObjectPath(object);
         if (objPath == null) return null;
         return new HierarchyPath(objPath);
     }
 
+    /**
+     * Get the hierarchy path represent the given component.
+     * @param component the game object to get hierarchy for
+     * @return the {@link HierarchyPath} that is the absolute path to the component, or null if path build failed
+     */
     public static HierarchyPath of(Component component) {
         if (component == null) return null;
         String objPath = buildObjectPath(component.gameObject);
