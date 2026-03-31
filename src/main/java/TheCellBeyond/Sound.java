@@ -22,6 +22,9 @@ public class Sound {
 
     public Sound(String filepath, boolean isLoop) {
         assetReference = new AssetReference(filepath);
+        if (Window.noAudioSupport()) {
+            ResourceStatusCallback.emit(RID, ResourceStatus.FAILED);
+        }
         try (MemoryStack stack = MemoryStack.stackPush()) {
             IntBuffer channelBuffer = stack.mallocInt(1);
             IntBuffer sampleRateBuffer = stack.mallocInt(1);
@@ -49,6 +52,7 @@ public class Sound {
     }
 
     public void dispose() {
+        if (Window.noAudioSupport()) return;
         alDeleteSources(sourceId);
         alDeleteBuffers(bufferId);
         ResourceStatusCallback.emit(RID, ResourceStatus.DISPOSED);
@@ -56,6 +60,7 @@ public class Sound {
     }
 
     public void play() {
+        if (Window.noAudioSupport()) return;
         int state = alGetSourcei(sourceId, AL_SOURCE_STATE);
         if (state == AL_STOPPED) {
             isPlaying = false;
@@ -67,7 +72,7 @@ public class Sound {
     }
 
     public void stop() {
-        if (!isPlaying) return;
+        if (Window.noAudioSupport() || !isPlaying) return;
         alSourceStop(sourceId);
         isPlaying = false;
     }
@@ -77,8 +82,9 @@ public class Sound {
     }
 
     public boolean isPlaying() {
+        if (Window.noAudioSupport()) return;
         int state = alGetSourcei(sourceId, AL_SOURCE_STATE);
         if (state == AL_STOPPED) isPlaying = false;
-        return  isPlaying;
+        return isPlaying;
     }
 }

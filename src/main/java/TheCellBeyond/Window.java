@@ -66,6 +66,7 @@ public final class Window implements EngineEventListener {
     private long soundContext;
     private long audioDevice;
     private boolean projectLoaded = false;
+    private static boolean noAudioSupport = true;
 
     /**
      * Create a new window instance and register it with the Engine Event Callback.
@@ -163,16 +164,33 @@ public final class Window implements EngineEventListener {
 
     private void setupAudioDevice() {
         String defaultAudioDevice = alcGetString(0, ALC_DEFAULT_DEVICE_SPECIFIER);
-        audioDevice = alcOpenDevice(Objects.requireNonNull(defaultAudioDevice));
+        if (defaultAudioDevice == null) {
+            Logger.warning("No audio device found, audio will be disabled");
+            return;
+        }
+        audioDevice = alcOpenDevice(defaultAudioDevice);
+        if (audioDevice == 0) {
+            Logger.warning("Failed to open audio device, audio will be disabled");
+            return;
+        }
         int[] ATTB = {0};
         soundContext = alcCreateContext(audioDevice, ATTB);
+        if (soundContext == 0) {
+            Logger.warning("Failed to create audio context, audio will be disabled");
+            return;
+        }
         alcMakeContextCurrent(soundContext);
         ALCCapabilities alcCapabilities = ALC.createCapabilities(audioDevice);
         ALCapabilities alCapabilities = AL.createCapabilities(alcCapabilities);
         if (!alCapabilities.OpenAL10) {
             Logger.warning("OpenAL10 is not supported on this device");
-            System.exit(-2);
+            return;
         }
+        noAudioSupport = false;
+    }
+
+    public static boolean noAudioSupport() {
+        return noAudioSupport;
     }
 
     private static void applyWindowHints() {
@@ -237,8 +255,8 @@ public final class Window implements EngineEventListener {
         imGuiLayer.getImGuiGl3().shutdown();
         imGuiLayer.getImGuiGlfw().shutdown();
         ImGui.destroyContext();
-        alcDestroyContext(soundContext);
-        alcCloseDevice(audioDevice);
+        if (soundContext != 0) alcDestroyContext(soundContext);
+        if (audioDevice != 0) alcCloseDevice(audioDevice);
         frameBuffer.dispose();
         glfwFreeCallbacks(window.windowPtr);
         glfwDestroyWindow(window.windowPtr);

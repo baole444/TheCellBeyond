@@ -129,12 +129,56 @@ tasks.register('packageInput', Copy) {
     into layout.buildDirectory.dir('packaging/input')
 }
 
+tasks.register('resolveModules', Exec) {
+    group = 'distribution'
+    description = 'Resolve required JRE modules with jdeps'
+    dependsOn packageInput
+    def inputDir = layout.buildDirectory.dir('packaging/input')
+    def modulesFile = layout.buildDirectory.file('packaging/modules.txt')
+    doFirst {
+        def jarFile = fileTree(inputDir).matching { include '*.jar' }.singleFile
+        def libsDir = file("${inputDir.get().asFile}/libs")
+        standardOutput = new ByteArrayOutputStream()
+        commandLine 'jdeps',
+                '--multi-release', 'base',
+                '--print-module-deps',
+                '--ignore-missing-deps',
+                '-cp', "${libsDir.absolutePath}/*",
+                jarFile.absolutePath
+    }
+    doLast {
+        def modules = standardOutput.toString().trim()
+        modulesFile.get().asFile.text = modules
+        logger.lifecycle("Required JRE modules: ${modules}")
+    }
+}
+
+tasks.register('jlinkRuntime', Exec) {
+    group = 'distribution'
+    description = 'Create JRE for distribution'
+    dependsOn resolveModules
+    def runtimeDir = layout.buildDirectory.dir('packaging/runtime')
+    def modulesFile = layout.buildDirectory.file('packaging/modules.txt')
+    doFirst {
+        delete runtimeDir
+        def modules = modulesFile.get().asFile.text.trim()
+        commandLine 'jlink',
+                '--add-modules', modules,
+                '--output', runtimeDir.get().asFile.absolutePath,
+                '--strip-debug',
+                '--no-man-pages',
+                '--no-header-files',
+                '--compress', 'zip-6'
+    }
+}
+
 tasks.register('packageApp', Exec) {
     group = 'distribution'
     description = 'Create native application image with jpackage'
-    dependsOn packageInput
+    dependsOn packageInput, jlinkRuntime
     def inputDir = layout.buildDirectory.dir('packaging/input')
     def outputDir = layout.buildDirectory.dir('packaging/output')
+    def runtimeDir = layout.buildDirectory.dir('packaging/runtime')
     def jarName = jar.archiveFileName.get()
     def iconExt = OperatingSystem.current().windows ? 'ico' : OperatingSystem.current().macOsX ? 'icns' : 'png'
     def iconFile = file("src/main/resources/assets/textures/TCB icon.${iconExt}")
@@ -146,6 +190,7 @@ tasks.register('packageApp', Exec) {
             '--main-jar', jarName,
             '--main-class', 'TheCellBeyond.Main',
             '--type', 'app-image',
+            '--runtime-image', runtimeDir.get().asFile.absolutePath,
             '--java-options', '--enable-native-access=ALL-UNNAMED',
     ]
     if (iconFile.exists()) args += ['--icon', iconFile.absolutePath]
