@@ -12,8 +12,7 @@ out vec2 fTexCrd;
 out float fTexID;
 out float fObjID;
 
-void main()
-{
+void main() {
     fColor = aColor;
     fTexCrd = aTexCrd;
     fTexID = aTexID;
@@ -36,24 +35,26 @@ float median(float r, float g, float b) {
     return max(min(r, g), min(max(r, g), b));
 }
 
-void main()
-{
+void main() {
     if (fTexID > 0) {
         int id = int(fTexID);
-        vec4 texColor = texture(uTex[id], fTexCrd);
-        if (texColor.a * fColor.a < 0.1) {
-            discard;
+        vec4 texColor;
+        switch (id) {
+            case 1: texColor = texture(uTex[1], fTexCrd); break;
+            case 2: texColor = texture(uTex[2], fTexCrd); break;
+            case 3: texColor = texture(uTex[3], fTexCrd); break;
+            case 4: texColor = texture(uTex[4], fTexCrd); break;
+            case 5: texColor = texture(uTex[5], fTexCrd); break;
+            case 6: texColor = texture(uTex[6], fTexCrd); break;
+            case 7: texColor = texture(uTex[7], fTexCrd); break;
+            default: texColor = texture(uTex[0], fTexCrd); break;
         }
-    }
-
-    else {
+        if (texColor.a * fColor.a < 0.1) discard;
+    } else {
         vec3 msd = texture(uFontTex, fTexCrd).rgb;
         float sd = median(msd.r, msd.g, msd.b);
         float alpha = texture(uFontTex, fTexCrd).r;
-
-        if (alpha < 0.5) {
-            discard;
-        }
+        if (alpha < 0.5) discard;
     }
     color = vec3(fObjID, fObjID, fObjID);
 }
