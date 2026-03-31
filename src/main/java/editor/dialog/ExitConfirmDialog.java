@@ -1,5 +1,7 @@
 package editor.dialog;
 
+import TheCellBeyond.Window;
+import TheCellBeyond.internal.LogicServer;
 import editor.preference.EditorPreferences;
 import editor.preference.UserPreference;
 import eventviewer.EngineEventCallback;
@@ -11,25 +13,26 @@ import java.awt.*;
 public class ExitConfirmDialog {
     public static boolean exitDialog() {
         if (isAutoSaveOnExitOn()) {
+            if (LogicServer.currentSceneName() == null) {
+                SaveSceneAsDialog.show(() -> {
+                    EngineEventCallback.emit(new EditorEvent(EditorEvent.Type.SaveEditingSceneToDisk));
+                    Window.get().forceClose();
+                });
+                return false;
+            }
             return true;
         }
-
-        // Set JFrame to force always on top for confirm dialog
         JFrame frame = new JFrame();
         frame.setAlwaysOnTop(true);
         frame.setUndecorated(true);
         frame.setVisible(true);
         frame.setLocationRelativeTo(null);
-
         JCheckBox autoSave = new JCheckBox("Enable auto save on exit");
-
         JPanel panel = new JPanel();
         panel.setLayout(new BorderLayout());
         panel.add(new JLabel("All current progress before save will be lost."), BorderLayout.CENTER);
         panel.add(autoSave, BorderLayout.SOUTH);
-
         Object[] options = {"Save & Exit", "Exit", "Cancel"};
-
         int confirm = JOptionPane.showOptionDialog(frame,
                 panel, "Close TCB Editor?",
                 JOptionPane.YES_NO_CANCEL_OPTION,
@@ -37,14 +40,17 @@ public class ExitConfirmDialog {
                 null,
                 options,
                 options[2]);
-
         frame.dispose();
-
-        if (autoSave.isSelected()) {
-            setAutoSaveOn();
-        }
+        if (autoSave.isSelected()) setAutoSaveOn();
         if (confirm == 0) {
-            EngineEventCallback.emit(null, new EditorEvent(EditorEvent.Type.SaveEditingSceneToDisk));
+            if (LogicServer.currentSceneName() == null) {
+                SaveSceneAsDialog.show(() -> {
+                    EngineEventCallback.emit(new EditorEvent(EditorEvent.Type.SaveEditingSceneToDisk));
+                    Window.get().forceClose();
+                });
+                return false;
+            }
+            EngineEventCallback.emit(new EditorEvent(EditorEvent.Type.SaveEditingSceneToDisk));
             return true;
         } else return confirm == 1;
     }
@@ -55,11 +61,8 @@ public class ExitConfirmDialog {
 
     private static void setAutoSaveOn() {
         EditorPreferences current = UserPreference.reloadEditorPreferences();
-
         if (current.autoSaveOnExit()) return;
-
         EditorPreferences update = new EditorPreferences(true, current.autoSaveOnChangeScene(), current.showGridLine());
-
         UserPreference.updateEditorPreferences(update);
     }
 }

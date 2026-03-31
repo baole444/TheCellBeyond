@@ -21,10 +21,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class UnifiedPaths {
     public static final String EnginePrefix = "engine://";
     public static final String ProjectPrefix = "project://";
-
     private final String projectRoot;
     private final ConcurrentHashMap<String, AssetPath> pathCache = new ConcurrentHashMap<>();
-
     private static volatile UnifiedPaths instance;
 
     /**
@@ -36,13 +34,11 @@ public class UnifiedPaths {
          * Used for default shader programs, fonts, textures and sounds.
          */
         ENGINE,
-
         /**
          * Assets stored within the user project's root directory.
          * Often is the case for most of user's imported resources.
          */
         PROJECT,
-
         /**
          * Assets or files stored outside the engine's classpath or the user project's root directory.
          * Often is the case for temporary imported resources or configurations
@@ -110,14 +106,10 @@ public class UnifiedPaths {
         if (path == null || path.isBlank()) {
             throw new IllegalArgumentException("Path cannot be null or empty");
         }
-
         AssetPath cached = pathCache.get(path);
         if (cached != null) return cached;
-
         AssetPath resolved = parseAndResolve(path);
-
         pathCache.put(path, resolved);
-
         return resolved;
     }
 
@@ -129,22 +121,20 @@ public class UnifiedPaths {
             String enginePath = path.substring(EnginePrefix.length());
             return new AssetPath(path, enginePath, AssetType.ENGINE, true);
         }
-
         if (path.startsWith(ProjectPrefix)) {
             String projectPath = path.substring(ProjectPrefix.length());
             String absPath = resolveProjectPathToAbsolute(projectPath);
             return new AssetPath(path, absPath, AssetType.PROJECT, true);
         }
-
         Path inputPath = Paths.get(path);
         if (inputPath.isAbsolute()) {
             Path normalized = inputPath.toAbsolutePath().normalize();
-            if (projectRoot == null) return new AssetPath(path, normalized.toString(), AssetType.EXTERNAL, true);
-
+            AssetPath external = new AssetPath(path, normalized.toString(), AssetType.EXTERNAL, true);
+            if (projectRoot == null) return external;
             Path root = Paths.get(projectRoot).toAbsolutePath().normalize();
             if (normalized.startsWith(root)) return new AssetPath(path, normalized.toString(), AssetType.PROJECT, true);
+            return external;
         }
-
         String abs = resolveProjectPathToAbsolute(path);
         return new AssetPath(path, abs, AssetType.PROJECT, false);
     }
@@ -153,9 +143,7 @@ public class UnifiedPaths {
         if (projectRoot == null) {
             return relativePath;
         }
-
         String sanctioned = relativePath.startsWith("/") ? relativePath.substring(1) : relativePath;
-
         Path rootPath = Paths.get(projectRoot);
         Path resolvedPath = rootPath.resolve(sanctioned).normalize();
         return resolvedPath.toString();
@@ -181,13 +169,10 @@ public class UnifiedPaths {
         if (enginePath == null || enginePath.isBlank()) {
             throw new IllegalArgumentException("Engine path cannot be null");
         }
-
         InputStream stream = UnifiedPaths.class.getClassLoader().getResourceAsStream(enginePath);
-
         if (stream == null) {
             throw new IOException("Engine asset not found: " + enginePath);
         }
-
         return stream;
     }
 
@@ -196,7 +181,6 @@ public class UnifiedPaths {
         if (!Files.exists(path)) {
             throw new IOException("Project asset not found: " + absolutePath);
         }
-
         return Files.newInputStream(path);
     }
 
@@ -239,7 +223,6 @@ public class UnifiedPaths {
      */
     public boolean isPathInsideProject(String path) {
         if (path == null || path.isBlank()) return false;
-
         try {
             AssetPath assetPath = resolvePath(path);
             return assetPath.type() == AssetType.PROJECT;
@@ -253,13 +236,10 @@ public class UnifiedPaths {
      */
     public String toProjectRelativePath(String absolutePath) {
         if (projectRoot == null || absolutePath == null) return absolutePath;
-
         Path root = Paths.get(projectRoot).toAbsolutePath().normalize();
         Path full = Paths.get(absolutePath).toAbsolutePath().normalize();
-
         // Outside of project directory.
         if (!full.startsWith(root)) return absolutePath;
-
         Path relative = root.relativize(full);
         return relative.toString().replace("\\", "/");
     }
@@ -311,7 +291,6 @@ public class UnifiedPaths {
     public static String toRoot (String path) {
         Path absPath = Paths.get(path).toAbsolutePath();
         Path rootDir = absPath.getParent();
-
         return rootDir.toString();
     }
 
@@ -323,12 +302,9 @@ public class UnifiedPaths {
      */
     public static String resolveToAbsolute(String root, String relative) {
         if (root == null) return relative;
-
         String sanctioned = relative.startsWith("/") ? relative.substring(1) : relative;
-
         Path rootPath = Paths.get(root);
         Path resolvedPath = rootPath.resolve(sanctioned).normalize();
-
         return resolvedPath.toString();
     }
 
@@ -340,22 +316,16 @@ public class UnifiedPaths {
      */
     public static String resolveToRelative(String root, String absolute) {
         if (root == null) return absolute;
-
         Path inputPath = Paths.get(absolute).normalize();
-
         if (!inputPath.isAbsolute()) {
             return inputPath.toString().replace("\\", "/");
         }
-
         Path rootPath = Paths.get(root).toAbsolutePath().normalize();
         Path fullPath = inputPath.toAbsolutePath().normalize();
-
         if (!fullPath.startsWith(rootPath)) {
             throw new IllegalArgumentException("Path is outside project directory!");
         }
-
         Path resolvedPath = rootPath.relativize(fullPath).normalize();
-
         return resolvedPath.toString().replace("\\", "/");
     }
 
