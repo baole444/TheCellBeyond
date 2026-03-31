@@ -16,14 +16,14 @@ jobs:
             label: macos
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Setup JDK 25
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '25'
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6
       - name: Generate icns icon on MacOS
         if: runner.os == 'macOS'
         run: |
@@ -43,7 +43,7 @@ jobs:
       - name: Make gradlew executable
         if: runner.os != 'Windows'
         run: chmod +x gradlew
-      - name: Build engine exe
+      - name: Build engine executable
         shell: bash
         run: ./gradlew packageApp
       - name: Zip to bundle
@@ -56,7 +56,7 @@ jobs:
             zip -r "../TheCellBeyond-${{ matrix.label }}.zip" TheCellBeyond*/
           fi
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: TheCellBeyond-${{ matrix.label }}
           path: build/packaging/TheCellBeyond-${{ matrix.label }}.zip
@@ -67,7 +67,7 @@ jobs:
       contents: write
     steps:
       - name: Download artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: artifacts
       - name: Create release
