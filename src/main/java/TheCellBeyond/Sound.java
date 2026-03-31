@@ -82,7 +82,7 @@ public class Sound {
     }
 
     public boolean isPlaying() {
-        if (Window.noAudioSupport()) return;
+        if (Window.noAudioSupport()) return false;
         int state = alGetSourcei(sourceId, AL_SOURCE_STATE);
         if (state == AL_STOPPED) isPlaying = false;
         return isPlaying;
