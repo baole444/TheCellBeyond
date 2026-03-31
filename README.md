@@ -20,7 +20,7 @@ Alternatively, right click and choose **Open** and confirm on the dialogue to by
 
 ## Scripting
 The engine's API is available on [Maven central repository](https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api), 
-which had been marked as `compiledOnly` in the [build.gradle](https://github.com/baole444/TheCellBeyond/blob/Dev-build/src/main/resources/templates/script-project/build.gradle) 
+which had been marked as `compileOnly` in the [build.gradle](https://github.com/baole444/TheCellBeyond/blob/Dev-build/src/main/resources/templates/script-project/build.gradle) 
 generated for scripting project.
 
 For any other dependencies that might be brought in, they need to be `implementation` instead of `compileOnly`.
