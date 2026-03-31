@@ -1,52 +1,68 @@
-# The Cell Beyond Engine
+<div style="text-align: center;">
 
-A 2D game engine for Java application.
+## TheCellBeyond Game Engine
 
-## Target goal:
-A Java-based game editor with project compile ability, code auto-generation, and scripting support.<br>
+A 2D game engine for in Java with editor for building scenes and levels.
+</div>
 
-*Note: code auto-generation is not AI code suggestion, this is referring to User's project auto build system.*
+## Running the engine
+The executable from release contains a bundled JRE needed to run the core engine and potential prebuilt script jar file.
 
-## Tasks:
-- [X] Basic engine functions.
-- [X] ImGui implementation.
-- [X] Improve internal API and resolve conflicts.
-- [ ] Editor features. (Currently being worked on.)
-- [ ] Code template.
-- [ ] Scripting system.
+The generated script project come with Gradle wrapper, but still require [JDK 25](https://adoptium.net/temurin/releases?version=25&os=any&arch=any) in order to jar the script.
 
-## Problems need attention:
-- N/A
+### macOS
+Due to lack of signing, the engine file on macOS might be blocked from executing.
+This can be bypassed by granting the app permission in terminal:
+```
+xattr -cr /path/to/TheCellBeyond_<version>.app
+```
+Alternatively, right click and choose **Open** and confirm on the dialogue to bypass restriction.
 
-## Solved problems:
-- N/A
+## Scripting
+The engine's API is available on [Maven central repository](https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api), 
+which had been marked as `compiledOnly` in the [build.gradle](https://github.com/baole444/TheCellBeyond/blob/Dev-build/src/main/resources/templates/script-project/build.gradle) 
+generated for scripting project.
 
-## Additional maintenance:
-- Update ImGui to [latest release](https://github.com/SpaiR/imgui-java/releases).
-- Maintain compatibility of the project loading system.
+For any other dependencies that might be brought in, they need to be `implementation` instead of `compileOnly`.
 
-## Current work:
-- [ ] Documentation the Engine's API.
-- [ ] Implement API for Sound effect.
+### Compatibility
+Below is the minimum API version for scripting to be compatible with the engine's release version:
 
-### Finished work:
-This is a list of finished work and is now in maintaining state:
-<details>
-    <summary>Past works</summary>
+| Engine version |                                          API version                                          |
+|:--------------:|:---------------------------------------------------------------------------------------------:|
+| 1.0.5 - 1.0.7  | [__1.0.5__](https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api/1.0.5) |
+|   ~~1.0.4~~    | [~~1.0.4~~](https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api/1.0.4) |
 
-- [X] Tile Map and Tile Set API.
-- [X] Project system.
-- [X] Unified Path System.
-- [X] GameObject hierarchy structure.
-- [X] Reimplementation of Scene Tree.
-- [X] Investigating Scripting Engine support.
-- [X] Migration to the new object UUID system.
-- [X] Native Filed Dialog implementation.
-- [X] Reimplementation of object properties panel and component addition/deletion workflow
-- [X] Add a way to save a project.
-- [X] Dynamically loaded assets.
-- [X] Implement API for StateEngine
+Using any version older than 1.0.7 might not work properly.
 
-</details>
+Annotate a class as GameObject type:
+```java
+import physic2d.CharacterBody2D;
+import scripting.RegisterGameObject;
 
-*To be continued*
+@RegisterGameObject(label = "Player Object", description = "Main player controlled object")
+public class MainPlayer extends CharacterBody2D {
+    @Override
+    protected void onPhysicUpdate(float dt) {
+        super.onPhysicUpdate(dt);
+        
+        // Other logic you might have
+        
+        moveAndSlide();
+    }
+}
+```
+
+Annotate a class as Component type:
+```java
+import components.StateEngine;
+import scripting.RegisterComponent;
+
+@RegisterComponent(label = "Main char state engine", description = "State engine for main character")
+public class MainStateEngine extends StateEngine {
+    @Override
+    protected void onReady() {
+        switchState("Idle");
+    }
+}
+```
