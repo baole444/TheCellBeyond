@@ -1,6 +1,7 @@
 package editor.template;
 
 import TheCellBeyond.GameObject;
+import components.Component2D;
 import components.RemoteTransform2D;
 import editor.EditorColors;
 import editor.EditorIcons;
@@ -8,16 +9,15 @@ import editor.EditorWidget;
 import editor.payload.GameObjectDragDropPayload;
 import imgui.ImGui;
 import imgui.ImVec2;
-import imgui.flag.ImGuiChildFlags;
-import imgui.flag.ImGuiCol;
-import imgui.flag.ImGuiTableColumnFlags;
-import imgui.flag.ImGuiTableFlags;
+import imgui.flag.*;
 import imgui.type.ImBoolean;
+
+import java.util.UUID;
 
 /**
  * Template for {@link RemoteTransform2D}'s editor UI
  */
-final class RemoteTransform2DTemplate implements ComponentTemplate<RemoteTransform2D> {
+final class RemoteTransform2DTemplate implements IComponentTemplate<RemoteTransform2D> {
     private static final RemoteTransform2DTemplate instance = new RemoteTransform2DTemplate();
     private RemoteTransform2DTemplate() {}
 
@@ -29,29 +29,30 @@ final class RemoteTransform2DTemplate implements ComponentTemplate<RemoteTransfo
      */
     @Override
     public void editorUI(RemoteTransform2D component) {
-        if (component == null) return;
+        ImGui.spacing();
+        UUID uuid = component.getUUID();
+        boolean openRemote = ImGui.collapsingHeader("RemoteTransform2D##RemoteTransform2D_Properties_Header_" + uuid, ImGuiTreeNodeFlags.DefaultOpen);
+        if (!openRemote) return;
         boolean accept = false;
-        if (ImGui.beginChild("##RemoteTransform2D_DropTarget_Region_" + component.getUUID(), new ImVec2(0.0f, 0.0f), ImGuiChildFlags.AutoResizeY)) {
-            accept = inputPath(component);
-        }
+        if (ImGui.beginChild("##RemoteTransform2D_DropTarget_Region_" + component.getUUID(), 0.0f, 0.0f, ImGuiChildFlags.AutoResizeY)) accept = inputPath(component);
         ImGui.endChild();
         if (!accept) return;
         acceptDragDrop(component);
         ImGui.spacing();
         ImBoolean useGlobal = new ImBoolean(component.useGlobalTransform);
-        if (ImGui.checkbox("Use Global Transform##RemoteTransform2D_UseGlobalTransform_CheckBox_" + component.getUUID(), useGlobal)) component.useGlobalTransform = useGlobal.get();
+        if (ImGui.checkbox("Use Global Transform##RemoteTransform2D_UseGlobalTransform_CheckBox_" + uuid, useGlobal)) component.useGlobalTransform = useGlobal.get();
         useGlobalTooTip(component);
         ImGui.spacing();
         ImBoolean updatePos = new ImBoolean(component.updatePosition);
-        if (ImGui.checkbox("Update Position##RemoteTransform2D_UpdatePosition_Checkbox_" + component.getUUID(), updatePos)) component.updatePosition = updatePos.get();
+        if (ImGui.checkbox("Update Position##RemoteTransform2D_UpdatePosition_Checkbox_" + uuid, updatePos)) component.updatePosition = updatePos.get();
         broadcastTooltips("updatePosition = %s", component.updatePosition, "If true, position will be broadcast to the targeted object.");
         ImGui.spacing();
         ImBoolean updateRot = new ImBoolean(component.updateRotation);
-        if (ImGui.checkbox("Update Rotation##RemoteTransform2D_UpdateRotation_Checkbox_" + component.getUUID(), updateRot)) component.updateRotation = updateRot.get();
+        if (ImGui.checkbox("Update Rotation##RemoteTransform2D_UpdateRotation_Checkbox_" + uuid, updateRot)) component.updateRotation = updateRot.get();
         broadcastTooltips("updateRotation = %s", component.updateRotation, "If true, rotation will be broadcast to the targeted object.");
         ImGui.spacing();
         ImBoolean updateSl = new ImBoolean(component.updateScale);
-        if (ImGui.checkbox("Update Scale##RemoteTransform2D_UpdateScale_Checkbox_" + component.getUUID(), updateSl)) component.updateScale = updateSl.get();
+        if (ImGui.checkbox("Update Scale##RemoteTransform2D_UpdateScale_Checkbox_" + uuid, updateSl)) component.updateScale = updateSl.get();
         broadcastTooltips("updateScale = %s", component.updateScale, "If true, scale will be broadcast to the targeted object.");
     }
 
@@ -130,11 +131,12 @@ final class RemoteTransform2DTemplate implements ComponentTemplate<RemoteTransfo
     }
 
     /**
-     * Render the content of {@link #editorUI(RemoteTransform2D)}.
+     * Render the content of {@link #editorUI(RemoteTransform2D)} and call {@link Component2DTemplate#render(Component2D)}.
      * @param remoteTransform2D the context component
      */
     static void render(RemoteTransform2D remoteTransform2D) {
         if (remoteTransform2D == null) return;
         instance.editorUI(remoteTransform2D);
+        Component2DTemplate.render(remoteTransform2D);
     }
 }

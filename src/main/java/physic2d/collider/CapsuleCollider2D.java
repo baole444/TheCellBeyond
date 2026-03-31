@@ -1,8 +1,5 @@
 package physic2d.collider;
 
-import editor.EditorWidget;
-import imgui.ImGui;
-import imgui.flag.ImGuiTreeNodeFlags;
 import org.jbox2d.collision.shapes.Shape;
 import org.joml.Vector2f;
 
@@ -165,20 +162,4 @@ public class CapsuleCollider2D extends CollisionShape2D {
 
     @Override
     protected void drawDebugShape() {}
-
-    @Override
-    protected void additionalImGuiLogic() {
-        ImGui.spacing();
-        boolean openCapsule = ImGui.collapsingHeader("CapsuleCollier2D##CapsuleCollider2D_Properties_Header_" + getUUID(), ImGuiTreeNodeFlags.DefaultOpen);
-        if (!openCapsule) {
-            super.additionalImGuiLogic();
-            return;
-        }
-        ImGui.indent();
-        float w = EditorWidget.dragFloatCtrl("Width", width, 0.32f, this, MinimumShapeDimension);
-        float h = EditorWidget.dragFloatCtrl("Height", height, 0.64f, this, MinimumShapeDimension);
-        if (Float.compare(w, width) != 0) width(w);
-        if (Float.compare(h, height) != 0) height(h);
-        ImGui.unindent();
-    }
 }

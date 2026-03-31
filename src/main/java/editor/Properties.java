@@ -37,7 +37,7 @@ public class Properties {
             ImGui.end();
             return;
         }
-        if (activeGameObject.isRemoved()) {
+        if (activeGameObject.isDestroyed()) {
             updateActives();
             ImGui.end();
             return;
@@ -126,7 +126,7 @@ public class Properties {
 
     private static void updateActives() {
         for (int i = activeGameObjects.size() - 1; i >= 0; i--) {
-            if (!activeGameObjects.get(i).isRemoved()) continue;
+            if (!activeGameObjects.get(i).isDestroyed()) continue;
             activeGameObjects.remove(i);
             activeObjTrueColor.remove(i);
         }

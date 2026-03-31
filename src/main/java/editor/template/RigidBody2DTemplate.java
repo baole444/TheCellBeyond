@@ -13,7 +13,7 @@ import java.util.UUID;
 /**
  * Template for {@link RigidBody2D}'s editor UI.
  */
-final class RigidBody2DTemplate implements ObjectTemplate<RigidBody2D> {
+final class RigidBody2DTemplate implements IObjectTemplate<RigidBody2D> {
     private static final RigidBody2DTemplate instance = new RigidBody2DTemplate();
     private RigidBody2DTemplate() {}
     /**

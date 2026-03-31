@@ -91,7 +91,7 @@ public class EditorGizmo extends Component2D implements NotSerializeComponent {
     public void editorUpdate(float dt) {
         if (!isUsed) return;
         activeGameObj = Properties.getActiveGameObject();
-        if (activeGameObj == null || activeGameObj.isRemoved()) {
+        if (activeGameObj == null || activeGameObj.isDestroyed()) {
             activeGameObj = null;
             setInactive();
             return;

@@ -12,7 +12,7 @@ import java.util.UUID;
 /**
  * Template for {@link RayCast2D}'s editor UI.
  */
-final class RayCast2DTemplate implements ObjectTemplate<RayCast2D> {
+final class RayCast2DTemplate implements IObjectTemplate<RayCast2D> {
     private static final RayCast2DTemplate instance = new RayCast2DTemplate();
     private RayCast2DTemplate() {}
     /**

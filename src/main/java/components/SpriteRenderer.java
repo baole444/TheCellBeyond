@@ -1,7 +1,6 @@
 package components;
 
 import TheCellBeyond.internal.ResourceID;
-import editor.template.EditorTemplate;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import render.Texture;
@@ -31,11 +30,6 @@ public class SpriteRenderer extends Component2D {
     public SpriteRenderer(String name) {
         if (invalidName(name)) name = SpriteRenderer.class.getSimpleName();
         super(name);
-    }
-
-    @Override
-    protected void additionalImGuiLogic() {
-        EditorTemplate.render(this);
     }
 
     @Override

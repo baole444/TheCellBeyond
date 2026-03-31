@@ -17,7 +17,7 @@ import java.util.UUID;
 /**
  * Template for {@link Camera2D}'s editor UI.
  */
-final class Camera2DTemplate implements ObjectTemplate<Camera2D> {
+final class Camera2DTemplate implements IObjectTemplate<Camera2D> {
     private static final Camera2DTemplate instance = new Camera2DTemplate();
     private Camera2DTemplate() {}
 

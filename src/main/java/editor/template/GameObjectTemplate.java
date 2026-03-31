@@ -8,7 +8,6 @@ import editor.EditorIcons;
 import editor.EditorWidget;
 import editor.widgets.CollapsibleHeaderFlag;
 import imgui.ImGui;
-import imgui.ImVec2;
 import imgui.flag.ImGuiChildFlags;
 import imgui.flag.ImGuiTableColumnFlags;
 import imgui.flag.ImGuiTableFlags;
@@ -19,7 +18,7 @@ import java.util.UUID;
 /**
  * Template for {@link GameObject}'s editor UI.
  */
-final class GameObjectTemplate implements ObjectTemplate<GameObject> {
+final class GameObjectTemplate implements IObjectTemplate<GameObject> {
     private static final GameObjectTemplate instance = new GameObjectTemplate();
     private GameObjectTemplate() {}
     /**
@@ -58,7 +57,7 @@ final class GameObjectTemplate implements ObjectTemplate<GameObject> {
                 continue;
             }
             if (!open) continue;
-            if (ImGui.beginChild("##GameObject_Component_Properties_Region_" + uuid, new ImVec2(0.0f, 0.0f), ImGuiChildFlags.AutoResizeY | ImGuiChildFlags.Border)) c.imgui();
+            if (ImGui.beginChild("##GameObject_Component_Properties_Region_" + uuid, 0.0f, 0.0f, ImGuiChildFlags.AutoResizeY | ImGuiChildFlags.Border)) EditorTemplate.render(c);
             ImGui.endChild();
             ImGui.spacing();
         }

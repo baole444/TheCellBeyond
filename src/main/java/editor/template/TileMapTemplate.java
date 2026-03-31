@@ -17,7 +17,7 @@ import java.util.UUID;
 /**
  * Template for {@link TileMap}'s editor UI.
  */
-final class TileMapTemplate implements ObjectTemplate<TileMap> {
+final class TileMapTemplate implements IObjectTemplate<TileMap> {
     private static final TileMapTemplate instance = new TileMapTemplate();
     private TileMapTemplate() {}
     /**

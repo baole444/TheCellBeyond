@@ -4,8 +4,6 @@ import TheCellBeyond.internal.ResourceID;
 import TheCellBeyond.internal.ResourceStatus;
 import TheCellBeyond.internal.ResourceStatusCallback;
 import TheCellBeyond.internal.ResourceStatusListener;
-import editor.EditorWidget;
-import imgui.ImGui;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import render.DebugDraw;
@@ -94,97 +92,57 @@ public class TextRenderer extends Component2D implements ResourceStatusListener 
     }
 
     @Override
-    protected void additionalImGuiLogic() {
-        String textInput = EditorWidget.inputTextWithIME("Text", text, 1024, this);
-        setText(textInput);
-        String currentPath = assetReference != null ? assetReference.canonicalPath() : "";
-        String fontPathInput = EditorWidget.inputText("Font Path", currentPath, this);
-        if (!fontPathInput.equals(currentPath)) {
-            UnifiedPaths resolver = UnifiedPaths.get();
-            AssetReference newRef = new AssetReference(fontPathInput);
-            if (resolver.exists(newRef.resolvedPath())) {
-                this.assetReference = newRef;
-                requestLoadFont();
-            }
-        }
-        float fontSizeInput = EditorWidget.dragFloatCtrl("Font Size", point, this);
-        if (fontSizeInput != point) {
-            this.point = Math.abs(fontSizeInput);
-            requestLoadFont();
-        }
-        if (EditorWidget.colorCtrl("Color", color, this)) renderDirty = true;
-        ImGui.text("Alignment");
-        ImGui.indent();
-        if (ImGui.beginCombo("Horizontal", hAlign == null ? "Select one..." : hAlign.toString())) {
-            for (HorizontalAlignment align : HorizontalAlignment.values()) {
-                if (!ImGui.selectable(align.toString(), align == hAlign)) continue;
-                hAlign = align;
-                renderDirty = true;
-            }
-            ImGui.endCombo();
-        }
-        if (ImGui.beginCombo("Vertical", vAlign == null ? "Select one..." : vAlign.toString())) {
-            for (VerticalAlignment align : VerticalAlignment.values()) {
-                if (!ImGui.selectable(align.toString(), align == vAlign)) continue;
-                vAlign = align;
-                renderDirty = true;
-            }
-            ImGui.endCombo();
-        }
-        ImGui.unindent();
-        if (ImGui.beginCombo("Glyph Range", glyphRangeName)) {
-            for (GlyphRange range : GlyphRange.values()) {
-                if (ImGui.selectable(range.getDescription(), range.name().equals(glyphRangeName))) setGlyphRange(range);
-            }
-            ImGui.endCombo();
-        }
-    }
-
-    @Override
     protected void onDestroy() {
         ResourceStatusCallback.unregister(this);
     }
 
-    public String getText() {
+    public String text() {
         return text;
     }
 
-    public void setText(String text) {
+    public void text(String text) {
         if (this.text.equals(text)) return;
         this.text = text;
         renderDirty = true;
         calculateTextDimensions();
     }
 
-    public float getPoint() {
+    public float point() {
         return point;
     }
 
-    public TCBFont getFont() {
+    public TCBFont font() {
         return fontRID != null ? AssetManager.get().getFont(fontRID) : null;
     }
 
-    public Vector4f getColor() {
+    public Vector4f color() {
         return color;
     }
 
-    public void setColor(Vector4f color) {
-        if (this.color.equals(color)) return;
+    public void color(Vector4f color) {
+        if (color == null || this.color.equals(color)) return;
         this.color.set(color);
         renderDirty = true;
     }
 
-    public String getFontPath() {
+    public String fontPath() {
         return assetReference != null ? assetReference.canonicalPath() : "";
     }
 
-    public void setFontPath(String fontPathInput) {
+    public void fontPath(String fontPathInput) {
         if (fontPathInput == null) return;
         AssetReference newRef = new AssetReference(fontPathInput);
         if (Objects.equals(newRef, assetReference)) return;
         UnifiedPaths resolver = UnifiedPaths.get();
         if (!resolver.exists(newRef.resolvedPath())) return;
         this.assetReference = newRef;
+        requestLoadFont();
+    }
+
+    public void point(float newPoint) {
+        newPoint = Math.abs(newPoint);
+        if (newPoint == point) return;
+        point = newPoint;
         requestLoadFont();
     }
 
@@ -196,39 +154,39 @@ public class TextRenderer extends Component2D implements ResourceStatusListener 
         renderDirty = false;
     }
 
-    public Vector2f getTextDimensions() {
+    public Vector2f textDimensions() {
         return textDimensions;
     }
 
-    public HorizontalAlignment getHorizontalAlignment() {
+    public HorizontalAlignment horizontalAlignment() {
         return hAlign;
     }
 
-    public void setHorizontalAlignment(HorizontalAlignment hAlign) {
+    public void horizontalAlignment(HorizontalAlignment hAlign) {
         if (hAlign == null || this.hAlign == hAlign) return;
         this.hAlign = hAlign;
         renderDirty = true;
     }
 
-    public VerticalAlignment getVerticalAlignment() {
+    public VerticalAlignment verticalAlignment() {
         return vAlign;
     }
 
-    public void setVerticalAlignment(VerticalAlignment vAlign) {
+    public void verticalAlignment(VerticalAlignment vAlign) {
         if (vAlign == null || this.vAlign == vAlign) return;
         this.vAlign = vAlign;
         renderDirty = true;
     }
 
-    public GlyphRange getGlyphRange() {
+    public GlyphRange glyphRange() {
         return GlyphRange.valueOf(this.glyphRangeName);
     }
 
-    public String getGlyphRangeName() {
+    public String glyphRangeName() {
         return glyphRangeName;
     }
 
-    public void setGlyphRange(GlyphRange glyphRange) {
+    public void glyphRange(GlyphRange glyphRange) {
         if (Objects.equals(this.glyphRangeName, glyphRange.name())) return;
         glyphRangeName = glyphRange.name();
         requestLoadFont();

@@ -11,7 +11,7 @@ import java.util.UUID;
 /**
  * Template for {@link PhysicBody2D}'s editor UI.
  */
-final class PhysicBody2DTemplate implements ObjectTemplate<PhysicBody2D> {
+final class PhysicBody2DTemplate implements IObjectTemplate<PhysicBody2D> {
     private static final PhysicBody2DTemplate instance = new PhysicBody2DTemplate();
     private PhysicBody2DTemplate() {}
     /**

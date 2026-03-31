@@ -13,7 +13,7 @@ import java.util.UUID;
 /**
  * Template for {@link Parallax2D}'s editor UI.
  */
-final class Parallax2DTemplate implements ObjectTemplate<Parallax2D> {
+final class Parallax2DTemplate implements IObjectTemplate<Parallax2D> {
     private static final Parallax2DTemplate instance = new Parallax2DTemplate();
     private Parallax2DTemplate() {}
 

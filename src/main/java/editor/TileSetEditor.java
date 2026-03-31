@@ -73,7 +73,7 @@ public class TileSetEditor {
             ImGui.textWrapped("Select a Tile Map component from Inspector panel to start editing its details");
             return;
         }
-        if (editingTileMap.isRemoved() || editingTileMap.getUUID() == null) {
+        if (editingTileMap.isDestroyed() || editingTileMap.getUUID() == null) {
             clearDialogData();
             return;
         }

@@ -51,7 +51,7 @@ class ControllerBindingEditor {
             ImGui.textWrapped("Selected a Controller2D component from Inspector panel to start editing its details");
             return;
         }
-        if (editingController.gameObject == null || editingController.gameObject.isRemoved() || editingController.getUUID() == null) {
+        if (editingController.isDestroyed()) {
             clearDialogData();
             return;
         }

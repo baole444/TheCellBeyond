@@ -11,7 +11,7 @@ import java.util.UUID;
 /**
  * Template for {@link Area2D}'s editor UI.
  */
-final class Area2DTemplate implements ObjectTemplate<Area2D> {
+final class Area2DTemplate implements IObjectTemplate<Area2D> {
     private static final Area2DTemplate instance = new Area2DTemplate();
     private Area2DTemplate() {}
     /**

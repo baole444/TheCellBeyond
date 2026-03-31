@@ -104,18 +104,12 @@ public final class EditorObjectIndicator extends Component2D implements NotSeria
     }
 
     /**
-     * Prevent editing indicator's properties.
-     */
-    @Override
-    public void imgui() {}
-
-    /**
      * Add editor indicator to the given game object.
      * This requires object of type {@link GameObject2D} or its subclasses.
      * @param go the game object to receive the component
      */
     public static void add(GameObject go) {
-        if (go == null || go.isRemoved() || !go.isSerialize()) return;
+        if (go == null || go.isDestroyed() || !go.isSerialize()) return;
         if (go.getFirstComponent(IsNotSelectable.class) != null) return;
         go.removeComponents(EditorObjectIndicator.class);
         if (go instanceof GameObject2D go2D) go2D.addComponent(new EditorObjectIndicator());

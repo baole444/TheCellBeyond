@@ -1,7 +1,6 @@
 package TheCellBeyond;
 
 import components.Component;
-import editor.template.EditorTemplate;
 import org.joml.Vector2f;
 import utility.WorldUnit;
 
@@ -34,23 +33,19 @@ public class Transform2D extends Component {
      * Default value: (0.0, 0.0).
      */
     public final Vector2f position = new Vector2f();
-
     /**
      * The transform scale vector.
      * Default value: (1.0, 1.0).
      */
     public final Vector2f scale = new Vector2f(1.0f);
-
     /**
      * The transform rotation angle.
      */
     public float rotation = 0.0f;
-
     /**
      * The transform z-index value.
      */
     public int zIndex = 0;
-
     /**
      * Is this transform's z-index value relative or not.
      * <p>
@@ -154,11 +149,6 @@ public class Transform2D extends Component {
         destination.rotation = source.rotation;
         destination.zIndex = source.zIndex;
         destination.relativeZIndex = source.relativeZIndex;
-    }
-
-    @Override
-    public void imgui() {
-        EditorTemplate.render(this);
     }
 
     @Override

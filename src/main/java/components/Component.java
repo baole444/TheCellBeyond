@@ -1,7 +1,6 @@
 package components;
 
 import TheCellBeyond.GameObject;
-import editor.EditorWidget;
 import org.jbox2d.dynamics.contacts.Contact;
 import org.joml.Vector2f;
 import utility.HierarchyPath;
@@ -67,22 +66,20 @@ public abstract class Component {
      * Logger for components.
      */
     protected static final EngineLog LOGGER = new EngineLog(Component.class);
-
     /**
      * Get the UUID uses to identify this component.
      */
     private UUID uuid;
-
     /**
      * The owning {@link GameObject} of this component.
      */
     public transient GameObject gameObject;
-
     /**
      * Custom name of this component.
      * Named component is cached in scene's data for faster access.
      */
     private String componentName;
+    private transient boolean destroyed = false;
 
     /**
      * Create a new {@link Component} instance.
@@ -283,10 +280,19 @@ public abstract class Component {
     public void postSolve(GameObject targetObj, Contact contact, Vector2f hitNormalization) {}
 
     /**
+     * Check if this component has been destroyed / removed or not.
+     * @return true if this component has been destroyed
+     */
+    public boolean isDestroyed() {
+        return destroyed;
+    }
+
+    /**
      * Upon calling destroy, the component will discard its uuid, game object reference, and its name.
      */
     public final void destroy() {
         onDestroy();
+        destroyed = true;
         uuid = null;
         gameObject = null;
         componentName = null;
@@ -298,21 +304,6 @@ public abstract class Component {
      * This is useful for when there are external states that need to be aware of this component's destruction.
      */
     protected void onDestroy() {}
-
-    /**
-     * Export this component's properties for editing in the Editor UI.
-     */
-    public void imgui() {
-        String name = EditorWidget.inputText("Name", componentName, this);
-        if (!name.equals(componentName)) name(name);
-
-        additionalImGuiLogic();
-    }
-
-    /**
-     * Additional component's properties export.
-     */
-    protected void additionalImGuiLogic() {}
 
     /**
      * Get the UUID uses for identify this component.
@@ -346,13 +337,13 @@ public abstract class Component {
     }
 
     /**
-     * Set a custom name for this component.
+     * Set the name of this component using the given name.
      * <p>
-     * If the name is {@code null} or blank, this component revert back to its class name.
+     * The component only changes its name if {@link #invalidName(String)} return false with the given name.
      * @param name the name to update with
      */
     public void name(String name) {
-        if (invalidName(name)) name = this.getClass().getSimpleName();
+        if (invalidName(name)) return;
         componentName = name.trim();
     }
 

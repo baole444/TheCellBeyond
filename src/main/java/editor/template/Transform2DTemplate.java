@@ -14,7 +14,7 @@ import java.util.UUID;
 /**
  * Template for {@link Transform2D}'s editor UI.
  */
-final class Transform2DTemplate implements ComponentTemplate<Transform2D> {
+final class Transform2DTemplate implements IComponentTemplate<Transform2D> {
     private static final Transform2DTemplate instance = new Transform2DTemplate();
     private Transform2DTemplate() {}
     /**

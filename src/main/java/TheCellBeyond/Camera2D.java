@@ -486,7 +486,7 @@ public class Camera2D extends GameObject2D {
     private static List<Camera2D> getCameraInScene(Scene scene, Camera2D context) {
         if (scene == null || context == null) return List.of();
         return scene.getGameObjects().stream()
-                .filter(go -> go instanceof Camera2D && go != context && !go.isRemoved())
+                .filter(go -> go instanceof Camera2D && go != context && !go.isDestroyed())
                 .map(go -> (Camera2D) go)
                 .toList();
     }

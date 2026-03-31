@@ -2,9 +2,7 @@ package components;
 
 import TheCellBeyond.GameObject2D;
 import TheCellBeyond.Transform2D;
-import imgui.ImGui;
 import org.joml.Vector2f;
-import render.commands.RenderCommand;
 import render.commands.TransformCommand;
 
 /**
@@ -22,19 +20,17 @@ public abstract class Component2D extends RenderableComponent {
      * This 2D component's local transform.
      */
     protected final Transform2D localTransform2D = new Transform2D();
-
     /**
      * This 2D component's global transform.
      */
     private transient Transform2D effectiveTransform2D = null;
-
     /**
      * Is this 2D component's global transform needs update.
      */
     private transient boolean isTransformDirty = true;
 
     /**
-     * Create a new {@link Component2D} component.
+     * Create a new {@link Component2D}.
      */
     public Component2D() {
         String name = Component2D.class.getSimpleName();
@@ -42,8 +38,8 @@ public abstract class Component2D extends RenderableComponent {
     }
 
     /**
-     * Create a new {@link Component2D} component with the given name.
-     * @param name the new name for the component
+     * Create a new {@link Component2D} with the given name.
+     * @param name the new name for the 2D component
      */
     public Component2D(String name) {
         if (invalidName(name)) name = Component2D.class.getSimpleName();
@@ -85,16 +81,6 @@ public abstract class Component2D extends RenderableComponent {
     public Vector2f objectWorldPosition() {
         if (gameObject instanceof GameObject2D go2D) return go2D.globalPosition();
         return new Vector2f(localTransform2D.position);
-    }
-
-    @Override
-    public void imgui() {
-        super.imgui();
-        Transform2D editing = new Transform2D(localTransform2D);
-        ImGui.indent();
-        localTransform2D.imgui();
-        ImGui.unindent();
-        if (!editing.equals(localTransform2D)) setTransformDirty();
     }
 
     /**
@@ -388,6 +374,28 @@ public abstract class Component2D extends RenderableComponent {
      */
     public void setZIndexAsAbsolute() {
         localTransform2D.relativeZIndex = false;
+        setTransformDirty();
+    }
+
+    /**
+     * Get the local transform of this 2D component.
+     * @return the local transform
+     * @apiNote
+     * Directly modify the values returned by this method will not trigger the transform dirty flag.
+     */
+    public Transform2D localTransform() {
+        return localTransform2D;
+    }
+
+    /**
+     * Set the values of this 2D component's local transform using the given transform.
+     * <p>
+     * This will trigger the transform dirty flag if the values are different.
+     * @param newTransform the transform to copy values from
+     */
+    public void localTransform(Transform2D newTransform) {
+        if (localTransform2D.equals(newTransform)) return;
+        Transform2D.copy(newTransform, localTransform2D);
         setTransformDirty();
     }
 

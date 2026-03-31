@@ -1,8 +1,5 @@
 package physic2d.collider;
 
-import editor.EditorWidget;
-import imgui.ImGui;
-import imgui.flag.ImGuiTreeNodeFlags;
 import org.jbox2d.collision.shapes.CircleShape;
 import org.jbox2d.collision.shapes.Shape;
 import org.joml.Vector2f;
@@ -74,20 +71,5 @@ public class CircleCollider2D extends CollisionShape2D {
         if (gameObject == null) return;
         float radius = effectiveRadius();
         DebugDraw.addCircle(globalPosition(), radius);
-    }
-
-    @Override
-    protected void additionalImGuiLogic() {
-        ImGui.spacing();
-        boolean openCircle = ImGui.collapsingHeader("CircleCollider2D##CircleCollider2D_Properties_Header_" + getUUID(), ImGuiTreeNodeFlags.DefaultOpen);
-        if (!openCircle) {
-            super.additionalImGuiLogic();
-            return;
-        }
-        ImGui.indent();
-        float r = EditorWidget.dragFloatCtrl("Radius", radius, 0.16f, this, MinimumShapeDimension);
-        if (Float.compare(r, radius) != 0) radius(r);
-        ImGui.unindent();
-        super.additionalImGuiLogic();
     }
 }

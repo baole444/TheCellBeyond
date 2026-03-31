@@ -12,7 +12,7 @@ final class GameObjectTemplateHierarchy {
      * @param go the context object
      */
     static void render(GameObject go) {
-        if (go == null || go.isRemoved()) return;
+        if (go == null || go.isDestroyed()) return;
         switch (go) {
             case Area2D area2D -> Area2DTemplate.render(area2D);
             case Camera2D camera2D -> Camera2DTemplate.render(camera2D);

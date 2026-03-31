@@ -644,7 +644,9 @@ public class GameObject2D extends RenderableObject {
 
     /**
      * Get the local transform of this 2D object.
-     * @return a new {@link Transform2D}
+     * @return the local transform
+     * @apiNote
+     * Directly modify the values returned by this method will not trigger the transform dirty flag.
      */
     public Transform2D localTransform() {
         return localTransform2D;

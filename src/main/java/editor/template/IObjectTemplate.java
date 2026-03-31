@@ -7,8 +7,8 @@ import TheCellBeyond.GameObject;
  * This is mainly used for extracting editor UI's rendering code out of the object class itself.
  * <p>
  * Implementation of this interface is intended to be singleton, with private constructor and static instance, for example:
- * {@snippet lang= java:
- * class CustomTemplate implements ObjectTemplate<CustomObject> {
+ * {@snippet lang = java:
+ * class CustomTemplate implements IObjectTemplate<CustomObject> {
  *     private static CustomTemplate instance = new CustomTemplate();
  *     private CustomTemplate() {}
  *
@@ -22,10 +22,10 @@ import TheCellBeyond.GameObject;
  *         instance.editorUI(customComponent);
  *     }
  * }
- * }
+ *}
  * @param <T> GameObject type or its subclasses.
  */
-interface ObjectTemplate<T extends GameObject> {
+interface IObjectTemplate<T extends GameObject> {
     /**
      * Execute the rendering code for the Editor UI, related to this object.
      * This method is passive, and mst be call to render the UI.

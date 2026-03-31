@@ -3,14 +3,13 @@ package editor.template;
 import TheCellBeyond.GameObject2D;
 import TheCellBeyond.Transform2D;
 import imgui.ImGui;
-import imgui.flag.ImGuiTreeNodeFlags;
 
 /**
  * Template for {@link GameObject2D}'s editor UI.
  */
-final class GameObject2DTemplate implements ObjectTemplate<GameObject2D> {
+final class GameObject2DTemplate implements IObjectTemplate<GameObject2D> {
     private static final GameObject2DTemplate instance = new GameObject2DTemplate();
-    private static final Transform2D editing = new Transform2D("Template cache");
+    private static final Transform2D editing = new Transform2D("Object2D Template Cache");
     private GameObject2DTemplate() {}
 
     /**
@@ -26,7 +25,7 @@ final class GameObject2DTemplate implements ObjectTemplate<GameObject2D> {
         if (!openTransform) return;
         Transform2D.copy(object.localTransform(), editing);
         ImGui.indent();
-        editing.imgui();
+        Transform2DTemplate.render(editing);
         ImGui.unindent();
         object.localTransform(editing);
     }

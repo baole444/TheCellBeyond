@@ -109,7 +109,7 @@ public class BottomPanel {
      * Render the panel on screen.
      */
     static void imgui() {
-        if (currentObject != null && currentObject.isRemoved()) clear();
+        if (currentObject != null && currentObject.isDestroyed()) clear();
         ImGui.setNextWindowSizeConstraints(
                 new ImVec2(0, TabButtonReserve + SeparatorReserve + Padding),
                 new ImVec2(Float.MAX_VALUE, Float.MAX_VALUE)

@@ -1,8 +1,5 @@
 package physic2d.collider;
 
-import editor.EditorWidget;
-import imgui.ImGui;
-import imgui.flag.ImGuiTreeNodeFlags;
 import org.jbox2d.collision.shapes.PolygonShape;
 import org.jbox2d.collision.shapes.Shape;
 import org.jbox2d.common.Vec2;
@@ -78,20 +75,5 @@ public class BoxCollider2D extends CollisionShape2D {
     protected void drawDebugShape() {
         if (gameObject == null) return;
         DebugDraw.addBox2(globalPosition(), getEffectiveHalfSize().mul(2.0f), globalRotation());
-    }
-
-    @Override
-    protected void additionalImGuiLogic() {
-        ImGui.spacing();
-        boolean openBox = ImGui.collapsingHeader("BoxCollier2D##BoxCollider2D_Properties_Header_" + getUUID(), ImGuiTreeNodeFlags.DefaultOpen);
-        if (!openBox) {
-            super.additionalImGuiLogic();
-            return;
-        }
-        ImGui.indent();
-        Vector2f half = new Vector2f(halfSize);
-        if (EditorWidget.dragVec2Ctrl("Half Size", half, 0.16f, this)) halfSize(half);
-        ImGui.unindent();
-        super.additionalImGuiLogic();
     }
 }

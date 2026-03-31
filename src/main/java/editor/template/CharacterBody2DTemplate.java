@@ -13,7 +13,7 @@ import java.util.UUID;
 /**
  * Template for {@link CharacterBody2D}'s editor UI.
  */
-final class CharacterBody2DTemplate implements ObjectTemplate<CharacterBody2D> {
+final class CharacterBody2DTemplate implements IObjectTemplate<CharacterBody2D> {
     private static final CharacterBody2DTemplate instance = new CharacterBody2DTemplate();
     private CharacterBody2DTemplate() {}
     /**

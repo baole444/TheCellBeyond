@@ -12,7 +12,7 @@ import java.util.UUID;
 /**
  * Template for {@link CollisionObject2D}'s editor UI.
  */
-final class CollisionObject2DTemplate implements ObjectTemplate<CollisionObject2D> {
+final class CollisionObject2DTemplate implements IObjectTemplate<CollisionObject2D> {
     private static final CollisionObject2DTemplate instance = new CollisionObject2DTemplate();
     private CollisionObject2DTemplate() {}
     /**

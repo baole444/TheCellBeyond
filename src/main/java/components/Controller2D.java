@@ -3,10 +3,6 @@ package components;
 import TheCellBeyond.GameObject2D;
 import TheCellBeyond.Input;
 import TheCellBeyond.InputAction;
-import editor.EditorWidget;
-import imgui.ImGui;
-import imgui.flag.ImGuiTreeNodeFlags;
-import imgui.type.ImBoolean;
 import org.joml.Vector2f;
 import physic2d.PhysicBody2D;
 
@@ -311,6 +307,22 @@ public final class Controller2D extends Component {
         return new HashMap<>(controllerBindings);
     }
 
+    /**
+     * Check if the game object that mounted this controller is compatible with spatial movement or not.
+     * @return true if compatible
+     */
+    public boolean isGameObjectSpatialCompatible() {
+        return isGameObjectSpatialCompatible;
+    }
+
+    /**
+     * Check if the game object that mounted this controller is compatible with physic movement or not.
+     * @return true if compatible
+     */
+    public boolean isGameObjectPhysicCompatible() {
+        return isGameObjectPhysicCompatible;
+    }
+
     private Vector2f getCombinedDirection(float dt) {
         Vector2f combinedDirection = new Vector2f();
         if (controllerBindings.isEmpty()) return combinedDirection;
@@ -350,48 +362,5 @@ public final class Controller2D extends Component {
     private void applyPhysicalMovement(Vector2f movementVelocity) {
         if (!isGameObjectPhysicCompatible || physicBody2D == null) return;
         physicBody2D.addMovement(movementVelocity);
-    }
-
-    @Override
-    protected void additionalImGuiLogic() {
-        ImGui.spacing();
-        boolean openController = ImGui.collapsingHeader("Controller2D##Controler2D_Properties_Header", ImGuiTreeNodeFlags.DefaultOpen);
-        if (!openController) return;
-        ImGui.indent();
-        ControlMode current = controlMode;
-        ImGui.text("Control Mode:");
-        if (ImGui.beginCombo("##Select_Controller_Control_Mode_Combo_" + getUUID(), current.name())) {
-            if (!isGameObjectSpatialCompatible && !isGameObjectPhysicCompatible) {
-                ImGui.textWrapped(gameObject.name() + " is not compatible with this controller");
-            } else {
-                for (ControlMode mode : ControlMode.values()) {
-                    if (mode == ControlMode.Incompatible) continue;
-                    String label = mode.name() + "##Select_" + mode.name() + "_ControlMode_Selectable_" + getUUID();
-                    if (ImGui.selectable(label, mode == controlMode)) controlMode(mode);
-                }
-            }
-            ImGui.endCombo();
-        }
-        ImGui.spacing();
-        float speed = EditorWidget.dragFloatCtrl("Movement Speed", movementSpeed, 0.0f, 0.1f, this);
-        if (Float.compare(speed, movementSpeed) != 0) movementSpeed = speed;
-        ImBoolean oneAction = new ImBoolean(oneActionPerFrame);
-        ImBoolean normalizeDiagonal = new ImBoolean(normalizeDiagonalSpeed);
-        if (ImGui.checkbox("Single Action##AllowOneActionPerFrame_" + getUUID(), oneAction)) oneActionPerFrame = oneAction.get();
-        if (ImGui.isItemHovered()) {
-            ImGui.beginTooltip();
-            ImGui.text("If enabled, one 1 action/binding will be process each frame.");
-            ImGui.textWrapped("For example, binding \"Move Up\" and \"Move Down\" are both press in the same frame." +
-                    " If only 1 action is allowed, the controller will process whatever binding is active first.");
-            ImGui.endTooltip();
-        }
-        if (ImGui.checkbox("Normalize Diagonal Movement##NormalizeDiagonalMovement_" + getUUID(), normalizeDiagonal)) normalizeDiagonalSpeed = normalizeDiagonal.get();
-        if (ImGui.isItemHovered()) {
-            ImGui.beginTooltip();
-            ImGui.text("If enabled, diagonal movement will be normalized.");
-            ImGui.textWrapped("This prevent faster movement when moving diagonally due to vector combination.");
-            ImGui.endTooltip();
-        }
-        ImGui.unindent();
     }
 }

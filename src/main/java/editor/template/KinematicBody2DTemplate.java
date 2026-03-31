@@ -13,7 +13,7 @@ import java.util.UUID;
 /**
  * Template for {@link KinematicBody2D}'s editor UI.
  */
-final class KinematicBody2DTemplate implements ObjectTemplate<KinematicBody2D> {
+final class KinematicBody2DTemplate implements IObjectTemplate<KinematicBody2D> {
     private static final KinematicBody2DTemplate instance = new KinematicBody2DTemplate();
     private KinematicBody2DTemplate() {}
     /**

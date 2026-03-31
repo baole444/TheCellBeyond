@@ -48,7 +48,7 @@ class SpriteFrameEditor {
             ImGui.textWrapped("Select an Animated Sprite Renderer component from Inspector panel to start editing its details");
             return;
         }
-        if (editingAnimatedSprite.gameObject == null || editingAnimatedSprite.gameObject.isRemoved() || editingAnimatedSprite.getUUID() == null) {
+        if (editingAnimatedSprite.isDestroyed()) {
             clearDialogData();
             return;
         }

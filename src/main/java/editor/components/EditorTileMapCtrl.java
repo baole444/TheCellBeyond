@@ -131,7 +131,7 @@ public class EditorTileMapCtrl extends Component implements NotSerializeComponen
 
     private void updatePosition(TileMap tileMap, TileSet tileSet, Vector2i gridPos) {
         if (lastGridPosition != null && lastGridPosition.equals(gridPos)) return;
-        if (holdingObj == null || holdingObj.isRemoved()) return;
+        if (holdingObj == null || holdingObj.isDestroyed()) return;
         Vector2f mapPos = tileMap.globalPosition();
         Vector2i gridSize = tileSet.gridSize();
         Vector2f gridWorldSize = WorldUnit.pixelToWorld(new Vector2f(gridSize.x, gridSize.y));
@@ -207,7 +207,7 @@ public class EditorTileMapCtrl extends Component implements NotSerializeComponen
 
     private void clearData() {
         if (cleared) return;
-        if (holdingObj != null && !holdingObj.isRemoved()) {
+        if (holdingObj != null && !holdingObj.isDestroyed()) {
             holdingObj.destroy();
         }
         holdingObj = null;

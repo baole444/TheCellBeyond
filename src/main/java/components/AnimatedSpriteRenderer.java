@@ -1,13 +1,8 @@
 package components;
 
-import imgui.ImGui;
-import imgui.flag.ImGuiCol;
-import imgui.flag.ImGuiTreeNodeFlags;
-import imgui.type.ImBoolean;
 import render.texture.Sprite;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -81,23 +76,19 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
      */
     public String newAnimation() {
         String newName = "animation";
-
         if (animations.isEmpty()) {
             animations.put(newName, new Animation());
             animationFPS.put(newName, DefaultFPS);
             return newName;
         }
-
         String uniqueName = newName;
         int i = animations.size();
         while (animations.containsKey(uniqueName)) {
             uniqueName = newName + "_" + i;
             i++;
         }
-
         animations.put(uniqueName, new Animation());
         animationFPS.put(uniqueName, DefaultFPS);
-
         return uniqueName;
     }
 
@@ -113,17 +104,13 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
         if (oldName == null || newName == null || oldName.isBlank() || newName.isBlank()) return false;
         newName = newName.trim();
         if (!animations.containsKey(oldName) || animations.containsKey(newName)) return false;
-
         Animation animation = animations.remove(oldName);
         float fps = animationFPS.remove(oldName);
         if (animation == null) return false;
-
         animations.put(newName, animation);
         animationFPS.put(newName, fps);
-
         if (Objects.equals(defaultAnimation, oldName)) defaultAnimation = newName;
         if (Objects.equals(currentAnimationName, oldName)) currentAnimationName = newName;
-
         return true;
     }
 
@@ -136,21 +123,17 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
     public String duplicateAnimation(String name) {
         if (name == null || name.isBlank()) return null;
         if (animations.isEmpty() || !animations.containsKey(name)) return null;
-
         Animation animation = animations.get(name);
         float fps = animationFPS.get(name);
         if (animation == null) return null;
-
         String newName = name + "_copy";
         int i = 1;
         while (animations.containsKey(newName)) {
             newName = name + "_copy" + i;
             i++;
         }
-
         animations.put(newName, new Animation(animation));
         animationFPS.put(newName, fps);
-
         return newName;
     }
 
@@ -164,13 +147,11 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
         animation.start();
         animation.setFPS(animationFPS.get(name));
         animations.computeIfPresent(name, (k, v) -> animation);
-
-        if (Objects.equals(name, currentAnimationName)) {
-            stop();
-            currentAnimation = animation;
-            if (currentAnimation.frames().isEmpty()) return;
-            sprite(currentAnimation.currentFrame().sprite);
-        }
+        if (!Objects.equals(name, currentAnimationName)) return;
+        stop();
+        currentAnimation = animation;
+        if (currentAnimation.frames().isEmpty()) return;
+        sprite(currentAnimation.currentFrame().sprite);
     }
 
     /**
@@ -180,13 +161,11 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
     public void removeAnimation(String name) {
         if (name == null || !animations.containsKey(name)) return;
         if (Objects.equals(defaultAnimation, name)) defaultAnimation = null;
-
         Animation animation = animations.remove(name);
-        if (animation == currentAnimation) {
-            currentAnimationName = null;
-            currentAnimation = null;
-            updateSpriteFromCurrentAnimation();
-        }
+        if (animation != currentAnimation) return;
+        currentAnimationName = null;
+        currentAnimation = null;
+        updateSpriteFromCurrentAnimation();
     }
 
     /**
@@ -196,7 +175,6 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
      */
     public float getAnimationFPS(String name) {
         if (name == null || name.isBlank() || !animationFPS.containsKey(name)) return -1.0f;
-
         return animationFPS.get(name);
     }
 
@@ -208,11 +186,9 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
      */
     public void setFPS(float fps, String name) {
         if (name == null ||animations.isEmpty() || !animations.containsKey(name)) return;
-
         fps = Math.max(0.01f, fps);
         Animation animation = animations.get(name);
         if (animation == null) return;
-
         animation.setFPS(fps);
         animationFPS.put(name, fps);
     }
@@ -243,7 +219,6 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
         if (name == null || !animations.containsKey(name)) return;
         Animation animation = animations.get(name);
         if (animation == null) return;
-
         if (animation != currentAnimation) animation.reset();
         currentAnimationName = name;
         currentAnimation = animation;
@@ -262,7 +237,6 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
         if (name == null || !animations.containsKey(name)) return;
         Animation animation = animations.get(name);
         if (animation == null) return;
-
         if (animation != currentAnimation) animation.resetBackward();
         currentAnimationName = name;
         currentAnimation = animation;
@@ -296,10 +270,9 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
     public void stop() {
         play = false;
         backward = false;
-        if (currentAnimation != null) {
-            currentAnimation.reset();
-            updateSpriteFromCurrentAnimation();
-        }
+        if (currentAnimation == null) return;
+        currentAnimation.reset();
+        updateSpriteFromCurrentAnimation();
     }
 
     /**
@@ -309,10 +282,8 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
      */
     public boolean isAnimationLoop(String name) {
         if (name == null || !animations.containsKey(name)) return false;
-
         Animation animation = animations.get(name);
         if (animation == null) return false;
-
         return animation.loop;
     }
 
@@ -323,7 +294,6 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
      */
     public void setAnimationLoop(boolean loop, String name) {
         if (name == null || !animations.containsKey(name)) return;
-
         Animation animation = animations.get(name);
         if (animation != null) animation.loop = loop;
     }
@@ -347,9 +317,7 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
             currentAnimationName = null;
             return;
         }
-
         if (Objects.equals(name, currentAnimationName)) return;
-
         stop();
         currentAnimationName = name;
         currentAnimation = animations.get(name);
@@ -383,19 +351,15 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
     public boolean moveFrame(String name, int currentIndex, int targetIndex) {
         if (name == null || !animations.containsKey(name)) return false;
         if (Objects.equals(name, currentAnimationName)) stop();
-
         Animation animation = animations.get(name);
         if (animation == null) return false;
-
         int frameCount = animation.numberOfFrames();
         if (currentIndex < 0 || currentIndex >= frameCount || targetIndex < 0 || targetIndex >= frameCount || currentIndex == targetIndex) return false;
         Frame currentFrame = animation.getFrameAt(currentIndex);
         if (currentFrame == null) return false;
-
         int animationCurrentFrameIndex = animation.currentFrameIndex();
         animation.removeFrame(currentIndex);
         animation.addFrameAt(currentFrame.sprite, currentFrame.frameTime, targetIndex);
-
         if (animationCurrentFrameIndex == currentIndex) animation.setCurrentFrameIndex(targetIndex);
         if (Objects.equals(name, currentAnimationName) && !play) updateSpriteFromCurrentAnimation();
         return true;
@@ -421,13 +385,10 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
      */
     public boolean moveFrameRight(String name, int index) {
         if (name == null || !animations.containsKey(name)) return false;
-
         Animation animation = animations.get(name);
         if (animation == null) return false;
-
         int frameCount = animation.numberOfFrames();
         if (index >= frameCount - 1) return false;
-
         return moveFrame(name, index, index + 1);
     }
 
@@ -439,15 +400,11 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
     public void removeFrame(String name, int index) {
         if (name == null || !animations.containsKey(name)) return;
         if (Objects.equals(name, currentAnimationName)) stop();
-
         Animation animation = animations.get(name);
         if (animation == null) return;
-
         int frameCount = animation.numberOfFrames();
         if (index < 0 || index >= frameCount) return;
-
         animation.removeFrame(index);
-
         if (Objects.equals(name, currentAnimationName) && !play) updateSpriteFromCurrentAnimation();
     }
 
@@ -456,7 +413,6 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
             sprite(null);
             return;
         }
-
         Frame f = currentAnimation.currentFrame();
         Sprite s = f == null ? null : f.sprite;
         sprite(s);
@@ -476,11 +432,8 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
     @Override
     protected void onUpdate(float dt) {
         if (currentAnimation == null) return;
-
-        if (play && backward) {
-            currentAnimation.updateBackward(dt);
-        } else if (play) currentAnimation.update(dt);
-
+        if (play && backward) currentAnimation.updateBackward(dt);
+        else if (play) currentAnimation.update(dt);
         updateSpriteFromCurrentAnimation();
     }
 
@@ -489,49 +442,11 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
         onUpdate(dt);
     }
 
-    @Override
-    protected void additionalImGuiLogic() {
-        ImGui.spacing();
-        boolean openAnimatedSprite = ImGui.collapsingHeader("AnimatedSpriteRenderer##Animated_Sprite_Renderer_Properties_Header", ImGuiTreeNodeFlags.DefaultOpen);
-        if (!openAnimatedSprite) return;
-
-        ImGui.indent();
-        List<String> animationList = animations.keySet().stream().toList();
-        String selectedAni = currentAnimationName;
-        ImGui.text("Animation:");
-        if (ImGui.beginCombo("##Select_Current_AnimatedSprite_Animation_Combo_" + getUUID(), selectedAni == null ? "Select an animation..." : currentAnimationName)) {
-            for (String name : animationList) {
-                String label = name + "##Select_" + name + "_AnimatedSprite_Selectable_" + getUUID();
-                if (ImGui.selectable(label, Objects.equals(name, selectedAni))) setCurrentAnimation(name);
-            }
-            if (!animationList.isEmpty()) ImGui.separator();
-            if (ImGui.selectable("New animation...##New_Animation_AnimatedSprite_Selectable_" + getUUID(), false)) newAnimation();
-
-            ImGui.endCombo();
-        }
-
-        ImGui.spacing();
-        ImBoolean flipHState = new ImBoolean(flipHorizontally());
-        ImBoolean flipVState = new ImBoolean(flipVertically());
-        String compositeID = "Flip axis##Flip_Axis_AnimatedSprite_Header" + getUUID();
-        ImGui.pushStyleColor(ImGuiCol.Header, 0.0f, 0.0f, 0.0f, 0.0f);
-        boolean openFlip = ImGui.collapsingHeader(compositeID);
-        ImGui.popStyleColor(1);
-        if (openFlip) {
-            if (ImGui.checkbox("Horizontal##HorizontalFlip_" + getUUID(), flipHState)) flipHorizontally(flipHState.get());
-            if (ImGui.checkbox("Vertical##VerticalFlip_" + getUUID(), flipVState)) flipVertically(flipVState.get());
-        }
-        ImGui.unindent();
-    }
-
     private void init() {
         if (currentAnimationName == null && defaultAnimation != null) {
             currentAnimationName = defaultAnimation;
             currentAnimation = animations.get(defaultAnimation);
         }
-
-        for (Map.Entry<String, Animation> entry : animations.entrySet()) {
-            entry.getValue().start();
-        }
+        for (Map.Entry<String, Animation> entry : animations.entrySet()) entry.getValue().start();
     }
 }

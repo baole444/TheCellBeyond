@@ -1,11 +1,14 @@
 package editor.template;
 
+import components.Component2D;
 import components.SpriteRenderer;
 import editor.EditorColors;
 import editor.EditorWidget;
 import editor.payload.SpriteDragDropPayload;
 import imgui.ImGui;
+import imgui.flag.ImGuiChildFlags;
 import imgui.flag.ImGuiCol;
+import imgui.flag.ImGuiTreeNodeFlags;
 import imgui.type.ImBoolean;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
@@ -17,7 +20,7 @@ import java.util.UUID;
 /**
  * Template for {@link SpriteRenderer}'s editor UI.
  */
-final class SpriteRendererTemplate implements ComponentTemplate<SpriteRenderer> {
+final class SpriteRendererTemplate implements IComponentTemplate<SpriteRenderer> {
     private static final SpriteRendererTemplate instance = new SpriteRendererTemplate();
     private SpriteRendererTemplate() {}
     /**
@@ -29,9 +32,12 @@ final class SpriteRendererTemplate implements ComponentTemplate<SpriteRenderer> 
     @Override
     public void editorUI(SpriteRenderer component) {
         if (ImGui.getContentRegionAvailX() <= 0.0f || ImGui.getContentRegionAvailY() <= 0.0f) return;
+        ImGui.spacing();
+        UUID uuid = component.getUUID();
+        boolean openSprite = ImGui.collapsingHeader("SpriteRenderer##SpriteRenderer_Properties_Header_" + uuid, ImGuiTreeNodeFlags.DefaultOpen);
+        if (!openSprite) return;
         float availX = ImGui.getContentRegionAvailX();
         ImGui.text("Sprite: ");
-        UUID uuid = component.getUUID();
         Sprite sprite = component.sprite();
         if (sprite != null && sprite.getTexture() != null) {
             ImGui.sameLine();
@@ -43,7 +49,7 @@ final class SpriteRendererTemplate implements ComponentTemplate<SpriteRenderer> 
         }
         float previewLimitY = 160.0f;
         if (sprite == null || sprite.getTexture() == null) {
-            if (ImGui.beginChild("##SpriteRender_DropTarget_Region_" + component.getUUID(), ImGui.getContentRegionAvailX(), previewLimitY, true)) {
+            if (ImGui.beginChild("##SpriteRender_DropTarget_Region_" + component.getUUID(), ImGui.getContentRegionAvailX(), previewLimitY, ImGuiChildFlags.Border)) {
                 ImGui.pushStyleColor(ImGuiCol.Text, EditorColors.InstructionHighLight);
                 ImGui.textWrapped("No sprite assigned. Drag and drop a sprite from Sprite list here.");
                 ImGui.popStyleColor(1);
@@ -60,21 +66,16 @@ final class SpriteRendererTemplate implements ComponentTemplate<SpriteRenderer> 
         }
         acceptDragDrop(component);
         Vector4f color = new Vector4f(component.color());
-        if (EditorWidget.colorCtrl("Color", color, component)) {
-            component.color(color);
-        }
-        ImGui.indent();
+        if (EditorWidget.colorCtrl("Color", color, component)) component.color(color);
         ImBoolean flipHState = new ImBoolean(component.flipHorizontally());
         ImBoolean flipVState = new ImBoolean(component.flipVertically());
         String compositeID = "Flip axis##SpriteRenderer_FlipAxis_" + uuid;
         ImGui.pushStyleColor(ImGuiCol.Header, 0.0f, 0.0f, 0.0f, 0.0f);
         boolean open = ImGui.collapsingHeader(compositeID);
         ImGui.popStyleColor(1);
-        if (open) {
-            if (ImGui.checkbox("Horizontal##SpriteRenderer_FlipHorizontal_Checkbox_" + uuid, flipHState)) component.flipHorizontally(flipHState.get());
-            if (ImGui.checkbox("Vertical##SpriteRenderer_FlipVertical_Checkbox_" + uuid, flipVState)) component.flipVertically(flipVState.get());
-        }
-        ImGui.unindent();
+        if (!open) return;
+        if (ImGui.checkbox("Horizontal##SpriteRenderer_FlipHorizontal_Checkbox_" + uuid, flipHState)) component.flipHorizontally(flipHState.get());
+        if (ImGui.checkbox("Vertical##SpriteRenderer_FlipVertical_Checkbox_" + uuid, flipVState)) component.flipVertically(flipVState.get());
     }
 
     private static void acceptDragDrop(SpriteRenderer component) {
@@ -93,11 +94,12 @@ final class SpriteRendererTemplate implements ComponentTemplate<SpriteRenderer> 
     }
 
     /**
-     * Render the content of {@link #editorUI(SpriteRenderer)}.
+     * Render the content of {@link #editorUI(SpriteRenderer)} and call {@link Component2DTemplate#render(Component2D)}.
      * @param spriteRenderer the context component
      */
     static void render(SpriteRenderer spriteRenderer) {
         if (spriteRenderer == null) return;
         instance.editorUI(spriteRenderer);
+        Component2DTemplate.render(spriteRenderer);
     }
 }

@@ -71,7 +71,7 @@ public class GameObject {
     /**
      * Is this game object removed and should be garbage collected.
      */
-    private transient boolean isRemoved = false;
+    private transient boolean destroyed = false;
 
     /**
      * Is this game object finish initialization after created.
@@ -691,7 +691,7 @@ public class GameObject {
      */
     public void destroy() {
         onDestroy();
-        isRemoved = true;
+        destroyed = true;
         if (parent != null) parent.removeChild(this);
         List<GameObject> childrenCopy = new ArrayList<>(children);
         for (GameObject child : childrenCopy) {
@@ -741,7 +741,7 @@ public class GameObject {
             component.gameObject = null;
             newObject.addComponent(component);
         }
-        source.isRemoved = true;
+        source.destroyed = true;
         return newObject;
     }
 
@@ -775,12 +775,12 @@ public class GameObject {
     }
 
     /**
-     * Check if this game object is removed (destroyed)
+     * Check if this game object is destroyed / removed or not.
      * @return true of destroyed
      * @see #destroy() Destroy this game object
      */
-    public boolean isRemoved() {
-        return isRemoved;
+    public boolean isDestroyed() {
+        return destroyed;
     }
 
     /**
@@ -961,7 +961,7 @@ public class GameObject {
         return "Name: " + this.name +
                 "\n  UUID: " + this.uuid +
                 "\n  isSerialize: " + this.isSerialize +
-                "\n  isGone: " + this.isRemoved;
+                "\n  isGone: " + this.destroyed;
     }
 
     /**

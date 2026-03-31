@@ -107,7 +107,7 @@ public class TileMapEditor {
             return;
         }
 
-        if (editingTileMap.isRemoved() || editingTileMap.getUUID() == null) {
+        if (editingTileMap.isDestroyed() || editingTileMap.getUUID() == null) {
             clearDialogData();
             return;
         }

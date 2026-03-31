@@ -108,7 +108,7 @@ public class Scene {
         sceneData.viewport().adjustProjection();
         sceneData.gameObjects().forEach(go -> {
             go.editorUpdate(dt);
-            if (go.isRemoved()) queueObjectForRemoval(go);
+            if (go.isDestroyed()) queueObjectForRemoval(go);
         });
         updateQueues();
         sceneData.updated().set(true);
@@ -129,7 +129,7 @@ public class Scene {
     }
 
     private boolean rootIsFreed() {
-        if (root == null || root.isRemoved()) {
+        if (root == null || root.isDestroyed()) {
             Logger.info(String.format("Root object had been freed, exiting scene '%s'", name));
             destroy();
             return true;
@@ -143,7 +143,7 @@ public class Scene {
      */
     public void update(float dt) {
         if (!sceneStarted) return;
-        if (root.isRemoved()) {
+        if (root.isDestroyed()) {
             destroy();
             return;
         }
@@ -151,7 +151,7 @@ public class Scene {
         sceneData.viewport().adjustProjection();
         sceneData.gameObjects().forEach(go -> {
             go.update(dt);
-            if (go.isRemoved()) queueObjectForRemoval(go);
+            if (go.isDestroyed()) queueObjectForRemoval(go);
         });
         updateQueues();
         sceneData.updated().set(true);

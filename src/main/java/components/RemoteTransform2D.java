@@ -2,7 +2,6 @@ package components;
 
 import TheCellBeyond.GameObject;
 import TheCellBeyond.GameObject2D;
-import editor.template.EditorTemplate;
 import utility.HierarchyPath;
 import utility.HierarchyPaths;
 
@@ -105,7 +104,7 @@ public class RemoteTransform2D extends Component2D {
      */
     public boolean validTarget() {
         if (target == null) return false;
-        if (target.isRemoved()) {
+        if (target.isDestroyed()) {
             target = null;
             return false;
         }
@@ -123,11 +122,6 @@ public class RemoteTransform2D extends Component2D {
 
         if (!(resolved instanceof GameObject2D go2D) || gameObject.isDescendantOf(go2D)) return;
         target = go2D;
-    }
-
-    @Override
-    protected void additionalImGuiLogic() {
-        EditorTemplate.render(this);
     }
 
     private void pushTransform() {
