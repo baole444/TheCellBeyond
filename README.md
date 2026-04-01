@@ -1,8 +1,8 @@
 <div style="text-align: center;">
 
-## TheCellBeyond Game Engine
+ ## TheCellBeyond Game Engine
 
-A 2D game engine for in Java with editor for building scenes and levels.
+A 2D game engine for in Java with editor for building scenes and levels
 </div>
 
 ## Running the engine
@@ -30,10 +30,10 @@ Below is the minimum API version for scripting to be compatible with the engine'
 
 | Engine version |                                          API version                                          |
 |:--------------:|:---------------------------------------------------------------------------------------------:|
-| 1.0.5 - 1.0.7  | [__1.0.5__](https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api/1.0.5) |
+| 1.0.5 - 1.0.8  | [__1.0.5__](https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api/1.0.5) |
 |   ~~1.0.4~~    | [~~1.0.4~~](https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api/1.0.4) |
 
-Using any version older than 1.0.7 might not work properly.
+Using any version older than 1.0.8 might not work properly.
 
 Annotate a class as GameObject type:
 ```java

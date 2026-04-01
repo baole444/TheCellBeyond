@@ -18,7 +18,6 @@ public class ExitToProjectList {
 
     public static ExitToProjectList get() {
         if (instance == null) instance = new ExitToProjectList();
-
         return instance;
     }
 
@@ -31,38 +30,31 @@ public class ExitToProjectList {
             System.out.println("Finished shutdown");
             return;
         }
-
         String javaBin = System.getProperty("java.home") + File.separator + "bin" + File.separator + "java";
         List<String> jvmArgs = ManagementFactory.getRuntimeMXBean().getInputArguments();
         List<String> command = new ArrayList<>();
         command.add(javaBin);
-
         for (String arg : jvmArgs) {
             if (arg.contains("-agentlib") || arg.contains("-Xdebug")) continue;
             command.add(arg);
         }
-
         command.add("-cp");
         command.add(System.getProperty("java.class.path"));
         command.add(Main.class.getName());
-
         ProcessBuilder processBuilder = new ProcessBuilder(command);
         processBuilder.directory(new File(System.getProperty("user.dir")));
         processBuilder.inheritIO();
-
         try {
             processBuilder.start();
         } catch (IOException e) {
             System.err.println("Failed to start new process: " + e.getMessage());
             return;
         }
-
         try {
             Thread.sleep(100);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
-
         System.out.println("Finished shutdown");
         System.exit(0);
     }

@@ -2,8 +2,15 @@ import org.gradle.internal.os.OperatingSystem
 
 plugins {
     id 'java'
+    id 'application'
     id 'maven-publish'
     id 'signing'
+}
+
+application {
+    mainClass = 'TheCellBeyond.Main'
+    if (OperatingSystem.current().macOsX) applicationDefaultJvmArgs += '-XstartOnFirstThread'
+    applicationDefaultJvmArgs += '--enable-native-access=All-UNNAMED'
 }
 
 group = project.project_group
@@ -182,6 +189,8 @@ tasks.register('packageApp', Exec) {
     def jarName = jar.archiveFileName.get()
     def iconExt = OperatingSystem.current().windows ? 'ico' : OperatingSystem.current().macOsX ? 'icns' : 'png'
     def iconFile = file("src/main/resources/assets/textures/TCB icon.${iconExt}")
+    def javaOpts = '--enable-native-access=ALL-UNNAMED'
+    if (OperatingSystem.current().macOsX) javaOpts = "-XstartOnFirstThread $javaOpts"
     def args = [
             'jpackage',
             '--input', inputDir.get().asFile.absolutePath,
@@ -191,7 +200,7 @@ tasks.register('packageApp', Exec) {
             '--main-class', 'TheCellBeyond.Main',
             '--type', 'app-image',
             '--runtime-image', runtimeDir.get().asFile.absolutePath,
-            '--java-options', '--enable-native-access=ALL-UNNAMED',
+            '--java-options', javaOpts,
     ]
     if (iconFile.exists()) args += ['--icon', iconFile.absolutePath]
     commandLine args
@@ -289,7 +298,7 @@ tasks.register('apiSourcesJar', Jar) {
     archiveBaseName = TCB_API
     archiveClassifier = 'sources'
     from(sourceSets.main.java.srcDirs) {
-        includes = apiIncludes.collect { it.replace('.class', '.java').replace('$*', '') }
+        includes = apiIncludes.collect { it.replace('.class', '.java').replace('$*', '') } as Iterable<String>
     }
 }
 
@@ -299,7 +308,7 @@ tasks.register('apiJavadoc', Javadoc) {
     dependsOn compileJava
     source = sourceSets.main.java
     classpath = sourceSets.main.compileClasspath + sourceSets.main.output
-    include apiIncludes.collect { it.replace('.class', '.java').replace('$*', '') }
+    include apiIncludes.collect { it.replace('.class', '.java').replace('$*', '') } as Iterable<String>
     failOnError = false
     options.encoding = "UTF-8"
     options {

@@ -7,6 +7,7 @@ import editor.StartupWindow;
 import editor.preference.UserPreference;
 import eventviewer.event.Event;
 import org.joml.Vector4f;
+import org.lwjgl.system.Platform;
 import project.ClearColor;
 import project.Project;
 import eventviewer.EngineEventCallback;
@@ -155,6 +156,7 @@ public final class Window implements EngineEventListener {
 
     private void loadIcon() {
         if (iconFile == null) return;
+        if (Platform.get() == Platform.LINUX || Platform.get() == Platform.FREEBSD) return;
         GLFWImage icon = GLFWImage.malloc();
         GLFWImage.Buffer bufferIcon = GLFWImage.malloc(1);
         icon.set(iconFile.width(), iconFile.height(), iconFile.icon());
