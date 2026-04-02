@@ -9,6 +9,7 @@ import eventviewer.event.RuntimeEvent;
 import eventviewer.event.Event;
 import eventviewer.event.SceneEvent;
 import physic2d.Physic2D;
+import project.Project;
 import scene.Scene;
 import scene.SceneEditor;
 import scene.SceneLoader;
@@ -140,9 +141,9 @@ public class LogicServer implements EngineEventListener {
     @Override
     public void onEventEmit(Object object, Event event) {
         switch (event) {
-            case SceneEvent sceneEvent -> handleSceneEvent(object, sceneEvent);
+            case SceneEvent sceneEvent -> handleSceneEvent(sceneEvent);
+            case RuntimeEvent runtimeEvent -> handleRuntimeEvent(runtimeEvent);
             case EditorEvent editorEvent -> handleEditorEvent(object, editorEvent);
-            case RuntimeEvent runtimeEvent -> handleRuntimeEvent(object, runtimeEvent);
             default -> {}
         }
     }
@@ -169,15 +170,16 @@ public class LogicServer implements EngineEventListener {
         changeScene(new SceneEditor(), sceneName);
     }
 
-    private void handleSceneEvent(Object object, SceneEvent event) {
+    private void handleSceneEvent(SceneEvent event) {
         if (!event.type.equals(SceneEvent.Type.SceneLeaved)) return;
         currentScene = null;
     }
 
-    private void handleRuntimeEvent(Object object, RuntimeEvent event) {
+    private void handleRuntimeEvent(RuntimeEvent event) {
         switch (event.type) {
             case RuntimeEvent.Type.RuntimeStarted -> {
                 SceneManager.saveCurrentScene();
+                Physic2D.physicDeltaRate(Project.preference().physicFrameRate());
                 runtimeMode = true;
                 reloadScene();
                 Logger.info(String.format("Test play started for '%s'", currentSceneName()));

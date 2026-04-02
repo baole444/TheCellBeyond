@@ -1,5 +1,6 @@
 package render.text;
 
+import TheCellBeyond.internal.RenderingServer;
 import TheCellBeyond.internal.ResourceID;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
@@ -33,6 +34,7 @@ public class TextBatch {
 
     private static class CachedTextData {
         TransformCommand transform;
+        TransformCommand previousTransform;
         long commandVersion;
         long transformVersion;
         float[] vertices = new float[0];
@@ -50,6 +52,7 @@ public class TextBatch {
     private static Shader fontShader;
     private Matrix4f projectionMatrix;
     private Matrix4f viewMatrix;
+    private float lastInterpolationFactor = 1.0f;
 
     public TextBatch(int maxBatchSize) {
         bufferCapacity = maxBatchSize;
@@ -97,11 +100,12 @@ public class TextBatch {
         zBuckets.entrySet().removeIf(entry -> entry.getValue().isEmpty());
     }
 
-    public void submit(TextCommand command, TransformCommand transform) {
+    public void submit(TextCommand command, TransformCommand transform, TransformCommand previousTransform) {
         int zIndex = transform.zIndex;
         CachedTextData cached = commandCache.get(command);
         if (cached != null) {
             cached.seen = true;
+            cached.previousTransform = previousTransform;
             Integer previousZIndex = commandZIndex.get(command);
             if (previousZIndex != null && previousZIndex != zIndex) {
                 List<TextCommand> oldBucket = zBuckets.get(previousZIndex);
@@ -123,6 +127,7 @@ public class TextBatch {
         }
         cached = new CachedTextData();
         cached.transform = transform;
+        cached.previousTransform = previousTransform;
         cached.commandVersion = command.version;
         cached.transformVersion = transform.version;
         cached.seen = true;
@@ -142,6 +147,12 @@ public class TextBatch {
         if (!initialized) init();
         this.projectionMatrix = projectionMatrix != null ? projectionMatrix : new Matrix4f().identity();
         this.viewMatrix = viewMatrix != null ? viewMatrix : new Matrix4f().identity();
+        float currentAlpha = RenderingServer.interpolationFactor;
+        if (currentAlpha == lastInterpolationFactor) return;
+        for (CachedTextData cached : commandCache.values()) {
+            if (cached.previousTransform != null) cached.dirty = true;
+        }
+        lastInterpolationFactor = currentAlpha;
     }
 
     public void renderZIndex(int zIndex) {
@@ -189,7 +200,7 @@ public class TextBatch {
             for (TextCommand command : commands) {
                 CachedTextData cached = commandCache.get(command);
                 if (cached.dirty) {
-                    cached.vertices = genCommandVertices(command, cached.transform, font);
+                    cached.vertices = genCommandVertices(command, cached.transform, cached.previousTransform, font);
                     cached.dirty = false;
                 }
                 totalLength += cached.vertices.length;
@@ -224,11 +235,20 @@ public class TextBatch {
         }
     }
 
-    private float[] genCommandVertices(TextCommand command, TransformCommand transform, TCBFont font) {
+    private float[] genCommandVertices(TextCommand command, TransformCommand transform, TransformCommand previousTransform, TCBFont font) {
         int charCount = countChars(command.text);
         if (charCount == 0) return new float[0];
         float[] vertices = new float[charCount * VerticesPerChar * VertexSize];
         int vertexOffset = 0;
+        float alpha = RenderingServer.interpolationFactor;
+        float posX, posY;
+        if (previousTransform != null && alpha < 1.0f) {
+            posX = previousTransform.position.x + alpha * (transform.position.x - previousTransform.position.x);
+            posY = previousTransform.position.y + alpha * (transform.position.y - previousTransform.position.y);
+        } else {
+            posX = transform.position.x;
+            posY = transform.position.y;
+        }
         Vector2f position = transform.position;
         Vector4f color = command.modulate;
         Vector2f textDimension = command.textDimension;
@@ -247,8 +267,8 @@ public class TextBatch {
                 case Bottom -> yOffset = -textDimension.y;
             }
         }
-        float x = position.x + xOffset;
-        float y = position.y + yOffset;
+        float x = posX + xOffset;
+        float y = posY+ yOffset;
         float initialX = x;
         String text = command.text != null ? command.text : "";
         for (int i = 0; i < text.length(); i++) {

@@ -1,6 +1,7 @@
 package render;
 
 import TheCellBeyond.TileMap;
+import TheCellBeyond.internal.RenderingServer;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector2i;
@@ -34,6 +35,7 @@ public class TileBatch {
         int[] indices;
         int tileCount;
         TransformCommand transform;
+        TransformCommand previousTransform;
         long commandVersion;
         long transformVersion;
         boolean dirty = true;
@@ -48,6 +50,7 @@ public class TileBatch {
     private Matrix4f projectionMatrix;
     private Matrix4f viewMatrix;
     private boolean initialized = false;
+    private float lastInterpolationFactor = 1.0f;
 
     public TileBatch() {}
 
@@ -96,11 +99,12 @@ public class TileBatch {
         zBuckets.entrySet().removeIf(entry -> entry.getValue().isEmpty());
     }
 
-    public void submit(MeshCommand command, TransformCommand transform) {
+    public void submit(MeshCommand command, TransformCommand transform, TransformCommand previousTransform) {
         int zIndex= transform.zIndex;
         CachedTileData cached = commandCache.get(command);
         if (cached != null) {
             cached.seen = true;
+            cached.previousTransform = previousTransform;
             Integer previousZIndex = commandZIndex.get(command);
             if (previousZIndex != null && previousZIndex != zIndex) {
                 List<MeshCommand> oldBucket = zBuckets.get(previousZIndex);
@@ -122,6 +126,7 @@ public class TileBatch {
         }
         cached = new CachedTileData();
         cached.transform = transform;
+        cached.previousTransform = previousTransform;
         cached.commandVersion = command.version;
         cached.transformVersion = transform.version;
         cached.seen = true;
@@ -141,6 +146,12 @@ public class TileBatch {
         if (!initialized) init();
         this.projectionMatrix = projectionMatrix != null ? projectionMatrix : new Matrix4f().identity();
         this.viewMatrix = viewMatrix != null ? viewMatrix : new Matrix4f().identity();
+        float currentAlpha = RenderingServer.interpolationFactor;
+        if (currentAlpha == lastInterpolationFactor) return;
+        for (CachedTileData cached : commandCache.values()) {
+            if (cached.previousTransform != null) cached.dirty = true;
+        }
+        lastInterpolationFactor = currentAlpha;
     }
 
     public void renderZIndex(int zIndex) {
@@ -192,7 +203,17 @@ public class TileBatch {
         cached.indices = new int[count * IndicesPerQuad];
         Vector2i gridSize = tileSet.gridSize();
         Vector2f gridWorldSize = WorldUnit.pixelToWorld(gridSize.x, gridSize.y);
-        Vector2f position = cached.transform.position;
+        float alpha = RenderingServer.interpolationFactor;
+        TransformCommand previousTransform = cached.previousTransform;
+        TransformCommand currentTransform = cached.transform;
+        float posX, posY;
+        if (previousTransform != null && alpha < 1.0f) {
+            posX = previousTransform.position.x + alpha * (currentTransform.position.x - previousTransform.position.x);
+            posY = previousTransform.position.y + alpha * (currentTransform.position.y - previousTransform.position.y);
+        } else {
+            posX = currentTransform.position.x;
+            posY = currentTransform.position.y;
+        }
         Vector4f color = command.modulate;
         int objectID = command.submitterID;
         int tileIndex = 0;
@@ -201,8 +222,8 @@ public class TileBatch {
             TileMap.TilePlacement placement = entry.getValue();
             Tile tile = tileSet.tile(placement.sourceCoordinate());
             if (tile == null || tile.textureCoordinates == null) continue;
-            float x = position.x + mapCoordinate.x * gridWorldSize.x + gridWorldSize.x / 2.0f;
-            float y = position.y + mapCoordinate.y * gridWorldSize.y + gridWorldSize.y / 2.0f;
+            float x = posX + mapCoordinate.x * gridWorldSize.x + gridWorldSize.x / 2.0f;
+            float y = posY + mapCoordinate.y * gridWorldSize.y + gridWorldSize.y / 2.0f;
             genTileVertexProperties(cached.vertices, tileIndex, new Vector2f(x, y), gridWorldSize, tile.textureCoordinates, color, objectID);
             genTileIndices(cached.indices, tileIndex);
             tileIndex++;

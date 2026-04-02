@@ -8,6 +8,7 @@ import editor.preference.UserPreference;
 import eventviewer.event.Event;
 import org.joml.Vector4f;
 import org.lwjgl.system.Platform;
+import physic2d.Physic2D;
 import project.ClearColor;
 import project.Project;
 import eventviewer.EngineEventCallback;
@@ -283,6 +284,9 @@ public final class Window implements EngineEventListener {
         while (!glfwWindowShouldClose(windowPtr)) {
             glfwPollEvents();
             LogicServer.updatePhysic(dt);
+            Physic2D physic2D = LogicServer.currentScenePhysic2D();
+            if (physic2D != null && LogicServer.runtimeMode()) RenderingServer.interpolationFactor = physic2D.interpolateAlpha();
+            else RenderingServer.interpolationFactor = 1.0f;
             if (dt >= 0.0f) {
                 accumulatedDT += dt;
                 accumulatedFrame++;
@@ -294,7 +298,7 @@ public final class Window implements EngineEventListener {
                 LogicServer.update(dt);
                 RenderingServer.get().update();
                 objectSelectionPass(rendererState, objectSelectShader);
-                normalPass(rendererState, defaultShader, dt);
+                normalPass(rendererState, defaultShader);
                 RenderingServer.get().postFrameClear();
                 imGuiLayer.update(dt, LogicServer.currentScene());
             }
@@ -332,7 +336,7 @@ public final class Window implements EngineEventListener {
         objectSelection.detachWrite();
     }
 
-    private void normalPass(RendererState rendererState, Shader defaultShader, float dt) {
+    private void normalPass(RendererState rendererState, Shader defaultShader) {
         rendererState.setRenderPass(RendererState.RenderPass.NORMAL);
         rendererState.setShader(defaultShader);
         frameBuffer.use();

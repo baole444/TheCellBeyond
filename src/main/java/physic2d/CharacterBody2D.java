@@ -274,7 +274,7 @@ public class CharacterBody2D extends PhysicBody2D {
         platformBody = null;
         Vector2f motion = new Vector2f(velocity);
         if (lastPlatform != null) motion.add(lastPlatform.linearVelocity());
-        motion.mul(Physic2D.PhysicDeltaRate);
+        motion.mul(Physic2D.physicDeltaRate());
         slideCollisionCount = 0;
         motion = slideMotion(motion);
         boolean collided = slideCollisionCount > 0;

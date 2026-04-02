@@ -58,9 +58,9 @@ public class Renderer implements EngineEventListener {
         tileBatch.beginFrame();
         textureBatch.beginFrame();
         textBatch.beginFrame();
-        for (MeshEntry entry : queue.meshEntries) tileBatch.submit(entry.command(), entry.transform());
-        for (RectEntry entry : queue.rectEntries) textureBatch.submit(entry.command(), entry.transform());
-        for (TextEntry entry : queue.textEntries) textBatch.submit(entry.command(), entry.transform());
+        for (MeshEntry entry : queue.meshEntries) tileBatch.submit(entry.command(), entry.transform(), entry.previousTransform());
+        for (RectEntry entry : queue.rectEntries) textureBatch.submit(entry.command(), entry.transform(), entry.previousTransform());
+        for (TextEntry entry : queue.textEntries) textBatch.submit(entry.command(), entry.transform(), entry.previousTransform());
         tileBatch.endFrame();
         textureBatch.endFrame();
         textBatch.endFrame();

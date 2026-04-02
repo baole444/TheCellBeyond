@@ -22,7 +22,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class RenderingServer implements EngineEventListener {
     private static volatile RenderingServer instance;
     /**
-     * Physic interpolation (not coming soon.)
+     * Physic interpolation factor.
      */
     public static float interpolationFactor = 1.0f;
     private final CopyOnWriteArrayList<RenderNode> roots = new CopyOnWriteArrayList<>();
@@ -193,14 +193,20 @@ public class RenderingServer implements EngineEventListener {
             if (node.nodeOwner.renderDirty()) {
                 releaseCommandChain(node.commandHeader);
                 if (node.previousTransform != null) node.previousTransform.release();
-                node.previousTransform = node.transform;
+                TransformCommand previousPhysicTransform = node.nodeOwner.previousTransformCommand();
+                if (previousPhysicTransform != null) {
+                    node.previousTransform = previousPhysicTransform;
+                    accumulateTransform(node, node.previousTransform);
+                }
+                else node.previousTransform = node.transform;
                 node.transform = node.nodeOwner.buildTransformCommand();
                 node.commandHeader = node.nodeOwner.buildRenderCommand();
                 node.commandTail = node.commandHeader;
                 if (node.commandTail != null) while (node.commandTail.next != null) node.commandTail = node.commandTail.next;
                 if (node.transform != null) accumulateTransform(node, node.transform);
                 TransformCommand resolved = resolveTransform(node);
-                applyTransform(node.commandHeader, resolved);
+                TransformCommand previousResolved = previousPhysicTransform != null ? resolvedPreviousTransform(node) : null;
+                applyTransform(node.commandHeader, resolved, previousResolved);
                 node.nodeOwner.renderDirty(false);
             }
             refreshCommands(node.renderingChildren);
@@ -216,10 +222,20 @@ public class RenderingServer implements EngineEventListener {
         return null;
     }
 
-    private static void applyTransform(RenderCommand head, TransformCommand transform) {
+    private static TransformCommand resolvedPreviousTransform(RenderNode node) {
+        RenderNode current = node;
+        while (current != null) {
+            if (current.previousTransform != null) return current.previousTransform;
+            current = current.renderingParent;
+        }
+        return null;
+    }
+
+    private static void applyTransform(RenderCommand head, TransformCommand transform, TransformCommand previousTransform) {
         RenderCommand current = head;
         while (current != null) {
             current.transform = transform;
+            current.previousTransform = previousTransform;
             current = current.next;
         }
     }

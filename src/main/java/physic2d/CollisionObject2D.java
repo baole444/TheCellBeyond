@@ -1,6 +1,7 @@
 package physic2d;
 
 import TheCellBeyond.GameObject2D;
+import TheCellBeyond.Transform2D;
 import TheCellBeyond.internal.LogicServer;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
@@ -62,8 +63,21 @@ public abstract class CollisionObject2D extends GameObject2D {
         Vec2 physicPos = physicBodyRef.getPosition();
         float physicRot = Math.toDegrees(physicBodyRef.getAngle());
         Vector2f currentPos = position();
-        if (currentPos.x != physicPos.x || currentPos.y != physicPos.y) position(physicPos.x, physicPos.y);
-        if (rotation() != physicRot) rotation(physicRot);
+        boolean posDif = currentPos.x != physicPos.x || currentPos.y != physicPos.y;
+        boolean rotDif = rotation() != physicRot;
+        if (!posDif && !rotDif) {
+            if (!hasPreviousTransform) return;
+            Transform2D global = globalTransform();
+            if (previousTransform2D.equals(global)) hasPreviousTransform = false;
+            else Transform2D.copy(global, previousTransform2D);
+            renderDirty(true);
+            return;
+        }
+        Transform2D global = globalTransform();
+        Transform2D.copy(global, previousTransform2D);
+        hasPreviousTransform = true;
+        if (posDif) position(physicPos.x, physicPos.y);
+        if (rotDif) rotation(physicRot);
     }
 
     /**

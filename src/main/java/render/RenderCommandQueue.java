@@ -6,22 +6,21 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-public class RenderCommandQueue {
-    public enum BatchType {
+final class RenderCommandQueue {
+    enum BatchType {
         Tile,
         Sprite,
         Text
     }
 
-    public record ZIndexGroup(BatchType batchType, int zIndex, int startIndex, int count) {}
+    record ZIndexGroup(BatchType batchType, int zIndex, int startIndex, int count) {}
+    final List<RectEntry> rectEntries = new ArrayList<>();
+    final List<MeshEntry> meshEntries = new ArrayList<>();
+    final List<TextEntry> textEntries = new ArrayList<>();
+    final List<BatchEntry> entries = new ArrayList<>();
+    final List<ZIndexGroup> zIndexGroups = new ArrayList<>();
 
-    public final List<RectEntry> rectEntries = new ArrayList<>();
-    public final List<MeshEntry> meshEntries = new ArrayList<>();
-    public final List<TextEntry> textEntries = new ArrayList<>();
-    public final List<BatchEntry> entries = new ArrayList<>();
-    public final List<ZIndexGroup> zIndexGroups = new ArrayList<>();
-
-    public void collect(RenderCommand chainHead) {
+    void collect(RenderCommand chainHead) {
         rectEntries.clear();
         meshEntries.clear();
         textEntries.clear();
@@ -35,17 +34,17 @@ public class RenderCommandQueue {
             }
             switch (current) {
                 case RectCommand rect -> {
-                    RectEntry entry = new RectEntry(rect, current.transform);
+                    RectEntry entry = new RectEntry(rect, current.transform, current.previousTransform);
                     rectEntries.add(entry);
                     entries.add(entry);
                 }
                 case MeshCommand mesh -> {
-                    MeshEntry entry = new MeshEntry(mesh, current.transform);
+                    MeshEntry entry = new MeshEntry(mesh, current.transform, current.previousTransform);
                     meshEntries.add(entry);
                     entries.add(entry);
                 }
                 case TextCommand text -> {
-                    TextEntry entry = new TextEntry(text, current.transform);
+                    TextEntry entry = new TextEntry(text, current.transform, current.previousTransform);
                     textEntries.add(entry);
                     entries.add(entry);
                 }
@@ -82,7 +81,7 @@ public class RenderCommandQueue {
         };
     }
 
-    public void clear() {
+    void clear() {
         rectEntries.clear();
         meshEntries.clear();
         textEntries.clear();

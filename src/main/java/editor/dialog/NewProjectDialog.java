@@ -29,16 +29,13 @@ public class NewProjectDialog {
     private static final ImVec2 DIALOG_SIZE = new ImVec2(720.0f, 500.0f);
     private static boolean showDialog = false;
     private static final boolean enableBorder = true;
-
     private static final ImString selectedDirectoryPath = new ImString(256);
     private static final ImBoolean projectAlreadyExist = new ImBoolean(false);
-
     private static final ImString gameTitle = new ImString(128);
     private static final Vector2i gameWindowSize = new Vector2i(640, 480);
     private static final ImBoolean allowResize = new ImBoolean(false);
     private static final ImBoolean maintainAspectRatio = new ImBoolean(true);
     private static final ImFloat globalTextureScale = new ImFloat(1.0f);
-
     private static final float fileYPercentage = 0.15f;
     private static final float metaYPercentage = 0.8f;
 
@@ -59,20 +56,15 @@ public class NewProjectDialog {
 
     public static void imgui() {
         if (!showDialog) return;
-
         ImGui.openPopup(POPUP_ID);
-
         ImVec2 centre = ImGui.getMainViewport().getCenter();
         float pivotXY = 0.5f;
-
         ImGui.setNextWindowPos(centre.x, centre.y, ImGuiCond.Appearing, pivotXY, pivotXY);
         ImGui.setNextWindowSize(DIALOG_SIZE);
-
         if (ImGui.beginPopupModal(POPUP_ID, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)) {
             renderDirectorySelection();
             ImGui.text("Preferences");
             renderPreferenceEditor();
-
             float buttonWidth = 150;
             float buttonHeight = 30;
             float buttonReserverY = ImGui.getFrameHeightWithSpacing();
@@ -85,25 +77,18 @@ public class NewProjectDialog {
                     && gameTitle.isNotEmpty() && selectedDirectoryPath.isNotEmpty()
                     && gameWindowSize.x > 0 && gameWindowSize.y > 0;
             ImGui.setCursorPosX(addX);
-            if (canAdd) {
-                if (ImGui.button("Create project", buttonWidth, buttonHeight)) createProject();
-            } else {
-                ImGui.beginDisabled();
-                ImGui.button("Create project", buttonWidth, buttonHeight);
-                ImGui.endDisabled();
-            }
-
+            if (!canAdd) ImGui.beginDisabled();
+            if (ImGui.button("Create project", buttonWidth, buttonHeight)) createProject();
+            if (!canAdd) ImGui.endDisabled();
             ImGui.sameLine();
             ImGui.setCursorPosX(cancelX);
             if (ImGui.button("Cancel", buttonWidth, buttonHeight)) {
                 showDialog = false;
                 ImGui.closeCurrentPopup();
             }
-
             ImGui.endPopup();
             ID_POOL.reset();
         }
-
         if (!ImGui.isPopupOpen(POPUP_ID)) {
             showDialog = false;
             resetDialogData();
@@ -112,17 +97,13 @@ public class NewProjectDialog {
 
     private static void renderDirectorySelection() {
         ImGui.textWrapped("Click \"Select Directory\" to choose the root directory of the project");
-
         int sectionY = (int) (ImGui.getContentRegionAvailY() * fileYPercentage);
         ImGui.beginChild(FILE_SELECTION_ID, 0, sectionY, !enableBorder);
-
         int selectButtonW = 160;
         ImGui.pushItemWidth(ImGui.getContentRegionAvailX() - selectButtonW - ImGui.getStyle().getItemSpacingX());
         ImGui.inputText("##folderpath", selectedDirectoryPath, ImGuiInputTextFlags.ReadOnly);
         ImGui.popItemWidth();
-
         ImGui.sameLine();
-
         if (ImGui.button("Select Directory", selectButtonW, 0)) {
             Path openedPath = OpenFolderDialog.openFolderDialog();
             if (openedPath != null) {
@@ -130,19 +111,13 @@ public class NewProjectDialog {
                 checkForExistingProject(openedPath);
             }
         }
-
         if (selectedDirectoryPath.isEmpty()) {
             ImGui.newLine();
             ImGui.endChild();
             return;
         }
-
-        if (projectAlreadyExist.get()) {
-            ImGui.textColored(ImGui.colorConvertFloat4ToU32(1.0f, 0.2f, 0.2f, 1.0f), "There is already a project at selected directory");
-        } else {
-            ImGui.textColored(ImGui.colorConvertFloat4ToU32(0.2f, 1.0f, 0.2f, 1.0f), "Selected directory is valid");
-        }
-
+        if (projectAlreadyExist.get()) ImGui.textColored(ImGui.colorConvertFloat4ToU32(1.0f, 0.2f, 0.2f, 1.0f), "There is already a project at selected directory");
+        else ImGui.textColored(ImGui.colorConvertFloat4ToU32(0.2f, 1.0f, 0.2f, 1.0f), "Selected directory is valid");
         ImGui.endChild();
     }
 
@@ -151,13 +126,9 @@ public class NewProjectDialog {
         ImGui.beginChild(PREFERENCE_ID, 0, sectionY, enableBorder);
         ImGui.text("Title:");
         ImGui.inputTextWithHint("##Game title", "Enter a name for the project...", gameTitle);
-        if (gameTitle.isEmpty()) {
-            ImGui.textColored(ImGui.colorConvertFloat4ToU32(1.0f, 0.2f, 0.2f, 1.0f), "Game title cannot be empty");
-        } else {
-            ImGui.newLine();
-        }
+        if (gameTitle.isEmpty()) ImGui.textColored(ImGui.colorConvertFloat4ToU32(1.0f, 0.2f, 0.2f, 1.0f), "Game title cannot be empty");
+        else ImGui.newLine();
         ImGui.spacing();
-
         ImGui.text("Window size:");
         ImGui.beginDisabled();
         ImGui.textWrapped("Determine the default size of game window");
@@ -165,25 +136,21 @@ public class NewProjectDialog {
         gameWindowSize.x = inputInt("Width", gameWindowSize.x, 1);
         gameWindowSize.y = inputInt("Height", gameWindowSize.y, 1);
         ImGui.spacing();
-
         ImGui.checkbox("Resizable", allowResize);
         ImGui.beginDisabled();
         ImGui.textWrapped("(allow player to resize the game window)");
         ImGui.endDisabled();
         ImGui.spacing();
-
         ImGui.checkbox("Lock aspect ratio", maintainAspectRatio);
         ImGui.beginDisabled();
         ImGui.textWrapped("(maintain the game's intended aspect ratio when window is resized)");
         ImGui.endDisabled();
         ImGui.spacing();
-
         ImGui.text("Texture :");
         ImGui.beginDisabled();
         ImGui.textWrapped("Settings that affect the appearance of texture, project-wise.");
         ImGui.endDisabled();
         globalTextureScale.set(inputFloat("Global Scaling", globalTextureScale.get(), 0.01f));
-
         ImGui.endChild();
     }
 
@@ -191,21 +158,16 @@ public class NewProjectDialog {
         if (projectAlreadyExist.get()) return;
         if (selectedDirectoryPath.isEmpty() || gameTitle.isEmpty()) return;
         if (gameWindowSize.x < 1 || gameWindowSize.y < 1) return;
-
         ProjectPreference preference = new ProjectPreference(gameTitle.get(),
                 gameWindowSize.x, gameWindowSize.y,
                 allowResize.get(), maintainAspectRatio.get(),
-                globalTextureScale.get(), new ClearColor()
+                globalTextureScale.get(), new ClearColor(), 60
         );
-
         Path projectRoot = Path.of(selectedDirectoryPath.get());
-        boolean success = Project.createNewProject(projectRoot, preference);
-
-        if (success) {
-            String toYML = projectRoot.resolve("_project.yml").toString();
-            registerRecentProject(preference, toYML);
-            EngineEventCallback.emit(toYML, new EditorEvent(EditorEvent.Type.LoadProjectFromDisk));
-        }
+        if (!Project.createNewProject(projectRoot, preference)) return;
+        String toYML = projectRoot.resolve("_project.yml").toString();
+        registerRecentProject(preference, toYML);
+        EngineEventCallback.emit(toYML, new EditorEvent(EditorEvent.Type.LoadProjectFromDisk));
     }
 
     private static int inputInt(String label, int target, int minValue) {
@@ -213,10 +175,8 @@ public class NewProjectDialog {
         ImGui.pushID(id);
         final boolean modified;
         final ImInt destination = new ImInt(target);
-
         modified = ImGui.inputInt(label, destination);
         if (modified) target = Math.max(destination.get(), minValue);
-
         ImGui.popID();
         return target;
     }
@@ -226,18 +186,14 @@ public class NewProjectDialog {
         ImGui.pushID(id);
         final boolean modified;
         final ImFloat destination = new ImFloat(target);
-
         modified = ImGui.inputFloat(label, destination);
-
         if (modified) target = Math.max(destination.get(), minValue);
-
         ImGui.popID();
         return target;
     }
 
     private static void checkForExistingProject(Path projectRoot) {
         Path projectYAML = projectRoot.resolve("_project.yml");
-
         projectAlreadyExist.set(projectYAML.toFile().exists());
     }
 

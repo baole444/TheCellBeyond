@@ -17,18 +17,11 @@ import java.util.Set;
  * <a href="https://box2d.org">Reference Box2D code (C code)</a>
  */
 public class Physic2D {
-    /**
-     * Logger for Physic2D.
-     */
     private static final EngineLog Logger = new EngineLog(Physic2D.class);
     /**
      * Maximum physic layer.
      */
     public static final int MaxLayer = 16;
-    /**
-     * Physic delta time.
-     */
-    public static final float PhysicDeltaRate = 1.0f / 60.0f;
     /**
      * Max velocity calculation pass per physic frame.
      */
@@ -37,11 +30,19 @@ public class Physic2D {
      * Max position calculation pass per physic frame.
      */
     public static final int MaxPositionPass = 3;
+    /**
+     * Minimum allowed physic frame rate, the constant physic delta is clamped to this and {@link #MaxPhysicFrameRate}.
+     */
+    public static final int MinPhysicFrameRate = 5;
+    /**
+     * Maximum allowed physic frame rate, the constant physic delta is clamped to this and {@link #MinPhysicFrameRate}.
+     */
+    public static final int MaxPhysicFrameRate = 120;
 
+    private static float physicDeltaRate = 1.0f / 60.0f;
     private final Vec2 gravity = new Vec2(0, -9.80665f);
     private final World world = new World(gravity);
-
-    private transient float physicDt = 0.0f;
+    private float physicDt = 0.0f;
 
     /**
      * Callback invoked before each physic world step using fixed delta.
@@ -61,6 +62,25 @@ public class Physic2D {
      */
     public Physic2D() {
         world.setContactListener(new Physic2DContactListener());
+    }
+
+    /**
+     * Get the current constant physic delta rate of the engine. This is the delta per physic world step
+     * not to be confused with the accumulated physic delta time.
+     * @return the physic delta rate value
+     */
+    public static float physicDeltaRate() {
+        return physicDeltaRate;
+    }
+
+    /**
+     * Set the physic frame rate for the engine. This is a safe set for the physic delta rate, clamped by
+     * {@link #MinPhysicFrameRate} and {@link #MaxPhysicFrameRate}.
+     * @param physicFrameRate the desired physic frame rate to run at
+     */
+    public static void physicDeltaRate(int physicFrameRate) {
+        physicFrameRate = Math.clamp(physicFrameRate, MinPhysicFrameRate, MaxPhysicFrameRate);
+        physicDeltaRate = 1.0f / physicFrameRate;
     }
 
     /**
@@ -102,26 +122,30 @@ public class Physic2D {
     }
 
     /**
-     * Step the physic world using the fixed delta time {@link #PhysicDeltaRate} with catchup.
+     * Step the physic world using the fixed delta time {@link #physicDeltaRate} with catchup.
      * The callback is invoked before each physic step.
      * @param dt variable frame delta time
      * @param callback callback logic, can be null
      */
     public void update(float dt, PhysicStepCallback callback) {
         physicDt += dt;
-        while (physicDt >= PhysicDeltaRate) {
-            physicDt -= PhysicDeltaRate;
-            if (callback != null) callback.onPhysicStep(PhysicDeltaRate);
-            world.step(PhysicDeltaRate, MaxVelocityPass, MaxPositionPass);
+        while (physicDt >= physicDeltaRate) {
+            physicDt -= physicDeltaRate;
+            if (callback != null) callback.onPhysicStep(physicDeltaRate);
+            world.step(physicDeltaRate, MaxVelocityPass, MaxPositionPass);
         }
     }
 
     /**
-     * Step the physic world using the fixed delta time {@link #PhysicDeltaRate} with catchup.
+     * Step the physic world using the fixed delta time {@link #physicDeltaRate} with catchup.
      * This allows stepping physic world without callback.
      */
     public void update(float dt) {
         update(dt, null);
+    }
+
+    public float interpolateAlpha() {
+        return physicDeltaRate > 0.0f ? physicDt / physicDeltaRate : 1.0f;
     }
 
     /**

@@ -1,5 +1,6 @@
 package render;
 
+import TheCellBeyond.internal.RenderingServer;
 import TheCellBeyond.internal.ResourceID;
 import org.joml.Math;
 import org.joml.Matrix4f;
@@ -39,11 +40,13 @@ public class TextureBatch {
     private final List<Texture> drawTextures = new ArrayList<>();
     private Matrix4f projectionMatrix;
     private Matrix4f viewMatrix;
+    private float lastInterpolationFactor = 1.0f;
 
     private static class ZBucket {
         final IdentityHashMap<RectCommand, Integer> commandIndex = new IdentityHashMap<>();
         final List<RectCommand> commands = new ArrayList<>();
         final List<TransformCommand> transforms = new ArrayList<>();
+        final List<TransformCommand> previousTransforms = new ArrayList<>();
         final List<Long> commandVersions = new ArrayList<>();
         final List<Long> transformVersions = new ArrayList<>();
         boolean[] seen = new boolean[0];
@@ -102,6 +105,7 @@ public class TextureBatch {
                 commandIndex.remove(commands.get(i));
                 commands.remove(i);
                 transforms.remove(i);
+                previousTransforms.remove(i);
                 commandVersions.remove(i);
                 transformVersions.remove(i);
             }
@@ -112,10 +116,11 @@ public class TextureBatch {
             return removed;
         }
 
-        public void submit(RectCommand command, TransformCommand transform) {
+        public void submit(RectCommand command, TransformCommand transform, TransformCommand previousTransform) {
             Integer index = commandIndex.get(command);
             if (index != null) {
                 seen[index] = true;
+                previousTransforms.set(index, previousTransform);
                 if (transforms.get(index) != transform) {
                     transforms.set(index, transform);
                     transformVersions.set(index, transform.version);
@@ -131,6 +136,7 @@ public class TextureBatch {
             int newIndex = commands.size();
             commands.add(command);
             transforms.add(transform);
+            previousTransforms.add(previousTransform);
             commandVersions.add(command.version);
             transformVersions.add(transform.version);
             commandIndex.put(command, newIndex);
@@ -147,6 +153,7 @@ public class TextureBatch {
             commandIndex.clear();
             commands.clear();
             transforms.clear();
+            previousTransforms.clear();
             commandVersions.clear();
             transformVersions.clear();
             bufferDirty = false;
@@ -172,7 +179,8 @@ public class TextureBatch {
         }
 
         void rebuildAllVertices() {
-            for (int i = 0; i < commands.size(); i++) genCommandVertexProperties(vertices, i, commands.get(i), transforms.get(i));
+            float alpha = RenderingServer.interpolationFactor;
+            for (int i = 0; i < commands.size(); i++) genCommandVertexProperties(vertices, i, commands.get(i), transforms.get(i), previousTransforms.get(i), alpha);
         }
 
         void uploadIfDirty() {
@@ -213,15 +221,15 @@ public class TextureBatch {
         });
     }
 
-    public void submit(RectCommand command, TransformCommand transform) {
+    public void submit(RectCommand command, TransformCommand transform, TransformCommand previousTransform) {
         int zIndex= transform.zIndex;
         Integer previousZIndex = commandZIndex.get(command);
         if (previousZIndex != null && previousZIndex == zIndex) {
-            zBuckets.get(zIndex).submit(command, transform);
+            zBuckets.get(zIndex).submit(command, transform, previousTransform);
             return;
         }
         ZBucket bucket = zBuckets.computeIfAbsent(zIndex, _ -> new ZBucket(DefaultBucketCapacity));
-        bucket.submit(command, transform);
+        bucket.submit(command, transform, previousTransform);
         commandZIndex.put(command, zIndex);
     }
 
@@ -238,6 +246,17 @@ public class TextureBatch {
         if (zBuckets.isEmpty()) return;
         this.projectionMatrix = projectionMatrix != null ? projectionMatrix : new Matrix4f().identity();
         this.viewMatrix = viewMatrix != null ? viewMatrix : new Matrix4f().identity();
+        float currentAlpha = RenderingServer.interpolationFactor;
+        if (currentAlpha != lastInterpolationFactor) {
+            for (ZBucket bucket : zBuckets.values()) {
+                for (TransformCommand previous : bucket.previousTransforms) {
+                    if (previous == null) continue;
+                    bucket.bufferDirty = true;
+                    break;
+                }
+            }
+            lastInterpolationFactor = currentAlpha;
+        }
         for (ZBucket bucket : zBuckets.values()) bucket.uploadIfDirty();
     }
 
@@ -311,7 +330,7 @@ public class TextureBatch {
         return elements;
     }
 
-    private static void genCommandVertexProperties(float[] vertices, int index, RectCommand command, TransformCommand transform) {
+    private static void genCommandVertexProperties(float[] vertices, int index, RectCommand command, TransformCommand transform, TransformCommand previousTransform, float alpha) {
         int offset = index * VerticesPerQuad * VertexSize;
         Vector4f color = command.modulate;
         Vector2f[] uv = command.uvCoordinates;
@@ -327,15 +346,26 @@ public class TextureBatch {
         }
         int textureSlotID = 0;
         Vector2f worldSize = command.size;
-        Vector2f pos = transform.position;
-        Vector2f scale = transform.scale;
-        float rotation = transform.rotationDegrees;
-        boolean isTransformed = rotation != 0.0f || scale.x != 1.0f || scale.y != 1.0f;
+        float posX, posY, rotation, scaleX, scaleY;
+        if (previousTransform != null && alpha < 1.0f) {
+            posX = previousTransform.position.x + alpha * (transform.position.x - previousTransform.position.x);
+            posY = previousTransform.position.y + alpha * (transform.position.y - previousTransform.position.y);
+            rotation = previousTransform.rotationDegrees + alpha * (transform.rotationDegrees - previousTransform.rotationDegrees);
+            scaleX = previousTransform.scale.x + alpha * (transform.scale.x - previousTransform.scale.x);
+            scaleY = previousTransform.scale.y + alpha * (transform.scale.y - previousTransform.scale.y);
+        } else {
+            posX = transform.position.x;
+            posY = transform.position.y;
+            rotation = transform.rotationDegrees;
+            scaleX = transform.scale.x;
+            scaleY = transform.scale.y;
+        }
+        boolean isTransformed = rotation != 0.0f || scaleX != 1.0f || scaleY != 1.0f;
         Matrix4f transformMatrix = new Matrix4f().identity();
         if (isTransformed) {
-            transformMatrix.translate(pos.x, pos.y, 0.0f);
+            transformMatrix.translate(posX, posY, 0.0f);
             transformMatrix.rotate(Math.toRadians(rotation), 0.0f, 0.0f, 1.0f);
-            transformMatrix.scale(worldSize.x * scale.x, worldSize.y * scale.y, 1.0f);
+            transformMatrix.scale(worldSize.x * scaleX, worldSize.y * scaleY, 1.0f);
         }
         float xAdd = 0.5f;
         float yAdd = 0.5f;
@@ -349,8 +379,8 @@ public class TextureBatch {
             Vector4f instPos;
             if (isTransformed) instPos = new Vector4f(xAdd, yAdd, 0, 1).mul(transformMatrix);
             else instPos = new Vector4f(
-                    pos.x + (xAdd * worldSize.x),
-                    pos.y + (yAdd * worldSize.y),
+                    posX + (xAdd * worldSize.x),
+                    posY + (yAdd * worldSize.y),
                     0, 1
             );
             vertices[offset] = instPos.x / instPos.w;

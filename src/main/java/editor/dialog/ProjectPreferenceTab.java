@@ -21,7 +21,7 @@ class ProjectPreferenceTab {
     private static final ImBoolean maintainAspectRatio = new ImBoolean(true);
     private static final ImFloat textureGlobalScale = new ImFloat(1.0f);
     private static final Vector4f clearColor = new Vector4f(0.027f, 0.122f, 0.067f, 1.0f);
-
+    private static final ImInt physicFramerate = new ImInt(60);
     private static boolean projectPreferencesChanged = false;
 
     static void reloadPreferenceData() {
@@ -33,33 +33,30 @@ class ProjectPreferenceTab {
         maintainAspectRatio.set(preference.maintainAspectRatio());
         textureGlobalScale.set(preference.textureGlobalScale());
         clearColor.set(preference.clearColor().toVector());
+        physicFramerate.set(preference.physicFrameRate());
     }
 
     static void autoSavePreferences() {
         if (!projectPreferencesChanged) return;
         if (gameTitle.isEmpty() || gameWindowSize.x <= 0 || gameWindowSize.y <= 0) return;
-
         boolean success = Project.updateProjectPreference(gameTitle.get(),
                 gameWindowSize.x, gameWindowSize.y,
                 allowResize.get(), maintainAspectRatio.get(),
-                textureGlobalScale.get(), new ClearColor(clearColor)
+                textureGlobalScale.get(), new ClearColor(clearColor),
+                physicFramerate.get()
         );
-
         if (success) projectPreferencesChanged = false;
     }
 
     static void imgui() {
         boolean openDetail = ImGui.collapsingHeader("Detail##Game_Detail_Edit_Preference_Header", ImGuiTreeNodeFlags.DefaultOpen);
         if (openDetail) renderGameDetailHeaderContent();
-
         ImGui.spacing();
         boolean openWindow = ImGui.collapsingHeader("Window##Game_Window_Edit_Preference_Header", ImGuiTreeNodeFlags.DefaultOpen);
         if (openWindow) renderGameWindowHeaderContent();
-
         ImGui.spacing();
         boolean openTexture = ImGui.collapsingHeader("Texture##Game_Texture_Edit_Preference_Header", ImGuiTreeNodeFlags.DefaultOpen);
         if (openTexture) renderGameTextureHeaderContent();
-
         ImGui.spacing();
         boolean openPhysic = ImGui.collapsingHeader("Physic##Game_Physic_Edit_Preference_Header", ImGuiTreeNodeFlags.DefaultOpen);
         if (openPhysic) renderGamePhysicHeaderContent();
@@ -72,11 +69,8 @@ class ProjectPreferenceTab {
         String oldTitle = gameTitle.get();
         ImGui.inputTextWithHint("##Game title", "Enter a name for the project...", gameTitle);
         if (!oldTitle.equals(gameTitle.get())) projectPreferencesChanged = true;
-        if (gameTitle.isEmpty()) {
-            ImGui.textColored(ImGui.colorConvertFloat4ToU32(1.0f, 0.2f, 0.2f, 1.0f), "Game title cannot be empty");
-        } else {
-            ImGui.newLine();
-        }
+        if (gameTitle.isEmpty()) ImGui.textColored(ImGui.colorConvertFloat4ToU32(1.0f, 0.2f, 0.2f, 1.0f), "Game title cannot be empty");
+        else ImGui.newLine();
         ImGui.unindent();
         ImGui.separator();
     }
@@ -92,7 +86,6 @@ class ProjectPreferenceTab {
         gameWindowSize.x = inputInt("Width", gameWindowSize.x, 1);
         gameWindowSize.y = inputInt("Height", gameWindowSize.y, 1);
         if (!oldSize.equals(gameWindowSize)) projectPreferencesChanged = true;
-
         ImGui.spacing();
         boolean resizable = allowResize.get();
         ImGui.checkbox("Resizable", allowResize);
@@ -100,7 +93,6 @@ class ProjectPreferenceTab {
         ImGui.beginDisabled();
         ImGui.textWrapped("Allow user to resize the game window");
         ImGui.endDisabled();
-
         ImGui.spacing();
         boolean lockAspectRatio = maintainAspectRatio.get();
         ImGui.checkbox("Lock aspect ratio", maintainAspectRatio);
@@ -108,7 +100,6 @@ class ProjectPreferenceTab {
         ImGui.beginDisabled();
         ImGui.textWrapped("Maintain the game's intended aspect ratio when window is resized");
         ImGui.endDisabled();
-
         ImGui.spacing();
         if (EditorWidget.colorCtrl("Clear color", clearColor, ProjectPreferenceTab.class)) projectPreferencesChanged = true;
         ImGui.unindent();
@@ -131,6 +122,13 @@ class ProjectPreferenceTab {
     private static void renderGamePhysicHeaderContent() {
         ImGui.separator();
         ImGui.indent();
+        int oldFrameRate = physicFramerate.get();
+        physicFramerate.set(inputInt("Physic Framerate", physicFramerate.get(), 5));
+        if (oldFrameRate != physicFramerate.get()) projectPreferencesChanged = true;
+        ImGui.beginDisabled();
+        ImGui.textWrapped("Fixed physic update tick per second (5-120, default 60)");
+        ImGui.endDisabled();
+        ImGui.spacing();
         ImGui.pushStyleColor(ImGuiCol.Header, 0.0f, 0.0f, 0.0f, 0.0f);
         boolean openLayer = ImGui.collapsingHeader("Physic Layer Name##Physic_Layer_Name_Edit_Preference_Header", ImGuiTreeNodeFlags.DefaultOpen);
         ImGui.popStyleColor(1);
@@ -158,7 +156,6 @@ class ProjectPreferenceTab {
             boolean edited = ImGui.inputTextWithHint("##Custom_Layer_Name_" + i, "Enter a custom name for layer " + i + "...", newLayerName);
             if (edited) Project.updatePhysicLayerName(i, newLayerName.get().trim());
         }
-
         ImGui.endTable();
         ImGui.unindent();
     }
@@ -168,11 +165,8 @@ class ProjectPreferenceTab {
         ImGui.pushID(id);
         final boolean modified;
         final ImInt destination = new ImInt(target);
-
         modified = ImGui.inputInt(label, destination);
-
         if (modified) target = Math.max(destination.get(), minValue);
-
         ImGui.popID();
         return target;
     }
@@ -182,11 +176,8 @@ class ProjectPreferenceTab {
         ImGui.pushID(id);
         final boolean modified;
         final ImFloat destination = new ImFloat(target);
-
         modified = ImGui.inputFloat(label, destination);
-
         if (modified) target = Math.max(destination.get(), minValue);
-
         ImGui.popID();
         return target;
     }

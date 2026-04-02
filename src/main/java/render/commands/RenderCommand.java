@@ -3,6 +3,7 @@ package render.commands;
 public abstract class RenderCommand {
     public final CommandType type;
     public TransformCommand transform = null;
+    public TransformCommand previousTransform = null;
     public RenderCommand next = null;
     public int submitterID = 0;
     public long version = 0;
@@ -39,6 +40,7 @@ public abstract class RenderCommand {
     protected void reset() {
         next = null;
         transform = null;
+        previousTransform = null;
         submitterID = 0;
         version = 0;
     }

@@ -62,6 +62,15 @@ public class GameObject2D extends RenderableObject {
      * Temporary matrix for coordinate conversion.
      */
     private transient final Matrix3x2f tmpMatrix = new Matrix3x2f();
+    /**
+     * Previous global transform used for interpolation with physic frame and rendering.
+     * This transform is only up-to-date if {@link #hasPreviousTransform} is {@code true}.
+     */
+    public final transient Transform2D previousTransform2D = new Transform2D();
+    /**
+     * Flag used to indicate that {@link #previousTransform2D} had been updated.
+     */
+    protected transient boolean hasPreviousTransform = false;
 
     /**
      * Create a new {@link GameObject2D}.
@@ -783,11 +792,27 @@ public class GameObject2D extends RenderableObject {
     @Override
     public TransformCommand buildTransformCommand() {
         TransformCommand command = TransformCommand.acquire();
+        Transform2D globalTransform = globalTransform();
         command.submitterID = getUID();
-        command.position.set(globalPosition());
-        command.rotationDegrees = globalRotation();
-        command.scale.set(globalScale());
-        command.zIndex = globalZIndex();
+        command.position.set(globalTransform.position);
+        command.rotationDegrees = globalTransform.rotation;
+        command.scale.set(globalTransform.scale);
+        command.zIndex = globalTransform.zIndex;
+        command.visible = visible;
+        command.modulate.set(selfModulate);
+        command.markChanged();
+        return command;
+    }
+
+    @Override
+    public TransformCommand previousTransformCommand() {
+        if (!hasPreviousTransform) return null;
+        TransformCommand command = TransformCommand.acquire();
+        command.submitterID = getUID();
+        command.position.set(previousTransform2D.position);
+        command.rotationDegrees = previousTransform2D.rotation;
+        command.scale.set(previousTransform2D.scale);
+        command.zIndex = previousTransform2D.zIndex;
         command.visible = visible;
         command.modulate.set(selfModulate);
         command.markChanged();

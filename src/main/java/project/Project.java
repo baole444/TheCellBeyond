@@ -10,6 +10,7 @@ import render.texture.SpriteSheet;
 import render.texture.TextureUnit;
 import scripting.ScriptLoader;
 import tools.jackson.core.exc.JacksonIOException;
+import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.dataformat.yaml.YAMLFactory;
 import utility.AssetManager;
@@ -29,7 +30,7 @@ public class Project {
     private static String ProjectRoot = null;
     private static ProjectPreference preference = null;
     private static String _projectYmlPath = null;
-    private static final ObjectMapper YAMLMapper = new ObjectMapper(new YAMLFactory());
+    private static final ObjectMapper YAMLMapper = new ObjectMapper(new YAMLFactory()).rebuild().disable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES).build();
     private static final List<String> requiredDirs = List.of("assets", "prefabs", "scenes", "sheets", "scripts", "scripts-src");
     public static final String ProjectVersion = "0.1";
 
@@ -113,9 +114,9 @@ public class Project {
         return true;
     }
 
-    public static boolean updateProjectPreference(String name, int windowWidth, int windowHeight, boolean allowResize, boolean maintainAspectRatio, float textureGlobalScale, ClearColor clearColor) {
+    public static boolean updateProjectPreference(String name, int windowWidth, int windowHeight, boolean allowResize, boolean maintainAspectRatio, float textureGlobalScale, ClearColor clearColor, int physicFrameRate) {
         if (noProjectLoaded()) return false;
-        preference = new ProjectPreference(name, windowWidth, windowHeight, allowResize, maintainAspectRatio, textureGlobalScale, clearColor);
+        preference = new ProjectPreference(name, windowWidth, windowHeight, allowResize, maintainAspectRatio, textureGlobalScale, clearColor, physicFrameRate);
         CurrentProject = new ProjectData(CurrentProject.version(),
                 preference, CurrentProject.assets(),
                 CurrentProject.sheets(), CurrentProject.scenes(),
