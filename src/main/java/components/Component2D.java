@@ -461,4 +461,18 @@ public abstract class Component2D extends RenderableComponent {
         command.markChanged();
         return command;
     }
+
+    @Override
+    public TransformCommand previousTransformCommand() {
+        if (localTransform2D.isIdentity()) return null;
+        if (!(gameObject instanceof GameObject2D go2D)) return null;
+        TransformCommand previousTransform = go2D.previousTransformCommand();
+        if (previousTransform == null) return null;
+        previousTransform.position.add(localTransform2D.position);
+        previousTransform.rotationDegrees += localTransform2D.rotation;
+        previousTransform.scale.mul(localTransform2D.scale);
+        if (localTransform2D.relativeZIndex) previousTransform.zIndex += localTransform2D.zIndex;
+        else previousTransform.zIndex = localTransform2D.zIndex;
+        return previousTransform;
+    }
 }

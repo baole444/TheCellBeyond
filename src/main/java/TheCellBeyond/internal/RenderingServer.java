@@ -198,14 +198,14 @@ public class RenderingServer implements EngineEventListener {
                     node.previousTransform = previousPhysicTransform;
                     accumulateTransform(node, node.previousTransform);
                 }
-                else node.previousTransform = node.transform;
+                else node.previousTransform = null;
                 node.transform = node.nodeOwner.buildTransformCommand();
                 node.commandHeader = node.nodeOwner.buildRenderCommand();
                 node.commandTail = node.commandHeader;
                 if (node.commandTail != null) while (node.commandTail.next != null) node.commandTail = node.commandTail.next;
                 if (node.transform != null) accumulateTransform(node, node.transform);
                 TransformCommand resolved = resolveTransform(node);
-                TransformCommand previousResolved = previousPhysicTransform != null ? resolvedPreviousTransform(node) : null;
+                TransformCommand previousResolved = resolvedPreviousTransform(node);
                 applyTransform(node.commandHeader, resolved, previousResolved);
                 node.nodeOwner.renderDirty(false);
             }
