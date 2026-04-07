@@ -17,6 +17,9 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * AssetManager is the centralized control for caching resource while the engine is running.
+ */
 public class AssetManager {
     private record AtlasKey(String canonicalPath, GlyphRange glyphRange) {}
     private record FontKey(String canonicalPath, GlyphRange glyphRange, float points) {}
@@ -40,11 +43,20 @@ public class AssetManager {
 
     private AssetManager() {}
 
+    /**
+     * Get the asset manager. This will create a new instance if current one don't exist.
+     * @return the asset manager instance
+     */
     public static AssetManager get() {
         if (instance == null) instance = new AssetManager();
         return instance;
     }
 
+    /**
+     * Request loading a new texture into cache.
+     * @param path the path to the image
+     * @return the {@link ResourceID} for the requested texture
+     */
     public ResourceID loadTexture(String path) {
         String canonicalPath = asCanonicalPath(path);
         ResourceID RID = textureIDs.get(canonicalPath);
@@ -75,6 +87,7 @@ public class AssetManager {
         fontAtlasRegistry.register(RID, atlas);
         return RID;
     }
+
 
     public ResourceID loadFont(String path, GlyphRange glyphRange, float point) {
         String canonicalPath = asCanonicalPath(path);

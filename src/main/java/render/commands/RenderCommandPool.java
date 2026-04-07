@@ -44,13 +44,13 @@ public class RenderCommandPool {
     /**
      * Dispose a command back to the pool.
      * This will remove the chain and reset the command ownership.
-     * The command is offered at the last entry in pool.
+     * The command is offered at the first entry in pool.
      * @param command the command to return
      */
     void release(RenderCommand command) {
         if (command == null) return;
         command.next = null;
         command.reset();
-        pools.computeIfAbsent(command.getClass(), _ -> new ConcurrentLinkedDeque<>()).offerLast(command);
+        pools.computeIfAbsent(command.getClass(), _ -> new ConcurrentLinkedDeque<>()).offerFirst(command);
     }
 }

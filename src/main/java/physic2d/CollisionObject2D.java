@@ -56,7 +56,19 @@ public abstract class CollisionObject2D extends GameObject2D {
     }
 
     /**
+     * Update the tracking previous transform for interpolation.
+     * Must be called once before each physic step.
+     */
+    public void updatePreviousTransform () {
+        if (physicBodyRef == null) return;
+        Transform2D.copy(globalTransform(), previousTransform2D);
+        hasPreviousTransform = true;
+        renderDirty(true);
+    }
+
+    /**
      * Sync this collision body's spatial transform with its physical transform.
+     * Must be called once after each physic step.
      */
     public void syncTransformFromPhysic() {
         if (physicBodyRef == null) return;
@@ -65,17 +77,7 @@ public abstract class CollisionObject2D extends GameObject2D {
         Vector2f currentPos = position();
         boolean posDif = currentPos.x != physicPos.x || currentPos.y != physicPos.y;
         boolean rotDif = rotation() != physicRot;
-        if (!posDif && !rotDif) {
-            if (!hasPreviousTransform) return;
-            Transform2D global = globalTransform();
-            if (previousTransform2D.equals(global)) hasPreviousTransform = false;
-            else Transform2D.copy(global, previousTransform2D);
-            renderDirty(true);
-            return;
-        }
-        Transform2D global = globalTransform();
-        Transform2D.copy(global, previousTransform2D);
-        hasPreviousTransform = true;
+        if (!posDif && !rotDif) return;
         if (posDif) position(physicPos.x, physicPos.y);
         if (rotDif) rotation(physicRot);
     }

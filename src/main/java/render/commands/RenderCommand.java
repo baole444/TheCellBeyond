@@ -42,6 +42,5 @@ public abstract class RenderCommand {
         transform = null;
         previousTransform = null;
         submitterID = 0;
-        version = 0;
     }
 }

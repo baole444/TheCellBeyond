@@ -44,7 +44,7 @@ public class RenderingServer implements EngineEventListener {
     }
 
     public void update() {
-        refreshCommands(roots);
+        refreshCommands(roots, false);
         nodeLinks.clear();
         RenderCommand[] previousTail = {null};
         chainHead = chainNodes(roots, nodeLinks, previousTail, cloneChainHeads);
@@ -188,11 +188,16 @@ public class RenderingServer implements EngineEventListener {
         }
     }
 
-    private static void refreshCommands(List<RenderNode> nodes) {
+    private static void refreshCommands(List<RenderNode> nodes, boolean parentDirty) {
         for (RenderNode node : nodes) {
-            if (node.nodeOwner.renderDirty()) {
+            boolean dirty = node.nodeOwner.renderDirty();
+            if (dirty) {
                 releaseCommandChain(node.commandHeader);
                 if (node.previousTransform != null) node.previousTransform.release();
+                if (node.transform != null) {
+                    node.transform.release();
+                    node.transform = null;
+                }
                 TransformCommand previousPhysicTransform = node.nodeOwner.previousTransformCommand();
                 if (previousPhysicTransform != null) {
                     node.previousTransform = previousPhysicTransform;
@@ -209,7 +214,8 @@ public class RenderingServer implements EngineEventListener {
                 applyTransform(node.commandHeader, resolved, previousResolved);
                 node.nodeOwner.renderDirty(false);
             }
-            refreshCommands(node.renderingChildren);
+            else if (parentDirty) applyTransform(node.commandHeader, resolveTransform(node), resolvedPreviousTransform(node));
+            refreshCommands(node.renderingChildren, dirty || parentDirty);
         }
     }
 

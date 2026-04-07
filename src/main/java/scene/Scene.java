@@ -122,10 +122,19 @@ public class Scene {
     public void updatePhysic(float dt) {
         if (!sceneStarted) return;
         if (rootIsFreed()) return;
-        sceneData.physic2D().update(dt, (fixedDT) -> sceneData.gameObjects().forEach(go -> go.physicUpdate(fixedDT)));
-        for (GameObject go : sceneData.gameObjects()) {
-            if (go instanceof CollisionObject2D collisionObject) collisionObject.syncTransformFromPhysic();
-        }
+        sceneData.physic2D().update(dt,
+                fixedDT -> {
+                    for (GameObject go : sceneData.gameObjects()) {
+                        if (go instanceof CollisionObject2D collisionObject2D) collisionObject2D.updatePreviousTransform();
+                    }
+                    for (GameObject go : sceneData.gameObjects()) go.physicUpdate(fixedDT);
+                },
+                _ -> {
+                    for (GameObject go : sceneData.gameObjects()) {
+                        if (go instanceof CollisionObject2D collisionObject2D) collisionObject2D.syncTransformFromPhysic();
+                    }
+                }
+        );
     }
 
     private boolean rootIsFreed() {

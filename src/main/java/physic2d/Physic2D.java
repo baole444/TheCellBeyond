@@ -123,25 +123,27 @@ public class Physic2D {
 
     /**
      * Step the physic world using the fixed delta time {@link #physicDeltaRate} with catchup.
-     * The callback is invoked before each physic step.
+     * This support callbacks to invoke before and/or after each physic world step,
      * @param dt variable frame delta time
-     * @param callback callback logic, can be null
+     * @param preStepCallback invoked before each physic step, can be null
+     * @param postStepCallback invoked after each physic step, can be null
      */
-    public void update(float dt, PhysicStepCallback callback) {
+    public void update(float dt, PhysicStepCallback preStepCallback, PhysicStepCallback postStepCallback) {
         physicDt += dt;
         while (physicDt >= physicDeltaRate) {
             physicDt -= physicDeltaRate;
-            if (callback != null) callback.onPhysicStep(physicDeltaRate);
+            if (preStepCallback != null) preStepCallback.onPhysicStep(physicDeltaRate);
             world.step(physicDeltaRate, MaxVelocityPass, MaxPositionPass);
+            if (postStepCallback != null) postStepCallback.onPhysicStep(physicDeltaRate);
         }
     }
 
     /**
      * Step the physic world using the fixed delta time {@link #physicDeltaRate} with catchup.
-     * This allows stepping physic world without callback.
+     * This allows stepping physic world without callbacks.
      */
     public void update(float dt) {
-        update(dt, null);
+        update(dt, null, null);
     }
 
     public float interpolateAlpha() {
