@@ -10,5 +10,5 @@ import java.lang.annotation.Target;
 public @interface Export {
     String label() default "";
     String description() default "";
-
+    TypeHint type() default TypeHint.Auto;
 }
