@@ -30,7 +30,8 @@ Below is the minimum API version for scripting to be compatible with the engine'
 
 | Engine version |                                          API version                                          |
 |:--------------:|:---------------------------------------------------------------------------------------------:|
-| 1.0.5 - 1.0.8  | [__1.0.5__](https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api/1.0.5) |
+|      1.1       |   [__1.1__](https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api/1.1)   |
+| 1.0.5 - 1.0.8  |   [1.0.5](https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api/1.0.5)   |
 |   ~~1.0.4~~    | [~~1.0.4~~](https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api/1.0.4) |
 
 Using any version older than 1.0.8 might not work properly.
@@ -64,5 +65,23 @@ public class MainStateEngine extends StateEngine {
     protected void onReady() {
         switchState("Idle");
     }
+}
+```
+
+Annotate a field with Export for editing in the editor UI:
+```java
+import org.joml.Vector2f;
+import physic2d.CharacterBody2D;
+import scripting.RegisterGameObject;
+import scripting.Export;
+import scripting.TypeHint;
+
+@RegisterGameObject(label = "Player Object", description = "Main player controlled object")
+public class MainPlayer extends CharacterBody2D {
+    @Export
+    public float movementSpeed = 2.0f;
+    
+    @Export(label = "Custom label",  description = "Custom field", type = TypeHint.Vector2)
+    public Vector2f currentDirection = new Vector2f();
 }
 ```

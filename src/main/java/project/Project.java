@@ -32,7 +32,7 @@ public class Project {
     private static String _projectYmlPath = null;
     private static final ObjectMapper YAMLMapper = new ObjectMapper(new YAMLFactory()).rebuild().disable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES).build();
     private static final List<String> requiredDirs = List.of("assets", "prefabs", "scenes", "sheets", "scripts", "scripts-src");
-    public static final String ProjectVersion = "0.1";
+    public static final String ProjectVersion = "1.1";
 
     /**
      * Check if there is a project with valid path loaded or not.
