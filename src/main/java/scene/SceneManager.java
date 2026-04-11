@@ -275,7 +275,6 @@ public final class SceneManager {
             Logger.error(String.format(CannotLoadFormat, sceneName, NoSuchScene));
             return;
         }
-
         EngineEventCallback.emit(sceneName, new EditorEvent(EditorEvent.Type.LoadEditingSceneFromDisk));
     }
 

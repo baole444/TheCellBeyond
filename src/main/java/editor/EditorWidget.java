@@ -20,13 +20,15 @@ import org.joml.Vector4f;
 import java.util.HashMap;
 
 /**
- * Widgets used by the Editor UI.
+ * EditorWidget contains a collection of static methods for editing various data type in the editor.
+ * It also provides methods for creating icon button, selectable
  */
 public class EditorWidget {
     private record ShortenLabelKey(String text, float width) {}
-
     private static final HashMap<ShortenLabelKey, String> shortenLabels = new HashMap<>();
     private static final float defaultWidth = 80.0f;
+    private static final ImBoolean checkboxTmp = new ImBoolean();
+    private static final Vector2f dragVec2Tmp = new Vector2f();
 
     public static void textCenterAlign(String label) {
         if (label == null) return;
@@ -50,9 +52,9 @@ public class EditorWidget {
     }
 
     public static boolean dragVec2Ctrl(String label, Vector2f source, float resetX, float resetY, float dragSpeed, Object caller, float minVal, float maxVal) {
+        if (source == null || caller == null) return false;
         String id = createID(label, caller);
-        Vector2f out = new Vector2f(source);
-
+        dragVec2Tmp.set(source);
         boolean useLabel = label != null && !label.isBlank();
         ImGui.pushID(id);
         if (useLabel) {
@@ -72,53 +74,47 @@ public class EditorWidget {
             }
             ImGui.tableNextColumn();
         }
-
         float resetWidth = ImGui.calcTextSizeX(" X ");
         float dragRemains = (ImGui.getContentRegionAvailX() - resetWidth * 2.0f) / 2.0f;
         final ImBoolean changed = new ImBoolean(false);
-
         ImGui.pushStyleVar(ImGuiStyleVar.ItemSpacing, 0, 0);
         ImGui.pushID("x_" + id);
         EditorColors.RedButton.create(() -> {
             if (ImGui.button("X##Reset_X_" + id, resetWidth, 0.0f)) {
-                out.x = resetX;
+                dragVec2Tmp.x = resetX;
                 changed.set(true);
             }
         });
         ImGui.pushItemWidth(dragRemains);
         ImGui.sameLine();
-        float[] valX = {out.x};
+        float[] valX = {dragVec2Tmp.x};
         if (ImGui.dragFloat("##drag_X_", valX, dragSpeed, minVal, maxVal)) {
-            out.x = valX[0];
+            dragVec2Tmp.x = valX[0];
             changed.set(true);
         }
         ImGui.popItemWidth();
         ImGui.popID();
         ImGui.sameLine();
-
         ImGui.pushID("y_" + id);
         EditorColors.GreenButton.create(() -> {
             if (ImGui.button("Y##Reset_Y_" + id, resetWidth, 0.0f)) {
-                out.y = resetY;
+                dragVec2Tmp.y = resetY;
                 changed.set(true);
             }
         });
         ImGui.pushItemWidth(dragRemains);
         ImGui.sameLine();
-        float[] valY = {out.y};
+        float[] valY = {dragVec2Tmp.y};
         if (ImGui.dragFloat("##drag_Y_" + id, valY, dragSpeed, minVal, maxVal)) {
-            out.y = valY[0];
+            dragVec2Tmp.y = valY[0];
             changed.set(true);
         }
         ImGui.popItemWidth();
         ImGui.popID();
-
-        if (changed.get()) source.set(out.x, out.y);
-
+        if (changed.get()) source.set(dragVec2Tmp);
         ImGui.popStyleVar();
         if (useLabel) ImGui.endTable();
         ImGui.popID();
-
         return changed.get();
     }
 
@@ -149,7 +145,6 @@ public class EditorWidget {
     public static float dragFloatCtrl(String label, float val, float resetVal, float dragSpeed, Object caller, float minVal, float maxVal) {
         String id = createID(label, caller);
         float[] valA = {val};
-
         boolean useLabel = label != null && !label.isBlank();
         ImGui.pushID(id);
         if (useLabel) {
@@ -169,21 +164,17 @@ public class EditorWidget {
             }
             ImGui.tableNextColumn();
         }
-
         ImGui.pushStyleVar(ImGuiStyleVar.ItemSpacing, 0, 0);
         ImBoolean reset = new ImBoolean(false);
         EditorColors.RedButton.create(() -> reset.set(ImGui.button("Reset##Reset_" + id)));
         if (reset.get()) val = resetVal;
         ImGui.sameLine();
-
         ImGui.pushItemWidth(ImGui.getContentRegionAvailX());
         boolean changed = ImGui.dragFloat("##dragFloat", valA, dragSpeed, minVal, maxVal);
         ImGui.popItemWidth();
-
         ImGui.popStyleVar();
         if (useLabel) ImGui.endTable();
         ImGui.popID();
-
         return changed ? valA[0] : val;
     }
 
@@ -202,7 +193,6 @@ public class EditorWidget {
     public static int dragIntCtrl(String label, int val, int resetVal, Object caller, int min, int max) {
         String id = createID(label, caller);
         int[] valA = {val};
-
         boolean useLabel = label != null && !label.isBlank();
         ImGui.pushID(id);
         if (useLabel) {
@@ -222,28 +212,23 @@ public class EditorWidget {
             }
             ImGui.tableNextColumn();
         }
-
         ImGui.pushStyleVar(ImGuiStyleVar.ItemSpacing, 0, 0);
         ImBoolean reset = new ImBoolean(false);
         EditorColors.RedButton.create(() -> reset.set(ImGui.button("Reset##Reset_" + id)));
         if (reset.get()) val = resetVal;
         ImGui.sameLine();
-
         ImGui.pushItemWidth(ImGui.getContentRegionAvailX());
         boolean changed = ImGui.dragInt("##dragInt" + id, valA, 1, min, max);
         ImGui.popItemWidth();
-
         ImGui.popStyleVar();
         if (useLabel) ImGui.endTable();
         ImGui.popID();
-
         return changed ? valA[0] : val;
     }
 
     public static boolean colorCtrl(String label, Vector4f val, Object caller) {
         String id = createID(label, caller);
         float[] color = {val.x, val.y, val.z, val.w};
-
         boolean useLabel = label != null && !label.isBlank();
         ImGui.pushID(id);
         if (useLabel) {
@@ -263,16 +248,12 @@ public class EditorWidget {
             }
             ImGui.tableNextColumn();
         }
-
         ImGui.pushItemWidth(ImGui.getContentRegionAvailX());
         boolean changed = ImGui.colorEdit4("##color" + id, color);
         ImGui.popItemWidth();
-
         if (changed) val.set(color[0], color[1], color[2], color[3]);
-
         if (useLabel) ImGui.endTable();
         ImGui.popID();
-
         return changed;
     }
 
@@ -286,7 +267,6 @@ public class EditorWidget {
                 ImGui.popID();
                 return txt;
             }
-
             ImGui.tableSetupColumn("##label_" + label + id, ImGuiTableColumnFlags.WidthFixed, defaultWidth);
             ImGui.tableSetupColumn("##content_" + label + id, ImGuiTableColumnFlags.WidthStretch);
             ImGui.tableNextColumn();
@@ -303,7 +283,6 @@ public class EditorWidget {
         ImGui.pushItemWidth(ImGui.getContentRegionAvailX());
         boolean changed = ImGui.inputText("##" + label + id, out);
         ImGui.popItemWidth();
-
         if (useLabel) ImGui.endTable();
         ImGui.popID();
         return changed ? out.get() : txt;
@@ -312,12 +291,10 @@ public class EditorWidget {
     public static String inputTextWithIME(String label, String txt, int bufferSize, Object caller) {
         String id = createID(label, caller);
         ImString out = new ImString(txt, bufferSize);
-
         int flags = ImGuiInputTextFlags.CallbackResize
                 | ImGuiInputTextFlags.CallbackHistory
                 | ImGuiInputTextFlags.CallbackCompletion
                 | ImGuiInputTextFlags.CallbackCharFilter;
-
         boolean useLabel = label != null && !label.isBlank();
         ImGui.pushID(id);
         if (useLabel) {
@@ -337,21 +314,15 @@ public class EditorWidget {
             }
             ImGui.tableNextColumn();
         }
-
         if (KeyListener.hasTextInput()) {
             String IMEInput = KeyListener.getTextInput();
-            if (!IMEInput.isEmpty()) {
-                out.set(out.get() + IMEInput);
-            }
+            if (!IMEInput.isEmpty()) out.set(out.get() + IMEInput);
         }
-
         ImGui.pushItemWidth(ImGui.getContentRegionAvailX());
         boolean changed = ImGui.inputText("##" + label + id, out, flags);
         ImGui.popItemWidth();
-
         if (useLabel) ImGui.endTable();
         ImGui.popID();
-
         return changed ? out.get() : txt;
     }
 
@@ -359,65 +330,48 @@ public class EditorWidget {
         Sprite icon = sprite.getIcon();
         if (icon == null) return ImGui.button(id);
         float sizeLimit = ImGui.getFontSize();
-
         int textureID = icon.getTextureID();
         Vector2f scaledSize = TextureScale.calculateFitSquare(icon.getWidth(), icon.getHeight(), sizeLimit);
         Vector2f[] textureCoordinates = icon.getTextureCoordinates();
-
         ImGui.pushStyleColor(ImGuiCol.Button, 1.0f, 1.0f, 1.0f, 0.0f);
         boolean clicked = ImGui.imageButton(id, textureID, scaledSize.x, scaledSize.y,
                 textureCoordinates[2].x, textureCoordinates[0].y,
                 textureCoordinates[0].x, textureCoordinates[2].y
         );
         ImGui.popStyleColor(1);
-
         if (ImGui.isItemHovered() && toolTip != null) {
             ImGui.beginTooltip();
             ImGui.text(toolTip);
             ImGui.endTooltip();
         }
-
         return clicked;
     }
 
     public static boolean iconButton(String id, EditorIcons.EditorIconSprite sprite, String toolTip, float width, float height) {
-        if (width <= 0.0f || height <= 0.0f) {
-            width = height = ImGui.getFontSize();
-        }
-
+        if (width <= 0.0f || height <= 0.0f) width = height = ImGui.getFontSize();
         Sprite icon = sprite.getIcon();
         if (icon == null) return ImGui.button(id);
         int textureID = icon.getTextureID();
         Vector2f[] textureCoordinates = icon.getTextureCoordinates();
-
         ImGui.pushStyleColor(ImGuiCol.Button, 1.0f, 1.0f, 1.0f, 0.0f);
         boolean clicked = ImGui.imageButton(id, textureID, width, height,
                 textureCoordinates[2].x, textureCoordinates[0].y,
                 textureCoordinates[0].x, textureCoordinates[2].y
         );
         ImGui.popStyleColor(1);
-
         if (ImGui.isItemHovered() && toolTip != null) {
             ImGui.beginTooltip();
             ImGui.text(toolTip);
             ImGui.endTooltip();
         }
-
         return clicked;
     }
 
     public static boolean selectableIcon(String id, EditorIcons.EditorIconSprite sprite, String toolTip, boolean selected, float width, float height) {
         if (id == null || id.isBlank()) return false;
-
-        if (width <= 0.0f || height <= 0.0f) {
-            width = height = ImGui.getFontSize();
-        }
-
+        if (width <= 0.0f || height <= 0.0f) width = height = ImGui.getFontSize();
         Sprite icon = sprite.getIcon();
-        if (icon == null) {
-            return ImGui.selectable(id, selected, width, height);
-        }
-
+        if (icon == null) return ImGui.selectable(id, selected, width, height);
         ImGui.beginGroup();
         ImVec2 framePadding = ImGui.getStyle().getFramePadding();
         ImVec2 cursorPos = ImGui.getCursorPos();
@@ -453,7 +407,7 @@ public class EditorWidget {
         float cellWidth = ImGui.calcTextSizeX("99") + ImGui.getStyle().getFramePaddingX() * 2.0f;
         float availWidth = ImGui.getContentRegionAvailX();
         float spacing = ImGui.getStyle().getItemSpacingX();
-        int maxColumn = Math.min(8, Math.max(1, (int) ((availWidth + spacing) / (cellWidth + spacing))));
+        int maxColumn = Math.clamp((int) ((availWidth + spacing) / (cellWidth + spacing)), 1, 8);
         int layers = Physic2D.MaxLayer;
         int newMask = mask;
         float width = maxColumn * (cellWidth + spacing);
@@ -461,7 +415,6 @@ public class EditorWidget {
             ImGui.popID();
             return mask;
         }
-
         for (int i = 0; i < maxColumn; i++) ImGui.tableSetupColumn("Layer_Toggle_Column_" + i + "_" + id, ImGuiTableColumnFlags.WidthFixed, cellWidth);
         for (int i = 0; i < layers; i++) {
             ImGui.tableNextColumn();
@@ -483,33 +436,41 @@ public class EditorWidget {
                 ImGui.endTooltip();
             }
         }
-
         ImGui.endTable();
         ImGui.popID();
         return newMask;
     }
 
+    /**
+     * Create a checkbox with the given label and the initial value.
+     * This method is responsible for handling the change of checkbox value after user interaction via its return value.
+     * @param label the label for the checkbox
+     * @param val the initial value
+     * @param caller the object that call this method
+     * @return the final value of the checkbox if changed, or the initial value
+     */
+    public static boolean checkboxCtrl(String label, boolean val, Object caller) {
+        checkboxTmp.set(val);
+        boolean changed = ImGui.checkbox(label + "##" + createID(label, caller), checkboxTmp);
+        return changed ? checkboxTmp.get() : val;
+    }
+
     private static String shortenLabel(String label, float availableWidth) {
         if (label == null || label.isBlank()) return label;
-
         ShortenLabelKey cachedKey = new ShortenLabelKey(label, availableWidth);
         String result = shortenLabels.get(cachedKey);
         if (result != null) return result;
-
         float fullWidth = ImGui.calcTextSizeX(label);
         if (fullWidth <= availableWidth) {
             shortenLabels.put(cachedKey, label);
             return label;
         }
-
         String space = " ";
         float dWidth = ImGui.calcTextSizeX(space);
-
         if (dWidth >= availableWidth) {
             shortenLabels.put(cachedKey, space);
             return space;
         }
-
         float targetW = availableWidth - dWidth;
         int l = 0;
         int r = label.length();
@@ -518,7 +479,6 @@ public class EditorWidget {
             int mid = (l + r) / 2;
             String sub = label.substring(0, mid);
             float sWidth = ImGui.calcTextSizeX(sub);
-
             if (sWidth < targetW) {
                 bestFit = mid;
                 l = mid + 1;
@@ -526,7 +486,6 @@ public class EditorWidget {
                 r = mid - 1;
             }
         }
-
         result = bestFit == 0 ? space : label.substring(0, bestFit) + space;
         shortenLabels.put(cachedKey, result);
         return result;
@@ -534,9 +493,7 @@ public class EditorWidget {
 
     private static String createID(String label, Object caller) {
         if (caller == null) return label;
-
         if (caller instanceof String s) return label + "__" + s;
-
         return label + "__" + System.identityHashCode(caller);
     }
 
@@ -562,7 +519,7 @@ public class EditorWidget {
     public static float allocateLabelWidth(String label, float maxWidth) {
         if (label == null) return 1.0f;
         float widthPadding = ImGui.calcTextSizeX(label, true) + 1.0f;
-        return Math.min(widthPadding, Math.max(0.0f, maxWidth));
+        return Math.clamp(maxWidth, 0.0f, widthPadding);
     }
 
     /**

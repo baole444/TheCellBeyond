@@ -36,6 +36,18 @@ public class EditorEvent extends Event {
          * Request to show "Save scene as" dialogue.
          */
         RequestSaveSceneAs,
+        /**
+         * The script loader finish loading a script class.
+         */
+        ScriptClassLoaded,
+        /**
+         * The script loader finish reloading script classes.
+         */
+        ScriptCLassReloaded,
+        /**
+         * The script loader finish unloading a script class.
+         */
+        ScriptClassUnloaded
     }
 
     /**

@@ -1,8 +1,11 @@
 package editor;
 
+import TheCellBeyond.internal.LogicServer;
+import editor.dialog.ConfirmSaveSceneDialog;
 import editor.dialog.SaveSceneAsDialog;
 import editor.preference.RecentProject;
 import editor.preference.UserPreference;
+import editor.template.ScriptExportCache;
 import eventviewer.EngineEventCallback;
 import eventviewer.EngineEventListener;
 import eventviewer.event.EditorEvent;
@@ -65,6 +68,12 @@ final class EditorEventHandler implements EngineEventListener {
                 UserPreference.updateRecentProject(update);
             }
             case RequestSaveSceneAs -> SaveSceneAsDialog.show(SceneManager::saveCurrentScene);
+            case ScriptClassLoaded -> ScriptExportCache.buildAndCache((Class<?>) object);
+            case ScriptClassUnloaded -> ScriptExportCache.clear();
+            case ScriptCLassReloaded -> {
+                String sceneName = LogicServer.currentSceneName();
+                if (sceneName != null) ConfirmSaveSceneDialog.show(() -> SceneManager.requestLoadScene(sceneName));
+            }
             default -> {}
         }
     }

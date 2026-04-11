@@ -2,6 +2,8 @@ package scripting;
 
 import TheCellBeyond.GameObject;
 import components.Component;
+import eventviewer.EngineEventCallback;
+import eventviewer.event.EditorEvent;
 import utility.log.EngineLog;
 
 import java.io.IOException;
@@ -48,6 +50,7 @@ public final class ScriptLoader {
     public static void unload() {
         gameObjectTypes.clear();
         componentTypes.clear();
+        EngineEventCallback.emit(new EditorEvent(EditorEvent.Type.ScriptClassUnloaded));
         if (ScriptClassLoader == null) return;
         try {
             ScriptClassLoader.close();
@@ -59,6 +62,7 @@ public final class ScriptLoader {
 
     public static void reload() {
         load(scanDirectories);
+        EngineEventCallback.emit(new EditorEvent(EditorEvent.Type.ScriptCLassReloaded));
     }
 
     public static ClassLoader classLoader() {
@@ -120,6 +124,7 @@ public final class ScriptLoader {
             String description = goAnnotation.description().isEmpty() ? "Custom game object." : goAnnotation.description();
             gameObjectTypes.add(new TypeEntry(label, description, T));
             Logger.debug(String.format("Registered custom GameObject: %s", label));
+            EngineEventCallback.emit(T, new EditorEvent(EditorEvent.Type.ScriptClassLoaded));
             return;
         }
         RegisterComponent componentAnnotation = T.getAnnotation(RegisterComponent.class);
@@ -128,5 +133,6 @@ public final class ScriptLoader {
         String description = componentAnnotation.description().isEmpty() ? "Custom component." : componentAnnotation.description();
         componentTypes.add(new TypeEntry(label, description, T));
         Logger.debug(String.format("Registered custom Component: %s", label));
+        EngineEventCallback.emit(T, new EditorEvent(EditorEvent.Type.ScriptClassLoaded));
     }
 }

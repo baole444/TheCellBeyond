@@ -227,7 +227,7 @@ def UtilityClasses = [
         'TCBMath', 'TextureScale', 'FontPT', 'IdPool', 'RingBuffer'
 ]
 def SPT = 'scripting/'
-def ScriptingClasses = ['RegisterComponent', 'RegisterGameObject', 'TypeEntry']
+def ScriptingClasses = ['Export', 'TypeHint', 'RegisterComponent', 'RegisterGameObject', 'TypeEntry']
 
 ext.apiIncludes = [
         // Core classes

@@ -21,6 +21,7 @@ final class ComponentTemplate implements IComponentTemplate<Component> {
     public void editorUI(Component component) {
         String result = EditorWidget.inputText("Name", component.name(), component);
         if (!Objects.equals(component.name(), result)) component.name(result);
+        ScriptExportCache.render(component);
         ComponentTemplateHierarchy.render(component);
     }
 

@@ -53,8 +53,8 @@ final class SpriteRendererTemplate implements IComponentTemplate<SpriteRenderer>
                 ImGui.pushStyleColor(ImGuiCol.Text, EditorColors.InstructionHighLight);
                 ImGui.textWrapped("No sprite assigned. Drag and drop a sprite from Sprite list here.");
                 ImGui.popStyleColor(1);
-                ImGui.endChild();
             }
+            ImGui.endChild();
         } else {
             int textureId = sprite.getTextureID();
             Vector2f[] textureCoordinates = sprite.getTextureCoordinates();

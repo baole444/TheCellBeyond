@@ -31,6 +31,7 @@ final class GameObjectTemplate implements IObjectTemplate<GameObject> {
     public void editorUI(GameObject object) {
         String newName = EditorWidget.inputText("Name", object.name(), object);
         if (!newName.equals(object.name())) object.name(newName);
+        ScriptExportCache.render(object);
         GameObjectTemplateHierarchy.render(object);
         ImGui.spacing();
         boolean openComponent = ImGui.collapsingHeader("Components##GameObject_Components_Header_" + object.getUUID(), ImGuiTreeNodeFlags.DefaultOpen);
