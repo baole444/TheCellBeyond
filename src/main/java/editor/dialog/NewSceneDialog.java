@@ -122,7 +122,7 @@ public class NewSceneDialog {
             errorMessage = "Name cannot be empty";
             return;
         }
-        if (!SceneManager.sceneNameAvailable(name)) {
+        if (SceneManager.sceneNameTaken(name)) {
             nameTaken = true;
             errorMessage = "Scene '" + name + "' already existed";
             return;

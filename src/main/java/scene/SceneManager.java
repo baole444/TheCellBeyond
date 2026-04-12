@@ -52,13 +52,13 @@ public final class SceneManager {
     }
 
     /**
-     * Check if a scene name is not taken yet.
+     * Check if a scene name is taken or not.
      * @param name the name string to check
-     * @return true if available
+     * @return true if taken
      */
-    public static boolean sceneNameAvailable(String name) {
-        if (!validSceneName(name) || !Project.loaded()) return false;
-        return Project.getScene(name.trim()) == null;
+    public static boolean sceneNameTaken(String name) {
+        if (!validSceneName(name) || !Project.loaded()) return true;
+        return Project.getScene(name.trim()) != null;
     }
 
     /**
@@ -222,7 +222,7 @@ public final class SceneManager {
             Logger.error(String.format(CannotRenameFormat, oldName, newName, ProjectNotLoaded));
             return false;
         }
-        if (!sceneNameAvailable(newName)) {
+        if (sceneNameTaken(newName)) {
             Logger.error(String.format(CannotRenameFormat, oldName, newName, SceneAlreadyExist));
             return false;
         }

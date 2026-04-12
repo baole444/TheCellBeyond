@@ -88,7 +88,7 @@ public final class RenameSceneDialog {
             errorMessage = "";
             return;
         }
-        if (!SceneManager.sceneNameAvailable(name)) {
+        if (SceneManager.sceneNameTaken(name)) {
             nameTaken = true;
             errorMessage = "Scene '" + name + "' already exist";
             return;

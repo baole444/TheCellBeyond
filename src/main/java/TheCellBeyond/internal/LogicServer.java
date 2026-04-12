@@ -10,10 +10,7 @@ import eventviewer.event.Event;
 import eventviewer.event.SceneEvent;
 import physic2d.Physic2D;
 import project.Project;
-import scene.Scene;
-import scene.SceneEditor;
-import scene.SceneLoader;
-import scene.SceneManager;
+import scene.*;
 import utility.log.EngineLog;
 
 public class LogicServer implements EngineEventListener {
@@ -22,9 +19,29 @@ public class LogicServer implements EngineEventListener {
     private static Scene currentScene;
     private static boolean runtimeMode = false;
     private static boolean runtimeCrashed = false;
+    private static String runtimeStartScene = null;
+    private static String pendingSceneName = null;
 
     private LogicServer() {
         register();
+    }
+
+    /**
+     * Request a scene change to the scene of the given name. The change is deferred to the start of the next frame.
+     * <p>
+     * Change scene like this only availiable during runtime.
+     * @param sceneName the name of the scene tro switch to
+     */
+    public static void changeScene(String sceneName) {
+        if (!runtimeMode) {
+            Logger.warning("Change scene via this call is not availiable outside runtime");
+            return;
+        }
+        if (!SceneManager.validSceneName(sceneName) || Project.getScene(sceneName) == null) {
+            Logger.warning(String.format("Cannot change to scene '%s': no such scene exist", sceneName));
+            return;
+        }
+        pendingSceneName = sceneName;
     }
 
     /**
@@ -107,6 +124,12 @@ public class LogicServer implements EngineEventListener {
      * @param dt variable delta time
      */
     public static void update(float dt)  {
+        if (runtimeMode && pendingSceneName != null) {
+            String target = pendingSceneName;
+            pendingSceneName = null;
+            changeScene(new SceneRuntime(), target);
+            return;
+        }
         if (runtimeCrashed || currentScene == null) return;
         if (runtimeMode) {
             try {
@@ -163,13 +186,6 @@ public class LogicServer implements EngineEventListener {
         else currentScene.editorStart();
     }
 
-    private static void reloadScene() {
-        if (currentScene == null) return;
-        String sceneName = currentScene.name();
-        if (!SceneManager.validSceneName(sceneName)) return;
-        changeScene(new SceneEditor(), sceneName);
-    }
-
     private void handleSceneEvent(SceneEvent event) {
         if (!event.type.equals(SceneEvent.Type.SceneLeaved)) return;
         currentScene = null;
@@ -179,20 +195,30 @@ public class LogicServer implements EngineEventListener {
         switch (event.type) {
             case RuntimeEvent.Type.RuntimeStarted -> {
                 SceneManager.saveCurrentScene();
+                if (!SceneManager.validSceneName(currentSceneName())) {
+                    Logger.error("Cannot start runtime: no valid scene loaded");
+                    return;
+                }
                 Physic2D.physicDeltaRate(Project.preference().physicFrameRate());
                 runtimeMode = true;
-                reloadScene();
-                Logger.info(String.format("Test play started for '%s'", currentSceneName()));
+                changeScene(new SceneRuntime(), runtimeStartScene);
+                Logger.info(String.format("Runtime started for '%s'", currentSceneName()));
             }
             case RuntimeEvent.Type.RuntimeStopped -> {
+                String returnScene = runtimeStartScene != null ? runtimeStartScene : currentSceneName();
+                pendingSceneName = null;
+                runtimeStartScene = null;
                 runtimeMode = false;
-                reloadScene();
-                Logger.info(String.format("Test play stopped for '%s'", currentSceneName()));
+                changeScene(new SceneEditor(), returnScene);
+                Logger.info(String.format("Runtime stopped for '%s'", currentSceneName()));
             }
             case RuntimeEvent.Type.RuntimeCrashed -> {
+                String returnScene = runtimeStartScene != null ? runtimeStartScene : currentSceneName();
+                pendingSceneName = null;
+                runtimeStartScene = null;
                 runtimeMode = false;
                 runtimeCrashed = false;
-                reloadScene();
+                changeScene(new SceneEditor(), returnScene);
             }
         }
     }
