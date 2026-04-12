@@ -91,7 +91,7 @@ final class MenuBar {
             if (unsaved) ImGui.beginDisabled();
             if (ImGui.menuItem("Rename Scene...##MenuBar_Scene_Edit_Rename")) RenameSceneDialog.show();
             if (unsaved) ImGui.endDisabled();
-            if (ImGui.menuItem("Change Root Type...##MenuBar_Scene_Edit_ChangeRootType")) ChooseObjectTypeDialog.showReplace();
+            if (ImGui.menuItem("Change Root Type...##MenuBar_Scene_Edit_ChangeRootType")) ChooseObjectTypeDialog.showReplaceRoot();
             ImGui.endMenu();
         }
         if (noScene && ImGui.isItemHovered(ImGuiHoveredFlags.AllowWhenDisabled)) ImGui.setTooltip("No scene loaded");

@@ -56,7 +56,7 @@ public class TextBatch {
 
     public TextBatch(int maxBatchSize) {
         bufferCapacity = maxBatchSize;
-        if (fontShader == null) fontShader = AssetManager.get().getShader(AssetManager.get().loadShader(Settings.ShaderPath.DefaultFontShader));
+        if (fontShader == null) fontShader = AssetManager.getShader(AssetManager.loadShader(Settings.ShaderPath.DefaultFontShader));
     }
 
     public void init() {
@@ -184,12 +184,12 @@ public class TextBatch {
         for (Map.Entry<ResourceID, List<TextCommand>> entry : fontGroups.entrySet()) {
             ResourceID fontRID = entry.getKey();
             List<TextCommand> commands = entry.getValue();
-            TCBFont font = AssetManager.get().getFont(fontRID);
+            TCBFont font = AssetManager.getFont(fontRID);
             if (font == null || !font.loaded()) continue;
             if (!selectionPass) {
                 ResourceID atlasRID = font.atlasRID();
                 if (atlasRID == null) continue;
-                FontAtlasTexture atlas = AssetManager.get().getFontAtlas(atlasRID);
+                FontAtlasTexture atlas = AssetManager.getFontAtlas(atlasRID);
                 if (atlas == null || !atlas.isReady()) continue;
                 glActiveTexture(GL_TEXTURE0);
                 glBindTexture(GL_TEXTURE_2D, atlas.getID());

@@ -10,17 +10,24 @@ import eventviewer.event.EditorEvent;
 import javax.swing.*;
 import java.awt.*;
 
-public class ExitConfirmDialog {
+/**
+ * Editor dialogue for prompting save editing scene on exit.
+ */
+public final class ExitConfirmDialog {
+    private ExitConfirmDialog() {}
+
+    /**
+     * Show the exit dialogue. If auto save on exit is enabled, this will skip showing the dialogue entirely.
+     * @return true if the user choose exit (regardless of saving or not), false if cancelled
+     */
     public static boolean exitDialog() {
         if (isAutoSaveOnExitOn()) {
-            if (LogicServer.currentSceneName() == null) {
-                SaveSceneAsDialog.show(() -> {
-                    EngineEventCallback.emit(new EditorEvent(EditorEvent.Type.SaveEditingSceneToDisk));
-                    Window.get().forceClose();
-                });
-                return false;
-            }
-            return true;
+            if (LogicServer.currentSceneName() != null) return true;
+            SaveSceneAsDialog.show(() -> {
+                EngineEventCallback.emit(new EditorEvent(EditorEvent.Type.SaveEditingSceneToDisk));
+                Window.get().forceClose();
+            });
+            return false;
         }
         JFrame frame = new JFrame();
         frame.setAlwaysOnTop(true);
@@ -43,16 +50,17 @@ public class ExitConfirmDialog {
         frame.dispose();
         if (autoSave.isSelected()) setAutoSaveOn();
         if (confirm == 0) {
-            if (LogicServer.currentSceneName() == null) {
-                SaveSceneAsDialog.show(() -> {
-                    EngineEventCallback.emit(new EditorEvent(EditorEvent.Type.SaveEditingSceneToDisk));
-                    Window.get().forceClose();
-                });
-                return false;
+            if (LogicServer.currentSceneName() != null) {
+                EngineEventCallback.emit(new EditorEvent(EditorEvent.Type.SaveEditingSceneToDisk));
+                return true;
             }
-            EngineEventCallback.emit(new EditorEvent(EditorEvent.Type.SaveEditingSceneToDisk));
-            return true;
-        } else return confirm == 1;
+            SaveSceneAsDialog.show(() -> {
+                EngineEventCallback.emit(new EditorEvent(EditorEvent.Type.SaveEditingSceneToDisk));
+                Window.get().forceClose();
+            });
+            return false;
+        }
+        return confirm == 1;
     }
 
     private static boolean isAutoSaveOnExitOn() {

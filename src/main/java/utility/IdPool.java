@@ -14,16 +14,17 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class IdPool {
     private static final EngineLog Logger = new EngineLog(IdPool.class);
     // Use for when respect floating point limit is enabled
-    private static final int FLOAT_PRECISION_LIMIT = 16777216;
-
+    private static final int FloatPrecisionLimit = 16777216;
     private final int startValue;
-
     private final AtomicInteger nextId;
-
     private final ConcurrentLinkedQueue<Integer> discardedIds;
-
     private final boolean shouldRespectFloatPrecisionLimit;
 
+    /**
+     * Create a new {@link IdPool} with the given starting value.
+     * @param startValue the number that the pool start incrementing from
+     * @param respectFloatPrecisionLimit should the pool warn if the dispatching value pass Float precision limit
+     */
     public IdPool (int startValue, boolean respectFloatPrecisionLimit) {
         this.startValue = startValue;
         nextId = new AtomicInteger(startValue);
@@ -88,10 +89,10 @@ public class IdPool {
     /**
      * Check if a value had pass the precision limit of Float.
      * @param value the integer to check
-     * @return true if {@link #shouldRespectFloatPrecisionLimit} is {@code true} and the value pass {@link #FLOAT_PRECISION_LIMIT}
+     * @return true if {@link #shouldRespectFloatPrecisionLimit} is {@code true} and the value pass {@link #FloatPrecisionLimit}
      */
     private boolean isFPLViolated(int value) {
-        if (shouldRespectFloatPrecisionLimit) return value >= FLOAT_PRECISION_LIMIT;
+        if (shouldRespectFloatPrecisionLimit) return value >= FloatPrecisionLimit;
         return false;
     }
 

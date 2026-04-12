@@ -76,6 +76,11 @@ public interface Renderable {
         return null;
     }
 
+    /**
+     * Build transform command of previous transform for this renderable implement.
+     * This command is use for physic interpolation
+     * @return the transform command
+     */
     default TransformCommand previousTransformCommand() {
         return null;
     }

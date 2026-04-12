@@ -182,14 +182,11 @@ public final class EditorIcons {
      */
     public static void init() {
         if (isInitialized) return;
-        AssetManager manager = AssetManager.get();
         try {
-            if (!manager.hasSpriteSheet(Path)) {
-                manager.addSpriteSheet(Path,
-                        new SpriteSheet(manager.getTexture(manager.loadTexture(Path)), width, height, iconCount, 0)
-                );
+            if (!AssetManager.hasSpriteSheet(Path)) {
+                AssetManager.addSpriteSheet(Path, new SpriteSheet(AssetManager.getTexture(AssetManager.loadTexture(Path)), width, height, iconCount, 0));
             }
-            icons = manager.getSpriteSheet(Path);
+            icons = AssetManager.getSpriteSheet(Path);
             isInitialized = true;
         } catch (Exception e) {
             System.err.println("Failed to initialize editor icons: " + e.getMessage());

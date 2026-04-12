@@ -16,6 +16,9 @@ import utility.log.EngineLog;
 
 import java.util.List;
 
+/**
+ * Editor dialogue for selecting object type.
+ */
 public final class ChooseObjectTypeDialog {
     private static final String PopupID = "Choose Object Type";
     private static final String ObjectListID = "Object_Type_List";
@@ -31,6 +34,9 @@ public final class ChooseObjectTypeDialog {
 
     private ChooseObjectTypeDialog() {}
 
+    /**
+     * Toggle the show flag for this dialogue.
+     */
     public static void show() {
         showDialog = true;
         replaceMode = false;
@@ -38,10 +44,17 @@ public final class ChooseObjectTypeDialog {
         selectedCustomType = null;
     }
 
-    public static void showReplace() {
+    /**
+     * Toggle the show flag for this dialogue to replace mode for the current scene root.
+     */
+    public static void showReplaceRoot() {
         showReplace(null);
     }
 
+    /**
+     * Toggle the show flag for this dialogue to replace mode for the given object.
+     * @param target the object to change type
+     */
     public static void showReplace(GameObject target) {
         showDialog = true;
         replaceMode = true;
@@ -50,6 +63,9 @@ public final class ChooseObjectTypeDialog {
         targetObject = target;
     }
 
+    /**
+     * Render the dialogue on screen.
+     */
     public static void imgui() {
         if (!showDialog) return;
         ImGui.openPopup(PopupID);

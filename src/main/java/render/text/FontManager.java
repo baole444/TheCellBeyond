@@ -14,7 +14,12 @@ import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.*;
 
-public class FontManager {
+/**
+ * FontManager handle the process of loading font files and build the font metadata,
+ * along with generate the bitmap of the font atlas.
+ * Font manager process run on a separated thread, allow loading fonts async.
+ */
+public final class FontManager {
     private static final EngineLog Logger = new EngineLog(FontManager.class);
     private record FontLoadingJob(TCBFont font, ResourceID atlasRID) {}
 
@@ -30,6 +35,10 @@ public class FontManager {
         startProcessingThread();
     }
 
+    /**
+     * Get the font manager instance in sync.
+     * @return the current manager instance or a new one.
+     */
     public static synchronized FontManager get() {
         if (instance == null) instance = new FontManager();
         return instance;

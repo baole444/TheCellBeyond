@@ -454,20 +454,20 @@ public class Project {
             for (Map.Entry<String, ProjectSheetMap> sheets : categories.getValue().entrySet()) {
                 ProjectSheetMap sheetMap = sheets.getValue();
                 String projectPath = UnifiedPaths.ProjectPrefix + sheetMap.path();
-                Texture texture = AssetManager.get().getTexture(AssetManager.get().loadTexture(projectPath));
+                Texture texture = AssetManager.getTexture(AssetManager.loadTexture(projectPath));
                 SpriteSheet sheet = new SpriteSheet(texture, sheetMap.spriteSizeX(), sheetMap.spriteSizeY(),
                         sheetMap.numberOfSprite(), sheetMap.spriteSpacingX(), sheetMap.spriteSpacingY(),
                         sheetMap.spriteStartPosX(), sheetMap.spriteStartPosY()
                 );
-                AssetManager.get().addSpriteSheet(projectPath, sheet);
+                AssetManager.addSpriteSheet(projectPath, sheet);
             }
         }
         for (Map.Entry<UUID, ProjectAssetMap> entry : CurrentProject.assets().entrySet()) {
             ProjectAssetMap assetMap = entry.getValue();
             String projectPath = UnifiedPaths.ProjectPrefix + assetMap.path();
-            Texture texture = AssetManager.get().getTexture(AssetManager.get().loadTexture(projectPath));
+            Texture texture = AssetManager.getTexture(AssetManager.loadTexture(projectPath));
             TextureUnit unit = new TextureUnit(texture, assetMap.sizeX(), assetMap.sizeY());
-            AssetManager.get().addTextureUnit(projectPath, unit);
+            AssetManager.addTextureUnit(projectPath, unit);
         }
     }
 

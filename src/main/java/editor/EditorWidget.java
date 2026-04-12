@@ -21,15 +21,20 @@ import java.util.HashMap;
 
 /**
  * EditorWidget contains a collection of static methods for editing various data type in the editor.
- * It also provides methods for creating icon button, selectable
+ * It also provides methods for creating icon button, selectable and collapsible headers.
  */
-public class EditorWidget {
+public final class EditorWidget {
     private record ShortenLabelKey(String text, float width) {}
     private static final HashMap<ShortenLabelKey, String> shortenLabels = new HashMap<>();
     private static final float defaultWidth = 80.0f;
     private static final ImBoolean checkboxTmp = new ImBoolean();
     private static final Vector2f dragVec2Tmp = new Vector2f();
+    private EditorWidget() {}
 
+    /**
+     * Render a label text with centre aligned text.
+     * @param label the display label
+     */
     public static void textCenterAlign(String label) {
         if (label == null) return;
         float remainWidth = ImGui.getContentRegionAvailX();
@@ -326,6 +331,14 @@ public class EditorWidget {
         return changed ? out.get() : txt;
     }
 
+    /**
+     * Render an icon button. The size of the widget is limited by the font size.
+     * This method return whether the icon had been clicked or not.
+     * @param id the id for the widget
+     * @param sprite the sprite for the icon
+     * @param toolTip the tooltips to display
+     * @return true if clicked
+     */
     public static boolean iconButton(String id, EditorIcons.EditorIconSprite sprite, String toolTip) {
         Sprite icon = sprite.getIcon();
         if (icon == null) return ImGui.button(id);
@@ -347,6 +360,15 @@ public class EditorWidget {
         return clicked;
     }
 
+    /**
+     * Render an icon button, this method return whether the icon had been clicked or not.
+     * @param id the id for the widget
+     * @param sprite the sprite for the icon
+     * @param toolTip the tooltips to display
+     * @param width width for the widget
+     * @param height height for the widget
+     * @return true if clicked
+     */
     public static boolean iconButton(String id, EditorIcons.EditorIconSprite sprite, String toolTip, float width, float height) {
         if (width <= 0.0f || height <= 0.0f) width = height = ImGui.getFontSize();
         Sprite icon = sprite.getIcon();
@@ -367,6 +389,16 @@ public class EditorWidget {
         return clicked;
     }
 
+    /**
+     * Render a selectable icon, this method return whether the selectable had been interacted or not.
+     * @param id the id for the widget
+     * @param sprite the sprite for the icon
+     * @param toolTip the tooltips to display
+     * @param selected the selectable current state
+     * @param width width for the widget
+     * @param height heigh for the widget
+     * @return true if interacted
+     */
     public static boolean selectableIcon(String id, EditorIcons.EditorIconSprite sprite, String toolTip, boolean selected, float width, float height) {
         if (id == null || id.isBlank()) return false;
         if (width <= 0.0f || height <= 0.0f) width = height = ImGui.getFontSize();
@@ -393,12 +425,28 @@ public class EditorWidget {
         return interact;
     }
 
+    /**
+     * Render a selectable icon, this method will update the selection status of the selectable via the tracking boolean
+     * @param id the id for the widget
+     * @param sprite the sprite for the icon
+     * @param toolTip the tooltips to display
+     * @param selected the selection tracking boolean
+     * @param width width for the widget
+     * @param height heigh for the widget
+     */
     public static void selectableIcon(String id, EditorIcons.EditorIconSprite sprite, String toolTip, ImBoolean selected, float width, float height) {
         if (id == null || sprite == null || selected == null) return;
         boolean before = selected.get();
         if (selectableIcon(id, sprite, toolTip, selected.get(), width, height)) selected.set(!before);
     }
 
+    /**
+     * Render a physic layer editing table, this method is not collision layer or collision mask specific.
+     * @param label the display label
+     * @param mask the mask value
+     * @param caller the object that call this method
+     * @return the updated mask value if changed
+     */
     public static int physicLayerSelectable(String label, int mask, Object caller) {
         String id = createID(label, caller);
         ImGui.pushID(id);
@@ -442,7 +490,7 @@ public class EditorWidget {
     }
 
     /**
-     * Create a checkbox with the given label and the initial value.
+     * Render checkbox with the given label and the initial value.
      * This method is responsible for handling the change of checkbox value after user interaction via its return value.
      * @param label the label for the checkbox
      * @param val the initial value

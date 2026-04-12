@@ -312,7 +312,7 @@ public class TextureBatch {
 
     private static Texture resolveTexture(ResourceID textureRID) {
         if (textureRID == null) return null;
-        return AssetManager.get().getTexture(textureRID);
+        return AssetManager.getTexture(textureRID);
     }
 
     private static int[] genIndicesForBuffer(int capacity) {

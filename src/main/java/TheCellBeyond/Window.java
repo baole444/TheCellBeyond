@@ -252,7 +252,7 @@ public final class Window implements EngineEventListener {
 
     private void endScreen() {
         FontManager.get().dispose();
-        AssetManager.get().clearCache();
+        AssetManager.clearCache();
         RendererState.cleanup();
         EngineEventCallback.dispose();
         imGuiLayer.getImGuiGl3().shutdown();
@@ -275,10 +275,9 @@ public final class Window implements EngineEventListener {
         float dt = -1.0f;
         float accumulatedDT = 0.0f;
         int accumulatedFrame = 0;
-        AssetManager assetManager = AssetManager.get();
-        Shader defaultShader = assetManager.getShader(assetManager.loadShader(Settings.ShaderPath.DefaultTextureShader));
-        Shader objectSelectShader = assetManager.getShader(assetManager.loadShader(Settings.ShaderPath.ObjectSelectionShader));
-        Shader debugLineShader = assetManager.getShader(assetManager.loadShader(Settings.ShaderPath.DebugLine2Shader));
+        Shader defaultShader = AssetManager.getShader(AssetManager.loadShader(Settings.ShaderPath.DefaultTextureShader));
+        Shader objectSelectShader = AssetManager.getShader(AssetManager.loadShader(Settings.ShaderPath.ObjectSelectionShader));
+        Shader debugLineShader = AssetManager.getShader(AssetManager.loadShader(Settings.ShaderPath.DebugLine2Shader));
         DebugDraw.init(debugLineShader);
         RendererState rendererState = RendererState.get();
         while (!glfwWindowShouldClose(windowPtr)) {

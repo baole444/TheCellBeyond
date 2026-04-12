@@ -334,7 +334,7 @@ public class SceneEditor extends SceneLoader implements EngineEventListener {
                 String name = sheets.getKey();
                 ProjectSheetMap sM = sheets.getValue();
                 String path = UnifiedPaths.resolveToAbsolute(Project.projectRoot(), sM.path());
-                SpriteSheet spriteSheet = AssetManager.get().getSpriteSheet(path);
+                SpriteSheet spriteSheet = AssetManager.getSpriteSheet(path);
                 if (spriteSheet != null) categorySheets.put(name, spriteSheet);
             }
             if (!categorySheets.isEmpty()) categorizedSpriteSheetList.put(category, categorySheets);
@@ -349,7 +349,7 @@ public class SceneEditor extends SceneLoader implements EngineEventListener {
             UUID uuid = entry.getKey();
             String path = entry.getValue().path();
             if (path == null || path.isEmpty()) continue;
-            TextureUnit unit = AssetManager.get().getTextureUnit(path);
+            TextureUnit unit = AssetManager.getTextureUnit(path);
             if (unit != null) textureUnits.put(uuid, unit);
         }
     }

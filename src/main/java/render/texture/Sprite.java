@@ -24,12 +24,12 @@ public class Sprite {
 
     public ResourceID textureRID() {
         if (textureCanonicalPath == null) return null;
-        return AssetManager.get().loadTexture(textureCanonicalPath);
+        return AssetManager.loadTexture(textureCanonicalPath);
     }
 
     public Texture getTexture() {
         if (textureCanonicalPath == null) return null;
-        return AssetManager.get().getTexture(AssetManager.get().loadTexture(textureCanonicalPath));
+        return AssetManager.getTexture(AssetManager.loadTexture(textureCanonicalPath));
     }
 
     public Vector2f[] getTextureCoordinates() {
@@ -44,7 +44,7 @@ public class Sprite {
         }
         String canonPath = texture.getCanonicalPath();
         textureCanonicalPath = canonPath;
-        if (canonPath != null) AssetManager.get().loadTexture(canonPath);
+        if (canonPath != null) AssetManager.loadTexture(canonPath);
     }
 
     public void setTexture(String textureCanonicalPath) {
@@ -55,7 +55,7 @@ public class Sprite {
         }
         AssetReference assetReference = new AssetReference(textureCanonicalPath);
         this.textureCanonicalPath = assetReference.canonicalPath();
-        AssetManager.get().loadTexture(this.textureCanonicalPath);
+        AssetManager.loadTexture(this.textureCanonicalPath);
     }
 
     public void setTextureCoordinates(Vector2f[] texCrd) {
@@ -83,7 +83,7 @@ public class Sprite {
 
     public int getTextureID() {
         if (textureCanonicalPath == null) return -1;
-        Texture texture = AssetManager.get().getTexture(AssetManager.get().loadTexture(textureCanonicalPath));
+        Texture texture = AssetManager.getTexture(AssetManager.loadTexture(textureCanonicalPath));
         return texture != null ? texture.getID() : -1;
     }
 

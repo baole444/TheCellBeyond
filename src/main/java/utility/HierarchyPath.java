@@ -52,10 +52,16 @@ public final class HierarchyPath {
      * Symbol to separate component from its game object segment.
      */
     public static final String ComponentDelimiter = "::";
+    /**
+     * The original path string that was used to create this {@link HierarchyPath}.
+     */
+    public final String originPath;
+    /**
+     * Is this hierarchy path an absolute path or not.
+     */
+    public final boolean absolute;
 
     private final List<String> segments = new ArrayList<>();
-    public final String originPath;
-    public final boolean absolute;
 
     /**
      * Create a new {@link HierarchyPath} with the given path string.

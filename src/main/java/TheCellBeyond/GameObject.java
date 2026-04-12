@@ -205,6 +205,11 @@ public class GameObject {
         updateChildrenUUIDs();
     }
 
+    /**
+     * Replace a child object with a new child. This requires the child object to be of this object's child.
+     * @param oldChild the current child object to be replaced
+     * @param newChild the new child object to replace it with
+     */
     public void replaceChild(GameObject oldChild, GameObject newChild) {
         if (oldChild == null || newChild == null || oldChild == newChild) return;
         if (!children.contains(oldChild) || children.contains(newChild)) return;
@@ -936,22 +941,54 @@ public class GameObject {
         }
     }
 
+    /**
+     * Get the hierarchy path of this game object. The path resolved as an absolute path.
+     * @return a new {@link HierarchyPath} to this object
+     */
     public HierarchyPath asPath() {
         return HierarchyPaths.of(this);
     }
 
+    /**
+     * Resolve the absolute hierarchy path to the game object at the destination.
+     * @param absolutePath the absolute path to resolve from
+     * @return a {@link GameObject} at the destination or null if there is no match
+     * @see HierarchyPaths#toGameObject(HierarchyPath)
+     */
     public static GameObject getObject(HierarchyPath absolutePath) {
         return HierarchyPaths.toGameObject(absolutePath);
     }
 
+    /**
+     * Resolve the hierarchy path to the game object at the destination with the given context.
+     * @param path the path to resolve from
+     * @param context the object act as the starting point for the path
+     * @return a {@link GameObject} at the destination or null if there is no match
+     * @see HierarchyPaths#toGameObject(HierarchyPath, GameObject)
+     */
     public static GameObject getObject(HierarchyPath path, GameObject context) {
         return HierarchyPaths.toGameObject(path, context);
     }
 
+    /**
+     * Resolve the absolute hierarchy path string to the game object at the destination.
+     * The given string is converted to {@link HierarchyPath} first.
+     * @param absolutePath the absolute path to resolve from
+     * @return a {@link GameObject} at the destination or null if there is no match
+     * @see HierarchyPaths#toGameObject(String)
+     */
     public static GameObject getObject(String absolutePath) {
         return HierarchyPaths.toGameObject(absolutePath);
     }
 
+    /**
+     * Resolve the hierarchy path string to the game object at the destination with the given context.
+     * The given string is converted to {@link HierarchyPath} first.
+     * @param path the path to resolve from
+     * @param context the object act as the starting point for the path
+     * @return a {@link GameObject} at the destination or null if there is no match
+     * @see HierarchyPaths#toGameObject(String, GameObject)
+     */
     public static GameObject getObject(String path, GameObject context) {
         return HierarchyPaths.toGameObject(path, context);
     }

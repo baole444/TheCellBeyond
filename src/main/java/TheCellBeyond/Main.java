@@ -15,6 +15,6 @@ public class Main {
             throw new RuntimeException("Engine crashed during execution", t);
         }
         System.out.println("Ending editor instance...");
-        ExitToProjectList.get().spawnNewProcess();
+        ExitToProjectList.spawnNewProcess();
     }
 }

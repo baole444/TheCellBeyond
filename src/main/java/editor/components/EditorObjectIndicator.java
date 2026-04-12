@@ -60,13 +60,12 @@ public final class EditorObjectIndicator extends Component2D implements NotSeria
                 || !(gameObject instanceof GameObject2D)
         ) return;
         try {
-            AssetManager manager = AssetManager.get();
-            if (!manager.hasTextureUnit(IndicatorPath)) {
-                manager.addTextureUnit(IndicatorPath,
-                        new TextureUnit(manager.getTexture(manager.loadTexture(IndicatorPath)), 12, 12)
+            if (!AssetManager.hasTextureUnit(IndicatorPath)) {
+                AssetManager.addTextureUnit(IndicatorPath,
+                        new TextureUnit(AssetManager.getTexture(AssetManager.loadTexture(IndicatorPath)), 12, 12)
                 );
             }
-            textureUnit = manager.getTextureUnit(IndicatorPath);
+            textureUnit = AssetManager.getTextureUnit(IndicatorPath);
             setActive();
             completeInit();
         } catch (Exception e) {

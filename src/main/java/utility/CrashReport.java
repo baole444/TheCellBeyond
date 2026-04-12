@@ -16,6 +16,9 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+/**
+ * CrashReport is a popup used for handling and show crash report outside the engine runtime (e.g. editor crashes.)
+ */
 public final class CrashReport {
     private static final DateTimeFormatter FileTimestamp = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
     private static final DateTimeFormatter LogTimestamp = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
@@ -35,6 +38,11 @@ public final class CrashReport {
     private static final Color LightButtonBackground = new Color(225, 225, 225);
     private static final Color LightButtonHover = new Color(210, 210, 210);
 
+    private CrashReport() {}
+
+    /**
+     * Setup default uncaught exception handler to show the crash dialogue.
+     */
     public static void install() {
         Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
             String report = buildReport(thread, throwable);

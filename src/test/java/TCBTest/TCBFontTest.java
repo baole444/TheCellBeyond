@@ -53,9 +53,9 @@ public class TCBFontTest {
             if (RID.equals(RIDHolder.get()) && result.compareAndSet(null, status)) latch.countDown();
         };
         ResourceStatusCallback.register(listener);
-        ResourceID RID = AssetManager.get().loadFont(path, range, point);
+        ResourceID RID = AssetManager.loadFont(path, range, point);
         RIDHolder.set(RID);
-        TCBFont font = AssetManager.get().getFont(RID);
+        TCBFont font = AssetManager.getFont(RID);
         if (font != null && font.loaded() && result.compareAndSet(null, ResourceStatus.READY)) latch.countDown();
         latch.await(timeOut, TimeUnit.SECONDS);
         ResourceStatusCallback.unregister(listener);

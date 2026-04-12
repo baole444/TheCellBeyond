@@ -13,18 +13,29 @@ import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
 
-public class ExitToProjectListDialog {
+/**
+ * Editor dialogue for saving before exiting back to project list.
+ */
+public final class ExitToProjectListDialog {
     private static final String POPUP_ID = "Save before exit?";
     private static final ImVec2 DIALOG_SIZE = new ImVec2(400, 160);
     private static boolean showDialog = false;
     private static boolean isAutoSaveOnExit = false;
     private static final ImBoolean enableSaveOnExit = new ImBoolean(false);
 
+    private ExitToProjectListDialog() {}
+
+    /**
+     * Toggle the show flag for this dialogue.
+     */
     public static void show() {
         showDialog = true;
         isAutoSaveOnExit = UserPreference.reloadEditorPreferences().autoSaveOnExit();
     }
 
+    /**
+     * Render the dialogue on scene, this will be skip if auto save on exit is enabled.
+     */
     public static void imgui() {
         if (!showDialog) return;
         if (isAutoSaveOnExit) {
@@ -65,7 +76,7 @@ public class ExitToProjectListDialog {
             ImGui.setCursorPosX(noSaveX);
             if (ImGui.button("Don't save", buttonWidth, 0)) {
                 if (enableSaveOnExit.get()) setAutoSaveOn();
-                ExitToProjectList.get().toProjectList(true);
+                ExitToProjectList.toProjectList(true);
                 Window.get().forceClose();
                 showDialog = false;
                 ImGui.closeCurrentPopup();
@@ -90,7 +101,7 @@ public class ExitToProjectListDialog {
     }
 
     private static void saveAndExit() {
-        ExitToProjectList.get().toProjectList(true);
+        ExitToProjectList.toProjectList(true);
         EngineEventCallback.emit(new EditorEvent(EditorEvent.Type.SaveEditingSceneToDisk));
         Window.get().forceClose();
     }

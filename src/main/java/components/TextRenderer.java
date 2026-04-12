@@ -112,7 +112,7 @@ public class TextRenderer extends Component2D implements ResourceStatusListener 
     }
 
     public TCBFont font() {
-        return fontRID != null ? AssetManager.get().getFont(fontRID) : null;
+        return fontRID != null ? AssetManager.getFont(fontRID) : null;
     }
 
     public Vector4f color() {
@@ -194,7 +194,7 @@ public class TextRenderer extends Component2D implements ResourceStatusListener 
     }
 
     private void calculateTextDimensions() {
-        TCBFont font = fontRID != null ? AssetManager.get().getFont(fontRID) : null;
+        TCBFont font = fontRID != null ? AssetManager.getFont(fontRID) : null;
         if (font == null || text.isEmpty()) {
             textDimensions.zero();
             return;
@@ -222,10 +222,10 @@ public class TextRenderer extends Component2D implements ResourceStatusListener 
 
     private void requestLoadFont() {
         GlyphRange range = GlyphRange.valueOf(glyphRangeName);
-        ResourceID newRID = AssetManager.get().loadFont(assetReference.canonicalPath(), range, point);
+        ResourceID newRID = AssetManager.loadFont(assetReference.canonicalPath(), range, point);
         if (Objects.equals(newRID, fontRID)) return;
         fontRID = newRID;
-        TCBFont existing = AssetManager.get().getFont(fontRID);
+        TCBFont existing = AssetManager.getFont(fontRID);
         if (existing == null || !existing.loaded()) return;
         calculateTextDimensions();
         renderDirty = true;

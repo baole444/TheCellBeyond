@@ -48,16 +48,15 @@ public class EditorGizmoCtrl extends Component {
     private void initGizmoSprite() {
         if (isInitialized || gameObject == null) return;
         try {
-            AssetManager manager = AssetManager.get();
-            if (!manager.hasSpriteSheet(Path)) {
+            if (!AssetManager.hasSpriteSheet(Path)) {
                 int w = 16;
                 int h = 48;
                 int count = 3;
-                manager.addSpriteSheet(Path,
-                        new SpriteSheet(manager.getTexture(manager.loadTexture(Path)), w, h, count, 0)
+                AssetManager.addSpriteSheet(Path,
+                        new SpriteSheet(AssetManager.getTexture(AssetManager.loadTexture(Path)), w, h, count, 0)
                 );
             }
-            gizmo = manager.getSpriteSheet(Path);
+            gizmo = AssetManager.getSpriteSheet(Path);
             completeInit();
         } catch (Exception e) {
             System.err.println("Failed to initialize EditorGizmo texture: " + e.getMessage());

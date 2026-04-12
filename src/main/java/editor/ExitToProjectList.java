@@ -8,24 +8,26 @@ import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ExitToProjectList {
-    private static ExitToProjectList instance;
-    private boolean toProjectList;
+/**
+ * ExitToProjectList handle restarting the editor back to the project when the user request to go back to the project list.
+ */
+public final class ExitToProjectList {
+    private static boolean toProjectList = false;
 
-    private ExitToProjectList() {
-        toProjectList = false;
-    }
+    private ExitToProjectList() {}
 
-    public static ExitToProjectList get() {
-        if (instance == null) instance = new ExitToProjectList();
-        return instance;
-    }
-
-    public void toProjectList(boolean enable) {
+    /**
+     * Toggle the request to return to the project list after closing the current editor instance.
+     * @param enable true to restart back to project list
+     */
+    public static void toProjectList(boolean enable) {
         toProjectList = enable;
     }
 
-    public void spawnNewProcess() {
+    /**
+     * Create a new editor instance as a new process and exit the current process.
+     */
+    public static void spawnNewProcess() {
         if (!toProjectList) {
             System.out.println("Finished shutdown");
             return;

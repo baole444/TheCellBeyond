@@ -22,6 +22,7 @@ import static org.lwjgl.glfw.GLFW.*;
 public final class Input {
     private static final HashMap<Integer, String> keyNames = new HashMap<>();
     private static final HashSet<Integer> modifierKeysCode = new HashSet<>();
+    private Input() {}
 
     static {
         loadModifierKeyCodes();
