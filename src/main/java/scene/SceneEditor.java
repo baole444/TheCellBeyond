@@ -59,7 +59,6 @@ public class SceneEditor extends SceneLoader implements EngineEventListener {
         Project.loadProjectData();
         loadCategorizedSheet();
         loadTextureUnits();
-
         levelEditorObject = new GameObject("EditorObject");
         levelEditorObject.setNotSerialize();
         levelEditorObject.addComponents(new IsNotSelectable(), new Transform2D(),
@@ -96,7 +95,6 @@ public class SceneEditor extends SceneLoader implements EngineEventListener {
             }
             ImGui.popStyleColor(3);
             ImGui.popItemWidth();
-
             if (ImGui.beginTabItem("Sprite Sheets")) {
                 ImGui.pushStyleColor(ImGuiCol.Button, 0.2f, 0.7f, 0.2f, 1.0f);
                 ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.3f, 0.8f, 0.3f, 1.0f);
@@ -122,7 +120,6 @@ public class SceneEditor extends SceneLoader implements EngineEventListener {
                 drawSpriteList();
                 ImGui.endTabItem();
             }
-
             if (ImGui.beginTabItem("Assets")) {
                 ImGui.pushStyleColor(ImGuiCol.Button, 0.2f, 0.7f, 0.2f, 1.0f);
                 ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.3f, 0.8f, 0.3f, 1.0f);
@@ -132,46 +129,32 @@ public class SceneEditor extends SceneLoader implements EngineEventListener {
                 drawAssetsTextureUnit();
                 ImGui.endTabItem();
             }
-
             if (ImGui.beginTabItem("Prefabrication")) {
                 drawPrefabList();
                 ImGui.endTabItem();
             }
-
             ImGui.endTabBar();
         }
-
         AddSpriteSheetDialog.imgui();
         AddTextureUnitDialog.imgui();
-
         ImGui.end();
     }
 
     private void drawPrefabList() {
-        PrefabManager manager = PrefabManager.get();
-        if (manager.getPrefabNames().isEmpty()) {
-            manager.loadAllPrefabs();
-        }
-
-        List<String> prefabNames = manager.getPrefabNames();
-
+        if (PrefabManager.getPrefabNames().isEmpty()) PrefabManager.loadAllPrefabs();
+        List<String> prefabNames = PrefabManager.getPrefabNames();
         if (prefabNames.isEmpty()) {
             ImGui.text("No object prefabs available");
             ImGui.text("To add an Object as a prefabrication blueprint");
             ImGui.text("Right click on an Object in the Scene tree window and select \"Save as Prefab\"");
             return;
         }
-
         for (String name : prefabNames) {
-            PrefabData data = manager.getPrefabData(name);
-
+            PrefabData data = PrefabManager.getPrefabData(name);
             if (ImGui.button(name, prefabButtonSize.x, 0.0f)) {
-                GameObject instance = manager.instantiatePrefab(name);
-                if (instance != null) {
-                    levelEditorObject.getFirstComponent(EditorMouseCtrl.class).pickObject(instance);
-                }
+                GameObject instance = PrefabManager.instantiatePrefab(name);
+                if (instance != null) levelEditorObject.getFirstComponent(EditorMouseCtrl.class).pickObject(instance);
             }
-
             if (ImGui.isItemHovered() && data != null) {
                 ImGui.beginTooltip();
                 ImGui.text("Prefab: " + name);
@@ -179,11 +162,9 @@ public class SceneEditor extends SceneLoader implements EngineEventListener {
                 ImGui.text("Click to instantiate");
                 ImGui.endTooltip();
             }
-
             ImGui.sameLine();
             boolean delete = EditorWidget.iconButton("##delete_prefab_" + name, EditorIcons.Icons.Delete, "Delete '" + name + "' prefab blueprint");
-            if (delete) manager.deletePrefab(name);
-
+            if (delete) PrefabManager.deletePrefab(name);
             ImGui.newLine();
         }
     }
@@ -195,7 +176,6 @@ public class SceneEditor extends SceneLoader implements EngineEventListener {
             ImGui.endDisabled();
             return;
         }
-
         searchFilter(spriteSearchFilter.get(), categorizedSpriteSheetList);
         if (filteredSpriteSheetList.isEmpty()) {
             ImGui.beginDisabled();
@@ -203,28 +183,22 @@ public class SceneEditor extends SceneLoader implements EngineEventListener {
             ImGui.endDisabled();
             return;
         }
-        if (ImGui.beginTabBar("Sheet_category_tabBar")) {
-            for (Map.Entry<String, Map<String, SpriteSheet>> categoryEntry : filteredSpriteSheetList.entrySet()) {
-                String category = categoryEntry.getKey();
-                Map<String, SpriteSheet> sheetMap = categoryEntry.getValue();
-
-                if (ImGui.beginTabItem(category)) {
-                    for (Map.Entry<String, SpriteSheet> sheetEntry : sheetMap.entrySet()) {
-                        String sheetName = sheetEntry.getKey();
-                        SpriteSheet sheet = sheetEntry.getValue();
-
-                        if (ImGui.collapsingHeader(sheetName)) {
-                            drawSpriteItems(sheetName, sheet);
-                            ImGui.newLine();
-                        }
-                    }
-
-                    ImGui.endTabItem();
+        if (!ImGui.beginTabBar("Sheet_category_tabBar")) return;
+        for (Map.Entry<String, Map<String, SpriteSheet>> categoryEntry : filteredSpriteSheetList.entrySet()) {
+            String category = categoryEntry.getKey();
+            Map<String, SpriteSheet> sheetMap = categoryEntry.getValue();
+            if (!ImGui.beginTabItem(category)) continue;
+            for (Map.Entry<String, SpriteSheet> sheetEntry : sheetMap.entrySet()) {
+                String sheetName = sheetEntry.getKey();
+                SpriteSheet sheet = sheetEntry.getValue();
+                if (ImGui.collapsingHeader(sheetName)) {
+                    drawSpriteItems(sheetName, sheet);
+                    ImGui.newLine();
                 }
             }
-
-            ImGui.endTabBar();
+            ImGui.endTabItem();
         }
+        ImGui.endTabBar();
     }
 
     private void drawAssetsTextureUnit() {
@@ -234,17 +208,14 @@ public class SceneEditor extends SceneLoader implements EngineEventListener {
             ImGui.endDisabled();
             return;
         }
-
         float spacing = ImGui.getStyle().getItemSpacingX();
         float availWidth = ImGui.getContentRegionAvailX();
         float consumedWidth = 0.0f;
-
         for (Map.Entry<UUID, TextureUnit> unit : textureUnits.entrySet()) {
             Sprite sprite = unit.getValue().getSprite();
             int textureID = sprite.getTextureID();
             Vector2f scaledSpriteSize = TextureScale.calculateFitDimension(sprite.getWidth(), sprite.getHeight(), 32, 32);
             Vector2f[] textureCoordinates = sprite.getTextureCoordinates();
-
             String compositeId = unit.getKey().toString() + "_TU";
             ImGui.pushID(compositeId);
             ImGui.imageButton(compositeId, textureID, scaledSpriteSize.x, scaledSpriteSize.y,
@@ -253,7 +224,6 @@ public class SceneEditor extends SceneLoader implements EngineEventListener {
             );
             float buttonWidth = ImGui.getItemRectSizeX() + spacing;
             consumedWidth += buttonWidth;
-
             if (ImGui.isItemHovered()) {
                 ImGui.beginTooltip();
                 ImGui.text("Preview");
@@ -265,26 +235,21 @@ public class SceneEditor extends SceneLoader implements EngineEventListener {
                 ImGui.text("Height: " + sprite.getHeight());
                 ImGui.endTooltip();
             }
-
             if (ImGui.beginDragDropSource()) {
                 SpriteDragDropPayload.setPayload(sprite);
                 ImGui.setDragDropPayload(SpriteDragDropPayload.getPayloadType(), sprite);
-
                 ImGui.text("Texture: " + sprite.getTexture().getCanonicalPath());
                 Vector2f previewImageSize = TextureScale.calculateFitDimension(sprite.getWidth(), sprite.getHeight(), 80.0f, 80.f);
                 ImGui.image(textureID, previewImageSize.x, previewImageSize.y,
                         textureCoordinates[2].x, textureCoordinates[0].y,
                         textureCoordinates[0].x, textureCoordinates[2].y);
-
                 ImGui.endDragDropSource();
             }
-
             ImGui.popID();
             if (consumedWidth + buttonWidth <= availWidth) {
                 ImGui.sameLine();
                 continue;
             }
-
             consumedWidth = 0.0f;
         }
     }
@@ -293,23 +258,19 @@ public class SceneEditor extends SceneLoader implements EngineEventListener {
         float spacing = ImGui.getStyle().getItemSpacingX();
         float availWidth = ImGui.getContentRegionAvailX();
         float consumedWidth = 0.0f;
-
         for (int i = 0; i < sheet.numberOfAvailableSprites(); i++) {
             Sprite sprite = sheet.spriteIndex(i);
             int textureID = sprite.getTextureID();
             Vector2f scaledSpriteSize = TextureScale.calculateFitDimension(sprite.getWidth(), sprite.getHeight(), 32, 32);
             Vector2f[] textureCoordinates = sprite.getTextureCoordinates();
-
             String compositeId = name + i;
             ImGui.pushID(compositeId);
-
             ImGui.imageButton(compositeId, textureID, scaledSpriteSize.x, scaledSpriteSize.y,
                     textureCoordinates[2].x, textureCoordinates[0].y,
                     textureCoordinates[0].x, textureCoordinates[2].y
             );
             float buttonWidth = ImGui.getItemRectSizeX() + spacing;
             consumedWidth += buttonWidth;
-
             if (ImGui.isItemHovered()) {
                 ImGui.beginTooltip();
                 ImGui.text("Preview");
@@ -321,34 +282,28 @@ public class SceneEditor extends SceneLoader implements EngineEventListener {
                 ImGui.text("Height: " + sprite.getHeight());
                 ImGui.endTooltip();
             }
-
             if (ImGui.beginDragDropSource()) {
                 SpriteDragDropPayload.setPayload(sprite);
                 ImGui.setDragDropPayload(SpriteDragDropPayload.getPayloadType(), sprite);
-
                 ImGui.text("Sheet: " + sprite.getTexture().getCanonicalPath());
                 ImGui.text("Index: " + i);
                 Vector2f previewImageSize = TextureScale.calculateFitDimension(sprite.getWidth(), sprite.getHeight(), 80.0f, 80.f);
                 ImGui.image(textureID, previewImageSize.x, previewImageSize.y,
                         textureCoordinates[2].x, textureCoordinates[0].y,
                         textureCoordinates[0].x, textureCoordinates[2].y);
-
                 ImGui.endDragDropSource();
             }
-
             ImGui.popID();
             if (consumedWidth + buttonWidth <= availWidth) {
                 ImGui.sameLine();
                 continue;
             }
-
             consumedWidth = 0.0f;
         }
     }
 
     private void searchFilter(String filterTerm, Map<String, Map<String, SpriteSheet>> categorizedSheets) {
         if (filterTerm == null || !filterChanged) return;
-
         String sanctioned = filterTerm.trim().toLowerCase();
         filteredSpriteSheetList.clear();
         if (sanctioned.isEmpty()) {
@@ -356,7 +311,6 @@ public class SceneEditor extends SceneLoader implements EngineEventListener {
             filterChanged = false;
             return;
         }
-
         // Basically this filter the sheet map with matching filter term, then filter out the tab map where there is no sheet map inside.
         filteredSpriteSheetList.putAll(categorizedSheets.entrySet().stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, tab -> tab.getValue().entrySet().stream()
@@ -366,45 +320,36 @@ public class SceneEditor extends SceneLoader implements EngineEventListener {
                 .entrySet().stream().filter(entry -> !entry.getValue().isEmpty())
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
         );
-
         filterChanged = false;
     }
 
     private void loadCategorizedSheet() {
         ProjectData project = Project.currentProject();
-
         if (project == null || project.sheets() == null) return;
         categorizedSpriteSheetList.clear();
-
         for (Map.Entry<String, Map<String, ProjectSheetMap>> categories : project.sheets().entrySet()) {
             String category = categories.getKey();
             Map<String, SpriteSheet> categorySheets = new HashMap<>();
-
             for (Map.Entry<String, ProjectSheetMap> sheets : categories.getValue().entrySet()) {
                 String name = sheets.getKey();
                 ProjectSheetMap sM = sheets.getValue();
                 String path = UnifiedPaths.resolveToAbsolute(Project.projectRoot(), sM.path());
-
                 SpriteSheet spriteSheet = AssetManager.get().getSpriteSheet(path);
                 if (spriteSheet != null) categorySheets.put(name, spriteSheet);
             }
-
             if (!categorySheets.isEmpty()) categorizedSpriteSheetList.put(category, categorySheets);
         }
     }
 
     private void loadTextureUnits() {
         ProjectData project = Project.currentProject();
-
         if (project == null || project.assets() == null) return;
         textureUnits.clear();
-
         for (Map.Entry<UUID, ProjectAssetMap> entry : project.assets().entrySet()) {
             UUID uuid = entry.getKey();
             String path = entry.getValue().path();
             if (path == null || path.isEmpty()) continue;
             TextureUnit unit = AssetManager.get().getTextureUnit(path);
-
             if (unit != null) textureUnits.put(uuid, unit);
         }
     }

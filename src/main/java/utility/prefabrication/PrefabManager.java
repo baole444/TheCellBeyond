@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import project.Project;
 import serialization.EngineSerializer;
+import utility.log.EngineLog;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -16,30 +17,34 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 public class PrefabManager {
-    private static PrefabManager prefabManager;
-    private final Map<String, PrefabData> loadedPrefabs = new ConcurrentHashMap<>();
-    private final String PrefabName = "prefab_name";
-    private final String RootUUID = "rootUUID";
-    private final String Timestamp = "timestamp";
-    private final String Data = "data";
-    private final String PrefabDir = "prefabs";
-    private final String Extension = ".prefab";
-    private final String IncludeChild = "includesChildren";
-    private final String NamePattern = "[^a-zA-Z0-9_-]";
+    private static final EngineLog Logger = new EngineLog(PrefabManager.class);
+    private static final Map<String, PrefabData> loadedPrefabs = new ConcurrentHashMap<>();
+    private static final String PrefabName = "prefab_name";
+    private static final String RootUUID = "rootUUID";
+    private static final String Timestamp = "timestamp";
+    private static final String Data = "data";
+    private static final String PrefabDir = "prefabs";
+    private static final String Extension = ".prefab";
+    private static final String IncludeChild = "includesChildren";
+    private static final String NamePattern = "[^a-zA-Z0-9_-]";
+    private static final String ValidNamePattern = "[a-zA-Z0-9_-]+";
 
     private PrefabManager() {}
 
-    public static PrefabManager get() {
-        if (prefabManager == null) prefabManager = new PrefabManager();
-        return prefabManager;
+    public static boolean invalidPrefabName(String name) {
+        return name == null || name.isBlank() || !name.matches(ValidNamePattern);
     }
 
-    public boolean savePrefab(GameObject gameObject, String prefabName, boolean includeChildren) {
-        if (gameObject == null || prefabName == null || prefabName.isEmpty()) return false;
+    public static boolean prefabNameTaken(String name) {
+        return invalidPrefabName(name) || loadedPrefabs.get(name) != null;
+    }
+
+    public static void savePrefab(GameObject gameObject, String prefabName, boolean includeChildren) {
+        if (gameObject == null || prefabName == null || prefabName.isEmpty()) return;
         String root = Project.projectRoot();
         if (root == null) {
-            System.err.println("No project loaded to save prefab. How did you managed to call this anyways?");
-            return false;
+            Logger.debug("No project loaded to save prefab.");
+            return;
         }
         try {
             Path prefabsPath = Paths.get(root, PrefabDir);
@@ -74,31 +79,29 @@ public class PrefabManager {
                     jsonString,
                     gameObject.name()+ (includeChildren ? " (with children)" : "")
             ));
-            System.out.println("Saved prefab: " + prefabName + " to " + prefabFile);
-            return true;
+            Logger.info(String.format("Saved prefab '%s' to %s", prefabName, prefabFile));
         } catch (IOException e) {
-            System.err.println("Failed to save prefab: " + e.getMessage());
-            return false;
+            Logger.error(String.format("Failed to save prefab '%s': %s", prefabName, e.getMessage()));
         }
     }
 
-    public void loadAllPrefabs() {
+    public static void loadAllPrefabs() {
         String root = Project.projectRoot();
         if (root == null) return;
         loadedPrefabs.clear();
         Path prefabsPath = Paths.get(root, PrefabDir);
         if (!Files.exists(prefabsPath)) return;
         try (Stream<Path> paths = Files.walk(prefabsPath, 1)) {
-            paths.filter(p -> p.toString().endsWith(Extension)).forEach(this::loadPrefabFile);
+            paths.filter(p -> p.toString().endsWith(Extension)).forEach(PrefabManager::loadPrefabFile);
         } catch (IOException e) {
-            System.err.println("Failed to load prefabs: " + e.getMessage());
+            Logger.error(String.format("Failed to load prefabs from disk: %s", e.getMessage()));
         }
     }
 
-    public GameObject instantiatePrefab(String prefabName) {
+    public static GameObject instantiatePrefab(String prefabName) {
         PrefabData prefabData = loadedPrefabs.get(prefabName);
         if (prefabData == null) {
-            System.err.println("Prefab not found: '" + prefabName + "'");
+            Logger.error(String.format("Cannot instantiate '%s': prefab not found", prefabName));
             return null;
         }
         try {
@@ -113,7 +116,8 @@ public class PrefabManager {
                 }
             }
             if (gameObjects.isEmpty()) {
-                System.err.println("No valid GameObject found in prefab: '" + prefabName + "'");
+                Logger.error(String.format("Cannot instantiate '%s': no valid GameObject found in prefab", prefabName));
+                return null;
             }
             Map<UUID, GameObject> goMap = new HashMap<>();
             for (GameObject go : gameObjects) {
@@ -134,7 +138,7 @@ public class PrefabManager {
             JsonElement rootUUID = prefabJson.get(RootUUID);
             GameObject root = goMap.get(UUID.fromString(rootUUID.getAsString()));
             if (root == null) {
-                System.err.println("Root object of prefab not found");
+                Logger.error(String.format("Cannot instantiate '%s': missing prefab root object", prefabName));
                 return null;
             }
             boolean includeChildren = false;
@@ -143,37 +147,36 @@ public class PrefabManager {
             }
             return root.copy(includeChildren);
         } catch (Exception e) {
-            System.err.println("Failed to instantiate prefab: " + e.getMessage());
+            Logger.error(String.format("Failed to instantiate '%s': %s", prefabName, e.getMessage()));
             return null;
         }
     }
 
-    public boolean deletePrefab(String prefabName) {
+    public static void deletePrefab(String prefabName) {
         String root = Project.projectRoot();
-        if (root == null) return false;
+        if (root == null) return;
         String filename = prefabName.replaceAll(NamePattern, "_") + Extension;
         Path prefabFile = Paths.get(root, PrefabDir, filename);
         try {
             if (Files.exists(prefabFile)) {
                 Files.delete(prefabFile);
                 loadedPrefabs.remove(prefabName);
-                return true;
+                Logger.info(String.format("Prefab '%s' deleted", prefabName));
             }
         } catch (IOException e) {
-            System.err.println("Failed to delete prefab: " + e.getMessage());
+            Logger.error(String.format("Failed to delete '%s': %s", prefabName, e.getMessage()));
         }
-        return false;
     }
 
-    public List<String> getPrefabNames() {
+    public static List<String> getPrefabNames() {
         return new ArrayList<>(loadedPrefabs.keySet());
     }
 
-    public PrefabData getPrefabData(String name) {
+    public static PrefabData getPrefabData(String name) {
         return loadedPrefabs.get(name);
     }
 
-    private void loadPrefabFile(Path file) {
+    private static void loadPrefabFile(Path file) {
         try {
             String content = new String(Files.readAllBytes(file));
             EngineSerializer serializer = EngineSerializer.standard();
@@ -183,11 +186,11 @@ public class PrefabManager {
             if (prefabJson.has(IncludeChild) && prefabJson.get(IncludeChild).getAsBoolean()) description += " (with children)";
             loadedPrefabs.put(name, new PrefabData(name, content, description));
         } catch (Exception e) {
-            System.err.println("Failed to load prefab file '" + file + "': " + e.getMessage());
+            Logger.error(String.format("Failed to load prefab file '%s': %s", file, e.getMessage()));
         }
     }
 
-    public void clear() {
+    public static void clear() {
         loadedPrefabs.clear();
     }
 }

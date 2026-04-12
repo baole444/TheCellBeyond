@@ -10,7 +10,7 @@ public class Prefab {
      * @return a new GameObject instance or null if prefab not found
      */
     public static GameObject instantiate(String prefabName) {
-        return PrefabManager.get().instantiatePrefab(prefabName);
+        return PrefabManager.instantiatePrefab(prefabName);
     }
 
     /**
@@ -19,11 +19,8 @@ public class Prefab {
      * @return a new GameObject instance that was added to the scene or null if prefab not found
      */
     public static GameObject instantiateToScene(String prefabName) {
-        GameObject instance = PrefabManager.get().instantiatePrefab(prefabName);
-        if (instance != null && LogicServer.currentScene() != null) {
-            LogicServer.currentScene().queueForObjectAddition(instance);
-        }
-
+        GameObject instance = PrefabManager.instantiatePrefab(prefabName);
+        if (instance != null && LogicServer.currentScene() != null) LogicServer.currentScene().queueForObjectAddition(instance);
         return instance;
     }
 }

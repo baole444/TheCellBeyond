@@ -1,31 +1,33 @@
 package editor.dialog;
 
-import TheCellBeyond.internal.LogicServer;
+import TheCellBeyond.GameObject;
 import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImString;
-import scene.SceneManager;
+import utility.prefabrication.PrefabManager;
 
-public final class RenameSceneDialog {
-    private static final String PopupID = "Rename Scene";
+public final class SavePrefabDialog {
+    private static final String PopupID = "Save Prefab";
     private static final ImVec2 DialogSize = new ImVec2(400.0f, 200.0f);
     private static boolean showDialog = false;
     private static boolean nameTaken = false;
-    private static final ImString sceneName = new ImString(128);
+    private static final ImString prefabName = new ImString(128);
     private static String errorMessage = "";
+    private static GameObject pendingGO = null;
+    private static boolean pendingWithChildren = false;
 
-    private RenameSceneDialog() {}
+    private SavePrefabDialog() {}
 
-    public static void show() {
-        String current = LogicServer.currentSceneName();
-        if (current == null) return;
-        showDialog = true;
-        sceneName.set(current);
+    public static void show(GameObject go, boolean withChildren) {
+        pendingGO = go;
+        pendingWithChildren = withChildren;
+        prefabName.set(go.name().replaceAll("[^a-zA-z0-9_-]", "_"));
         nameTaken = false;
         errorMessage = "";
+        showDialog = true;
     }
 
     public static void imgui() {
@@ -37,9 +39,9 @@ public final class RenameSceneDialog {
         ImGui.setNextWindowSize(DialogSize);
         if (ImGui.beginPopupModal(PopupID, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)) {
             ImGui.spacing();
-            ImGui.text("New name: ");
+            ImGui.text("Prefab name: ");
             ImGui.pushItemWidth(ImGui.getContentRegionAvailX());
-            if (ImGui.inputTextWithHint("##RenameSceneInput", "Enter a new name...", sceneName)) checkName();
+            if (ImGui.inputTextWithHint("##SavePrefabInput", "Enter a new name...", prefabName)) checkName();
             ImGui.popItemWidth();
             if (nameTaken || !errorMessage.isEmpty()) {
                 ImGui.pushStyleColor(ImGuiCol.Text, 1.0f, 0.2f, 0.2f, 1.0f);
@@ -56,14 +58,14 @@ public final class RenameSceneDialog {
             float availX = ImGui.getContentRegionAvailX();
             float createX = (availX * 0.25f) - (buttonPivotX);
             float cancelX = (availX * 0.75f) - (buttonPivotX);
-            boolean canRename = !sceneName.isEmpty() && !nameTaken && errorMessage.isEmpty();
+            boolean canRename = !prefabName.isEmpty() && !nameTaken && errorMessage.isEmpty();
             ImGui.setCursorPosX(createX);
             if (!canRename) ImGui.beginDisabled();
-            if (ImGui.button("Rename##RenameSceneConfirm", buttonWidth, 0.0f)) rename();
+            if (ImGui.button("Save##SavePrefabConfirm", buttonWidth, 0.0f)) save();
             if (!canRename) ImGui.endDisabled();
             ImGui.sameLine();
             ImGui.setCursorPosX(cancelX);
-            if (ImGui.button("Cancel##RenameSceneCancel", buttonWidth, 0.0f)) {
+            if (ImGui.button("Cancel##SavePrefabCancel", buttonWidth, 0.0f)) {
                 showDialog = false;
                 ImGui.closeCurrentPopup();
             }
@@ -76,50 +78,38 @@ public final class RenameSceneDialog {
     }
 
     private static void checkName() {
-        String name = sceneName.get().trim();
-        if (!SceneManager.validSceneName(name)) {
+        String name = prefabName.get().trim();
+        if (name.isEmpty()) {
             nameTaken = false;
             errorMessage = "Name cannot be blank";
             return;
         }
-        String currentName = LogicServer.currentSceneName();
-        if (name.equals(currentName)) {
+        if (PrefabManager.invalidPrefabName(name)) {
             nameTaken = false;
-            errorMessage = "";
+            errorMessage = "Name can only contain letters, numbers, _ and -";
             return;
         }
-        if (!SceneManager.sceneNameAvailable(name)) {
+        if (PrefabManager.prefabNameTaken(name)) {
             nameTaken = true;
-            errorMessage = "Scene '" + name + "' already exist";
+            errorMessage = "Prefab '" + name + "' already exists";
             return;
         }
         nameTaken = false;
         errorMessage = "";
     }
 
-    private static void rename() {
-        String name = sceneName.get().trim();
-        String currentName = LogicServer.currentSceneName();
-        if (!SceneManager.validSceneName(name) || nameTaken) {
-            errorMessage = "Entered name is empty or already taken";
-            return;
-        }
-        if (name.equals(currentName)) {
-            showDialog = false;
-            ImGui.closeCurrentPopup();
-            return;
-        }
-        if (!SceneManager.renameScene(currentName, name)) {
-            errorMessage = "Failed to rename scene";
-            return;
-        }
+    private static void save() {
+        String name = prefabName.get().trim();
+        if (name.isEmpty() || nameTaken || !errorMessage.isEmpty()) return;
+        PrefabManager.savePrefab(pendingGO, name, pendingWithChildren);
         showDialog = false;
         ImGui.closeCurrentPopup();
     }
 
     private static void resetDialogData() {
         nameTaken = false;
-        sceneName.clear();
+        prefabName.clear();
         errorMessage = "";
+        pendingGO = null;
     }
 }

@@ -5,6 +5,7 @@ import TheCellBeyond.GameObject2D;
 import TheCellBeyond.internal.LogicServer;
 import editor.dialog.AddObjectDialog;
 import editor.dialog.ChooseObjectTypeDialog;
+import editor.dialog.SavePrefabDialog;
 import editor.payload.GameObjectDragDropPayload;
 import imgui.ImGui;
 import imgui.ImVec2;
@@ -15,7 +16,6 @@ import imgui.flag.ImGuiWindowFlags;
 import physic2d.CharacterBody2D;
 import scene.Scene;
 import utility.log.EngineLog;
-import utility.prefabrication.PrefabManager;
 
 import java.util.List;
 
@@ -60,6 +60,7 @@ public class SceneTree {
         }
         ImGui.endChild();
         AddObjectDialog.imgui();
+        SavePrefabDialog.imgui();
         ImGui.end();
     }
 
@@ -177,16 +178,7 @@ public class SceneTree {
     }
 
     private static void savePrefabDialog(GameObject go, boolean withChildren) {
-        String prefabName = go.name().replaceAll("[^a-zA-z0-9_-]", "_");
-
-        // TODO: add popup to ask custom prefab name later,
-        //  auto fill it with current name in case user don't want to change it
-        if (PrefabManager.get().savePrefab(go, prefabName, withChildren)) {
-            System.out.println("Saved prefab: " + prefabName);
-            return;
-        }
-
-        System.err.println("Failed to save prefab: " + prefabName);
+        SavePrefabDialog.show(go, withChildren);
     }
 
     public static void clearSelection() {
