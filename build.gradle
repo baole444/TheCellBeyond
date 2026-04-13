@@ -275,9 +275,10 @@ ext.apiIncludes = [
         // Script annotations
         ScriptingClasses.collect { cls(SPT + it) },
 
-        // Utils
+        // Utils and prefabs
         UtilityClasses.collect { cls(UTL + it) },
-        UTL + 'log/**'
+        UTL + 'log/**',
+        UTL + 'prefabrication/**'
 ].flatten()
 
 def TCB_API = 'thecellbeyond-api'

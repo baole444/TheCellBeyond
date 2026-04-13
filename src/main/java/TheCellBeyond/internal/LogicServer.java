@@ -199,6 +199,7 @@ public class LogicServer implements EngineEventListener {
                     Logger.error("Cannot start runtime: no valid scene loaded");
                     return;
                 }
+                runtimeStartScene = currentSceneName();
                 Physic2D.physicDeltaRate(Project.preference().physicFrameRate());
                 runtimeMode = true;
                 changeScene(new SceneRuntime(), runtimeStartScene);

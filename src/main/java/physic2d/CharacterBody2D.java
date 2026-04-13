@@ -1,11 +1,15 @@
 package physic2d;
 
 import TheCellBeyond.internal.LogicServer;
+import org.jbox2d.collision.AABB;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.BodyDef;
+import org.jbox2d.dynamics.Fixture;
 import org.joml.Vector2f;
 import physic2d.enums.MotionMode;
 import physic2d.enums.PhysicBodyType;
+
+import java.util.List;
 
 /**
  * CharacterBody2D is a specialized physic body that are meant for user control.
@@ -58,6 +62,18 @@ public class CharacterBody2D extends PhysicBody2D {
      * or for stability when stacking character bodies.
      */
     public float safeMargin = 0.01f;
+    /**
+     * Should {@link #moveAndSlide()} run a depenetration pass before applying motion.
+     * It will detect any collision shape overlap with the surrounding bodies and pushes this body out,
+     * along the axis of minimum penetration before the slide step runs.
+     * <p>
+     * This is to correct penetration caused by raycast not accounting for the collision shape's halves,
+     * as well as overlaps from spawn placement or teleportation into a collider.
+     * </p>
+     * Set this to {@code false} when stacking multiple {@link CharacterBody2D} on top of each other,
+     * as the correction can cause jittering between bodies competing for the same space.
+     */
+    public boolean recoverFromPenetration = true;
     /**
      * The current velocity vector of the character in world units, used and modified by calls to {@link #moveAndSlide()}.
      * @apiNote
@@ -276,6 +292,7 @@ public class CharacterBody2D extends PhysicBody2D {
         if (lastPlatform != null) motion.add(lastPlatform.linearVelocity());
         motion.mul(Physic2D.physicDeltaRate());
         slideCollisionCount = 0;
+        resetMotion();
         motion = slideMotion(motion);
         boolean collided = slideCollisionCount > 0;
         if (motion.lengthSquared() > 0.0f) {
@@ -311,6 +328,58 @@ public class CharacterBody2D extends PhysicBody2D {
         handleCollision(hitNormal, slideVector);
         Vector2f nextSlide = slideMotion(slideVector);
         return new Vector2f(safeMotion).add(nextSlide);
+    }
+
+    private void resetMotion() {
+        if (!recoverFromPenetration) return;
+        Physic2D physic2D = LogicServer.currentScenePhysic2D();
+        if (physic2D == null) return;
+        AABB charAABB = computeBodyAABB();
+        if (charAABB == null) return;
+        float margin = Math.max(0.001f, safeMargin);
+        AABB queryAABB = new AABB(new Vec2(charAABB.lowerBound.x - margin, charAABB.lowerBound.y - margin), new Vec2(charAABB.upperBound.x + margin, charAABB.upperBound.y + margin));
+        List<Fixture> overlapping = physic2D.queryOverlap(this, queryAABB);
+        float maxPushX = 0.0f, maxPushY = 0.0f;
+        for (Fixture fixture : overlapping) {
+            Vector2f minTranslate = computeMinTranslateVector(charAABB, fixture.getAABB(0));
+            if (Math.abs(minTranslate.x) > Math.abs(maxPushX)) maxPushX = minTranslate.x;
+            if (Math.abs(minTranslate.y) > Math.abs(maxPushY)) maxPushY = minTranslate.y;
+        }
+        if (maxPushX == 0.0f && maxPushY == 0.0f) return;
+        Vec2 pos = physicBodyRef.getPosition();
+        physicBodyRef.setTransform(new Vec2(pos.x + maxPushX, pos.y + maxPushY), physicBodyRef.getAngle());
+    }
+
+    private AABB computeBodyAABB() {
+        Fixture fixture = physicBodyRef.getFixtureList();
+        if (fixture == null) return null;
+        AABB fixtureAABB = fixture.getAABB(0);
+        float minX = fixtureAABB.lowerBound.x, minY = fixtureAABB.lowerBound.y;
+        float maxX = fixtureAABB.upperBound.x, maxY = fixtureAABB.upperBound.y;
+        fixture = fixture.m_next;
+        while (fixture != null) {
+            fixtureAABB = fixture.getAABB(0);
+            minX = Math.min(minX, fixtureAABB.lowerBound.x);
+            minY = Math.min(minY, fixtureAABB.lowerBound.y);
+            maxX = Math.max(maxX, fixtureAABB.upperBound.x);
+            maxY = Math.max(maxY, fixtureAABB.upperBound.y);
+            fixture = fixture.m_next;
+        }
+        return new AABB(new Vec2(minX, minY), new Vec2(maxX, maxY));
+    }
+
+    private static Vector2f computeMinTranslateVector(AABB charAABB, AABB wallAABB) {
+        float overlapX = Math.min(charAABB.upperBound.x, wallAABB.upperBound.x) - Math.max(charAABB.lowerBound.x, wallAABB.lowerBound.x);
+        float overlapY = Math.min(charAABB.upperBound.y, wallAABB.upperBound.y) - Math.max(charAABB.lowerBound.y, wallAABB.lowerBound.y);
+        if (overlapX <= 0.0f || overlapY <= 0.0f) return new Vector2f();
+        float charCX = (charAABB.lowerBound.x + charAABB.upperBound.x) * 0.5f;
+        float charCY = (charAABB.lowerBound.y + charAABB.upperBound.y) * 0.5f;
+        float wallCX = (wallAABB.lowerBound.x + wallAABB.upperBound.x) * 0.5f;
+        float wallCY = (wallAABB.lowerBound.y + wallAABB.upperBound.y) * 0.5f;
+        float signX = charCX < wallCX ? -1.0f : 1.0f;
+        float signY = charCY < wallCY ? -1.0f : 1.0f;
+        if (overlapX <= overlapY) return new Vector2f(signX * overlapX, 0.0f);
+        return new Vector2f(0.0f, signY * overlapY);
     }
 
     private void handleCollision(Vector2f normal, Vector2f slideVelocity) {

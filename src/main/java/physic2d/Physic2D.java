@@ -2,6 +2,7 @@ package physic2d;
 
 import TheCellBeyond.GameObject;
 import org.jbox2d.callbacks.RayCastCallback;
+import org.jbox2d.collision.AABB;
 import org.jbox2d.collision.shapes.Shape;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.*;
@@ -10,6 +11,7 @@ import org.joml.Vector2f;
 import physic2d.collider.*;
 import utility.log.EngineLog;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -146,6 +148,10 @@ public class Physic2D {
         update(dt, null, null);
     }
 
+    /**
+     * Get the interpolation alpha between the accumulated physic delta and the physic delta rate.
+     * @return the interpolation alpha value.
+     */
     public float interpolateAlpha() {
         return physicDeltaRate > 0.0f ? physicDt / physicDeltaRate : 1.0f;
     }
@@ -259,6 +265,26 @@ public class Physic2D {
      */
     void rayCast(RayCastCallback callback, Vector2f origin, Vector2f target) {
         world.raycast(callback, new Vec2(origin.x, origin.y), new Vec2(target.x, target.y));
+    }
+
+    /**
+     * Perform an AABB overlap query in the physic world, returning all fixtures that overlaps the given region.
+     * Only fixtures with collision layer matching the origin object's collision mask are included.
+     * @param originObject the object to perform the query with, excluded from result
+     * @param aabb the axis aligned bounding box to test against
+     * @return a list of overlapping fixtures, filtered by collision mask
+     */
+    public List<Fixture> queryOverlap(CollisionObject2D originObject, AABB aabb) {
+        if (originObject == null || aabb == null) return List.of();
+        List<Fixture> result = new ArrayList<>();
+        world.queryAABB(fixture -> {
+            if (fixture.m_userData == originObject) return true;
+            if (!(fixture.m_userData instanceof CollisionObject2D target)) return true;
+            if ((originObject.getCollisionMask() & target.getCollisionLayer()) == 0) return true;
+            result.add(fixture);
+            return true;
+        }, aabb);
+        return result;
     }
 
     private void createFixture(CollisionObject2D collisionObject, Body body, Shape shape) {
