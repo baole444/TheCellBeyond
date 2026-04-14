@@ -261,6 +261,7 @@ ext.apiIncludes = [
         cls('signal/Callable'),
 
         // Event Viewer
+        cls('eventviewer/EngineEventListener'),
         cls('eventviewer/EngineEventCallback'),
         cls('eventviewer/event/SceneEvent'),
         cls('eventviewer/event/Event'),

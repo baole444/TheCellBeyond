@@ -55,6 +55,7 @@ final class CharacterBody2DTemplate implements IObjectTemplate<CharacterBody2D> 
         float margin = EditorWidget.dragFloatCtrl("Safe Margin", object.safeMargin, 0.01f, object, 0.001f);
         if (Float.compare(margin, object.safeMargin) != 0) object.safeMargin = margin;
         ImGui.unindent();
+        object.recoverFromPenetration = EditorWidget.checkboxCtrl("Recover From Penetration", object.recoverFromPenetration, object);
     }
 
     /**
