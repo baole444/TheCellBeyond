@@ -350,7 +350,9 @@ public class TextureBatch {
         if (previousTransform != null && alpha < 1.0f) {
             posX = previousTransform.position.x + alpha * (transform.position.x - previousTransform.position.x);
             posY = previousTransform.position.y + alpha * (transform.position.y - previousTransform.position.y);
-            rotation = previousTransform.rotationDegrees + alpha * (transform.rotationDegrees - previousTransform.rotationDegrees);
+            float rotDelta = transform.rotationDegrees - previousTransform.rotationDegrees;
+            rotDelta -= 360.0f * Math.round(rotDelta / 360.0f);
+            rotation = previousTransform.rotationDegrees + alpha * rotDelta;
             scaleX = previousTransform.scale.x + alpha * (transform.scale.x - previousTransform.scale.x);
             scaleY = previousTransform.scale.y + alpha * (transform.scale.y - previousTransform.scale.y);
         } else {

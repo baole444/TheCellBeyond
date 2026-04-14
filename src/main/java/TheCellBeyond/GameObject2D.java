@@ -702,6 +702,7 @@ public class GameObject2D extends RenderableObject {
     protected void notifyComponent2DHasPreviousTransform() {
         List<Component2D> component2Ds = getComponents(Component2D.class);
         component2Ds.forEach(c -> {
+            c.hasPreviousTransform = true;
             c.setTransformDirty();
         });
     }
