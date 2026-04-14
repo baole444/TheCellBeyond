@@ -547,7 +547,7 @@ public class Scene {
     }
 
     /**
-     * Make children of a removing object to become orphan if they were not transfered to the replacing object.
+     * Make children of a removing object to become orphan if they were not transferred to the replacing object.
      * <p>
      * After this call, the removing object can be safely remove without data losses.
      * @param removingObject the object that is being removed
