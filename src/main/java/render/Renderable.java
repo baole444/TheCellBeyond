@@ -68,20 +68,18 @@ public interface Renderable {
         return null;
     }
 
-    /**
-     * Build transform command for this renderable implement.
-     * @return the transform command
-     */
-    default TransformCommand buildTransformCommand() {
-        return null;
+    default boolean interpolated() {
+        return false;
     }
 
     /**
-     * Build transform command of previous transform for this renderable implement.
-     * This command is use for physic interpolation
-     * @return the transform command
+     * Sync the current and previous transform values into the target commands owned by render.
+     * This is called by RenderingServer once per update for nodes that have moved.
+     * <p>
+     * The implementer should write spatial data and accumulate visible/modulate,
+     * on top of the inherited values presented in the targets.
+     * @param current the destination for current transform
+     * @param previous the destination for previous transform (for interpolation)
      */
-    default TransformCommand previousTransformCommand() {
-        return null;
-    }
+    default void syncTransform(TransformCommand current, TransformCommand previous) {}
 }

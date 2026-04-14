@@ -8,7 +8,6 @@ import eventviewer.EngineEventListener;
 import eventviewer.event.Event;
 import eventviewer.event.SceneEvent;
 import org.joml.Vector2f;
-import org.joml.Vector4f;
 import render.RenderNode;
 import render.Renderable;
 import render.commands.RenderCommand;
@@ -25,11 +24,11 @@ public class RenderingServer implements EngineEventListener {
      * Physic interpolation factor.
      */
     public static float interpolationFactor = 1.0f;
-    private final CopyOnWriteArrayList<RenderNode> roots = new CopyOnWriteArrayList<>();
-    private final ConcurrentHashMap<Renderable, RenderNode> nodes = new ConcurrentHashMap<>();
-    private final List<RenderCommand> nodeLinks = new ArrayList<>();
-    private final List<RenderCommand> cloneChainHeads = new ArrayList<>();
-    private RenderCommand chainHead = null;
+    private static final CopyOnWriteArrayList<RenderNode> roots = new CopyOnWriteArrayList<>();
+    private static final ConcurrentHashMap<Renderable, RenderNode> nodes = new ConcurrentHashMap<>();
+    private static final List<RenderCommand> nodeLinks = new ArrayList<>();
+    private static final List<RenderCommand> cloneChainHeads = new ArrayList<>();
+    private static RenderCommand chainHead = null;
 
     private RenderingServer() {
         register();
@@ -39,22 +38,18 @@ public class RenderingServer implements EngineEventListener {
         if (instance == null) instance = new RenderingServer();
     }
 
-    public static RenderingServer get() {
-        return instance;
-    }
-
-    public void update() {
-        refreshCommands(roots, false);
+    public static void update() {
+        refreshCommands(roots);
         nodeLinks.clear();
         RenderCommand[] previousTail = {null};
-        chainHead = chainNodes(roots, nodeLinks, previousTail, cloneChainHeads);
+        chainHead = chainNodes(roots, previousTail);
     }
 
-    public RenderCommand chainHead() {
+    public static RenderCommand chainHead() {
         return chainHead;
     }
 
-    public void postFrameClear() {
+    public static void postFrameClear() {
         for (RenderCommand tail : nodeLinks) tail.next = null;
         nodeLinks.clear();
         for (RenderCommand head : cloneChainHeads) releaseCommandChain(head);
@@ -95,7 +90,7 @@ public class RenderingServer implements EngineEventListener {
         }
     }
 
-    private void registerObject(GameObject go) {
+    private static void registerObject(GameObject go) {
         if (!(go instanceof RenderableObject renderableObject)) return;
         if (nodes.containsKey(renderableObject)) return;
         RenderNode renderParent = getRenderParent(go);
@@ -108,50 +103,48 @@ public class RenderingServer implements EngineEventListener {
         }
     }
 
-    private void registerComponent(RenderableComponent renderableComponent) {
+    private static void registerComponent(RenderableComponent renderableComponent) {
         if (!(renderableComponent.gameObject instanceof RenderableObject renderableObject)) return;
         RenderNode objectNode = nodes.get(renderableObject);
         if (objectNode == null) return;
         registerComponent(renderableComponent, objectNode);
     }
 
-    private void registerComponent(RenderableComponent renderableComponent, RenderNode objectNode) {
+    private static void registerComponent(RenderableComponent renderableComponent, RenderNode objectNode) {
         if (nodes.containsKey(renderableComponent)) return;
         RenderNode componentNode = new RenderNode(renderableComponent, objectNode);
         nodes.put(renderableComponent, componentNode);
-        objectNode.renderingChildren.addFirst(componentNode);
+        objectNode.children.addFirst(componentNode);
     }
 
-    private void unregisterObject(GameObject go) {
+    private static void unregisterObject(GameObject go) {
         if (!(go instanceof RenderableObject renderableObject)) return;
         RenderNode node = nodes.remove(renderableObject);
         if (node == null) return;
         releaseCommandChain(node.commandHeader);
         node.commandHeader = null;
         node.commandTail = null;
-        releaseTransform(node);
-        if (node.renderingParent != null) node.renderingParent.removeChild(node);
+        if (node.parent != null) node.parent.removeChild(node);
         else roots.remove(node);
-        for (RenderNode child : node.renderingChildren) {
-            if (child.nodeOwner instanceof RenderableObject childRenderingParent) {
+        for (RenderNode child : node.children) {
+            if (child.owner instanceof RenderableObject childRenderingParent) {
                 unregisterObject(childRenderingParent);
                 continue;
             }
-            if (child.nodeOwner instanceof RenderableComponent component) unregisterComponent(component);
+            if (child.owner instanceof RenderableComponent component) unregisterComponent(component);
         }
     }
 
-    private void unregisterComponent(RenderableComponent renderableComponent) {
+    private static void unregisterComponent(RenderableComponent renderableComponent) {
         RenderNode node = nodes.remove(renderableComponent);
         if (node == null) return;
         releaseCommandChain(node.commandHeader);
         node.commandHeader = null;
         node.commandTail = null;
-        releaseTransform(node);
-        if (node.renderingParent != null) node.renderingParent.removeChild(node);
+        if (node.parent != null) node.parent.removeChild(node);
     }
 
-    private RenderNode getRenderParent(GameObject go) {
+    private static RenderNode getRenderParent(GameObject go) {
         GameObject current = go.getParent();
         while (current != null) {
             if (current instanceof RenderableObject renderableObject) {
@@ -163,20 +156,9 @@ public class RenderingServer implements EngineEventListener {
         return null;
     }
 
-    private void releaseTree(RenderNode node) {
+    private static void releaseTree(RenderNode node) {
         releaseCommandChain(node.commandHeader);
-        releaseTransform(node);
-        for (RenderNode child : node.renderingChildren) releaseTree(child);
-    }
-
-    private static void accumulateTransform(RenderNode node, TransformCommand command) {
-        RenderNode parent = node.renderingParent;
-        while (parent != null) {
-            command.visible = command.visible && parent.nodeOwner.visible();
-            Vector4f mod = parent.nodeOwner.selfModulate();
-            if (mod != null) command.modulate.mul(mod);
-            parent = parent.renderingParent;
-        }
+        for (RenderNode child : node.children) releaseTree(child);
     }
 
     private static void releaseCommandChain(RenderCommand header) {
@@ -188,53 +170,27 @@ public class RenderingServer implements EngineEventListener {
         }
     }
 
-    private static void refreshCommands(List<RenderNode> nodes, boolean parentDirty) {
+    private static void refreshCommands(List<RenderNode> nodes) {
         for (RenderNode node : nodes) {
-            boolean dirty = node.nodeOwner.renderDirty();
-            if (dirty) {
+            if (node.parent != null) {
+                node.currentTransform.copyAccumulation(node.parent.currentTransform);
+                node.previousTransform.copyAccumulation(node.parent.previousTransform);
+            } else {
+                node.currentTransform.resetAccumulation();
+                node.previousTransform.resetAccumulation();
+            }
+            if (!node.owner.renderDirty()) node.previousTransform.copyFrom(node.currentTransform);
+            else {
+                node.owner.syncTransform(node.currentTransform, node.previousTransform);
                 releaseCommandChain(node.commandHeader);
-                if (node.previousTransform != null) node.previousTransform.release();
-                if (node.transform != null) {
-                    node.transform.release();
-                    node.transform = null;
-                }
-                TransformCommand previousPhysicTransform = node.nodeOwner.previousTransformCommand();
-                if (previousPhysicTransform != null) {
-                    node.previousTransform = previousPhysicTransform;
-                    accumulateTransform(node, node.previousTransform);
-                }
-                else node.previousTransform = null;
-                node.transform = node.nodeOwner.buildTransformCommand();
-                node.commandHeader = node.nodeOwner.buildRenderCommand();
+                node.commandHeader = node.owner.buildRenderCommand();
                 node.commandTail = node.commandHeader;
                 if (node.commandTail != null) while (node.commandTail.next != null) node.commandTail = node.commandTail.next;
-                if (node.transform != null) accumulateTransform(node, node.transform);
-                TransformCommand resolved = resolveTransform(node);
-                TransformCommand previousResolved = resolvedPreviousTransform(node);
-                applyTransform(node.commandHeader, resolved, previousResolved);
-                node.nodeOwner.renderDirty(false);
+                applyTransform(node.commandHeader, node.currentTransform, node.previousTransform);
+                node.owner.renderDirty(false);
             }
-            else if (parentDirty) applyTransform(node.commandHeader, resolveTransform(node), resolvedPreviousTransform(node));
-            refreshCommands(node.renderingChildren, dirty || parentDirty);
+            refreshCommands(node.children);
         }
-    }
-
-    private static TransformCommand resolveTransform(RenderNode node) {
-        RenderNode current = node;
-        while (current != null) {
-            if (current.transform != null) return current.transform;
-            current = current.renderingParent;
-        }
-        return null;
-    }
-
-    private static TransformCommand resolvedPreviousTransform(RenderNode node) {
-        RenderNode current = node;
-        while (current != null) {
-            if (current.previousTransform != null) return current.previousTransform;
-            current = current.renderingParent;
-        }
-        return null;
     }
 
     private static void applyTransform(RenderCommand head, TransformCommand transform, TransformCommand previousTransform) {
@@ -246,7 +202,7 @@ public class RenderingServer implements EngineEventListener {
         }
     }
 
-    private static RenderCommand chainNodes(List<RenderNode> nodes, List<RenderCommand> nodeLinks, RenderCommand[] previousTail, List<RenderCommand> clonedChainHeads) {
+    private static RenderCommand chainNodes(List<RenderNode> nodes, RenderCommand[] previousTail) {
         RenderCommand head = null;
         for (RenderNode node : nodes) {
             if (node.commandHeader != null) {
@@ -257,15 +213,15 @@ public class RenderingServer implements EngineEventListener {
                 }
                 previousTail[0] = node.commandTail;
             }
-            RenderCommand childHead = chainNodes(node.renderingChildren, nodeLinks, previousTail, clonedChainHeads);
+            RenderCommand childHead = chainNodes(node.children, previousTail);
             if (head == null) head = childHead;
-            if (!node.nodeOwner.repeatSource() || node.nodeOwner.repeatTime() < 1) continue;
-            int positive = (node.nodeOwner.repeatTime() + 1) / 2;
-            int negative = node.nodeOwner.repeatTime() / 2;
+            if (!node.owner.repeatSource() || node.owner.repeatTime() < 1) continue;
+            int positive = (node.owner.repeatTime() + 1) / 2;
+            int negative = node.owner.repeatTime() / 2;
             for (int i = -negative; i <= positive; i++) {
                 if (i == 0) continue;
-                Vector2f offset = new Vector2f(node.nodeOwner.repeatSize()).mul(i);
-                RenderCommand cloneHead = cloneSubTree(node, offset, null, nodeLinks, clonedChainHeads);
+                Vector2f offset = new Vector2f(node.owner.repeatSize()).mul(i);
+                RenderCommand cloneHead = cloneSubTree(node, offset);
                 if (cloneHead == null || previousTail[0] == null) continue;
                 previousTail[0].next = cloneHead;
                 nodeLinks.add(previousTail[0]);
@@ -277,25 +233,17 @@ public class RenderingServer implements EngineEventListener {
         return head;
     }
 
-    private static RenderCommand cloneSubTree(RenderNode node, Vector2f offset, TransformCommand parentClonedTransform, List<RenderCommand> nodeLinks, List<RenderCommand> cloneChainHeads) {
-        TransformCommand clonedTransform = null;
-        if (node.transform != null) {
-            clonedTransform = (TransformCommand) RenderCommand.acquireCopy(node.transform);
-            clonedTransform.position.add(offset);
-            cloneChainHeads.add(clonedTransform);
-        }
-        TransformCommand finalTransform = clonedTransform;
-        if (finalTransform == null) {
-            if (parentClonedTransform != null) finalTransform = parentClonedTransform;
-            else finalTransform = resolveTransform(node);
-        }
-        RenderCommand head = cloneChain(node.commandHeader, node.commandTail, finalTransform);
+    private static RenderCommand cloneSubTree(RenderNode node, Vector2f offset) {
+        TransformCommand clonedTransform = (TransformCommand) RenderCommand.acquireCopy(node.currentTransform);
+        clonedTransform.position.add(offset);
+        cloneChainHeads.add(clonedTransform);
+        RenderCommand head = cloneChain(node.commandHeader, node.commandTail, clonedTransform);
         if (head != null) cloneChainHeads.add(head);
         RenderCommand tail = head;
         if (tail != null) while (tail.next != null) tail = tail.next;
-        for (RenderNode child : node.renderingChildren) {
-            if (child.nodeOwner.nonRepeatable()) continue;
-            RenderCommand childHead = cloneSubTree(child, offset, finalTransform, nodeLinks, cloneChainHeads);
+        for (RenderNode child : node.children) {
+            if (child.owner.nonRepeatable()) continue;
+            RenderCommand childHead = cloneSubTree(child, offset);
             if (childHead == null) continue;
             if (tail != null) {
                 tail.next = childHead;
@@ -326,9 +274,9 @@ public class RenderingServer implements EngineEventListener {
     }
 
     private void releaseTransform(RenderNode node) {
-        if (node.transform != null) {
-            node.transform.release();
-            node.transform = null;
+        if (node.currentTransform != null) {
+            node.currentTransform.release();
+            node.currentTransform = null;
         }
         if (node.previousTransform == null) return;
         node.previousTransform.release();

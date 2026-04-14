@@ -32,11 +32,6 @@ public class SpriteRenderer extends Component2D {
         super(name);
     }
 
-    @Override
-    protected void onTransformDirty() {
-        renderDirty = true;
-    }
-
     /**
      * Update the dirty flag for this SpriteRenderer.
      * @param needsUpdate true to set sprite dirty

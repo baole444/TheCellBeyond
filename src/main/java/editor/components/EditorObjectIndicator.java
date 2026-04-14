@@ -44,32 +44,19 @@ public final class EditorObjectIndicator extends Component2D implements NotSeria
     }
 
     @Override
-    protected void onTransformDirty() {
-        renderDirty = true;
-    }
-
-    @Override
     protected void onEditorStart() {
         initIndicator();
     }
 
     private void initIndicator() {
-        if (isInitialized
-                || gameObject == null
-                || !gameObject.isSerialize()
-                || !(gameObject instanceof GameObject2D)
-        ) return;
+        if (isInitialized || gameObject == null  || !gameObject.isSerialize() || !(gameObject instanceof GameObject2D)) return;
         try {
-            if (!AssetManager.hasTextureUnit(IndicatorPath)) {
-                AssetManager.addTextureUnit(IndicatorPath,
-                        new TextureUnit(AssetManager.getTexture(AssetManager.loadTexture(IndicatorPath)), 12, 12)
-                );
-            }
+            if (!AssetManager.hasTextureUnit(IndicatorPath)) AssetManager.addTextureUnit(IndicatorPath, new TextureUnit(AssetManager.getTexture(AssetManager.loadTexture(IndicatorPath)), 12, 12));
             textureUnit = AssetManager.getTextureUnit(IndicatorPath);
             setActive();
             completeInit();
         } catch (Exception e) {
-            System.err.println("Failed to initialize EditorObjectIndicator: " + e.getMessage());
+            Logger.error(String.format("Failed to initialize editor object indicator: %s", e.getMessage()));
         }
     }
 
@@ -132,13 +119,14 @@ public final class EditorObjectIndicator extends Component2D implements NotSeria
     }
 
     @Override
-    public TransformCommand buildTransformCommand() {
-        Transform2D effectiveTransform = effectiveTransform();
-        TransformCommand transform = TransformCommand.acquire();
-        transform.position.set(effectiveTransform.position);
-        transform.zIndex = effectiveTransform.zIndex;
-        transform.markChanged();
-        return transform;
+    public void syncTransform(TransformCommand current, TransformCommand previous) {
+        Transform2D global = effectiveTransform();
+        current.position.set(global.position);
+        current.zIndex = global.zIndex;
+        current.rotationDegrees = 0.0f;
+        current.scale.set(1.0f);
+        current.markChanged();
+        previous.copyFrom(current);
     }
 
     @Override

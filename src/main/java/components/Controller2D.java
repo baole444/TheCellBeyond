@@ -103,7 +103,7 @@ public final class Controller2D extends Component {
         }
         if (!isGameObjectSpatialCompatible && !isGameObjectPhysicCompatible) {
             controlMode = ControlMode.Incompatible;
-            LOGGER.warning(String.format("Mounting %s to unsupported '%s' object", this.getClass().getSimpleName(), gameObject.name()));
+            Logger.warning(String.format("Mounting %s to unsupported '%s' object", this.getClass().getSimpleName(), gameObject.name()));
             return;
         }
         if (!isGameObjectPhysicCompatible) controlMode = ControlMode.SpatialLogic;
@@ -250,7 +250,7 @@ public final class Controller2D extends Component {
         ControllerBinding binding = controllerBindings.get(bindingName);
         if (binding == null) return;
         if (Input.getInputAction(actionName) == null) {
-            LOGGER.warning(String.format("Input action '%s' does not exist", actionName));
+            Logger.warning(String.format("Input action '%s' does not exist", actionName));
             return;
         }
         binding.boundActionNames.add(actionName);

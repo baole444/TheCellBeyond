@@ -699,6 +699,13 @@ public class GameObject2D extends RenderableObject {
         }
     }
 
+    protected void notifyComponent2DHasPreviousTransform() {
+        List<Component2D> component2Ds = getComponents(Component2D.class);
+        component2Ds.forEach(c -> {
+            c.setTransformDirty();
+        });
+    }
+
     /**
      * Optional hook for additional 2D object's transform dirty logic.
      */
@@ -790,32 +797,27 @@ public class GameObject2D extends RenderableObject {
     }
 
     @Override
-    public TransformCommand buildTransformCommand() {
-        TransformCommand command = TransformCommand.acquire();
-        Transform2D globalTransform = globalTransform();
-        command.submitterID = getUID();
-        command.position.set(globalTransform.position);
-        command.rotationDegrees = globalTransform.rotation;
-        command.scale.set(globalTransform.scale);
-        command.zIndex = globalTransform.zIndex;
-        command.visible = visible;
-        command.modulate.set(selfModulate);
-        command.markChanged();
-        return command;
-    }
-
-    @Override
-    public TransformCommand previousTransformCommand() {
-        if (!hasPreviousTransform) return null;
-        TransformCommand command = TransformCommand.acquire();
-        command.submitterID = getUID();
-        command.position.set(previousTransform2D.position);
-        command.rotationDegrees = previousTransform2D.rotation;
-        command.scale.set(previousTransform2D.scale);
-        command.zIndex = previousTransform2D.zIndex;
-        command.visible = visible;
-        command.modulate.set(selfModulate);
-        command.markChanged();
-        return command;
+    public void syncTransform(TransformCommand current, TransformCommand previous) {
+        Transform2D global = globalTransform();
+        current.submitterID = getUID();
+        current.position.set(global.position);
+        current.rotationDegrees = global.rotation;
+        current.scale.set(global.scale);
+        current.zIndex = global.zIndex;
+        current.visible = current.visible && visible;
+        current.modulate.set(selfModulate);
+        current.markChanged();
+        if (!hasPreviousTransform) {
+            previous.copyFrom(current);
+            return;
+        }
+        previous.submitterID = getUID();
+        previous.position.set(previousTransform2D.position);
+        previous.rotationDegrees = previousTransform2D.rotation;
+        previous.scale.set(previousTransform2D.scale);
+        previous.zIndex = previousTransform2D.zIndex;
+        previous.visible = current.visible;
+        previous.modulate.set(current.modulate);
+        previous.markChanged();
     }
 }

@@ -15,8 +15,27 @@ public class TransformCommand extends RenderCommand {
         super(CommandType.Transform);
     }
 
+    public void resetAccumulation() {
+        visible = true;
+        modulate.set(1.0f);
+    }
+
+    public void copyAccumulation(TransformCommand source) {
+        visible = source.visible;
+        modulate.set(source.modulate);
+    }
+
     public static TransformCommand acquire() {
         return RenderCommandPool.get().acquire(TransformCommand.class, TransformCommand::new);
+    }
+
+    /**
+     * Get a new {@link TransformCommand}, this one is created new, separated from pool acquired.
+     * This is intended for long-lasting reference that is written to.
+     * @return a new transform command
+     */
+    public static TransformCommand createOwned() {
+        return new TransformCommand();
     }
 
     @Override
@@ -27,13 +46,13 @@ public class TransformCommand extends RenderCommand {
     @Override
     public void copyFrom(RenderCommand source) {
         super.copyFrom(source);
-        if (!(source instanceof TransformCommand transform)) return;
-        position.set(transform.position);
-        rotationDegrees = transform.rotationDegrees;
-        scale.set(transform.scale);
-        zIndex = transform.zIndex;
-        visible = transform.visible;
-        modulate.set(transform.modulate);
+        if (!(source instanceof TransformCommand t)) return;
+        position.set(t.position);
+        rotationDegrees = t.rotationDegrees;
+        scale.set(t.scale);
+        zIndex = t.zIndex;
+        visible = t.visible;
+        modulate.set(t.modulate);
     }
 
     @Override

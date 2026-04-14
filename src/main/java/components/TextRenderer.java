@@ -87,11 +87,6 @@ public class TextRenderer extends Component2D implements ResourceStatusListener 
     }
 
     @Override
-    protected void onTransformDirty() {
-        renderDirty = true;
-    }
-
-    @Override
     protected void onDestroy() {
         ResourceStatusCallback.unregister(this);
     }

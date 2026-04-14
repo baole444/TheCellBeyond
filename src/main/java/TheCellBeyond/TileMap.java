@@ -177,11 +177,6 @@ public class TileMap extends GameObject2D {
     }
 
     @Override
-    protected void onTransformDirty() {
-        renderDirty = true;
-    }
-
-    @Override
     public TileMap copy() {
         return copy(false);
     }

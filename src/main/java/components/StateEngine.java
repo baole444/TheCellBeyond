@@ -67,7 +67,7 @@ public class StateEngine extends Component {
         }
 
         if (!states.containsKey(stateName)) {
-            LOGGER.warning(String.format("Requested state '%s' does not exist in %s (%s)", stateName, this.getClass().getSimpleName(), getUUID()));
+            Logger.warning(String.format("Requested state '%s' does not exist in %s (%s)", stateName, this.getClass().getSimpleName(), getUUID()));
             return;
         }
 
@@ -133,7 +133,7 @@ public class StateEngine extends Component {
 
     public boolean removeState(String stateName) {
         if (LogicServer.runtimeMode()) {
-            LOGGER.warning("State removal is forbidden while test running the scene!");
+            Logger.warning("State removal is forbidden while test running the scene!");
             return false;
         }
 
@@ -185,7 +185,7 @@ public class StateEngine extends Component {
     private boolean handleStateTransition(String stateName, boolean checkFilter) {
         if (stateName == null || stateName.isBlank()) return false;
         if (!states.containsKey(stateName)) {
-            LOGGER.warning(String.format("Requested state '%s' does not exist in %s (%s)", stateName, this.getClass().getSimpleName(), getUUID()));
+            Logger.warning(String.format("Requested state '%s' does not exist in %s (%s)", stateName, this.getClass().getSimpleName(), getUUID()));
             return false;
         }
 

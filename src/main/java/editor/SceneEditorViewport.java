@@ -4,6 +4,7 @@ import TheCellBeyond.MouseListener;
 import TheCellBeyond.Viewport;
 import TheCellBeyond.Window;
 import TheCellBeyond.internal.LogicServer;
+import TheCellBeyond.internal.RenderingServer;
 import editor.dialog.SaveSceneAsDialog;
 import editor.preference.EditorPreferences;
 import editor.preference.UserPreference;
@@ -114,7 +115,7 @@ public class SceneEditorViewport implements EngineEventListener {
     }
 
     private void renderFPS(ImVec2 cursorPos) {
-        String fps = String.format("%.2f FPS", Window.FPS);
+        String fps = String.format("%.2f FPS | %.3f IA", Window.FPS, Window.IA);
         float remainWidth = ImGui.getContentRegionAvailX();
         float textWidth = ImGui.calcTextSizeX(fps);
         float offset = Math.max(remainWidth - textWidth, 0.0f);

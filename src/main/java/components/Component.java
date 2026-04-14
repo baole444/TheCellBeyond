@@ -65,7 +65,7 @@ public abstract class Component {
     /**
      * Logger for components.
      */
-    protected static final EngineLog LOGGER = new EngineLog(Component.class);
+    protected static final EngineLog Logger = new EngineLog(Component.class);
     /**
      * Get the UUID uses to identify this component.
      */

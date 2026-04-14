@@ -52,7 +52,7 @@ public class Renderer implements EngineEventListener {
         adjustViewport();
         TextureManager.get().processCommands();
         RendererState state = RendererState.get();
-        RenderCommand chainHead = RenderingServer.get().chainHead();
+        RenderCommand chainHead = RenderingServer.chainHead();
         if (chainHead == null) return;
         queue.collect(chainHead);
         tileBatch.beginFrame();

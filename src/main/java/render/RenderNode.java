@@ -7,26 +7,26 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class RenderNode {
-    public final Renderable nodeOwner;
-    public RenderNode renderingParent;
-    public final List<RenderNode> renderingChildren = new CopyOnWriteArrayList<>();
+    public final Renderable owner;
+    public RenderNode parent;
+    public final List<RenderNode> children = new CopyOnWriteArrayList<>();
     public RenderCommand commandHeader = null;
     public RenderCommand commandTail = null;
-    public TransformCommand transform = null;
-    public TransformCommand previousTransform = null;
+    public TransformCommand currentTransform = TransformCommand.createOwned();
+    public TransformCommand previousTransform = TransformCommand.createOwned();
 
     public RenderNode(Renderable nodeOwner, RenderNode renderingParent) {
-        this.nodeOwner = nodeOwner;
-        this.renderingParent = renderingParent;
+        this.owner = nodeOwner;
+        this.parent = renderingParent;
     }
 
     public void addChild(RenderNode child) {
-        renderingChildren.add(child);
-        child.renderingParent = this;
+        children.add(child);
+        child.parent = this;
     }
 
     public void removeChild(RenderNode child) {
-        renderingChildren.remove(child);
-        child.renderingParent = null;
+        children.remove(child);
+        child.parent = null;
     }
 }

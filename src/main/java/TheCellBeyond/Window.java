@@ -52,6 +52,10 @@ public final class Window implements EngineEventListener {
      * calculated using {@code accumulated frame/accumulated delta} at 1 delta interval.
      */
     public static float FPS = 0.0f;
+    /**
+     * Engine current physic interpolation factor.
+     */
+    public static float IA = 1.0f;
     private int width;
     private int height;
     private final String title;
@@ -274,6 +278,7 @@ public final class Window implements EngineEventListener {
         float endTime;
         float dt = -1.0f;
         float accumulatedDT = 0.0f;
+        float accumulatedAlpha = 0.0f;
         int accumulatedFrame = 0;
         Shader defaultShader = AssetManager.getShader(AssetManager.loadShader(Settings.ShaderPath.DefaultTextureShader));
         Shader objectSelectShader = AssetManager.getShader(AssetManager.loadShader(Settings.ShaderPath.ObjectSelectionShader));
@@ -286,19 +291,21 @@ public final class Window implements EngineEventListener {
             Physic2D physic2D = LogicServer.currentScenePhysic2D();
             if (physic2D != null && LogicServer.runtimeMode()) RenderingServer.interpolationFactor = physic2D.interpolateAlpha();
             else RenderingServer.interpolationFactor = 1.0f;
+            accumulatedAlpha += RenderingServer.interpolationFactor;
             if (dt >= 0.0f) {
                 accumulatedDT += dt;
                 accumulatedFrame++;
-                if (calculatedFPS(accumulatedFrame, accumulatedDT)) {
+                if (updateMetric(accumulatedFrame, accumulatedAlpha, accumulatedDT)) {
                     accumulatedDT = 0.0f;
+                    accumulatedAlpha = 0.0f;
                     accumulatedFrame = 0;
                 }
                 DebugDraw.startFrame();
                 LogicServer.update(dt);
-                RenderingServer.get().update();
+                RenderingServer.update();
                 objectSelectionPass(rendererState, objectSelectShader);
                 normalPass(rendererState, defaultShader);
-                RenderingServer.get().postFrameClear();
+                RenderingServer.postFrameClear();
                 imGuiLayer.update(dt, LogicServer.currentScene());
             }
             MouseListener.endFrame();
@@ -312,15 +319,17 @@ public final class Window implements EngineEventListener {
     }
 
     /**
-     * Calculate FPS per 1.0 delta.
-     * When this method return true, it means the FPS is calculated and accumulation should be reset.
-     * @param accumulatedFrame the frame count since last FPS calculation
-     * @param accumulatedDT the delta since last FPS calculation
-     * @return the accumulating delta if it is not time to calculate the FPS yet, otherwise 0.0
+     * Calculate metric per 1.0 delta.
+     * When this method return true, it means the metrics are calculated and accumulation should be reset.
+     * @param accumulatedFrame the frame count since last metric calculation
+     * @param accumulatedAlpha the total interpolation alpha since last metric calculation
+     * @param accumulatedDT the delta since last metric calculation
+     * @return true if accumulation should be reset
      */
-    private static boolean calculatedFPS(int accumulatedFrame, float accumulatedDT) {
+    private static boolean updateMetric(int accumulatedFrame,float accumulatedAlpha, float accumulatedDT) {
         if (accumulatedDT < 1.0f) return false;
         FPS = accumulatedFrame / accumulatedDT;
+        IA = accumulatedAlpha / accumulatedFrame;
         return true;
     }
 

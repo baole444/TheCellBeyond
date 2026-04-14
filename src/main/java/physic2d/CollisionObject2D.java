@@ -55,6 +55,11 @@ public abstract class CollisionObject2D extends GameObject2D {
         if (needFixtureUpdate) updateFixtureFilter();
     }
 
+    @Override
+    public boolean interpolated() {
+        return true;
+    }
+
     /**
      * Update the tracking previous transform for interpolation.
      * Must be called once before each physic step.
@@ -63,7 +68,8 @@ public abstract class CollisionObject2D extends GameObject2D {
         if (physicBodyRef == null) return;
         Transform2D.copy(globalTransform(), previousTransform2D);
         hasPreviousTransform = true;
-        renderDirty(true);
+        notifyComponent2DHasPreviousTransform();
+        renderDirty = true;
     }
 
     /**
@@ -246,7 +252,7 @@ public abstract class CollisionObject2D extends GameObject2D {
     }
 
     /**
-     * Get the body type of the collision object, which will be use to create the physic body reference in the physic world.
+     * Get the body type of the collision object, which will be used to create the physic body reference in the physic world.
      * @return the body type for the physic world
      */
     public abstract BodyType bodyType();

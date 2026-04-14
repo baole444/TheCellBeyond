@@ -21,9 +21,13 @@ public abstract class Component2D extends RenderableComponent {
      */
     protected final Transform2D localTransform2D = new Transform2D();
     /**
+     * Whether the owning 2D object of this component as a valid previous transform for physic interpolation or not.
+     */
+    public transient boolean hasPreviousTransform = false;
+    /**
      * This 2D component's global transform.
      */
-    private transient Transform2D effectiveTransform2D = null;
+    private final transient Transform2D effectiveTransform2D = new Transform2D();
     /**
      * Is this 2D component's global transform needs update.
      */
@@ -411,14 +415,15 @@ public abstract class Component2D extends RenderableComponent {
     /**
      * Optional hook for additional 2D component's transform dirty logic.
      */
-    protected void onTransformDirty() {}
+    protected void onTransformDirty() {
+        renderDirty = true;
+    }
 
     /**
      * Internal update of this component's global transform.
      */
     private void updateEffectiveTransform() {
-        if (!isTransformDirty && effectiveTransform2D != null) return;
-        if (effectiveTransform2D == null) effectiveTransform2D = new Transform2D();
+        if (!isTransformDirty) return;
         if (!(gameObject instanceof GameObject2D go2D)) {
             Transform2D.copy(localTransform2D, effectiveTransform2D);
             isTransformDirty = false;
@@ -450,29 +455,23 @@ public abstract class Component2D extends RenderableComponent {
     }
 
     @Override
-    public TransformCommand buildTransformCommand() {
-        if (localTransform2D.isIdentity()) return null;
-        TransformCommand command = TransformCommand.acquire();
-        Transform2D effectiveTransform = effectiveTransform();
-        command.position.set(effectiveTransform.position);
-        command.scale.set(effectiveTransform.scale);
-        command.rotationDegrees = effectiveTransform.rotation;
-        command.zIndex = effectiveTransform.zIndex;
-        command.markChanged();
-        return command;
-    }
-
-    @Override
-    public TransformCommand previousTransformCommand() {
-        if (localTransform2D.isIdentity()) return null;
-        if (!(gameObject instanceof GameObject2D go2D)) return null;
-        TransformCommand previousTransform = go2D.previousTransformCommand();
-        if (previousTransform == null) return null;
-        previousTransform.position.add(localTransform2D.position);
-        previousTransform.rotationDegrees += localTransform2D.rotation;
-        previousTransform.scale.mul(localTransform2D.scale);
-        if (localTransform2D.relativeZIndex) previousTransform.zIndex += localTransform2D.zIndex;
-        else previousTransform.zIndex = localTransform2D.zIndex;
-        return previousTransform;
+    public void syncTransform(TransformCommand current, TransformCommand previous) {
+        Transform2D global = effectiveTransform();
+        current.position.set(global.position);
+        current.rotationDegrees = global.rotation;
+        current.scale.set(global.scale);
+        current.zIndex = global.zIndex;
+        current.markChanged();
+        if (!hasPreviousTransform || !(gameObject instanceof GameObject2D go2D)) {
+            previous.copyFrom(current);
+            return;
+        }
+        Transform2D prev = go2D.previousTransform2D;
+        previous.position.set(prev.position).add(localTransform2D.position);
+        previous.rotationDegrees = prev.rotation + localTransform2D.rotation;
+        previous.scale.set(prev.scale).mul(localTransform2D.scale);
+        if (localTransform2D.relativeZIndex) previous.zIndex = prev.zIndex + localTransform2D.zIndex;
+        else previous.zIndex = localTransform2D.zIndex;
+        previous.markChanged();
     }
 }
