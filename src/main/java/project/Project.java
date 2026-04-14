@@ -32,7 +32,7 @@ public class Project {
     private static String _projectYmlPath = null;
     private static final ObjectMapper YAMLMapper = new ObjectMapper(new YAMLFactory()).rebuild().disable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES).build();
     private static final List<String> requiredDirs = List.of("assets", "prefabs", "scenes", "sheets", "scripts", "scripts-src");
-    public static final String ProjectVersion = "1.1";
+    public static final String ProjectVersion = "1.2";
 
     /**
      * Check if there is a project with valid path loaded or not.
@@ -114,9 +114,9 @@ public class Project {
         return true;
     }
 
-    public static boolean updateProjectPreference(String name, int windowWidth, int windowHeight, boolean allowResize, boolean maintainAspectRatio, float textureGlobalScale, ClearColor clearColor, int physicFrameRate) {
+    public static boolean updateProjectPreference(String name, int windowWidth, int windowHeight, boolean allowResize, boolean maintainAspectRatio, float textureGlobalScale, ClearColor clearColor, int physicFrameRate, RenderingSetting renderingSetting) {
         if (noProjectLoaded()) return false;
-        preference = new ProjectPreference(name, windowWidth, windowHeight, allowResize, maintainAspectRatio, textureGlobalScale, clearColor, physicFrameRate);
+        preference = new ProjectPreference(name, windowWidth, windowHeight, allowResize, maintainAspectRatio, textureGlobalScale, clearColor, physicFrameRate, renderingSetting);
         CurrentProject = new ProjectData(CurrentProject.version(),
                 preference, CurrentProject.assets(),
                 CurrentProject.sheets(), CurrentProject.scenes(),

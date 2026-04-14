@@ -4,7 +4,6 @@ import TheCellBeyond.MouseListener;
 import TheCellBeyond.Viewport;
 import TheCellBeyond.Window;
 import TheCellBeyond.internal.LogicServer;
-import TheCellBeyond.internal.RenderingServer;
 import editor.dialog.SaveSceneAsDialog;
 import editor.preference.EditorPreferences;
 import editor.preference.UserPreference;
@@ -115,7 +114,7 @@ public class SceneEditorViewport implements EngineEventListener {
     }
 
     private void renderFPS(ImVec2 cursorPos) {
-        String fps = String.format("%.2f FPS | %.3f IA", Window.FPS, Window.IA);
+        String fps = String.format("%.2f FPS", Window.FPS);
         float remainWidth = ImGui.getContentRegionAvailX();
         float textWidth = ImGui.calcTextSizeX(fps);
         float offset = Math.max(remainWidth - textWidth, 0.0f);
@@ -170,7 +169,6 @@ public class SceneEditorViewport implements EngineEventListener {
 
     public boolean getWantCaptureMouse() {
         if (ImGui.isPopupOpen("", ImGuiPopupFlags.AnyPopup)) return false;
-
         return MouseListener.getX() >= leftX &&
                 MouseListener.getX() <= rightX &&
                 MouseListener.getY() >= bottomY &&
@@ -194,9 +192,7 @@ public class SceneEditorViewport implements EngineEventListener {
             currentHeight = usableHeight;
         }
         Viewport viewport = LogicServer.currentSceneViewport();
-        if (!LogicServer.runtimeMode() && viewport != null) {
-            viewport.adjustSceneScale(usableHeight);
-        }
+        if (!LogicServer.runtimeMode() && viewport != null) viewport.adjustSceneScale(usableHeight);
         return new ImVec2(usableWidth, usableHeight);
     }
 

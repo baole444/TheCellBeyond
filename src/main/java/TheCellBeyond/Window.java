@@ -6,7 +6,6 @@ import editor.ImGuiLayer;
 import editor.StartupWindow;
 import editor.preference.UserPreference;
 import eventviewer.event.Event;
-import org.joml.Vector4f;
 import org.lwjgl.system.Platform;
 import physic2d.Physic2D;
 import project.ClearColor;
@@ -25,6 +24,8 @@ import org.lwjgl.openal.ALC;
 import org.lwjgl.openal.ALCCapabilities;
 import org.lwjgl.openal.ALCapabilities;
 import org.lwjgl.opengl.GL;
+import project.RenderingSetting;
+import project.VsyncMode;
 import render.*;
 import render.text.FontManager;
 import scene.SceneManager;
@@ -35,6 +36,7 @@ import utility.log.EngineLog;
 
 import java.awt.*;
 import java.util.Objects;
+import java.util.concurrent.locks.LockSupport;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
@@ -52,16 +54,11 @@ public final class Window implements EngineEventListener {
      * calculated using {@code accumulated frame/accumulated delta} at 1 delta interval.
      */
     public static float FPS = 0.0f;
-    /**
-     * Engine current physic interpolation factor.
-     */
-    public static float IA = 1.0f;
     private int width;
     private int height;
     private final String title;
     private long windowPtr;
     public float r, g, b, a;
-    public boolean overrideClearColor = false;
     private static Window window = null;
     private ImGuiLayer imGuiLayer;
     private FrameBuffer frameBuffer;
@@ -73,6 +70,7 @@ public final class Window implements EngineEventListener {
     private long audioDevice;
     private boolean projectLoaded = false;
     private static boolean noAudioSupport = true;
+    private long targetFrameTime = 1_000_000_000L / 60;
 
     /**
      * Create a new window instance and register it with the Engine Event Callback.
@@ -144,7 +142,7 @@ public final class Window implements EngineEventListener {
         }
         setupWindowCallback();
         glfwMakeContextCurrent(windowPtr);
-        glfwSwapInterval(1);
+        applyVsync(VsyncMode.Enabled);
         glfwShowWindow(windowPtr);
         setupAudioDevice();
         GL.createCapabilities();
@@ -277,8 +275,8 @@ public final class Window implements EngineEventListener {
         float beginTime = (float) glfwGetTime();
         float endTime;
         float dt = -1.0f;
+        long nextFrameDeadline = System.nanoTime();
         float accumulatedDT = 0.0f;
-        float accumulatedAlpha = 0.0f;
         int accumulatedFrame = 0;
         Shader defaultShader = AssetManager.getShader(AssetManager.loadShader(Settings.ShaderPath.DefaultTextureShader));
         Shader objectSelectShader = AssetManager.getShader(AssetManager.loadShader(Settings.ShaderPath.ObjectSelectionShader));
@@ -291,13 +289,11 @@ public final class Window implements EngineEventListener {
             Physic2D physic2D = LogicServer.currentScenePhysic2D();
             if (physic2D != null && LogicServer.runtimeMode()) RenderingServer.interpolationFactor = physic2D.interpolateAlpha();
             else RenderingServer.interpolationFactor = 1.0f;
-            accumulatedAlpha += RenderingServer.interpolationFactor;
             if (dt >= 0.0f) {
                 accumulatedDT += dt;
                 accumulatedFrame++;
-                if (updateMetric(accumulatedFrame, accumulatedAlpha, accumulatedDT)) {
+                if (updateMetric(accumulatedFrame, accumulatedDT)) {
                     accumulatedDT = 0.0f;
-                    accumulatedAlpha = 0.0f;
                     accumulatedFrame = 0;
                 }
                 DebugDraw.startFrame();
@@ -311,6 +307,13 @@ public final class Window implements EngineEventListener {
             MouseListener.endFrame();
             KeyListener.endFrame();
             glfwSwapBuffers(windowPtr);
+            if (targetFrameTime > 0) {
+                nextFrameDeadline += targetFrameTime;
+                if (nextFrameDeadline < System.nanoTime() - targetFrameTime) nextFrameDeadline = System.nanoTime();
+                long sleepUntil = nextFrameDeadline - 1_000_000L;
+                if (System.nanoTime() < sleepUntil) LockSupport.parkNanos(sleepUntil - System.nanoTime());
+                while (System.nanoTime() < nextFrameDeadline) Thread.onSpinWait();
+            }
             endTime = (float) glfwGetTime();
             dt = endTime - beginTime;
             beginTime = endTime;
@@ -322,14 +325,12 @@ public final class Window implements EngineEventListener {
      * Calculate metric per 1.0 delta.
      * When this method return true, it means the metrics are calculated and accumulation should be reset.
      * @param accumulatedFrame the frame count since last metric calculation
-     * @param accumulatedAlpha the total interpolation alpha since last metric calculation
      * @param accumulatedDT the delta since last metric calculation
      * @return true if accumulation should be reset
      */
-    private static boolean updateMetric(int accumulatedFrame,float accumulatedAlpha, float accumulatedDT) {
+    private static boolean updateMetric(int accumulatedFrame, float accumulatedDT) {
         if (accumulatedDT < 1.0f) return false;
         FPS = accumulatedFrame / accumulatedDT;
-        IA = accumulatedAlpha / accumulatedFrame;
         return true;
     }
 
@@ -348,11 +349,12 @@ public final class Window implements EngineEventListener {
         rendererState.setRenderPass(RendererState.RenderPass.NORMAL);
         rendererState.setShader(defaultShader);
         frameBuffer.use();
-        if (overrideClearColor) {
-            glClearColor(r, g, b, a);
-        } else {
-            Vector4f clearColor = Project.preference().clearColor().toVector();
-            glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
+        if (projectLoaded) {
+            RenderingSetting setting = Project.preference().renderingSetting();
+            applyVsync(setting.vsyncMode());
+            targetFrameTime = setting.targetFrameRate() > 0 ? 1_000_000_000L / setting.targetFrameRate() : 0;
+            ClearColor clearColor = Project.preference().clearColor();
+            glClearColor(clearColor.r(), clearColor.g(), clearColor.b(), clearColor.a());
         }
         glClear(GL_COLOR_BUFFER_BIT);
         Renderer.get().render();
@@ -364,15 +366,40 @@ public final class Window implements EngineEventListener {
     public void onEventEmit(Object object, Event event) {
         if (!(event instanceof EditorEvent editorEvent)) return;
         if (editorEvent.type != EditorEvent.Type.ProjectLoaded) return;
-        projectLoaded = Project.currentProject() != null && Project.projectRoot() != null;
+        projectLoaded = Project.loaded();
         if (!projectLoaded) return;
         ClearColor clearColor = Project.preference().clearColor();
         r = clearColor.r();
         g = clearColor.g();
         b = clearColor.b();
         a = clearColor.a();
+        RenderingSetting setting = Project.preference().renderingSetting();
+        applyVsync(setting.vsyncMode());
+        targetFrameTime = setting.targetFrameRate() > 0 ? 1_000_000_000L / setting.targetFrameRate() : 0;
         String projectDetail = " - [" + Project.preference().name() + "] [" + Project.projectRoot() + "]";
         glfwSetWindowTitle(windowPtr, title + projectDetail);
+    }
+
+    private void applyVsync(VsyncMode mode) {
+        switch (mode) {
+            case Disabled -> glfwSwapInterval(0);
+            case Enabled -> glfwSwapInterval(1);
+            case Adaptive -> {
+                Platform platform = Platform.get();
+                if (platform == Platform.MACOSX) {
+                    Logger.warning("Adaptive vsync is not available on macOS, falling back to vsync Enabled...");
+                    glfwSwapInterval(1);
+                    break;
+                }
+                String ext = platform == Platform.WINDOWS ? "WGL_EXT_swap_control_tear" : "GLX_EXT_swap_control_tear";
+                if (glfwExtensionSupported(ext)) {
+                    glfwSwapInterval(-1);
+                    break;
+                }
+                Logger.warning("Adaptive vsync is not supported on this driver, falling back to vsync Enabled...");
+                glfwSwapInterval(1);
+            }
+        }
     }
 
     /**

@@ -21,10 +21,10 @@ public record ClearColor(float r, float g, float b, float a) {
      * @param a alpha component value
      */
     public ClearColor {
-        r = Math.max(0.0f, Math.min(r, 1.0f));
-        g = Math.max(0.0f, Math.min(g, 1.0f));
-        b = Math.max(0.0f, Math.min(b, 1.0f));
-        a = Math.max(0.0f, Math.min(a, 1.0f));
+        r = Math.clamp(r, 0.0f, 1.0f);
+        g = Math.clamp(g, 0.0f, 1.0f);
+        b = Math.clamp(b, 0.0f, 1.0f);
+        a = Math.clamp(a, 0.0f, 1.0f);
     }
 
     /**

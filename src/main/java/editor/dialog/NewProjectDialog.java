@@ -17,6 +17,7 @@ import imgui.type.ImFloat;
 import imgui.type.ImInt;
 import imgui.type.ImString;
 import org.joml.Vector2i;
+import project.RenderingSetting;
 import utility.IdPool;
 
 import java.nio.file.Path;
@@ -161,7 +162,8 @@ public class NewProjectDialog {
         ProjectPreference preference = new ProjectPreference(gameTitle.get(),
                 gameWindowSize.x, gameWindowSize.y,
                 allowResize.get(), maintainAspectRatio.get(),
-                globalTextureScale.get(), new ClearColor(), 60
+                globalTextureScale.get(), new ClearColor(), 60,
+                new RenderingSetting()
         );
         Path projectRoot = Path.of(selectedDirectoryPath.get());
         if (!Project.createNewProject(projectRoot, preference)) return;

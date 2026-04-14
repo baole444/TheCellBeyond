@@ -10,9 +10,7 @@ import imgui.type.ImString;
 import org.joml.Vector2i;
 import org.joml.Vector4f;
 import physic2d.Physic2D;
-import project.ClearColor;
-import project.Project;
-import project.ProjectPreference;
+import project.*;
 
 class ProjectPreferenceTab {
     private static final ImString gameTitle = new ImString(128);
@@ -22,6 +20,8 @@ class ProjectPreferenceTab {
     private static final ImFloat textureGlobalScale = new ImFloat(1.0f);
     private static final Vector4f clearColor = new Vector4f(0.027f, 0.122f, 0.067f, 1.0f);
     private static final ImInt physicFramerate = new ImInt(60);
+    private static final ImInt renderFramerate = new ImInt(60);
+    private static VsyncMode vsyncMode = VsyncMode.Enabled;
     private static boolean projectPreferencesChanged = false;
 
     static void reloadPreferenceData() {
@@ -34,6 +34,8 @@ class ProjectPreferenceTab {
         textureGlobalScale.set(preference.textureGlobalScale());
         clearColor.set(preference.clearColor().toVector());
         physicFramerate.set(preference.physicFrameRate());
+        renderFramerate.set(preference.renderingSetting().targetFrameRate());
+        vsyncMode = preference.renderingSetting().vsyncMode();
     }
 
     static void autoSavePreferences() {
@@ -43,7 +45,8 @@ class ProjectPreferenceTab {
                 gameWindowSize.x, gameWindowSize.y,
                 allowResize.get(), maintainAspectRatio.get(),
                 textureGlobalScale.get(), new ClearColor(clearColor),
-                physicFramerate.get()
+                physicFramerate.get(),
+                new RenderingSetting(vsyncMode, renderFramerate.get())
         );
         if (success) projectPreferencesChanged = false;
     }
@@ -60,6 +63,9 @@ class ProjectPreferenceTab {
         ImGui.spacing();
         boolean openPhysic = ImGui.collapsingHeader("Physic##Game_Physic_Edit_Preference_Header", ImGuiTreeNodeFlags.DefaultOpen);
         if (openPhysic) renderGamePhysicHeaderContent();
+        ImGui.spacing();
+        boolean openRender = ImGui.collapsingHeader("Rendering##Game_Rendering_Edit_Preference_Header", ImGuiTreeNodeFlags.DefaultOpen);
+        if (openRender) renderGameRenderingHeaderContent();
     }
 
     private static void renderGameDetailHeaderContent() {
@@ -158,6 +164,33 @@ class ProjectPreferenceTab {
         }
         ImGui.endTable();
         ImGui.unindent();
+    }
+
+    private static void renderGameRenderingHeaderContent() {
+        ImGui.separator();
+        ImGui.indent();
+        VsyncMode oldMode = vsyncMode;
+        if (ImGui.beginCombo("Vsync Mode", oldMode != null ? oldMode.name() : "Select a Vsync mode...")) {
+            for (VsyncMode mode : VsyncMode.values()) {
+                String id = mode.name() + "##RenderingSetting_VsyncMode_" + mode + "_Selectable";
+                if (!ImGui.selectable(id, oldMode == mode)) continue;
+                vsyncMode = mode;
+                projectPreferencesChanged = true;
+            }
+            ImGui.endCombo();
+        }
+        ImGui.beginDisabled();
+        ImGui.textWrapped("Disabled: vsync disabled | Adaptive: sync when above refresh rate | Enabled: sync to monitor");
+        ImGui.endDisabled();
+        ImGui.spacing();
+        int oldFrameRate = renderFramerate.get();
+        renderFramerate.set(inputInt("Frame Rate Limit", renderFramerate.get(), RenderingSetting.MinFrameRate));
+        if (oldFrameRate != renderFramerate.get()) projectPreferencesChanged = true;
+        ImGui.beginDisabled();
+        ImGui.textWrapped("Max rendering FPS, default is 60 (0 = unlimited)");
+        ImGui.endDisabled();
+        ImGui.unindent();
+        ImGui.separator();
     }
 
     private static int inputInt(String label, int target, int minValue) {

@@ -9,7 +9,8 @@ public record ProjectPreference(
         boolean allowResize, boolean maintainAspectRatio,
         float textureGlobalScale,
         ClearColor clearColor,
-        int physicFrameRate
+        int physicFrameRate,
+        RenderingSetting renderingSetting
 ) {
     public ProjectPreference {
         if (name == null || name.isBlank()) name = "Untitled Project";
@@ -19,15 +20,16 @@ public record ProjectPreference(
         if (clearColor == null) clearColor = new ClearColor();
         if (physicFrameRate <= 0) physicFrameRate = 60;
         physicFrameRate = Math.clamp(physicFrameRate, Physic2D.MinPhysicFrameRate, Physic2D.MaxPhysicFrameRate);
+        if (renderingSetting == null) renderingSetting = new RenderingSetting();
     }
 
     @JsonIgnore
     public ProjectPreference() {
-        this("Untitled Project", 640, 480, false, true, 1.0f, new ClearColor(), 60);
+        this("Untitled Project", 640, 480, false, true, 1.0f, new ClearColor(), 60, new RenderingSetting());
     }
 
     @JsonIgnore
     public ProjectPreference(String name) {
-        this(name, 640, 480, false, true, 1.0f, new ClearColor(), 60);
+        this(name, 640, 480, false, true, 1.0f, new ClearColor(), 60, new RenderingSetting());
     }
 }
