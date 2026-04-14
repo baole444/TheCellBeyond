@@ -1,8 +1,9 @@
 <div style="text-align: center;" align="center">
 
- ## TheCellBeyond Game Engine
+ # TheCellBeyond Game Engine
 
-A 2D game engine for in Java with editor for building scenes and levels
+ A 2D game engine in Java with scripting support and editor UI for building scenes and levels
+
 </div>
 
 ## Running the engine
@@ -28,13 +29,14 @@ For any other dependencies that might be brought in, they need to be `implementa
 ### Compatibility
 Below is the minimum API version for scripting to be compatible with the engine's release version:
 
-| Engine version |                                          API version                                          |
-|:--------------:|:---------------------------------------------------------------------------------------------:|
-|      1.1       |   [__1.1__](https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api/1.1)   |
-| 1.0.5 - 1.0.8  |   [1.0.5](https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api/1.0.5)   |
-|   ~~1.0.4~~    | [~~1.0.4~~](https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api/1.0.4) |
+|  Engine version   |                                          API version                                          |
+|:-----------------:|:---------------------------------------------------------------------------------------------:|
+|      __1.2__      |   [__1.2__](https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api/1.2)   |
+|        1.1        |     [1.1](https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api/1.1)     |
+| ~~1.0.5 - 1.0.8~~ | [~~1.0.5~~](https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api/1.0.5) |
+|     ~~1.0.4~~     | [~~1.0.4~~](https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api/1.0.4) |
 
-Using any version older than 1.0.8 might not work properly.
+Using any version older than 1.1 might not work properly.
 
 Annotate a class as GameObject type:
 ```java
