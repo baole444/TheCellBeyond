@@ -16,6 +16,7 @@ import java.util.UUID;
  */
 class SceneFileMigrator {
     private static final EngineLog Logger = new EngineLog(SceneFileMigrator.class);
+    private static final EngineSerializer Serializer = EngineSerializer.standard();
     private static final Set<Integer> BreakingChanges = Set.of(2);
 
     static JsonObject migrateToLatest(JsonElement element, String sceneName) {
@@ -80,13 +81,12 @@ class SceneFileMigrator {
      * @return the updated JSON object
      */
     private static JsonObject migrateToV2(JsonObject jsonObject) {
-        EngineSerializer serializer = EngineSerializer.standard();
         JsonArray jsonArray = jsonObject.has(SceneFile.ObjectsKey) ? jsonObject.getAsJsonArray(SceneFile.ObjectsKey) : new JsonArray();
-        GameObject[] objects = serializer.deserialize(jsonArray, GameObject[].class);
+        GameObject[] objects = Serializer.deserialize(jsonArray, GameObject[].class);
         GameObject root = SceneFile.defaultRoot();
         if (objects != null) Arrays.stream(objects).filter(go -> go.getParentUUID() == null).forEach(root::addChild);
         root.prepareForSerialization();
-        jsonObject.add(SceneFile.RootKey, serializer.toJsonTree(root));
+        jsonObject.add(SceneFile.RootKey, Serializer.toJsonTree(root));
         jsonObject.addProperty(SceneFile.VersionKey, 2);
         return jsonObject;
     }

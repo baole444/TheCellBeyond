@@ -23,6 +23,7 @@ import java.util.List;
  */
 public final class SceneManager {
     private static final EngineLog Logger = new EngineLog(SceneManager.class);
+    private static final EngineSerializer Serializer = EngineSerializer.standard();
     private static final String ProjectNotLoaded = "no project loaded";
     private static final String SceneNotLoaded = "no scene loaded";
     private static final String SaveFileFailed = "failed to save scene file";
@@ -333,11 +334,10 @@ public final class SceneManager {
             return newFile;
         }
         try {
-            EngineSerializer serializer = EngineSerializer.standard();
             JsonElement element = JsonParser.parseString(fileContent);
             JsonObject jsonObject = SceneFileMigrator.migrateToLatest(element, sceneName);
             if (jsonObject == null) throw new JsonSyntaxException("Unknown scene data format");
-            return serializer.deserialize(jsonObject, SceneFile.class);
+            return Serializer.deserialize(jsonObject, SceneFile.class);
         } catch (JsonSyntaxException e) {
             Logger.error(String.format("Failed to parse scene file for '%s': ", e.getMessage()));
             return new SceneFile(sceneName);
@@ -364,7 +364,7 @@ public final class SceneManager {
         }
         String path = UnifiedPaths.resolveToAbsolute(Project.projectRoot(), sceneMap.path());
         try (FileWriter writer = new FileWriter(path)) {
-            writer.write(EngineSerializer.standard().serialize(file));
+            writer.write(Serializer.serialize(file));
             return true;
         } catch (IOException e) {
             Logger.error(String.format(CannotSaveFormat, sceneName, e.getMessage()));

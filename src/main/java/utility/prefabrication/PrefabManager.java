@@ -19,6 +19,9 @@ import java.util.stream.Stream;
 public class PrefabManager {
     private static final EngineLog Logger = new EngineLog(PrefabManager.class);
     private static final Map<String, PrefabData> loadedPrefabs = new ConcurrentHashMap<>();
+    private static final Map<String, JsonObject> parsedPrefabCache = new ConcurrentHashMap<>();
+    private static final EngineSerializer Serializer = EngineSerializer.standard();
+    private static final EngineSerializer PrettySerializer = EngineSerializer.prettyPrint();
     private static final String PrefabName = "prefab_name";
     private static final String RootUUID = "rootUUID";
     private static final String Timestamp = "timestamp";
@@ -60,25 +63,21 @@ public class PrefabManager {
                 prefabRoot.prepareForSerialization();
                 gosToPrefab.add(prefabRoot);
             }
-            EngineSerializer serializer = EngineSerializer.prettyPrint();
             JsonObject prefabJson = new JsonObject();
             prefabJson.addProperty(PrefabName, prefabName);
             prefabJson.addProperty(IncludeChild, includeChildren);
             prefabJson.addProperty(Timestamp, System.currentTimeMillis());
             prefabJson.addProperty(RootUUID, gosToPrefab.getFirst().getUUID().toString());
-            JsonElement objectData = serializer.toJsonTree(gosToPrefab);
+            JsonElement objectData = PrettySerializer.toJsonTree(gosToPrefab);
             prefabJson.add(Data, objectData);
             String filename = prefabName.replaceAll(NamePattern, "_") + Extension;
             Path prefabFile = prefabsPath.resolve(filename);
             try (FileWriter writer = new FileWriter(prefabFile.toFile())) {
-                serializer.serialize(prefabJson, writer);
+                PrettySerializer.serialize(prefabJson, writer);
             }
-            String jsonString = serializer.serialize(prefabJson);
-            loadedPrefabs.put(prefabName, new PrefabData(
-                    prefabName,
-                    jsonString,
-                    gameObject.name()+ (includeChildren ? " (with children)" : "")
-            ));
+            String jsonString = PrettySerializer.serialize(prefabJson);
+            loadedPrefabs.put(prefabName, new PrefabData(prefabName, jsonString, gameObject.name()+ (includeChildren ? " (with children)" : "")));
+            parsedPrefabCache.put(prefabName, prefabJson);
             Logger.info(String.format("Saved prefab '%s' to %s", prefabName, prefabFile));
         } catch (IOException e) {
             Logger.error(String.format("Failed to save prefab '%s': %s", prefabName, e.getMessage()));
@@ -89,6 +88,7 @@ public class PrefabManager {
         String root = Project.projectRoot();
         if (root == null) return;
         loadedPrefabs.clear();
+        parsedPrefabCache.clear();
         Path prefabsPath = Paths.get(root, PrefabDir);
         if (!Files.exists(prefabsPath)) return;
         try (Stream<Path> paths = Files.walk(prefabsPath, 1)) {
@@ -99,19 +99,17 @@ public class PrefabManager {
     }
 
     public static GameObject instantiatePrefab(String prefabName) {
-        PrefabData prefabData = loadedPrefabs.get(prefabName);
-        if (prefabData == null) {
+        if (!loadedPrefabs.containsKey(prefabName)) {
             Logger.error(String.format("Cannot instantiate '%s': prefab not found", prefabName));
             return null;
         }
         try {
-            EngineSerializer serializer = EngineSerializer.standard();
-            JsonObject prefabJson = serializer.deserialize(prefabData.json(), JsonObject.class);
+            JsonObject prefabJson = parsedPrefabCache.get(prefabName);
             JsonElement objectData = prefabJson.get(Data);
             List<GameObject> gameObjects = new ArrayList<>();
             if (objectData.isJsonArray()) {
                 for (JsonElement goElement : objectData.getAsJsonArray()) {
-                    GameObject go = serializer.deserialize(goElement, GameObject.class);
+                    GameObject go = Serializer.deserialize(goElement, GameObject.class);
                     gameObjects.add(go);
                 }
             }
@@ -161,6 +159,7 @@ public class PrefabManager {
             if (Files.exists(prefabFile)) {
                 Files.delete(prefabFile);
                 loadedPrefabs.remove(prefabName);
+                parsedPrefabCache.remove(prefabName);
                 Logger.info(String.format("Prefab '%s' deleted", prefabName));
             }
         } catch (IOException e) {
@@ -179,12 +178,12 @@ public class PrefabManager {
     private static void loadPrefabFile(Path file) {
         try {
             String content = new String(Files.readAllBytes(file));
-            EngineSerializer serializer = EngineSerializer.standard();
-            JsonObject prefabJson = serializer.deserialize(content, JsonObject.class);
+            JsonObject prefabJson = Serializer.deserialize(content, JsonObject.class);
             String name = prefabJson.get(PrefabName).getAsString();
             String description = name;
             if (prefabJson.has(IncludeChild) && prefabJson.get(IncludeChild).getAsBoolean()) description += " (with children)";
             loadedPrefabs.put(name, new PrefabData(name, content, description));
+            parsedPrefabCache.put(name, prefabJson);
         } catch (Exception e) {
             Logger.error(String.format("Failed to load prefab file '%s': %s", file, e.getMessage()));
         }
@@ -192,5 +191,6 @@ public class PrefabManager {
 
     public static void clear() {
         loadedPrefabs.clear();
+        parsedPrefabCache.clear();
     }
 }

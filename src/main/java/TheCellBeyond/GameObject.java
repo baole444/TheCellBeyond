@@ -33,12 +33,14 @@ public class GameObject {
      * Logger for game objects.
      */
     protected static final EngineLog Logger = new EngineLog(GameObject.class);
-
+    /**
+     * Standard serializer for game object.
+     */
+    protected static final EngineSerializer Serializer = EngineSerializer.standard();
     /**
      * Unique ID distributor for {@link GameObject}, managed the {@link #cachedID} of each object.
      */
     private static final IdPool idCounter = new IdPool(1, true);
-
     /**
      * The unique ID number of this game object.
      * Used by shader programs.
@@ -46,63 +48,51 @@ public class GameObject {
      * (or released back to ID pool) upon object's destruction.
      */
     private transient int cachedID;
-
     /**
      * The identifier UUID of this game object.
      * @see UUID
      */
     private UUID uuid;
-
     /**
      * The name of this game object.
      */
     private String name;
-
     /**
      * The list of {@link Component} that this game object has.
      */
     private final CopyOnWriteArrayList<Component> components;
-
     /**
      * Should this game object be serialized or not.
      */
     private boolean isSerialize = true;
-
     /**
      * Is this game object removed and should be garbage collected.
      */
     private transient boolean destroyed = false;
-
     /**
      * Is this game object finish initialization after created.
      */
     private transient boolean isStarted = false;
-
     /**
      * Is this game object and its descendants finished initialization.
      */
     private transient boolean isReadied = false;
-
     /**
      * Is this game object dirty and need to be updated.
      */
     private transient boolean isDirty = false;
-
     /**
      * The parent object of this game object.
      */
     private transient GameObject parent;
-
     /**
      * The set of child object this game object has.
      */
     private final transient LinkedHashSet<GameObject> children;
-
     /**
      * The identifier UUID of this game object's parent object.
      */
     private UUID parentUUID;
-
     /**
      * The list of UUID string of the child objects this game object has.
      */
@@ -915,9 +905,8 @@ public class GameObject {
      * @return a new {@link GameObject}
      */
     protected GameObject copySingleObject() {
-        EngineSerializer serializer = EngineSerializer.standard();
-        String oJson = serializer.serialize(this);
-        GameObject obj = serializer.deserialize(oJson, GameObject.class);
+        String oJson = Serializer.serialize(this);
+        GameObject obj = Serializer.deserialize(oJson, GameObject.class);
         obj.uuid = UUID.randomUUID();
         obj.cachedID = idCounter.newId();
         obj.parent = null;
