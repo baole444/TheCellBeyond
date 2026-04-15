@@ -106,7 +106,7 @@ public class Properties {
     /**
      * Clear the active object list.
      * The user's object selection will be cleared.
-     * Also clear true color list after resetting all sprites' original color.
+     * Also clear true colour list after resetting all sprites' original color.
      */
     public static void clearSelection() {
         if (!activeObjTrueColor.isEmpty()) {
@@ -114,6 +114,7 @@ public class Properties {
                 GameObject go = activeGameObjects.get(i);
                 List<Vector4f> colors = activeObjTrueColor.get(i);
                 List<SpriteRenderer> sprites = go.getComponents(SpriteRenderer.class);
+                if (sprites.isEmpty()) continue;
                 for (int j = 0; j < sprites.size(); j++) {
                     SpriteRenderer sprite = sprites.get(j);
                     if (sprite != null) sprite.color(colors.get(j));

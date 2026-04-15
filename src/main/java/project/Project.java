@@ -191,7 +191,7 @@ public class Project {
                     CurrentProject.scriptScanDirs()
             );
         }
-        Map<String, ProjectSheetMap> categorizedSheets = sheets.computeIfAbsent(category, k -> new HashMap<>());
+        Map<String, ProjectSheetMap> categorizedSheets = sheets.computeIfAbsent(category, _ -> new HashMap<>());
         if (categorizedSheets.containsKey(name)) {
             System.err.println("Sheet named '" + name + "' already exists in '" + category + "' category");
             return false;
