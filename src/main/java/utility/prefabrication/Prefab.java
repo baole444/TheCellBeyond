@@ -5,6 +5,7 @@ import TheCellBeyond.internal.LogicServer;
 
 /**
  * Prefab provide static method to instantiate a prefab file and/or add that instance to scene.
+ * To instantiate directly to scene, use {@link #instantiateToScene(String)}.
  */
 public final class Prefab {
     private Prefab() {}

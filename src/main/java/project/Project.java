@@ -16,6 +16,7 @@ import tools.jackson.databind.ObjectMapper;
 import tools.jackson.dataformat.yaml.YAMLFactory;
 import utility.AssetManager;
 import utility.UnifiedPaths;
+import utility.prefabrication.PrefabManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -455,6 +456,10 @@ public class Project {
         if (modified) System.out.println("Corrected current project's relative paths");
     }
 
+    /**
+     * Check and request to load declared resource from the project manifest.
+     * The engine will skip loaded resource.
+     */
     public static void loadProjectData() {
         if (CurrentProject == null) return;
         for (Map.Entry<String, Map<String, ProjectSheetMap>> categories : CurrentProject.sheets().entrySet()) {
@@ -476,6 +481,7 @@ public class Project {
             TextureUnit unit = new TextureUnit(texture, assetMap.sizeX(), assetMap.sizeY());
             AssetManager.addTextureUnit(projectPath, unit);
         }
+        PrefabManager.loadAllPrefabs();
     }
 
     private static String fixRelativePath(String path) {

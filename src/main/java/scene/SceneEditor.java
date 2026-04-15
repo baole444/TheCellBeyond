@@ -141,7 +141,6 @@ public class SceneEditor extends SceneLoader implements EngineEventListener {
     }
 
     private void drawPrefabList() {
-        if (PrefabManager.getPrefabNames().isEmpty()) PrefabManager.loadAllPrefabs();
         List<String> prefabNames = PrefabManager.getPrefabNames();
         if (prefabNames.isEmpty()) {
             ImGui.text("No object prefabs available");
