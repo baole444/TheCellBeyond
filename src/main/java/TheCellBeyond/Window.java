@@ -6,6 +6,8 @@ import editor.ImGuiLayer;
 import editor.StartupWindow;
 import editor.preference.UserPreference;
 import eventviewer.event.Event;
+import eventviewer.event.ProjectEvent;
+import org.joml.Vector4f;
 import org.lwjgl.system.Platform;
 import physic2d.Physic2D;
 import project.ClearColor;
@@ -45,20 +47,50 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 /**
- * The main window of TCB, responsible for initializing GLFW window and IO callbacks.
+ * The main window of TheCellBeyond Engine, responsible for initializing GLFW window and IO callbacks.
  */
 public final class Window implements EngineEventListener {
     private static final EngineLog Logger = new EngineLog(Window.class);
     /**
      * Engine main loop's average frame rate,
      * calculated using {@code accumulated frame/accumulated delta} at 1 delta interval.
+     * <p>
+     * This is not the FPS cap, adjusting this value only affect the displayed metric on screen.
      */
     public static float FPS = 0.0f;
+    /**
+     * Should the texture clear colour be overridden. Upon enabled (true), the {@link #r}{@link #g}{@link #b}{@link #a}
+     * values will take effect as the clear colour until this is disabled (false) again.
+     */
+    public static boolean overrideClearColor = false;
+    /**
+     * The red component of the overriding texture clear colour, will take effect if {@link #overrideClearColor} is true.
+     * <p>
+     * This value is normalized internally to range of (0,1).
+     */
+    public float r;
+    /**
+     * The green component of the overriding texture clear colour, will take effect if {@link #overrideClearColor} is true.
+     * <p>
+     * This value is normalized internally to range of (0,1).
+     */
+    public float g;
+    /**
+     * The blue component of the overriding texture clear colour, will take effect if {@link #overrideClearColor} is true.
+     * <p>
+     * This value is normalized internally to range of (0,1).
+     */
+    public float b;
+    /**
+     * The alpha component of the overriding texture clear colour, will take effect if {@link #overrideClearColor} is true.
+     * <p>
+     * This value is normalized internally to range of (0,1).
+     */
+    public float a;
     private int width;
     private int height;
     private final String title;
     private long windowPtr;
-    public float r, g, b, a;
     private static Window window = null;
     private ImGuiLayer imGuiLayer;
     private FrameBuffer frameBuffer;
@@ -71,6 +103,7 @@ public final class Window implements EngineEventListener {
     private boolean projectLoaded = false;
     private static boolean noAudioSupport = true;
     private long targetFrameTime = 1_000_000_000L / 60;
+    private final Vector4f clearColor = new Vector4f();
 
     /**
      * Create a new window instance and register it with the Engine Event Callback.
@@ -349,10 +382,11 @@ public final class Window implements EngineEventListener {
         rendererState.setRenderPass(RendererState.RenderPass.NORMAL);
         rendererState.setShader(defaultShader);
         frameBuffer.use();
-        if (projectLoaded) {
-            RenderingSetting setting = Project.preference().renderingSetting();
-            applyVsync(setting.vsyncMode());
-            targetFrameTime = setting.targetFrameRate() > 0 ? 1_000_000_000L / setting.targetFrameRate() : 0;
+        if (overrideClearColor) {
+            clearColor.set(r, g, b, a).normalize();
+            glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
+        }
+        else if (projectLoaded) {
             ClearColor clearColor = Project.preference().clearColor();
             glClearColor(clearColor.r(), clearColor.g(), clearColor.b(), clearColor.a());
         }
@@ -364,8 +398,15 @@ public final class Window implements EngineEventListener {
 
     @Override
     public void onEventEmit(Object object, Event event) {
-        if (!(event instanceof EditorEvent editorEvent)) return;
-        if (editorEvent.type != EditorEvent.Type.ProjectLoaded) return;
+        if (event instanceof EditorEvent editorEvent) {
+            handleEditorEvent(editorEvent);
+            return;
+        }
+        if (event instanceof ProjectEvent projectEvent) handleProjectEvent(projectEvent);
+    }
+
+    private void handleEditorEvent(EditorEvent event) {
+        if (event.type != EditorEvent.Type.ProjectLoaded) return;
         projectLoaded = Project.loaded();
         if (!projectLoaded) return;
         ClearColor clearColor = Project.preference().clearColor();
@@ -378,6 +419,18 @@ public final class Window implements EngineEventListener {
         targetFrameTime = setting.targetFrameRate() > 0 ? 1_000_000_000L / setting.targetFrameRate() : 0;
         String projectDetail = " - [" + Project.preference().name() + "] [" + Project.projectRoot() + "]";
         glfwSetWindowTitle(windowPtr, title + projectDetail);
+    }
+
+    private void handleProjectEvent(ProjectEvent event) {
+        if (event.type == ProjectEvent.Type.TargetFrameRateChanged) {
+            RenderingSetting setting = Project.preference().renderingSetting();
+            targetFrameTime = setting.targetFrameRate() > 0 ? 1_000_000_000L / setting.targetFrameRate() : 0;
+            return;
+        }
+        if (event.type == ProjectEvent.Type.VsyncModeChanged) {
+            RenderingSetting setting = Project.preference().renderingSetting();
+            applyVsync(setting.vsyncMode());
+        }
     }
 
     private void applyVsync(VsyncMode mode) {

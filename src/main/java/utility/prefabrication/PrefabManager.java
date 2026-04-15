@@ -16,6 +16,11 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
+/**
+ * PrefabManager is a collection of static methods, used for create, use or delete prefab file.
+ * Parsed prefab json object are cached to improve instantiate cost.
+ * @see Prefab Instantiate a prefab
+ */
 public class PrefabManager {
     private static final EngineLog Logger = new EngineLog(PrefabManager.class);
     private static final Map<String, PrefabData> loadedPrefabs = new ConcurrentHashMap<>();

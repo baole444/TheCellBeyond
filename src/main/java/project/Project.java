@@ -4,6 +4,7 @@ import TheCellBeyond.InputAction;
 import TheCellBeyond.InputKey;
 import eventviewer.EngineEventCallback;
 import eventviewer.event.EditorEvent;
+import eventviewer.event.ProjectEvent;
 import physic2d.PhysicLayer;
 import render.Texture;
 import render.texture.SpriteSheet;
@@ -73,6 +74,9 @@ public class Project {
         }
     }
 
+    /**
+     * Save the current project to disk at its original path.
+     */
     public static void save() {
         if (_projectYmlPath == null) {
             System.err.println("No project path stored for auto-save");
@@ -116,6 +120,7 @@ public class Project {
 
     public static boolean updateProjectPreference(String name, int windowWidth, int windowHeight, boolean allowResize, boolean maintainAspectRatio, float textureGlobalScale, ClearColor clearColor, int physicFrameRate, RenderingSetting renderingSetting) {
         if (noProjectLoaded()) return false;
+        ProjectPreference oldPref = preference;
         preference = new ProjectPreference(name, windowWidth, windowHeight, allowResize, maintainAspectRatio, textureGlobalScale, clearColor, physicFrameRate, renderingSetting);
         CurrentProject = new ProjectData(CurrentProject.version(),
                 preference, CurrentProject.assets(),
@@ -124,6 +129,8 @@ public class Project {
                 CurrentProject.scriptScanDirs()
         );
         save();
+        if (oldPref.renderingSetting().targetFrameRate() != preference.renderingSetting().targetFrameRate()) EngineEventCallback.emit(new ProjectEvent(ProjectEvent.Type.TargetFrameRateChanged));
+        if (oldPref.renderingSetting().vsyncMode() != preference.renderingSetting().vsyncMode()) EngineEventCallback.emit(new ProjectEvent(ProjectEvent.Type.VsyncModeChanged));
         return true;
     }
 
