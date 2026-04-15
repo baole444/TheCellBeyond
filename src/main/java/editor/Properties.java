@@ -96,7 +96,7 @@ public class Properties {
         if (go == null) return;
         if (go != getActiveGameObject()) BottomPanel.clear();
         clearSelection();
-        activeGameObjects.add(go);
+        addActiveGameObject(go);
     }
 
     public static List<List<Vector4f>> getActiveObjTrueColor() {

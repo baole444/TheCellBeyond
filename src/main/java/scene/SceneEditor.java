@@ -212,6 +212,7 @@ public class SceneEditor extends SceneLoader implements EngineEventListener {
         float consumedWidth = 0.0f;
         for (Map.Entry<UUID, TextureUnit> unit : textureUnits.entrySet()) {
             Sprite sprite = unit.getValue().getSprite();
+            if (sprite == null) continue;
             int textureID = sprite.getTextureID();
             Vector2f scaledSpriteSize = TextureScale.calculateFitDimension(sprite.getWidth(), sprite.getHeight(), 32, 32);
             Vector2f[] textureCoordinates = sprite.getTextureCoordinates();
@@ -259,6 +260,7 @@ public class SceneEditor extends SceneLoader implements EngineEventListener {
         float consumedWidth = 0.0f;
         for (int i = 0; i < sheet.numberOfAvailableSprites(); i++) {
             Sprite sprite = sheet.spriteIndex(i);
+            if (sprite == null) continue;
             int textureID = sprite.getTextureID();
             Vector2f scaledSpriteSize = TextureScale.calculateFitDimension(sprite.getWidth(), sprite.getHeight(), 32, 32);
             Vector2f[] textureCoordinates = sprite.getTextureCoordinates();
