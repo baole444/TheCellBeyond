@@ -34,7 +34,7 @@ public class TextureBatch {
     private static final int VerticesPerQuad = 4;
     private static final int IndicesPerQuad = 6;
     private static final int TextureSlotOffset = PositionSize + ColorSize + TextureCoordinateSize;
-    private int maxBindingTexture = 8;
+    private int maxBindingTexture = 7;
     private final TreeMap<Integer, ZBucket> zBuckets = new TreeMap<>();
     private final IdentityHashMap<RectCommand, Integer> commandZIndex = new IdentityHashMap<>();
     private final List<Texture> drawTextures = new ArrayList<>();
@@ -279,6 +279,8 @@ public class TextureBatch {
             Texture texture = resolveTexture(command.textureRID);
             if (texture != null && !drawTextures.contains(texture)) {
                 if (drawTextures.size() >= maxBindingTexture) {
+                    glBindBuffer(GL_ARRAY_BUFFER, bucket.vboID);
+                    glBufferSubData(GL_ARRAY_BUFFER, 0, bucket.vertices);
                     flushGroup(batchStart, i);
                     drawTextures.clear();
                     batchStart = i;
