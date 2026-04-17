@@ -26,7 +26,7 @@ public class AssetReference {
     private void initializeResolvedPath() {
         if (resolvedPath == null) {
             UnifiedPaths resolver = UnifiedPaths.get();
-            resolvedPath = resolver.resolvePath(canonicalPath);
+            resolvedPath = resolver.resolvePath(UnifiedPaths.stripMetadata(canonicalPath));
         }
     }
 
@@ -66,9 +66,7 @@ public class AssetReference {
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
-
         if (!(obj instanceof AssetReference target)) return false;
-
         return Objects.equals(canonicalPath, target.canonicalPath);
     }
 

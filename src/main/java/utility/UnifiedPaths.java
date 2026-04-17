@@ -5,6 +5,9 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -19,8 +22,19 @@ import java.util.concurrent.ConcurrentHashMap;
  * </ul>
  */
 public class UnifiedPaths {
+    /**
+     * Prefix to mark a path belong to the engine classpath, not on file system.
+     */
     public static final String EnginePrefix = "engine://";
+    /**
+     * Prefix to mark that a path belong to the user project, on file system.
+     */
     public static final String ProjectPrefix = "project://";
+    public static final String MetaStart = "<";
+    public static final String MetaEnd = ">";
+    public static final String MetaTag = "$";
+    public static final String MetaValueDelimiter = "::";
+    public static final String MetaSeparator = ",";
     private final String projectRoot;
     private final ConcurrentHashMap<String, AssetPath> pathCache = new ConcurrentHashMap<>();
     private static volatile UnifiedPaths instance;
@@ -140,9 +154,7 @@ public class UnifiedPaths {
     }
 
     private String resolveProjectPathToAbsolute(String relativePath) {
-        if (projectRoot == null) {
-            return relativePath;
-        }
+        if (projectRoot == null) return relativePath;
         String sanctioned = relativePath.startsWith("/") ? relativePath.substring(1) : relativePath;
         Path rootPath = Paths.get(projectRoot);
         Path resolvedPath = rootPath.resolve(sanctioned).normalize();
@@ -249,23 +261,17 @@ public class UnifiedPaths {
      * Engine assets get prefix and project assets become relative.
      */
     public String toCanonicalPath(String path) {
-        AssetPath assetPath = resolvePath(path);
-
-        switch (assetPath.type()) {
-            case ENGINE -> {
-                if (assetPath.isAbsolute()) return assetPath.originalPath();
-                return EnginePrefix + assetPath.resolvedPath();
-            }
-            case PROJECT -> {
-                return toProjectRelativePath(assetPath.resolvedPath());
-            }
-            case EXTERNAL -> {
-                return assetPath.resolvedPath();
-            }
-            default -> {
-                return path;
-            }
-        }
+        if (path == null) return null;
+        int metaIndex = path.indexOf(MetaStart);
+        String filePart = metaIndex >= 0 ? path.substring(0, metaIndex) : path;
+        String rawMeta = metaIndex >= 0 ? path.substring(metaIndex) : null;
+        AssetPath assetPath = resolvePath(filePart);
+        String canonical = switch (assetPath.type) {
+            case ENGINE -> assetPath.isAbsolute() ? assetPath.originalPath() : EnginePrefix + assetPath.resolvedPath;
+            case PROJECT -> toProjectRelativePath(assetPath.resolvedPath);
+            case EXTERNAL -> assetPath.resolvedPath;
+        };
+        return rawMeta != null ? canonical + rawMeta : canonical;
     }
 
     /**
@@ -276,8 +282,8 @@ public class UnifiedPaths {
     }
 
     /**
-     * Get the path that is the project root
-     * @return
+     * Get the path that is the project root.
+     * @return the project root or null if there is none
      */
     public String getProjectRoot() {
         return projectRoot;
@@ -329,9 +335,55 @@ public class UnifiedPaths {
         return resolvedPath.toString().replace("\\", "/");
     }
 
+    public static boolean hasMetadata(String path) {
+        return path != null && path.contains(MetaStart);
+    }
+
+    public static String stripMetadata(String path) {
+        if (path == null) return null;
+        int index = path.indexOf(MetaStart);
+        return index >= 0 ? path.substring(0, index) : path;
+    }
+
+    public static String extractRawMetadata(String path) {
+        if (path == null) return null;
+        int index = path.indexOf(MetaStart);
+        return index >= 0 ? path.substring(index) : null;
+    }
+
+    public static String appendMetadata(String canonicalPath, String tagName, String... values) {
+        if (canonicalPath == null) return null;
+        String tag = MetaTag + tagName + (values.length > 0 ? MetaValueDelimiter + String.join(MetaValueDelimiter, values) : "");
+        String existingMeta = extractRawMetadata(canonicalPath);
+        if (existingMeta != null) {
+            String filePart = stripMetadata(canonicalPath);
+            String currentValues = existingMeta.substring(MetaStart.length(), existingMeta.length() - MetaEnd.length());
+            return filePart + MetaStart + currentValues + MetaSeparator + tag + MetaEnd;
+        }
+        return canonicalPath + MetaStart + tag + MetaEnd;
+    }
+
+    public static List<String> parseMetaTag(String path, String tagName) {
+        if (invalidMetadata(tagName)) return List.of();
+        String raw = extractRawMetadata(path);
+        if (raw == null) return List.of();
+        String inner = raw.substring(1, raw.length() - 1);
+        for (String tag : inner.split(MetaSeparator)) {
+            if (!tag.startsWith(MetaTag)) continue;
+            String[] parts = tag.substring(MetaTag.length()).split(MetaValueDelimiter);
+            if (parts.length > 0 && tagName.equals(parts[0])) return new ArrayList<>(Arrays.asList(parts).subList(1, parts.length));
+        }
+        return List.of();
+    }
+
+    public static boolean invalidMetadata(String value) {
+        if (value == null || value.isBlank()) return true;
+        return value.contains(MetaStart) || value.contains(MetaEnd) || value.contains(MetaTag) || value.contains(MetaValueDelimiter) || value.contains(MetaSeparator);
+    }
+
     /**
-     * Check if UnifiedPaths is initialized or not
-     * @return true if UnifiedPaths is initialized.
+     * Check if UnifiedPaths is initialized or not.
+     * @return true if UnifiedPaths is initialized
      */
     public static boolean isInitialized () {
         return instance != null;

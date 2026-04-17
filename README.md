@@ -31,7 +31,8 @@ Below is the minimum API version for scripting to be compatible with the engine'
 
 |  Engine version   |                                          API version                                          |
 |:-----------------:|:---------------------------------------------------------------------------------------------:|
-|  1.2 - __1.2.3__  |   [__1.2__](https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api/1.2)   |
+|      __1.3__      |   [__1.3__](https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api/1.3)   |
+|    1.2 - 1.2.3    |     [1.2](https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api/1.2)     |
 |        1.1        |     [1.1](https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api/1.1)     |
 | ~~1.0.5 - 1.0.8~~ | [~~1.0.5~~](https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api/1.0.5) |
 |     ~~1.0.4~~     | [~~1.0.4~~](https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api/1.0.4) |

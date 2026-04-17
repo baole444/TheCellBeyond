@@ -10,6 +10,7 @@ import editor.dialog.AddSpriteSheetDialog;
 import editor.dialog.AddTextureUnitDialog;
 import editor.payload.SpriteDragDropPayload;
 import eventviewer.event.Event;
+import imgui.flag.*;
 import project.Project;
 import project.ProjectAssetMap;
 import project.ProjectData;
@@ -18,9 +19,6 @@ import eventviewer.EngineEventCallback;
 import eventviewer.EngineEventListener;
 import eventviewer.event.EditorEvent;
 import imgui.ImGui;
-import imgui.flag.ImGuiCol;
-import imgui.flag.ImGuiTabItemFlags;
-import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImString;
 import org.joml.Vector2f;
 import org.joml.Vector2i;
@@ -38,16 +36,16 @@ import java.util.stream.Collectors;
 
 public class SceneEditor extends SceneLoader implements EngineEventListener {
     public static final String WINDOW_ID = "Resources###Editor_Project_Resource";
-    private final Vector2i prefabButtonSize = new Vector2i(200, 30);
-    private GameObject levelEditorObject;
-    private final Map<String, Map<String, SpriteSheet>> categorizedSpriteSheetList = new HashMap<>();
-    private final Map<String, Map<String, SpriteSheet>> filteredSpriteSheetList = new HashMap<>();
-    private final Map<UUID, TextureUnit> textureUnits = new HashMap<>();
-    private transient final ImString spriteSearchFilter;
-    private transient boolean filterChanged = true;
+    private static final Vector2i prefabButtonSize = new Vector2i(200, 30);
+    private static final Map<String, Map<String, SpriteSheet>> categorizedSpriteSheetList = new HashMap<>();
+    private static final Map<String, Map<String, SpriteSheet>> filteredSpriteSheetList = new HashMap<>();
+    private static final Map<UUID, TextureUnit> textureUnits = new HashMap<>();
+    private static final ImString spriteSearchFilter = new ImString(256);
+    private static boolean filterChanged = true;
+    private static boolean removedSkip = false;
+    private static GameObject levelEditorObject;
 
     public SceneEditor() {
-        spriteSearchFilter = new ImString(128);
         EngineEventCallback.register(this);
     }
 
@@ -69,7 +67,7 @@ public class SceneEditor extends SceneLoader implements EngineEventListener {
         scene.queueForObjectAddition(levelEditorObject, null);
     }
 
-    public void reloadResource() {
+    private static void reloadResource() {
         Project.loadProjectData();
         loadCategorizedSheet();
         loadTextureUnits();
@@ -82,6 +80,7 @@ public class SceneEditor extends SceneLoader implements EngineEventListener {
             ImGui.end();
             return;
         }
+        if (removedSkip) reloadResource();
         ImGui.text("Resources");
         ImGui.separator();
         if (ImGui.beginTabBar("Resource_TabBar")) {
@@ -140,7 +139,7 @@ public class SceneEditor extends SceneLoader implements EngineEventListener {
         ImGui.end();
     }
 
-    private void drawPrefabList() {
+    private static void drawPrefabList() {
         List<String> prefabNames = PrefabManager.getPrefabNames();
         if (prefabNames.isEmpty()) {
             ImGui.text("No object prefabs available");
@@ -152,7 +151,7 @@ public class SceneEditor extends SceneLoader implements EngineEventListener {
             PrefabData data = PrefabManager.getPrefabData(name);
             if (ImGui.button(name, prefabButtonSize.x, 0.0f)) {
                 GameObject instance = PrefabManager.instantiatePrefab(name);
-                if (instance != null) levelEditorObject.getFirstComponent(EditorMouseCtrl.class).pickObject(instance);
+                if (instance != null && levelEditorObject != null) levelEditorObject.getFirstComponent(EditorMouseCtrl.class).pickObject(instance);
             }
             if (ImGui.isItemHovered() && data != null) {
                 ImGui.beginTooltip();
@@ -168,14 +167,14 @@ public class SceneEditor extends SceneLoader implements EngineEventListener {
         }
     }
 
-    private void drawSpriteList() {
+    private static void drawSpriteList() {
         if (categorizedSpriteSheetList.isEmpty()) {
             ImGui.beginDisabled();
             ImGui.textWrapped("No sprite sheet added, click \"Add\" to import new sheet");
             ImGui.endDisabled();
             return;
         }
-        searchFilter(spriteSearchFilter.get(), categorizedSpriteSheetList);
+        searchFilter(spriteSearchFilter.get());
         if (filteredSpriteSheetList.isEmpty()) {
             ImGui.beginDisabled();
             ImGui.textWrapped("No sheet contains \"" + spriteSearchFilter.get() + "\" in their name");
@@ -184,55 +183,69 @@ public class SceneEditor extends SceneLoader implements EngineEventListener {
         }
         if (!ImGui.beginTabBar("Sheet_category_tabBar")) return;
         for (Map.Entry<String, Map<String, SpriteSheet>> categoryEntry : filteredSpriteSheetList.entrySet()) {
+            if (removedSkip) break;
             String category = categoryEntry.getKey();
             Map<String, SpriteSheet> sheetMap = categoryEntry.getValue();
             if (!ImGui.beginTabItem(category)) continue;
+            if (!ImGui.beginTable("##SE_SpriteSheet_Content_Headers_Layout", 2, ImGuiTableFlags.SizingFixedFit)) {
+                ImGui.endTabItem();
+                continue;
+            }
+            ImGui.tableSetupColumn("##SE_SpriteSheet_Content_Preview_Column", ImGuiTableColumnFlags.WidthStretch);
+            ImGui.tableSetupColumn("##SE_SpriteSheet_Content_Remove_Column", ImGuiTableColumnFlags.WidthFixed);
             for (Map.Entry<String, SpriteSheet> sheetEntry : sheetMap.entrySet()) {
+                if (removedSkip) break;
                 String sheetName = sheetEntry.getKey();
                 SpriteSheet sheet = sheetEntry.getValue();
-                if (ImGui.collapsingHeader(sheetName)) {
-                    drawSpriteItems(sheetName, sheet);
-                    ImGui.newLine();
+                ImGui.tableNextColumn();
+                boolean openSheet = ImGui.collapsingHeader(sheetName + "##SE_SpriteSheet_" + category + "_" + sheetName + "_Sprites_List_Header");
+                ImGui.tableNextColumn();
+                boolean removed = EditorWidget.iconButton(String.format("Delete##SE_Delete_SpriteSheet_%s_%s", category, sheetName), EditorIcons.Icons.Delete, String.format("Remove %s sheet import (does not remove image on disk)", sheetName));
+                if (removed) {
+                    Project.removeSheet(category, sheetName);
+                    removedSkip = true;
                 }
+                ImGui.tableNextColumn();
+                if (openSheet && !removed) drawSpriteItems(sheetName, sheet);
+                ImGui.tableNextColumn();
             }
+            ImGui.endTable();
             ImGui.endTabItem();
         }
         ImGui.endTabBar();
     }
 
-    private void drawAssetsTextureUnit() {
+    private static void drawAssetsTextureUnit() {
         if (textureUnits.isEmpty()) {
             ImGui.beginDisabled();
             ImGui.textWrapped("No texture unit added, click \"Add\" to import new unit");
             ImGui.endDisabled();
             return;
         }
-        float spacing = ImGui.getStyle().getItemSpacingX();
-        float availWidth = ImGui.getContentRegionAvailX();
-        float consumedWidth = 0.0f;
+        if (!ImGui.beginTable("##SE_Asset_Content_Layout", 3, ImGuiTableFlags.SizingFixedFit)) return;
+        ImGui.tableSetupColumn("#SE_Asset_Content_Preview_Column", ImGuiTableColumnFlags.WidthFixed);
+        ImGui.tableSetupColumn("SE_Asset_Content_Name_Column", ImGuiTableColumnFlags.WidthStretch);
+        ImGui.tableSetupColumn("SE_Asset_Content_Delete_Column", ImGuiTableColumnFlags.WidthFixed);
         for (Map.Entry<UUID, TextureUnit> unit : textureUnits.entrySet()) {
+            if (removedSkip) break;
+            ImGui.tableNextColumn();
             Sprite sprite = unit.getValue().getSprite();
-            if (sprite == null) continue;
-            int textureID = sprite.getTextureID();
-            Vector2f scaledSpriteSize = TextureScale.calculateFitDimension(sprite.getWidth(), sprite.getHeight(), 32, 32);
-            Vector2f[] textureCoordinates = sprite.getTextureCoordinates();
-            String compositeId = unit.getKey().toString() + "_TU";
-            ImGui.pushID(compositeId);
-            ImGui.imageButton(compositeId, textureID, scaledSpriteSize.x, scaledSpriteSize.y,
-                    textureCoordinates[2].x, textureCoordinates[0].y,
-                    textureCoordinates[0].x, textureCoordinates[2].y
-            );
-            float buttonWidth = ImGui.getItemRectSizeX() + spacing;
-            consumedWidth += buttonWidth;
+            if (sprite == null) {
+                ImGui.tableNextColumn();
+                ImGui.tableNextColumn();
+                continue;
+            }
+            EditorWidget.iconButton(unit.getKey().toString() + "_TU", sprite, null, 32.0f, 32.0f);
+            float height = ImGui.getItemRectSizeY();
             if (ImGui.isItemHovered()) {
                 ImGui.beginTooltip();
                 ImGui.text("Preview");
+                int textureID = sprite.getTextureID();
+                Vector2f[] textureCoordinates = sprite.getTextureCoordinates();
                 Vector2f previewImageSize = TextureScale.calculateFitDimension(sprite.getWidth(), sprite.getHeight(), 160.0f, 160.f);
                 ImGui.image(textureID, previewImageSize.x, previewImageSize.y,
                         textureCoordinates[2].x, textureCoordinates[0].y,
                         textureCoordinates[0].x, textureCoordinates[2].y);
-                ImGui.text("Width: " + sprite.getWidth());
-                ImGui.text("Height: " + sprite.getHeight());
                 ImGui.endTooltip();
             }
             if (ImGui.beginDragDropSource()) {
@@ -240,21 +253,38 @@ public class SceneEditor extends SceneLoader implements EngineEventListener {
                 ImGui.setDragDropPayload(SpriteDragDropPayload.getPayloadType(), sprite);
                 ImGui.text("Texture: " + sprite.getTexture().getCanonicalPath());
                 Vector2f previewImageSize = TextureScale.calculateFitDimension(sprite.getWidth(), sprite.getHeight(), 80.0f, 80.f);
+                int textureID = sprite.getTextureID();
+                Vector2f[] textureCoordinates = sprite.getTextureCoordinates();
                 ImGui.image(textureID, previewImageSize.x, previewImageSize.y,
                         textureCoordinates[2].x, textureCoordinates[0].y,
                         textureCoordinates[0].x, textureCoordinates[2].y);
                 ImGui.endDragDropSource();
             }
-            ImGui.popID();
-            if (consumedWidth + buttonWidth <= availWidth) {
-                ImGui.sameLine();
-                continue;
+            ImGui.tableNextColumn();
+            ProjectAssetMap am = Project.currentProject().assets().get(unit.getKey());
+            ImGui.setCursorPosY(ImGui.getCursorPosY() + (height - ImGui.getTextLineHeight()) / 2.0f);
+            String path = am.path();
+            int lastSeparatorIndex = path.lastIndexOf('/');
+            if (lastSeparatorIndex + 1 <= path.length()) path = path.substring(lastSeparatorIndex + 1);
+            path = UnifiedPaths.stripMetadata(path);
+            String infoText = String.format("(%d,%d) %s", am.sizeX(), am.sizeY(), path);
+            ImGui.text(infoText);
+            if (ImGui.isItemHovered() && ImGui.calcTextSizeX(infoText) >= ImGui.getContentRegionAvailX()) {
+                ImGui.beginTooltip();
+                ImGui.text(path);
+                ImGui.endTooltip();
             }
-            consumedWidth = 0.0f;
+            ImGui.tableNextColumn();
+            ImGui.setCursorPosY(ImGui.getCursorPosY() + (height - ImGui.getTextLineHeightWithSpacing()) / 2.0f);
+            if (!EditorWidget.iconButton(String.format("Delete##SE_Delete_%s_TextureUnit", unit.getKey()), EditorIcons.Icons.Delete, String.format("Remove (%d,%d) %s texture unit import (does not remove image on disk)", am.sizeX(), am.sizeY(), path))) continue;
+            Project.removeAsset(unit.getKey());
+            removedSkip = true;
+            ImGui.spacing();
         }
+        ImGui.endTable();
     }
 
-    private void drawSpriteItems (String name, SpriteSheet sheet) {
+    private static void drawSpriteItems (String name, SpriteSheet sheet) {
         float spacing = ImGui.getStyle().getItemSpacingX();
         float availWidth = ImGui.getContentRegionAvailX();
         float consumedWidth = 0.0f;
@@ -303,17 +333,17 @@ public class SceneEditor extends SceneLoader implements EngineEventListener {
         }
     }
 
-    private void searchFilter(String filterTerm, Map<String, Map<String, SpriteSheet>> categorizedSheets) {
+    private static void searchFilter(String filterTerm) {
         if (filterTerm == null || !filterChanged) return;
         String sanctioned = filterTerm.trim().toLowerCase();
         filteredSpriteSheetList.clear();
         if (sanctioned.isEmpty()) {
-            filteredSpriteSheetList.putAll(categorizedSheets);
+            filteredSpriteSheetList.putAll(SceneEditor.categorizedSpriteSheetList);
             filterChanged = false;
             return;
         }
         // Basically this filter the sheet map with matching filter term, then filter out the tab map where there is no sheet map inside.
-        filteredSpriteSheetList.putAll(categorizedSheets.entrySet().stream()
+        filteredSpriteSheetList.putAll(SceneEditor.categorizedSpriteSheetList.entrySet().stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, tab -> tab.getValue().entrySet().stream()
                         .filter(header -> header.getKey().toLowerCase().contains(sanctioned))
                         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
@@ -324,9 +354,10 @@ public class SceneEditor extends SceneLoader implements EngineEventListener {
         filterChanged = false;
     }
 
-    private void loadCategorizedSheet() {
+    private static void loadCategorizedSheet() {
+        if (!Project.loaded()) return;
+        removedSkip = false;
         ProjectData project = Project.currentProject();
-        if (project == null || project.sheets() == null) return;
         categorizedSpriteSheetList.clear();
         for (Map.Entry<String, Map<String, ProjectSheetMap>> categories : project.sheets().entrySet()) {
             String category = categories.getKey();
@@ -334,22 +365,25 @@ public class SceneEditor extends SceneLoader implements EngineEventListener {
             for (Map.Entry<String, ProjectSheetMap> sheets : categories.getValue().entrySet()) {
                 String name = sheets.getKey();
                 ProjectSheetMap sM = sheets.getValue();
-                String path = UnifiedPaths.resolveToAbsolute(Project.projectRoot(), sM.path());
+                String path = sM.metadata(category, name);
                 SpriteSheet spriteSheet = AssetManager.getSpriteSheet(path);
                 if (spriteSheet != null) categorySheets.put(name, spriteSheet);
             }
             if (!categorySheets.isEmpty()) categorizedSpriteSheetList.put(category, categorySheets);
         }
+
     }
 
-    private void loadTextureUnits() {
+    private static void loadTextureUnits() {
+        if (!Project.loaded()) return;
+        removedSkip = false;
         ProjectData project = Project.currentProject();
-        if (project == null || project.assets() == null) return;
         textureUnits.clear();
         for (Map.Entry<UUID, ProjectAssetMap> entry : project.assets().entrySet()) {
             UUID uuid = entry.getKey();
-            String path = entry.getValue().path();
-            if (path == null || path.isEmpty()) continue;
+            ProjectAssetMap aM = entry.getValue();
+            String path = aM.metadata();
+            if (path == null || path.isBlank()) continue;
             TextureUnit unit = AssetManager.getTextureUnit(path);
             if (unit != null) textureUnits.put(uuid, unit);
         }
@@ -358,6 +392,7 @@ public class SceneEditor extends SceneLoader implements EngineEventListener {
     @Override
     public void onSceneEnd() {
         dispose();
+        levelEditorObject = null;
     }
 
     @Override

@@ -137,17 +137,7 @@ public class Project {
 
     public static boolean addAsset(UUID key, ProjectAssetMap asset) {
         if (noProjectLoaded()) return false;
-
         Map<UUID, ProjectAssetMap> assets = CurrentProject.assets();
-        if (assets == null) {
-            assets = new HashMap<>();
-            CurrentProject = new ProjectData(
-                    CurrentProject.version(), CurrentProject.project(), assets,
-                    CurrentProject.sheets(), CurrentProject.scenes(),
-                    CurrentProject.inputActions(), CurrentProject.physicLayers(),
-                    CurrentProject.scriptScanDirs()
-            );
-        }
         if (assets.containsKey(key)) {
             System.err.println("Asset with key '" + key + "' already exists");
             return false;
@@ -176,21 +166,24 @@ public class Project {
             return false;
         }
         save();
+        String relativePath = removed.path();
+        String projectPath = UnifiedPaths.ProjectPrefix + relativePath;
+        boolean remainUsages = CurrentProject.assets().values().stream().anyMatch(removed::equals);
+        if (remainUsages) return true;
+        AssetManager.unloadTextureUnit(removed.metadata());
+        boolean usedByAssets = CurrentProject.assets().values().stream().anyMatch(a -> relativePath.equals(a.path()));
+        boolean usedBySheets = CurrentProject.sheets().values().stream().flatMap(m -> m.values().stream()).anyMatch(s -> relativePath.equals(s.path()));
+        if (!usedByAssets && !usedBySheets) AssetManager.unloadTexture(projectPath);
         return true;
     }
 
     public static boolean addSheet(String category, String name, ProjectSheetMap sheet) {
         if (noProjectLoaded()) return false;
-        Map<String, Map<String, ProjectSheetMap>> sheets = CurrentProject.sheets();
-        if (sheets == null) {
-            sheets = new HashMap<>();
-            CurrentProject = new ProjectData(
-                    CurrentProject.version(), CurrentProject.project(),
-                    CurrentProject.assets(), sheets, CurrentProject.scenes(),
-                    CurrentProject.inputActions(), CurrentProject.physicLayers(),
-                    CurrentProject.scriptScanDirs()
-            );
+        if (UnifiedPaths.invalidMetadata(category) || UnifiedPaths.invalidMetadata(name)) {
+            System.err.println("Category or name contains reserved metadata characters");
+            return false;
         }
+        Map<String, Map<String, ProjectSheetMap>> sheets = CurrentProject.sheets();
         Map<String, ProjectSheetMap> categorizedSheets = sheets.computeIfAbsent(category, _ -> new HashMap<>());
         if (categorizedSheets.containsKey(name)) {
             System.err.println("Sheet named '" + name + "' already exists in '" + category + "' category");
@@ -227,20 +220,19 @@ public class Project {
         }
         if (categorizedSheets.isEmpty()) CurrentProject.sheets().remove(category);
         save();
+        String relativePath = removed.path();
+        String projectPath = UnifiedPaths.ProjectPrefix + relativePath;
+        AssetManager.unloadSpriteSheet(removed.metadata(category, name));
+        boolean remainUsages = CurrentProject.sheets().values().stream().flatMap(m -> m.values().stream()).anyMatch(s -> relativePath.equals(s.path()));
+        if (remainUsages) return true;
+        boolean usedByAssets = CurrentProject.assets().values().stream().anyMatch(a -> relativePath.equals(a.path()));
+        if (!usedByAssets) AssetManager.unloadTexture(projectPath);
         return true;
     }
 
     public static boolean addScene(String key, ProjectSceneMap scene) {
         if (noProjectLoaded()) return false;
         Map<String, ProjectSceneMap> scenes = CurrentProject.scenes();
-        if (scenes == null) {
-            scenes = new HashMap<>();
-            CurrentProject = new ProjectData(CurrentProject.version(), CurrentProject.project(),
-                    CurrentProject.assets(), CurrentProject.sheets(), scenes,
-                    CurrentProject.inputActions(), CurrentProject.physicLayers(),
-                    CurrentProject.scriptScanDirs()
-            );
-        }
         if (scenes.containsKey(key)) {
             System.err.println("Scene with key '" + key + "' already exists");
             return false;
@@ -279,14 +271,6 @@ public class Project {
         String name = actionName.trim();
         if (name.isEmpty()) return false;
         Map<String, InputAction> actions = CurrentProject.inputActions();
-        if (actions == null) {
-            actions = new HashMap<>();
-            CurrentProject = new ProjectData(CurrentProject.version(), CurrentProject.project(),
-                    CurrentProject.assets(), CurrentProject.sheets(),
-                    CurrentProject.scenes(), actions, CurrentProject.physicLayers(),
-                    CurrentProject.scriptScanDirs()
-            );
-        }
         if (actions.containsKey(name)) {
             System.err.println("Input action with named '" + name + "' already exists");
             return false;
@@ -344,15 +328,6 @@ public class Project {
     public static String getPhysicLayerName(int layerIndex) {
         if (CurrentProject == null) return "Layer " + layerIndex;
         PhysicLayerName physicLayerName = CurrentProject.physicLayers();
-        if (physicLayerName == null) {
-            physicLayerName = new PhysicLayerName();
-            CurrentProject = new ProjectData(CurrentProject.version(), CurrentProject.project(),
-                    CurrentProject.assets(), CurrentProject.sheets(), CurrentProject.scenes(),
-                    CurrentProject.inputActions(), physicLayerName,
-                    CurrentProject.scriptScanDirs()
-            );
-            save();
-        }
         return CurrentProject.physicLayers().layerName(layerIndex);
     }
 
@@ -463,7 +438,9 @@ public class Project {
     public static void loadProjectData() {
         if (CurrentProject == null) return;
         for (Map.Entry<String, Map<String, ProjectSheetMap>> categories : CurrentProject.sheets().entrySet()) {
+            String category = categories.getKey();
             for (Map.Entry<String, ProjectSheetMap> sheets : categories.getValue().entrySet()) {
+                String name = sheets.getKey();
                 ProjectSheetMap sheetMap = sheets.getValue();
                 String projectPath = UnifiedPaths.ProjectPrefix + sheetMap.path();
                 Texture texture = AssetManager.getTexture(AssetManager.loadTexture(projectPath));
@@ -471,7 +448,7 @@ public class Project {
                         sheetMap.numberOfSprite(), sheetMap.spriteSpacingX(), sheetMap.spriteSpacingY(),
                         sheetMap.spriteStartPosX(), sheetMap.spriteStartPosY()
                 );
-                AssetManager.addSpriteSheet(projectPath, sheet);
+                AssetManager.addSpriteSheet(sheetMap.metadata(category, name), sheet);
             }
         }
         for (Map.Entry<UUID, ProjectAssetMap> entry : CurrentProject.assets().entrySet()) {
@@ -479,7 +456,7 @@ public class Project {
             String projectPath = UnifiedPaths.ProjectPrefix + assetMap.path();
             Texture texture = AssetManager.getTexture(AssetManager.loadTexture(projectPath));
             TextureUnit unit = new TextureUnit(texture, assetMap.sizeX(), assetMap.sizeY());
-            AssetManager.addTextureUnit(projectPath, unit);
+            AssetManager.addTextureUnit(assetMap.metadata(), unit);
         }
         PrefabManager.loadAllPrefabs();
     }

@@ -138,6 +138,7 @@ public final class CrashReport {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(520, 400);
         frame.setResizable(false);
+        frame.setAlwaysOnTop(true);
         frame.setLocationRelativeTo(null);
         JPanel root = new JPanel(new BorderLayout());
         root.setBackground(bg);

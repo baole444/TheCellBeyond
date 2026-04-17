@@ -24,7 +24,7 @@ public class Sprite {
 
     public ResourceID textureRID() {
         if (textureCanonicalPath == null) return null;
-        return AssetManager.loadTexture(textureCanonicalPath);
+        return AssetManager.getTextureRID(textureCanonicalPath);
     }
 
     public Texture getTexture() {

@@ -37,7 +37,6 @@ public final class AssetManager {
     private static final ResourceRegistry<SpriteSheet> spriteSheetRegistry = new ResourceRegistry<>();
     private static final ResourceRegistry<TextureUnit> textureUnitRegistry = new ResourceRegistry<>();
     private static final ResourceRegistry<Sound> soundRegistry = new ResourceRegistry<>();
-
     private AssetManager() {}
 
     /**
@@ -46,7 +45,7 @@ public final class AssetManager {
      * @return the {@link ResourceID} for the requested texture
      */
     public static ResourceID loadTexture(String path) {
-        String canonicalPath = asCanonicalPath(path);
+        String canonicalPath = UnifiedPaths.stripMetadata(asCanonicalPath(path));
         ResourceID RID = textureIDs.get(canonicalPath);
         if (RID != null) return RID;
         Texture texture = new Texture();
@@ -55,6 +54,10 @@ public final class AssetManager {
         textureIDs.put(canonicalPath, RID);
         textureRegistry.register(RID, texture);
         return RID;
+    }
+
+    public static ResourceID getTextureRID(String path) {
+        return textureIDs.get(UnifiedPaths.stripMetadata(asCanonicalPath(path)));
     }
 
     /**
@@ -298,6 +301,38 @@ public final class AssetManager {
      */
     public static Sound getSound(ResourceID RID) {
         return soundRegistry.get(RID);
+    }
+
+    public static void unloadTexture(String path) {
+        if (path == null || path.isBlank()) return;
+        String canonicalPath = UnifiedPaths.stripMetadata(asCanonicalPath(path));
+        ResourceID RID = textureIDs.remove(canonicalPath);
+        if (RID == null) return;
+        Texture texture = textureRegistry.get(RID);
+        textureRegistry.unregister(RID);
+        if (texture != null) texture.dispose();
+        RID.release();
+    }
+
+    public static void unloadSpriteSheet(String path) {
+        if (path == null || path.isBlank()) return;
+        String canonicalPath = asCanonicalPath(path);
+        ResourceID RID = spriteSheetIDs.remove(canonicalPath);
+        if (RID == null) return;
+        SpriteSheet sheet = spriteSheetRegistry.get(RID);
+        spriteSheetRegistry.unregister(RID);
+        RID.release();
+        if (sheet != null) sheet.dispose();
+    }
+
+    public static void unloadTextureUnit(String path) {
+        String canonicalPath = asCanonicalPath(path);
+        ResourceID RID = textureUnitIDs.remove(canonicalPath);
+        if (RID == null) return;
+        TextureUnit unit = textureUnitRegistry.get(RID);
+        textureRegistry.unregister(RID);
+        RID.release();
+        if (unit != null) unit.dispose();
     }
 
     /**

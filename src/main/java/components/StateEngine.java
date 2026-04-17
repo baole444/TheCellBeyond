@@ -34,9 +34,15 @@ public class StateEngine extends Component {
     }
 
     @Override
-    protected void onUpdate(float dt) {
+    protected void onPhysicUpdate(float dt) {
         if (!initialized) initialize();
         if (enableAutoStateTransition) autoStateTransition();
+        if (currentState != null) currentState.physicUpdate(dt);
+    }
+
+    @Override
+    protected void onUpdate(float dt) {
+        if (!initialized) return;
         if (currentState != null) currentState.update(dt);
     }
 
