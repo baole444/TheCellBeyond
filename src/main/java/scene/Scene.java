@@ -1,6 +1,7 @@
 package scene;
 
-import TheCellBeyond.*;
+import TheCellBeyond.GameObject;
+import TheCellBeyond.Viewport;
 import TheCellBeyond.internal.DataSnapshot;
 import TheCellBeyond.internal.LogicServer;
 import components.Component;

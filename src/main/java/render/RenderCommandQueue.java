@@ -1,6 +1,9 @@
 package render;
 
-import render.commands.*;
+import render.commands.MeshCommand;
+import render.commands.RectCommand;
+import render.commands.RenderCommand;
+import render.commands.TextCommand;
 
 import java.util.ArrayList;
 import java.util.Comparator;

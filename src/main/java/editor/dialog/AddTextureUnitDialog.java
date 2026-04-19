@@ -1,7 +1,5 @@
 package editor.dialog;
 
-import project.Project;
-import project.ProjectAssetMap;
 import eventviewer.EngineEventCallback;
 import eventviewer.event.EditorEvent;
 import imgui.ImGui;
@@ -13,9 +11,11 @@ import imgui.type.ImString;
 import org.joml.Vector2f;
 import org.lwjgl.stb.STBImage;
 import org.lwjgl.system.MemoryStack;
+import project.Project;
+import project.ProjectAssetMap;
 import render.Texture;
-import utility.UnifiedPaths;
 import utility.TextureScale;
+import utility.UnifiedPaths;
 
 import java.io.IOException;
 import java.nio.IntBuffer;

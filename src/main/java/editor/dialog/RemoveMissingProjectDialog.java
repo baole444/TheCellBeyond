@@ -1,18 +1,17 @@
 package editor.dialog;
 
 import editor.preference.RecentProject;
-import project.ProjectData;
-import project.ProjectPreference;
 import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiWindowFlags;
+import project.ProjectData;
+import project.ProjectPreference;
 import tools.jackson.core.exc.JacksonIOException;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.dataformat.yaml.YAMLFactory;
 
 import java.io.File;
-import java.io.IOException;
 
 public class RemoveMissingProjectDialog {
     private static final String POPUP_ID = "Missing project";

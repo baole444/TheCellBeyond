@@ -6,7 +6,6 @@ import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.Platform;
 import org.lwjgl.util.nfd.NFDPickFolderArgs;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -16,7 +15,6 @@ import static org.lwjgl.glfw.GLFWNativeX11.glfwGetX11Window;
 import static org.lwjgl.system.MemoryUtil.NULL;
 import static org.lwjgl.system.MemoryUtil.memUTF8;
 import static org.lwjgl.util.nfd.NativeFileDialog.*;
-import static org.lwjgl.util.nfd.NativeFileDialog.NFD_GetError;
 
 public class OpenFolderDialog {
     private static long windowHandle = -1;

@@ -1,6 +1,6 @@
 package TheCellBeyond;
 
-import components.*;
+import components.Component2D;
 import org.joml.Matrix3x2f;
 import org.joml.Vector2f;
 import render.commands.TransformCommand;

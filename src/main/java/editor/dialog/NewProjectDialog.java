@@ -2,9 +2,6 @@ package editor.dialog;
 
 import editor.preference.RecentProject;
 import editor.preference.UserPreference;
-import project.ClearColor;
-import project.Project;
-import project.ProjectPreference;
 import eventviewer.EngineEventCallback;
 import eventviewer.event.EditorEvent;
 import imgui.ImGui;
@@ -17,6 +14,9 @@ import imgui.type.ImFloat;
 import imgui.type.ImInt;
 import imgui.type.ImString;
 import org.joml.Vector2i;
+import project.ClearColor;
+import project.Project;
+import project.ProjectPreference;
 import project.RenderingSetting;
 import utility.IdPool;
 

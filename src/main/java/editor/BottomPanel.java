@@ -2,7 +2,10 @@ package editor;
 
 import TheCellBeyond.GameObject;
 import TheCellBeyond.TileMap;
-import components.*;
+import components.AnimatedSpriteRenderer;
+import components.AnimationPlayer;
+import components.Component;
+import components.Controller2D;
 import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.ImGuiChildFlags;

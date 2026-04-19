@@ -1,7 +1,6 @@
 package render.texture;
 
 import TheCellBeyond.internal.ResourceID;
-import render.RenderResourceType;
 import render.text.GlyphRange;
 import utility.AssetReference;
 import utility.log.EngineLog;

@@ -19,11 +19,8 @@ import java.util.Map;
 import java.util.Objects;
 
 import static org.lwjgl.system.MemoryUtil.*;
-import static org.lwjgl.system.MemoryUtil.memAlloc;
 import static org.lwjgl.util.freetype.FreeType.*;
-import static org.lwjgl.util.freetype.FreeType.FT_Set_Pixel_Sizes;
 import static org.lwjgl.util.msdfgen.MSDFGen.*;
-import static org.lwjgl.util.msdfgen.MSDFGen.msdf_shape_bound;
 import static org.lwjgl.util.msdfgen.MSDFGenExt.*;
 
 class TCBFontLoader {

@@ -1,13 +1,13 @@
 package editor.dialog;
 
 import TheCellBeyond.internal.LogicServer;
-import project.Project;
 import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImString;
+import project.Project;
 import scene.SceneManager;
 
 public class NewSceneDialog {

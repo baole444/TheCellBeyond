@@ -1,7 +1,5 @@
 package editor.dialog;
 
-import project.Project;
-import project.ProjectSheetMap;
 import eventviewer.EngineEventCallback;
 import eventviewer.event.EditorEvent;
 import imgui.ImDrawList;
@@ -12,10 +10,12 @@ import imgui.type.ImInt;
 import imgui.type.ImString;
 import org.joml.Vector2f;
 import org.joml.Vector2i;
+import project.Project;
+import project.ProjectSheetMap;
 import render.Texture;
 import utility.IdPool;
-import utility.UnifiedPaths;
 import utility.TextureScale;
+import utility.UnifiedPaths;
 
 import java.io.IOException;
 import java.nio.file.*;

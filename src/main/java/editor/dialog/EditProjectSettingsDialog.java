@@ -1,11 +1,11 @@
 package editor.dialog;
 
-import imgui.flag.*;
 import imgui.ImGui;
 import imgui.ImVec2;
+import imgui.flag.*;
 import utility.IdPool;
 
-import java.util.*;
+import java.util.Arrays;
 
 /**
  * Editor dialogue for editing the user project preferences.

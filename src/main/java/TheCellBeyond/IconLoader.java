@@ -10,7 +10,7 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
-import static org.lwjgl.stb.STBImage.*;
+import static org.lwjgl.stb.STBImage.stbi_load_from_memory;
 
 record IconLoader(int width, int height, ByteBuffer icon, AssetReference assetReference) {
     String getFilePath() {

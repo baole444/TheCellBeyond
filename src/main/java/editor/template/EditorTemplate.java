@@ -1,6 +1,6 @@
 package editor.template;
 
-import TheCellBeyond.*;
+import TheCellBeyond.GameObject;
 import components.Component;
 import components.NotSerializeComponent;
 

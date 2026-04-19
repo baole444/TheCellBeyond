@@ -1,10 +1,10 @@
 package TheCellBeyond;
 
 import TheCellBeyond.internal.LogicServer;
-import project.Project;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
+import project.Project;
 import render.FrameBuffer;
 import utility.WorldUnit;
 

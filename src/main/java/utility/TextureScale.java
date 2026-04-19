@@ -1,7 +1,7 @@
 package utility;
 
-import org.joml.Vector2f;
 import org.joml.Math;
+import org.joml.Vector2f;
 
 public class TextureScale {
     /**

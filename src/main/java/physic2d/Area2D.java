@@ -5,7 +5,9 @@ import org.jbox2d.dynamics.BodyDef;
 import org.jbox2d.dynamics.BodyType;
 import signal.Signal;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * Area2D is a region of 2D space defined by one or multiple {@link physic2d.collider.CollisionShape2D}.

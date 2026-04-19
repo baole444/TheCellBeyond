@@ -16,7 +16,10 @@ import org.joml.Vector2f;
 import render.texture.Sprite;
 import utility.TextureScale;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 import static org.lwjgl.glfw.GLFW.*;
 

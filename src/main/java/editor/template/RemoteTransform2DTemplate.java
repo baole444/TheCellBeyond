@@ -8,7 +8,6 @@ import editor.EditorIcons;
 import editor.EditorWidget;
 import editor.payload.GameObjectDragDropPayload;
 import imgui.ImGui;
-import imgui.ImVec2;
 import imgui.flag.*;
 import imgui.type.ImBoolean;
 

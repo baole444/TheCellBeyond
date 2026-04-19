@@ -2,7 +2,10 @@ package scene;
 
 import TheCellBeyond.GameObject;
 import TheCellBeyond.internal.LogicServer;
-import com.google.gson.*;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 import eventviewer.EngineEventCallback;
 import eventviewer.event.EditorEvent;
 import project.Project;

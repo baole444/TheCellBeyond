@@ -3,19 +3,18 @@ package editor;
 import TheCellBeyond.KeyListener;
 import editor.widgets.CollapsibleHeader;
 import editor.widgets.CollapsibleHeaderFlag;
+import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.*;
 import imgui.type.ImBoolean;
+import imgui.type.ImString;
+import org.joml.Vector2f;
+import org.joml.Vector4f;
 import physic2d.Physic2D;
 import physic2d.PhysicLayer;
 import project.Project;
 import render.texture.Sprite;
-import utility.*;
-
-import imgui.ImGui;
-import imgui.type.ImString;
-import org.joml.Vector2f;
-import org.joml.Vector4f;
+import utility.TextureScale;
 
 import java.util.HashMap;
 

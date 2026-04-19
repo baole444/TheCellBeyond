@@ -2,9 +2,9 @@ package editor;
 
 import TheCellBeyond.internal.LogicServer;
 import editor.dialog.*;
+import imgui.ImGui;
 import imgui.flag.ImGuiHoveredFlags;
 import project.Project;
-import imgui.ImGui;
 import scene.SceneManager;
 import scripting.ScriptLoader;
 

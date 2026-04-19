@@ -5,7 +5,6 @@ import editor.EditorIcons;
 import editor.EditorWidget;
 import imgui.ImGui;
 import imgui.ImVec2;
-import imgui.flag.ImGuiChildFlags;
 import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiTableColumnFlags;
 import imgui.flag.ImGuiTableFlags;

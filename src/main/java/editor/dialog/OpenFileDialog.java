@@ -20,7 +20,6 @@ import static org.lwjgl.glfw.GLFWNativeX11.glfwGetX11Window;
 import static org.lwjgl.system.MemoryUtil.NULL;
 import static org.lwjgl.system.MemoryUtil.memUTF8;
 import static org.lwjgl.util.nfd.NativeFileDialog.*;
-import static org.lwjgl.util.nfd.NativeFileDialog.NFD_GetError;
 
 /**
  * Create and handle instances of file dialog with different filter set.

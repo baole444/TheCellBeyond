@@ -5,7 +5,10 @@ import editor.payload.SpriteDragDropPayload;
 import imgui.ImDrawList;
 import imgui.ImGui;
 import imgui.ImVec2;
-import imgui.flag.*;
+import imgui.flag.ImGuiChildFlags;
+import imgui.flag.ImGuiTableColumnFlags;
+import imgui.flag.ImGuiTableFlags;
+import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImFloat;
 import org.joml.Vector2f;
 import org.joml.Vector2i;
@@ -15,7 +18,10 @@ import render.texture.TileSet;
 import utility.TextureScale;
 import utility.log.EngineLog;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_1;
 

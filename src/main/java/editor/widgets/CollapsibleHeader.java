@@ -3,7 +3,10 @@ package editor.widgets;
 import editor.EditorColors;
 import imgui.ImGui;
 import imgui.ImVec2;
-import imgui.flag.*;
+import imgui.flag.ImGuiCol;
+import imgui.flag.ImGuiStyleVar;
+import imgui.flag.ImGuiTableColumnFlags;
+import imgui.flag.ImGuiTableFlags;
 
 /**
  * Collapsing header with separated callback for expand and interaction.

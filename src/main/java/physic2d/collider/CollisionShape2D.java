@@ -8,7 +8,6 @@ import org.jbox2d.collision.shapes.Shape;
 import org.jbox2d.common.Vec2;
 import physic2d.CollisionObject2D;
 import physic2d.Physic2D;
-import physic2d.PhysicBody2D;
 
 /**
  * CollisionShape2D is an abstract 2D shape, used as base class for all 2D collision shape component types.

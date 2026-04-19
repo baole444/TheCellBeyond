@@ -1,15 +1,20 @@
 package editor.components;
 
-import TheCellBeyond.*;
+import TheCellBeyond.GameObject;
+import TheCellBeyond.GameObject2D;
+import TheCellBeyond.MouseListener;
 import TheCellBeyond.internal.LogicServer;
-import components.*;
+import components.Component2D;
+import components.IsNotSelectable;
+import components.NotSerializeComponent;
+import components.SpriteRenderer;
 import editor.Properties;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import render.texture.Sprite;
 import utility.WorldUnit;
 
-import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_RIGHT;
 
 /**
  * EditorGizmo is an Editor's component, use to display moving arrows or scale arrows.
