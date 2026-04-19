@@ -26,7 +26,7 @@ import static org.lwjgl.glfw.GLFW.GLFW_KEY_ENTER;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
 
 public class SceneEditorViewport implements EngineEventListener {
-    public static volatile String WINDOW_ID = "2D Scene###Editor_Scene_Viewport";
+    public static volatile String WindowID = "2D Scene###Editor_Scene_Viewport";
     private float leftX, rightX, topY, bottomY;
     private boolean isPlaying = false;
     private String currentSceneName = null;
@@ -42,7 +42,7 @@ public class SceneEditorViewport implements EngineEventListener {
 
     public void imgui() {
         currentSceneName = resolveDisplaySceneName();
-        if (!ImGui.begin(WINDOW_ID, ImGuiWindowFlags.NoScrollbar
+        if (!ImGui.begin(WindowID, ImGuiWindowFlags.NoScrollbar
                 | ImGuiWindowFlags.NoScrollWithMouse
                 | ImGuiWindowFlags.MenuBar
                 | ImGuiWindowFlags.NoCollapse

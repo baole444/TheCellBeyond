@@ -20,9 +20,4 @@ public abstract class SceneLoader {
      * Called on scene finish clean up.
      */
     public abstract void onSceneEnd();
-
-    /**
-     * Additional Editor UI export.
-     */
-    public void imgui() {}
 }

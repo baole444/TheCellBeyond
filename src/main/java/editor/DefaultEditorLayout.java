@@ -5,7 +5,6 @@ import imgui.internal.ImGui;
 import imgui.internal.ImGuiDockNode;
 import imgui.internal.flag.ImGuiDockNodeFlags;
 import imgui.type.ImInt;
-import scene.SceneEditor;
 
 class DefaultEditorLayout {
     private static final float SIDE_COLUMNS = 0.2f;
@@ -34,8 +33,8 @@ class DefaultEditorLayout {
         resourcePanel.addLocalFlags(ImGuiDockNodeFlags.NoTabBar);
 
         ImGui.dockBuilderDockWindow(SceneTree.WindowID, leftDock.get());
-        ImGui.dockBuilderDockWindow(SceneEditor.WINDOW_ID, bottomLeftDock.get());
-        ImGui.dockBuilderDockWindow(SceneEditorViewport.WINDOW_ID, mainDock.get());
+        ImGui.dockBuilderDockWindow(ResourcePanel.WindowID, bottomLeftDock.get());
+        ImGui.dockBuilderDockWindow(SceneEditorViewport.WindowID, mainDock.get());
         ImGui.dockBuilderDockWindow(BottomPanel.WindowID, bottomMainDock.get());
         ImGui.dockBuilderDockWindow(Properties.WindowID, rightDock.get());
 

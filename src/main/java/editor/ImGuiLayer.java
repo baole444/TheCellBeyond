@@ -31,7 +31,7 @@ import static org.lwjgl.opengl.GL30.glBindFramebuffer;
  * The Editor UI layer.
  */
 public final class ImGuiLayer {
-    private static final String DOCK_ID = "###EDITOR_DOCK";
+    private static final String DockID = "###EDITOR_DOCK";
     private final ImGuiImplGlfw imGuiGlfw = new ImGuiImplGlfw();
     private final ImGuiImplGl3 imGuiGl3 = new ImGuiImplGl3();
     private final long windowPtr;
@@ -158,7 +158,7 @@ public final class ImGuiLayer {
             ImGui.endFrame();
             return;
         }
-        if (currentScene != null) currentScene.imgui();
+        ResourcePanel.imgui();
         sceneEditorViewport.imgui();
         Properties.imgui();
         SceneTree.imgui();
@@ -193,9 +193,9 @@ public final class ImGuiLayer {
 
         ImGui.pushStyleVar(ImGuiStyleVar.WindowRounding, 0.0f);
         ImGui.pushStyleVar(ImGuiStyleVar.WindowBorderSize, 0.0f);
-        ImGui.begin(DOCK_ID, new ImBoolean(true), winFlag);
+        ImGui.begin(DockID, new ImBoolean(true), winFlag);
         ImGui.popStyleVar(2);
-        int id = ImGui.getID(DOCK_ID);
+        int id = ImGui.getID(DockID);
         ImGui.dockSpace(id);
 
         if (!DefaultEditorLayout.dockingValid(id) || resetLayout) {

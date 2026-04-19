@@ -67,6 +67,10 @@ final class EditorEventHandler implements EngineEventListener {
                 RecentProject update = new RecentProject(preference.name(), path, sceneName);
                 UserPreference.updateRecentProject(update);
             }
+            case ProjectLoaded, ReloadSceneResource -> {
+                Project.loadProjectData();
+                ResourcePanel.refreshCache();
+            }
             case RequestSaveSceneAs -> SaveSceneAsDialog.show(SceneManager::saveCurrentScene);
             case ScriptClassLoaded -> ScriptExportCache.buildAndCache((Class<?>) object);
             case ScriptClassUnloaded -> ScriptExportCache.clear();

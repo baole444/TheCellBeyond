@@ -344,10 +344,6 @@ public class Scene {
         return sceneData.viewport();
     }
 
-    public void imgui() {
-        sceneLoader.imgui();
-    }
-
     /**
      * Get the physic world of this scene
      * @return the physic 2D instance
