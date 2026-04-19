@@ -128,8 +128,7 @@ public class TextRenderer extends Component2D implements ResourceStatusListener 
         if (fontPathInput == null) return;
         AssetReference newRef = new AssetReference(fontPathInput);
         if (Objects.equals(newRef, assetReference)) return;
-        UnifiedPaths resolver = UnifiedPaths.get();
-        if (!resolver.exists(newRef.resolvedPath())) return;
+        if (!UnifiedPaths.exists(newRef.resolvedPath())) return;
         this.assetReference = newRef;
         requestLoadFont();
     }

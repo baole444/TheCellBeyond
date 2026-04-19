@@ -7,7 +7,6 @@ import utility.UnifiedPaths;
 public class Main {
     static void main(String[] args) {
         CrashReport.install();
-        UnifiedPaths.initialize(null);
         try {
             Window window = Window.get();
             window.run();

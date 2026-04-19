@@ -49,7 +49,7 @@ public class Project {
             File projectFile = new File(path);
             CurrentProject = YAMLMapper.readValue(projectFile, ProjectData.class);
             ProjectRoot = UnifiedPaths.toRoot(path);
-            UnifiedPaths.initialize(ProjectRoot);
+            UnifiedPaths.projectRoot(ProjectRoot);
             _projectYmlPath = path;
             if (CurrentProject == null) {
                 System.err.println("Cannot load project file!");
@@ -522,5 +522,6 @@ public class Project {
         ProjectRoot = null;
         _projectYmlPath = null;
         preference = null;
+        UnifiedPaths.clearCache();
     }
 }

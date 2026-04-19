@@ -116,10 +116,6 @@ public final class ImGuiLayer {
         });
     }
 
-    /**
-     * Setup Font for the Editor UI.
-     * @param io the io to setup with
-     */
     private void guiFont(ImGuiIO io) {
         final ImFontAtlas fontAtlas = io.getFonts();
         final ImFontConfig fontConfig = new ImFontConfig();
@@ -129,12 +125,7 @@ public final class ImGuiLayer {
         glyphRangesBuilder.addRanges(fontAtlas.getGlyphRangesVietnamese());
         fontConfig.setGlyphRanges(glyphRangesBuilder.buildRanges());
         AssetReference assetReference = new AssetReference(Settings.FontPath.NotoSansMono);
-        UnifiedPaths resolver;
-        if (!UnifiedPaths.isInitialized()) {
-            UnifiedPaths.initialize(null);
-        }
-        resolver = UnifiedPaths.get();
-        try (InputStream stream = resolver.getAssetStream(assetReference.resolvedPath())) {
+        try (InputStream stream = UnifiedPaths.getAssetStream(assetReference.resolvedPath())) {
             byte[] fontData = stream.readAllBytes();
             fontAtlas.addFontFromMemoryTTF(fontData, FontPT.pointToPixel(12), fontConfig);
         } catch (IOException e) {

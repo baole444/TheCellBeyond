@@ -21,7 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *      <li> <i><u>/dir/path/to/asset</u></i> - Potential absolute path, can be resolved as external or project asset</li>
  * </ul>
  */
-public class UnifiedPaths {
+public final class UnifiedPaths {
     /**
      * Prefix to mark a path belong to the engine classpath, not on file system.
      */
@@ -35,9 +35,9 @@ public class UnifiedPaths {
     public static final String MetaTag = "$";
     public static final String MetaValueDelimiter = "::";
     public static final String MetaSeparator = ",";
-    private final String projectRoot;
-    private final ConcurrentHashMap<String, AssetPath> pathCache = new ConcurrentHashMap<>();
-    private static volatile UnifiedPaths instance;
+    private static String projectRoot = null;
+    private static final ConcurrentHashMap<String, AssetPath> pathCache = new ConcurrentHashMap<>();
+    private UnifiedPaths() {}
 
     /**
      * Asset classification, base on the path that leads to the asset's file on the system.
@@ -88,27 +88,28 @@ public class UnifiedPaths {
         }
     }
 
-    private UnifiedPaths(String projectRoot) {
-        this.projectRoot = projectRoot;
+    /**
+     * Get the path that is the project root.
+     * @return the project root or null if there is none
+     */
+    public static String projectRoot() {
+        return projectRoot;
     }
 
     /**
-     * Initialize {@link UnifiedPaths} using the given path to user project.
-     * @param projectRoot the absolute path that leads to the user project's root directory
+     * Set the {@link UnifiedPaths} to use the provided project root path.
+     * @param root the absolute path that leads to the user project's root directory
      */
-    public static void initialize(String projectRoot) {
-        instance = new UnifiedPaths(projectRoot);
+    public static void projectRoot(String root) {
+        pathCache.clear();
+        projectRoot = root;
     }
 
     /**
-     * Get the instance of {@link UnifiedPaths}.
-     * @return the current or new instance if there is none yet
+     * Clear the cached resolved paths.
      */
-    public static synchronized UnifiedPaths get() {
-        if (instance == null) {
-            throw new IllegalStateException("UnifiedPaths not initialized. Please call initialize() first.");
-        }
-        return instance;
+    public static void clearCache() {
+        pathCache.clear();
     }
 
     /**
@@ -116,7 +117,7 @@ public class UnifiedPaths {
      * @param path the relative or absolute path that need resolving
      * @return an existing or new record of {@link AssetPath}
      */
-    public AssetPath resolvePath(String path) {
+    public static AssetPath resolvePath(String path) {
         if (path == null || path.isBlank()) {
             throw new IllegalArgumentException("Path cannot be null or empty");
         }
@@ -127,41 +128,7 @@ public class UnifiedPaths {
         return resolved;
     }
 
-    /**
-     * Resolve the path into engine, project or external asset base on its starting prefix or the lack of it.
-     */
-    private AssetPath parseAndResolve(String path) {
-        if (path.startsWith(EnginePrefix)) {
-            String enginePath = path.substring(EnginePrefix.length());
-            return new AssetPath(path, enginePath, AssetType.ENGINE, true);
-        }
-        if (path.startsWith(ProjectPrefix)) {
-            String projectPath = path.substring(ProjectPrefix.length());
-            String absPath = resolveProjectPathToAbsolute(projectPath);
-            return new AssetPath(path, absPath, AssetType.PROJECT, true);
-        }
-        Path inputPath = Paths.get(path);
-        if (inputPath.isAbsolute()) {
-            Path normalized = inputPath.toAbsolutePath().normalize();
-            AssetPath external = new AssetPath(path, normalized.toString(), AssetType.EXTERNAL, true);
-            if (projectRoot == null) return external;
-            Path root = Paths.get(projectRoot).toAbsolutePath().normalize();
-            if (normalized.startsWith(root)) return new AssetPath(path, normalized.toString(), AssetType.PROJECT, true);
-            return external;
-        }
-        String abs = resolveProjectPathToAbsolute(path);
-        return new AssetPath(path, abs, AssetType.PROJECT, false);
-    }
-
-    private String resolveProjectPathToAbsolute(String relativePath) {
-        if (projectRoot == null) return relativePath;
-        String sanctioned = relativePath.startsWith("/") ? relativePath.substring(1) : relativePath;
-        Path rootPath = Paths.get(projectRoot);
-        Path resolvedPath = rootPath.resolve(sanctioned).normalize();
-        return resolvedPath.toString();
-    }
-
-    public InputStream getAssetStream(AssetPath assetPath) throws IOException {
+    public static InputStream getAssetStream(AssetPath assetPath) throws IOException {
         switch (assetPath.type()) {
             case ENGINE -> {
                 return getEngineAssetStream(assetPath.resolvedPath());
@@ -173,27 +140,8 @@ public class UnifiedPaths {
         }
     }
 
-    public InputStream getAssetStream(String path) throws IOException {
+    public static InputStream getAssetStream(String path) throws IOException {
         return getAssetStream(resolvePath(path));
-    }
-
-    private InputStream getEngineAssetStream(String enginePath) throws IOException {
-        if (enginePath == null || enginePath.isBlank()) {
-            throw new IllegalArgumentException("Engine path cannot be null");
-        }
-        InputStream stream = UnifiedPaths.class.getClassLoader().getResourceAsStream(enginePath);
-        if (stream == null) {
-            throw new IOException("Engine asset not found: " + enginePath);
-        }
-        return stream;
-    }
-
-    private InputStream getProjectAssetStream(String absolutePath) throws IOException {
-        Path path = Paths.get(absolutePath);
-        if (!Files.exists(path)) {
-            throw new IOException("Project asset not found: " + absolutePath);
-        }
-        return Files.newInputStream(path);
     }
 
     /**
@@ -202,7 +150,7 @@ public class UnifiedPaths {
      * @return true if the asset or file exist.
      * @see UnifiedPaths#isPathInsideProject(String path) Check if a path is of AssetType Project
      */
-    public boolean exists(AssetPath assetPath) {
+    public static boolean exists(AssetPath assetPath) {
         switch (assetPath.type()) {
             case ENGINE -> {
                 return UnifiedPaths.class.getClassLoader().getResource(assetPath.resolvedPath()) != null;
@@ -222,7 +170,7 @@ public class UnifiedPaths {
      * @return true if the asset or file exist
      * @see UnifiedPaths#isPathInsideProject(String path) Check if a path is of AssetType Project
      */
-    public boolean exists(String path) {
+    public static boolean exists(String path) {
         if (path == null || path.isBlank()) return false;
         return exists(resolvePath(path));
     }
@@ -233,7 +181,7 @@ public class UnifiedPaths {
      * @return true if the path resolved as {@link AssetType#PROJECT}
      * @see UnifiedPaths#exists(String path) Check if a file or asset exists
      */
-    public boolean isPathInsideProject(String path) {
+    public static boolean isPathInsideProject(String path) {
         if (path == null || path.isBlank()) return false;
         try {
             AssetPath assetPath = resolvePath(path);
@@ -246,7 +194,7 @@ public class UnifiedPaths {
     /**
      * Convert an absolute project path back to its relative path for serialization.
      */
-    public String toProjectRelativePath(String absolutePath) {
+    public static String toProjectRelativePath(String absolutePath) {
         if (projectRoot == null || absolutePath == null) return absolutePath;
         Path root = Paths.get(projectRoot).toAbsolutePath().normalize();
         Path full = Paths.get(absolutePath).toAbsolutePath().normalize();
@@ -260,7 +208,7 @@ public class UnifiedPaths {
      * Convert a path to its true path from storage.
      * Engine assets get prefix and project assets become relative.
      */
-    public String toCanonicalPath(String path) {
+    public static String toCanonicalPath(String path) {
         if (path == null) return null;
         int metaIndex = path.indexOf(MetaStart);
         String filePart = metaIndex >= 0 ? path.substring(0, metaIndex) : path;
@@ -274,20 +222,7 @@ public class UnifiedPaths {
         return rawMeta != null ? canonical + rawMeta : canonical;
     }
 
-    /**
-     * Clear the cached resolved paths.
-     */
-    public void clearCache() {
-        pathCache.clear();
-    }
 
-    /**
-     * Get the path that is the project root.
-     * @return the project root or null if there is none
-     */
-    public String getProjectRoot() {
-        return projectRoot;
-    }
 
     /**
      * Extract project's root directory.
@@ -382,15 +317,55 @@ public class UnifiedPaths {
     }
 
     /**
-     * Check if UnifiedPaths is initialized or not.
-     * @return true if UnifiedPaths is initialized
+     * Resolve the path into engine, project or external asset base on its starting prefix or the lack of it.
      */
-    public static boolean isInitialized () {
-        return instance != null;
+    private static AssetPath parseAndResolve(String path) {
+        if (path.startsWith(EnginePrefix)) {
+            String enginePath = path.substring(EnginePrefix.length());
+            return new AssetPath(path, enginePath, AssetType.ENGINE, true);
+        }
+        if (path.startsWith(ProjectPrefix)) {
+            String projectPath = path.substring(ProjectPrefix.length());
+            String absPath = resolveProjectPathToAbsolute(projectPath);
+            return new AssetPath(path, absPath, AssetType.PROJECT, true);
+        }
+        Path inputPath = Paths.get(path);
+        if (inputPath.isAbsolute()) {
+            Path normalized = inputPath.toAbsolutePath().normalize();
+            AssetPath external = new AssetPath(path, normalized.toString(), AssetType.EXTERNAL, true);
+            if (projectRoot == null) return external;
+            Path root = Paths.get(projectRoot).toAbsolutePath().normalize();
+            if (normalized.startsWith(root)) return new AssetPath(path, normalized.toString(), AssetType.PROJECT, true);
+            return external;
+        }
+        String abs = resolveProjectPathToAbsolute(path);
+        return new AssetPath(path, abs, AssetType.PROJECT, false);
     }
 
-    public static void clear() {
-        get().clearCache();
-        instance = null;
+    private static String resolveProjectPathToAbsolute(String relativePath) {
+        if (projectRoot == null) return relativePath;
+        String sanctioned = relativePath.startsWith("/") ? relativePath.substring(1) : relativePath;
+        Path rootPath = Paths.get(projectRoot);
+        Path resolvedPath = rootPath.resolve(sanctioned).normalize();
+        return resolvedPath.toString();
+    }
+
+    private static InputStream getEngineAssetStream(String enginePath) throws IOException {
+        if (enginePath == null || enginePath.isBlank()) {
+            throw new IllegalArgumentException("Engine path cannot be null");
+        }
+        InputStream stream = UnifiedPaths.class.getClassLoader().getResourceAsStream(enginePath);
+        if (stream == null) {
+            throw new IOException("Engine asset not found: " + enginePath);
+        }
+        return stream;
+    }
+
+    private static InputStream getProjectAssetStream(String absolutePath) throws IOException {
+        Path path = Paths.get(absolutePath);
+        if (!Files.exists(path)) {
+            throw new IOException("Project asset not found: " + absolutePath);
+        }
+        return Files.newInputStream(path);
     }
 }

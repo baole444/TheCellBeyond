@@ -15,8 +15,7 @@ public class AssetReference {
      * @param path the relative or absolute path to wrap
      */
     public AssetReference(String path) {
-        UnifiedPaths resolver = UnifiedPaths.get();
-        canonicalPath = resolver.toCanonicalPath(path);
+        canonicalPath = UnifiedPaths.toCanonicalPath(path);
         initializeResolvedPath();
     }
 
@@ -25,8 +24,7 @@ public class AssetReference {
      */
     private void initializeResolvedPath() {
         if (resolvedPath == null) {
-            UnifiedPaths resolver = UnifiedPaths.get();
-            resolvedPath = resolver.resolvePath(UnifiedPaths.stripMetadata(canonicalPath));
+            resolvedPath = UnifiedPaths.resolvePath(UnifiedPaths.stripMetadata(canonicalPath));
         }
     }
 

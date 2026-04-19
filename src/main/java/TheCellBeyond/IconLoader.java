@@ -18,14 +18,8 @@ record IconLoader(int width, int height, ByteBuffer icon, AssetReference assetRe
     }
 
     static IconLoader loadIcon(String filepath) {
-        try {
-            UnifiedPaths.get();
-        } catch (IllegalStateException e) {
-            UnifiedPaths.initialize(null);
-        }
         AssetReference assetRef = new AssetReference(filepath);
-        UnifiedPaths resolver = UnifiedPaths.get();
-        try (InputStream stream = resolver.getAssetStream(assetRef.resolvedPath())) {
+        try (InputStream stream = UnifiedPaths.getAssetStream(assetRef.resolvedPath())) {
             byte[] data = stream.readAllBytes();
             ByteBuffer buffer = BufferUtils.createByteBuffer(data.length);
             buffer.put(data);

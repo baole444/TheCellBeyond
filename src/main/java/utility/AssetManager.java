@@ -159,7 +159,7 @@ public final class AssetManager {
         String canonicalPath = asCanonicalPath(path);
         ResourceID RID = soundIDs.get(canonicalPath);
         if (RID != null) return RID;
-        UnifiedPaths.AssetPath assetPath = UnifiedPaths.get().resolvePath(path);
+        UnifiedPaths.AssetPath assetPath = UnifiedPaths.resolvePath(path);
         Sound sound = new Sound(assetPath.resolvedPath(), isLoop);
         RID = sound.RID;
         soundIDs.put(canonicalPath, RID);
@@ -370,6 +370,6 @@ public final class AssetManager {
     }
 
     private static String asCanonicalPath(String path) {
-        return UnifiedPaths.get().toCanonicalPath(path);
+        return UnifiedPaths.toCanonicalPath(path);
     }
 }

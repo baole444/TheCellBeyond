@@ -12,7 +12,6 @@ import utility.AssetManager;
 import utility.Settings;
 import utility.UnifiedPaths;
 
-import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -22,11 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 
 public class TCBFontTest {
-    @BeforeAll
-    static void setup() {
-        UnifiedPaths.initialize(null);
-    }
-
     @Test
     public void loadFontCorrectly() throws InterruptedException {
         ResourceStatus status = awaitFont(Settings.FontPath.Caudex, GlyphRange.ASCII, 16, 16);

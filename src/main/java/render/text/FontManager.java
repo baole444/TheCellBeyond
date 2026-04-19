@@ -113,7 +113,7 @@ public final class FontManager {
     private ByteBuffer loadFontData(AssetReference assetReference) {
         ByteBuffer cached = fontDataCache.get(assetReference);
         if (cached != null) return cached;
-        try (InputStream stream = UnifiedPaths.get().getAssetStream(assetReference.resolvedPath())) {
+        try (InputStream stream = UnifiedPaths.getAssetStream(assetReference.resolvedPath())) {
             byte[] bytes = stream.readAllBytes();
             ByteBuffer buffer = BufferUtils.createByteBuffer(bytes.length);
             buffer.put(bytes).flip();

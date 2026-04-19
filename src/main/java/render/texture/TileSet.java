@@ -228,9 +228,7 @@ public class TileSet {
 
         String canonicalPath = texture.getCanonicalPath();
         AssetReference assetReference = new AssetReference(canonicalPath);
-        UnifiedPaths resolver = UnifiedPaths.get();
-
-        try (InputStream stream = resolver.getAssetStream(assetReference.resolvedPath())) {
+        try (InputStream stream = UnifiedPaths.getAssetStream(assetReference.resolvedPath())) {
             byte[] data = stream.readAllBytes();
             ByteBuffer buffer = BufferUtils.createByteBuffer(data.length);
             buffer.put(data);

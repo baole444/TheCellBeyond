@@ -37,8 +37,7 @@ public class Shader {
     }
 
     private void loadShaderSource() {
-        UnifiedPaths resolver = UnifiedPaths.get();
-        try (InputStream stream = resolver.getAssetStream(assetReference.resolvedPath())) {
+        try (InputStream stream = UnifiedPaths.getAssetStream(assetReference.resolvedPath())) {
             String src = new String(stream.readAllBytes());
             parseShaderSource(src);
         } catch (IOException e) {
@@ -172,8 +171,7 @@ public class Shader {
      * @return true if file exist
      */
     public boolean exists() {
-        UnifiedPaths resolver = UnifiedPaths.get();
-        return resolver.exists(assetReference.resolvedPath());
+        return UnifiedPaths.exists(assetReference.resolvedPath());
     }
 
     public void loadMat4f(String var, Matrix4f mat4) {

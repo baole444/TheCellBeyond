@@ -50,7 +50,7 @@ public class ScriptProjectGenerator {
             Logger.error(String.format("Failed to create directory for %s: %s", target, e.getMessage()));
             return;
         }
-        try (InputStream stream = UnifiedPaths.get().getAssetStream(resourcePath)) {
+        try (InputStream stream = UnifiedPaths.getAssetStream(resourcePath)) {
             Files.copy(stream, target);
             if (target.getFileName().toString().equals("gradlew") && !target.toFile().setExecutable(true)) {
                 Logger.debug("Cannot adjust permission for gradlew, or permission is not supported on this OS");
