@@ -83,7 +83,7 @@ class ScriptsTab {
         ImGui.pushStyleColor(ImGuiCol.Text,  EditorColors.InstructionHighLight);
         ImGui.textWrapped("To get started, click \"Generate Script Project\" to create a Gradle project in scripts-src/.");
         ImGui.textWrapped("Write your classes there, annotate them with @RegisterGameObject or @RegisterComponent, " +
-                "then build them with 'gradlew build'. The output JAR goes to scripts/ automatically.");
+                "then jar them with 'gradlew jar'. The output JAR goes to scripts/ automatically.");
         ImGui.popStyleColor(1);
         ImGui.endGroup();
         ImVec2 size = new ImVec2();
