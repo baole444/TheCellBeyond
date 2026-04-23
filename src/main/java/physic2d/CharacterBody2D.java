@@ -90,7 +90,7 @@ public class CharacterBody2D extends PhysicBody2D {
     private transient int slideCollisionCount = 0;
 
     /**
-     * Create a new {@link CharacterBody2D} object.
+     * Create a new {@link CharacterBody2D}.
      */
     public CharacterBody2D() {
         String name = CharacterBody2D.class.getSimpleName();

@@ -117,7 +117,7 @@ public class Properties {
                 if (sprites.isEmpty()) continue;
                 for (int j = 0; j < sprites.size(); j++) {
                     SpriteRenderer sprite = sprites.get(j);
-                    if (sprite != null) sprite.color(colors.get(j));
+                    if (sprite != null && j < colors.size()) sprite.color(colors.get(j));
                 }
             }
         }

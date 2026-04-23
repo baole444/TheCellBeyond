@@ -20,7 +20,7 @@ repositories {
 dependencies {
     // Make sure to check for latest api version at
     // https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api
-    compileOnly "io.github.baole444:thecellbeyond-api:1.3"
+    compileOnly "io.github.baole444:thecellbeyond-api:1.4"
     compileOnly ":jbox2d-library"
     // For any other library that you might use outside the engine,
     // they need to be implementation instead of compile only for them to be import properly

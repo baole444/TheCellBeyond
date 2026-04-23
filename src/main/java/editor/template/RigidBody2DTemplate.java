@@ -34,7 +34,7 @@ final class RigidBody2DTemplate implements IObjectTemplate<RigidBody2D> {
         float angularV = EditorWidget.dragFloatCtrl("Angular Velocity", object.angularVelocity(), 0.0f, 1.0f,object);
         float ms = EditorWidget.dragFloatCtrl("Mass", object.mass(), 0.0f, object, 0.0f);
         float rollResist = EditorWidget.dragFloatCtrl("Roll Resistance", object.rollResistance(), 0.8f, object, 0.0f);
-        float translateResist = EditorWidget.dragFloatCtrl("Translate Resistance", object.translateResistance(), 0.8f, object, 0.0f);
+        float translateResist = EditorWidget.dragFloatCtrl("Translate Resistance", object.moveResistance(), 0.8f, object, 0.0f);
         float gravScale = EditorWidget.dragFloatCtrl("Gravity Scale", object.gravityScale(), 1.0f, object);
         ImBoolean fixedRot = new ImBoolean(object.fixedRotation());
         if (ImGui.checkbox("Fixed Rotation##RigidBody2D_fixedRotation_" + uuid, fixedRot)) object.fixedRotation(fixedRot.get());
@@ -44,7 +44,7 @@ final class RigidBody2DTemplate implements IObjectTemplate<RigidBody2D> {
         if (Float.compare(angularV, object.angularVelocity()) != 0) object.angularVelocity(angularV);
         if (Float.compare(ms, object.mass()) != 0) object.mass(ms);
         if (Float.compare(rollResist, object.rollResistance()) != 0) object.rollResistance(rollResist);
-        if (Float.compare(translateResist, object.translateResistance()) != 0) object.translateResistance(translateResist);
+        if (Float.compare(translateResist, object.moveResistance()) != 0) object.moveResistance(translateResist);
         if (Float.compare(gravScale, object.gravityScale()) != 0) object.gravityScale(gravScale);
         ImGui.unindent();
     }
