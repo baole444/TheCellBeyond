@@ -35,7 +35,7 @@ public final class EditorSceneCtrl extends Component {
 
     @Override
     public void editorUpdate(float dt) {
-        if (!ImGuiLayer.editorWantCaptureMouse() || ImGui.isPopupOpen("", ImGuiPopupFlags.AnyPopup)) return;
+        if (!ImGuiLayer.editorWantCaptureMouse() || ImGuiLayer.editorWantCaptureKeyboard() || ImGui.isPopupOpen("", ImGuiPopupFlags.AnyPopup)) return;
         if (MouseListener.isButtonPressed(GLFW_MOUSE_BUTTON_MIDDLE) && dragInit > 0) {
             clickOrigin.set(MouseListener.getWorldPosition());
             dragInit -= dt;

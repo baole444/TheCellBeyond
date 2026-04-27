@@ -22,14 +22,7 @@ import java.util.List;
 
 import static org.lwjgl.glfw.GLFW.*;
 
-/**
- * EditorKeyCtrl (Key Control) is an accumulation of editor keybind and shortcuts.
- * Itself is a non-serialized component that is added to the level editor object.<br>
- * Note: This will change soon, where this will be refactored into processing key event from the game.
- * Engine keybind and shortcut processing will be moved to different class.
- */
 public final class EditorKeyCtrl extends Component implements NotSerializeComponent {
-
     /**
      * Create a new {@link EditorKeyCtrl} component.
      */
@@ -40,26 +33,21 @@ public final class EditorKeyCtrl extends Component implements NotSerializeCompon
 
     @Override
     public void editorUpdate(float dt) {
-        if (!ImGuiLayer.editorWantCaptureKeyboard() || ImGui.isPopupOpen("", ImGuiPopupFlags.AnyPopup)) return;
-
+        if (ImGuiLayer.editorWantCaptureKeyboard() || ImGui.isPopupOpen("", ImGuiPopupFlags.AnyPopup)) return;
         GameObject activeGameObj = Properties.getActiveGameObject();
         List<GameObject> activeObjList = Properties.getActiveGameObjects();
-
         if (KeyListener.isKeyTapped(GLFW_KEY_D, GLFW_MOD_CONTROL) && activeGameObj != null) {
             GameObject newObj = activeGameObj.copy(true);
             LogicServer.currentScene().queueForObjectAddition(newObj);
-
             if (newObj instanceof GameObject2D go2D) {
                 Vector2f currentPos = go2D.position();
                 currentPos.add(Settings.GRID_WIDTH / 2.0f, Settings.GRID_HEIGHT / 2.0f);
             }
-
             Properties.setActiveGameObject(newObj);
         } else if (KeyListener.isKeyTapped(GLFW_KEY_D, GLFW_MOD_CONTROL) && activeObjList.size() > 1) {
             List<GameObject> gameObjects = new ArrayList<>(activeObjList);
             List<List<Vector4f>> trueColors = Properties.getActiveObjTrueColor();
             Properties.clearSelection();
-
             for (int i = 0; i < gameObjects.size(); i++) {
                 GameObject go = gameObjects.get(i);
                 GameObject copy = go.copy(true);
@@ -69,7 +57,6 @@ public final class EditorKeyCtrl extends Component implements NotSerializeCompon
                     SpriteRenderer sprite = sprites.get(j);
                     if (sprite != null) sprite.color(colors.get(j));
                 }
-
                 LogicServer.currentScene().queueForObjectAddition(copy);
                 Properties.addActiveGameObject(copy);
             }
@@ -77,25 +64,19 @@ public final class EditorKeyCtrl extends Component implements NotSerializeCompon
             for (GameObject go : activeObjList) {
                 go.destroy();
             }
-
             Properties.clearSelection();
         }
 
         // Make keybinding of Shift + S = scale | Shift + T = translate
         if (KeyListener.isKeyTapped(GLFW_KEY_T, GLFW_MOD_SHIFT)) {
             EditorGizmoCtrl.setGizmoType(EditorGizmoType.Translate);
-            Logger.debug("Switched translate");
         } else if (KeyListener.isKeyTapped(GLFW_KEY_S, GLFW_MOD_SHIFT)) {
-            Logger.debug("Switched scale");
             EditorGizmoCtrl.setGizmoType(EditorGizmoType.Scale);
         }
-
         // Make keybinding of Ctrl + S = Save file | Ctrl + O = open file
         if (KeyListener.isKeyTapped(GLFW_KEY_S, GLFW_MOD_CONTROL)) {
-            Logger.debug("Saving");
             EngineEventCallback.emit(null, new EditorEvent(EditorEvent.Type.SaveEditingSceneToDisk));
         }
-
         if (KeyListener.isKeyTapped(GLFW_KEY_O, GLFW_MOD_CONTROL)) {
             EngineEventCallback.emit(null, new EditorEvent(EditorEvent.Type.LoadEditingSceneFromDisk));
         }
