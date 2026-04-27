@@ -38,11 +38,11 @@ public final class ImGuiLayer {
     private final ImGuiImplGlfw imGuiGlfw = new ImGuiImplGlfw();
     private final ImGuiImplGl3 imGuiGl3 = new ImGuiImplGl3();
     private final long windowPtr;
-    private final SceneEditorViewport sceneEditorViewport;
     private ImGuiIO io;
     private static boolean resetLayout = false;
     private static boolean exitFrameEarly = false;
     private static final AtomicBoolean wantedCaptureMouse = new AtomicBoolean(false);
+    private static final AtomicBoolean wantedCaptureKey = new AtomicBoolean(false);
     private static final AtomicBoolean prioritizeEngineInputCallback = new AtomicBoolean(false);
 
     /**
@@ -50,7 +50,6 @@ public final class ImGuiLayer {
      * @param windowPtr the window pointer to put the layer in
      */
     public ImGuiLayer(long windowPtr) {
-        this.sceneEditorViewport = new SceneEditorViewport();
         this.windowPtr = windowPtr;
         EditorEventHandler.init();
     }
@@ -70,14 +69,14 @@ public final class ImGuiLayer {
            public void accept(final String s) {
                glfwSetClipboardString(windowPtr, s);
            }
-       });
-       io.setGetClipboardTextFn(new ImStrSupplier() {
+        });
+        io.setGetClipboardTextFn(new ImStrSupplier() {
            @Override
            public String get() {
                final String clipboardString = glfwGetClipboardString(windowPtr);
                return Objects.requireNonNullElse(clipboardString, "");
            }
-       });
+        });
         io.setIniFilename(UserPreference.getEditorLayoutFilepath());
         io.addConfigFlags(ImGuiConfigFlags.ViewportsEnable);
         io.setConfigFlags(ImGuiConfigFlags.DockingEnable);
@@ -99,7 +98,7 @@ public final class ImGuiLayer {
             if (!wantCaptureMouse && mouseDown[1]) {
                 ImGui.setWindowFocus(null);
             }
-            boolean SEVWantMouse = sceneEditorViewport.getWantCaptureMouse();
+            boolean SEVWantMouse = SceneEditorViewport.getWantCaptureMouse();
             if (!wantCaptureMouse || SEVWantMouse || prioritizeEngineInputCallback.get()) {
                 MouseListener.mouseButtonCallback(w, button, action, mods);
             }
@@ -109,7 +108,7 @@ public final class ImGuiLayer {
             if (!wantCaptureMouse && (Math.abs(x) > 0 || Math.abs(y) > 0)) {
                 ImGui.setWindowFocus(null);
             }
-            boolean SEVWantMouse = sceneEditorViewport.getWantCaptureMouse();
+            boolean SEVWantMouse = SceneEditorViewport.getWantCaptureMouse();
             if (!wantCaptureMouse || SEVWantMouse || prioritizeEngineInputCallback.get()) {
                 MouseListener.mouseScrollCallback(w, x, y);
             }
@@ -153,7 +152,7 @@ public final class ImGuiLayer {
             return;
         }
         ResourcePanel.imgui();
-        sceneEditorViewport.imgui();
+        SceneEditorViewport.imgui();
         Properties.imgui();
         SceneTree.imgui();
         BottomPanel.imgui();
@@ -162,6 +161,7 @@ public final class ImGuiLayer {
         glClearColor(0, 0,0,1);
         glClear(GL_COLOR_BUFFER_BIT);
         wantedCaptureMouse.set(io.getWantCaptureMouse());
+        wantedCaptureKey.set(io.getWantCaptureKeyboard());
         ImGui.render();
         imGuiGl3.renderDrawData(ImGui.getDrawData());
         if (ImGui.getIO().hasConfigFlags(ImGuiConfigFlags.ViewportsEnable)) {
@@ -219,14 +219,6 @@ public final class ImGuiLayer {
     }
 
     /**
-     * Get the Scene Editor Viewport of the Editor UI.
-     * @return the {@link SceneEditorViewport} reference
-     */
-    public SceneEditorViewport getSceneEditorViewPort() {
-        return sceneEditorViewport;
-    }
-
-    /**
      * Request the Editor UI to reset its layout.
      */
     public static void resetLayout() {
@@ -246,7 +238,7 @@ public final class ImGuiLayer {
      * @return true if wanted keyboard capture
      */
     public static boolean editorWantCaptureKeyboard() {
-        return wantedCaptureMouse.get();
+        return wantedCaptureKey.get();
     }
 
     /**

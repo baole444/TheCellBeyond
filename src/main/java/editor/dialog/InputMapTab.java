@@ -379,7 +379,6 @@ class InputMapTab {
                 newMods.add(keyCode);
             }
         }
-
         for (int keyCode : KeyListener.getTappedKeyCode()) {
             if (Input.isModifierKey(keyCode)) continue;
 

@@ -1,7 +1,6 @@
 package TheCellBeyond;
 
 import TheCellBeyond.internal.LogicServer;
-import editor.ImGuiLayer;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
@@ -37,8 +36,6 @@ public class MouseListener {
     }
 
     public static synchronized void mousePosCallback(long window, double xPos, double yPos) {
-        ImGuiLayer layer = Window.getImGuiLayer();
-        if (layer != null && layer.getSceneEditorViewPort() != null && !layer.getSceneEditorViewPort().getWantCaptureMouse()) clear();
         MouseListener listener = get();
         if (listener == null) return;
         if (listener.countButtonDown > 0) listener.isDragging = true;

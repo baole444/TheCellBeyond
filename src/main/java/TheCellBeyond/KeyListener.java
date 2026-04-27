@@ -19,20 +19,15 @@ public class KeyListener {
 
     private KeyListener() {}
     public static KeyListener get() {
-        if (KeyListener.instance == null) {
-            KeyListener.instance = new KeyListener();
-        }
+        if (KeyListener.instance == null) KeyListener.instance = new KeyListener();
         return KeyListener.instance;
     }
 
     public static synchronized void keyCallback(long window, int key, int scancode, int action, int mods) {
         if (!isKeyValid(key)) return;
-
         KeyListener listener = get();
         if (listener == null) return;
-
         listener.mods = mods;
-
         if (action == GLFW_PRESS) {
             listener.keyPressed[key] = true;
             listener.keyTapped[key] = true;
@@ -40,10 +35,8 @@ public class KeyListener {
             listener.keyReleased[key] = false;
             return;
         }
-
         if (action == GLFW_RELEASE) {
             listener.keyPressed[key] = false;
-            listener.keyTapped[key] = false;
             listener.keyReleased[key] = true;
         }
     }
@@ -51,7 +44,6 @@ public class KeyListener {
     public static void charCallback(long window, int codepoint) {
         KeyListener listener = get();
         if (listener == null) return;
-
         char c = (char) codepoint;
         listener.textInput.append(c);
         listener.hasTextInput = true;
@@ -64,7 +56,6 @@ public class KeyListener {
     public static String getTextInput() {
         KeyListener listener = get();
         if (listener == null) return "";
-
         String result = listener.textInput.toString();
         listener.textInput.setLength(0);
         listener.hasTextInput = false;
@@ -74,7 +65,6 @@ public class KeyListener {
     public static boolean hasTextInput() {
         KeyListener listener = get();
         if (listener == null) return false;
-
         return listener.hasTextInput;
     }
 
@@ -86,14 +76,12 @@ public class KeyListener {
     public static boolean isKeyTapped(int keyCode) {
         KeyListener listener = get();
         if (listener == null || !isKeyValid(keyCode)) return false;
-
         return listener.keyTapped[keyCode];
     }
 
     public static List<Integer> getTappedKeyCode() {
         KeyListener listener = get();
         if (listener == null) return List.of();
-
         return new ArrayList<>(listener.tappedKeyCodes);
     }
 
@@ -105,7 +93,6 @@ public class KeyListener {
     public static boolean isKeyPressed(int keyCode) {
         KeyListener listener = get();
         if (listener == null || !isKeyValid(keyCode)) return false;
-
         return listener.keyPressed[keyCode];
     }
 
@@ -117,7 +104,6 @@ public class KeyListener {
     public static boolean isKeyReleased(int keyCode) {
         KeyListener listener = get();
         if (listener == null || !isKeyValid(keyCode)) return false;
-
         return listener.keyReleased[keyCode];
     }
 
@@ -130,7 +116,6 @@ public class KeyListener {
     public static boolean isKeyTapped(int keyCode, int modCode) {
         KeyListener listener = get();
         if (listener == null || !isKeyValid(keyCode)) return false;
-
         return listener.keyTapped[keyCode] && (listener.mods & modCode) == modCode;
     }
 
@@ -143,7 +128,6 @@ public class KeyListener {
     public static boolean isKeyPressed(int keyCode, int modCode) {
         KeyListener listener = get();
         if (listener == null || !isKeyValid(keyCode)) return false;
-
         return listener.keyPressed[keyCode] && (listener.mods & modCode) == modCode;
     }
 
@@ -156,14 +140,12 @@ public class KeyListener {
     public static boolean isKeyReleased(int keyCode, int modCode) {
         KeyListener listener = get();
         if (listener == null || !isKeyValid(keyCode)) return false;
-
         return listener.keyReleased[keyCode] && (listener.mods & modCode) == modCode;
     }
 
     public static void endFrame() {
         KeyListener listener = get();
         if (listener == null) return;
-
         Arrays.fill(listener.keyTapped, false);
         Arrays.fill(listener.keyReleased, false);
         listener.mods = 0;

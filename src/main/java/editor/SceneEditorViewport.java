@@ -25,22 +25,23 @@ import scene.SceneManager;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ENTER;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
 
-public class SceneEditorViewport implements EngineEventListener {
-    public static volatile String WindowID = "2D Scene###Editor_Scene_Viewport";
-    private float leftX, rightX, topY, bottomY;
-    private boolean isPlaying = false;
-    private String currentSceneName = null;
-    private boolean renaming = false;
-    private boolean renameFocus = false;
-    private final ImString renameBuffer = new ImString(128);
-    public transient float currentWidth;
-    public transient float currentHeight;
+final class SceneEditorViewport implements EngineEventListener {
+    private static final SceneEditorViewport instance = new SceneEditorViewport();
+    static volatile String WindowID = "2D Scene###Editor_Scene_Viewport";
+    private static float leftX, rightX, topY, bottomY;
+    private static boolean isPlaying = false;
+    private static String currentSceneName = null;
+    private static boolean renaming = false;
+    private static boolean renameFocus = false;
+    private static final ImString renameBuffer = new ImString(128);
+    private static float currentWidth;
+    private static float currentHeight;
 
-    SceneEditorViewport() {
+    private SceneEditorViewport() {
         register();
     }
 
-    public void imgui() {
+    static void imgui() {
         currentSceneName = resolveDisplaySceneName();
         if (!ImGui.begin(WindowID, ImGuiWindowFlags.NoScrollbar
                 | ImGuiWindowFlags.NoScrollWithMouse
@@ -113,7 +114,7 @@ public class SceneEditorViewport implements EngineEventListener {
         ImGui.end();
     }
 
-    private void renderFPS(ImVec2 cursorPos) {
+    private static void renderFPS(ImVec2 cursorPos) {
         String fps = String.format("%.2f FPS", Window.FPS);
         float remainWidth = ImGui.getContentRegionAvailX();
         float textWidth = ImGui.calcTextSizeX(fps);
@@ -122,7 +123,7 @@ public class SceneEditorViewport implements EngineEventListener {
         ImGui.text(fps);
     }
 
-    private void renderSceneName() {
+    private static void renderSceneName() {
         if (renaming) {
             ImGui.pushItemWidth(ImGui.getContentRegionAvailX());
             ImGui.setKeyboardFocusHere();
@@ -159,7 +160,7 @@ public class SceneEditorViewport implements EngineEventListener {
         renameBuffer.set(currentSceneName);
     }
 
-    private void rename() {
+    private static void rename() {
         renaming = false;
         renameFocus = false;
         String newName = renameBuffer.get().trim();
@@ -167,7 +168,7 @@ public class SceneEditorViewport implements EngineEventListener {
         if (SceneManager.renameScene(currentSceneName, newName)) currentSceneName = newName;
     }
 
-    public boolean getWantCaptureMouse() {
+    public static boolean getWantCaptureMouse() {
         if (ImGui.isPopupOpen("", ImGuiPopupFlags.AnyPopup)) return false;
         return MouseListener.getX() >= leftX &&
                 MouseListener.getX() <= rightX &&
@@ -175,7 +176,7 @@ public class SceneEditorViewport implements EngineEventListener {
                 MouseListener.getY() <= topY;
     }
 
-    private ImVec2 getMaxViewportSize() {
+    private static ImVec2 getMaxViewportSize() {
         ImVec2 winSize = ImGui.getContentRegionAvail();
         FrameBuffer fb = Window.getFrameBuffer();
         float aspectRatio = LogicServer.runtimeMode() ?
@@ -196,7 +197,7 @@ public class SceneEditorViewport implements EngineEventListener {
         return new ImVec2(usableWidth, usableHeight);
     }
 
-    private ImVec2 getViewportToCentral(ImVec2 usableSize) {
+    private static ImVec2 getViewportToCentral(ImVec2 usableSize) {
         ImVec2 winSize = new ImVec2();
         ImGui.getContentRegionAvail(winSize);
 
@@ -224,7 +225,7 @@ public class SceneEditorViewport implements EngineEventListener {
         renameFocus = false;
     }
 
-    private String resolveDisplaySceneName() {
+    private static String resolveDisplaySceneName() {
         if (LogicServer.currentScene() == null) return null;
         String sceneName = LogicServer.currentSceneName();
         if (sceneName == null) return "Untitled";
