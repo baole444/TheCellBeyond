@@ -12,6 +12,7 @@ import utility.AssetReference;
 import utility.log.EngineLog;
 
 import java.nio.ByteBuffer;
+import java.nio.DoubleBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.HashMap;
@@ -110,10 +111,11 @@ class TCBFontLoader {
     private void generateGlyph(char ch) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             PointerBuffer pp = stack.mallocPointer(1);
+            DoubleBuffer dp = stack.mallocDouble(1);
             FT_Face face = FT_Face.create(ftFace);
             int glyphIndex = FT_Get_Char_Index(face, ch);
             boolean glyphOk = FT_Load_Glyph(face, glyphIndex, FT_LOAD_DEFAULT) == 0;
-            boolean shapeOK = msdf_ft_font_load_glyph(fontHandle, ch, MSDF_FONT_SCALING_EM_NORMALIZED, pp) == MSDF_SUCCESS;
+            boolean shapeOK = msdf_ft_font_load_glyph(fontHandle, ch, MSDF_FONT_SCALING_EM_NORMALIZED, dp, pp) == MSDF_SUCCESS;
             if (!shapeOK || !glyphOk) {
                 glyphData.put(ch, new MSDFGlyphData(
                         BufferUtils.createByteBuffer(FontAtlasLayout.BitmapSize * FontAtlasLayout.BitmapSize * 3),

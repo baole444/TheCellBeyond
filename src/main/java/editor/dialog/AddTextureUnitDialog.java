@@ -123,13 +123,13 @@ public class AddTextureUnitDialog {
 
     private static void renderPreviewSection() {
         float sectionY = DialogSize.y * imagePreviewYPercentage;
-        if (!ImGui.beginChild(PreviewImageID, new ImVec2(0.0f, sectionY), ImGuiChildFlags.Border)) {
+        if (!ImGui.beginChild(PreviewImageID, new ImVec2(0.0f, sectionY), ImGuiChildFlags.Borders)) {
             ImGui.endChild();
             return;
         }
         renderPreviewImage();
         ImGui.endChild();
-        if (!ImGui.beginChild(MetaID, new ImVec2(0.0f, 0.0f), ImGuiChildFlags.Border | ImGuiChildFlags.AutoResizeY)) {
+        if (!ImGui.beginChild(MetaID, new ImVec2(0.0f, 0.0f), ImGuiChildFlags.Borders | ImGuiChildFlags.AutoResizeY)) {
             ImGui.endChild();
             return;
         }

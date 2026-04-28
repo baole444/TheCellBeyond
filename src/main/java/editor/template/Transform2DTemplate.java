@@ -31,7 +31,7 @@ final class Transform2DTemplate implements IComponentTemplate<Transform2D> {
         boolean open = ImGui.collapsingHeader("Transform2D##Transform2D_Header_" + uuid);
         ImGui.popStyleColor(1);
         if (!open) return;
-        if (ImGui.beginChild("##Transform2D_Properties_Region_" + uuid, new ImVec2(0.0f, 0.0f), ImGuiChildFlags.AutoResizeY | ImGuiChildFlags.Border)) {
+        if (ImGui.beginChild("##Transform2D_Properties_Region_" + uuid, new ImVec2(0.0f, 0.0f), ImGuiChildFlags.AutoResizeY | ImGuiChildFlags.Borders)) {
             EditorWidget.dragVec2Ctrl("Position", component.position, 0.0f, WorldUnit.WorldUnitsPerPixel, component);
             EditorWidget.dragVec2Ctrl("Scale", component.scale, 1.0f, component);
             component.rotation = EditorWidget.dragFloatCtrl("Rotation", component.rotation, component);

@@ -49,7 +49,7 @@ final class SpriteRendererTemplate implements IComponentTemplate<SpriteRenderer>
         }
         float previewLimitY = 160.0f;
         if (sprite == null || sprite.getTexture() == null) {
-            if (ImGui.beginChild("##SpriteRender_DropTarget_Region_" + component.getUUID(), ImGui.getContentRegionAvailX(), previewLimitY, ImGuiChildFlags.Border)) {
+            if (ImGui.beginChild("##SpriteRender_DropTarget_Region_" + component.getUUID(), ImGui.getContentRegionAvailX(), previewLimitY, ImGuiChildFlags.Borders)) {
                 ImGui.pushStyleColor(ImGuiCol.Text, EditorColors.InstructionHighLight);
                 ImGui.textWrapped("No sprite assigned. Drag and drop a sprite from Sprite list here.");
                 ImGui.popStyleColor(1);

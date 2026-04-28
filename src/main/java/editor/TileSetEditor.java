@@ -100,7 +100,7 @@ public class TileSetEditor {
 
     private static void renderTileSetSpriteList() {
         if (editingTileMap == null) return;
-        if (!ImGui.beginChild("##TSE_TileSet_Sprite_List_Region", ImGui.getContentRegionAvail(), ImGuiChildFlags.Border)) {
+        if (!ImGui.beginChild("##TSE_TileSet_Sprite_List_Region", ImGui.getContentRegionAvail(), ImGuiChildFlags.Borders)) {
             ImGui.endChild();
             return;
         }
@@ -186,7 +186,7 @@ public class TileSetEditor {
 
     private static void renderTileProperties() {
         if (editingTileMap == null || editingTileMap.tileSet() == null || editingTileMap.tileSet().tileSetSprite() == null) return;
-        if (!ImGui.beginChild("##TSE_Tile_Properties_Region", ImGui.getContentRegionAvail(), ImGuiChildFlags.Border)) {
+        if (!ImGui.beginChild("##TSE_Tile_Properties_Region", ImGui.getContentRegionAvail(), ImGuiChildFlags.Borders)) {
             ImGui.endChild();
             return;
         }
@@ -228,7 +228,7 @@ public class TileSetEditor {
     }
 
     private static void renderTileSetControl() {
-        if (!ImGui.beginChild("##TileSet_Edit_Mode_Region", new ImVec2(0.0f, 0.0f), ImGuiChildFlags.AutoResizeY | ImGuiChildFlags.Border)) {
+        if (!ImGui.beginChild("##TileSet_Edit_Mode_Region", new ImVec2(0.0f, 0.0f), ImGuiChildFlags.AutoResizeY | ImGuiChildFlags.Borders)) {
             ImGui.endChild();
             return;
         }

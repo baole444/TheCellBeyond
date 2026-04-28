@@ -58,7 +58,7 @@ final class GameObjectTemplate implements IObjectTemplate<GameObject> {
                 continue;
             }
             if (!open) continue;
-            if (ImGui.beginChild("##GameObject_Component_Properties_Region_" + uuid, 0.0f, 0.0f, ImGuiChildFlags.AutoResizeY | ImGuiChildFlags.Border)) EditorTemplate.render(c);
+            if (ImGui.beginChild("##GameObject_Component_Properties_Region_" + uuid, 0.0f, 0.0f, ImGuiChildFlags.AutoResizeY | ImGuiChildFlags.Borders)) EditorTemplate.render(c);
             ImGui.endChild();
             ImGui.spacing();
         }

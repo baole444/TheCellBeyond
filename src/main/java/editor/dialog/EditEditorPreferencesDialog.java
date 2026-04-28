@@ -78,7 +78,7 @@ public final class EditEditorPreferencesDialog {
 
     private static void renderPreferenceEditor() {
         int sectionY = (int) (ImGui.getContentRegionAvailY() * metaYPercentage);
-        ImGui.beginChild(PreferenceID, new ImVec2(0.0f, sectionY), ImGuiChildFlags.Border);
+        ImGui.beginChild(PreferenceID, new ImVec2(0.0f, sectionY), ImGuiChildFlags.Borders);
         ImGui.text("Auto save:");
         ImGui.spacing();
         ImGui.checkbox("On exit", autoSaveOnExit);

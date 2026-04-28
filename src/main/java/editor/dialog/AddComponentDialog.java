@@ -101,7 +101,7 @@ public final class AddComponentDialog {
         if (ImGui.beginPopupModal(POPUP_ID, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)) {
             ImGui.text("Select one component type:");
             int sectionY = (int) (DIALOG_SIZE.y * listYPercentage);
-            ImGui.beginChild(COMPONENT_LIST_ID, 0.0f, sectionY, ImGuiChildFlags.Border);
+            ImGui.beginChild(COMPONENT_LIST_ID, 0.0f, sectionY, ImGuiChildFlags.Borders);
             for (ComponentType type : ComponentType.values()) {
                 boolean isSelected = selectedType == type;
                 if (ImGui.selectable(type.label() + "##" + type.name(), isSelected)) {
@@ -124,7 +124,7 @@ public final class AddComponentDialog {
             ImGui.separator();
             ImGui.text("Description:");
             sectionY = (int) (DIALOG_SIZE.y * descriptionYPercentage);
-            ImGui.beginChild(DESCRIPTION_SECTION_ID, 0.0f, sectionY, ImGuiChildFlags.Border);
+            ImGui.beginChild(DESCRIPTION_SECTION_ID, 0.0f, sectionY, ImGuiChildFlags.Borders);
             if (selectedType != null) {
                 ImGui.textWrapped(selectedType.description());
             } else {

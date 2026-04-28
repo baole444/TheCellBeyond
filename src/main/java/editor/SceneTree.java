@@ -49,7 +49,7 @@ public class SceneTree {
         float buttonH = ReservedButtonHeight * 0.9f;
         if (ImGui.button("Add new Object", buttonW, buttonH)) AddObjectDialog.show(root);
         ImGui.separator();
-        ImGui.beginChild(SceneTreeID, new ImVec2(0.0f, 0.0f), ImGuiChildFlags.Border);
+        ImGui.beginChild(SceneTreeID, new ImVec2(0.0f, 0.0f), ImGuiChildFlags.Borders);
         renderHierarchyTree(root, scene);
         boolean openOrphans = ImGui.collapsingHeader("Orphan Objects##SceneTree_Orphan_Object_Header");
         if (openOrphans) renderOrphans(scene);

@@ -188,7 +188,7 @@ public class TileMapEditor {
         }
         ImGui.endChild();
 
-        if (ImGui.beginChild("##TME_Image_Region", ImGuiChildFlags.Border, ImGuiWindowFlags.HorizontalScrollbar)) renderTileSetImage();
+        if (ImGui.beginChild("##TME_Image_Region", ImGuiChildFlags.Borders, ImGuiWindowFlags.HorizontalScrollbar)) renderTileSetImage();
         ImGui.endChild();
     }
 

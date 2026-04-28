@@ -127,7 +127,7 @@ public class AddSpriteSheetDialog {
 
     private static void renderFileSelection() {
         ImGui.text("Click \"Browse Files\" to select an image");
-        if (!ImGui.beginChild(FileSelectionID, new ImVec2(0.0f, 0.0f), ImGuiChildFlags.Border | ImGuiChildFlags.AutoResizeY)) {
+        if (!ImGui.beginChild(FileSelectionID, new ImVec2(0.0f, 0.0f), ImGuiChildFlags.Borders | ImGuiChildFlags.AutoResizeY)) {
             ImGui.endChild();
             return;
         }
@@ -150,7 +150,7 @@ public class AddSpriteSheetDialog {
 
     private static void renderPreviewSection() {
         int sectionY = (int) (DialogSize.y * previewYPercentage);
-        if (!ImGui.beginChild(PreviewSheetID, new ImVec2(0.0f, sectionY), ImGuiChildFlags.Border)) {
+        if (!ImGui.beginChild(PreviewSheetID, new ImVec2(0.0f, sectionY), ImGuiChildFlags.Borders)) {
             ImGui.endChild();
             return;
         }
@@ -252,7 +252,7 @@ public class AddSpriteSheetDialog {
 
     private static void renderSpritePropertiesEditor() {
         int ySection =(int) (ImGui.getTextLineHeightWithSpacing() * 6 + ImGui.getStyle().getFramePaddingY() * 5 + ImGui.getStyle().getItemSpacingY() * 11);
-        if (!ImGui.beginChild(MetaID, new ImVec2(0.0f, ySection), ImGuiChildFlags.Border)) {
+        if (!ImGui.beginChild(MetaID, new ImVec2(0.0f, ySection), ImGuiChildFlags.Borders)) {
             ImGui.endChild();
             return;
         }

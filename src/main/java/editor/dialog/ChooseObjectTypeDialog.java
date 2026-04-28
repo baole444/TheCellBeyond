@@ -77,7 +77,7 @@ public final class ChooseObjectTypeDialog {
             String header = replaceMode ? "Select new object type:" : "Select root object type for the new scene:";
             ImGui.text(header);
             int sectionY = (int) (DialogSize.y * ListYPercentage);
-            ImGui.beginChild(ObjectListID, 0.0f, sectionY, ImGuiChildFlags.Border);
+            ImGui.beginChild(ObjectListID, 0.0f, sectionY, ImGuiChildFlags.Borders);
             for (ObjectType type : ObjectType.values()) {
                 boolean isSelected = selectedType == type;
                 if (ImGui.selectable(type.label + "##" + type.name(), isSelected)) {
@@ -100,7 +100,7 @@ public final class ChooseObjectTypeDialog {
             ImGui.separator();
             ImGui.text("Description:");
             sectionY = (int) (DialogSize.y * DescriptionYPercentage);
-            ImGui.beginChild(DescriptionSectionID, 0.0f, sectionY, ImGuiChildFlags.Border);
+            ImGui.beginChild(DescriptionSectionID, 0.0f, sectionY, ImGuiChildFlags.Borders);
             if (selectedType != null) ImGui.textWrapped(selectedType.description);
             else if (selectedCustomType != null) ImGui.textWrapped(selectedCustomType.description());
             else ImGui.textDisabled("Select an object type to see it's description.");

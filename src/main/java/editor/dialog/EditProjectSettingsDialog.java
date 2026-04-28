@@ -130,7 +130,7 @@ public final class EditProjectSettingsDialog {
             float buttonWidth = 120;
             float buttonHeight = 30;
             float regionHeight = ImGui.getContentRegionAvailY() - ButtonReserve - SeparatorReserve - buttonHeight - padding;
-            if (ImGui.beginChild("##EPPD_Tab_Region", new ImVec2(0.0f, regionHeight), ImGuiChildFlags.Border)) {
+            if (ImGui.beginChild("##EPPD_Tab_Region", new ImVec2(0.0f, regionHeight), ImGuiChildFlags.Borders)) {
                 renderTabContent();
                 ImGui.endChild();
             }
