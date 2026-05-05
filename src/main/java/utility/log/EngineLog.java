@@ -10,65 +10,33 @@ import java.util.List;
  * or as an instance with prefix predefined.
  * <p>
  * All logs sent under EngineLog are stored in a shared {@link RingBuffer} of {@link LogEntry} with default capacity at 1024 entries.
+ *
+ * @param source The source's prefix string.
  */
-public class EngineLog {
-    /**
-     * Level enums define 4 log level with priority and prefix.
-     */
-    public enum Level {
-        /**
-         * Debugging log level.
-         */
-        Debug(0, "DEBUG"),
-        /**
-         * Information log level.
-         */
-        Info(1, "INFO"),
-        /**
-         * Warning log level.
-         */
-        Warning(2, "WARN"),
-        /**
-         * Error log level.
-         */
-        Error(3, "ERROR");
-
-        /**
-         * The priority of the level.
-         */
-        public final int priority;
-        /**
-         * The prefix string for the level.
-         */
-        public final String prefix;
-
-        Level(int priority, String prefix) {
-            this.priority = priority;
-            this.prefix = prefix;
-        }
-    }
-
+public record EngineLog(String source) {
     private static final RingBuffer<LogEntry> history = new RingBuffer<>(1024);
     /**
      * Default source prefix.
      */
-    public static final String defaultSource = "TCB/Main";
-    /**
-     * The source's prefix string.
-     */
-    public final String source;
+    public static final String defaultSource = "TCB/?";
+
+    public EngineLog {
+        if (source == null || source.isBlank()) source = defaultSource;
+    }
 
     /**
      * Create a new {@link EngineLog} using the given source for prefix.
+     *
      * @param source the class to use for prefix
      */
     public EngineLog(Class<?> source) {
         String simpleName = source != null ? source.getSimpleName() : "Unknown";
-        this.source = "TCB/" + simpleName;
+        this("TCB/" + simpleName);
     }
 
     /**
      * Log a message at the desired level.
+     *
      * @param level the level to log at
      * @param message the message to log
      */
@@ -78,6 +46,7 @@ public class EngineLog {
 
     /**
      * Log a message at the {@link Level#Debug} level.
+     *
      * @param message the message to log
      */
     public void debug(String message) {
@@ -86,6 +55,7 @@ public class EngineLog {
 
     /**
      * Log a message at the {@link Level#Info} level.
+     *
      * @param message the message to log
      */
     public void info(String message) {
@@ -94,6 +64,7 @@ public class EngineLog {
 
     /**
      * Log a message at the {@link Level#Warning} level.
+     *
      * @param message the message to log
      */
     public void warning(String message) {
@@ -102,6 +73,7 @@ public class EngineLog {
 
     /**
      * Log a message at the {@link Level#Error} level.
+     *
      * @param message the message to log
      */
     public void error(String message) {
@@ -113,6 +85,7 @@ public class EngineLog {
      * <p>
      * If the {@code level} and {@code message} are valid, a new {@link LogEntry} is made and added to the history.
      * This will then invoke the callback to emit the log event with the new log entry.
+     *
      * @param level the level of the log entry
      * @param source the source prefix for the log entry
      * @param message the message for the log entry
@@ -127,6 +100,7 @@ public class EngineLog {
 
     /**
      * Log a message from a source at the {@link Level#Debug} level.
+     *
      * @param source the source of the message
      * @param message the message to log
      */
@@ -136,6 +110,7 @@ public class EngineLog {
 
     /**
      * Log a message from a source at the {@link Level#Info} level.
+     *
      * @param source the source of the message
      * @param message the message to log
      */
@@ -145,6 +120,7 @@ public class EngineLog {
 
     /**
      * Log a message from a source at the {@link Level#Warning} level.
+     *
      * @param source the source of the message
      * @param message the message to log
      */
@@ -154,6 +130,7 @@ public class EngineLog {
 
     /**
      * Log a message from a source at the {@link Level#Error} level.
+     *
      * @param source the source of the message
      * @param message the message to log
      */
@@ -163,6 +140,7 @@ public class EngineLog {
 
     /**
      * Get all the log entries in history.
+     *
      * @return a list of log entries created from history
      */
     public static List<LogEntry> logs() {
@@ -171,6 +149,7 @@ public class EngineLog {
 
     /**
      * Get all the log entries of {@link Level#Debug} level in history.
+     *
      * @return a list of debug log entries from history
      */
     public static List<LogEntry> debugLogs() {
@@ -179,6 +158,7 @@ public class EngineLog {
 
     /**
      * Get all the log entries of {@link Level#Info} level in history.
+     *
      * @return a list of info log entries from history
      */
     public static List<LogEntry> infoLogs() {
@@ -187,6 +167,7 @@ public class EngineLog {
 
     /**
      * Get all the log entries of {@link Level#Warning} level in history.
+     *
      * @return a list of warning log entries from history
      */
     public static List<LogEntry> warningLogs() {
@@ -195,6 +176,7 @@ public class EngineLog {
 
     /**
      * Get all the log entries of {@link Level#Error} level in history.
+     *
      * @return a list of error log entries from history
      */
     public static List<LogEntry> errorLogs() {

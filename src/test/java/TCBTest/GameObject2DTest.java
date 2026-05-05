@@ -4,7 +4,7 @@ import TheCellBeyond.GameObject2D;
 import org.joml.Vector2f;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class GameObject2DTest {
     private static final float epsilon = 0.001f;

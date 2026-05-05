@@ -7,10 +7,7 @@ import imgui.flag.ImGuiTableColumnFlags;
 import imgui.flag.ImGuiTableFlags;
 import imgui.type.ImBoolean;
 import utility.RingBuffer;
-import utility.log.EngineLog;
-import utility.log.EngineLogCallback;
-import utility.log.EngineLogListener;
-import utility.log.LogEntry;
+import utility.log.*;
 
 import java.util.EnumMap;
 import java.util.List;
@@ -35,7 +32,7 @@ public final class ConsoleOutput implements EngineLogListener {
     private final ImBoolean enableInfo = new ImBoolean(true);
     private final ImBoolean enableWarning = new ImBoolean(true);
     private final ImBoolean enableError = new ImBoolean(true);
-    private final EnumMap<EngineLog.Level, ImBoolean> logFilter;
+    private final EnumMap<Level, ImBoolean> logFilter;
     private final RingBuffer<LogEntry> entries;
 
     static {
@@ -47,11 +44,11 @@ public final class ConsoleOutput implements EngineLogListener {
      */
     private ConsoleOutput() {
         entries = new RingBuffer<>(1024);
-        logFilter = new EnumMap<>(EngineLog.Level.class);
-        logFilter.put(EngineLog.Level.Debug, enableDebug);
-        logFilter.put(EngineLog.Level.Info, enableInfo);
-        logFilter.put(EngineLog.Level.Warning, enableWarning);
-        logFilter.put(EngineLog.Level.Error, enableError);
+        logFilter = new EnumMap<>(Level.class);
+        logFilter.put(Level.Debug, enableDebug);
+        logFilter.put(Level.Info, enableInfo);
+        logFilter.put(Level.Warning, enableWarning);
+        logFilter.put(Level.Error, enableError);
         List<LogEntry> backlogs = EngineLog.logs();
         for (LogEntry entry : backlogs) {
             entries.add(entry);
@@ -135,7 +132,7 @@ public final class ConsoleOutput implements EngineLogListener {
 
     private boolean isLogLevelEnable(LogEntry entry) {
         if (entry == null) return false;
-        EngineLog.Level level = entry.level();
+        Level level = entry.level();
         return logFilter.get(level).get();
     }
 

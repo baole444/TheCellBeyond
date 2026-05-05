@@ -4,20 +4,17 @@ import TheCellBeyond.internal.ResourceID;
 import TheCellBeyond.internal.ResourceStatus;
 import TheCellBeyond.internal.ResourceStatusCallback;
 import TheCellBeyond.internal.ResourceStatusListener;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import render.text.GlyphRange;
 import render.text.TCBFont;
 import utility.AssetManager;
 import utility.Settings;
-import utility.UnifiedPaths;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 
 public class TCBFontTest {
