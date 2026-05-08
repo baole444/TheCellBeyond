@@ -30,17 +30,14 @@ public class OpenProjectDialog {
                 handleType = NFD_WINDOW_HANDLE_TYPE_X11;
                 windowHandle = glfwGetX11Window(ptr);
             }
-
             case MACOSX -> {
                 handleType = NFD_WINDOW_HANDLE_TYPE_COCOA;
                 windowHandle = glfwGetCocoaWindow(ptr);
             }
-
             case WINDOWS -> {
                 handleType = NFD_WINDOW_HANDLE_TYPE_WINDOWS;
                 windowHandle = glfwGetWin32Window(ptr);
             }
-
             default -> {
                 handleType = NFD_WINDOW_HANDLE_TYPE_UNSET;
                 windowHandle = NULL;
@@ -52,15 +49,12 @@ public class OpenProjectDialog {
         if (windowHandle == -1 || handleType == -1) {
             setPlatform();
         }
-
         try (MemoryStack stack = MemoryStack.stackPush()) {
             NFDFilterItem.Buffer filter = NFDFilterItem.malloc(1);
             filter.get(0)
                     .name(stack.UTF8("_project"))
                     .spec(stack.UTF8("yml,yaml"));
-
             PointerBuffer pointerBuffer = stack.mallocPointer(1);
-
             int result = NFD_OpenDialog_With(pointerBuffer, NFDOpenDialogArgs.calloc(stack)
                     .filterList(filter)
                     .parentWindow(it -> it
@@ -68,7 +62,6 @@ public class OpenProjectDialog {
                             .handle(windowHandle)
                     )
             );
-
             return checkResult(result, pointerBuffer);
         } catch (Exception e) {
             System.err.println("Error while opening file dialog: " + e.getMessage());
@@ -82,7 +75,6 @@ public class OpenProjectDialog {
             case NFD_OKAY -> {
                 long pathPtr = pp.get(0);
                 String selectedPath = memUTF8(pathPtr);
-
                 if (isFileValid(selectedPath)){
                     validPath = Paths.get(selectedPath);
                     NFD_FreePath(pathPtr);
@@ -94,17 +86,11 @@ public class OpenProjectDialog {
             case NFD_CANCEL -> {}
             default -> System.err.format("Error: %s\n", NFD_GetError());
         }
-
         return validPath;
     }
 
     private static boolean isFileValid(String path) {
-        if (path == null || path.isEmpty()) {
-            return false;
-        }
-
-        if (!Files.exists(Paths.get(path))) return false;
-
+        if (path == null || path.isEmpty() || !Files.exists(Paths.get(path))) return false;
         return path.toLowerCase().endsWith(".yml") || path.toLowerCase().endsWith(".yaml");
     }
 }

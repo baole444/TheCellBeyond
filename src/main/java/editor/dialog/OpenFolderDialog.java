@@ -60,7 +60,6 @@ public class OpenFolderDialog {
                             .handle(windowHandle)
                     )
             );
-
             // Check the result, set project file path and free the pointer.
             return checkResult(result, outPath);
         } catch (Exception e) {

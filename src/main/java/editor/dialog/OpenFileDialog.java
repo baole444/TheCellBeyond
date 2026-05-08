@@ -78,13 +78,10 @@ public class OpenFileDialog {
         if (windowHandle == -1 || handleType == -1) {
             setPlatform();
         }
-
         try (MemoryStack stack = MemoryStack.stackPush()) {
             PointerBuffer pointerBuffer = stack.mallocPointer(1);
-
             NFDOpenDialogArgs args = NFDOpenDialogArgs.calloc(stack).
                     parentWindow(it -> it.type(handleType).handle(windowHandle));
-
             if (!fileExtensions.isEmpty()) {
                 NFDFilterItem.Buffer filter = NFDFilterItem.malloc(1);
                 String joined = String.join(",", fileExtensions);
@@ -93,9 +90,7 @@ public class OpenFileDialog {
                         .spec(stack.UTF8(joined));
                 args.filterList(filter);
             }
-
             int result = NFD_OpenDialog_With(pointerBuffer, args);
-
             return checkResult(result, pointerBuffer);
         } catch (Exception e) {
             System.err.println("Error while opening file dialog: " + e.getMessage());
@@ -108,10 +103,8 @@ public class OpenFileDialog {
             case NFD_OKAY -> {
                 long pathPtr = pp.get(0);
                 String selectedPath = memUTF8(pathPtr);
-
                 if (isFileValid(selectedPath)){
                     NFD_FreePath(pathPtr);
-
                     return selectedPath;
                 } else {
                     System.out.println("Selected file format not supported.");
@@ -121,7 +114,6 @@ public class OpenFileDialog {
             case NFD_CANCEL -> {}
             default -> System.err.format("Error: %s\n", NFD_GetError());
         }
-
         return null;
     }
 

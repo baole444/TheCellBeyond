@@ -1,55 +1,97 @@
 package editor;
 
+import TheCellBeyond.KeyListener;
+import TheCellBeyond.MouseListener;
+import TheCellBeyond.Window;
 import editor.dialog.NewProjectDialog;
 import editor.dialog.OpenProjectDialog;
 import editor.dialog.RemoveMissingProjectDialog;
 import editor.preference.RecentProject;
 import editor.preference.UserPreference;
-import eventviewer.EngineEventCallback;
-import eventviewer.event.EditorEvent;
 import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.*;
+import org.lwjgl.glfw.GLFWErrorCallback;
+import org.lwjgl.opengl.GL;
+import org.lwjgl.system.Callback;
 import project.Project;
 import project.ProjectData;
 import project.ProjectPreference;
 import tools.jackson.core.exc.JacksonIOException;
+import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.dataformat.yaml.YAMLFactory;
+import utility.log.Stream2Log;
 
 import java.io.File;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
+import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.util.nfd.NativeFileDialog.NFD_Init;
+import static org.lwjgl.util.nfd.NativeFileDialog.NFD_Quit;
+import static org.lwjgl.system.MemoryUtil.NULL;
 
-public class StartupWindow {
+public final class StartupWindow {
     private static final String TABLE_ID = "Project Manager";
-    private static final ImVec2 IMGUI_WINDOW_SIZE = new ImVec2(960, 720);
+    private static final ImVec2 EditorWindowSize = new ImVec2(960, 720);
     private static final float projectListXPercentage = 0.75f;
-
     private static final HashMap<UUID, RecentProject> recentProjects = new HashMap<>();
     private static RecentProject selectedProject = null;
     private static UUID selectedUUID = null;
+    private static String pendingSelection = null;
+    private static long windowPtr;
+    private static ImGuiLayer imGuiLayer;
+    private static final ObjectMapper YAMLMapper = new ObjectMapper(new YAMLFactory()).rebuild().disable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES).build();
 
-    private static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory());
+    public static void init() {
+        GLFWErrorCallback.createPrint(Stream2Log.err).set();
+        if (!glfwInit()) throw new RuntimeException("Failed to initialize GLFW");
+        glfwDefaultWindowHints();
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+        glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+        glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE);
+        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+        int w = (int) EditorWindowSize.x;
+        int h = (int) EditorWindowSize.y;
+        windowPtr = glfwCreateWindow(w, h, "", NULL, NULL);
+        if (windowPtr == NULL) throw new RuntimeException("Failed to create startup window");
+        var screenSize = Window.screenSize();
+        glfwSetWindowPos(windowPtr, (screenSize.x - w) / 2, (screenSize.y - h) / 2);
+        glfwMakeContextCurrent(windowPtr);
+        glfwSwapInterval(1);
+        GL.createCapabilities();
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+        freeOld(glfwSetCharCallback(windowPtr, KeyListener::charCallback));
+        glfwSetInputMode(windowPtr, GLFW_IME, GLFW_TRUE);
+        NFD_Init();
+        imGuiLayer = new ImGuiLayer(windowPtr);
+        imGuiLayer.initImGui("#version 330 core");
+        ImGui.getIO().setIniFilename(null);
+        glfwShowWindow(windowPtr);
+    }
 
-    public static void show(long windowPtr, ImGuiLayer imGuiLayer, int width, int height) {
-        boolean loaded = false;
+    public static String show() {
+        pendingSelection = null;
         recentProjects.clear();
         recentProjects.putAll(UserPreference.recentProjects());
-        while (!glfwWindowShouldClose(windowPtr) && !loaded) {
+        while (!glfwWindowShouldClose(windowPtr) && pendingSelection == null) {
             glfwPollEvents();
-            glClearColor(0.1f, 0.1f, 0.1f, 0.0f);
+            glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
             glClear(GL_COLOR_BUFFER_BIT);
             imGuiLayer.getImGuiGlfw().newFrame();
             imGuiLayer.getImGuiGl3().newFrame();
             ImGui.newFrame();
-            ImGui.setNextWindowPos(width / 2.0f, height / 2.0f, ImGuiCond.Always, 0.5f, 0.5f);
-            ImGui.setNextWindowSize(IMGUI_WINDOW_SIZE);
+            ImGui.setNextWindowPos(EditorWindowSize.x / 2.0f, EditorWindowSize.y / 2.0f, ImGuiCond.Always, 0.5f, 0.5f);
+            ImGui.setNextWindowSize(EditorWindowSize);
             if (!ImGui.begin("Welcome to The Cell Beyond Editor", ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse)) {
                 ImGui.end();
                 continue;
@@ -66,11 +108,33 @@ public class StartupWindow {
                 glfwMakeContextCurrent(backupWindowPtr);
             }
             glfwSwapBuffers(windowPtr);
-            loaded = (Project.currentProject() != null && Project.projectRoot() != null);
+            if (pendingSelection == null && Project.loaded()) pendingSelection = Project.projectYMLPath();
         }
         recentProjects.clear();
         selectedProject = null;
         selectedUUID = null;
+        String result = pendingSelection;
+        pendingSelection = null;
+        return result;
+    }
+
+    public static void dispose() {
+        MouseListener.clear();
+        KeyListener.clear();
+        imGuiLayer.getImGuiGl3().shutdown();
+        imGuiLayer.getImGuiGlfw().shutdown();
+        ImGui.destroyContext();
+        glfwFreeCallbacks(windowPtr);
+        glfwDestroyWindow(windowPtr);
+        windowPtr = 0;
+        imGuiLayer = null;
+        glfwTerminate();
+        NFD_Quit();
+        Objects.requireNonNull(glfwSetErrorCallback(null)).free();
+    }
+
+    private static void freeOld(Callback old) {
+        if (old != null) old.free();
     }
 
     private static void renderProjectList() {
@@ -127,7 +191,7 @@ public class StartupWindow {
                         UserPreference.addRecentProject(recentProject);
                     }
                 }
-                EngineEventCallback.emit(selectedPath.toString(), new EditorEvent(EditorEvent.Type.LoadProjectFromDisk));
+                pendingSelection = selectedPath.toString();
             }
         }
         ImGui.spacing();
@@ -138,6 +202,11 @@ public class StartupWindow {
         ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0.2f, 0.7f, 0.2f, 1.0f);
         if (ImGui.button("New Project", buttonWidth, buttonHeight)) NewProjectDialog.show();
         ImGui.popStyleColor(3);
+        float remainHeight = ImGui.getContentRegionAvailY() - buttonHeight;
+        ImGui.setCursorPosY(ImGui.getCursorPosY() + remainHeight);
+        EditorColors.RedButton.create(() -> {
+            if (ImGui.button("Exit...", buttonWidth, buttonHeight)) glfwSetWindowShouldClose(windowPtr, true);
+        });
         ImGui.endChild();
     }
 
@@ -194,7 +263,7 @@ public class StartupWindow {
         ProjectData selectedProject;
         try {
             File projectFile = new File(path);
-            selectedProject = YAML_MAPPER.readValue(projectFile, ProjectData.class);
+            selectedProject = YAMLMapper.readValue(projectFile, ProjectData.class);
             if (selectedProject != null && selectedProject.project() == null) {
                 System.err.println("Project preference is missing, generating new preference...");
                 selectedProject = new ProjectData(selectedProject.version(),
@@ -213,7 +282,7 @@ public class StartupWindow {
 
     private static void startEditing() {
         if (selectedProject.isPresentedAtPath()) {
-            EngineEventCallback.emit(selectedProject.path(), new EditorEvent(EditorEvent.Type.LoadProjectFromDisk));
+            pendingSelection = selectedProject.path();
             return;
         }
         RemoveMissingProjectDialog.show(() -> {

@@ -152,6 +152,10 @@ public class KeyListener {
         listener.tappedKeyCodes.clear();
     }
 
+    public static void clear() {
+        endFrame();
+    }
+
     private static boolean isKeyValid(int keyCode) {
         return keyCode >= 0 && keyCode <= GLFW_KEY_LAST;
     }

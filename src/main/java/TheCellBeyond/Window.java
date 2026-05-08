@@ -3,7 +3,6 @@ package TheCellBeyond;
 import TheCellBeyond.internal.LogicServer;
 import TheCellBeyond.internal.RenderingServer;
 import editor.ImGuiLayer;
-import editor.StartupWindow;
 import editor.dialog.ExitConfirmDialog;
 import editor.preference.UserPreference;
 import eventviewer.EngineEventCallback;
@@ -17,12 +16,12 @@ import org.joml.Vector4f;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWImage;
-import org.lwjgl.glfw.GLFWWindowCloseCallback;
 import org.lwjgl.openal.AL;
 import org.lwjgl.openal.ALC;
 import org.lwjgl.openal.ALCCapabilities;
 import org.lwjgl.openal.ALCapabilities;
 import org.lwjgl.opengl.GL;
+import org.lwjgl.system.Callback;
 import org.lwjgl.system.Platform;
 import physic2d.Physic2D;
 import project.ClearColor;
@@ -35,6 +34,7 @@ import scene.SceneManager;
 import utility.AssetManager;
 import utility.Settings;
 import utility.log.EngineLog;
+import utility.log.Stream2Log;
 
 import java.awt.*;
 import java.util.Objects;
@@ -45,6 +45,8 @@ import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.openal.ALC10.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
+import static org.lwjgl.util.nfd.NativeFileDialog.NFD_Init;
+import static org.lwjgl.util.nfd.NativeFileDialog.NFD_Quit;
 
 /**
  * The main window of TheCellBeyond Engine, responsible for initializing GLFW window and IO callbacks.
@@ -139,29 +141,71 @@ public final class Window implements EngineEventListener {
         String renderer = glGetString(GL_RENDERER);
         String version = glGetString(GL_VERSION);
         Logger.info("Active GPU: " + renderer + " Driver version: " + version);
-        if (!projectLoaded) {
-            StartupWindow.show(windowPtr, imGuiLayer, width, height);
-            projectLoaded = (Project.currentProject() != null && Project.projectRoot() != null);
-            if (glfwWindowShouldClose(windowPtr)) {
-                endScreen();
-                return;
-            }
-        }
-        if (projectLoaded) {
-            String projectDetail = " - [" + Project.preference().name() + "] [" + Project.projectRoot() + "]";
-            glfwSetWindowTitle(windowPtr, this.title + projectDetail);
-            loop();
-        }
+        EngineEventCallback.emit(Main.openProjectPath(), new EditorEvent(EditorEvent.Type.LoadProjectFromDisk));
+        projectLoaded = Project.loaded();
+        String projectDetail = " - [" + Project.preference().name() + "] [" + Project.projectRoot() + "]";
+        glfwSetWindowTitle(windowPtr, this.title + projectDetail);
+        loop();
         endScreen();
-        Objects.requireNonNull(glfwSetErrorCallback(null)).free();
+    }
+
+    /**
+     * Get this window pointer.
+     * @return the pointer address
+     */
+    public long getWindowPtr() {
+        return windowPtr;
+    }
+
+    public static int getWidth() {
+        return get().width;
+    }
+
+    public static int getHeight() {
+        return get().height;
+    }
+
+    public static FrameBuffer getFrameBuffer() {
+        return get().frameBuffer;
+    }
+
+    public static float getTargetAspectRatio() {
+        return Project.getGameAspectRatio();
+    }
+
+    public static ImGuiLayer getImGuiLayer() {
+        return get().imGuiLayer;
+    }
+
+    public static ObjectSelection getObjectSelection() {
+        return get().objectSelection;
+    }
+
+    public void forceClose() {
+        forceClose = true;
+    }
+
+    /**
+     * Return current active display size that the windows is on.
+     */
+    public static Vector2i screenSize() {
+        GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+        int w = device.getDisplayMode().getWidth();
+        int h = device.getDisplayMode().getHeight();
+        return new Vector2i(w, h);
+    }
+
+    /**
+     * Check if audio is supported.
+     * @return false if not.
+     */
+    public static boolean noAudioSupport() {
+        return noAudioSupport;
     }
 
     private void initWindow() {
-        GLFWErrorCallback.createPrint(System.err).set();
-        if (!glfwInit()) {
-            Logger.error("Failed to initialize window: GLFW init failed");
-            System.exit(-1);
-        }
+        GLFWErrorCallback.createPrint(Stream2Log.err).set();
+        if (!glfwInit()) throw new RuntimeException("Failed to initialize GLFW");
         String glslVer = "#version 330 core";
         Vector2i windowSize = screenSize();
         width = windowSize.x;
@@ -169,10 +213,7 @@ public final class Window implements EngineEventListener {
         applyWindowHints();
         windowPtr = glfwCreateWindow(width, height, title, NULL, NULL);
         Logger.info("Creating new window, dimension: " + width + " x " + height);
-        if (windowPtr == NULL) {
-            Logger.error("Failed to create GLFW window: null pointer");
-            System.exit(-1);
-        }
+        if (windowPtr == NULL) throw new RuntimeException("Failed to create editor window");
         setupWindowCallback();
         glfwMakeContextCurrent(windowPtr);
         applyVsync(VsyncMode.Enabled);
@@ -181,6 +222,7 @@ public final class Window implements EngineEventListener {
         GL.createCapabilities();
         glEnable(GL_BLEND);
         glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+        NFD_Init();
         frameBuffer = new FrameBuffer(width, height);
         objectSelection = new ObjectSelection(width, height);
         glViewport(0, 0, width, height);
@@ -227,10 +269,6 @@ public final class Window implements EngineEventListener {
         noAudioSupport = false;
     }
 
-    public static boolean noAudioSupport() {
-        return noAudioSupport;
-    }
-
     private static void applyWindowHints() {
         glfwDefaultWindowHints();
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -241,7 +279,7 @@ public final class Window implements EngineEventListener {
     }
 
     private void setupWindowCallback() {
-        glfwSetWindowSizeCallback(windowPtr, (window, w, h) -> {
+        freeOld(glfwSetWindowSizeCallback(windowPtr, (_, w, h) -> {
             if (w <= 0 || h <= 0) return;
             width = w;
             height = h;
@@ -251,38 +289,28 @@ public final class Window implements EngineEventListener {
                 LogicServer.currentScene().viewport().updateAspectRatio(width, height);
             }
             glViewport(0, 0, width, height);
-        });
-        glfwSetCursorPosCallback(windowPtr, MouseListener::mousePosCallback);
-        glfwSetMouseButtonCallback(windowPtr, MouseListener::mouseButtonCallback);
-        glfwSetScrollCallback(windowPtr, MouseListener::mouseScrollCallback);
-        glfwSetKeyCallback(windowPtr, KeyListener::keyCallback);
-        glfwSetCharCallback(windowPtr, KeyListener::charCallback);
+        }));
+        freeOld(glfwSetCursorPosCallback(windowPtr, MouseListener::mousePosCallback));
+        freeOld(glfwSetMouseButtonCallback(windowPtr, MouseListener::mouseButtonCallback));
+        freeOld(glfwSetScrollCallback(windowPtr, MouseListener::mouseScrollCallback));
+        freeOld(glfwSetKeyCallback(windowPtr, KeyListener::keyCallback));
+        freeOld(glfwSetCharCallback(windowPtr, KeyListener::charCallback));
         glfwSetInputMode(windowPtr, GLFW_IME, GLFW_TRUE);
-        glfwSetWindowCloseCallback(windowPtr, new GLFWWindowCloseCallback() {
-            @Override
-            public void invoke(long l) {
-                if (forceClose) {
-                    glfwSetWindowShouldClose(windowPtr, true);
-                    return;
-                }
-                if (projectLoaded && UserPreference.editorPreferences().autoSaveOnExit()) SceneManager.saveCurrentScene();
-                glfwSetWindowShouldClose(windowPtr, false);
-                shouldClose = ExitConfirmDialog.exitDialog();
-                if (shouldClose) {
-                    glfwSetWindowShouldClose(windowPtr, true);
-                }
+        freeOld(glfwSetWindowCloseCallback(windowPtr, _ -> {
+            if (forceClose) {
+                glfwSetWindowShouldClose(windowPtr, true);
+                return;
             }
-        });
+            if (projectLoaded && UserPreference.editorPreferences().autoSaveOnExit()) SceneManager.saveCurrentScene();
+            glfwSetWindowShouldClose(windowPtr, false);
+            shouldClose = ExitConfirmDialog.exitDialog();
+            if (shouldClose) glfwSetWindowShouldClose(windowPtr, true);
+        }));
+
     }
 
-    /**
-     * Return current active display size that the windows is on.
-    */
-    public static Vector2i screenSize() {
-        GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-        int w = device.getDisplayMode().getWidth();
-        int h = device.getDisplayMode().getHeight();
-        return new Vector2i(w, h);
+    private static void freeOld(Callback old) {
+        if (old != null) old.free();
     }
 
     private void endScreen() {
@@ -299,12 +327,11 @@ public final class Window implements EngineEventListener {
         glfwFreeCallbacks(window.windowPtr);
         glfwDestroyWindow(window.windowPtr);
         glfwTerminate();
+        NFD_Quit();
+        Objects.requireNonNull(glfwSetErrorCallback(null)).free();
     }
 
-    /**
-     * Engine main loop.
-     */
-    public void loop() {
+    private void loop() {
         float beginTime = (float) glfwGetTime();
         float endTime;
         float dt = -1.0f;
@@ -396,15 +423,6 @@ public final class Window implements EngineEventListener {
         frameBuffer.detach();
     }
 
-    @Override
-    public void onEventEmit(Object object, Event event) {
-        if (event instanceof EditorEvent editorEvent) {
-            handleEditorEvent(editorEvent);
-            return;
-        }
-        if (event instanceof ProjectEvent projectEvent) handleProjectEvent(projectEvent);
-    }
-
     private void handleEditorEvent(EditorEvent event) {
         if (event.type != EditorEvent.Type.ProjectLoaded) return;
         projectLoaded = Project.loaded();
@@ -455,39 +473,12 @@ public final class Window implements EngineEventListener {
         }
     }
 
-    /**
-     * Get this window pointer.
-     * @return the pointer address
-     */
-    public long getWindowPtr() {
-        return windowPtr;
-    }
-
-    public static int getWidth() {
-        return get().width;
-    }
-
-    public static int getHeight() {
-        return get().height;
-    }
-
-    public static FrameBuffer getFrameBuffer() {
-        return get().frameBuffer;
-    }
-
-    public static float getTargetAspectRatio() {
-        return Project.getGameAspectRatio();
-    }
-
-    public static ImGuiLayer getImGuiLayer() {
-        return get().imGuiLayer;
-    }
-
-    public static ObjectSelection getObjectSelection() {
-        return get().objectSelection;
-    }
-
-    public void forceClose() {
-        forceClose = true;
+    @Override
+    public void onEventEmit(Object object, Event event) {
+        if (event instanceof EditorEvent editorEvent) {
+            handleEditorEvent(editorEvent);
+            return;
+        }
+        if (event instanceof ProjectEvent projectEvent) handleProjectEvent(projectEvent);
     }
 }

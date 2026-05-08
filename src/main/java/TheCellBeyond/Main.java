@@ -1,19 +1,25 @@
 package TheCellBeyond;
 
 import editor.ExitToProjectList;
+import editor.StartupWindow;
 import utility.CrashReport;
-import utility.UnifiedPaths;
 
 public class Main {
+    private static String openProjectPath;
+
     static void main(String[] args) {
         CrashReport.install();
-        try {
-            Window window = Window.get();
-            window.run();
-        } catch (Throwable t) {
-            throw new RuntimeException("Engine crashed during execution", t);
-        }
+        StartupWindow.init();
+        openProjectPath = StartupWindow.show();
+        StartupWindow.dispose();
+        if (openProjectPath == null || openProjectPath.isBlank()) return;
+        Window window = Window.get();
+        window.run();
         System.out.println("Ending editor instance...");
         ExitToProjectList.spawnNewProcess();
+    }
+
+    static String openProjectPath() {
+        return openProjectPath;
     }
 }
