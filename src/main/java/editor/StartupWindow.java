@@ -33,9 +33,9 @@ import java.util.UUID;
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.system.MemoryUtil.NULL;
 import static org.lwjgl.util.nfd.NativeFileDialog.NFD_Init;
 import static org.lwjgl.util.nfd.NativeFileDialog.NFD_Quit;
-import static org.lwjgl.system.MemoryUtil.NULL;
 
 public final class StartupWindow {
     private static final String TABLE_ID = "Project Manager";
@@ -63,8 +63,10 @@ public final class StartupWindow {
         int h = (int) EditorWindowSize.y;
         windowPtr = glfwCreateWindow(w, h, "", NULL, NULL);
         if (windowPtr == NULL) throw new RuntimeException("Failed to create startup window");
-        var screenSize = Window.screenSize();
-        glfwSetWindowPos(windowPtr, (screenSize.x - w) / 2, (screenSize.y - h) / 2);
+        if (!waylandSession()) {
+            var screenSize = Window.screenSize();
+            glfwSetWindowPos(windowPtr, (screenSize.x - w) / 2, (screenSize.y - h) / 2);
+        }
         glfwMakeContextCurrent(windowPtr);
         glfwSwapInterval(1);
         GL.createCapabilities();
@@ -135,6 +137,10 @@ public final class StartupWindow {
 
     private static void freeOld(Callback old) {
         if (old != null) old.free();
+    }
+
+    private static boolean waylandSession() {
+        return glfwGetPlatform() == GLFW_PLATFORM_WAYLAND;
     }
 
     private static void renderProjectList() {
