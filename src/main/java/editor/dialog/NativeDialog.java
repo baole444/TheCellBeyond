@@ -1,7 +1,5 @@
 package editor.dialog;
 
-import TheCellBeyond.Window;
-
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.glfw.GLFWNativeCocoa.glfwGetCocoaWindow;
 import static org.lwjgl.glfw.GLFWNativeWin32.glfwGetWin32Window;
@@ -14,8 +12,7 @@ abstract class NativeDialog {
     protected static int handleType = -1;
 
     protected static void setPlatform() {
-        if (windowHandle != -1 && handleType != -1) return;
-        long ptr = Window.get().getWindowPtr();
+        long ptr = glfwGetCurrentContext();
         switch (glfwGetPlatform()) {
             case GLFW_PLATFORM_X11 -> {
                 handleType = NFD_WINDOW_HANDLE_TYPE_X11;
