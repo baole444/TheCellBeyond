@@ -244,19 +244,19 @@ public abstract class Component {
      * <p>
      * If this must be called, ensure that, for an instance of {@link Component}, this is only called once.
      */
-    public void physicUpdate(float dt) {
+    public final void physicUpdate(float dt) {
         internalPhysicUpdate(dt);
         onPhysicUpdate(dt);
     }
 
     /**
-     * Optional hook for additional component's physic logic.
+     * Internal hook for engine core extension of component's physic process.
      * @param dt the fixed delta time of physic tick
      */
     protected void internalPhysicUpdate(float dt) {}
 
     /**
-     * Internal hook for engine core extension of component's physic process.
+     * Optional hook for additional component's physic logic.
      * @param dt the fixed delta time of physic tick
      */
     protected void onPhysicUpdate(float dt) {}
