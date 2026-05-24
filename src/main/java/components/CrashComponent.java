@@ -16,7 +16,7 @@ public final class CrashComponent extends Component {
     }
 
     @Override
-    protected void onUpdate(float dt) {
+    protected void internalUpdate(float dt) {
         currentTime += dt;
         if (currentTime < waitTime) return;
         float chance = (float) Math.random();

@@ -284,6 +284,7 @@ public class GameObject {
 
     /**
      * Check if this game object is at the scene's root level (It has no parent).
+     * This doesn't mean this is the scene's root, this object could just be orphan.
      * @return true if there is no parent object
      */
     public boolean isRoot() {
@@ -558,21 +559,30 @@ public class GameObject {
      * </p>
      * If this must be called, ensure that, for an instance of {@link GameObject}, this is only called once.
      */
-    public void editorUpdate(float dt) {
-        onUpdate(dt);
-        for (Component component : components) {
-            component.editorUpdate(dt);
-        }
+    public final void editorUpdate(float dt) {
+        internalEditorUpdate(dt);
+        onEditorUpdate(dt);
+        for (Component component : components) component.editorUpdate(dt);
     }
+
+    /**
+     * Internal hook for engine core extension of object's editor logic process.
+     * @param dt delta time
+     */
+    protected void internalEditorUpdate(float dt) {}
+
+    /**
+     * Optional hook for additional game object's editor logic before updating its components.
+     * @param dt delta time
+     */
+    protected void onEditorUpdate(float dt) {}
 
     /**
      * Step the logic of this game object by the given delta time.
      * <p>
      * Called once per iteration of the game's loop by the Engine.
-     * This first executes the logic in {@link #onUpdate(float)},
+     * This first executes and extension in logic,
      * then iterates the component list and executes {@link Component#update(float)}
-     * </p>
-     * Unless there is a very specific use case, it is suggested to override {@link #onUpdate(float)} instead of this.
      * @param dt delta time
      * @apiNote
      * Unless for the purpose of implement custom game loop logic, <b><u>do not</u></b> call this manually,
@@ -580,10 +590,17 @@ public class GameObject {
      * <p>
      * If this must be called, ensure that, for an instance of {@link GameObject}, this is only called once.
      */
-    public void update(float dt) {
+    public final void update(float dt) {
+        internalUpdate(dt);
         onUpdate(dt);
         for (Component component : components) component.update(dt);
     }
+
+    /**
+     * Internal hook for engine core extension of object's logic process.
+     * @param dt delta time
+     */
+    protected void internalUpdate(float dt) {}
 
     /**
      * Optional hook for additional game object's logic before updating its components.
@@ -595,10 +612,8 @@ public class GameObject {
      * Step the physic logic of this game object by the delta time of the physic system.
      * <p>
      * Called once per iteration of the game's loop by the Engine.
-     * This first executes the logic in {@link #onPhysicUpdate(float)},
+     * This first executes any extension in physic logic,
      * then iterates the component list and executes {@link Component#physicUpdate(float)}
-     * </p>
-     * Unless there is a very specific use case, it is suggested to override {@link #onPhysicUpdate(float)} instead of this.
      * @param dt the fixed delta time of physic tick
      * @apiNote
      * Unless for the purpose of implement custom game physic logic, <b><u>do not</u></b> call this manually,
@@ -606,10 +621,17 @@ public class GameObject {
      * <p>
      * If this must be called, ensure that, for an instance of {@link GameObject}, this is only called once.
      */
-    public void physicUpdate(float dt) {
+    public final void physicUpdate(float dt) {
+        internalPhysicUpdate(dt);
         onPhysicUpdate(dt);
         for (Component component : components) component.physicUpdate(dt);
     }
+
+    /**
+     * Internal hook for engine core extension of object's physic process.
+     * @param dt the fixed delta time of physic tick
+     */
+    protected void internalPhysicUpdate(float dt) {}
 
     /**
      * Optional hook for additional game object's physic logic before updating its components.
@@ -623,11 +645,17 @@ public class GameObject {
      * This is called by the {@link Scene} on its starting logic or when this game object is added to a running scene.
      */
     public final void start() {
+        internalStart();
         onStart();
         isStarted = true;
         components.forEach(Component::start);
         isDirty = true;
     }
+
+    /**
+     * Internal hook for engine core extension of object's start logic.
+     */
+    protected void internalStart() {}
 
     /**
      * Optional hook for additional game object's start logic before starting its components.
@@ -642,11 +670,17 @@ public class GameObject {
      * that need to be reflected in editor mode.
      */
     public final void editorStart() {
+        internalEditorStart();
         onEditorStart();
         isStarted = true;
         components.forEach(Component::editorStart);
         isDirty = true;
     }
+
+    /**
+     * Internal hook for engine core extension of object's editor start logic.
+     */
+    protected void internalEditorStart() {}
 
     /**
      * Optional hook for additional game object's editor start logic before starting its components.
@@ -670,8 +704,14 @@ public class GameObject {
         if (!isStarted || isReadied) return;
         isReadied = true;
         components.forEach(Component::ready);
+        internalReady();
         onReady();
     }
+
+    /**
+     * Internal hook for engine core extension of object's ready logic.
+     */
+    protected void internalReady() {}
 
     /**
      * Optional hook for additional game object's ready logic, after all its components are readied.
@@ -684,7 +724,8 @@ public class GameObject {
      * <p>
      * The destroyed objects are removed from the scene and cannot be added back.
      */
-    public void destroy() {
+    public final void destroy() {
+        internalDestroy();
         onDestroy();
         destroyed = true;
         if (parent != null) parent.removeChild(this);
@@ -702,6 +743,11 @@ public class GameObject {
             cachedID = -1;
         }
     }
+
+    /**
+     * Internal hook for engine core extension of object's destroy logic.
+     */
+    protected void internalDestroy() {}
 
     /**
      * Optional hook for additional game object's logic before it is destroyed.
@@ -774,7 +820,7 @@ public class GameObject {
      * @return true of destroyed
      * @see #destroy() Destroy this game object
      */
-    public boolean isDestroyed() {
+    public final boolean isDestroyed() {
         return destroyed;
     }
 
@@ -785,7 +831,7 @@ public class GameObject {
      * @return the ID value used by shader program
      * @see #getUUID() Get this game object's UUID
      */
-    public int getUID() {
+    public final int getUID() {
         return cachedID;
     }
 
@@ -793,7 +839,7 @@ public class GameObject {
      * Get the UUID uses to identify this game object.
      * @return the UUID
      */
-    public UUID getUUID() {
+    public final UUID getUUID() {
         return uuid;
     }
 
@@ -808,7 +854,7 @@ public class GameObject {
     /**
      * Disable the serialization flag for this game object. It can't no longer be saved to scene or copied from.
      */
-    public void setNotSerialize() {
+    public final void setNotSerialize() {
         isSerialize = false;
     }
 
@@ -816,7 +862,7 @@ public class GameObject {
      * Set the serialization flag for this game object.
      * @param isSerialized the serialization flag, true to enable serialization
      */
-    public void setSerialize(boolean isSerialized) {
+    public final void setSerialize(boolean isSerialized) {
         isSerialize = isSerialized;
     }
 
@@ -824,7 +870,7 @@ public class GameObject {
      * Check if serialization is enabled for this game object.
      * @return true if enabled
      */
-    public boolean isSerialize() {
+    public final boolean isSerialize() {
         return isSerialize;
     }
 
@@ -994,7 +1040,7 @@ public class GameObject {
      * Check if this game object need to be updated.
      * @return the dirty flag status
      */
-    public boolean isDirty() {
+    public final boolean isDirty() {
         return isDirty;
     }
 
@@ -1002,7 +1048,7 @@ public class GameObject {
      * Set the dirty flag for this game object.
      * @param dirty the dirty flag's value, true to indicate the object need to be updated.
      */
-    public void setDirty(boolean dirty) {
+    public final void setDirty(boolean dirty) {
         isDirty = dirty;
     }
 

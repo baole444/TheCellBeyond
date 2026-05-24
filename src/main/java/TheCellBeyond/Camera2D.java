@@ -239,25 +239,25 @@ public class Camera2D extends GameObject2D {
     }
 
     @Override
-    protected void onStart() {
+    protected void internalStart() {
         if (!enabled) return;
         if (noActiveCameraInViewport(resolveViewport())) makeCurrent();
     }
 
     @Override
-    protected void onDestroy() {
+    protected void internalDestroy() {
         if (!currentlyActive) return;
         currentlyActive = false;
         makeNextCameraActive(resolveViewport());
     }
 
     @Override
-    protected void onUpdate(float dt) {
+    protected void internalUpdate(float dt) {
         if (updateProcess == UpdateProcess.LogicFrame) updateCamera(dt);
     }
 
     @Override
-    protected void onPhysicUpdate(float dt) {
+    protected void internalPhysicUpdate(float dt) {
         if (updateProcess == UpdateProcess.PhysicFrame) updateCamera(dt);
     }
 

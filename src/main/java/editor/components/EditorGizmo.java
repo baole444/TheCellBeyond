@@ -84,7 +84,7 @@ public class EditorGizmo extends Component2D implements NotSerializeComponent {
     }
 
     @Override
-    public void update(float dt) {
+    protected void internalUpdate(float dt) {
         setInactive();
     }
 
@@ -93,7 +93,7 @@ public class EditorGizmo extends Component2D implements NotSerializeComponent {
      * @param dt delta time
      */
     @Override
-    public void editorUpdate(float dt) {
+    protected void internalEditorUpdate(float dt) {
         if (!isUsed) return;
         activeGameObj = Properties.getActiveGameObject();
         if (activeGameObj == null || activeGameObj.isDestroyed()) {

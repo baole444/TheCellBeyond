@@ -77,7 +77,7 @@ public class EditorMouseCtrl extends Component implements NotSerializeComponent 
     }
 
     @Override
-    public void editorUpdate(float dt) {
+    protected void internalEditorUpdate(float dt) {
         if (EditorTileMapGrid.draw() && holdObj != null) {
             holdObj.destroy();
             holdObj = null;

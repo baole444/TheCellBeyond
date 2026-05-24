@@ -18,17 +18,14 @@ public class EditorGizmoMove extends EditorGizmo {
     }
 
     @Override
-    public void editorUpdate(float dt) {
-        if (activeGameObj != null && activeGameObj instanceof GameObject2D go2D) {
-            Vector2f cursorT = MouseListener.getCursorWorldTraverse();
-
-            if (xActiveDrag && !yActiveDrag) {
-                go2D.translate(new Vector2f(- cursorT.x, 0));
-            } else if (yActiveDrag) {
-                go2D.translate(new Vector2f(0, - cursorT.y));
-            }
+    protected void internalEditorUpdate(float dt) {
+        if (!(activeGameObj instanceof GameObject2D go2D)) {
+            super.internalEditorUpdate(dt);
+            return;
         }
-
-        super.editorUpdate(dt);
+        Vector2f cursorT = MouseListener.getCursorWorldTraverse();
+        if (xActiveDrag && !yActiveDrag) go2D.translate(new Vector2f(- cursorT.x, 0));
+        else if (yActiveDrag) go2D.translate(new Vector2f(0, - cursorT.y));
+        super.internalEditorUpdate(dt);
     }
 }

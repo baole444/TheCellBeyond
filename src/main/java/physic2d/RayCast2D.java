@@ -126,7 +126,7 @@ public class RayCast2D extends GameObject2D {
     }
 
     @Override
-    protected void onPhysicUpdate(float dt) {
+    protected void internalPhysicUpdate(float dt) {
         colliding = false;
         collider = null;
         collisionPoint.zero();

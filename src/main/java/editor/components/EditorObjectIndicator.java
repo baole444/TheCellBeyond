@@ -44,7 +44,8 @@ public final class EditorObjectIndicator extends Component2D implements NotSeria
     }
 
     @Override
-    protected void onEditorStart() {
+    protected void internalEditorStart() {
+        super.internalEditorStart();
         initIndicator();
     }
 
@@ -70,7 +71,7 @@ public final class EditorObjectIndicator extends Component2D implements NotSeria
     }
 
     @Override
-    public void editorUpdate(float dt) {
+    protected void internalEditorUpdate(float dt) {
         if (gameObject == null || !gameObject.isSerialize()) return;
         if (textureUnit == null) {
             initIndicator();
@@ -81,11 +82,10 @@ public final class EditorObjectIndicator extends Component2D implements NotSeria
             return;
         }
         if (!active) setActive();
-        super.editorUpdate(dt);
     }
 
     @Override
-    public void update(float dt) {
+    protected void internalUpdate(float dt) {
         if (active) setInactive();
     }
 

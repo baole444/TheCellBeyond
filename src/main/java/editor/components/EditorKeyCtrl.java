@@ -32,7 +32,7 @@ public final class EditorKeyCtrl extends Component implements NotSerializeCompon
     }
 
     @Override
-    public void editorUpdate(float dt) {
+    protected void internalEditorUpdate(float dt) {
         if (ImGuiLayer.editorWantCaptureKeyboard() || ImGui.isPopupOpen("", ImGuiPopupFlags.AnyPopup)) return;
         GameObject activeGameObj = Properties.getActiveGameObject();
         List<GameObject> activeObjList = Properties.getActiveGameObjects();

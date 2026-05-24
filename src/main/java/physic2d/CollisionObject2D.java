@@ -50,8 +50,7 @@ public abstract class CollisionObject2D extends GameObject2D {
     }
 
     @Override
-    public void update(float dt) {
-        super.update(dt);
+    protected void internalUpdate(float dt) {
         if (needFixtureUpdate) updateFixtureFilter();
     }
 

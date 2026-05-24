@@ -52,12 +52,12 @@ public class TileMap extends GameObject2D {
     }
 
     @Override
-    protected void onStart() {
+    protected void internalStart() {
         initPhysicBody();
     }
 
     @Override
-    protected void onDestroy() {
+    protected void internalDestroy() {
         if (physicBody2D == null) return;
         physicBody2D.destroy();
         physicBody2D = null;

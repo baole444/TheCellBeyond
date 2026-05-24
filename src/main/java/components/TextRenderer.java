@@ -46,27 +46,29 @@ public class TextRenderer extends Component2D implements ResourceStatusListener 
     }
 
     @Override
-    protected void onStart() {
+    protected void internalStart() {
+        super.internalStart();
         validateFields();
         ResourceStatusCallback.register(this);
         requestLoadFont();
     }
 
     @Override
-    protected void onEditorStart() {
+    protected void internalEditorStart() {
+        super.internalEditorStart();
         validateFields();
         ResourceStatusCallback.register(this);
         requestLoadFont();
     }
 
     @Override
-    protected void onUpdate(float dt) {
+    protected void internalUpdate(float dt) {
         if (fontRID == null) requestLoadFont();
-        super.onUpdate(dt);
+        super.internalUpdate(dt);
     }
 
     @Override
-    protected void onEditorUpdate(float dt) {
+    protected void internalEditorUpdate(float dt) {
         float xOffset = 0;
         if (hAlign != null) {
             switch (hAlign) {
@@ -83,11 +85,11 @@ public class TextRenderer extends Component2D implements ResourceStatusListener 
         }
         Vector2f start = new Vector2f(effectiveTransform().position).add(xOffset, yOffset);
         DebugDraw.addLine2(start, new Vector2f(start).add(textDimensions.x, 0), new Vector4f(0.8f, 0.2f, 0.2f, 1.0f), 1);
-        super.onEditorUpdate(dt);
+        super.internalEditorUpdate(dt);
     }
 
     @Override
-    protected void onDestroy() {
+    protected void internalDestroy() {
         ResourceStatusCallback.unregister(this);
     }
 

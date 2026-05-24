@@ -55,17 +55,19 @@ public class RemoteTransform2D extends Component2D {
     }
 
     @Override
-    protected void onStart() {
+    protected void internalStart() {
+        super.internalStart();
         resolveTarget();
     }
 
     @Override
-    protected void onEditorStart() {
+    protected void internalEditorStart() {
+        super.internalEditorStart();
         resolveTarget();
     }
 
     @Override
-    protected void onUpdate(float dt) {
+    protected void internalUpdate(float dt) {
         if (!validTarget()) return;
         pushTransform();
     }
