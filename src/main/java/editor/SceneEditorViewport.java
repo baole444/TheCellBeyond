@@ -129,13 +129,13 @@ final class SceneEditorViewport implements EngineEventListener {
             ImGui.setKeyboardFocusHere();
             ImGui.inputTextWithHint("New name:##SEV_RenameScene", "Enter a new name or press Escape key to cancel...", renameBuffer);
             boolean focus = ImGui.isItemFocused();
-            if (focus && ImGui.isKeyPressed(GLFW_KEY_ESCAPE)) {
+            if (focus && ImGui.isKeyPressed(ImGuiKey.Escape)) {
                 renaming = false;
                 renameFocus = false;
                 ImGui.popItemWidth();
                 return;
             }
-            if ((focus && ImGui.isKeyPressed(GLFW_KEY_ENTER)) || (renameFocus && !focus)) rename();
+            if ((focus && ImGui.isKeyPressed(ImGuiKey.Enter)) || (renameFocus && !focus)) rename();
             renameFocus = focus;
             ImGui.popItemWidth();
             return;

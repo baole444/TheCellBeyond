@@ -9,6 +9,7 @@ import editor.dialog.EditProjectSettingsDialog;
 import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.ImGuiComboFlags;
+import imgui.flag.ImGuiKey;
 import imgui.flag.ImGuiTableColumnFlags;
 import imgui.flag.ImGuiTableFlags;
 import imgui.type.ImString;
@@ -129,14 +130,14 @@ class ControllerBindingEditor {
         ImGui.setCursorPos(cursorPos);
         ImGui.setKeyboardFocusHere();
         ImGui.inputText("##CBE" + "Edit_" + name, editingNameBuffer);
-        if (ImGui.isItemFocused() && ImGui.isKeyPressed(GLFW_KEY_ESCAPE)) {
+        if (ImGui.isItemFocused() && ImGui.isKeyPressed(ImGuiKey.Escape)) {
             editingNameBuffer.clear();
             editingName = null;
             ImGui.spacing();
             return true;
         }
 
-        if ((ImGui.isItemFocused() && ImGui.isKeyPressed(GLFW_KEY_ENTER)) || !isSelected) {
+        if ((ImGui.isItemFocused() && ImGui.isKeyPressed(ImGuiKey.Enter)) || !isSelected) {
             String newName = editingNameBuffer.get().trim();
             boolean success = editingController.renameBinding(name, newName);
             if (success) selectedName = newName;

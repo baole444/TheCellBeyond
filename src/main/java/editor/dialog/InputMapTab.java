@@ -205,13 +205,13 @@ class InputMapTab {
         ImGui.setKeyboardFocusHere();
         ImGui.inputTextWithHint("##EPPD_Edit_Action_Name_" + actionName, "Enter new name for action...", editingActionNameBuffer);
 
-        if (ImGui.isItemFocused() && ImGui.isKeyPressed(GLFW_KEY_ESCAPE)) {
+        if (ImGui.isItemFocused() && ImGui.isKeyPressed(ImGuiKey.Escape)) {
             editingActionNameBuffer.clear();
             editingActionName = null;
             return true;
         }
 
-        if (!ImGui.isItemFocused() || !ImGui.isKeyPressed(GLFW_KEY_ENTER)) {
+        if (!ImGui.isItemFocused() || !ImGui.isKeyPressed(ImGuiKey.Enter)) {
             ImGui.tableNextRow();
             return true;
         }

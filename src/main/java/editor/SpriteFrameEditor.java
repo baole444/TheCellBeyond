@@ -7,6 +7,7 @@ import editor.payload.SpriteDragDropPayload;
 import imgui.ImDrawList;
 import imgui.ImGui;
 import imgui.ImVec2;
+import imgui.flag.ImGuiKey;
 import imgui.flag.ImGuiTableColumnFlags;
 import imgui.flag.ImGuiTableFlags;
 import imgui.type.ImBoolean;
@@ -329,14 +330,14 @@ class SpriteFrameEditor {
         ImGui.setCursorPos(cursorPos);
         ImGui.setKeyboardFocusHere();
         ImGui.inputText("##SFC_" + "Edit_" + name, editingNameBuffer);
-        if (ImGui.isItemFocused() && ImGui.isKeyPressed(GLFW_KEY_ESCAPE)) {
+        if (ImGui.isItemFocused() &&  ImGui.isKeyPressed(ImGuiKey.Escape)) {
             editingNameBuffer.clear();
             editingName = null;
             ImGui.spacing();
             return true;
         }
 
-        if ((ImGui.isItemFocused() && ImGui.isKeyPressed(GLFW_KEY_ENTER)) || !isSelected) {
+        if ((ImGui.isItemFocused() && ImGui.isKeyPressed(ImGuiKey.Enter)) || !isSelected) {
             String newName = editingNameBuffer.get().trim();
             boolean success = editingAnimatedSprite.renameAnimation(name, newName);
             if (success) selectedName = newName;
