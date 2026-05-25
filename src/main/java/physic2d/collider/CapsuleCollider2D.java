@@ -35,10 +35,8 @@ public class CapsuleCollider2D extends CollisionShape2D {
         headCircle.gameObject = this.gameObject;
         footCircle.gameObject = this.gameObject;
         bodyBox.gameObject = this.gameObject;
-        headCircle.start();
-        footCircle.start();
-        bodyBox.start();
         calculateCollider();
+        super.onStart();
     }
 
     @Override
@@ -46,10 +44,8 @@ public class CapsuleCollider2D extends CollisionShape2D {
         headCircle.gameObject = this.gameObject;
         footCircle.gameObject = this.gameObject;
         bodyBox.gameObject = this.gameObject;
-        headCircle.editorStart();
-        footCircle.editorStart();
-        bodyBox.editorStart();
         calculateCollider();
+        super.onEditorStart();
     }
 
     @Override
@@ -72,6 +68,7 @@ public class CapsuleCollider2D extends CollisionShape2D {
 
     @Override
     protected void onTransformDirty() {
+        calculateCollider();
         headCircle.setTransformDirty();
         bodyBox.setTransformDirty();
         footCircle.setTransformDirty();
@@ -121,14 +118,15 @@ public class CapsuleCollider2D extends CollisionShape2D {
     }
 
     private void calculateCollider() {
+        Vector2f offset = position();
         float radius = width / 2.0f;
         float boxH = height - (2.0f * radius);
         headCircle.radius(radius);
         footCircle.radius(radius);
-        headCircle.position(new Vector2f(0.0f, boxH / 2.0f));
-        footCircle.position(new Vector2f(0.0f, -boxH / 2.0f));
+        headCircle.position(new Vector2f(offset.x, offset.y + boxH / 2.0f));
+        footCircle.position(new Vector2f(offset.x, offset.y-boxH / 2.0f));
         bodyBox.halfSize(new Vector2f(width / 2.0f, boxH / 2.0f));
-        bodyBox.position(new Vector2f());
+        bodyBox.position(offset);
     }
 
     /**
