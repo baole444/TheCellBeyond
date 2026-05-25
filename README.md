@@ -31,13 +31,13 @@ Below is the minimum API version for scripting to be compatible with the engine'
 
 | Engine version  |                                        API version                                        |
 |:---------------:|:-----------------------------------------------------------------------------------------:|
-| __1.5 - 1.5.1__ | [__1.5__](https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api/1.5) |
+| __1.5 - 1.5.2__ | [__1.5__](https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api/1.5) |
 |       1.4       |   [1.4](https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api/1.4)   |
 |       1.3       |   [1.3](https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api/1.3)   |
 |   1.2 - 1.2.3   |   [1.2](https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api/1.2)   |
 |       1.1       |   [1.1](https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api/1.1)   |
 
-*Using any version older than __1.5.1__ might not work properly (The version mention in this increased if new release contain fix for crashes or incorrect logic.)*
+*Using any version older than __1.5.2__ might not work properly (The version mention in this increased if new release contain fix for crashes or incorrect logic.)*
 
 Annotate a class as GameObject type:
 ```java
