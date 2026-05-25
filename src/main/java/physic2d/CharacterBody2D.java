@@ -321,7 +321,9 @@ public class CharacterBody2D extends PhysicBody2D {
         if (rayCast.contactedObject instanceof PhysicBody2D physicBody) platformBody = physicBody;
         float fraction = rayCast.rayVectorFraction;
         Vector2f hitNormal = rayCast.normalDirection;
-        Vector2f safeMotion = new Vector2f(motion).mul(Math.max(0.0f, fraction - margin));
+        float motionLength = (float) Math.sqrt(motion.lengthSquared());
+        float backoff = motionLength > 0.0f ? margin / motionLength : 0.0f;
+        Vector2f safeMotion = new Vector2f(motion).mul(Math.max(0.0f, fraction - backoff));
         Vector2f remainMotion = new Vector2f(motion).sub(safeMotion);
         float dot = remainMotion.dot(hitNormal);
         Vector2f slideVector = new Vector2f(remainMotion).sub(new Vector2f(hitNormal).mul(dot));
@@ -435,14 +437,19 @@ public class CharacterBody2D extends PhysicBody2D {
         if (physic2D == null) return;
         if (motionMode != MotionMode.Grounded) return;
         if (physicBodyRef == null) return;
+        AABB aabb = computeBodyAABB();
+        if (aabb == null) return;
         Vector2f pos = globalPosition();
         float margin = Math.max(0.001f, safeMargin);
-        Vector2f safeDistance = new Vector2f(upDirection).mul(-margin * 2.0f);
-        Vector2f targetPos = new Vector2f(pos).add(safeDistance);
+        float halfExtent = halfExtentAlong(aabb, pos, upDirection);
+        Vector2f safeMargin = new Vector2f(upDirection).mul(-(halfExtent + margin * 2.0f));
+        Vector2f targetPos = new Vector2f(pos).add(safeMargin);
         RayCastInfo rayCast = physic2D.rayCastInfo(this, pos, targetPos);
         if (rayCast.hit && isFloorNormal(rayCast.normalDirection)) {
             isOnFloor = true;
             floorNormal.set(rayCast.normalDirection);
+            float upComponent = velocity.dot(upDirection);
+            if (upComponent <= 0.0f) velocity.sub(upDirection.x * upComponent, upDirection.y * upComponent);
         }
     }
 
@@ -451,18 +458,36 @@ public class CharacterBody2D extends PhysicBody2D {
         if (physic2D == null) return;
         if (motionMode != MotionMode.Grounded) return;
         if (physicBodyRef == null || floorSnapDistance == 0.0f) return;
+        AABB aabb = computeBodyAABB();
+        if (aabb == null) return;
         Vector2f currentPos = globalPosition();
-        Vector2f snapDistance = new Vector2f(upDirection).mul(-floorSnapDistance);
-        Vector2f targetPos = new Vector2f(currentPos).add(snapDistance);
+        float halfExtent = halfExtentAlong(aabb, currentPos, upDirection);
+        float probeReach = halfExtent + floorSnapDistance;
+        Vector2f rayDirection = new Vector2f(upDirection).mul(-probeReach);
+        Vector2f targetPos = new Vector2f(currentPos).add(rayDirection);
         RayCastInfo rayCast = physic2D.rayCastInfo(this, currentPos, targetPos);
         if (!rayCast.hit || !isFloorNormal(rayCast.normalDirection)) return;
-        Vector2f snapMotion = new Vector2f(snapDistance).mul(rayCast.rayVectorFraction);
+        float hitDistance = probeReach * rayCast.rayVectorFraction;
+        float snapDistance = Math.max(0.0f, hitDistance - halfExtent);
+        Vector2f snapMotion = new Vector2f(upDirection).mul(-snapDistance);
         Vector2f nextPos = new Vector2f(currentPos).add(snapMotion);
         physicBodyRef.setTransform(new Vec2(nextPos.x, nextPos.y), physicBodyRef.getAngle());
         isOnFloor = true;
         floorNormal.set(rayCast.normalDirection);
         float upComponent = velocity.dot(upDirection);
         velocity.sub(upDirection.x * upComponent, upDirection.y * upComponent);
+    }
+
+    private static float halfExtentAlong(AABB aabb, Vector2f origin, Vector2f axis) {
+        float originProjection = origin.x * axis.x + origin.y * axis.y;
+        float minProjection = aabb.lowerBound.x * axis.x + aabb.lowerBound.y * axis.y;
+        float projection = aabb.lowerBound.x * axis.x + aabb.upperBound.y * axis.y;
+        if (projection < minProjection) minProjection = projection;
+        projection = aabb.upperBound.x * axis.x + aabb.lowerBound.y * axis.y;
+        if (projection < minProjection) minProjection = projection;
+        projection = aabb.upperBound.x * axis.x + aabb.upperBound.y * axis.y;
+        if (projection < minProjection) minProjection = projection;
+        return Math.max(0.0f, originProjection - minProjection);
     }
 
     private static float angleInDegree(Vector2f normal, Vector2f upDirection) {
