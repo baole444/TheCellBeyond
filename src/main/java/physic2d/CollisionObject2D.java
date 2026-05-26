@@ -17,7 +17,7 @@ import utility.log.EngineLog;
  * it can hold any number of {@link physic2d.collider.CollisionShape2D}s for collision.
  */
 public abstract class CollisionObject2D extends GameObject2D {
-    private static final EngineLog Logger = new EngineLog(CollisionObject2D.class);
+    protected static final EngineLog Logger = new EngineLog(CollisionObject2D.class);
     private int collisionLayer = PhysicLayer.layerToBit(0);
     private int collisionMask = PhysicLayer.layerToBit(0);
     /**

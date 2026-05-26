@@ -29,7 +29,7 @@ public class StateEngine extends Component {
     }
 
     @Override
-    protected void internalStart() {
+    protected void internalReady() {
         initialize();
     }
 
