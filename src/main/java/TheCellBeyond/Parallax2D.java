@@ -88,17 +88,17 @@ public class Parallax2D extends GameObject2D {
     }
 
     @Override
-    protected void onEditorStart() {
+    protected void internalEditorStart() {
         repeatSource = true;
     }
 
     @Override
-    protected void onStart() {
+    protected void internalStart() {
         repeatSource = true;
     }
 
     @Override
-    protected void onUpdate(float dt) {
+    protected void internalUpdate(float dt) {
         if (!LogicServer.runtimeMode()) return;
         accumulatedScroll.add(autoScrollVelocity.x * dt, autoScrollVelocity.y * dt);
         if (repeatSize.x != 0.0f) accumulatedScroll.x = mod(accumulatedScroll.x, repeatSize.x);

@@ -116,7 +116,7 @@ public class CharacterBody2D extends PhysicBody2D {
     public void configurePhysicBodyRef() {}
 
     @Override
-    protected void onPhysicUpdate(float dt) {
+    protected void internalPhysicUpdate(float dt) {
         if (physicBodyRef == null) return;
         resetMotionState();
     }
@@ -275,7 +275,7 @@ public class CharacterBody2D extends PhysicBody2D {
      * it will also be affected by the motion of other body. This can be used to make moving and rotating platforms,
      * or to make objects push other objects.
      * <p>
-     * This method should be use in {@link #onPhysicUpdate(float)} or {@link #physicUpdate(float)},
+     * This method should be use in {@link #internalPhysicUpdate(float)} or {@link #physicUpdate(float)},
      * as it uses the physic step's delta value automatically in calculations.
      * Otherwise, the simulation will run at an incorrect speed.
      * </p>

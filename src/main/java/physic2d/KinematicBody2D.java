@@ -35,7 +35,7 @@ public class KinematicBody2D extends PhysicBody2D {
     }
 
     @Override
-    protected void onPhysicUpdate(float dt) {
+    protected void internalPhysicUpdate(float dt) {
         if (physicBodyRef == null) return;
         angularVelocity = (float) Math.toDegrees(physicBodyRef.getAngularVelocity());
     }

@@ -38,7 +38,7 @@ public final class EditorGrid extends Component implements NotSerializeComponent
     }
 
     @Override
-    public void editorUpdate(float dt) {
+    protected void internalEditorUpdate(float dt) {
         if (dt < 0.0f) return;
         Viewport viewport = LogicServer.currentScene().viewport();
         Vector2f totalZoom = new Vector2f(viewport.getZoom()).div(Project.preference().textureGlobalScale());

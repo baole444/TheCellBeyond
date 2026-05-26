@@ -31,48 +31,48 @@ public class CapsuleCollider2D extends CollisionShape2D {
     }
 
     @Override
-    protected void onStart() {
+    protected void internalStart() {
         headCircle.gameObject = this.gameObject;
         footCircle.gameObject = this.gameObject;
         bodyBox.gameObject = this.gameObject;
         calculateCollider();
-        super.onStart();
+        super.internalStart();
     }
 
     @Override
-    protected void onEditorStart() {
+    protected void internalEditorStart() {
         headCircle.gameObject = this.gameObject;
         footCircle.gameObject = this.gameObject;
         bodyBox.gameObject = this.gameObject;
         calculateCollider();
-        super.onEditorStart();
+        super.internalEditorStart();
     }
 
     @Override
-    protected void onUpdate(float dt) {
+    protected void internalUpdate(float dt) {
         updateNestColliderTransform();
         headCircle.update(dt);
         footCircle.update(dt);
         bodyBox.update(dt);
-        super.onUpdate(dt);
+        super.internalUpdate(dt);
     }
 
     @Override
-    protected void onEditorUpdate(float dt) {
+    protected void internalEditorUpdate(float dt) {
         updateNestColliderTransform();
         headCircle.editorUpdate(dt);
         footCircle.editorUpdate(dt);
         bodyBox.editorUpdate(dt);
-        super.onEditorUpdate(dt);
+        super.internalEditorUpdate(dt);
     }
 
     @Override
-    protected void onTransformDirty() {
+    protected void internalTransformDirty() {
         calculateCollider();
         headCircle.setTransformDirty();
         bodyBox.setTransformDirty();
         footCircle.setTransformDirty();
-        super.onTransformDirty();
+        super.internalTransformDirty();
     }
 
     private void updateNestColliderTransform() {

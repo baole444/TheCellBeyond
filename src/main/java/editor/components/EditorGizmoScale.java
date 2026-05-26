@@ -18,23 +18,22 @@ public class EditorGizmoScale extends EditorGizmo {
     }
 
     @Override
-    public void editorUpdate(float dt) {
-        if (activeGameObj != null && activeGameObj instanceof GameObject2D go2D) {
-            Vector2f cursorT = MouseListener.getCursorWorldTraverse();
-            Vector2f currentScale = go2D.scale();
-
-            float scaleStep = 0.1f;
-            if (xActiveDrag && !yActiveDrag) {
-                float scaleX = currentScale.x - (cursorT.x * scaleStep);
-                scaleX = Math.max(scaleX, 0.01f);
-
-                go2D.scale(new Vector2f(scaleX, currentScale.y));
-            } else if (yActiveDrag) {
-                float scaleY = currentScale.y - (cursorT.y * scaleStep);
-                go2D.scale(new Vector2f(currentScale.x, scaleY));
-            }
+    protected void internalEditorUpdate(float dt) {
+        if (!(activeGameObj instanceof GameObject2D go2D)) {
+            super.internalEditorUpdate(dt);
+            return;
         }
-
-        super.editorUpdate(dt);
+        Vector2f cursorT = MouseListener.getCursorWorldTraverse();
+        Vector2f currentScale = go2D.scale();
+        float scaleStep = 0.1f;
+        if (xActiveDrag && !yActiveDrag) {
+            float scaleX = currentScale.x - (cursorT.x * scaleStep);
+            scaleX = Math.max(scaleX, 0.01f);
+            go2D.scale(new Vector2f(scaleX, currentScale.y));
+        } else if (yActiveDrag) {
+            float scaleY = currentScale.y - (cursorT.y * scaleStep);
+            go2D.scale(new Vector2f(currentScale.x, scaleY));
+        }
+        super.internalEditorUpdate(dt);
     }
 }

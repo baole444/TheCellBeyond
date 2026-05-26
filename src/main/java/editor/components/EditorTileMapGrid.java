@@ -20,7 +20,7 @@ public class EditorTileMapGrid extends Component implements NotSerializeComponen
     private static volatile boolean draw = false;
 
     @Override
-    public void editorUpdate(float dt) {
+    protected void internalEditorUpdate(float dt) {
         if (!draw) return;
         TileMap editingTileMap = TileMapEditor.getEditingTileMap();
         if (editingTileMap == null) return;

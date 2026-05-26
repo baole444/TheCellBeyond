@@ -684,10 +684,11 @@ public class GameObject2D extends RenderableObject {
 
     /**
      * Trigger the {@link #isTransformDirty} flag of this 2D object.
-     * This first call {@link #onTransformDirty()}, then the flag is
+     * This first call {@link #internalTransformDirty()}, then the flag is
      * propagated down to all descendants of type {@link GameObject2D} or its subclasses.
      */
     private void setTransformDirty() {
+        internalTransformDirty();
         onTransformDirty();
         if (!isTransformDirty) {
             isTransformDirty = true;
@@ -708,11 +709,16 @@ public class GameObject2D extends RenderableObject {
     }
 
     /**
-     * Optional hook for additional 2D object's transform dirty logic.
+     * Internal hook for engine core extension of 2D object's logic on transform dirty.
      */
-    protected void onTransformDirty() {
+    protected void internalTransformDirty() {
         renderDirty = true;
     }
+
+    /**
+     * Optional hook for additional 2D object's transform dirty logic.
+     */
+    protected void onTransformDirty() {}
 
     /**
      * Check if this 2D object is in the process of updating its global transform.
@@ -720,7 +726,7 @@ public class GameObject2D extends RenderableObject {
      * All values obtained from global transform might be outdated while this flag is true.
      * @return true if currently updating
      */
-    public boolean isTransformUpdating() {
+    public final boolean isTransformUpdating() {
         return isTransformUpdating;
     }
 

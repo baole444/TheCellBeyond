@@ -27,7 +27,7 @@ public abstract class CollisionShape2D extends Component2D {
     protected transient CollisionObject2D collisionObject2D = null;
 
     /**
-     * IS the fixture of this collision shape outdated and need to be updated.
+     * Is the fixture of this collision shape outdated and need to be updated.
      */
     protected transient boolean needsFixtureReset = false;
 
@@ -49,34 +49,35 @@ public abstract class CollisionShape2D extends Component2D {
     }
 
     @Override
-    protected void onStart() {
+    protected void internalStart() {
+        super.internalStart();
         init();
     }
 
     @Override
-    protected void onEditorStart() {
+    protected void internalEditorStart() {
+        super.internalEditorStart();
         init();
     }
 
     @Override
-    protected void onDestroy() {
+    protected void internalDestroy() {
         collisionObject2D = null;
     }
 
     @Override
-    protected void onTransformDirty() {
+    protected void internalTransformDirty() {
+        super.internalTransformDirty();
         setFixtureNeedReset();
     }
 
     @Override
-    protected void onPhysicUpdate(float dt) {
+    protected void internalPhysicUpdate(float dt) {
         if (needsFixtureReset) resetFixture();
     }
 
     @Override
-    public void editorUpdate(float dt) {
-        if (needsFixtureReset) resetFixture();
-        onEditorUpdate(dt);
+    protected void internalEditorUpdate(float dt) {
         drawDebugShape();
     }
 

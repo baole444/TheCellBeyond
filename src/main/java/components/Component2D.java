@@ -56,14 +56,12 @@ public abstract class Component2D extends RenderableComponent {
     }
 
     @Override
-    public void start() {
-        super.start();
+    protected void internalStart() {
         setTransformDirty();
     }
 
     @Override
-    public void editorStart() {
-        super.editorStart();
+    protected void internalEditorStart() {
         setTransformDirty();
     }
 
@@ -405,19 +403,25 @@ public abstract class Component2D extends RenderableComponent {
 
     /**
      * Trigger the {@link #isTransformDirty} flag of this 2D component.
-     * This first call {@link #onTransformDirty()}.
+     * This first call {@link #internalTransformDirty()}.
      */
     public void setTransformDirty() {
+        internalTransformDirty();
         onTransformDirty();
         isTransformDirty = true;
     }
 
     /**
-     * Optional hook for additional 2D component's transform dirty logic.
+     * Internal hook for engine core extension of 2D component's logic on transform dirty.
      */
-    protected void onTransformDirty() {
+    protected void internalTransformDirty() {
         renderDirty = true;
     }
+
+    /**
+     * Optional hook for additional 2D component's transform dirty logic.
+     */
+    protected void onTransformDirty() {}
 
     /**
      * Internal update of this component's global transform.

@@ -42,21 +42,21 @@ import java.util.UUID;
  *         nestedC.gameObject = this.gameObject;
  *         nestedB.start();
  *         nestedC.start();
- *         super.onStart();
+ *         super.internalStart();
  *     }
  *
  *     @Override
  *     protected void onUpdate(float dt) {
  *         nestedB.update(dt);
  *         nestedC.update(dt);
- *         super.onUpdate();
+ *         super.internalUpdate();
  *     }
  *
  *     @Override
  *     protected void onDestroy() {
  *         nestedB.destroy();
  *         nestedC.destroy();
- *         super.onDestroy();
+ *         super.internalDestroy();
  *     }
  * }
  *}
@@ -108,31 +108,18 @@ public abstract class Component {
      * Unless there is a very specific use case, it is suggested to override {@link #onStart()} instead of this.
      * @see Component#onStart() Add additional component startup logic
      */
-    public void start() {
+    public final void start() {
+        internalStart();
         onStart();
     }
 
     /**
-     * Optional hook for additional component's start logic. Suggested override flow:
-     * {@snippet lang = java:
-     * public class CustomComponent extends Component {
-     *     @Override
-     *     protected void onStart() {
-     *         customSubclassLogic();
-     *         super.onStart();
-     *     }
-     *
-     *     private void customSubclassLogic() {
-     *         // do custom component's logic
-     *     }
-     * }
-     *}
-     * @apiNote
-     * Call to {@code super.onStart} can be omitted if the class that implement this method
-     * is direct subclass of {@link Component}, or the super class does not have override for this method.
-     * <p>
-     * The position for when to call {@code super.onStartLogic()} may depend on if the implemented logic need to go first,
-     * or after the super's implementation.
+     * Internal hook for engine core extension of component's start logic.
+     */
+    protected void internalStart() {}
+
+    /**
+     * Optional hook for additional component's start logic.
      */
     protected void onStart() {}
 
@@ -141,15 +128,19 @@ public abstract class Component {
      * If a component is added to an already running game object, it will be automatically started.
      * <p>
      * Mainly called by the owning game object {@link GameObject#editorStart()} logic.
-     * </p>
-     * Unless there is a very specific use case, it is suggested to override {@link #onEditorStart()} instead.
-     * @see Component#onEditorStart()  Add additional component startup logic
+     * @see Component#onStart() Add additional component startup logic
      * @apiNote Do not use this method, unless there are specific initialization for the component
      * that need to be reflected in editor mode.
      */
-    public void editorStart() {
+    public final void editorStart() {
+        internalEditorStart();
         onEditorStart();
     }
+
+    /**
+     * Internal hook for engine core extension of component's editor start logic.
+     */
+    protected void internalEditorStart() {}
 
     /**
      * Optional hook for additional component's start logic while in editor mode.
@@ -160,12 +151,16 @@ public abstract class Component {
 
     /**
      * Called when the component's {@link GameObject} and all of its descendants are started.
-     * <p>
-     * Unless there is a very specific use case, it is suggested to override {@link #onReady()} instead.
      */
-    public void ready() {
+    public final void ready() {
+        internalReady();
         onReady();
     }
+
+    /**
+     * Internal hook for engine core extension of component's ready logic.
+     */
+    protected void internalReady() {}
 
     /**
      * Optional hook for additional component's ready logic.
@@ -191,9 +186,15 @@ public abstract class Component {
      * </p>
      * If this must be called, ensure that, for an instance of {@link Component}, this is only called once.
      */
-    public void editorUpdate(float dt) {
+    public final void editorUpdate(float dt) {
+        internalEditorUpdate(dt);
         onEditorUpdate(dt);
     }
+
+    /**
+     * Internal hook for engine core extension of component's editor logic process.
+     */
+    protected void internalEditorUpdate(float dt) {}
 
     /**
      * Optional hook for additional component's editor logic.
@@ -214,9 +215,15 @@ public abstract class Component {
      * <p>
      * If this must be called, ensure that, for an instance of {@link Component}, this is only called once.
      */
-    public void update(float dt) {
+    public final void update(float dt) {
+        internalUpdate(dt);
         onUpdate(dt);
     }
+
+    /**
+     * Internal hook for engine core extension of component's logic process.
+     */
+    protected void internalUpdate(float dt) {}
 
     /**
      * Optional hook for additional component's logic.
@@ -237,9 +244,16 @@ public abstract class Component {
      * <p>
      * If this must be called, ensure that, for an instance of {@link Component}, this is only called once.
      */
-    public void physicUpdate(float dt) {
+    public final void physicUpdate(float dt) {
+        internalPhysicUpdate(dt);
         onPhysicUpdate(dt);
     }
+
+    /**
+     * Internal hook for engine core extension of component's physic process.
+     * @param dt the fixed delta time of physic tick
+     */
+    protected void internalPhysicUpdate(float dt) {}
 
     /**
      * Optional hook for additional component's physic logic.
@@ -283,7 +297,7 @@ public abstract class Component {
      * Check if this component has been destroyed / removed or not.
      * @return true if this component has been destroyed
      */
-    public boolean isDestroyed() {
+    public final boolean isDestroyed() {
         return destroyed;
     }
 
@@ -291,12 +305,18 @@ public abstract class Component {
      * Upon calling destroy, the component will discard its uuid, game object reference, and its name.
      */
     public final void destroy() {
+        internalDestroy();
         onDestroy();
         destroyed = true;
         uuid = null;
         gameObject = null;
         componentName = null;
     }
+
+    /**
+     * Internal hook for engine core extension of component's destroy logic.
+     */
+    protected void internalDestroy() {}
 
     /**
      * Optional hook for additional destroy (clean up) logic of a component.
@@ -309,7 +329,7 @@ public abstract class Component {
      * Get the UUID uses for identify this component.
      * @return the UUID
      */
-    public UUID getUUID() {
+    public final UUID getUUID() {
         return uuid;
     }
 

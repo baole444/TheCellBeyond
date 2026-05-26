@@ -419,18 +419,20 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
     }
 
     @Override
-    protected void onStart() {
+    protected void internalStart() {
+        super.internalStart();
         init();
         play(defaultAnimation);
     }
 
     @Override
-    protected void onEditorStart() {
+    protected void internalEditorStart() {
+        super.internalEditorStart();
         init();
     }
 
     @Override
-    protected void onUpdate(float dt) {
+    protected void internalUpdate(float dt) {
         if (currentAnimation == null) return;
         if (play && backward) currentAnimation.updateBackward(dt);
         else if (play) currentAnimation.update(dt);
@@ -438,8 +440,8 @@ public class AnimatedSpriteRenderer extends SpriteRenderer {
     }
 
     @Override
-    protected void onEditorUpdate(float dt) {
-        onUpdate(dt);
+    protected void internalEditorUpdate(float dt) {
+        internalUpdate(dt);
     }
 
     private void init() {

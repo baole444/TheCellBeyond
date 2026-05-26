@@ -91,7 +91,7 @@ public final class Controller2D extends Component {
     }
 
     @Override
-    protected void onStart() {
+    protected void internalStart() {
         if (gameObject == null) return;
         if (gameObject instanceof GameObject2D go2D) {
             gameObject2D = go2D;
@@ -110,18 +110,18 @@ public final class Controller2D extends Component {
     }
 
     @Override
-    protected void onEditorStart() {
-        onStart();
+    protected void internalEditorStart() {
+        internalStart();
     }
 
     @Override
-    protected void onDestroy() {
+    protected void internalDestroy() {
         gameObject2D = null;
         physicBody2D = null;
     }
 
     @Override
-    protected void onUpdate(float dt) {
+    protected void internalUpdate(float dt) {
         if (controlMode == ControlMode.Incompatible) return;
         Vector2f finalDirection = getCombinedDirection(dt);
         if (controlMode == ControlMode.PhysicalLogic) {
@@ -135,7 +135,7 @@ public final class Controller2D extends Component {
     }
 
     @Override
-    protected void onPhysicUpdate(float dt) {
+    protected void internalPhysicUpdate(float dt) {
         if (controlMode != ControlMode.PhysicalLogic) return;
         if (pendingPhysicDirection.lengthSquared() == 0.0f) {
             if (!hasPhysicMovement) return;

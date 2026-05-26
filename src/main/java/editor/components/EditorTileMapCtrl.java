@@ -49,7 +49,7 @@ public class EditorTileMapCtrl extends Component implements NotSerializeComponen
     }
 
     @Override
-    public void editorUpdate(float dt) {
+    protected void internalEditorUpdate(float dt) {
         if (!ImGuiLayer.editorWantCaptureMouse() || ImGui.isPopupOpen("", ImGuiPopupFlags.AnyPopup)) return;
         TileMap editingTileMap = TileMapEditor.getEditingTileMap();
         if (editingTileMap == null) {
@@ -220,7 +220,7 @@ public class EditorTileMapCtrl extends Component implements NotSerializeComponen
     }
 
     @Override
-    protected void onDestroy() {
+    protected void internalDestroy() {
         clearData();
     }
 }

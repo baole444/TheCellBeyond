@@ -32,15 +32,15 @@ public class TileCollider2D extends CollisionShape2D {
     }
 
     @Override
-    protected void onStart() {
+    protected void internalStart() {
         if (gameObject != null && gameObject.getParent() instanceof TileMap map) tileMap = map;
-        super.onStart();
+        super.internalStart();
     }
 
     @Override
-    protected void onEditorStart() {
+    protected void internalEditorStart() {
         if (gameObject != null && gameObject.getParent() instanceof TileMap map) tileMap = map;
-        super.onEditorStart();
+        super.internalEditorStart();
     }
 
     @Override
