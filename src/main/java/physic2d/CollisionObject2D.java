@@ -1,5 +1,6 @@
 package physic2d;
 
+import TheCellBeyond.GameObject;
 import TheCellBeyond.GameObject2D;
 import TheCellBeyond.Transform2D;
 import TheCellBeyond.internal.LogicServer;
@@ -9,12 +10,14 @@ import org.jbox2d.dynamics.BodyDef;
 import org.jbox2d.dynamics.BodyType;
 import org.joml.Math;
 import org.joml.Vector2f;
+import utility.log.EngineLog;
 
 /**
  * CollisionObject2D is an abstract base class for 2D physics objects,
  * it can hold any number of {@link physic2d.collider.CollisionShape2D}s for collision.
  */
 public abstract class CollisionObject2D extends GameObject2D {
+    private static final EngineLog Logger = new EngineLog(CollisionObject2D.class);
     private int collisionLayer = PhysicLayer.layerToBit(0);
     private int collisionMask = PhysicLayer.layerToBit(0);
     /**
@@ -31,6 +34,8 @@ public abstract class CollisionObject2D extends GameObject2D {
      */
     protected transient Body physicBodyRef = null;
     private transient boolean needFixtureUpdate = false;
+    private transient boolean dynamicChildWarned = false;
+    private transient boolean staticChildWarned = false;
 
     /**
      * Create a new {@link CollisionObject2D}.
@@ -61,6 +66,60 @@ public abstract class CollisionObject2D extends GameObject2D {
     }
 
     /**
+     * Get the nearest ancestor of type {@link CollisionObject2D} or its subclasses.
+     * <p>
+     * For example, consider this hierarchy tree:
+     * {@snippet lang="TEXT":
+     *    A (CollisionObject2D)
+     *    |_B (GameObject2D)
+     *      |_C (GameObject)
+     *        |_This object
+     * }
+     * <br>
+     * This method will return 2D object {@code A}, object {@code B}, and {@code C} were skipped
+     * since they are not the correct {@link CollisionObject2D} type or its subclasses.
+     * @return the nearest ancestor of type {@link CollisionObject2D} or its subclasses
+     */
+    public final CollisionObject2D getParentCollision2D() {
+        GameObject parent = getParent();
+        while (parent != null) {
+            if (parent instanceof CollisionObject2D parentCollision2D) return parentCollision2D;
+            parent = parent.getParent();
+        }
+        return null;
+    }
+
+    /**
+     * Get the highest ancestor of type {@link CollisionObject2D}, or its subclasses, by walking up
+     * the hierarchy tree of this collision object.]
+     * <p>
+     * if this object have no collision ancestor, then it is the highest in its tree.
+     * @return the top collision ancestor in the current hierarchy tree
+     */
+    public final CollisionObject2D getCollisionRoot() {
+        CollisionObject2D current = this;
+        CollisionObject2D ancestor = getParentCollision2D();
+        while (ancestor != null) {
+            current = ancestor;
+            ancestor = ancestor.getParentCollision2D();
+        }
+        return current;
+    }
+
+    /**
+     * Check if this collision object and the given object belong to the same physic hierarchy tree.
+     * This means that they share the same collision root object.
+     * <p>
+     * When the collision objects share the same hierarchy tree, they will be seen as a single physic entity.
+     * @param other the other collision object to check against
+     * @return true if belong on the same physic hierarchy tree
+     */
+    public final boolean sharePhysicHierarchy(CollisionObject2D other) {
+        if (other == null) return false;
+        return getCollisionRoot() == other.getCollisionRoot();
+    }
+
+    /**
      * Update the tracking previous transform for interpolation.
      * Must be called once before each physic step.
      */
@@ -80,12 +139,63 @@ public abstract class CollisionObject2D extends GameObject2D {
         if (physicBodyRef == null) return;
         Vec2 physicPos = physicBodyRef.getPosition();
         float physicRot = Math.toDegrees(physicBodyRef.getAngle());
-        Vector2f currentPos = position();
-        boolean posDif = currentPos.x != physicPos.x || currentPos.y != physicPos.y;
-        boolean rotDif = rotation() != physicRot;
-        if (!posDif && !rotDif) return;
-        if (posDif) position(physicPos.x, physicPos.y);
-        if (rotDif) rotation(physicRot);
+        if (getParentCollision2D() == null) {
+            Vector2f currentPos = position();
+            boolean posDif = currentPos.x != physicPos.x || currentPos.y != physicPos.y;
+            boolean rotDif = rotation() != physicRot;
+            if (!posDif && !rotDif) return;
+            if (posDif) position(physicPos.x, physicPos.y);
+            if (rotDif) rotation(physicRot);
+            return;
+        }
+        Vector2f currentGlobalPos = globalPosition();
+        float currentGlobalRot = globalRotation();
+        boolean postDif = currentGlobalPos.x != physicPos.x || currentGlobalPos.y != physicPos.y;
+        boolean rotDif = currentGlobalRot != physicRot;
+        if (!postDif && !rotDif) return;
+        if (postDif) globalPosition(physicPos.x, physicPos.y);
+        if (rotDif) globalRotation(physicRot);
+    }
+
+    /**
+     * Move this body to follow the nearest {@link CollisionObject2D} ancestor's physic body.
+     * <p>
+     * Called once per physic step, after every physic update pass and before the world physic step.
+     * This ensured the ancestor body already moved.
+     * The local offset is calculated in the ancestor's frame.
+     * </p>
+     * Dynamic and static body type are skipped (static body can't move).
+     * For dynamic body, it is suggested to use joints instead.
+     * @apiNote Scale is not applied into physic calculation.
+     */
+    public final void applyParentFollow() {
+        if (physicBodyRef == null) return;
+        CollisionObject2D ancestor = getParentCollision2D();
+        if (ancestor == null) return;
+        Body ancestorBody = ancestor.getPhysicBodyRef();
+        if (ancestorBody == null) return;
+        BodyType type = physicBodyRef.getType();
+        if (type == BodyType.DYNAMIC) {
+            if (dynamicChildWarned) return;
+            Logger.warning(String.format("Dynamic body '%s' nested under '%s' is not supported, used joints instead", name(), ancestor.name()));
+            dynamicChildWarned = true;
+            return;
+        }
+        if (type == BodyType.STATIC) {
+            if (staticChildWarned) return;
+            Logger.warning(String.format("Static body '%s' nested under '%s' is not moveable", name(), ancestor.name()));
+            staticChildWarned = true;
+            return;
+        }
+        Vector2f ancestorLocalOffset = ancestor.toLocal(globalPosition());
+        float offsetRad = Math.toRadians(globalRotation() - ancestor.globalRotation());
+        Vec2 ancestorPosition = ancestorBody.getPosition();
+        float ancestorAngle = ancestorBody.getAngle();
+        float cos = Math.cos(ancestorAngle);
+        float sin = Math.sin(ancestorAngle);
+        float worldX = ancestorPosition.x + cos * ancestorLocalOffset.x - sin * ancestorLocalOffset.y;
+        float worldY = ancestorPosition.y + sin * ancestorLocalOffset.x + cos * ancestorLocalOffset.y;
+        physicBodyRef.setTransform(new Vec2(worldX, worldY), ancestorAngle + offsetRad);
     }
 
     /**
@@ -231,18 +341,6 @@ public abstract class CollisionObject2D extends GameObject2D {
         needFixtureUpdate = true;
     }
 
-    private void updateFixtureFilter() {
-        if (!needFixtureUpdate) return;
-        Physic2D physic2D = LogicServer.currentScenePhysic2D();
-        if (physic2D == null || physic2D.isLock()) return;
-        if (physicBodyRef == null) {
-            needFixtureUpdate = false;
-            return;
-        }
-        physic2D.updateBodyFilters(this);
-        needFixtureUpdate = false;
-    }
-
     /**
      * Get the friction ratio for this physic body.
      * @return the friction ration
@@ -269,4 +367,16 @@ public abstract class CollisionObject2D extends GameObject2D {
      * This is called after the physic body reference is assigned to the physic object.
      */
     public abstract void configurePhysicBodyRef();
+
+    private void updateFixtureFilter() {
+        if (!needFixtureUpdate) return;
+        Physic2D physic2D = LogicServer.currentScenePhysic2D();
+        if (physic2D == null || physic2D.isLock()) return;
+        if (physicBodyRef == null) {
+            needFixtureUpdate = false;
+            return;
+        }
+        physic2D.updateBodyFilters(this);
+        needFixtureUpdate = false;
+    }
 }

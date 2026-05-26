@@ -1,5 +1,6 @@
 package physic2d;
 
+import TheCellBeyond.GameObject;
 import TheCellBeyond.GameObject2D;
 import TheCellBeyond.internal.LogicServer;
 import org.jbox2d.callbacks.RayCastCallback;
@@ -39,6 +40,9 @@ public class RayCast2D extends GameObject2D {
     /**
      * Should this raycast not report collision with parent object. This only matter if the parent object is
      * a {@link CollisionObject2D} or its subclasses.
+     * <p>
+     * If there is a collision object ancestor, regardless of intermediate none physic objects,
+     * the ray will also exclude any collision sibling and descendant object of the same collision ancestor.
      */
     public boolean excludeParent = true;
     /**
@@ -179,7 +183,10 @@ public class RayCast2D extends GameObject2D {
             if (collisionObject instanceof PhysicBody2D && !ray.collideWithBodies) return -1.0f;
             if ((ray.collisionMask & collisionObject.getCollisionLayer()) == 0) return -1.0f;
             if (ray.exceptions.contains(collisionObject)) return -1.0f;
-            if (ray.excludeParent && collisionObject == ray.getParent()) return -1.0f;
+            if (ray.excludeParent) {
+                CollisionObject2D owner = findCollisionOwner(ray);
+                if (owner != null && owner.sharePhysicHierarchy(collisionObject)) return -1.0f;
+            }
             if (fraction == 0.0f && !ray.hitFromInside) return -1.0f;
             if (fraction > closesFraction) return -1.0f;
             closesFraction = fraction;
@@ -189,6 +196,15 @@ public class RayCast2D extends GameObject2D {
             if (fraction == 0.0f) hitNormal.zero();
             else hitNormal.set(normal.x, normal.y);
             return fraction;
+        }
+
+        private static CollisionObject2D findCollisionOwner(RayCast2D ray) {
+            GameObject parent = ray.getParent();
+            while (parent != null) {
+                if (parent instanceof CollisionObject2D collisionObject2D) return collisionObject2D;
+                parent = parent.getParent();
+            }
+            return null;
         }
     }
 }

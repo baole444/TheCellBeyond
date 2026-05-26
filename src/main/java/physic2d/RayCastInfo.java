@@ -27,13 +27,14 @@ public class RayCastInfo implements RayCastCallback {
         hit = false;
         contactedObject = null;
         this.originObject = originObject;
-
     }
 
     @Override
     public float reportFixture(Fixture fixture, Vec2 point, Vec2 normal, float fraction) {
         if (fixture.m_userData == originObject) return 1.0f;
+        if (fixture.isSensor()) return 1.0f;
         if (originObject instanceof CollisionObject2D origin && fixture.m_userData instanceof CollisionObject2D target) {
+            if (origin.sharePhysicHierarchy(target)) return 1.0f;
             if ((origin.getCollisionMask() & target.getCollisionLayer()) == 0) return -1.0f;
         }
         this.fixture = fixture;

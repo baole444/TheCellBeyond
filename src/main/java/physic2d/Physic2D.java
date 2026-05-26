@@ -279,7 +279,9 @@ public class Physic2D {
         List<Fixture> result = new ArrayList<>();
         world.queryAABB(fixture -> {
             if (fixture.m_userData == originObject) return true;
+            if (fixture.isSensor()) return true;
             if (!(fixture.m_userData instanceof CollisionObject2D target)) return true;
+            if (originObject.sharePhysicHierarchy(target)) return true;
             if ((originObject.getCollisionMask() & target.getCollisionLayer()) == 0) return true;
             result.add(fixture);
             return true;

@@ -15,6 +15,7 @@ public class Physic2DContactListener implements ContactListener {
     public void beginContact(Contact contact) {
         GameObject A = (GameObject) contact.getFixtureA().getUserData();
         GameObject B = (GameObject) contact.getFixtureB().getUserData();
+        if (sameHierarchy(A, B)) return;
         WorldManifold worldManifold = new WorldManifold();
         contact.getWorldManifold(worldManifold);
         Vector2f aNormal = new Vector2f(worldManifold.normal.x, worldManifold.normal.y);
@@ -28,6 +29,7 @@ public class Physic2DContactListener implements ContactListener {
     public void endContact(Contact contact) {
         GameObject A = (GameObject) contact.getFixtureA().getUserData();
         GameObject B = (GameObject) contact.getFixtureB().getUserData();
+        if (sameHierarchy(A, B)) return;
         WorldManifold worldManifold = new WorldManifold();
         contact.getWorldManifold(worldManifold);
         Vector2f aNormal = new Vector2f(worldManifold.normal.x, worldManifold.normal.y);
@@ -41,6 +43,7 @@ public class Physic2DContactListener implements ContactListener {
     public void preSolve(Contact contact, Manifold manifold) {
         GameObject A = (GameObject) contact.getFixtureA().getUserData();
         GameObject B = (GameObject) contact.getFixtureB().getUserData();
+        if (sameHierarchy(A, B)) return;
         WorldManifold worldManifold = new WorldManifold();
         contact.getWorldManifold(worldManifold);
         Vector2f aNormal = new Vector2f(worldManifold.normal.x, worldManifold.normal.y);
@@ -53,12 +56,19 @@ public class Physic2DContactListener implements ContactListener {
     public void postSolve(Contact contact, ContactImpulse contactImpulse) {
         GameObject A = (GameObject) contact.getFixtureA().getUserData();
         GameObject B = (GameObject) contact.getFixtureB().getUserData();
+        if (sameHierarchy(A, B)) return;
         WorldManifold worldManifold = new WorldManifold();
         contact.getWorldManifold(worldManifold);
         Vector2f aNormal = new Vector2f(worldManifold.normal.x, worldManifold.normal.y);
         Vector2f bNormal = new Vector2f(aNormal).negate();
         for (Component c : A.getComponents()) c.postSolve(B, contact, aNormal);
         for (Component c : B.getComponents()) c.postSolve(A, contact, bNormal);
+    }
+
+    private boolean sameHierarchy(GameObject A, GameObject B) {
+        if (!(A instanceof CollisionObject2D coA)) return false;
+        if (!(B instanceof CollisionObject2D coB)) return false;
+        return coA.sharePhysicHierarchy(coB);
     }
 
     private void emitAreaEnterSignals(GameObject A, GameObject B) {

@@ -129,6 +129,9 @@ public class Scene {
                         if (go instanceof CollisionObject2D collisionObject2D) collisionObject2D.updatePreviousTransform();
                     }
                     for (GameObject go : sceneData.gameObjects()) go.physicUpdate(fixedDT);
+                    for (GameObject go : sceneData.gameObjects()) {
+                        if (go instanceof CollisionObject2D collisionObject2D) collisionObject2D.applyParentFollow();
+                    }
                 },
                 _ -> {
                     for (GameObject go : sceneData.gameObjects()) {
