@@ -8,10 +8,7 @@ import components.InputActivation;
 import editor.dialog.EditProjectSettingsDialog;
 import imgui.ImGui;
 import imgui.ImVec2;
-import imgui.flag.ImGuiComboFlags;
-import imgui.flag.ImGuiKey;
-import imgui.flag.ImGuiTableColumnFlags;
-import imgui.flag.ImGuiTableFlags;
+import imgui.flag.*;
 import imgui.type.ImString;
 import org.joml.Vector2f;
 import project.Project;
@@ -19,8 +16,6 @@ import utility.log.EngineLog;
 
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static org.lwjgl.glfw.GLFW.*;
 
 class ControllerBindingEditor {
     private static final String CONTROL_SECTION = "##Controller bindings controls";
@@ -113,7 +108,7 @@ class ControllerBindingEditor {
             ImGui.setNextItemAllowOverlap();
             if (ImGui.selectable("##" + entry.getKey(), isSelected, 0.0f, height) && !isSelected) selectedName = entry.getKey();
             if (renderBindingNameEdit(entry.getKey(), cursorPos, isSelected)) continue;
-            if (ImGui.isItemHovered() && ImGui.isMouseDoubleClicked(GLFW_MOUSE_BUTTON_1)) {
+            if (ImGui.isItemHovered() && ImGui.isMouseDoubleClicked(ImGuiMouseButton.Left)) {
                 editingName = entry.getKey();
                 editingNameBuffer.set(editingName);
                 ImGui.spacing();

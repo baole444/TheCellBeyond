@@ -22,9 +22,6 @@ import project.Project;
 import render.FrameBuffer;
 import scene.SceneManager;
 
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_ENTER;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
-
 final class SceneEditorViewport implements EngineEventListener {
     private static final SceneEditorViewport instance = new SceneEditorViewport();
     static volatile String WindowID = "2D Scene###Editor_Scene_Viewport";

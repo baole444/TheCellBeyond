@@ -4,6 +4,7 @@ import imgui.ImDrawList;
 import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.ImDrawListFlags;
+import imgui.flag.ImGuiMouseButton;
 import imgui.flag.ImGuiTableColumnFlags;
 import imgui.flag.ImGuiTableFlags;
 import org.joml.Vector2f;
@@ -14,9 +15,6 @@ import utility.TextureScale;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_1;
-import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_2;
 
 class TileCollisionShapeEditor {
     private enum Mode {
@@ -321,7 +319,7 @@ class TileCollisionShapeEditor {
         if (size == null || tile == null || editingMode != Mode.AddPolygon) return;
         ImVec2 screenCursorPos = ImGui.getCursorScreenPos();
         ImVec2 mousePos = ImGui.getMousePos();
-        boolean isMouseClick = ImGui.isMouseClicked(GLFW_MOUSE_BUTTON_1);
+        boolean isMouseClick = ImGui.isMouseClicked(ImGuiMouseButton.Left);
         if (!onPreview(size, mousePos, screenCursorPos)) {
             hoveringEdge = -1;
             return;
@@ -336,8 +334,8 @@ class TileCollisionShapeEditor {
         if (editingMode != Mode.EditPolygon || tile.collisionPolygonNodes == null || tile.collisionPolygonNodes.length == 0) return;
         ImVec2 screenCursorPos = ImGui.getCursorScreenPos();
         ImVec2 mousePos = ImGui.getMousePos();
-        boolean isMouseDown = ImGui.isMouseDown(GLFW_MOUSE_BUTTON_1);
-        boolean isMouseClick = ImGui.isMouseClicked(GLFW_MOUSE_BUTTON_1);
+        boolean isMouseDown = ImGui.isMouseDown(ImGuiMouseButton.Left);
+        boolean isMouseClick = ImGui.isMouseClicked(ImGuiMouseButton.Left);
         if (!onPreview(size, mousePos, screenCursorPos)) return;
 
         Vector2f[] nodes = tile.collisionPolygonNodes;
@@ -363,8 +361,8 @@ class TileCollisionShapeEditor {
 
         ImVec2 screenCursorPos = ImGui.getCursorScreenPos();
         ImVec2 mousePos = ImGui.getMousePos();
-        boolean leftClick = ImGui.isMouseClicked(GLFW_MOUSE_BUTTON_1);
-        boolean rightClick = ImGui.isMouseClicked(GLFW_MOUSE_BUTTON_2);
+        boolean leftClick = ImGui.isMouseClicked(ImGuiMouseButton.Left);
+        boolean rightClick = ImGui.isMouseClicked(ImGuiMouseButton.Right);
 
         if (!onPreview(size, mousePos, screenCursorPos) || (!leftClick && !rightClick)) return;
 
@@ -396,8 +394,8 @@ class TileCollisionShapeEditor {
     }
 
     private static void handleAddNewPolygon(Vector2f size, ImVec2 screenCursorPos, ImVec2 mousePos, boolean isMouseClick) {
-        boolean isMouseDown = ImGui.isMouseDown(GLFW_MOUSE_BUTTON_1);
-        boolean isMouseRelease = ImGui.isMouseReleased(GLFW_MOUSE_BUTTON_1);
+        boolean isMouseDown = ImGui.isMouseDown(ImGuiMouseButton.Left);
+        boolean isMouseRelease = ImGui.isMouseReleased(ImGuiMouseButton.Left);
         Vector2f normal = getNormal(mousePos, screenCursorPos, size);
         if (isMouseClick) {
             if (closingPolygon(size, screenCursorPos, mousePos)) return;

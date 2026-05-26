@@ -84,7 +84,14 @@ public class ConfirmSaveSceneDialog {
             ImGui.setCursorPosX(saveX);
             if (ImGui.button("Save", buttonWidth, 0.0f)) {
                 if (enableSaveOnChangeScene.get()) setAutoSaveOn();
-                if (LogicServer.currentSceneName() == null) SaveSceneAsDialog.show(ConfirmSaveSceneDialog::closeConfirmation);
+                if (LogicServer.currentSceneName() == null) {
+                    Runnable nextStep = onCompleteDecision;
+                    showDialog = false;
+                    onCompleteDecision = null;
+                    onCancelDecision = null;
+                    ImGui.closeCurrentPopup();
+                    SaveSceneAsDialog.show(nextStep);
+                }
                 else {
                     EngineEventCallback.emit(null, new EditorEvent(EditorEvent.Type.SaveEditingSceneToDisk));
                     closeConfirmation();

@@ -8,6 +8,7 @@ import imgui.ImDrawList;
 import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.ImGuiKey;
+import imgui.flag.ImGuiMouseButton;
 import imgui.flag.ImGuiTableColumnFlags;
 import imgui.flag.ImGuiTableFlags;
 import imgui.type.ImBoolean;
@@ -21,8 +22,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-
-import static org.lwjgl.glfw.GLFW.*;
 
 class SpriteFrameEditor {
     private static final String CONTROL_SECTION = "##Sprite frame controls";
@@ -254,7 +253,7 @@ class SpriteFrameEditor {
 
             if (renderAnimationNameEdit(entry.getKey(), cursorPos, isSelected)) continue;
 
-            if (ImGui.isItemHovered() && ImGui.isMouseDoubleClicked(GLFW_MOUSE_BUTTON_1)) {
+            if (ImGui.isItemHovered() && ImGui.isMouseDoubleClicked(ImGuiMouseButton.Left)) {
                 editingName = entry.getKey();
                 editingNameBuffer.set(editingName);
                 ImGui.spacing();

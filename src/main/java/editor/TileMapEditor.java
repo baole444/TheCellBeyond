@@ -5,10 +5,7 @@ import editor.components.EditorTileMapGrid;
 import imgui.ImDrawList;
 import imgui.ImGui;
 import imgui.ImVec2;
-import imgui.flag.ImGuiChildFlags;
-import imgui.flag.ImGuiTableColumnFlags;
-import imgui.flag.ImGuiTableFlags;
-import imgui.flag.ImGuiWindowFlags;
+import imgui.flag.*;
 import imgui.type.ImFloat;
 import org.joml.Vector2f;
 import org.joml.Vector2i;
@@ -20,8 +17,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_1;
 
 public class TileMapEditor {
     private enum Mode {
@@ -372,8 +367,8 @@ public class TileMapEditor {
         if (editingMode == null || editingMode == Mode.Erase) return;
 
         boolean isItemHovered = ImGui.isItemHovered();
-        boolean isMouseDown = ImGui.isMouseDown(GLFW_MOUSE_BUTTON_1);
-        boolean isMouseClick = ImGui.isMouseClicked(GLFW_MOUSE_BUTTON_1);
+        boolean isMouseDown = ImGui.isMouseDown(ImGuiMouseButton.Left);
+        boolean isMouseClick = ImGui.isMouseClicked(ImGuiMouseButton.Left);
         boolean isShift = ImGui.getIO().getKeyShift();
         boolean isControl = ImGui.getIO().getKeyCtrl();
 

@@ -234,11 +234,11 @@ public final class StartupWindow {
             if (recentProject == null) continue;
             float originalX = ImGui.getCursorPosX();
             boolean selected = selectedProject == recentProject;
-            if (ImGui.selectable("##" + recentProject.title(), selected, 0.0f, ImGui.getTextLineHeight() * 4.8f)) {
+            if (ImGui.selectable("##project_" + key, selected, 0.0f, ImGui.getTextLineHeight() * 4.8f)) {
                 selectedUUID = key;
                 selectedProject = recentProject;
             }
-            if (ImGui.isItemHovered() && ImGui.isMouseDoubleClicked(GLFW_MOUSE_BUTTON_1)) {
+            if (ImGui.isItemHovered() && ImGui.isMouseDoubleClicked(ImGuiMouseButton.Left)) {
                 selectedUUID = key;
                 selectedProject = recentProject;
                 startEditing();

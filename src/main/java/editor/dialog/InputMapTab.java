@@ -13,8 +13,6 @@ import project.ProjectData;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.lwjgl.glfw.GLFW.*;
-
 class InputMapTab {
     private static final int transparentColor = ImGui.colorConvertFloat4ToU32(0.0f, 0.0f, 0.0f, 0.0f);
     private static final float padding = 4.0f;
@@ -158,7 +156,7 @@ class InputMapTab {
             String headerId = actionName + "##EPPD_Action_Header_" + actionName;
             boolean opened = ImGui.collapsingHeader(headerId, ImGuiTreeNodeFlags.DefaultOpen);
 
-            if (ImGui.isItemHovered() && ImGui.isMouseDoubleClicked(GLFW_MOUSE_BUTTON_1)) {
+            if (ImGui.isItemHovered() && ImGui.isMouseDoubleClicked(ImGuiMouseButton.Left)) {
                 editingActionName = actionName;
                 editingActionNameBuffer.set(actionName);
                 ImGui.tableNextRow();
