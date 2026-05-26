@@ -29,15 +29,16 @@ For any other dependencies that might be brought in, they need to be `implementa
 ### Compatibility
 Below is the minimum API version for scripting to be compatible with the engine's release version:
 
-| Engine version  |                                        API version                                        |
-|:---------------:|:-----------------------------------------------------------------------------------------:|
-| __1.5 - 1.5.2__ | [__1.5__](https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api/1.5) |
-|       1.4       |   [1.4](https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api/1.4)   |
-|       1.3       |   [1.3](https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api/1.3)   |
-|   1.2 - 1.2.3   |   [1.2](https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api/1.2)   |
-|       1.1       |   [1.1](https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api/1.1)   |
+| Engine version |                                        API version                                        |
+|:--------------:|:-----------------------------------------------------------------------------------------:|
+|      1.6       | [__1.6__](https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api/1.6) |
+|  1.5 - 1.5.2   |   [1.5](https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api/1.5)   |
+|      1.4       |   [1.4](https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api/1.4)   |
+|      1.3       |   [1.3](https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api/1.3)   |
+|  1.2 - 1.2.3   |   [1.2](https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api/1.2)   |
+|      1.1       |   [1.1](https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api/1.1)   |
 
-*Using any version older than __1.5.2__ might not work properly (The version mention in this increased if new release contain fix for crashes or incorrect logic.)*
+*Using any version older than __1.6__ might not work properly (The version mention in this increased if new release contain fix for crashes or incorrect logic.)*
 
 Annotate a class as GameObject type:
 ```java
@@ -48,8 +49,6 @@ import scripting.RegisterGameObject;
 public class MainPlayer extends CharacterBody2D {
     @Override
     protected void onPhysicUpdate(float dt) {
-        super.onPhysicUpdate(dt);
-        
         // Other logic you might have
         
         moveAndSlide();

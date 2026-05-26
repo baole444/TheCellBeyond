@@ -6,7 +6,7 @@ import org.joml.Vector2f;
 import render.texture.Sprite;
 
 /**
- * EditorGizmo used for moving an object around in the editor..
+ * EditorGizmo used for moving an object around in the editor.
  */
 public class EditorGizmoMove extends EditorGizmo {
     /**
