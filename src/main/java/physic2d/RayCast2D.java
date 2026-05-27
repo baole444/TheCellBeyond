@@ -7,6 +7,8 @@ import org.jbox2d.callbacks.RayCastCallback;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Fixture;
 import org.joml.Vector2f;
+import org.joml.Vector4f;
+import render.DebugDraw;
 
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -130,12 +132,27 @@ public class RayCast2D extends GameObject2D {
     }
 
     @Override
+    protected void internalEditorUpdate(float dt) {
+        if (!enabled) return;
+        if (targetPosition.lengthSquared() == 0.0f) return;
+        Vector2f origin = globalPosition();
+        float rotationRadians = (float) Math.toRadians(globalRotation());
+        float cos = (float) Math.cos(rotationRadians);
+        float sin = (float) Math.sin(rotationRadians);
+        float rotationX = targetPosition.x * cos - targetPosition.y * sin;
+        float rotationY = targetPosition.x * sin + targetPosition.y * cos;
+        Vector2f target = new Vector2f(origin.x + rotationX, origin.y + rotationY);
+        DebugDraw.addArrow(origin, target, new Vector4f(0.0f, 1.0f, 0.0f, 1.0f));
+    }
+
+    @Override
     protected void internalPhysicUpdate(float dt) {
         colliding = false;
         collider = null;
         collisionPoint.zero();
         collisionNormal.zero();
         if (!enabled) return;
+        if (targetPosition.lengthSquared() == 0.0f) return;
         Physic2D physic2D = LogicServer.currentScenePhysic2D();
         if (physic2D == null) return;
         Vector2f origin = globalPosition();
@@ -146,7 +163,8 @@ public class RayCast2D extends GameObject2D {
         float rotationY = targetPosition.x * sin + targetPosition.y * cos;
         currentTarget.set(origin.x + rotationX, origin.y + rotationY);
         callback.reset();
-        physic2D.rayCast(callback, origin, targetPosition);
+        physic2D.rayCast(callback, origin, currentTarget);
+        DebugDraw.addArrow(origin, currentTarget, new Vector4f(0.0f, 1.0f, 0.0f, 1.0f));
         if (!callback.hit) return;
         colliding = true;
         collider = callback.hitObject;

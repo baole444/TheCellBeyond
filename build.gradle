@@ -218,13 +218,14 @@ def TCBClasses = [
         'Transform2D', 'Viewport', 'RenderableObject', 'Sound',
         'AudioResourceType', 'KeyListener', 'MouseListener',
 ]
-def TCBInternals = ['LogicServer', 'ResourceID', 'ResourceStatus', 'ResourceStatusCallback']
+def TCBInternals = ['LogicServer', 'ResourceID', 'ResourceStatus']
 def InputClasses = ['Input', 'InputAction', 'InputKey', 'InputType']
 def UTL = 'utility/'
 def UtilityClasses = [
         'AssetManager', 'AssetResourceType', 'AssetReference', 'UnifiedPaths',
         'HierarchyPath', 'HierarchyPaths', 'WorldUnit', 'Settings',
-        'TCBMath', 'TextureScale', 'FontPT', 'IdPool', 'RingBuffer'
+        'TCBMath', 'TextureScale', 'FontPT', 'IdPool', 'RingBuffer',
+        'ResourceTracker'
 ]
 def SPT = 'scripting/'
 def ScriptingClasses = ['Export', 'TypeHint', 'RegisterComponent', 'RegisterGameObject', 'TypeEntry']

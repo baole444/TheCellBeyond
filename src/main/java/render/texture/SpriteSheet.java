@@ -2,11 +2,11 @@ package render.texture;
 
 import TheCellBeyond.internal.ResourceID;
 import TheCellBeyond.internal.ResourceStatus;
-import TheCellBeyond.internal.ResourceStatusCallback;
-import TheCellBeyond.internal.ResourceStatusListener;
 import org.joml.Vector2f;
 import org.joml.Vector2i;
 import render.Texture;
+import utility.AssetManager;
+import utility.ResourceTracker;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,11 +16,11 @@ import java.util.List;
  * SpriteSheet will calculate its sprites' texture coordinate and size once the texture assigned to it is ready.
  * @see TextureUnit calculate sprite as a full texture.
  */
-public class SpriteSheet implements ResourceStatusListener {
+public class SpriteSheet {
     private Texture texture;
     private final List<Sprite> sprites;
     private transient boolean requireCompute = false;
-    private transient boolean isRegistered = false;
+    private transient ResourceTracker tracker;
     private transient int lastHandleId = -1;
     private final transient int numberOfSprites;
     private final transient Vector2i spriteSize, startPosition, spriteSpacing;
@@ -57,9 +57,8 @@ public class SpriteSheet implements ResourceStatusListener {
             requireCompute = true;
             computeSprites();
         }
-        if (isRegistered) return;
-        ResourceStatusCallback.register(this);
-        isRegistered = true;
+        if (tracker != null) tracker.cancel();
+        tracker = AssetManager.track(texture.RID, this::onTextureStatusChange);
         requireCompute = true;
     }
 
@@ -89,14 +88,12 @@ public class SpriteSheet implements ResourceStatusListener {
         float rightX = (instX + spriteSize.x) / (float) texture.getWidth();
         float leftX = instX / (float) texture.getWidth();
         float bottomY = instY / (float) texture.getHeight();
-
         Vector2f[] textureCoordinates = {
                 new Vector2f(rightX, topY),
                 new Vector2f(rightX, bottomY),
                 new Vector2f(leftX, bottomY),
                 new Vector2f(leftX, topY)
         };
-
         Sprite sprite = new Sprite();
         sprite.setTexture(this.texture);
         sprite.setTextureCoordinates(textureCoordinates);
@@ -107,21 +104,20 @@ public class SpriteSheet implements ResourceStatusListener {
 
     public Sprite spriteIndex(int index) {
         if (requireCompute) return null;
-
         if (index < 0 || index >= numberOfAvailableSprites()) {
             System.err.println("Sprite index " + index + " does not exist. Number of sprite in this sheet: " + numberOfAvailableSprites());
             return null;
         }
-
         return sprites.get(index);
     }
 
     public void setTexture(Texture newTexture) {
         if (texture == newTexture) return;
-        if (isRegistered) {
-            ResourceStatusCallback.unregister(this);
-            isRegistered = false;
+        if (tracker != null) {
+            tracker.cancel();
+            tracker = null;
         }
+        lastHandleId = -1;
         texture = newTexture;
         sprites.clear();
         textureReadyCheck(newTexture);
@@ -144,27 +140,23 @@ public class SpriteSheet implements ResourceStatusListener {
     }
 
     public void dispose() {
-        if (isRegistered) {
-            ResourceStatusCallback.unregister(this);
-            isRegistered = false;
+        if (tracker != null) {
+            tracker.cancel();
+            tracker = null;
         }
         sprites.clear();
     }
 
-    @Override
-    public void onResourceStatusChange(ResourceID RID, ResourceStatus status) {
-        if (texture == null || texture.RID.id != RID.id) return;
+    private void onTextureStatusChange(ResourceID RID, ResourceStatus status) {
+        if (texture == null) return;
         switch (status) {
             case READY -> {
                 if (requireCompute) computeSprites();
             }
             case DISPOSED, FAILED -> {
-                if (isRegistered) {
-                    ResourceStatusCallback.unregister(this);
-                    isRegistered = false;
-                }
                 requireCompute = false;
                 lastHandleId = -1;
+                tracker = null;
             }
         }
     }

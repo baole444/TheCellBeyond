@@ -2,8 +2,6 @@ package components;
 
 import TheCellBeyond.internal.ResourceID;
 import TheCellBeyond.internal.ResourceStatus;
-import TheCellBeyond.internal.ResourceStatusCallback;
-import TheCellBeyond.internal.ResourceStatusListener;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import render.DebugDraw;
@@ -14,15 +12,16 @@ import utility.*;
 
 import java.util.Objects;
 
-public class TextRenderer extends Component2D implements ResourceStatusListener {
+public class TextRenderer extends Component2D {
     private String text = "Text";
     private AssetReference assetReference = new AssetReference(Settings.FontPath.NotoSansMono);
     private float point = 12;
-    private final Vector4f color = new Vector4f(1.0f, 1.0f, 1.0f, 1.0f);
+    private final Vector4f color = new Vector4f(1.0f);
     private String glyphRangeName = "ASCII";
     private HorizontalAlignment hAlign = HorizontalAlignment.Left;
     private VerticalAlignment vAlign = VerticalAlignment.Top;
     private transient ResourceID fontRID;
+    private transient ResourceTracker fontTracker;
     private final transient Vector2f textDimensions = new Vector2f();
 
     public TextRenderer() {
@@ -38,9 +37,8 @@ public class TextRenderer extends Component2D implements ResourceStatusListener 
         this.glyphRangeName = glyphRange.name();
     }
 
-    @Override
-    public void onResourceStatusChange(ResourceID RID, ResourceStatus status) {
-        if (status != ResourceStatus.READY || !RID.equals(fontRID)) return;
+    public void onFontStatusChange(ResourceID RID, ResourceStatus status) {
+        if (status != ResourceStatus.READY) return;
         calculateTextDimensions();
         renderDirty = true;
     }
@@ -49,7 +47,6 @@ public class TextRenderer extends Component2D implements ResourceStatusListener 
     protected void internalStart() {
         super.internalStart();
         validateFields();
-        ResourceStatusCallback.register(this);
         requestLoadFont();
     }
 
@@ -57,7 +54,6 @@ public class TextRenderer extends Component2D implements ResourceStatusListener 
     protected void internalEditorStart() {
         super.internalEditorStart();
         validateFields();
-        ResourceStatusCallback.register(this);
         requestLoadFont();
     }
 
@@ -90,7 +86,9 @@ public class TextRenderer extends Component2D implements ResourceStatusListener 
 
     @Override
     protected void internalDestroy() {
-        ResourceStatusCallback.unregister(this);
+        if (fontTracker == null) return;
+        fontTracker.cancel();
+        fontTracker = null;
     }
 
     public String text() {
@@ -221,6 +219,8 @@ public class TextRenderer extends Component2D implements ResourceStatusListener 
         ResourceID newRID = AssetManager.loadFont(assetReference.canonicalPath(), range, point);
         if (Objects.equals(newRID, fontRID)) return;
         fontRID = newRID;
+        if (fontTracker != null) fontTracker.cancel();
+        fontTracker = AssetManager.track(fontRID, this::onFontStatusChange);
         TCBFont existing = AssetManager.getFont(fontRID);
         if (existing == null || !existing.loaded()) return;
         calculateTextDimensions();

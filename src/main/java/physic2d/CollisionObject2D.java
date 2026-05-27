@@ -10,14 +10,12 @@ import org.jbox2d.dynamics.BodyDef;
 import org.jbox2d.dynamics.BodyType;
 import org.joml.Math;
 import org.joml.Vector2f;
-import utility.log.EngineLog;
 
 /**
  * CollisionObject2D is an abstract base class for 2D physics objects,
  * it can hold any number of {@link physic2d.collider.CollisionShape2D}s for collision.
  */
 public abstract class CollisionObject2D extends GameObject2D {
-    protected static final EngineLog Logger = new EngineLog(CollisionObject2D.class);
     private int collisionLayer = PhysicLayer.layerToBit(0);
     private int collisionMask = PhysicLayer.layerToBit(0);
     /**

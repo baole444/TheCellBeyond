@@ -179,6 +179,9 @@ public class RenderingServer implements EngineEventListener {
                 node.currentTransform.resetAccumulation();
                 node.previousTransform.resetAccumulation();
             }
+            boolean ownVisible = node.owner.visible();
+            node.currentTransform.visible = node.currentTransform.visible && ownVisible;
+            node.previousTransform.visible = node.previousTransform.visible && ownVisible;
             if (!node.owner.renderDirty()) node.previousTransform.copyFrom(node.currentTransform);
             else {
                 node.owner.syncTransform(node.currentTransform, node.previousTransform);

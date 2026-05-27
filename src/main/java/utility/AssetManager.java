@@ -3,6 +3,7 @@ package utility;
 import TheCellBeyond.Sound;
 import TheCellBeyond.internal.ResourceID;
 import TheCellBeyond.internal.ResourceRegistry;
+import TheCellBeyond.internal.ResourceStatus;
 import render.FontAtlasTexture;
 import render.Shader;
 import render.Texture;
@@ -16,6 +17,7 @@ import render.texture.TextureUnit;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiConsumer;
 
 /**
  * AssetManager is a collection of static methods providing control for caching resource while the engine is running.
@@ -38,6 +40,17 @@ public final class AssetManager {
     private static final ResourceRegistry<TextureUnit> textureUnitRegistry = new ResourceRegistry<>();
     private static final ResourceRegistry<Sound> soundRegistry = new ResourceRegistry<>();
     private AssetManager() {}
+
+    /**
+     * Start tracking status for a resource using the given RID.
+     * @param RID the RID to track status for
+     * @param onChange callback to invoked for each status transition
+     * @return a tracker bound to RID or null if the callback and RID given were null
+     */
+    public static ResourceTracker track(ResourceID RID, BiConsumer<ResourceID, ResourceStatus> onChange) {
+        if (RID == null || onChange == null) return null;
+        return new ResourceTracker(RID, onChange);
+    }
 
     /**
      * Request loading a new texture into cache.

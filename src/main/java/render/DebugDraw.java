@@ -21,7 +21,7 @@ public final class DebugDraw {
     private static final int MAX_LINE = 4096;
     private static final List<Line2D> Lines = new ArrayList<>();
     private static Shader shader;
-
+    private static final Vector4f white = new Vector4f(1.0f);
     private static final float[] vertices = new float[MAX_LINE * 7 * 2];
     private static int vaoID;
     private static int vboID;
@@ -120,7 +120,7 @@ public final class DebugDraw {
      * @param end end position in world units
      */
     public static void addLine2(Vector2f start, Vector2f end) {
-        addLine2(start, end, new Vector4f(1, 1, 1, 1), 1);
+        addLine2(start, end, white, 1);
     }
 
     /**
@@ -152,7 +152,7 @@ public final class DebugDraw {
      * @param rotationDegrees the rotation angle in degrees
      */
     public static void addBox2(Vector2f centre, Vector2f dimension, float rotationDegrees) {
-        addBox2(centre, dimension, rotationDegrees, new Vector4f(1, 1, 1, 1), 1);
+        addBox2(centre, dimension, rotationDegrees, white, 1);
     }
 
     /**
@@ -191,7 +191,7 @@ public final class DebugDraw {
      * @param radius the radius of the circle in world units
      */
     public static void addCircle(Vector2f centre, float radius) {
-        addCircle(centre, radius, new Vector4f(1, 1, 1, 1), 1);
+        addCircle(centre, radius, white, 1);
     }
 
     /**
@@ -223,5 +223,45 @@ public final class DebugDraw {
             startAngle += step;
         }
         addLine2(pt[pt.length - 1], pt[0], color, alive);
+    }
+
+    /**
+     * Add an arrow draw request in white and alive for 1 frame.
+     * @param start start position in world units
+     * @param end end position in world units
+     */
+    public static void addArrow(Vector2f start, Vector2f end) {
+        addArrow(start, end, white, 1);
+    }
+
+    /**
+     * Add an arrow draw request alive for 1 frame.
+     * @param start start position in world units
+     * @param end end position in world units
+     * @param color the colour vector for the arrow's lines
+     */
+    public static void addArrow(Vector2f start, Vector2f end, Vector4f color) {
+        addArrow(start, end, color, 1);
+    }
+
+    /**
+     * Add an arrow draw request.
+     * @param start start position in world units
+     * @param end end position in world units
+     * @param color the colour vector for the arrow's lines
+     * @param alive the number of frames that this arrow will last for
+     */
+    public static void addArrow(Vector2f start, Vector2f end, Vector4f color, int alive) {
+        addLine2(start, end, color, alive);
+        Vector2f direction = new Vector2f(end).sub(start);
+        if (direction.lengthSquared() == 0.0f) return;
+        final float arrowLength = 0.06f;
+        direction.normalize();
+        Vector2f arm1 = new Vector2f(direction).mul(-arrowLength);
+        Vector2f arm2 = new Vector2f(arm1);
+        TCBMath.rotate(arm1, 30.0f, new Vector2f());
+        TCBMath.rotate(arm2, -30.0f, new Vector2f());
+        addLine2(end, new Vector2f(end).add(arm1), color, alive);
+        addLine2(end, new Vector2f(end).add(arm2), color, alive);
     }
 }

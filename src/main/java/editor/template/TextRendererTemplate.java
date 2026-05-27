@@ -43,7 +43,7 @@ final class TextRendererTemplate implements IComponentTemplate<TextRenderer> {
         if (ImGui.beginCombo("Horizontal", hAlign == null ? "Select one..." : hAlign.toString())) {
             for (HorizontalAlignment align : HorizontalAlignment.values()) {
                 if (!ImGui.selectable(align.toString(), align == hAlign)) continue;
-                component.horizontalAlignment(hAlign);
+                component.horizontalAlignment(align);
             }
             ImGui.endCombo();
         }
@@ -51,7 +51,7 @@ final class TextRendererTemplate implements IComponentTemplate<TextRenderer> {
         if (ImGui.beginCombo("Vertical", vAlign == null ? "Select one..." : vAlign.toString())) {
             for (VerticalAlignment align : VerticalAlignment.values()) {
                 if (!ImGui.selectable(align.toString(), align == vAlign)) continue;
-                component.verticalAlignment(vAlign);
+                component.verticalAlignment(align);
             }
             ImGui.endCombo();
         }
