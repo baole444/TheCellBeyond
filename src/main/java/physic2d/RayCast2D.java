@@ -164,7 +164,6 @@ public class RayCast2D extends GameObject2D {
         currentTarget.set(origin.x + rotationX, origin.y + rotationY);
         callback.reset();
         physic2D.rayCast(callback, origin, currentTarget);
-        DebugDraw.addArrow(origin, currentTarget, new Vector4f(0.0f, 1.0f, 0.0f, 1.0f));
         if (!callback.hit) return;
         colliding = true;
         collider = callback.hitObject;
