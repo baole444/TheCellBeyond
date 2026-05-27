@@ -6,10 +6,16 @@ import editor.preference.EditorPreferences;
 import editor.preference.UserPreference;
 import eventviewer.EngineEventCallback;
 import eventviewer.event.EditorEvent;
+import utility.AssetReference;
+import utility.Settings;
+import utility.UnifiedPaths;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.io.InputStream;
 import java.util.Objects;
 
 /**
@@ -34,6 +40,9 @@ public final class ExitConfirmDialog {
     private static final int ChoiceExit = 1;
     private static final int ChoiceCancel = 2;
 
+    private static Image appIcon;
+    private static volatile JDialog activeDialog;
+
     private record Result(int choice, boolean autoSave) {}
 
     private ExitConfirmDialog() {}
@@ -43,6 +52,11 @@ public final class ExitConfirmDialog {
      * @return true if the user choose exit (regardless of saving or not), false if cancelled
      */
     public static boolean exitDialog() {
+        if (activeDialog != null) {
+            activeDialog.toFront();
+            activeDialog.requestFocus();
+            return false;
+        }
         if (isAutoSaveOnExitOn()) {
             if (LogicServer.currentSceneName() != null) return true;
             SaveSceneAsDialog.show(() -> {
@@ -87,10 +101,12 @@ public final class ExitConfirmDialog {
         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         dialog.setAlwaysOnTop(true);
         dialog.setResizable(false);
+        Image icon = appIcon();
+        if (icon != null) dialog.setIconImage(icon);
         JPanel root = new JPanel(new BorderLayout());
         root.setBackground(bg);
         root.setBorder(new EmptyBorder(20, 24, 20, 24));
-        root.add(getHeader(text, textSecondary), BorderLayout.NORTH);
+        root.add(getHeader(textSecondary), BorderLayout.NORTH);
         JCheckBox autoSave = new JCheckBox("Enable auto save on exit");
         autoSave.setOpaque(false);
         autoSave.setForeground(text);
@@ -113,48 +129,79 @@ public final class ExitConfirmDialog {
             resolution[0] = ChoiceCancel;
             dialog.dispose();
         });
+        JPanel buttonGroup = new JPanel(new GridLayout(1, 3, 10, 0));
+        buttonGroup.setOpaque(false);
+        buttonGroup.add(saveExit);
+        buttonGroup.add(exit);
+        buttonGroup.add(cancel);
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         buttons.setOpaque(false);
-        buttons.add(saveExit);
-        buttons.add(exit);
-        buttons.add(cancel);
+        buttons.add(buttonGroup);
         root.add(buttons, BorderLayout.SOUTH);
         dialog.setContentPane(root);
         dialog.pack();
         dialog.setLocationRelativeTo(null);
         dialog.getRootPane().setDefaultButton(cancel);
-        dialog.setVisible(true);
+        activeDialog = dialog;
+        try {
+            dialog.setVisible(true);
+        } finally {
+            activeDialog = null;
+        }
         return new Result(resolution[0], autoSave.isSelected());
     }
 
-    private static JPanel getHeader(Color text, Color textSecondary) {
-        JPanel header = new JPanel(new BorderLayout(0, 6));
+    private static JPanel getHeader(Color textSecondary) {
+        JPanel header = new JPanel(new BorderLayout());
         header.setOpaque(false);
-        JLabel title = new JLabel("Close TCB Editor?");
-        title.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 13));
-        title.setForeground(text);
-        header.add(title, BorderLayout.NORTH);
-        JLabel subtitle = new JLabel("All current progress before save will be lost.");
-        subtitle.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
-        subtitle.setForeground(textSecondary);
-        header.add(subtitle, BorderLayout.SOUTH);
+        JLabel message = new JLabel("All current progress before save will be lost.");
+        message.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 13));
+        message.setForeground(textSecondary);
+        header.add(message, BorderLayout.SOUTH);
         return header;
     }
 
     private static JButton createFlatButton(String label, Color bg, Color hover, Color fg) {
-        JButton button = new JButton(label);
+        JButton button = new JButton(label) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2D = (Graphics2D) g.create();
+                g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2D.setColor(getBackground());
+                g2D.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
+                g2D.dispose();
+                super.paintComponent(g);
+            }
+        };
         button.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
         button.setForeground(fg);
         button.setBackground(bg);
+        button.setContentAreaFilled(false);
+        button.setOpaque(false);
         button.setFocusPainted(false);
         button.setBorderPainted(false);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         button.setBorder(new EmptyBorder(8, 18, 8, 18));
         button.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent e) { button.setBackground(hover); }
-            public void mouseExited(java.awt.event.MouseEvent e) { button.setBackground(bg); }
+            public void mouseEntered(MouseEvent e) {
+                button.setBackground(hover);
+                button.repaint();
+            }
+            public void mouseExited(MouseEvent e) {
+                button.setBackground(bg);
+                button.repaint();
+            }
         });
         return button;
+    }
+
+    private static Image appIcon() {
+        if (appIcon != null) return appIcon;
+        AssetReference assetRef = new AssetReference(Settings.TexturePath.TCBIcon);
+        try (InputStream stream = UnifiedPaths.getAssetStream(assetRef.resolvedPath())) {
+            appIcon = ImageIO.read(stream);
+        } catch (Exception _) {}
+        return appIcon;
     }
 
     private static boolean isOSDarkMode() {
