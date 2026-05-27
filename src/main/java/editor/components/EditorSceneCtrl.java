@@ -24,6 +24,7 @@ public final class EditorSceneCtrl extends Component {
     private final Vector2f clickOrigin = new Vector2f();
     private static final float MaxZoom = 10.0f;
     private static final float MinZoom = 0.01f;
+    private static final float MinZoomStep = 0.01f;
 
     /**
      * Create a new handler with the given viewport.
@@ -66,12 +67,14 @@ public final class EditorSceneCtrl extends Component {
         float scroll = MouseListener.getScrollY();
         if (Math.abs(scroll) == 0.0f) return;
         Vector2f currentZoom = new Vector2f(workingViewport.getZoom());
-        float zoomStep = Math.abs(scroll) * scrollSensitivity * -Math.signum(scroll);
+        float refZoom = currentZoom.get(currentZoom.minComponent());
+        float absScroll = Math.abs(scroll) * scrollSensitivity;
+        float scaleStep = (float) Math.pow(absScroll, 1.0f / refZoom);
+        if (scaleStep < MinZoomStep) scaleStep = MinZoomStep;
+        float zoomStep = scaleStep * -Math.signum(scroll);
         float addValue;
-        if (zoomStep < 0.0f) {
-            float min = currentZoom.get(currentZoom.minComponent());
-            addValue = -Math.abs(Math.min(Math.abs(MinZoom - min), Math.abs(zoomStep)));
-        } else {
+        if (zoomStep < 0.0f) addValue = -Math.abs(Math.min(Math.abs(MinZoom - refZoom), Math.abs(zoomStep)));
+        else {
             float max = currentZoom.get(currentZoom.maxComponent());
             addValue = Math.min(MaxZoom - max, zoomStep);
         }

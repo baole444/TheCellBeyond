@@ -99,7 +99,7 @@ public final class ImGuiLayer {
                 ImGui.setWindowFocus(null);
             }
             boolean SEVWantMouse = SceneEditorViewport.getWantCaptureMouse();
-            if (!wantCaptureMouse || SEVWantMouse || prioritizeEngineInputCallback.get()) {
+            if (action == GLFW_RELEASE || !wantCaptureMouse || SEVWantMouse || prioritizeEngineInputCallback.get()) {
                 MouseListener.mouseButtonCallback(w, button, action, mods);
             }
         });
