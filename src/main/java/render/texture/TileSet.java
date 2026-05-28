@@ -154,6 +154,10 @@ public class TileSet {
         return new HashSet<>(tiles.keySet());
     }
 
+    public int tileCount() {
+        return tiles.size();
+    }
+
     public List<Tile> tiles() {
         if (tiles.isEmpty()) return List.of();
 
