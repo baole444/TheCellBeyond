@@ -31,7 +31,8 @@ Below is the minimum API version for scripting to be compatible with the engine'
 
 | Engine version |                                        API version                                        |
 |:--------------:|:-----------------------------------------------------------------------------------------:|
-|    __1.7__     | [__1.7__](https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api/1.7) |
+|    __1.8__     | [__1.8__](https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api/1.8) |
+|      1.7       |   [1.7](https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api/1.7)   |
 |  1.6 - 1.6.1   |   [1.6](https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api/1.6)   |
 |  1.5 - 1.5.2   |   [1.5](https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api/1.5)   |
 |      1.4       |   [1.4](https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api/1.4)   |
@@ -41,11 +42,20 @@ Below is the minimum API version for scripting to be compatible with the engine'
 
 Annotate a class as GameObject type:
 ```java
+import components.AnimatedSpriteRenderer;
 import physic2d.CharacterBody2D;
 import scripting.RegisterGameObject;
+import utility.HierarchyPaths;
 
 @RegisterGameObject(label = "Player Object", description = "Main player controlled object")
 public class MainPlayer extends CharacterBody2D {
+    public AnimatedSpriteRenderer animation2D;
+    
+    @Override
+    protected void onReady() {
+        animation2D = (AnimatedSpriteRenderer) HierarchyPaths.toComponent("::Animation2D", this);
+    }
+    
     @Override
     protected void onPhysicUpdate(float dt) {
         // Other logic you might have
@@ -78,10 +88,26 @@ import scripting.TypeHint;
 
 @RegisterGameObject(label = "Player Object", description = "Main player controlled object")
 public class MainPlayer extends CharacterBody2D {
+    public enum Direction {
+        Left(-1),
+        Right(1);
+        
+        public final int x;
+        
+        Direction(int x) {
+            this.x = x;
+        }
+    }
+    
     @Export
     public float movementSpeed = 2.0f;
     
     @Export(label = "Custom label",  description = "Custom field", type = TypeHint.Vector2)
     public Vector2f currentDirection = new Vector2f();
+    
+    @Export(label = "Starting direction")
+    public Direction startingDir = Direction.Right;
 }
 ```
+For most cases, defining type for the exporting variables is optional, 
+unless the editor's inspector is recognizing something incorrectly.
