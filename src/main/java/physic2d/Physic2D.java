@@ -1,6 +1,7 @@
 package physic2d;
 
 import TheCellBeyond.GameObject;
+import TheCellBeyond.internal.LogicServer;
 import org.jbox2d.callbacks.RayCastCallback;
 import org.jbox2d.collision.AABB;
 import org.jbox2d.collision.shapes.Shape;
@@ -42,7 +43,7 @@ public class Physic2D {
     public static final int MaxPhysicFrameRate = 120;
 
     private static float physicDeltaRate = 1.0f / 60.0f;
-    private final Vec2 gravity = new Vec2(0, -9.80665f);
+    private static final Vec2 gravity = new Vec2(0, -9.80665f);
     private final World world = new World(gravity);
     private float physicDt = 0.0f;
 
@@ -226,7 +227,9 @@ public class Physic2D {
     }
 
     /**
-     * Is the physic world currently locked.
+     * Check if the physic world currently locked.
+     * <p>
+     * This means the world is updating via physic step and its states become immutable.
      * @return true if locked
      */
     public boolean isLock() {
@@ -234,12 +237,29 @@ public class Physic2D {
     }
 
     /**
-     * Get a copy of the physic world's gravity vector.
-     * @return the gravity vector
+     * Get the gravity vector of the physic engine. This is the value applied to every world instances on created.
+     * <p>
+     * By default, the gravity point downward, toward negative Y at {@code -9.80665 m/s}.
+     * @return a copy of the gravity vector
+     * @see #worldGravity()
      */
-    public Vector2f getGravity() {
-        Vec2 gravity = world.getGravity();
+    public static Vector2f gravity() {
         return new Vector2f(gravity.x, gravity.y);
+    }
+
+    /**
+     * Get a copy of the current physic world's gravity vector. If there is no world active or created,
+     * this will return the physic engine default gravity.
+     * <p>
+     * By default, the gravity point downward, toward negative Y at {@code -9.80665 m/s}.
+     * @return a copy of the physic world's gravity vector
+     * @see #gravity() Get the physic engine's gravity vector
+     */
+    public static Vector2f worldGravity() {
+        Physic2D physic = LogicServer.currentScenePhysic2D();
+        if (physic == null) return new Vector2f(gravity.x, gravity.y);
+        Vec2 worldGravity = physic.world.getGravity();
+        return new Vector2f(worldGravity.x, worldGravity.y);
     }
 
     /**

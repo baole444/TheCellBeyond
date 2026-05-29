@@ -38,7 +38,11 @@ public enum TypeHint {
     /**
      * Hint that the field is of string type.
      */
-    String(java.lang.String.class);
+    String(java.lang.String.class),
+    /**
+     * Hint that the field is of Enum type.
+     */
+    Enum(java.lang.Enum.class);
 
     /**
      * The underlying class represented by the hint.

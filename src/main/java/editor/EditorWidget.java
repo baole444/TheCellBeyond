@@ -331,6 +331,52 @@ public final class EditorWidget {
     }
 
     /**
+     * Render a combo box for selecting an enum constant.
+     * @param label the label for the combo box
+     * @param current the currently selected constant
+     * @param enumType the class of the enum type
+     * @param caller the object that call this method
+     * @return the newly selected enum constant or the current one
+     */
+    public static Enum<?> enumComboCtrl(String label, Enum<?> current, Class<?> enumType, Object caller) {
+        if (enumType == null || !enumType.isEnum()) return current;
+        String id = createID(label, caller);
+        boolean useLabel = label != null && !label.isBlank();
+        Enum<?> result = current;
+        ImGui.pushID(id);
+        if (useLabel) {
+            if (!ImGui.beginTable("##Table_" + id, 2, ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.SizingStretchProp, ImGui.getContentRegionAvailX())) {
+                ImGui.popID();
+                return current;
+            }
+            ImGui.tableSetupColumn("##label_" + label + id, ImGuiTableColumnFlags.WidthFixed, defaultWidth);
+            ImGui.tableSetupColumn("##content_" + label + id, ImGuiTableColumnFlags.WidthStretch);
+            ImGui.tableNextColumn();
+            float labelSpace = ImGui.getContentRegionAvailX();
+            ImGui.text(shortenLabel(label, labelSpace));
+            if (ImGui.isItemHovered() && labelSpace <= ImGui.calcTextSizeX(label)) {
+                ImGui.beginTooltip();
+                ImGui.text(label);
+                ImGui.endTooltip();
+            }
+            ImGui.tableNextColumn();
+        }
+        ImGui.pushItemWidth(ImGui.getContentRegionAvailX());
+        String preview = current == null ? "Select one..." : current.name();
+        if (ImGui.beginCombo("##Combo" + id, preview)) {
+            for (Object constant : enumType.getEnumConstants()) {
+                Enum<?> entry = (Enum<?>) constant;
+                if (ImGui.selectable(entry.name() + "##" + id + "_" + entry.name(), entry == current)) result = entry;
+            }
+            ImGui.endCombo();
+        }
+        ImGui.popItemWidth();
+        if (useLabel) ImGui.endTable();
+        ImGui.popID();
+        return result;
+    }
+
+    /**
      * Render an icon button. The size of the widget is limited by the font size.
      * This method return whether the icon had been clicked or not.
      * @param id the id for the widget

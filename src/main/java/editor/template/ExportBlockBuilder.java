@@ -116,6 +116,15 @@ final class ExportBlockBuilder {
                     Logger.error(String.format("Cannot access field '%s': %s", field.getName(), e.getMessage()));
                 }
             };
+            case Enum -> instance -> {
+                try {
+                    Enum<?> current = (Enum<?>) field.get(instance);
+                    Enum<?> next = EditorWidget.enumComboCtrl(label, current, field.getType(), instance);
+                    if (next != current) field.set(instance, next);
+                } catch (IllegalAccessException e) {
+                    Logger.error(String.format("Cannot access field '%s': %s", field.getName(), instance));
+                }
+            };
             case Auto -> _ -> {};
         };
     }

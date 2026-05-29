@@ -4,7 +4,7 @@ import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
 
 /**
- * Strategy to skill field of type {@link Signal}, reduce the needs for user to mark signal as transient.
+ * Strategy to skip field of type {@link Signal}, reduce the needs for user to mark signal as transient.
  */
 public class SignalExclusionStrategy implements ExclusionStrategy {
     @Override
