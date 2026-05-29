@@ -12,7 +12,7 @@ public final class EditorIcons {
     private static final String Path = Settings.TexturePath.EditorControls;
     private static final int width = 28;
     private static final int height = 28;
-    private static final int iconCount = 24;
+    private static final int iconCount = 28;
     private static SpriteSheet icons;
     private static boolean isInitialized = false;
 
@@ -175,6 +175,24 @@ public final class EditorIcons {
         }
     }
 
+    public enum TileIcons implements EditorIconSprite {
+        RotateQuarterLeft(24),
+        RotateQuarterRight(25),
+        FlipVertically(26),
+        FlipHorizontally(27);
+
+        final int index;
+
+        TileIcons(int index) {
+            this.index = index;
+        }
+
+        @Override
+        public Sprite getIcon() {
+            return icons == null ? null : icons.spriteIndex(index);
+        }
+    }
+
     private EditorIcons() {}
 
     /**
@@ -183,9 +201,7 @@ public final class EditorIcons {
     public static void init() {
         if (isInitialized) return;
         try {
-            if (!AssetManager.hasSpriteSheet(Path)) {
-                AssetManager.addSpriteSheet(Path, new SpriteSheet(AssetManager.getTexture(AssetManager.loadTexture(Path)), width, height, iconCount, 0));
-            }
+            if (!AssetManager.hasSpriteSheet(Path)) AssetManager.addSpriteSheet(Path, new SpriteSheet(AssetManager.getTexture(AssetManager.loadTexture(Path)), width, height, iconCount, 0));
             icons = AssetManager.getSpriteSheet(Path);
             isInitialized = true;
         } catch (Exception e) {
