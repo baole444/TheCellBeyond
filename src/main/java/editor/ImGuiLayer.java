@@ -44,6 +44,7 @@ public final class ImGuiLayer {
     private static final AtomicBoolean wantedCaptureMouse = new AtomicBoolean(false);
     private static final AtomicBoolean wantedCaptureKey = new AtomicBoolean(false);
     private static final AtomicBoolean prioritizeEngineInputCallback = new AtomicBoolean(false);
+    private static final boolean[] enginePresses = new boolean[GLFW_MOUSE_BUTTON_LAST + 1];
 
     /**
      * Create a new {@link ImGuiLayer} with the given window pointer.
@@ -95,13 +96,17 @@ public final class ImGuiLayer {
             mouseDown[4] = button == GLFW_MOUSE_BUTTON_5 && action != GLFW_RELEASE;
             io.setMouseDown(mouseDown);
             boolean wantCaptureMouse = io.getWantCaptureMouse();
-            if (!wantCaptureMouse && mouseDown[1]) {
-                ImGui.setWindowFocus(null);
-            }
+            if (!wantCaptureMouse && mouseDown[1]) ImGui.setWindowFocus(null);
             boolean SEVWantMouse = SceneEditorViewport.getWantCaptureMouse();
-            if (action == GLFW_RELEASE || !wantCaptureMouse || SEVWantMouse || prioritizeEngineInputCallback.get()) {
-                MouseListener.mouseButtonCallback(w, button, action, mods);
+            boolean validButton = button >= 0 && button <= GLFW_MOUSE_BUTTON_LAST;
+            if (action == GLFW_RELEASE) {
+                if (!validButton || enginePresses[button]) MouseListener.mouseButtonCallback(w, button, action, mods);
+                if (validButton) enginePresses[button] = false;
+                return;
             }
+            boolean forward = !wantCaptureMouse || SEVWantMouse || prioritizeEngineInputCallback.get();
+            if (validButton) enginePresses[button] = forward;
+            if (forward) MouseListener.mouseButtonCallback(w, button, action, mods);
         });
         glfwSetScrollCallback(windowPtr, (w, x, y) -> {
             boolean wantCaptureMouse = io.getWantCaptureMouse();

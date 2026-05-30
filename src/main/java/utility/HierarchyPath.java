@@ -169,31 +169,39 @@ public final class HierarchyPath {
     }
 
     /**
-     * Check if hierarchy the path starts from root object or not.
-     * A path is considered starting from root if it is absolute and the first segment
+     * Check if the hierarchy path starts from root object or not.
+     * A path is considered starting from root if it is absolute and the first segment is the {@link #Root} symbol.
+     * <p>
+     * This does not affect by the presence of {@link #ComponentDelimiter} in the segment.
      * @return true if the path is from root object
      */
     public boolean fromRoot() {
-        return absolute && !segments.isEmpty() && segments.getFirst().equals(Root);
+        if (!absolute || segments.isEmpty()) return false;
+        return Root.equals(toObjectName(segments.getFirst()));
     }
 
     /**
      * Check if the hierarchy path is relative and starts from parent of context object or not.
      * A path is considered starting from parent if it's first segment is the {@link #Parent} symbol.
+     * <p>
+     * This does not affect by the presence of {@link #ComponentDelimiter} in the segment.
      * @return true if the path is from parent object
      */
     public boolean fromParent() {
-        return !segments.isEmpty() && segments.getFirst().equals(Parent);
+        if (segments.isEmpty()) return false;
+        return Parent.equals(toObjectName(segments.getFirst()));
     }
 
     /**
      * Check if the hierarchy path is relative and starts from current object or not.
-     * A path is considered relative from the current object if its first segment is {@link #Current} symbol,
-     * or it is not absolute (not starting with {@code /} symbol)
+     * A path is considered relative from the current object if its first segment is {@link #Current} symbol.
+     * <p>
+     * This does not affect by the presence of {@link #ComponentDelimiter} in the segment.
      * @return true if the path is from current object
      */
     public boolean fromCurrent() {
-        return !segments.isEmpty() && segments.getFirst().equals(Current);
+        if (segments.isEmpty()) return false;
+        return Current.equals(toObjectName(segments.getFirst()));
     }
 
     /**
