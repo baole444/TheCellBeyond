@@ -214,7 +214,7 @@ public class HierarchyPaths {
             return null;
         }
         if (path.segmentCount() == 1 && path.fromRoot()) return scene.root();
-        String segment = path.segment(path.fromRoot() ? 1 : 0);
+        String segment = HierarchyPath.toObjectName(path.segment(path.fromRoot() ? 1 : 0));
         if (segment == null) {
             Logger.error(String.format("Invalid absolute path '%s': no object defined at the first argument", path));
             return null;

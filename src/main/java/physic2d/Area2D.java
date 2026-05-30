@@ -145,4 +145,20 @@ public class Area2D extends CollisionObject2D {
         if (area == null) return;
         overlappingAreas.remove(area);
     }
+
+    boolean trackingBody(GameObject2D body) {
+        return overlappingBodies.contains(body);
+    }
+
+    boolean trackingArea(Area2D area) {
+        return overlappingAreas.contains(area);
+    }
+
+    Set<GameObject2D> trackedBodies() {
+        return overlappingBodies;
+    }
+
+    Set<Area2D> trackedAreas() {
+        return overlappingAreas;
+    }
 }

@@ -1,10 +1,14 @@
 package physic2d;
 
 import TheCellBeyond.GameObject;
+import TheCellBeyond.GameObject2D;
 import TheCellBeyond.internal.LogicServer;
+import org.jbox2d.callbacks.QueryCallback;
 import org.jbox2d.callbacks.RayCastCallback;
 import org.jbox2d.collision.AABB;
+import org.jbox2d.collision.Collision;
 import org.jbox2d.collision.shapes.Shape;
+import org.jbox2d.common.Transform;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.*;
 import org.joml.Math;
@@ -13,13 +17,14 @@ import physic2d.collider.*;
 import utility.log.EngineLog;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
 /**
  * <a href="https://box2d.org">Reference Box2D code (C code)</a>
  */
-public class Physic2D {
+public final class Physic2D {
     private static final EngineLog Logger = new EngineLog(Physic2D.class);
     /**
      * Maximum physic layer.
@@ -46,6 +51,32 @@ public class Physic2D {
     private static final Vec2 gravity = new Vec2(0, -9.80665f);
     private final World world = new World(gravity);
     private float physicDt = 0.0f;
+
+    private final List<Area2D> monitoringAreas = new ArrayList<>();
+    private final List<Fixture> targetFixtures = new ArrayList<>();
+    private final Set<GameObject2D> currentBodies = new LinkedHashSet<>();
+    private final Set<Area2D> currentAreas = new LinkedHashSet<>();
+    private final List<GameObject2D> enteringBodies = new ArrayList<>();
+    private final List<GameObject2D> exitingBodies = new ArrayList<>();
+    private final List<Area2D> enteringAreas = new ArrayList<>();
+    private final List<Area2D> exitingAreas = new ArrayList<>();
+    private final AABB queryAABB = new AABB();
+    private final AreaQuery areaQuery = new AreaQuery();
+
+    private final class AreaQuery implements QueryCallback {
+        private Area2D originArea;
+        private Body originBody;
+
+        @Override
+        public boolean reportFixture(Fixture fixture) {
+            if (fixture.m_userData == originArea || !(fixture.m_userData instanceof CollisionObject2D targetBody)) return true;
+            if (targetBody instanceof Area2D targetArea && !targetArea.monitorable) return true;
+            if (targetBody.getPhysicBodyRef() == originBody || originArea.sharePhysicHierarchy(targetBody)) return true;
+            if ((originArea.getCollisionMask() & targetBody.getCollisionLayer()) == 0) return true;
+            targetFixtures.add(fixture);
+            return true;
+        }
+    }
 
     /**
      * Callback invoked before each physic world step using fixed delta.
@@ -138,6 +169,7 @@ public class Physic2D {
             if (preStepCallback != null) preStepCallback.onPhysicStep(physicDeltaRate);
             world.step(physicDeltaRate, MaxVelocityPass, MaxPositionPass);
             if (postStepCallback != null) postStepCallback.onPhysicStep(physicDeltaRate);
+            processAreas();
         }
     }
 
@@ -363,5 +395,117 @@ public class Physic2D {
             fixture = fixture.m_next;
         }
         return size;
+    }
+
+    private void processAreas() {
+        if (world.isLocked()) return;
+        monitoringAreas.clear();
+        for (Body body = world.getBodyList(); body != null; body = body.getNext()) {
+            if (!(body.m_userData instanceof Area2D area2D)) continue;
+            if (!area2D.monitoring || body.getFixtureList() == null) continue;
+            monitoringAreas.add(area2D);
+        }
+        if (monitoringAreas.isEmpty()) return;
+        Collision collision = world.getPool().getCollision();
+        for (Area2D area2D : monitoringAreas) processAreaDetection(area2D, collision);
+    }
+
+    private void processAreaDetection(Area2D area, Collision collision) {
+        Body body = area.getPhysicBodyRef();
+        if (body == null || body.getFixtureList() == null) return;
+        buildAreaQueryAABB(body);
+        targetFixtures.clear();
+        areaQuery.originArea = area;
+        areaQuery.originBody = body;
+        world.queryAABB(areaQuery, queryAABB);
+        currentBodies.clear();
+        currentAreas.clear();
+        for (Fixture fixture : targetFixtures) {
+            if (!(fixture.m_userData instanceof CollisionObject2D target)) continue;
+            if (alreadyDetected(target)) continue;
+            Body targetBody = target.getPhysicBodyRef();
+            if (targetBody == null) continue;
+            if (!shapesOverlapping(collision, body, fixture, targetBody)) continue;
+            if (target instanceof Area2D targetArea) currentAreas.add(targetArea);
+            else currentBodies.add(target);
+        }
+        emitAreaDetection(area);
+    }
+
+    private void buildAreaQueryAABB(Body body) {
+        boolean initialized = false;
+        Fixture fixture = body.getFixtureList();
+        while (fixture != null) {
+            int childCount = fixture.getShape().getChildCount();
+            for (int i = 0; i < childCount; i++) {
+                AABB childAABB = fixture.getAABB(i);
+                if (initialized) {
+                    queryAABB.combine(childAABB);
+                    continue;
+                }
+                queryAABB.set(childAABB);
+                initialized = true;
+            }
+            fixture = fixture.getNext();
+        }
+    }
+
+    private void emitAreaDetection(Area2D area) {
+        enteringBodies.clear();
+        exitingBodies.clear();
+        enteringAreas.clear();
+        exitingAreas.clear();
+        for (GameObject2D body : currentBodies) {
+            if (!area.trackingBody(body)) enteringBodies.add(body);
+        }
+        for (GameObject2D body : area.trackedBodies()) {
+            if (!currentBodies.contains(body)) exitingBodies.add(body);
+        }
+        for (Area2D other : currentAreas) {
+            if (!area.trackingArea(other)) enteringAreas.add(other);
+        }
+        for (Area2D other : area.trackedAreas()) {
+            if (!currentAreas.contains(other)) exitingAreas.add(other);
+        }
+        for (GameObject2D body : enteringBodies) {
+            area.trackBodyEnter(body);
+            area.bodyEntered.emit(body);
+        }
+        for (Area2D other : enteringAreas) {
+            area.trackAreaEnter(other);
+            area.areaEntered.emit(other);
+        }
+        for (GameObject2D body : exitingBodies) {
+            area.trackBodyExit(body);
+            area.bodyExited.emit(body);
+        }
+        for (Area2D other : exitingAreas) {
+            area.trackAreaExit(other);
+            area.areaExited.emit(other);
+        }
+    }
+
+    private boolean alreadyDetected(CollisionObject2D target) {
+        if (target instanceof Area2D targetArea) return currentAreas.contains(targetArea);
+        return currentBodies.contains(target);
+    }
+
+    private boolean shapesOverlapping(Collision collision, Body areaBody, Fixture targetFixture, Body targetBody) {
+        Transform areaTransform = areaBody.getTransform();
+        Transform targetTransform = targetBody.getTransform();
+        Shape targetShape = targetFixture.getShape();
+        int targetChildCount = targetShape.getChildCount();
+        Fixture areaFixture = areaBody.getFixtureList();
+        while (areaFixture != null) {
+            Shape areaShape = areaFixture.getShape();
+            int areaChildCount = areaShape.getChildCount();
+            for (int areaIndex = 0; areaIndex < areaChildCount; areaIndex++) {
+                for (int targetIndex = 0; targetIndex < targetChildCount; targetIndex++) {
+                    if (collision.testOverlap(areaShape, areaIndex, targetShape, targetIndex, areaTransform, targetTransform)) return true;
+                }
+            }
+            areaFixture = areaFixture.getNext();
+        }
+        return false;
     }
 }
