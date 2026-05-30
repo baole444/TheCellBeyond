@@ -27,7 +27,7 @@ jobs:
       - name: Generate icns icon on MacOS
         if: runner.os == 'macOS'
         run: |
-          ICON="src/main/resources/assets/textures/TCB icon"
+          ICON="build resources/TCB icon"
           mkdir -p icon.iconset
           sips -z 16 16     "$ICON.png" --out icon.iconset/icon_16x16.png
           sips -z 32 32     "$ICON.png" --out icon.iconset/icon_16x16@2x.png

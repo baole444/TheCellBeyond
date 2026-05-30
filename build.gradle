@@ -187,8 +187,8 @@ tasks.register('packageApp', Exec) {
     def outputDir = layout.buildDirectory.dir('packaging/output')
     def runtimeDir = layout.buildDirectory.dir('packaging/runtime')
     def jarName = jar.archiveFileName.get()
-    def iconExt = OperatingSystem.current().windows ? 'ico' : OperatingSystem.current().macOsX ? 'icns' : 'png'
-    def iconFile = file("src/main/resources/assets/textures/TCB icon.${iconExt}")
+    def iconExt = OperatingSystem.current().windows ? 'ico' : OperatingSystem.current().macOsX ? 'icns' : null
+    def iconFile = iconExt == null ? null : file("build resources/TCB icon.${iconExt}")
     def javaOpts = '--enable-native-access=ALL-UNNAMED'
     if (OperatingSystem.current().macOsX) javaOpts = "-XstartOnFirstThread $javaOpts"
     def args = [
@@ -202,7 +202,7 @@ tasks.register('packageApp', Exec) {
             '--runtime-image', runtimeDir.get().asFile.absolutePath,
             '--java-options', javaOpts,
     ]
-    if (iconFile.exists()) args += ['--icon', iconFile.absolutePath]
+    if (iconFile != null && iconFile.exists()) args += ['--icon', iconFile.absolutePath]
     commandLine args
 }
 
