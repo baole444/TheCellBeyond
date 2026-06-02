@@ -55,7 +55,7 @@ public final class EditProjectSettingsDialog {
     private static final ImVec2 DialogSize = new ImVec2(720.0f, 640.0f);
     private static final float ButtonReserve = ImGui.getFrameHeightWithSpacing();
     private static final float SeparatorReserve = ImGui.getStyle().getItemSpacingY();
-    private static final float padding = 4.0f;
+    private static final float Padding = 4.0f;
     private static boolean showDialog = false;
     private static float tabWidth;
     private static boolean widthCalculated = false;
@@ -129,8 +129,8 @@ public final class EditProjectSettingsDialog {
             ImGui.separator();
             float buttonWidth = 120;
             float buttonHeight = 30;
-            float regionHeight = ImGui.getContentRegionAvailY() - ButtonReserve - SeparatorReserve - buttonHeight - padding;
-            if (ImGui.beginChild("##EPPD_Tab_Region", new ImVec2(0.0f, regionHeight), ImGuiChildFlags.Borders)) {
+            float regionHeight = ImGui.getContentRegionAvailY() - ButtonReserve - SeparatorReserve - buttonHeight - Padding;
+            if (ImGui.beginChild("##EPPD_Tab_Region", 0.0f, regionHeight, ImGuiChildFlags.Borders)) {
                 renderTabContent();
                 ImGui.endChild();
             }
@@ -178,7 +178,7 @@ public final class EditProjectSettingsDialog {
         }
         for (TabName tab : TabName.values()) {
             String id = "##EPPD " + tab.name + " column";
-            ImGui.tableSetupColumn(id, ImGuiTableColumnFlags.WidthFixed, tabWidth + padding);
+            ImGui.tableSetupColumn(id, ImGuiTableColumnFlags.WidthFixed, tabWidth + Padding);
         }
         ImVec2 availSpace;
         ImVec2 cursorPos;

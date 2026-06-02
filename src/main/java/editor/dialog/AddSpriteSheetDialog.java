@@ -27,9 +27,7 @@ import java.util.List;
 public class AddSpriteSheetDialog {
     private static final IdPool IDPool = new IdPool(0, false);
     private static final String PopupID = "Add new SpriteSheet";
-    private static final String FileSelectionID = "File_Selection";
     private static final String PreviewSheetID = "SpriteSheet_Preview";
-    private static final String MetaID = "Meta_Editor";
     private static final ImVec2 DialogSize = new ImVec2(900.0f, 720.0f);
     private static final int GridColor = ImGui.getColorU32(1.0f, 0.0f, 0.0f, 0.8f);
     private static boolean showDialog = false;
@@ -42,12 +40,12 @@ public class AddSpriteSheetDialog {
     private static final Vector2i spriteSpacing = new Vector2i();
     private static final Vector2i spriteStartPosition = new Vector2i();
     private static float previewScale = 1.0f;
-    private static final float previewYPercentage = 0.56f;
     private static final List<String> PictureFormats = List.of("png", "jpg", "jpeg", "bmp", "gif");
+    private static final float ButtonReserver = ImGui.getFrameHeightWithSpacing();
+    private static final float SeparatorReserve = ImGui.getStyle().getItemSpacingY();
+    private static final float Padding = 4.0f;
+    private static final ImVec2 propertiesSizeCache = new ImVec2();
 
-    /**
-     * Create the dialogue module.
-     */
     private AddSpriteSheetDialog() {}
 
     /**
@@ -90,32 +88,14 @@ public class AddSpriteSheetDialog {
         ImGui.setNextWindowPos(centre.x, centre.y, ImGuiCond.Appearing, pivotXY, pivotXY);
         ImGui.setNextWindowSize(DialogSize);
         if (ImGui.beginPopupModal(PopupID, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)) {
-            renderFileSelection();
-            renderPreviewSection();
-            renderSpritePropertiesEditor();
-            float buttonReserverY = ImGui.getFrameHeightWithSpacing();
-            ImGui.setCursorPosY(ImGui.getWindowHeight() - buttonReserverY - ImGui.getStyle().getWindowPaddingY());
             float buttonWidth = 120;
-            float buttonPivotX = buttonWidth * 0.5f;
-            float availX = ImGui.getContentRegionAvailX();
-            float addX = (availX * 0.25f) - (buttonPivotX);
-            float cancelX = (availX * 0.75f) - (buttonPivotX);
-            boolean canAdd = !selectedFilePath.isEmpty() && !sheetName.isEmpty() &&
-                    spriteSize.x > 0 && spriteSize.y > 0 && numberOfSprite > 0;
-            ImGui.setCursorPosX(addX);
-            if (canAdd) {
-                if (ImGui.button("Add Sheet", buttonWidth, 0)) addSpriteSheet();
-            } else {
-                ImGui.beginDisabled();
-                ImGui.button("Add Sheet", buttonWidth, 0);
-                ImGui.endDisabled();
+            float buttonHeight = 30;
+            float regionHeight = ImGui.getContentRegionAvailY() - ButtonReserver - SeparatorReserve - buttonHeight -Padding;
+            if (ImGui.beginChild("##ASSD_Dialog_Region", 0.0f, regionHeight, ImGuiChildFlags.Borders)) {
+                renderDialogContent();
+                ImGui.endChild();
             }
-            ImGui.sameLine();
-            ImGui.setCursorPosX(cancelX);
-            if (ImGui.button("Cancel", buttonWidth, 0)) {
-                showDialog = false;
-                ImGui.closeCurrentPopup();
-            }
+            renderDialogButtons(buttonWidth, buttonHeight);
             ImGui.endPopup();
             IDPool.reset();
         }
@@ -125,17 +105,44 @@ public class AddSpriteSheetDialog {
         }
     }
 
-    private static void renderFileSelection() {
-        ImGui.text("Click \"Browse Files\" to select an image");
-        if (!ImGui.beginChild(FileSelectionID, new ImVec2(0.0f, 0.0f), ImGuiChildFlags.Borders | ImGuiChildFlags.AutoResizeY)) {
-            ImGui.endChild();
-            return;
-        }
-        int browseButtonW = 120;
-        ImGui.pushItemWidth(ImGui.getContentRegionAvailX() - browseButtonW - ImGui.getStyle().getItemSpacingX());
-        ImGui.inputText("##filepath", selectedFilePath, ImGuiInputTextFlags.ReadOnly);
-        ImGui.popItemWidth();
+    private static void renderDialogContent() {
+        renderFileSelection();
+        renderPreviewSection();
+        renderSpritePropertiesEditor();
+    }
+
+    private static void renderDialogButtons(float buttonWidth, float buttonHeight) {
+        ImGui.setCursorPosY(ImGui.getWindowHeight() - ButtonReserver - (buttonHeight / 2) -ImGui.getStyle().getWindowPaddingY());
+        float buttonPivotX = buttonWidth * 0.5f;
+        float availX = ImGui.getContentRegionAvailX();
+        float addX = (availX * 0.25f) - buttonPivotX;
+        float cancelX = (availX * 0.75f) - buttonPivotX;
+        boolean canAdd = !selectedFilePath.isEmpty() && !sheetName.isEmpty() && spriteSize.x > 0 && spriteSize.y > 0 && numberOfSprite > 0;
+        ImGui.setCursorPosX(addX);
+        if (!canAdd) ImGui.beginDisabled();
+        if (ImGui.button("Add Sheet##ASSD_Add_Sheet", buttonWidth, buttonHeight)) addSpriteSheet();
+        if (!canAdd) ImGui.endDisabled();
         ImGui.sameLine();
+        ImGui.setCursorPosX(cancelX);
+        if (ImGui.button("Cancel##ASSD_Cancell", buttonWidth, buttonHeight)) {
+            showDialog = false;
+            ImGui.closeCurrentPopup();
+        }
+    }
+
+    private static void renderFileSelection() {
+        if (!ImGui.beginTable("##ASSD_File_Path_Selection_Layout", 3, ImGuiTableFlags.SizingFixedFit)) return;
+        ImGui.tableSetupColumn("##ASSD_File_Path_Selection_label_Column", ImGuiTableColumnFlags.WidthFixed);
+        ImGui.tableSetupColumn("##ASSD_File_Path_Selection_Input_Column", ImGuiTableColumnFlags.WidthStretch);
+        ImGui.tableSetupColumn("##ASSD_File_Path_Selection_Search_Column", ImGuiTableColumnFlags.WidthFixed);
+        ImGui.tableNextColumn();
+        ImGui.setCursorPosY(ImGui.getCursorPosY() + (ImGui.getFrameHeightWithSpacing() - ImGui.getTextLineHeightWithSpacing()) / 2.0f);
+        ImGui.text("Image file:");
+        ImGui.tableNextColumn();
+        int browseButtonW = 120;
+        ImGui.setNextItemWidth(ImGui.getContentRegionAvailX());
+        ImGui.inputTextWithHint("##ASSD_Filepath_Input", "Click \"Browse File\" to select a path...", selectedFilePath, ImGuiInputTextFlags.ReadOnly);
+        ImGui.tableNextColumn();
         if (ImGui.button("Browse Files", browseButtonW, 0)) {
             OpenFileDialog fileDialog = OpenFileDialog.get("Sheet Image", PictureFormats);
             String path = fileDialog.openDialog();
@@ -145,12 +152,12 @@ public class AddSpriteSheetDialog {
                 loadPreviewTexture(path);
             }
         }
-        ImGui.endChild();
+        ImGui.endTable();
+        ImGui.spacing();
     }
 
     private static void renderPreviewSection() {
-        int sectionY = (int) (DialogSize.y * previewYPercentage);
-        if (!ImGui.beginChild(PreviewSheetID, new ImVec2(0.0f, sectionY), ImGuiChildFlags.Borders)) {
+        if (!ImGui.beginChild(PreviewSheetID, 0.0f, ImGui.getContentRegionAvailY() - propertiesSizeCache.y - Padding, ImGuiChildFlags.Borders)) {
             ImGui.endChild();
             return;
         }
@@ -176,9 +183,7 @@ public class AddSpriteSheetDialog {
         float scaledImageW = imageW * previewScale;
         float scaledImageH = imageH * previewScale;
         Vector2f scaledSize = new Vector2f(scaledImageW, scaledImageH);
-        if (scaledImageW > avail.x || scaledImageH > avail.y) {
-            scaledSize = TextureScale.calculateFitDimension(scaledImageW, scaledImageH, avail.x, avail.y);
-        }
+        if (scaledImageW > avail.x || scaledImageH > avail.y) scaledSize = TextureScale.calculateFitDimension(scaledImageW, scaledImageH, avail.x, avail.y);
         float portX = (avail.x / 2.0f) - (scaledSize.x / 2.0f);
         float portY = (avail.y / 2.0f) - (scaledSize.y / 2.0f);
         ImVec2 centeredPos = new ImVec2(portX + ImGui.getCursorPosX(), portY + ImGui.getCursorPosY());
@@ -251,17 +256,10 @@ public class AddSpriteSheetDialog {
     }
 
     private static void renderSpritePropertiesEditor() {
-        int ySection =(int) (ImGui.getTextLineHeightWithSpacing() * 6 + ImGui.getStyle().getFramePaddingY() * 5 + ImGui.getStyle().getItemSpacingY() * 11);
-        if (!ImGui.beginChild(MetaID, new ImVec2(0.0f, ySection), ImGuiChildFlags.Borders)) {
-            ImGui.endChild();
-            return;
-        }
+        ImGui.beginGroup();
         numberOfSprite = inputInt("Number of sprites", numberOfSprite, 1);
         ImGui.separator();
-        if (!ImGui.beginTable("##SpriteSheetPropertiesTable", 3, ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.SizingStretchProp, ImGui.getContentRegionAvailX())) {
-            ImGui.endChild();
-            return;
-        }
+        if (!ImGui.beginTable("##SpriteSheetPropertiesTable", 3, ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.SizingStretchProp, ImGui.getContentRegionAvailX())) return;
         float columnWidth = ImGui.getContentRegionAvailX() / 3.0f;
         ImGui.tableSetupColumn("##sprite_size_column", ImGuiTableColumnFlags.WidthFixed, columnWidth);
         ImGui.tableSetupColumn("##sprite_spacing_column", ImGuiTableColumnFlags.WidthFixed, columnWidth);
@@ -282,7 +280,8 @@ public class AddSpriteSheetDialog {
         ImGui.separator();
         ImGui.inputText("Sheet name", sheetName);
         ImGui.inputText("Sheet category", category);
-        ImGui.endChild();
+        ImGui.endGroup();
+        ImGui.getItemRectSize(propertiesSizeCache);
     }
 
     private static void loadPreviewTexture(String filePath) {

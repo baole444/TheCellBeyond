@@ -1,7 +1,6 @@
 package physic2d;
 
 import TheCellBeyond.GameObject;
-import TheCellBeyond.GameObject2D;
 import components.Component;
 import org.jbox2d.callbacks.ContactImpulse;
 import org.jbox2d.callbacks.ContactListener;

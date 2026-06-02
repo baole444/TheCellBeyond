@@ -62,8 +62,8 @@ class ScriptsTab {
         if (!canAdd) ImGui.endDisabled();
         ImGui.endTable();
         ImGui.separator();
-        ImVec2 remainSize = ImGui.getContentRegionAvail();
-        if (!ImGui.beginChild("##ST_ScanDir_List_Region", 0.0f, remainSize.y - sizeCache.y - padding)) {
+        float remainHeight = ImGui.getContentRegionAvailY();
+        if (!ImGui.beginChild("##ST_ScanDir_List_Region", 0.0f, remainHeight - sizeCache.y - padding)) {
             ImGui.endChild();
             return;
         }
