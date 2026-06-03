@@ -1,11 +1,14 @@
 package editor.dialog;
 
+import editor.EditorIcons;
+import editor.EditorWidget;
 import eventviewer.EngineEventCallback;
 import eventviewer.event.EditorEvent;
 import imgui.ImDrawList;
 import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.*;
+import imgui.type.ImFloat;
 import imgui.type.ImInt;
 import imgui.type.ImString;
 import org.joml.Vector2f;
@@ -90,7 +93,7 @@ public class AddSpriteSheetDialog {
         if (ImGui.beginPopupModal(PopupID, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)) {
             float buttonWidth = 120;
             float buttonHeight = 30;
-            float regionHeight = ImGui.getContentRegionAvailY() - ButtonReserver - SeparatorReserve - buttonHeight -Padding;
+            float regionHeight = ImGui.getContentRegionAvailY() - ButtonReserver - SeparatorReserve - buttonHeight - Padding;
             if (ImGui.beginChild("##ASSD_Dialog_Region", 0.0f, regionHeight, ImGuiChildFlags.Borders)) {
                 renderDialogContent();
                 ImGui.endChild();
@@ -157,7 +160,7 @@ public class AddSpriteSheetDialog {
     }
 
     private static void renderPreviewSection() {
-        if (!ImGui.beginChild(PreviewSheetID, 0.0f, ImGui.getContentRegionAvailY() - propertiesSizeCache.y - Padding, ImGuiChildFlags.Borders)) {
+        if (!ImGui.beginChild(PreviewSheetID, 0.0f, ImGui.getContentRegionAvailY() - propertiesSizeCache.y - Padding, ImGuiChildFlags.None)) {
             ImGui.endChild();
             return;
         }
@@ -166,8 +169,36 @@ public class AddSpriteSheetDialog {
     }
 
     private static void renderPreviewImage() {
-        float[] scale = {previewScale};
-        if (ImGui.sliderFloat("Scale", scale, 0.1f, 2.0f, "%.2f")) previewScale = scale[0];
+        if (ImGui.beginTable("##ASSD_Sheet_Preview_Zoom_Control_Layout", 4, ImGuiTableFlags.SizingFixedFit)) {
+            ImGui.tableSetupColumn("##ASSD_Sheet_Preview_Zoom_Control_Label_Column", ImGuiTableColumnFlags.WidthFixed);
+            ImGui.tableSetupColumn("##ASSD_Sheet_Preview_Zoom_Control_Input_Column", ImGuiTableColumnFlags.WidthFixed);
+            ImGui.tableSetupColumn("##ASSD_Sheet_Preview_Zoom_Control_Slider_Column", ImGuiTableColumnFlags.WidthStretch);
+            ImGui.tableSetupColumn("##ASSD_Sheet_Preview_Zoom_Control_Reset_Column", ImGuiTableColumnFlags.WidthFixed);
+            ImGui.tableNextColumn();
+            ImGui.setCursorPosY(ImGui.getCursorPosY() + (ImGui.getFrameHeightWithSpacing() - ImGui.getTextLineHeightWithSpacing()) / 2.0f);
+            ImGui.text("Zoom:");
+            ImGui.tableNextColumn();
+            ImFloat z = new ImFloat(previewScale);
+            ImGui.setNextItemWidth(ImGui.calcTextSizeX("+AAA.AAA"));
+            if (ImGui.inputFloat("##ASSD_Zoom_Level_Direct_Input", z, 0.0f, 0.0f)) previewScale = Math.clamp(z.get(), 0.1f, 4.0f);
+            if (ImGui.isItemHovered()) {
+                ImGui.beginTooltip();
+                ImGui.text("Enter the zoom level (1.0 -> 4.0)");
+                ImGui.endTooltip();
+            }
+            ImGui.tableNextColumn();
+            float[] val = {previewScale};
+            ImGui.setNextItemWidth(ImGui.getContentRegionAvailX());
+            if (ImGui.sliderFloat("##ASSD_Zoom_level_Slider_Control", val, 0.1f, 4.0f)) previewScale = val[0];
+            if (ImGui.isItemHovered()) {
+                ImGui.beginTooltip();
+                ImGui.text("Slide the bar to change zoom level");
+                ImGui.endTooltip();
+            }
+            ImGui.tableNextColumn();
+            if (EditorWidget.iconButton("##ASSD_Zoom_level_Control_Reset_Button", EditorIcons.Icons.Reset, "Reset zoom to 1.0")) previewScale = 1.0f;
+            ImGui.endTable();
+        }
         ImGui.separator();
         if (previewTexture == null) {
             ImGui.textDisabled("Choose a sprite sheet using the \"Browse Files\" button");
@@ -177,20 +208,23 @@ public class AddSpriteSheetDialog {
             ImGui.textDisabled("Loading preview image...");
             return;
         }
+        if (!ImGui.beginChild("##ASSD_Sheet_Preview_Region", ImGui.getContentRegionAvail(), ImGuiChildFlags.None, ImGuiWindowFlags.HorizontalScrollbar)) {
+            ImGui.endChild();
+            return;
+        }
         int imageW = previewTexture.getWidth();
         int imageH = previewTexture.getHeight();
         ImVec2 avail = ImGui.getContentRegionAvail();
         float scaledImageW = imageW * previewScale;
         float scaledImageH = imageH * previewScale;
-        Vector2f scaledSize = new Vector2f(scaledImageW, scaledImageH);
-        if (scaledImageW > avail.x || scaledImageH > avail.y) scaledSize = TextureScale.calculateFitDimension(scaledImageW, scaledImageH, avail.x, avail.y);
-        float portX = (avail.x / 2.0f) - (scaledSize.x / 2.0f);
-        float portY = (avail.y / 2.0f) - (scaledSize.y / 2.0f);
+        float portX = (avail.x / 2.0f) - (scaledImageW / 2.0f);
+        float portY = (avail.y / 2.0f) - (scaledImageH / 2.0f);
         ImVec2 centeredPos = new ImVec2(portX + ImGui.getCursorPosX(), portY + ImGui.getCursorPosY());
         ImGui.setCursorPos(centeredPos);
         ImVec2 cursorPos = ImGui.getCursorScreenPos();
-        ImGui.image(previewTexture.getID(), scaledSize.x, scaledSize.y, 0.0f, 1.0f, 1.0f, 0.0f);
-        if (spriteSize.x > 0 && spriteSize.y > 0) drawSpriteDivider(cursorPos, scaledSize, imageW, imageH);
+        ImGui.image(previewTexture.getID(), scaledImageW, scaledImageH, 0.0f, 1.0f, 1.0f, 0.0f);
+        if (spriteSize.x > 0 && spriteSize.y > 0) drawSpriteDivider(cursorPos, new Vector2f(scaledImageW, scaledImageH), imageW, imageH);
+        ImGui.endChild();
     }
 
     private static void drawSpriteDivider(ImVec2 imagePos, Vector2f imageSize, float originalWidth, float originalHeight) {
