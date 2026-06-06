@@ -1,0 +1,3 @@
+# Lock manifest end of line to use LF, match the generator.
+# Prevent line end diffs.
+src/script-api-resources/META-INF/script-api-index.json text eol=lf

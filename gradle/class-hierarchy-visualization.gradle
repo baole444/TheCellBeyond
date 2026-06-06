@@ -8,7 +8,7 @@ Adjustable (override using -P);
 - graphDpi: PNG resolution (default 150)
 - graphSize: GraphViz size bound in inches (default 120)
 
-Output can be found in build/reports/classgraph
+Output can be found in build/reports/class-graph
  */
 
 sourceSets {
