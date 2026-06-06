@@ -290,6 +290,7 @@ tasks.register('apiJar', Jar) {
     group = 'build'
     description = 'Build the engine API jar for compiled classes'
     archiveBaseName = TCB_API
+    archiveVersion = TCB_API_version
     dependsOn compileJava
     from(sourceSets.main.output.classesDirs) {
         includes = apiIncludes
@@ -301,6 +302,7 @@ tasks.register('apiSourcesJar', Jar) {
     description = 'Package API sources for Maven Central publication'
     archiveBaseName = TCB_API
     archiveClassifier = 'sources'
+    archiveVersion = TCB_API_version
     from(sourceSets.main.java.srcDirs) {
         includes = apiIncludes.collect { it.replace('.class', '.java').replace('$*', '') } as Iterable<String>
     }
@@ -329,15 +331,23 @@ tasks.register('apiJavadocJar', Jar) {
     group = 'build'
     description = 'Package API Javadoc for Maven Central publication'
     archiveBaseName = TCB_API
+    archiveVersion = TCB_API_version
     archiveClassifier = 'javadoc'
     dependsOn apiJavadoc
     from apiJavadoc.destinationDir
 }
 
+// Script API index manifest generation (source set and task)
+apply from: "$rootDir/gradle/script-api-manifest.gradle"
+
+// Standalone tool for class hierarchy visualization (source set and standalone task)
+apply from: "$rootDir/gradle/class-hierarchy-visualization.gradle"
+
 publishing {
     publications {
         engineApi(MavenPublication) {
             artifactId = TCB_API
+            version = TCB_API_version
             artifact apiJar
             artifact apiSourcesJar
             artifact apiJavadocJar
