@@ -5,6 +5,7 @@ plugins {
     id 'application'
     id 'maven-publish'
     id 'signing'
+    id 'antlr'
 }
 
 application {
@@ -53,10 +54,19 @@ test {
     useJUnitPlatform()
 }
 
+configurations.runtimeClasspath {
+    // The ANTLR plugin leaks the full antlr4 tool (ST4, icu4j, treelayout, antlr3 runtime)
+    // onto the runtime classpath. Only antlr4-runtime is needed at runtime.
+    exclude group: 'org.antlr', module: 'antlr4'
+}
+
 dependencies {
     implementation "com.google.code.gson:gson:$google_gson_version"
     implementation fileTree('library') { include '*.jar' }
     implementation ":jbox2d-library"
+
+    antlr "org.antlr:antlr4:$antlr_version"
+    implementation "org.antlr:antlr4-runtime:$antlr_version"
 
     // LWJGL
     implementation platform("org.lwjgl:lwjgl-bom:$lwjgl_version")
@@ -66,7 +76,10 @@ dependencies {
         implementation "org.lwjgl:lwjgl$it::$project.ext.lwjglNatives"
     }
 
-    implementation "org.joml:joml:${joml_version}"
+    // Excluding the kotlin-stdlib that is originated from JOML's POM declaration
+    implementation("org.joml:joml:${joml_version}") {
+        exclude group: 'org.jetbrains.kotlin'
+    }
     implementation "com.code-disaster.steamworks4j:steamworks4j:${steamworks4j_version}"
     implementation "tools.jackson.dataformat:jackson-dataformat-yaml:$jacksonYaml_version"
 
@@ -133,6 +146,7 @@ tasks.register('packageInput', Copy) {
     mustRunAfter clean
     from (jar.archiveFile) { into '.' }
     from (layout.buildDirectory.dir('packaging/libs')) { into 'libs' }
+    from (files('build resources/LICENSE', 'build resources/THIRD-PARTY-NOTICES.txt')) { into '.' }
     into layout.buildDirectory.dir('packaging/input')
 }
 

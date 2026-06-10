@@ -1,7 +1,5 @@
 package components;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.HashSet;
 
 public class State implements Comparable<State> {
@@ -41,7 +39,7 @@ public class State implements Comparable<State> {
      * equal to, or greater than the other state.
      */
     @Override
-    public int compareTo(@NotNull State other) {
+    public int compareTo(State other) {
         return Integer.compare(other.transitionPriority, this.transitionPriority);
     }
 }
