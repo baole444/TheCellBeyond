@@ -54,6 +54,17 @@ test {
     useJUnitPlatform()
 }
 
+generateGrammarSource {
+    // Generate parse tree visitors, ParseTreeToAst extends the generated base visitor.
+    // -lib points at the generated output so TCBScriptParser's tokenVocab finds
+    // TCBScriptLexer.tokens as ANTLR sorts the lexer ahead of the parser.
+    def antlrLibDir = layout.buildDirectory.dir("generated-src/antlr/main/scripting/transpiler/parse")
+    arguments += ["-visitor", "-lib", antlrLibDir.get().asFile.absolutePath]
+    doFirst {
+        antlrLibDir.get().asFile.mkdirs()
+    }
+}
+
 configurations.runtimeClasspath {
     // The ANTLR plugin leaks the full antlr4 tool (ST4, icu4j, treelayout, antlr3 runtime)
     // onto the runtime classpath. Only antlr4-runtime is needed at runtime.
