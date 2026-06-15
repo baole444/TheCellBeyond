@@ -18,7 +18,7 @@ public final class MethodDeclaration extends AstNode {
     public final TypeReference returnType;
     public final Block body;
     /**
-     * Resolution of life cycle method when overriding an engine hook, set by the sematic pass, null for plain user defined method.
+     * Resolution of life cycle method when overriding an engine hook, set by the semantic pass, null for plain user defined method.
      */
     public Resolution resolution;
 

@@ -4,7 +4,7 @@ import java.util.List;
 
 /**
  * An annotation applied to a field, such as {@code @export}, or {@code @export(label = "Name"}.
- * Validation of the name happens in the sematic pass.
+ * Validation of the name happens in the semantic pass.
  */
 public final class Annotation extends AstNode {
     public final String name;
