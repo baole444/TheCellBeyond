@@ -1,4 +1,4 @@
-package scripting.transpiler.sematic;
+package scripting.transpiler.semantic;
 
 import java.util.List;
 import java.util.Map;

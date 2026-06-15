@@ -1,6 +1,6 @@
 package scripting.transpiler.ast;
 
-import scripting.transpiler.sematic.Resolution;
+import scripting.transpiler.semantic.Resolution;
 
 /**
  * A field or member access {@code target.nenberName}.

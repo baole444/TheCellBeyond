@@ -1,4 +1,4 @@
-package scripting.transpiler.sematic;
+package scripting.transpiler.semantic;
 
 /**
  * A semantic analysis error report.

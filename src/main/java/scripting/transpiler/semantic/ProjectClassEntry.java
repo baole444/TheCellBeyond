@@ -1,4 +1,4 @@
-package scripting.transpiler.sematic;
+package scripting.transpiler.semantic;
 
 /**
  * An entry in the project class index, for a {@code .tcbs} or {@code .java} script file under {@code scripts-src}.

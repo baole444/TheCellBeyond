@@ -1,6 +1,6 @@
 package scripting.transpiler.ast;
 
-import scripting.transpiler.sematic.ClassRegistration;
+import scripting.transpiler.semantic.ClassRegistration;
 
 import java.util.List;
 

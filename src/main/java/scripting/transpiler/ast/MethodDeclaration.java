@@ -1,6 +1,6 @@
 package scripting.transpiler.ast;
 
-import scripting.transpiler.sematic.Resolution;
+import scripting.transpiler.semantic.Resolution;
 
 import java.util.List;
 

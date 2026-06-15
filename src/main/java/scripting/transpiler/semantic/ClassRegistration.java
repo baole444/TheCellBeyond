@@ -1,4 +1,4 @@
-package scripting.transpiler.sematic;
+package scripting.transpiler.semantic;
 
 /**
  * ClassRegistration enums allow tracking the lineage that script classes extending from.

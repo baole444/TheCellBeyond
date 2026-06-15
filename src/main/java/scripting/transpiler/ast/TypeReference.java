@@ -1,6 +1,6 @@
 package scripting.transpiler.ast;
 
-import scripting.transpiler.sematic.Resolution;
+import scripting.transpiler.semantic.Resolution;
 
 /**
  * A reference to a type by simple name. Resolution to fully qualified name happens in semantic pass.

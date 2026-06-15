@@ -1,4 +1,4 @@
-package scripting.transpiler.sematic;
+package scripting.transpiler.semantic;
 
 /**
  * The semantic resolution attached to a reference in the AST.
