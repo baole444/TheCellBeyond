@@ -10,14 +10,17 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 public final class APIManifest {
     private static final class ManifestCache {
         static final APIManifest Index = load();
     }
 
-    public static final int CurrentManifestVersion = 1;
+    public static final int CurrentManifestVersion = 2;
     private static final String IndexPath = "META-INF/script-api-index.json";
     private static final String GameObjectFQN = GameObject.class.getName();
     private static final String ComponentFQN = Component.class.getName();

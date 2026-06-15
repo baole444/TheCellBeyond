@@ -1,5 +1,7 @@
 package scripting.transpiler.ast;
 
+import scripting.transpiler.sematic.Resolution;
+
 import java.util.List;
 
 /**
@@ -12,6 +14,10 @@ public final class MethodCallExpression extends Expression {
     public final Expression target;
     public final String methodName;
     public final List<Expression> arguments;
+    /**
+     * Resolution of the called method, set by the semantic pass, null until resolved.
+     */
+    public Resolution resolution;
 
     public MethodCallExpression(SourcePosition position, Expression target, String methodName, List<Expression> arguments) {
         super(position);

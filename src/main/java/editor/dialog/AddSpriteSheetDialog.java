@@ -17,7 +17,6 @@ import project.Project;
 import project.ProjectSheetMap;
 import render.Texture;
 import utility.IdPool;
-import utility.TextureScale;
 import utility.UnifiedPaths;
 
 import java.io.IOException;

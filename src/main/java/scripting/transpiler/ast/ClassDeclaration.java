@@ -1,5 +1,7 @@
 package scripting.transpiler.ast;
 
+import scripting.transpiler.sematic.ClassRegistration;
+
 import java.util.List;
 
 /**
@@ -13,6 +15,10 @@ public final class ClassDeclaration extends AstNode {
     public final TypeReference superType;
     public final List<FieldDeclaration> fields;
     public final List<MethodDeclaration> methods;
+    /**
+     * How this class registered with the engine, set by the semantic pass, null until resolved.
+     */
+    public ClassRegistration registration;
 
     public ClassDeclaration(SourcePosition position, String name, TypeReference superType, List<FieldDeclaration> fields, List<MethodDeclaration> methods) {
         super(position);

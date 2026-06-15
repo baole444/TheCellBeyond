@@ -8,9 +8,6 @@ import scripting.transpiler.manifest.MemberInfo;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class APIManifestTest {
     @Test
@@ -33,6 +30,12 @@ public class APIManifestTest {
         assertTrue(APIManifest.inComponentLineage("components.AnimatedSpriteRenderer"));
         assertFalse(APIManifest.inComponentLineage("physic2d.CharacterBody2D"));
         assertFalse(APIManifest.inGameObjectLineage("components.AnimatedSpriteRenderer"));
+    }
+
+    @Test
+    public void recordsFinalModifier() {
+        assertTrue(APIManifest.findClassBySimpleName("Input").orElseThrow().isFinal, "Input is a final class");
+        assertFalse(APIManifest.findClassBySimpleName("CharacterBody2D").orElseThrow().isFinal, "CharacterBody2D is extendable");
     }
 
     @Test

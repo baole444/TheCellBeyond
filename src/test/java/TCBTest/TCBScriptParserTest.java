@@ -8,11 +8,6 @@ import scripting.transpiler.parse.ScriptParser;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TCBScriptParserTest {
     private static final String WorkingExample = """
@@ -34,7 +29,6 @@ public class TCBScriptParserTest {
         ClassDeclaration cls = parse(WorkingExample).classDeclaration;
         assertEquals("MainPlayer", cls.name);
         assertEquals("CharacterBody2D", cls.superType.name);
-
         assertEquals(1, cls.fields.size());
         FieldDeclaration speed = cls.fields.getFirst();
         assertEquals("speed", speed.name);
@@ -46,7 +40,6 @@ public class TCBScriptParserTest {
         assertInstanceOf(LiteralExpression.class, speed.initializer);
         assertEquals(LiteralExpression.Kind.Integer, ((LiteralExpression) speed.initializer).kind);
         assertEquals("200", ((LiteralExpression) speed.initializer).text);
-
         assertEquals(1, cls.methods.size());
         MethodDeclaration method = cls.methods.getFirst();
         assertEquals("_physic_update", method.name);
@@ -54,7 +47,6 @@ public class TCBScriptParserTest {
         assertEquals(1, method.parameters.size());
         assertEquals("dt", method.parameters.getFirst().name);
         assertEquals("float", method.parameters.getFirst().type.name);
-
         assertEquals(1, method.body.statements.size());
         Statement first = method.body.statements.getFirst();
         ExpressionStatement exprStmt = assertInstanceOf(ExpressionStatement.class, first);
@@ -92,27 +84,35 @@ public class TCBScriptParserTest {
                     return flag ? 4 : 5
                 """);
         Block body = file.classDeclaration.methods.getFirst().body;
-
         IfStatement ifStmt = assertInstanceOf(IfStatement.class, body.statements.getFirst());
-        // Inline suite: single-statement then-block.
         assertEquals(1, ifStmt.thenBlock.statements.size());
         assertInstanceOf(ReturnStatement.class, ifStmt.thenBlock.statements.getFirst());
-
-        // `and` + `not` normalize to And / Not.
         BinaryExpression cond = assertInstanceOf(BinaryExpression.class, ifStmt.condition);
         assertEquals(BinaryExpression.Operator.And, cond.operator);
         UnaryExpression notExpr = assertInstanceOf(UnaryExpression.class, cond.right);
         assertEquals(UnaryExpression.Operator.Not, notExpr.operator);
-
-        // `&&` alias also normalizes to And.
         BinaryExpression elifCond = assertInstanceOf(BinaryExpression.class, ifStmt.elifClauses.getFirst().condition);
         assertEquals(BinaryExpression.Operator.And, elifCond.operator);
-
-        // Trailing ternary.
         ReturnStatement ret = assertInstanceOf(ReturnStatement.class, body.statements.get(1));
         ConditionalExpression ternary = assertInstanceOf(ConditionalExpression.class, ret.value);
         assertEquals("4", ((LiteralExpression) ternary.thenValue).text);
         assertEquals("5", ((LiteralExpression) ternary.elseValue).text);
+    }
+
+    @Test
+    public void parsesBreakAndContinue() {
+        Block body = parse("""
+                class Loops extends Object
+                func run() -> void:
+                    while active:
+                        continue
+                    while active:
+                        break
+                """).classDeclaration.methods.getFirst().body;
+        WhileStatement first = assertInstanceOf(WhileStatement.class, body.statements.getFirst());
+        assertInstanceOf(ContinueStatement.class, first.body.statements.getFirst());
+        WhileStatement second = assertInstanceOf(WhileStatement.class, body.statements.get(1));
+        assertInstanceOf(BreakStatement.class, second.body.statements.getFirst());
     }
 
     @Test
@@ -125,7 +125,6 @@ public class TCBScriptParserTest {
 
     @Test
     public void headerScanIsFastEnoughForProjectScan() {
-        // Standard #3: under 5 ms each. Run many iterations and assert the average stays well under.
         int iterations = 1000;
         long start = System.nanoTime();
         for (int i = 0; i < iterations; i++) HeaderScanner.scan(WorkingExample);
@@ -135,7 +134,6 @@ public class TCBScriptParserTest {
 
     @Test
     public void everyNodeCarriesSourcePosition() {
-        // AstPrinter appends node.position to every line; a null position would render "@null".
         String tree = AstPrinter.print(parse(WorkingExample));
         assertFalse(tree.contains("@null"), () -> "a node had a null position:\n" + tree);
         assertTrue(tree.contains("test.tcbs:"), "positions name the source file");
@@ -143,7 +141,6 @@ public class TCBScriptParserTest {
 
     @Test
     public void syntaxErrorReportsFileAndLine() {
-        // Missing ':' after the method header.
         ScriptParser.Result result = ScriptParser.parse("""
                 class Bad extends Object
                 func oops() -> void
@@ -197,7 +194,6 @@ public class TCBScriptParserTest {
 
     @Test
     public void headerScanIgnoresCommentedOutHeader() {
-        // A commented-out header must not be picked up; the real one below wins.
         assertHeader("# class Ghost extends Nothing\nclass Real extends Base\n", "Real", "Base");
     }
 
@@ -234,7 +230,6 @@ public class TCBScriptParserTest {
 
     @Test
     public void parsesExtendsOnNextLineAfterBlankAndCommentLines() {
-        // Blank/comment lines between the class line and the extends line are skipped by the lexer.
         ScriptFile file = parse("""
                 class Foo
 
@@ -249,7 +244,6 @@ public class TCBScriptParserTest {
 
     @Test
     public void parsesPlainClassWithoutExtends() {
-        // A data/helper class need not extend an engine type (implicitly extends Object).
         ScriptFile file = parse("""
                 class Holder
                 var value : int = 0
@@ -259,11 +253,28 @@ public class TCBScriptParserTest {
         assertNull(cls.superType, "no extends clause means a null super type (implicit Object)");
         assertEquals(1, cls.fields.size());
         assertEquals("value", cls.fields.getFirst().name);
-
-        // The printer must tolerate a null super type and emit no extends clause.
         String tree = AstPrinter.print(file);
         assertFalse(tree.contains("@null"), () -> "a node had a null position:\n" + tree);
         assertFalse(tree.contains("extends"), "plain class prints without an extends clause");
+    }
+
+    @Test
+    public void parsesAnnotationOnSeparateLine() {
+        ScriptFile file = parse("""
+                class Hero extends CharacterBody2D
+                @export
+                var speed : int = 200
+                @export(label = "Jump") var jump : float = 5.0
+                """);
+        ClassDeclaration cls = file.classDeclaration;
+        assertEquals(2, cls.fields.size());
+        FieldDeclaration speed = cls.fields.getFirst();
+        assertEquals("speed", speed.name);
+        assertEquals("export", speed.annotations.getFirst().name);
+        FieldDeclaration jump = cls.fields.get(1);
+        assertEquals("jump", jump.name);
+        assertEquals("export", jump.annotations.getFirst().name);
+        assertEquals(1, jump.annotations.getFirst().arguments.size());
     }
 
     @Test

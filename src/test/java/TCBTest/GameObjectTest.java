@@ -35,20 +35,13 @@ public class GameObjectTest {
         GameObject gameObject = new GameObject("Test Object");
         SpriteRenderer renderer = new SpriteRenderer();
         AnimatedSpriteRenderer animatedRenderer = new AnimatedSpriteRenderer();
-
         gameObject.addComponent(renderer);
         gameObject.addComponent(animatedRenderer);
-
         List<AnimatedSpriteRenderer> animatedSpriteRenderers = gameObject.getComponents(AnimatedSpriteRenderer.class);
-        assertFalse(animatedSpriteRenderers.contains(renderer),
-                "SpriteRenderer is superclass of AnimatedSpriteRenderer and should not exist in a list of AnimatedSpriteRenderer");
-
+        assertFalse(animatedSpriteRenderers.contains(renderer), "SpriteRenderer is superclass of AnimatedSpriteRenderer and should not exist in a list of AnimatedSpriteRenderer");
         List<SpriteRenderer> spriteRenderers = gameObject.getComponents(SpriteRenderer.class);
-        assertTrue(spriteRenderers.contains(animatedRenderer),
-                "AnimatedSpriteRenderer is subclass of SpriteRenderer and should exist in a list of SpriteRenderer");
-
+        assertTrue(spriteRenderers.contains(animatedRenderer), "AnimatedSpriteRenderer is subclass of SpriteRenderer and should exist in a list of SpriteRenderer");
         List<Component2D> spatialComponents = gameObject.getComponents(Component2D.class);
-        assertTrue(spatialComponents.contains(renderer) && spatialComponents.contains(animatedRenderer),
-                "Both AnimatedSpriteRenderer and SpriteRenderer are subclasses of Component2D and should exist in a list of Component2D");
+        assertTrue(spatialComponents.contains(renderer) && spatialComponents.contains(animatedRenderer), "Both AnimatedSpriteRenderer and SpriteRenderer are subclasses of Component2D and should exist in a list of Component2D");
     }
 }

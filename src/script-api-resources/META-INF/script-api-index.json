@@ -1,11 +1,12 @@
 {
-  "manifestVersion": 1,
+  "manifestVersion": 2,
   "apiVersion": "1.8",
   "classes": [
     {
       "fqn": "TheCellBeyond.AudioResourceType",
       "simpleName": "AudioResourceType",
       "kind": "Enum",
+      "isFinal": true,
       "superClassChain": [
         "java.lang.Enum"
       ],
@@ -33,6 +34,7 @@
       "fqn": "TheCellBeyond.Camera2D",
       "simpleName": "Camera2D",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [
         "TheCellBeyond.GameObject2D",
         "TheCellBeyond.RenderableObject",
@@ -201,6 +203,7 @@
       "fqn": "TheCellBeyond.Camera2D$AnchorMode",
       "simpleName": "AnchorMode",
       "kind": "Enum",
+      "isFinal": true,
       "superClassChain": [
         "java.lang.Enum"
       ],
@@ -215,6 +218,7 @@
       "fqn": "TheCellBeyond.Camera2D$UpdateProcess",
       "simpleName": "UpdateProcess",
       "kind": "Enum",
+      "isFinal": true,
       "superClassChain": [
         "java.lang.Enum"
       ],
@@ -229,6 +233,7 @@
       "fqn": "TheCellBeyond.GameObject",
       "simpleName": "GameObject",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [
         {
@@ -566,6 +571,7 @@
       "fqn": "TheCellBeyond.GameObject2D",
       "simpleName": "GameObject2D",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [
         "TheCellBeyond.RenderableObject",
         "TheCellBeyond.GameObject"
@@ -779,6 +785,7 @@
       "fqn": "TheCellBeyond.Input",
       "simpleName": "Input",
       "kind": "Class",
+      "isFinal": true,
       "superClassChain": [],
       "methods": [
         {
@@ -853,6 +860,7 @@
       "fqn": "TheCellBeyond.InputAction",
       "simpleName": "InputAction",
       "kind": "Class",
+      "isFinal": true,
       "superClassChain": [
         "java.lang.Record"
       ],
@@ -899,6 +907,7 @@
       "fqn": "TheCellBeyond.InputKey",
       "simpleName": "InputKey",
       "kind": "Class",
+      "isFinal": true,
       "superClassChain": [
         "java.lang.Record"
       ],
@@ -945,6 +954,7 @@
       "fqn": "TheCellBeyond.InputType",
       "simpleName": "InputType",
       "kind": "Enum",
+      "isFinal": true,
       "superClassChain": [
         "java.lang.Enum"
       ],
@@ -959,6 +969,7 @@
       "fqn": "TheCellBeyond.KeyListener",
       "simpleName": "KeyListener",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [
         {
@@ -1048,6 +1059,7 @@
       "fqn": "TheCellBeyond.MouseListener",
       "simpleName": "MouseListener",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [
         {
@@ -1232,6 +1244,7 @@
       "fqn": "TheCellBeyond.Parallax2D",
       "simpleName": "Parallax2D",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [
         "TheCellBeyond.GameObject2D",
         "TheCellBeyond.RenderableObject",
@@ -1285,6 +1298,7 @@
       "fqn": "TheCellBeyond.RenderableObject",
       "simpleName": "RenderableObject",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [
         "TheCellBeyond.GameObject"
       ],
@@ -1387,6 +1401,7 @@
       "fqn": "TheCellBeyond.Sound",
       "simpleName": "Sound",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [
         {
@@ -1437,6 +1452,7 @@
       "fqn": "TheCellBeyond.TileMap",
       "simpleName": "TileMap",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [
         "TheCellBeyond.GameObject2D",
         "TheCellBeyond.RenderableObject",
@@ -1577,6 +1593,7 @@
       "fqn": "TheCellBeyond.TileMap$TilePlacement",
       "simpleName": "TilePlacement",
       "kind": "Class",
+      "isFinal": true,
       "superClassChain": [
         "java.lang.Record"
       ],
@@ -1637,6 +1654,7 @@
       "fqn": "TheCellBeyond.Transform2D",
       "simpleName": "Transform2D",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [
         "components.Component"
       ],
@@ -1703,6 +1721,7 @@
       "fqn": "TheCellBeyond.Viewport",
       "simpleName": "Viewport",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [
         {
@@ -1855,6 +1874,7 @@
       "fqn": "TheCellBeyond.internal.LogicServer",
       "simpleName": "LogicServer",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [
         {
@@ -1934,6 +1954,7 @@
       "fqn": "TheCellBeyond.internal.ResourceID",
       "simpleName": "ResourceID",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [
         {
@@ -1968,6 +1989,7 @@
       "fqn": "TheCellBeyond.internal.ResourceStatus",
       "simpleName": "ResourceStatus",
       "kind": "Enum",
+      "isFinal": true,
       "superClassChain": [
         "java.lang.Enum"
       ],
@@ -1984,6 +2006,7 @@
       "fqn": "components.AnimatedSpriteRenderer",
       "simpleName": "AnimatedSpriteRenderer",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [
         "components.SpriteRenderer",
         "components.Component2D",
@@ -2186,6 +2209,7 @@
       "fqn": "components.Animation",
       "simpleName": "Animation",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [
         {
@@ -2334,6 +2358,7 @@
       "fqn": "components.AnimationPlayer",
       "simpleName": "AnimationPlayer",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [
         "components.SpriteRenderer",
         "components.Component2D",
@@ -2347,6 +2372,7 @@
       "fqn": "components.Component",
       "simpleName": "Component",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [
         {
@@ -2485,6 +2511,7 @@
       "fqn": "components.Component2D",
       "simpleName": "Component2D",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [
         "components.RenderableComponent",
         "components.Component"
@@ -2634,6 +2661,7 @@
       "fqn": "components.Controller2D",
       "simpleName": "Controller2D",
       "kind": "Class",
+      "isFinal": true,
       "superClassChain": [
         "components.Component"
       ],
@@ -2746,6 +2774,7 @@
       "fqn": "components.Controller2D$ControlMode",
       "simpleName": "ControlMode",
       "kind": "Enum",
+      "isFinal": true,
       "superClassChain": [
         "java.lang.Enum"
       ],
@@ -2761,6 +2790,7 @@
       "fqn": "components.ControllerBinding",
       "simpleName": "ControllerBinding",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [
         {
@@ -2821,6 +2851,7 @@
       "fqn": "components.ControllerDirection",
       "simpleName": "ControllerDirection",
       "kind": "Class",
+      "isFinal": true,
       "superClassChain": [
         "java.lang.Record"
       ],
@@ -2902,6 +2933,7 @@
       "fqn": "components.CrashComponent",
       "simpleName": "CrashComponent",
       "kind": "Class",
+      "isFinal": true,
       "superClassChain": [
         "components.Component"
       ],
@@ -2912,6 +2944,7 @@
       "fqn": "components.Frame",
       "simpleName": "Frame",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [],
       "fields": [
@@ -2936,6 +2969,7 @@
       "fqn": "components.InputActivation",
       "simpleName": "InputActivation",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [
         {
@@ -2982,6 +3016,7 @@
       "fqn": "components.InputActivation$ActivationMode",
       "simpleName": "ActivationMode",
       "kind": "Enum",
+      "isFinal": true,
       "superClassChain": [
         "java.lang.Enum"
       ],
@@ -2997,6 +3032,7 @@
       "fqn": "components.IsNotSelectable",
       "simpleName": "IsNotSelectable",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [
         "components.Component"
       ],
@@ -3007,6 +3043,7 @@
       "fqn": "components.NotSerializeComponent",
       "simpleName": "NotSerializeComponent",
       "kind": "Interface",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [],
       "fields": []
@@ -3015,6 +3052,7 @@
       "fqn": "components.RemoteTransform2D",
       "simpleName": "RemoteTransform2D",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [
         "components.Component2D",
         "components.RenderableComponent",
@@ -3078,6 +3116,7 @@
       "fqn": "components.RenderableComponent",
       "simpleName": "RenderableComponent",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [
         "components.Component"
       ],
@@ -3104,6 +3143,7 @@
       "fqn": "components.SpriteRenderer",
       "simpleName": "SpriteRenderer",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [
         "components.Component2D",
         "components.RenderableComponent",
@@ -3206,6 +3246,7 @@
       "fqn": "components.State",
       "simpleName": "State",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [
         {
@@ -3273,6 +3314,7 @@
       "fqn": "components.StateEngine",
       "simpleName": "StateEngine",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [
         "components.Component"
       ],
@@ -3367,6 +3409,7 @@
       "fqn": "components.TextRenderer",
       "simpleName": "TextRenderer",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [
         "components.Component2D",
         "components.RenderableComponent",
@@ -3485,6 +3528,7 @@
       "fqn": "eventviewer.EngineEventCallback",
       "simpleName": "EngineEventCallback",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [
         {
@@ -3523,6 +3567,7 @@
       "fqn": "eventviewer.EngineEventListener",
       "simpleName": "EngineEventListener",
       "kind": "Interface",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [
         {
@@ -3553,6 +3598,7 @@
       "fqn": "eventviewer.event.Event",
       "simpleName": "Event",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [],
       "fields": []
@@ -3561,6 +3607,7 @@
       "fqn": "eventviewer.event.ProjectEvent",
       "simpleName": "ProjectEvent",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [
         "eventviewer.event.Event"
       ],
@@ -3577,6 +3624,7 @@
       "fqn": "eventviewer.event.ProjectEvent$Type",
       "simpleName": "Type",
       "kind": "Enum",
+      "isFinal": true,
       "superClassChain": [
         "java.lang.Enum"
       ],
@@ -3591,6 +3639,7 @@
       "fqn": "eventviewer.event.SceneEvent",
       "simpleName": "SceneEvent",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [
         "eventviewer.event.Event"
       ],
@@ -3617,6 +3666,7 @@
       "fqn": "eventviewer.event.SceneEvent$Type",
       "simpleName": "Type",
       "kind": "Enum",
+      "isFinal": true,
       "superClassChain": [
         "java.lang.Enum"
       ],
@@ -3637,6 +3687,7 @@
       "fqn": "physic2d.Area2D",
       "simpleName": "Area2D",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [
         "physic2d.CollisionObject2D",
         "TheCellBeyond.GameObject2D",
@@ -3746,6 +3797,7 @@
       "fqn": "physic2d.CharacterBody2D",
       "simpleName": "CharacterBody2D",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [
         "physic2d.PhysicBody2D",
         "physic2d.CollisionObject2D",
@@ -3920,6 +3972,7 @@
       "fqn": "physic2d.CollisionObject2D",
       "simpleName": "CollisionObject2D",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [
         "TheCellBeyond.GameObject2D",
         "TheCellBeyond.RenderableObject",
@@ -4108,6 +4161,7 @@
       "fqn": "physic2d.KinematicBody2D",
       "simpleName": "KinematicBody2D",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [
         "physic2d.PhysicBody2D",
         "physic2d.CollisionObject2D",
@@ -4192,6 +4246,7 @@
       "fqn": "physic2d.Physic2D",
       "simpleName": "Physic2D",
       "kind": "Class",
+      "isFinal": true,
       "superClassChain": [],
       "methods": [
         {
@@ -4327,6 +4382,7 @@
       "fqn": "physic2d.Physic2D$PhysicStepCallback",
       "simpleName": "PhysicStepCallback",
       "kind": "Interface",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [
         {
@@ -4343,6 +4399,7 @@
       "fqn": "physic2d.Physic2DContactListener",
       "simpleName": "Physic2DContactListener",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [
         {
@@ -4380,6 +4437,7 @@
       "fqn": "physic2d.PhysicBody2D",
       "simpleName": "PhysicBody2D",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [
         "physic2d.CollisionObject2D",
         "TheCellBeyond.GameObject2D",
@@ -4444,6 +4502,7 @@
       "fqn": "physic2d.PhysicLayer",
       "simpleName": "PhysicLayer",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [
         {
@@ -4544,6 +4603,7 @@
       "fqn": "physic2d.RayCast2D",
       "simpleName": "RayCast2D",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [
         "TheCellBeyond.GameObject2D",
         "TheCellBeyond.RenderableObject",
@@ -4634,6 +4694,7 @@
       "fqn": "physic2d.RayCastInfo",
       "simpleName": "RayCastInfo",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [
         {
@@ -4681,6 +4742,7 @@
       "fqn": "physic2d.RigidBody2D",
       "simpleName": "RigidBody2D",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [
         "physic2d.PhysicBody2D",
         "physic2d.CollisionObject2D",
@@ -4810,6 +4872,7 @@
       "fqn": "physic2d.StaticBody2D",
       "simpleName": "StaticBody2D",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [
         "physic2d.PhysicBody2D",
         "physic2d.CollisionObject2D",
@@ -4847,6 +4910,7 @@
       "fqn": "physic2d.collider.BoxCollider2D",
       "simpleName": "BoxCollider2D",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [
         "physic2d.collider.CollisionShape2D",
         "components.Component2D",
@@ -4883,6 +4947,7 @@
       "fqn": "physic2d.collider.CapsuleCollider2D",
       "simpleName": "CapsuleCollider2D",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [
         "physic2d.collider.CollisionShape2D",
         "components.Component2D",
@@ -4941,6 +5006,7 @@
       "fqn": "physic2d.collider.CircleCollider2D",
       "simpleName": "CircleCollider2D",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [
         "physic2d.collider.CollisionShape2D",
         "components.Component2D",
@@ -4977,6 +5043,7 @@
       "fqn": "physic2d.collider.CollisionShape2D",
       "simpleName": "CollisionShape2D",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [
         "components.Component2D",
         "components.RenderableComponent",
@@ -5024,6 +5091,7 @@
       "fqn": "physic2d.collider.TileCollider2D",
       "simpleName": "TileCollider2D",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [
         "physic2d.collider.CollisionShape2D",
         "components.Component2D",
@@ -5063,6 +5131,7 @@
       "fqn": "physic2d.enums.MotionMode",
       "simpleName": "MotionMode",
       "kind": "Enum",
+      "isFinal": true,
       "superClassChain": [
         "java.lang.Enum"
       ],
@@ -5077,6 +5146,7 @@
       "fqn": "physic2d.enums.PhysicBodyType",
       "simpleName": "PhysicBodyType",
       "kind": "Enum",
+      "isFinal": true,
       "superClassChain": [
         "java.lang.Enum"
       ],
@@ -5092,6 +5162,7 @@
       "fqn": "project.Project",
       "simpleName": "Project",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [
         {
@@ -5338,6 +5409,7 @@
       "fqn": "project.ProjectPreference",
       "simpleName": "ProjectPreference",
       "kind": "Class",
+      "isFinal": true,
       "superClassChain": [
         "java.lang.Record"
       ],
@@ -5433,6 +5505,7 @@
       "fqn": "render.FrameBuffer",
       "simpleName": "FrameBuffer",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [
         {
@@ -5533,6 +5606,7 @@
       "fqn": "render.Renderable",
       "simpleName": "Renderable",
       "kind": "Interface",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [
         {
@@ -5620,6 +5694,7 @@
       "fqn": "render.commands.CommandType",
       "simpleName": "CommandType",
       "kind": "Enum",
+      "isFinal": true,
       "superClassChain": [
         "java.lang.Enum"
       ],
@@ -5639,6 +5714,7 @@
       "fqn": "render.commands.MeshCommand",
       "simpleName": "MeshCommand",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [
         "render.commands.RenderCommand"
       ],
@@ -5680,6 +5756,7 @@
       "fqn": "render.commands.RectCommand",
       "simpleName": "RectCommand",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [
         "render.commands.RenderCommand"
       ],
@@ -5736,6 +5813,7 @@
       "fqn": "render.commands.RenderCommand",
       "simpleName": "RenderCommand",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [
         {
@@ -5805,6 +5883,7 @@
       "fqn": "render.commands.RenderCommandPool",
       "simpleName": "RenderCommandPool",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [],
       "fields": []
@@ -5813,6 +5892,7 @@
       "fqn": "render.commands.TextCommand",
       "simpleName": "TextCommand",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [
         "render.commands.RenderCommand"
       ],
@@ -5874,6 +5954,7 @@
       "fqn": "render.commands.TransformCommand",
       "simpleName": "TransformCommand",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [
         "render.commands.RenderCommand"
       ],
@@ -5951,6 +6032,7 @@
       "fqn": "render.text.HorizontalAlignment",
       "simpleName": "HorizontalAlignment",
       "kind": "Enum",
+      "isFinal": true,
       "superClassChain": [
         "java.lang.Enum"
       ],
@@ -5966,6 +6048,7 @@
       "fqn": "render.text.TCBFont",
       "simpleName": "TCBFont",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [
         {
@@ -6047,6 +6130,7 @@
       "fqn": "render.text.VerticalAlignment",
       "simpleName": "VerticalAlignment",
       "kind": "Enum",
+      "isFinal": true,
       "superClassChain": [
         "java.lang.Enum"
       ],
@@ -6062,6 +6146,7 @@
       "fqn": "render.texture.DisposeTextureCommand",
       "simpleName": "DisposeTextureCommand",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [
         "render.texture.TextureCommand"
       ],
@@ -6072,6 +6157,7 @@
       "fqn": "render.texture.Sprite",
       "simpleName": "Sprite",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [
         {
@@ -6166,6 +6252,7 @@
       "fqn": "render.texture.SpriteSheet",
       "simpleName": "SpriteSheet",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [
         {
@@ -6224,6 +6311,7 @@
       "fqn": "render.texture.TextureHandle",
       "simpleName": "TextureHandle",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [
         {
@@ -6289,6 +6377,7 @@
       "fqn": "render.texture.TextureManager",
       "simpleName": "TextureManager",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [
         {
@@ -6361,6 +6450,7 @@
       "fqn": "render.texture.TextureUnit",
       "simpleName": "TextureUnit",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [
         {
@@ -6399,6 +6489,7 @@
       "fqn": "render.texture.Tile",
       "simpleName": "Tile",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [],
       "fields": [
@@ -6423,6 +6514,7 @@
       "fqn": "render.texture.TileSet",
       "simpleName": "TileSet",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [
         {
@@ -6610,6 +6702,7 @@
       "fqn": "scene.Scene",
       "simpleName": "Scene",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [
         {
@@ -6782,6 +6875,7 @@
       "fqn": "scene.SceneLoader",
       "simpleName": "SceneLoader",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [
         {
@@ -6812,6 +6906,7 @@
       "fqn": "scripting.Export",
       "simpleName": "Export",
       "kind": "Annotation",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [
         {
@@ -6842,6 +6937,7 @@
       "fqn": "scripting.RegisterComponent",
       "simpleName": "RegisterComponent",
       "kind": "Annotation",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [
         {
@@ -6865,6 +6961,7 @@
       "fqn": "scripting.RegisterGameObject",
       "simpleName": "RegisterGameObject",
       "kind": "Annotation",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [
         {
@@ -6888,6 +6985,7 @@
       "fqn": "scripting.TypeEntry",
       "simpleName": "TypeEntry",
       "kind": "Class",
+      "isFinal": true,
       "superClassChain": [
         "java.lang.Record"
       ],
@@ -6941,6 +7039,7 @@
       "fqn": "scripting.TypeHint",
       "simpleName": "TypeHint",
       "kind": "Enum",
+      "isFinal": true,
       "superClassChain": [
         "java.lang.Enum"
       ],
@@ -6972,6 +7071,7 @@
       "fqn": "serialization.EngineSerializer",
       "simpleName": "EngineSerializer",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [
         {
@@ -7018,6 +7118,7 @@
       "fqn": "signal.Callable",
       "simpleName": "Callable",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [
         {
@@ -7083,6 +7184,7 @@
       "fqn": "signal.Signal",
       "simpleName": "Signal",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [
         {
@@ -7120,6 +7222,7 @@
       "fqn": "utility.AssetManager",
       "simpleName": "AssetManager",
       "kind": "Class",
+      "isFinal": true,
       "superClassChain": [],
       "methods": [
         {
@@ -7307,6 +7410,7 @@
       "fqn": "utility.AssetReference",
       "simpleName": "AssetReference",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [
         {
@@ -7365,6 +7469,7 @@
       "fqn": "utility.AssetResourceType",
       "simpleName": "AssetResourceType",
       "kind": "Enum",
+      "isFinal": true,
       "superClassChain": [
         "java.lang.Enum"
       ],
@@ -7393,6 +7498,7 @@
       "fqn": "utility.FontPT",
       "simpleName": "FontPT",
       "kind": "Class",
+      "isFinal": true,
       "superClassChain": [],
       "methods": [
         {
@@ -7422,6 +7528,7 @@
       "fqn": "utility.HierarchyPath",
       "simpleName": "HierarchyPath",
       "kind": "Class",
+      "isFinal": true,
       "superClassChain": [],
       "methods": [
         {
@@ -7587,6 +7694,7 @@
       "fqn": "utility.HierarchyPaths",
       "simpleName": "HierarchyPaths",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [
         {
@@ -7631,6 +7739,7 @@
       "fqn": "utility.IdPool",
       "simpleName": "IdPool",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [
         {
@@ -7668,6 +7777,7 @@
       "fqn": "utility.ResourceTracker",
       "simpleName": "ResourceTracker",
       "kind": "Class",
+      "isFinal": true,
       "superClassChain": [],
       "methods": [
         {
@@ -7698,6 +7808,7 @@
       "fqn": "utility.RingBuffer",
       "simpleName": "RingBuffer",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [
         {
@@ -7763,6 +7874,7 @@
       "fqn": "utility.Settings",
       "simpleName": "Settings",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [],
       "fields": [
@@ -7792,6 +7904,7 @@
       "fqn": "utility.Settings$FontPath",
       "simpleName": "FontPath",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [],
       "fields": [
@@ -7826,6 +7939,7 @@
       "fqn": "utility.Settings$ShaderPath",
       "simpleName": "ShaderPath",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [],
       "fields": [
@@ -7860,6 +7974,7 @@
       "fqn": "utility.Settings$TexturePath",
       "simpleName": "TexturePath",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [],
       "fields": [
@@ -7894,6 +8009,7 @@
       "fqn": "utility.TCBMath",
       "simpleName": "TCBMath",
       "kind": "Class",
+      "isFinal": true,
       "superClassChain": [],
       "methods": [
         {
@@ -7920,6 +8036,7 @@
       "fqn": "utility.TextureScale",
       "simpleName": "TextureScale",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [
         {
@@ -7943,6 +8060,7 @@
       "fqn": "utility.UnifiedPaths",
       "simpleName": "UnifiedPaths",
       "kind": "Class",
+      "isFinal": true,
       "superClassChain": [],
       "methods": [
         {
@@ -8110,6 +8228,7 @@
       "fqn": "utility.UnifiedPaths$AssetPath",
       "simpleName": "AssetPath",
       "kind": "Class",
+      "isFinal": true,
       "superClassChain": [
         "java.lang.Record"
       ],
@@ -8170,6 +8289,7 @@
       "fqn": "utility.UnifiedPaths$AssetType",
       "simpleName": "AssetType",
       "kind": "Enum",
+      "isFinal": true,
       "superClassChain": [
         "java.lang.Enum"
       ],
@@ -8185,6 +8305,7 @@
       "fqn": "utility.WorldUnit",
       "simpleName": "WorldUnit",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [
         {
@@ -8223,6 +8344,7 @@
       "fqn": "utility.log.EngineLog",
       "simpleName": "EngineLog",
       "kind": "Class",
+      "isFinal": true,
       "superClassChain": [
         "java.lang.Record"
       ],
@@ -8350,6 +8472,7 @@
       "fqn": "utility.log.EngineLogCallback",
       "simpleName": "EngineLogCallback",
       "kind": "Class",
+      "isFinal": true,
       "superClassChain": [],
       "methods": [
         {
@@ -8373,6 +8496,7 @@
       "fqn": "utility.log.EngineLogListener",
       "simpleName": "EngineLogListener",
       "kind": "Interface",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [
         {
@@ -8389,6 +8513,7 @@
       "fqn": "utility.log.Level",
       "simpleName": "Level",
       "kind": "Enum",
+      "isFinal": true,
       "superClassChain": [
         "java.lang.Enum"
       ],
@@ -8416,6 +8541,7 @@
       "fqn": "utility.log.LogEntry",
       "simpleName": "LogEntry",
       "kind": "Class",
+      "isFinal": true,
       "superClassChain": [
         "java.lang.Record"
       ],
@@ -8483,6 +8609,7 @@
       "fqn": "utility.log.Stream2Log",
       "simpleName": "Stream2Log",
       "kind": "Class",
+      "isFinal": true,
       "superClassChain": [
         "java.io.PrintStream"
       ],
@@ -8509,6 +8636,7 @@
       "fqn": "utility.prefabrication.Prefab",
       "simpleName": "Prefab",
       "kind": "Class",
+      "isFinal": true,
       "superClassChain": [],
       "methods": [
         {
@@ -8532,6 +8660,7 @@
       "fqn": "utility.prefabrication.PrefabData",
       "simpleName": "PrefabData",
       "kind": "Class",
+      "isFinal": true,
       "superClassChain": [
         "java.lang.Record"
       ],
@@ -8585,6 +8714,7 @@
       "fqn": "utility.prefabrication.PrefabManager",
       "simpleName": "PrefabManager",
       "kind": "Class",
+      "isFinal": false,
       "superClassChain": [],
       "methods": [
         {

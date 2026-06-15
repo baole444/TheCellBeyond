@@ -60,7 +60,7 @@ public final class ManifestGenerator {
         List<MemberInfo> methods = collectMethods(info, fqn, collisions);
         List<MemberInfo> fields = collectFields(info, fqn, collisions);
         List<String> enumConstants = kind == APIType.Kind.Enum ? collectEnumConstants(info) : null;
-        return new APIType(fqn, info.getSimpleName(), kind, superClassChain, methods, fields, enumConstants);
+        return new APIType(fqn, info.getSimpleName(), kind, info.isFinal(), superClassChain, methods, fields, enumConstants);
     }
 
     private static APIType.Kind kindOf(ClassInfo info) {
