@@ -1,9 +1,6 @@
-package TCBTest;
+package scripting.transpiler.manifest;
 
 import org.junit.jupiter.api.Test;
-import scripting.transpiler.manifest.APIManifest;
-import scripting.transpiler.manifest.APIType;
-import scripting.transpiler.manifest.MemberInfo;
 
 import java.util.Optional;
 

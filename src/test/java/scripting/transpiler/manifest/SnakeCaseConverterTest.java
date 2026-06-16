@@ -1,7 +1,6 @@
-package TCBTest;
+package scripting.transpiler.manifest;
 
 import org.junit.jupiter.api.Test;
-import scripting.transpiler.manifest.SnakeCaseConverter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;

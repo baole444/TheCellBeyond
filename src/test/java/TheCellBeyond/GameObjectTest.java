@@ -1,6 +1,5 @@
-package TCBTest;
+package TheCellBeyond;
 
-import TheCellBeyond.GameObject;
 import components.AnimatedSpriteRenderer;
 import components.Component2D;
 import components.SpriteRenderer;

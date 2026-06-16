@@ -1,9 +1,7 @@
-package TCBTest;
+package scripting.transpiler.parse;
 
 import org.junit.jupiter.api.Test;
 import scripting.transpiler.ast.*;
-import scripting.transpiler.parse.HeaderScanner;
-import scripting.transpiler.parse.ScriptParser;
 
 import java.util.Optional;
 

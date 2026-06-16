@@ -1,11 +1,10 @@
-package TCBTest;
+package scripting.transpiler.parse;
 
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.Vocabulary;
 import org.junit.jupiter.api.Test;
-import scripting.transpiler.parse.TCBScriptLexer;
 
 import java.util.ArrayList;
 import java.util.List;

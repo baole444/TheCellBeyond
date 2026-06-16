@@ -1,7 +1,6 @@
-package TCBTest;
+package utility;
 
 import org.junit.jupiter.api.Test;
-import utility.HierarchyPath;
 
 import static org.junit.jupiter.api.Assertions.*;
 

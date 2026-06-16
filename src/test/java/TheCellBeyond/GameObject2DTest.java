@@ -1,6 +1,5 @@
-package TCBTest;
+package TheCellBeyond;
 
-import TheCellBeyond.GameObject2D;
 import org.joml.Vector2f;
 import org.junit.jupiter.api.Test;
 

@@ -1,11 +1,10 @@
-package TCBTest;
+package scripting.transpiler.semantic;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 import scripting.transpiler.ast.*;
 import scripting.transpiler.parse.ScriptParser;
-import scripting.transpiler.semantic.*;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
