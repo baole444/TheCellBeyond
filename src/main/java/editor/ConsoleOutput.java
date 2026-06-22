@@ -137,7 +137,7 @@ public final class ConsoleOutput implements EngineLogListener {
     }
 
     @Override
-    public final void onNewLog(LogEntry entry) {
+    public void onNewLog(LogEntry entry) {
         if (entry == null) return;
         entries.add(entry);
     }

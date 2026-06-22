@@ -23,6 +23,13 @@ import java.util.*;
 public final class SymbolResolver {
     private static final String ObjectType = "Object";
     private static final Set<String> BuiltInType = Set.of("int", "float", "bool", "String", "void", ObjectType);
+    private static final Map<String, String> LogBuiltins = Map.of(
+            "print", "info",
+            "print_debug", "debug",
+            "print_info", "info",
+            "print_warning", "warning",
+            "print_error", "error"
+    );
     private final Map<String, ProjectClassEntry> projectIndex;
     private final List<SemanticError> errors = new ArrayList<>();
     private Map<String, TypeReference> fieldTypes;
@@ -200,11 +207,7 @@ public final class SymbolResolver {
                 resolveExpression(whileStatement.condition, scope);
                 resolveBlock(whileStatement.body, scope);
             }
-            case ForStatement forStatement -> {
-                resolveExpression(forStatement.iterable, scope);
-                scope.put(forStatement.variable, null);
-                resolveBlock(forStatement.body, scope);
-            }
+            case ForStatement forStatement -> resolveFor(forStatement, scope);
             default -> {}
         }
     }
@@ -238,6 +241,52 @@ public final class SymbolResolver {
         if (ifStatement.elseBlock != null) resolveBlock(ifStatement.elseBlock, scope);
     }
 
+    /**
+     * Resolve a {@code for} loop and handle the contextual keyword {@code range(...)} if available.
+     * @param forStatement the loop to resolve
+     * @param scope the locals and parameters in scope
+     */
+    private void resolveFor(ForStatement forStatement, Map<String, TypeReference> scope) {
+        if (resolveRangeIterable(forStatement, scope)) {
+            resolveBlock(forStatement.body, scope);
+            return;
+        }
+        resolveExpression(forStatement.iterable, scope);
+        scope.put(forStatement.variable, inferElementType(forStatement.iterable, scope));
+        resolveBlock(forStatement.body, scope);
+    }
+
+    /**
+     * Check if an unqualified {@code range(...)} iterable is the index loop built in.
+     * When inside a for loop, range always the contextual keyword.
+     * @param forStatement the for loop to check
+     * @param scope the locals and parameters in scope
+     * @return true if the iterable was the {@code range} built in
+     */
+    private boolean resolveRangeIterable(ForStatement forStatement, Map<String, TypeReference> scope) {
+        if (!(forStatement.iterable instanceof MethodCallExpression call)) return false;
+        if (call.target != null || !call.methodName.equals("range")) return false;
+        call.arguments.forEach(arg -> resolveExpression(arg, scope));
+        if (call.arguments.isEmpty() || call.arguments.size() > 3) error(call, "range expects 1 to 3 arguments, found " + call.arguments.size());
+        call.resolution = new Resolution.BuiltinRangeResolution();
+        scope.put(forStatement.variable, new TypeReference(forStatement.position, "int", 0));
+        return true;
+    }
+
+    /**
+     * Infer the element type of iterable when it is a known array identifier, dropping on level of  array depth.
+     * Return null for none array iterables and unknown expression, leaving the loop variable untyped.
+     * @param iterable the loop iterable
+     * @param scope the locals and parameters in scope
+     * @return the element type, or null when not inferable
+     */
+    private TypeReference inferElementType(Expression iterable, Map<String, TypeReference> scope) {
+        if (!(iterable instanceof IdentifierExpression identifier)) return null;
+        TypeReference declared = scope.containsKey(identifier.name) ? scope.get(identifier.name) : fieldTypes.get(identifier.name);
+        if (declared == null || declared.arrayDepth == 0) return null;
+        return new TypeReference(iterable.position, declared.name, declared.arrayDepth - 1);
+    }
+
     private void resolveCall(MethodCallExpression call, Map<String, TypeReference> scope) {
         for (Expression arg : call.arguments) resolveExpression(arg, scope);
         if (call.target != null) {
@@ -248,6 +297,11 @@ public final class SymbolResolver {
         if (methodNames.contains(call.methodName)) {
             Resolution translated = selfCallResolution.get(call.methodName);
             call.resolution = translated != null ? translated : new Resolution.UserMemberResolution(call.methodName);
+            return;
+        }
+        String logMethod = LogBuiltins.get(call.methodName);
+        if (logMethod != null) {
+            call.resolution = new Resolution.BuiltinLogResolution(logMethod);
             return;
         }
         Optional<Resolution.APIMemberResolution> inherited = findInheritedAPIMember(call.methodName);

@@ -78,8 +78,7 @@ public class SemanticPassTest {
         List<Statement> body = cls.methods.getFirst().body.statements;
         for (int i = 0; i < 2; i++) {
             MethodCallExpression call = assertInstanceOf(MethodCallExpression.class, ((ExpressionStatement) body.get(i)).expression);
-            Resolution.APIMemberResolution member = assertInstanceOf(Resolution.APIMemberResolution.class, call.resolution,
-                    "both snake and camel spellings resolve to the same API member");
+            Resolution.APIMemberResolution member = assertInstanceOf(Resolution.APIMemberResolution.class, call.resolution, "both snake and camel spellings resolve to the same API member");
             assertEquals("moveAndSlide", member.javaName());
         }
     }
@@ -186,18 +185,66 @@ public class SemanticPassTest {
     }
 
     @Test
-    public void forLoopVariableReceiverPassesThrough() {
-        SemanticAnalyzer.Result result = run("""
+    public void forLoopArrayElementTypeIsInferred() {
+        ClassDeclaration cls = ok("""
                 class Probe extends Object
                 var bodies : CharacterBody2D[]
                 func run() -> void:
                     for body in bodies:
                         body.move_and_slide()
                 """, Map.of());
-        assertFalse(result.hasErrors(), () -> result.errors().toString());
-        ForStatement loop = assertInstanceOf(ForStatement.class, result.scriptFile().classDeclaration.methods.getFirst().body.statements.getFirst());
+        ForStatement loop = assertInstanceOf(ForStatement.class, cls.methods.getFirst().body.statements.getFirst());
         MethodCallExpression call = assertInstanceOf(MethodCallExpression.class, ((ExpressionStatement) loop.body.statements.getFirst()).expression);
-        assertNull(call.resolution, "for-loop element types are not inferred; the call passes through");
+        Resolution.APIMemberResolution member = assertInstanceOf(Resolution.APIMemberResolution.class, call.resolution, "the loop variable takes the array element type, so the member resolves");
+        assertEquals("physic2d.CharacterBody2D", member.receiverClassFQN());
+        assertEquals("moveAndSlide", member.javaName());
+    }
+
+    @Test
+    public void rangeIterableResolvesAsIndexLoopBuiltin() {
+        ClassDeclaration cls = ok("""
+                class Probe extends Object
+                var total : int = 0
+                func run(count : int) -> void:
+                    for i in range(0, count):
+                        total += i
+                """, Map.of());
+        ForStatement loop = assertInstanceOf(ForStatement.class, cls.methods.getFirst().body.statements.getFirst());
+        MethodCallExpression iterable = assertInstanceOf(MethodCallExpression.class, loop.iterable);
+        assertInstanceOf(Resolution.BuiltinRangeResolution.class, iterable.resolution);
+    }
+
+    @Test
+    public void rangeWithTooManyArgumentsFails() {
+        SemanticAnalyzer.Result result = run("""
+                class Probe extends Object
+                func run() -> void:
+                    for i in range(0, 10, 2, 5):
+                        pass
+                """, Map.of());
+        assertTrue(result.hasErrors());
+        assertTrue(result.errors().getFirst().message().contains("range"), () -> result.errors().toString());
+    }
+
+    @Test
+    public void rangeIsContextualKeywordOnlyInLoopPosition() {
+        ClassDeclaration cls = ok("""
+                class Probe extends Object
+                var total : int = 0
+                func range(n : int) -> int:
+                    return n
+                func run() -> void:
+                    var direct : int = range(5)
+                    for i in range(3):
+                        total += i
+                """, Map.of());
+        MethodDeclaration run = cls.methods.get(1);
+        LocalVariableDeclaration local = assertInstanceOf(LocalVariableDeclaration.class, run.body.statements.getFirst());
+        MethodCallExpression elsewhere = assertInstanceOf(MethodCallExpression.class, local.initializer);
+        assertInstanceOf(Resolution.UserMemberResolution.class, elsewhere.resolution, "outside the loop, range(...) is the user method");
+        ForStatement loop = assertInstanceOf(ForStatement.class, run.body.statements.get(1));
+        MethodCallExpression iterable = assertInstanceOf(MethodCallExpression.class, loop.iterable);
+        assertInstanceOf(Resolution.BuiltinRangeResolution.class, iterable.resolution, "in the loop position the range built in always wins");
     }
 
     @Test
@@ -258,8 +305,7 @@ public class SemanticPassTest {
     }
 
     private static void assertOverride(MethodDeclaration method, String javaName) {
-        Resolution.APIMemberResolution resolution = assertInstanceOf(Resolution.APIMemberResolution.class, method.resolution,
-                () -> "method '" + method.name + "' should resolve as an API override");
+        Resolution.APIMemberResolution resolution = assertInstanceOf(Resolution.APIMemberResolution.class, method.resolution, () -> "method '" + method.name + "' should resolve as an API override");
         assertEquals(javaName, resolution.javaName());
         assertEquals("components.State", resolution.receiverClassFQN());
     }

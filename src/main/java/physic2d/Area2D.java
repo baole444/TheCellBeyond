@@ -132,7 +132,7 @@ public class Area2D extends CollisionObject2D {
     }
 
     void trackBodyExit(GameObject2D body) {
-        if (body == null) return;;
+        if (body == null) return;
         overlappingBodies.remove(body);
     }
 

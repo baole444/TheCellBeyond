@@ -31,4 +31,17 @@ public sealed interface Resolution {
      * @param javaName the original java name of the member
      */
     record APIMemberResolution(String receiverClassFQN, String javaName) implements Resolution {}
+    /**
+     * A language logging built in, such as {@code print} or {@code print_error}.
+     * @param javaMethod the {@code EngineLog} instance method to call,
+     * one of {@code debug}, {@code info}, {@code warning}, {@code error}.
+     */
+    record BuiltinLogResolution(String javaMethod) implements Resolution {}
+    /**
+     * The {@code range{...}} built in used as a {@code for} loop iterable.
+     * Generate to an indexed for loop in java.
+     * <p>
+     * The argument count, 1 to 3, selected the start, end and step. This is read from the call's arguments at generation.
+     */
+    record BuiltinRangeResolution() implements Resolution {}
 }
