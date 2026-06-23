@@ -140,7 +140,7 @@ public final class ParseTreeToAst extends TCBScriptParserBaseVisitor<AstNode> {
             return new FieldDeclaration(position(var), annotations(var.annotation()), visibility(var.visibility()), var.STATIC() != null, false, var.NAME().getText(), typeReference(var.typeReference()), init);
         }
         ConstFieldContext constField = (ConstFieldContext) context;
-        return new FieldDeclaration(position(constField), annotations(constField.annotation()), visibility(constField.visibility()), false, true, constField.NAME().getText(), typeReference(constField.typeReference()), expression(constField.expression()));
+        return new FieldDeclaration(position(constField), annotations(constField.annotation()), visibility(constField.visibility()), constField.STATIC() != null, true, constField.NAME().getText(), typeReference(constField.typeReference()), expression(constField.expression()));
     }
 
     private MethodDeclaration methodDeclaration(MethodDeclarationContext context) {

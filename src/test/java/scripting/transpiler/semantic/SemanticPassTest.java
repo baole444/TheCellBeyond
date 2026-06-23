@@ -390,6 +390,16 @@ public class SemanticPassTest {
     }
 
     @Test
+    public void exportOnStaticConstFails() {
+        SemanticAnalyzer.Result result = run("""
+                class C
+                @export static const Max : int = 10
+                """, Map.of());
+        assertTrue(result.hasErrors());
+        assertTrue(result.errors().getFirst().message().contains("@export"), () -> result.errors().toString());
+    }
+
+    @Test
     public void exportOnStaticVarIsAllowed() {
         assertFalse(run("""
                 class C

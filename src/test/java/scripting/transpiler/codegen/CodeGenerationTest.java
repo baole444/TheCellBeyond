@@ -137,14 +137,22 @@ public class CodeGenerationTest {    private static final String WorkedExample =
     }
 
     @Test
-    public void constBecomesStaticFinalAndStaticVarStaysStatic() {
+    public void fieldModifiersComposeStaticAndFinalOrthogonally() {
         String generated = ok("""
                 class Config extends Object
-                const Max : int = 10
+                var count : int = 0
                 static var shared : int = 1
+                const Max : int = 10
+                static const SharedMax : int = 20
+                func run() -> void:
+                    const local : int = 5
                 """, "Config.tcbs", Map.of());
-        assertTrue(generated.contains("public static final int Max = 10;"), generated);
+        assertTrue(generated.contains("public int count = 0;"), generated);
         assertTrue(generated.contains("public static int shared = 1;"), generated);
+        assertTrue(generated.contains("public final int Max = 10;"), generated);
+        assertTrue(generated.contains("public static final int SharedMax = 20;"), generated);
+        assertTrue(generated.contains("final int local = 5;"), generated);
+        assertCompiles("Config", generated);
     }
 
     @Test

@@ -55,6 +55,31 @@ public class TCBScriptParserTest {
     }
 
     @Test
+    public void constFieldCarriesStaticFlagIndependently() {
+        ClassDeclaration cls = parse("""
+                class Config extends Object
+                const Max : int = 10
+                static const SharedMax : int = 20
+                """).classDeclaration;
+        FieldDeclaration max = cls.fields.getFirst();
+        assertTrue(max.isConst);
+        assertFalse(max.isStatic, "a bare const is an instance field");
+        FieldDeclaration sharedMax = cls.fields.get(1);
+        assertTrue(sharedMax.isConst);
+        assertTrue(sharedMax.isStatic, "static const carries the static flag");
+    }
+
+    @Test
+    public void staticConstLocalIsASyntaxError() {
+        ScriptParser.Result result = ScriptParser.parse("""
+                class Bad extends Object
+                func run() -> void:
+                    static const x : int = 1
+                """, "bad.tcbs");
+        assertTrue(result.hasErrors(), "static is not valid on a local const");
+    }
+
+    @Test
     public void handlesNestedIndentedBlocks() {
         ScriptFile file = parse("""
                 class Nest extends Object

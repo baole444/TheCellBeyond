@@ -24,7 +24,7 @@ classMember: fieldDeclaration | methodDeclaration;
 // Anotation may sit linline with the field or drop to their own  preceding lines
 fieldDeclaration
     : (annotation NEWLINE*)* visibility? STATIC? VAR NAME COLON typeReference (ASSIGN expression)? NEWLINE #varField
-    | (annotation NEWLINE*)* visibility? CONST NAME COLON typeReference ASSIGN expression NEWLINE #constField
+    | (annotation NEWLINE*)* visibility? STATIC? CONST NAME COLON typeReference ASSIGN expression NEWLINE #constField
     ;
 
 methodDeclaration: visibility? STATIC? FUNC NAME OPEN_PAREN parameterList? CLOSE_PAREN (ARROW typeReference)? COLON suite;

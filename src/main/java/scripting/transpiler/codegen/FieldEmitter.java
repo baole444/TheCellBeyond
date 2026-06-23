@@ -7,9 +7,12 @@ import scripting.transpiler.ast.FieldDeclaration;
 import java.util.stream.Collectors;
 
 /**
- * Emit a field declaration, with {@code @Export} annotation when required.
- * <p>
- * A {@code const} maps to {@code static final}, while {@code static var} carries only {@code static}.
+ * Emit a field declaration, with {@code @Export} annotation when required. The mapping are as follows:
+ * <ul>
+ *     <li>{@code const} -> {@code final}, an instance's constant.</li>
+ *     <li>{@code var} -> pass through, an instance's field.</li>
+ *     <li>{@code static} -> {@code static}, can be combined with {@code const} and {@code var} to create static constant and variable.</li>
+ * </ul>
  */
 final class FieldEmitter {
     private static final String ExportAnnotation = "export";
@@ -43,7 +46,7 @@ final class FieldEmitter {
 
     private String declarationLine(FieldDeclaration field) {
         StringBuilder line = new StringBuilder(Modifiers.visibility(field.visibility));
-        if (field.isStatic || field.isConst) line.append(" static");
+        if (field.isStatic) line.append(" static");
         if (field.isConst) line.append(" final");
         line.append(' ').append(context.typeName(field.type)).append(' ').append(field.name);
         if (field.initializer != null) line.append(" = ").append(expressions.emit(field.initializer, field.type.name));
