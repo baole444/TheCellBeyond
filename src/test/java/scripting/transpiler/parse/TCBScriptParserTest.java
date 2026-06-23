@@ -22,9 +22,21 @@ public class TCBScriptParserTest {
         return result.scriptFile;
     }
 
+    private static ClassDeclaration parseClass(String source) {
+        return classOf(parse(source));
+    }
+
+    private static ClassDeclaration classOf(ScriptFile file) {
+        return (ClassDeclaration) file.typeDeclaration;
+    }
+
+    private static EnumDeclaration parseEnum(String source) {
+        return (EnumDeclaration) parse(source).typeDeclaration;
+    }
+
     @Test
     public void parsesWorkedExample() {
-        ClassDeclaration cls = parse(WorkingExample).classDeclaration;
+        ClassDeclaration cls = parseClass(WorkingExample);
         assertEquals("MainPlayer", cls.name);
         assertEquals("CharacterBody2D", cls.superType.name);
         assertEquals(1, cls.fields.size());
@@ -56,11 +68,11 @@ public class TCBScriptParserTest {
 
     @Test
     public void constFieldCarriesStaticFlagIndependently() {
-        ClassDeclaration cls = parse("""
+        ClassDeclaration cls = parseClass("""
                 class Config extends Object
                 const Max : int = 10
                 static const SharedMax : int = 20
-                """).classDeclaration;
+                """);
         FieldDeclaration max = cls.fields.getFirst();
         assertTrue(max.isConst);
         assertFalse(max.isStatic, "a bare const is an instance field");
@@ -80,6 +92,69 @@ public class TCBScriptParserTest {
     }
 
     @Test
+    public void parsesMemberAccessAndCast() {
+        Block body = parseClass("""
+                class Probe extends Object
+                func run() -> void:
+                    var spent : int = wallet.balance
+                    var node : Node = thing as Node
+                """).methods.getFirst().body;
+        LocalVariableDeclaration access = assertInstanceOf(LocalVariableDeclaration.class, body.statements.getFirst());
+        MemberAccessExpression member = assertInstanceOf(MemberAccessExpression.class, access.initializer);
+        assertEquals("balance", member.memberName);
+        assertInstanceOf(IdentifierExpression.class, member.target);
+        LocalVariableDeclaration castLocal = assertInstanceOf(LocalVariableDeclaration.class, body.statements.get(1));
+        CastExpression cast = assertInstanceOf(CastExpression.class, castLocal.initializer);
+        assertEquals("Node", cast.type.name);
+        assertInstanceOf(IdentifierExpression.class, cast.value);
+    }
+
+    @Test
+    public void parsesBareEnum() {
+        EnumDeclaration enumeration = parseEnum("""
+                enum State:
+                    Idle
+                    Running
+                """);
+        assertEquals("State", enumeration.name);
+        assertEquals(2, enumeration.constants.size());
+        assertEquals("Idle", enumeration.constants.getFirst().name);
+        assertTrue(enumeration.constants.getFirst().arguments.isEmpty());
+        assertEquals("Running", enumeration.constants.get(1).name);
+        assertTrue(enumeration.fields.isEmpty());
+    }
+
+    @Test
+    public void parsesValuedEnumWithFieldSection() {
+        EnumDeclaration enumeration = parseEnum("""
+                enum Element:
+                    Fire(10, "fire")
+                    Water(5, "water")
+
+                    var damage : int
+                    var label : String
+                """);
+        assertEquals(2, enumeration.constants.size());
+        EnumConstant fire = enumeration.constants.getFirst();
+        assertEquals("Fire", fire.name);
+        assertEquals(2, fire.arguments.size());
+        assertEquals(2, enumeration.fields.size());
+        assertEquals("damage", enumeration.fields.getFirst().name);
+        assertEquals("int", enumeration.fields.getFirst().type.name);
+        assertEquals("label", enumeration.fields.get(1).name);
+        assertEquals("String", enumeration.fields.get(1).type.name);
+    }
+
+    @Test
+    public void headerScanReadsEnum() {
+        Optional<HeaderScanner.ClassHeader> header = HeaderScanner.scan("enum State:\n    Idle\n    Running\n");
+        assertTrue(header.isPresent());
+        assertEquals("State", header.get().className());
+        assertNull(header.get().superName());
+        assertTrue(header.get().isEnum());
+    }
+
+    @Test
     public void handlesNestedIndentedBlocks() {
         ScriptFile file = parse("""
                 class Nest extends Object
@@ -89,7 +164,7 @@ public class TCBScriptParserTest {
                             for item in items:
                                 act()
                 """);
-        Block body = file.classDeclaration.methods.getFirst().body;
+        Block body = classOf(file).methods.getFirst().body;
         IfStatement ifStmt = assertInstanceOf(IfStatement.class, body.statements.getFirst());
         WhileStatement whileStmt = assertInstanceOf(WhileStatement.class, ifStmt.thenBlock.statements.getFirst());
         ForStatement forStmt = assertInstanceOf(ForStatement.class, whileStmt.body.statements.getFirst());
@@ -106,7 +181,7 @@ public class TCBScriptParserTest {
                     elif flag && other: return 2
                     return flag ? 4 : 5
                 """);
-        Block body = file.classDeclaration.methods.getFirst().body;
+        Block body = classOf(file).methods.getFirst().body;
         IfStatement ifStmt = assertInstanceOf(IfStatement.class, body.statements.getFirst());
         assertEquals(1, ifStmt.thenBlock.statements.size());
         assertInstanceOf(ReturnStatement.class, ifStmt.thenBlock.statements.getFirst());
@@ -124,14 +199,14 @@ public class TCBScriptParserTest {
 
     @Test
     public void parsesBreakAndContinue() {
-        Block body = parse("""
+        Block body = parseClass("""
                 class Loops extends Object
                 func run() -> void:
                     while active:
                         continue
                     while active:
                         break
-                """).classDeclaration.methods.getFirst().body;
+                """).methods.getFirst().body;
         WhileStatement first = assertInstanceOf(WhileStatement.class, body.statements.getFirst());
         assertInstanceOf(ContinueStatement.class, first.body.statements.getFirst());
         WhileStatement second = assertInstanceOf(WhileStatement.class, body.statements.get(1));
@@ -246,9 +321,9 @@ public class TCBScriptParserTest {
                 extends Bar
                 var x : int = 1
                 """);
-        assertEquals("Foo", file.classDeclaration.name);
-        assertEquals("Bar", file.classDeclaration.superType.name);
-        assertEquals(1, file.classDeclaration.fields.size());
+        assertEquals("Foo", classOf(file).name);
+        assertEquals("Bar", classOf(file).superType.name);
+        assertEquals(1, classOf(file).fields.size());
     }
 
     @Test
@@ -261,8 +336,8 @@ public class TCBScriptParserTest {
                 func run() -> void:
                     pass
                 """);
-        assertEquals("Bar", file.classDeclaration.superType.name);
-        assertEquals(1, file.classDeclaration.methods.size());
+        assertEquals("Bar", classOf(file).superType.name);
+        assertEquals(1, classOf(file).methods.size());
     }
 
     @Test
@@ -271,7 +346,7 @@ public class TCBScriptParserTest {
                 class Holder
                 var value : int = 0
                 """);
-        ClassDeclaration cls = file.classDeclaration;
+        ClassDeclaration cls = classOf(file);
         assertEquals("Holder", cls.name);
         assertNull(cls.superType, "no extends clause means a null super type (implicit Object)");
         assertEquals(1, cls.fields.size());
@@ -289,7 +364,7 @@ public class TCBScriptParserTest {
                 var speed : int = 200
                 @export(label = "Jump") var jump : float = 5.0
                 """);
-        ClassDeclaration cls = file.classDeclaration;
+        ClassDeclaration cls = classOf(file);
         assertEquals(2, cls.fields.size());
         FieldDeclaration speed = cls.fields.getFirst();
         assertEquals("speed", speed.name);
@@ -310,7 +385,7 @@ public class TCBScriptParserTest {
                 func    run()   ->   void:
                     act()   # inline trailing comment
                 """);
-        ClassDeclaration cls = file.classDeclaration;
+        ClassDeclaration cls = classOf(file);
         assertEquals("Spaced", cls.name);
         assertEquals("Object", cls.superType.name);
         assertEquals(1, cls.fields.size());

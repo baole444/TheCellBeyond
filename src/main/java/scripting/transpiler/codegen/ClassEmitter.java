@@ -3,7 +3,6 @@ package scripting.transpiler.codegen;
 import scripting.RegisterComponent;
 import scripting.RegisterGameObject;
 import scripting.transpiler.ast.ClassDeclaration;
-import scripting.transpiler.ast.FieldDeclaration;
 import scripting.transpiler.ast.TypeReference;
 import scripting.transpiler.semantic.ClassRegistration;
 import utility.log.EngineLog;

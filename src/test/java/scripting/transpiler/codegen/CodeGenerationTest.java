@@ -156,6 +156,66 @@ public class CodeGenerationTest {    private static final String WorkedExample =
     }
 
     @Test
+    public void bareEnumEmitsAndCompiles() {
+        String generated = ok("""
+                enum State:
+                    Idle
+                    Running
+                """, "State.tcbs", Map.of());
+        assertTrue(generated.contains("public enum State {"), generated);
+        assertTrue(generated.contains("    Idle,"), generated);
+        assertTrue(generated.contains("    Running\n"), "the last bare constant carries no terminator");
+        assertCompiles("State", generated);
+    }
+
+    @Test
+    public void valuedEnumEmitsConstantsFieldsConstructorAndCompiles() {
+        String generated = ok("""
+                enum Element:
+                    Fire(10, "fire")
+                    Water(5, "water")
+
+                    var damage : int
+                    var label : String
+                """, "Element.tcbs", Map.of());
+        assertTrue(generated.contains("Fire(10, \"fire\"),"), generated);
+        assertTrue(generated.contains("Water(5, \"water\");"), "the last valued constant ends the list with a semicolon");
+        assertTrue(generated.contains("public final int damage;"), generated);
+        assertTrue(generated.contains("public final String label;"), generated);
+        assertTrue(generated.contains("Element(int damage, String label) {"), generated);
+        assertTrue(generated.contains("this.damage = damage;"), generated);
+        assertTrue(generated.contains("this.label = label;"), generated);
+        assertCompiles("Element", generated);
+    }
+
+    @Test
+    public void enumConstantFloatArgumentGainsSuffix() {
+        String generated = ok("""
+                enum Wave:
+                    Calm(0.5)
+                    Storm(9.0)
+
+                    var height : float
+                """, "Wave.tcbs", Map.of());
+        assertTrue(generated.contains("Calm(0.5f),"), "a float field suffixes the constant's literal argument");
+        assertTrue(generated.contains("Storm(9.0f);"), generated);
+        assertCompiles("Wave", generated);
+    }
+
+    @Test
+    public void enumUsedAsTypeAndConstantReferenceEmits() {
+        String generated = ok("""
+                class Caster extends Object
+                var element : Element = Element.Fire
+                func run() -> void:
+                    if element == Element.Water:
+                        pass
+                """, "Caster.tcbs", index(enumEntry("Element")));
+        assertTrue(generated.contains("public Element element = Element.Fire;"), generated);
+        assertTrue(generated.contains("element == Element.Water"), generated);
+    }
+
+    @Test
     public void floatLiteralGainsSuffixForFloatTarget() {
         String generated = ok("""
                 class Phys extends Object
@@ -340,6 +400,10 @@ public class CodeGenerationTest {    private static final String WorkedExample =
     }
 
     private static ProjectClassEntry script() {
-        return new ProjectClassEntry("Helper", "src/script/" + "Helper" + ".tcbs", ProjectClassEntry.Kind.Script, "Object", "scripts");
+        return new ProjectClassEntry("Helper", "src/script/" + "Helper" + ".tcbs", ProjectClassEntry.Kind.Script, "Object", "scripts", false);
+    }
+
+    private static ProjectClassEntry enumEntry(String name) {
+        return new ProjectClassEntry(name, "src/script/" + name + ".tcbs", ProjectClassEntry.Kind.Script, null, "scripts", true);
     }
 }

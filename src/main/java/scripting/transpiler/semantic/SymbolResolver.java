@@ -53,7 +53,11 @@ public final class SymbolResolver {
      * @return the resolution errors, empty when the script is fully resolved
      */
     public List<SemanticError> resolve(ScriptFile scriptFile) {
-        ClassDeclaration classDeclaration = scriptFile.classDeclaration;
+        if (scriptFile.typeDeclaration instanceof EnumDeclaration enumDeclaration) {
+            resolveEnum(enumDeclaration);
+            return errors;
+        }
+        ClassDeclaration classDeclaration = (ClassDeclaration) scriptFile.typeDeclaration;
         indexMembers(classDeclaration);
         resolveExtends(classDeclaration);
         classDeclaration.methods.forEach(this::resolveMethodSignature);
@@ -63,6 +67,16 @@ public final class SymbolResolver {
         }
         classDeclaration.methods.forEach(this::resolveMethodBody);
         return errors;
+    }
+
+    private void resolveEnum(EnumDeclaration enumDeclaration) {
+        fieldTypes = new HashMap<>();
+        methodNames = new HashSet<>();
+        selfCallResolution = new HashMap<>();
+        apiReceiverFQN = null;
+        enumDeclaration.fields.forEach(field -> resolveType(field.type));
+        Map<String, TypeReference> scope = new HashMap<>();
+        enumDeclaration.constants.forEach(constant -> constant.arguments.forEach(arg -> resolveExpression(arg, scope)));
     }
 
     private void indexMembers(ClassDeclaration classDeclaration) {
@@ -88,6 +102,11 @@ public final class SymbolResolver {
         ProjectClassEntry entry = projectIndex.get(superType.name);
         if (entry != null) {
             superType.resolution = new Resolution.ProjectClassResolution(entry.fqn());
+            if (entry.isEnum()) {
+                error(superType, "Cannot extend enum '" + superType.name + "'");
+                classDeclaration.registration = ClassRegistration.None;
+                return;
+            }
             classDeclaration.registration = walkProjectLineage(classDeclaration, entry, superType);
             return;
         }

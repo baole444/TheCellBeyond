@@ -20,6 +20,7 @@ NEWLINE: ({atStartOfInput()}? SPACES | ('\r'? '\n' | '\r' | '\f') SPACES?) { onN
 
 // Keyword declarations above NAME to prioritize equal-length matching.
 CLASS    : 'class';
+ENUM     : 'enum';
 EXTENDS  : 'extends';
 FUNC     : 'func';
 VAR      : 'var';

@@ -8,9 +8,12 @@ options {
     package scripting.transpiler.parse;
 }
 
-// File / class
+// File / type
 
-scriptFile: NEWLINE* classDeclaration NEWLINE* EOF;
+scriptFile: NEWLINE* typeDeclaration NEWLINE* EOF;
+
+// One class or type per file
+typeDeclaration: classDeclaration | enumDeclaration;
 
 // Declaration of class support multiple and inline, where extends section can be dropped entirely (implicit Object.)
 classDeclaration: CLASS NAME ( EXTENDS typeReference NEWLINE
@@ -18,6 +21,13 @@ classDeclaration: CLASS NAME ( EXTENDS typeReference NEWLINE
                              ) classMember*;
 
 classMember: fieldDeclaration | methodDeclaration;
+
+// Enum body is an indented block, constants first then an optional traling field declaration
+enumDeclaration: ENUM NAME COLON NEWLINE INDENT enumConstant+ enumField* DEDENT;
+
+enumConstant: NAME (OPEN_PAREN argumentList? CLOSE_PAREN)? NEWLINE;
+
+enumField: (VAR | CONST) NAME COLON typeReference NEWLINE;
 
 // Members
 

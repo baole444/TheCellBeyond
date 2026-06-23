@@ -24,8 +24,12 @@ public final class ParseTreeToAst extends TCBScriptParserBaseVisitor<AstNode> {
     }
 
     public ScriptFile convert(ScriptFileContext context) {
-        ClassDeclaration cls = classDeclaration(context.classDeclaration());
-        return new ScriptFile(position(context), cls);
+        return new ScriptFile(position(context), typeDeclaration(context.typeDeclaration()));
+    }
+
+    private TypeDeclaration typeDeclaration(TypeDeclarationContext context) {
+        if (context.classDeclaration() != null) return classDeclaration(context.classDeclaration());
+        return enumDeclaration(context.enumDeclaration());
     }
 
     @Override
@@ -63,6 +67,16 @@ public final class ParseTreeToAst extends TCBScriptParserBaseVisitor<AstNode> {
     @Override
     public AstNode visitMethodCallExpr(MethodCallExprContext context) {
         return new MethodCallExpression(position(context), expression(context.expression()), context.NAME().getText(), arguments(context.argumentList()));
+    }
+
+    @Override
+    public AstNode visitMemberAccessExpr(MemberAccessExprContext context) {
+        return new MemberAccessExpression(position(context), expression(context.expression()), context.NAME().getText());
+    }
+
+    @Override
+    public AstNode visitCastExpr(CastExprContext context) {
+        return new CastExpression(position(context), expression(context.expression()), typeReference(context.typeReference()));
     }
 
     @Override
@@ -120,6 +134,23 @@ public final class ParseTreeToAst extends TCBScriptParserBaseVisitor<AstNode> {
     @Override
     public AstNode visitConditionalExpr(ConditionalExprContext context) {
         return new ConditionalExpression(position(context), expression(context.expression(0)), expression(context.expression(1)), expression(context.expression(2)));
+    }
+
+    private EnumDeclaration enumDeclaration(EnumDeclarationContext context) {
+        List<EnumConstant> constants = new ArrayList<>();
+        for (EnumConstantContext constant : context.enumConstant()) constants.add(enumConstant(constant));
+        List<FieldDeclaration> fields = new ArrayList<>();
+        for (EnumFieldContext field : context.enumField()) fields.add(enumField(field));
+        return new EnumDeclaration(position(context), context.NAME().getText(), constants, fields);
+    }
+
+    private EnumConstant enumConstant(EnumConstantContext context) {
+        return new EnumConstant(position(context), context.NAME().getText(), arguments(context.argumentList()));
+    }
+
+    private FieldDeclaration enumField(EnumFieldContext context) {
+        boolean isConst = context.CONST() != null;
+        return new FieldDeclaration(position(context), List.of(), Visibility.Public, false, isConst, context.NAME().getText(), typeReference(context.typeReference()), null);
     }
 
     private ClassDeclaration classDeclaration(ClassDeclarationContext context) {

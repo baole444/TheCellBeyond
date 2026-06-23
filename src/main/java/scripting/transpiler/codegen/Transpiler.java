@@ -1,6 +1,8 @@
 package scripting.transpiler.codegen;
 
 import scripting.transpiler.ast.ClassDeclaration;
+import scripting.transpiler.ast.EnumDeclaration;
+import scripting.transpiler.ast.TypeDeclaration;
 import scripting.transpiler.parse.ScriptParser;
 import scripting.transpiler.semantic.ProjectClassEntry;
 import scripting.transpiler.semantic.SemanticAnalyzer;
@@ -53,8 +55,12 @@ public final class Transpiler {
         if (parsed.hasErrors()) return new Result(null, null, parsed.errors.stream().map(Object::toString).toList());
         SemanticAnalyzer.Result analyzed = SemanticAnalyzer.analyze(parsed.scriptFile, projectIndex);
         if (analyzed.hasErrors()) return new Result(null, null, analyzed.errors().stream().map(Object::toString).toList());
-        ClassDeclaration classDeclaration = analyzed.scriptFile().classDeclaration;
-        return new Result(classDeclaration.name, ClassEmitter.emit(classDeclaration, fileName), List.of());
+        TypeDeclaration type = analyzed.scriptFile().typeDeclaration;
+        String javaSource = switch (type) {
+            case ClassDeclaration c -> ClassEmitter.emit(c, fileName);
+            case EnumDeclaration e -> EnumEmitter.emit(e, fileName);
+        };
+        return new Result(type.name, javaSource, List.of());
     }
 
     /**

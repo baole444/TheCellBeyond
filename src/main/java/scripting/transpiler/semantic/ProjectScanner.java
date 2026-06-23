@@ -33,7 +33,7 @@ public final class ProjectScanner {
     private static final String ScriptPackage = "scripts";
     private static final String BuildDir = "build";
     private static final Pattern JavaPackage = Pattern.compile("(?m)^[ \\t]*package[ \\t]+([A-Za-z_][A-Za-z_0-9.]*)[ \\t]*;");
-    private static final Pattern JavaClass = Pattern.compile("(?m)^[ \\t]*(?:@[\\w.]+(?:\\([^)]*\\))?[ \\t]*)*(?:[a-z][\\w-]*[ \\t]+)*class[ \\t]+([A-Za-z_]\\w*)(?:[ \\t]*<[^>]*>)?(?:[ \\t]+extends[ \\t]+([A-Za-z_][\\w.]*))?");
+    private static final Pattern JavaType = Pattern.compile("(?m)^[ \\t]*(?:@[\\w.]+(?:\\([^)]*\\))?[ \\t]*)*(?:[a-z][\\w-]*[ \\t]+)*(class|enum)[ \\t]+([A-Za-z_]\\w*)(?:[ \\t]*<[^>]*>)?(?:[ \\t]+extends[ \\t]+([A-Za-z_][\\w.]*))?");
 
     private ProjectScanner() {}
 
@@ -53,15 +53,16 @@ public final class ProjectScanner {
     private static Optional<ProjectClassEntry> scriptEntry(Path root, Path file, List<SemanticError> errors) {
         String source = read(root, file, errors);
         if (source == null) return Optional.empty();
-        return HeaderScanner.scan(source).map(header -> new ProjectClassEntry(header.className(), relative(root, file), ProjectClassEntry.Kind.Script, header.superName(), ScriptPackage));
+        return HeaderScanner.scan(source).map(header -> new ProjectClassEntry(header.className(), relative(root, file), ProjectClassEntry.Kind.Script, header.superName(), ScriptPackage, header.isEnum()));
     }
 
     private static Optional<ProjectClassEntry> javaEntry(Path root, Path file, List<SemanticError> errors) {
         String source = read(root, file, errors);
         if (source == null) return Optional.empty();
-        Matcher classMatcher = JavaClass.matcher(source);
-        if (!classMatcher.find()) return Optional.empty();
-        return Optional.of(new ProjectClassEntry(classMatcher.group(1), relative(root, file), ProjectClassEntry.Kind.Java, simpleName(classMatcher.group(2)), packageOf(source)));
+        Matcher typeMatcher = JavaType.matcher(source);
+        if (!typeMatcher.find()) return Optional.empty();
+        boolean isEnum = typeMatcher.group(1).equals("enum");
+        return Optional.of(new ProjectClassEntry(typeMatcher.group(2), relative(root, file), ProjectClassEntry.Kind.Java, simpleName(typeMatcher.group(3)), packageOf(source), isEnum));
     }
 
     private static void insert(Map<String, ProjectClassEntry> index, ProjectClassEntry entry, List<SemanticError> errors) {

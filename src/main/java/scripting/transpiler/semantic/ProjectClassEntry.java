@@ -9,9 +9,10 @@ package scripting.transpiler.semantic;
  * @param fileSource the source file path, relative to the scripts root
  * @param kind whether the class is a TCBScript file or a Java file
  * @param superClassRef simple name of the declared superclass, or null when {@code extends} is omitted
- * @param packageHint the package that the class is in, empty if in default pacakge
+ * @param packageHint the package that the class is in, empty if in default package
+ * @param isEnum true when the declared type is an enum, which can be referenced but not extended
  */
-public record ProjectClassEntry(String simpleName, String fileSource, Kind kind, String superClassRef, String packageHint) {
+public record ProjectClassEntry(String simpleName, String fileSource, Kind kind, String superClassRef, String packageHint, boolean isEnum) {
     /**
      * The origin of a script class.
      */

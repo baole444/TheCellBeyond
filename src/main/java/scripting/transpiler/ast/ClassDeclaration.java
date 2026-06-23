@@ -7,8 +7,7 @@ import java.util.List;
 /**
  * A {@code class Name [extends Parent]} declaration with its fields and methods.
  */
-public final class ClassDeclaration extends AstNode {
-    public final String name;
+public final class ClassDeclaration extends TypeDeclaration {
     /**
      * Declared super type, or null when {@code extends} is omitted, implicitly extends {@code Object}.
      */
@@ -21,8 +20,7 @@ public final class ClassDeclaration extends AstNode {
     public ClassRegistration registration;
 
     public ClassDeclaration(SourcePosition position, String name, TypeReference superType, List<FieldDeclaration> fields, List<MethodDeclaration> methods) {
-        super(position);
-        this.name = name;
+        super(position, name);
         this.superType = superType;
         this.fields = fields;
         this.methods = methods;

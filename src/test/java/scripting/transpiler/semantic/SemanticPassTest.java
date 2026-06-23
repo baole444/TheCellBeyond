@@ -157,7 +157,7 @@ public class SemanticPassTest {
                     cam.currently_active().whatever()
                 """, Map.of());
         assertFalse(result.hasErrors(), () -> result.errors().toString());
-        MethodCallExpression outer = firstCall(result.scriptFile().classDeclaration.methods.getFirst());
+        MethodCallExpression outer = firstCall(classOf(result).methods.getFirst());
         assertNull(outer.resolution, "member on a primitive-returning call passes through unresolved");
     }
 
@@ -170,7 +170,7 @@ public class SemanticPassTest {
                     helper.do_thing()
                 """, index(script("Helper", "Object")));
         assertFalse(result.hasErrors(), () -> result.errors().toString());
-        MethodCallExpression call = firstCall(result.scriptFile().classDeclaration.methods.getFirst());
+        MethodCallExpression call = firstCall(classOf(result).methods.getFirst());
         assertNull(call.resolution);
     }
 
@@ -408,6 +408,53 @@ public class SemanticPassTest {
     }
 
     @Test
+    public void valuedEnumResolvesWithoutErrors() {
+        assertFalse(run("""
+                enum Element:
+                    Fire(10, "fire")
+                    Water(5, "water")
+
+                    var damage : int
+                    var label : String
+                """, Map.of()).hasErrors());
+    }
+
+    @Test
+    public void enumConstantArgCountMismatchFails() {
+        SemanticAnalyzer.Result result = run("""
+                enum Element:
+                    Fire(10)
+
+                    var damage : int
+                    var label : String
+                """, Map.of());
+        assertTrue(result.hasErrors());
+        assertTrue(result.errors().getFirst().message().contains("argument"), () -> result.errors().toString());
+    }
+
+    @Test
+    public void enumConstantArgTypeMismatchFails() {
+        SemanticAnalyzer.Result result = run("""
+                enum Element:
+                    Fire("hot")
+
+                    var damage : int
+                """, Map.of());
+        assertTrue(result.hasErrors());
+        assertTrue(result.errors().getFirst().message().contains("damage"), () -> result.errors().toString());
+    }
+
+    @Test
+    public void classExtendingEnumFails() {
+        SemanticAnalyzer.Result result = run("""
+                class Spell extends Element
+                var power : int = 1
+                """, index(enumEntry("Element")));
+        assertTrue(result.hasErrors());
+        assertTrue(result.errors().getFirst().message().contains("enum"), () -> result.errors().toString());
+    }
+
+    @Test
     public void reservedKeywordAsFieldFails() {
         SemanticAnalyzer.Result result = run("""
                 class C
@@ -474,6 +521,49 @@ public class SemanticPassTest {
         ProjectClassEntry helper = result.index().get("Helper");
         assertEquals(ProjectClassEntry.Kind.Java, helper.kind());
         assertEquals("util.Helper", helper.fqn());
+    }
+
+    @Test
+    public void scannerIndexesEnums(@TempDir Path root) throws IOException {
+        writeFile(root, "src/script/State.tcbs", "enum State:\n    Idle\n    Running\n");
+        writeFile(root, "src/script/Player.tcbs", "class Player extends Object\n");
+        ProjectScanner.Result result = ProjectScanner.scan(root);
+        assertFalse(result.hasErrors(), () -> result.errors().toString());
+        ProjectClassEntry state = result.index().get("State");
+        assertTrue(state.isEnum());
+        assertEquals(ProjectClassEntry.Kind.Script, state.kind());
+        assertEquals("scripts.State", state.fqn());
+        assertFalse(result.index().get("Player").isEnum());
+    }
+
+    @Test
+    public void scannerIndexesJavaEnum(@TempDir Path root) throws IOException {
+        writeFile(root, "src/main/java/data/Suit.java", "package data;\npublic enum Suit implements java.io.Serializable {\n    Hearts, Spades\n}\n");
+        ProjectScanner.Result result = ProjectScanner.scan(root);
+        assertFalse(result.hasErrors(), () -> result.errors().toString());
+        ProjectClassEntry suit = result.index().get("Suit");
+        assertTrue(suit.isEnum());
+        assertEquals(ProjectClassEntry.Kind.Java, suit.kind());
+        assertEquals("data.Suit", suit.fqn());
+        assertNull(suit.superClassRef(), "a Java enum has no extends target");
+    }
+
+    @Test
+    public void scannerIgnoresGeneratedJavaEnum(@TempDir Path root) throws IOException {
+        writeFile(root, "src/script/Mood.tcbs", "enum Mood:\n    Happy\n    Sad\n");
+        writeFile(root, "build/generated/script-java/scripts/Mood.java", "package scripts;\npublic enum Mood { Happy, Sad }\n");
+        ProjectScanner.Result result = ProjectScanner.scan(root);
+        assertFalse(result.hasErrors(), () -> result.errors().toString());
+        assertEquals(ProjectClassEntry.Kind.Script, result.index().get("Mood").kind(), "the .tcbs enum is the only Mood indexed; the generated Java enum under build/ is excluded");
+    }
+
+    @Test
+    public void scannerDetectsDuplicateAcrossClassAndEnum(@TempDir Path root) throws IOException {
+        writeFile(root, "src/script/Shape.tcbs", "class Shape extends Object\n");
+        writeFile(root, "src/script/ShapeEnum.tcbs", "enum Shape:\n    Round\n    Square\n");
+        ProjectScanner.Result result = ProjectScanner.scan(root);
+        assertTrue(result.hasErrors());
+        assertTrue(result.errors().getFirst().message().contains("Duplicate"), () -> result.errors().toString());
     }
 
     @Test
@@ -561,7 +651,11 @@ public class SemanticPassTest {
     private static ClassDeclaration ok(String source, Map<String, ProjectClassEntry> projectIndex) {
         SemanticAnalyzer.Result result = run(source, projectIndex);
         assertFalse(result.hasErrors(), () -> "unexpected semantic errors: " + result.errors());
-        return result.scriptFile().classDeclaration;
+        return (ClassDeclaration) result.scriptFile().typeDeclaration;
+    }
+
+    private static ClassDeclaration classOf(SemanticAnalyzer.Result result) {
+        return (ClassDeclaration) result.scriptFile().typeDeclaration;
     }
 
     private static MethodCallExpression firstCall(MethodDeclaration method) {
@@ -576,7 +670,11 @@ public class SemanticPassTest {
     }
 
     private static ProjectClassEntry script(String name, String superName) {
-        return new ProjectClassEntry(name, "src/script/" + name + ".tcbs", ProjectClassEntry.Kind.Script, superName, "scripts");
+        return new ProjectClassEntry(name, "src/script/" + name + ".tcbs", ProjectClassEntry.Kind.Script, superName, "scripts", false);
+    }
+
+    private static ProjectClassEntry enumEntry(String name) {
+        return new ProjectClassEntry(name, "src/script/" + name + ".tcbs", ProjectClassEntry.Kind.Script, null, "scripts", true);
     }
 
     private static void writeFile(Path root, String relative, String content) throws IOException {
