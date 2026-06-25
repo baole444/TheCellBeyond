@@ -12,7 +12,10 @@ public final class FieldDeclaration extends AstNode {
     public final boolean isStatic;
     public final boolean isConst;
     public final String name;
-    public final TypeReference type;
+    /**
+     * Declared type, or null when the type clause is omitted. The semantic pass infers type from the initializer.
+     */
+    public TypeReference type;
     /**
      * Initializer expression, or null when a {@code var} omits {@code = expr}.
      */

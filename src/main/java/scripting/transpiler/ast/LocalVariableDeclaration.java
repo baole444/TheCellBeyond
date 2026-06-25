@@ -6,7 +6,11 @@ package scripting.transpiler.ast;
 public final class LocalVariableDeclaration extends Statement {
     public final boolean isConst;
     public final String name;
-    public final TypeReference type;
+    /**
+     * Declared type, or null when the type clause is omitted. The semantic pass infers the type from initializer,
+     * otherwise it stay null and code generation fallback to {@code var}.
+     */
+    public TypeReference type;
     /**
      * Initializer expression, or null when a {@code var} omits {@code = expr}.
      */

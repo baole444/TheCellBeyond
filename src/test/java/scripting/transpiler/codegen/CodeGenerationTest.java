@@ -216,6 +216,119 @@ public class CodeGenerationTest {    private static final String WorkedExample =
     }
 
     @Test
+    public void inferredFieldEmitsConcreteTypeAndCompiles() {
+        String generated = ok("""
+                class Inferred extends Object
+                var speed = 200
+                var ratio = 2.5
+                var label = "hi"
+                var ready = true
+                const Max = 10
+                """, "Inferred.tcbs", Map.of());
+        assertTrue(generated.contains("public int speed = 200;"), generated);
+        assertTrue(generated.contains("public float ratio = 2.5f;"), "an inferred float field keeps the f-suffix");
+        assertTrue(generated.contains("public String label = \"hi\";"), generated);
+        assertTrue(generated.contains("public boolean ready = true;"), generated);
+        assertTrue(generated.contains("public final int Max = 10;"), generated);
+        assertCompiles("Inferred", generated);
+    }
+
+    @Test
+    public void exportOnInferredFieldEmitsAndCompiles() {
+        String generated = ok("""
+                class Tuned extends Object
+                @export var speed = 200
+                """, "Tuned.tcbs", Map.of());
+        assertTrue(generated.contains("@Export"), generated);
+        assertTrue(generated.contains("public int speed = 200;"), "the @export field's type is inferred to int");
+        assertCompiles("Tuned", generated);
+    }
+
+    @Test
+    public void inferredLocalEmitsConcreteTypeWhenObtainableAndCompiles() {
+        String generated = ok("""
+                class Locals extends Object
+                func run() -> void:
+                    var count = 5
+                    var ratio = 1.5
+                    var ready = true
+                """, "Locals.tcbs", Map.of());
+        assertTrue(generated.contains("int count = 5;"), generated);
+        assertTrue(generated.contains("float ratio = 1.5f;"), "an inferred float local keeps the f-suffix");
+        assertTrue(generated.contains("boolean ready = true;"), generated);
+        assertCompiles("Locals", generated);
+    }
+
+    @Test
+    public void inferredLocalFromApiCallEmitsConcreteTypeAndTranslatesCall() {
+        String generated = ok("""
+                class Probe extends Object
+                var cam : Camera2D
+                func run() -> void:
+                    var copy = cam.copy()
+                    copy.currently_active()
+                """, "Probe.tcbs", Map.of());
+        assertTrue(generated.contains("Camera2D copy = cam.copy();"), generated);
+        assertTrue(generated.contains("copy.currentlyActive();"), "the inferred receiver type translates the snake-case call");
+        assertCompiles("Probe", generated);
+    }
+
+    @Test
+    public void inferredFieldFromArithmeticEmitsAndCompiles() {
+        String generated = ok("""
+                class Arith extends Object
+                var a = 3
+                var b = 5
+                var sum = a + b
+                var ratio = a * 1.5
+                var less = a < b
+                """, "Arith.tcbs", Map.of());
+        assertTrue(generated.contains("public int sum = (a + b);"), generated);
+        assertTrue(generated.contains("public float ratio = (a * 1.5f);"), "the inferred float result suffixes the literal");
+        assertTrue(generated.contains("public boolean less = (a < b);"), generated);
+        assertCompiles("Arith", generated);
+    }
+
+    @Test
+    public void inferredFieldFromStringConcatEmitsAndCompiles() {
+        String generated = ok("""
+                class Concat extends Object
+                var name = "hero"
+                var greeting = "hi " + name
+                """, "Concat.tcbs", Map.of());
+        assertTrue(generated.contains("public String greeting = (\"hi \" + name);"), generated);
+        assertCompiles("Concat", generated);
+    }
+
+    @Test
+    public void inferredFieldFromUnaryEmitsAndCompiles() {
+        String generated = ok("""
+                class Unary extends Object
+                var ready = true
+                var blocked = not ready
+                var a = 5
+                var neg = -a
+                """, "Unary.tcbs", Map.of());
+        assertTrue(generated.contains("public boolean blocked = (!ready);"), generated);
+        assertTrue(generated.contains("public int neg = (-a);"), generated);
+        assertCompiles("Unary", generated);
+    }
+
+    @Test
+    public void inferredLocalFallsBackToVarWhenConcreteTypeUnobtainable() {
+        String generated = ok("""
+                class Fallback extends Object
+                func compute() -> int:
+                    return 5
+                func run() -> void:
+                    var result = compute()
+                    result += 1
+                """, "Fallback.tcbs", Map.of());
+        assertTrue(generated.contains("var result = compute();"), "a user-method call has no tracked return type, so the local falls back to var");
+        assertCompiles("Fallback", generated);
+    }
+
+    @Test
     public void floatLiteralGainsSuffixForFloatTarget() {
         String generated = ok("""
                 class Phys extends Object

@@ -92,6 +92,23 @@ public class TCBScriptParserTest {
     }
 
     @Test
+    public void parsesOmittedTypeClauseAsNullType() {
+        ClassDeclaration cls = parseClass("""
+                class Inferred extends Object
+                var speed = 200
+                func run() -> void:
+                    var count = 5
+                """);
+        FieldDeclaration speed = cls.fields.getFirst();
+        assertNull(speed.type, "an omitted field type clause leaves a null type for the semantic pass to infer");
+        assertInstanceOf(LiteralExpression.class, speed.initializer);
+        LocalVariableDeclaration count = assertInstanceOf(LocalVariableDeclaration.class, cls.methods.getFirst().body.statements.getFirst());
+        assertNull(count.type, "an omitted local type clause leaves a null type");
+        String tree = AstPrinter.print(parse("class Inferred extends Object\nvar speed = 200\n"));
+        assertFalse(tree.contains("@null"), () -> "a node had a null position:\n" + tree);
+    }
+
+    @Test
     public void parsesMemberAccessAndCast() {
         Block body = parseClass("""
                 class Probe extends Object

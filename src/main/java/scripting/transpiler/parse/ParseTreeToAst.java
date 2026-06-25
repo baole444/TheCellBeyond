@@ -168,10 +168,10 @@ public final class ParseTreeToAst extends TCBScriptParserBaseVisitor<AstNode> {
     private FieldDeclaration fieldDeclaration(FieldDeclarationContext context) {
         if (context instanceof VarFieldContext var) {
             Expression init = var.expression() != null ? expression(var.expression()) : null;
-            return new FieldDeclaration(position(var), annotations(var.annotation()), visibility(var.visibility()), var.STATIC() != null, false, var.NAME().getText(), typeReference(var.typeReference()), init);
+            return new FieldDeclaration(position(var), annotations(var.annotation()), visibility(var.visibility()), var.STATIC() != null, false, var.NAME().getText(), optionalType(var.typeReference()), init);
         }
         ConstFieldContext constField = (ConstFieldContext) context;
-        return new FieldDeclaration(position(constField), annotations(constField.annotation()), visibility(constField.visibility()), constField.STATIC() != null, true, constField.NAME().getText(), typeReference(constField.typeReference()), expression(constField.expression()));
+        return new FieldDeclaration(position(constField), annotations(constField.annotation()), visibility(constField.visibility()), constField.STATIC() != null, true, constField.NAME().getText(), optionalType(constField.typeReference()), expression(constField.expression()));
     }
 
     private MethodDeclaration methodDeclaration(MethodDeclarationContext context) {
@@ -201,6 +201,10 @@ public final class ParseTreeToAst extends TCBScriptParserBaseVisitor<AstNode> {
 
     private TypeReference typeReference(TypeReferenceContext context) {
         return new TypeReference(position(context), context.NAME().getText(), context.OPEN_BRACK().size());
+    }
+
+    private TypeReference optionalType(TypeReferenceContext context) {
+        return context != null ? typeReference(context) : null;
     }
 
     private Block suite(SuiteContext context) {
@@ -233,10 +237,10 @@ public final class ParseTreeToAst extends TCBScriptParserBaseVisitor<AstNode> {
     private Statement localVariableDeclaration(LocalVariableDeclarationContext context) {
         if (context instanceof LocalVarContext var) {
             Expression init = var.expression() != null ? expression(var.expression()) : null;
-            return new LocalVariableDeclaration(position(var), false, var.NAME().getText(), typeReference(var.typeReference()), init);
+            return new LocalVariableDeclaration(position(var), false, var.NAME().getText(), optionalType(var.typeReference()), init);
         }
         LocalConstContext constField = (LocalConstContext) context;
-        return new LocalVariableDeclaration(position(constField), true, constField.NAME().getText(), typeReference(constField.typeReference()), expression(constField.expression()));
+        return new LocalVariableDeclaration(position(constField), true, constField.NAME().getText(), optionalType(constField.typeReference()), expression(constField.expression()));
     }
 
     private ReturnStatement returnStatement(ReturnStatementContext context) {

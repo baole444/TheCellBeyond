@@ -1,5 +1,6 @@
 package scripting.transpiler.ast;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public final class AstPrinter {
@@ -28,14 +29,14 @@ public final class AstPrinter {
             case ClassDeclaration n -> "ClassDeclaration " + n.name + (n.superType == null ? ""  : " extends " + typeName(n.superType));
             case EnumDeclaration n -> "EnumDeclaration " + n.name;
             case EnumConstant n -> "EnumConstant " + n.name;
-            case FieldDeclaration n -> "FieldDeclaration " + (n.isConst ? "const " : "var ") + n.visibility + (n.isStatic ? " static" : "") + " " + n.name + " : " + typeName(n.type);
+            case FieldDeclaration n -> "FieldDeclaration " + (n.isConst ? "const " : "var ") + n.visibility + (n.isStatic ? " static" : "") + " " + n.name + " : " + typeClause(n.type);
             case MethodDeclaration n -> "MethodDeclaration " + n.visibility + (n.isStatic ? " static" : "") + " " + n.name + "() -> " + (n.returnType == null ? "void" : typeName(n.returnType));
             case ParameterDeclaration n -> "ParameterDeclaration " + n.name + " : " + typeName(n.type);
             case TypeReference n -> "TypeReference " + typeName(n);
             case Annotation n -> "Annotation @" + n.name;
             case AnnotationArgument n -> "AnnotationArgument " + n.name;
             case Block _ -> "Block";
-            case LocalVariableDeclaration n -> "LocalVariableDeclaration " + (n.isConst ? "const " : "var ") + n.name + " : " + typeName(n.type);
+            case LocalVariableDeclaration n -> "LocalVariableDeclaration " + (n.isConst ? "const " : "var ") + n.name + " : " + typeClause(n.type);
             case ReturnStatement _ -> "ReturnStatement";
             case BreakStatement _ -> "BreakStatement";
             case ContinueStatement _ -> "ContinueStatement";
@@ -66,13 +67,13 @@ public final class AstPrinter {
             case ClassDeclaration n -> concat(nullable(n.superType), n.fields, n.methods);
             case EnumDeclaration n -> concat(n.constants, n.fields);
             case EnumConstant n -> List.copyOf(n.arguments);
-            case FieldDeclaration n -> concat(n.annotations, List.of(n.type), nullable(n.initializer));
+            case FieldDeclaration n -> concat(n.annotations, optionalType(n.type), nullable(n.initializer));
             case MethodDeclaration n -> concat(n.parameters, optionalType(n.returnType), List.of(n.body));
             case ParameterDeclaration n -> concat(List.of(n.type), nullable(n.defaultValue));
             case Annotation n -> List.copyOf(n.arguments);
             case AnnotationArgument n -> List.of(n.value);
             case Block n -> List.copyOf(n.statements);
-            case LocalVariableDeclaration n -> concat(List.of(n.type), nullable(n.initializer));
+            case LocalVariableDeclaration n -> concat(optionalType(n.type), nullable(n.initializer));
             case ReturnStatement n -> nullable(n.value);
             case ExpressionStatement n -> List.of(n.expression);
             case AssignmentStatement n -> List.of(n.target, n.value);
@@ -96,6 +97,10 @@ public final class AstPrinter {
         return type.name + "[]".repeat(type.arrayDepth);
     }
 
+    private static String typeClause(TypeReference type) {
+        return " : " + (type == null ? "<inferred>" : typeName(type));
+    }
+
     private static List<AstNode> nullable(AstNode node) {
         return node == null ? List.of() : List.of(node);
     }
@@ -106,7 +111,7 @@ public final class AstPrinter {
 
     @SafeVarargs
     private static List<AstNode> concat(List<? extends AstNode>... groups) {
-        List<AstNode> all = new java.util.ArrayList<>();
+        List<AstNode> all = new ArrayList<>();
         for (List<? extends AstNode> group : groups) all.addAll(group);
         return all;
     }

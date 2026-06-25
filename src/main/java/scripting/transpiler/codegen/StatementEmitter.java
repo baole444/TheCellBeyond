@@ -47,8 +47,10 @@ final class StatementEmitter {
 
     private void local(LocalVariableDeclaration local) {
         String prefix = local.isConst ? "final " : "";
-        String initializer = local.initializer == null ? "" : " = " + expressions.emit(local.initializer, local.type.name);
-        context.writer.line(prefix + context.typeName(local.type) + " " + local.name + initializer + ";");
+        String typeName = local.type != null ? context.typeName(local.type) : "var";
+        String expectedType = local.type != null ? local.type.name : null;
+        String initializer = local.initializer == null ? "" : " = " + expressions.emit(local.initializer, expectedType);
+        context.writer.line(prefix + typeName + " " + local.name + initializer + ";");
         scope.put(local.name, local.type);
     }
 

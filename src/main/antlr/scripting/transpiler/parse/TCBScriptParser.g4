@@ -31,10 +31,11 @@ enumField: (VAR | CONST) NAME COLON typeReference NEWLINE;
 
 // Members
 
-// Anotation may sit linline with the field or drop to their own  preceding lines
+// Anotation may sit linline with the field or drop to their own  preceding lines.
+// The type clause is optional, inferred from the initializer in the semantic pass when omitted.
 fieldDeclaration
-    : (annotation NEWLINE*)* visibility? STATIC? VAR NAME COLON typeReference (ASSIGN expression)? NEWLINE #varField
-    | (annotation NEWLINE*)* visibility? STATIC? CONST NAME COLON typeReference ASSIGN expression NEWLINE #constField
+    : (annotation NEWLINE*)* visibility? STATIC? VAR NAME (COLON typeReference)? (ASSIGN expression)? NEWLINE #varField
+    | (annotation NEWLINE*)* visibility? STATIC? CONST NAME (COLON typeReference)? ASSIGN expression NEWLINE #constField
     ;
 
 methodDeclaration: visibility? STATIC? FUNC NAME OPEN_PAREN parameterList? CLOSE_PAREN (ARROW typeReference)? COLON suite;
@@ -71,8 +72,8 @@ simpleStatement
 compoundStatement: ifStatement | whileStatement | forStatement;
 
 localVariableDeclaration
-    : VAR NAME COLON typeReference (ASSIGN expression)? #localVar
-    | CONST NAME COLON typeReference ASSIGN expression #localConst
+    : VAR NAME (COLON typeReference)? (ASSIGN expression)? #localVar
+    | CONST NAME (COLON typeReference)? ASSIGN expression #localConst
     ;
 
 returnStatement: RETURN expression?;

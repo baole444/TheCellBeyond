@@ -175,13 +175,138 @@ public class SemanticPassTest {
     }
 
     @Test
-    public void typelessLocalVarIsRejectedByParser() {
-        ScriptParser.Result parsed = ScriptParser.parse("""
+    public void inferredLocalFromLiteralBackfillsBuiltinType() {
+        ClassDeclaration cls = ok("""
                 class C
                 func run() -> void:
-                    var x = 5
-                """, "test.tcbs");
-        assertTrue(parsed.hasErrors(), "a var without a type annotation must not parse");
+                    var count = 5
+                    var ratio = 1.5
+                    var name = "hi"
+                    var ready = true
+                """, Map.of());
+        List<Statement> body = cls.methods.getFirst().body.statements;
+        assertEquals("int", localType(body.get(0)));
+        assertEquals("float", localType(body.get(1)));
+        assertEquals("String", localType(body.get(2)));
+        assertEquals("bool", localType(body.get(3)));
+    }
+
+    @Test
+    public void inferredFieldFromLiteralBackfillsType() {
+        ClassDeclaration cls = ok("""
+                class C
+                var speed = 200
+                const Max = 10
+                """, Map.of());
+        assertEquals("int", cls.fields.get(0).type.name);
+        assertEquals("int", cls.fields.get(1).type.name);
+    }
+
+    @Test
+    public void inferredLocalFromApiCallFeedsMemberResolution() {
+        ClassDeclaration cls = ok("""
+                class Probe extends Object
+                var cam : Camera2D
+                func run() -> void:
+                    var copy = cam.copy()
+                    copy.currently_active()
+                """, Map.of());
+        List<Statement> body = cls.methods.getFirst().body.statements;
+        assertEquals("Camera2D", localType(body.getFirst()), "the local takes the API call's return type");
+        MethodCallExpression call = assertInstanceOf(MethodCallExpression.class, ((ExpressionStatement) body.get(1)).expression);
+        Resolution.APIMemberResolution member = assertInstanceOf(Resolution.APIMemberResolution.class, call.resolution, "inference feeds snake-case member resolution");
+        assertEquals("currentlyActive", member.javaName());
+    }
+
+    @Test
+    public void typelessLocalWithoutInitializerFails() {
+        SemanticAnalyzer.Result result = run("""
+                class C
+                func run() -> void:
+                    var x
+                """, Map.of());
+        assertTrue(result.hasErrors());
+        assertTrue(result.errors().getFirst().message().contains("infer"), () -> result.errors().toString());
+    }
+
+    @Test
+    public void localInferredFromNullFails() {
+        SemanticAnalyzer.Result result = run("""
+                class C
+                func run() -> void:
+                    var x = null
+                """, Map.of());
+        assertTrue(result.hasErrors());
+        assertTrue(result.errors().getFirst().message().contains("null"), () -> result.errors().toString());
+    }
+
+    @Test
+    public void typelessFieldWithoutInitializerFails() {
+        SemanticAnalyzer.Result result = run("""
+                class C
+                var x
+                """, Map.of());
+        assertTrue(result.hasErrors());
+        assertTrue(result.errors().getFirst().message().contains("infer"), () -> result.errors().toString());
+    }
+
+    @Test
+    public void fieldInferredFromNullFails() {
+        SemanticAnalyzer.Result result = run("""
+                class C
+                var x = null
+                """, Map.of());
+        assertTrue(result.hasErrors());
+        assertTrue(result.errors().getFirst().message().contains("infer"), () -> result.errors().toString());
+    }
+
+    @Test
+    public void inferredFieldFromArithmeticExpression() {
+        ClassDeclaration cls = ok("""
+                class C
+                var a = 3
+                var b = 5
+                var sum = a + b
+                var ratio = a * 1.5
+                var less = a < b
+                """, Map.of());
+        assertEquals("int", cls.fields.get(2).type.name, "int + int infers int");
+        assertEquals("float", cls.fields.get(3).type.name, "a float operand widens the result to float");
+        assertEquals("bool", cls.fields.get(4).type.name, "a comparison infers bool");
+    }
+
+    @Test
+    public void inferredFieldFromStringConcatenation() {
+        ClassDeclaration cls = ok("""
+                class C
+                var name = "hero"
+                var greeting = "hi " + name
+                """, Map.of());
+        assertEquals("String", cls.fields.get(1).type.name);
+    }
+
+    @Test
+    public void inferredFieldFromUnaryExpression() {
+        ClassDeclaration cls = ok("""
+                class C
+                var ready = true
+                var blocked = not ready
+                var a = 5
+                var neg = -a
+                """, Map.of());
+        assertEquals("bool", cls.fields.get(1).type.name, "not yields bool");
+        assertEquals("int", cls.fields.get(3).type.name, "negation keeps the numeric operand type");
+    }
+
+    @Test
+    public void inferredFieldFromBoolArithmeticFails() {
+        SemanticAnalyzer.Result result = run("""
+                class C
+                var ready = true
+                var bad = ready + 1
+                """, Map.of());
+        assertTrue(result.hasErrors());
+        assertTrue(result.errors().getFirst().message().contains("infer"), () -> result.errors().toString());
     }
 
     @Test
@@ -661,6 +786,12 @@ public class SemanticPassTest {
     private static MethodCallExpression firstCall(MethodDeclaration method) {
         ExpressionStatement statement = assertInstanceOf(ExpressionStatement.class, method.body.statements.getFirst());
         return assertInstanceOf(MethodCallExpression.class, statement.expression);
+    }
+
+    private static String localType(Statement statement) {
+        LocalVariableDeclaration local = assertInstanceOf(LocalVariableDeclaration.class, statement);
+        assertNotNull(local.type, () -> "expected an inferred type for local '" + local.name + "'");
+        return local.type.name;
     }
 
     private static Map<String, ProjectClassEntry> index(ProjectClassEntry... entries) {

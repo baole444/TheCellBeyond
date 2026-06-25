@@ -62,8 +62,9 @@ public final class SymbolResolver {
         resolveExtends(classDeclaration);
         classDeclaration.methods.forEach(this::resolveMethodSignature);
         for (FieldDeclaration field : classDeclaration.fields) {
-            resolveType(field.type);
             if (field.initializer != null) resolveExpression(field.initializer, new HashMap<>());
+            if (field.type != null) resolveType(field.type);
+            else inferFieldType(field);
         }
         classDeclaration.methods.forEach(this::resolveMethodBody);
         return errors;
@@ -209,8 +210,9 @@ public final class SymbolResolver {
     private void resolveStatement(Statement statement, Map<String, TypeReference> scope) {
         switch (statement) {
             case LocalVariableDeclaration local -> {
-                resolveType(local.type);
                 if (local.initializer != null) resolveExpression(local.initializer, scope);
+                if (local.type != null) resolveType(local.type);
+                else inferLocalType(local, scope);
                 scope.put(local.name, local.type);
             }
             case ExpressionStatement expression -> resolveExpression(expression.expression, scope);
@@ -393,10 +395,118 @@ public final class SymbolResolver {
     }
 
     private Optional<String> identifierType(IdentifierExpression identifier, Map<String, TypeReference> scope) {
-        TypeReference declared = scope.containsKey(identifier.name) ? scope.get(identifier.name) : fieldTypes.get(identifier.name);
-        if (declared != null) return apiFQN(declared);
+        Optional<TypeReference> declared = declaredType(identifier, scope);
+        if (declared.isPresent()) return apiFQN(declared.get());
         if (identifier.resolution instanceof Resolution.APIClassResolution(String fqn)) return Optional.of(fqn);
         return Optional.empty();
+    }
+
+    private Optional<TypeReference> declaredType(IdentifierExpression identifier, Map<String, TypeReference> scope) {
+        return Optional.ofNullable(scope.containsKey(identifier.name) ? scope.get(identifier.name) : fieldTypes.get(identifier.name));
+    }
+
+    /**
+     * Infer an omitted field type from its initializer. A field must resolve to a concrete type.
+     * When the type is not inferrable, it will result in an error.
+     * @param field the field with omitted type clause
+     */
+    private void inferFieldType(FieldDeclaration field) {
+        if (field.initializer == null) {
+            error(field, "Cannot infer type of '" + field.name + "'; add an explicit type annotation or an initializer");
+            return;
+        }
+        Optional<TypeReference> inferred = inferType(field.initializer, Map.of());
+        if (inferred.isEmpty()) {
+            error(field, "Cannot infer type of '" + field.name + "' from its initializer; add an explicit type annotation");
+            return;
+        }
+        field.type = inferred.get();
+        fieldTypes.put(field.name, field.type);
+    }
+
+    /**
+     * Infer an omitted local type from its initializer.
+     * <p>
+     * A concrete type is used when obtainable, otherwise the type is left null and code generation falls back to Java {@code var}.
+     * A missing initializer, or a bare {@code null} will result in an error.
+     * @param local the local with omitted type clause
+     * @param scope the locals and parameters in scope
+     */
+    private void inferLocalType(LocalVariableDeclaration local, Map<String, TypeReference> scope) {
+        if (local.initializer == null) {
+            error(local, "Cannot infer type of '" + local.name + "'. Please add an explicit type annotation or an initializer");
+            return;
+        }
+        if (isNullLiteral(local.initializer)) {
+            error(local, "Cannot infer type of '" + local.name + "' from 'null'. Please add an explicit type annotation");
+            return;
+        }
+        inferType(local.initializer, scope).ifPresent(type -> local.type = type);
+    }
+
+    /**
+     * Infer a concrete type from a resolved initializer:
+     * <ul>
+     *     <li>Literals -> built in type mapping.</li>
+     *     <li>Identifiers -> declared type.</li>
+     *     <li>Cast -> its target.</li>
+     *     <li>API calls or member access -> resolved return type.</li>
+     * </ul>
+     * @param initializer the resolved initializer expression
+     * @param scope the locals and parameters in scope
+     * @return the inferred type, or empty when not obtainable
+     */
+    private Optional<TypeReference> inferType(Expression initializer, Map<String, TypeReference> scope) {
+        return switch (initializer) {
+            case LiteralExpression literal -> literalType(literal);
+            case IdentifierExpression identifier -> declaredType(identifier, scope).map(type -> copyType(initializer.position, type));
+            case CastExpression cast -> Optional.of(copyType(initializer.position, cast.type));
+            case MethodCallExpression call -> typeOf(call, scope).map(fqn -> apiType(initializer.position, fqn));
+            case MemberAccessExpression access -> typeOf(access, scope).map(fqn -> apiType(initializer.position, fqn));
+            case BinaryExpression binary -> binaryType(binary, scope);
+            case UnaryExpression unary -> unaryType(unary, scope);
+            default -> Optional.empty();
+        };
+    }
+
+    /**
+     * Infer the type of binary expression:
+     * <ul>
+     *     <li>Comparison and logical operators -> {@code bool}.</li>
+     *     <li>Arithmetic {@code +} with a {@code String} operand -> concatenation.</li>
+     *     <li>Numeric arithmetic -> {@code float} when either side is {@code float}, else {@code int}.</li>
+     * </ul>>
+     * @param binary the binary initializer
+     * @param scope the locals and parameters in scope
+     * @return the result type, or empty when not inferable
+     */
+    private Optional<TypeReference> binaryType(BinaryExpression binary, Map<String, TypeReference> scope) {
+        if (isBoolean(binary.operator)) return Optional.of(builtin(binary.position, "bool"));
+        Optional<String> left = builtinName(binary.left, scope);
+        Optional<String> right = builtinName(binary.right, scope);
+        if (left.isEmpty() || right.isEmpty()) return Optional.empty();
+        return arithmeticResult(binary.operator, left.get(), right.get()).map(name -> builtin(binary.position, name));
+    }
+
+    /**
+     * Infer the type of unary expression: {@code not} yields {@code bool}, and negation keeps a numeric operand's type.
+     * @param unary the unary initializer
+     * @param scope the locals and parameters in scope
+     * @return the result type, or empty when not inferable
+     */
+    private Optional<TypeReference> unaryType(UnaryExpression unary, Map<String, TypeReference> scope) {
+        if (unary.operator == UnaryExpression.Operator.Not) return Optional.of(builtin(unary.position, "bool"));
+        return builtinName(unary.operand, scope).filter(SymbolResolver::isNumeric).map(name -> builtin(unary.position, name));
+    }
+
+    /**
+     * Infer an operand's type and keep only its name when it is a built-in type, the only kind the arithmetic rules combine.
+     * @param expression the operand
+     * @param scope the locals and parameters in scope
+     * @return the built-in type name, or empty
+     */
+    private Optional<String> builtinName(Expression expression, Map<String, TypeReference> scope) {
+        return inferType(expression, scope).map(type -> type.name).filter(BuiltInType::contains);
     }
 
     private Optional<String> memberType(Resolution resolution, String name) {
@@ -451,6 +561,67 @@ public final class SymbolResolver {
     private void error(AstNode node, String message) {
         SourcePosition position = node.position;
         errors.add(new SemanticError(position.file(), position.line(), position.column(), message));
+    }
+
+    /**
+     * Map a literal to its built in script type, or empty for a bare {@code null} since it cannot be inferred.
+     * @param literal the literal initializer
+     * @return the literal's built in type, or empty if {@code null}
+     */
+    private static Optional<TypeReference> literalType(LiteralExpression literal) {
+        String name = switch (literal.kind) {
+            case Integer -> "int";
+            case Float -> "float";
+            case String -> "String";
+            case Boolean -> "bool";
+            case Null -> null;
+        };
+        return Optional.ofNullable(name).map(typeName -> builtin(literal.position, typeName));
+    }
+
+    private static TypeReference builtin(SourcePosition position, String name) {
+        return new TypeReference(position, name, 0);
+    }
+
+    private static boolean isBoolean(BinaryExpression.Operator operator) {
+        return switch (operator) {
+            case Less, Greater, LessEqual, GreaterEqual, Equal, NotEqual, And, Or -> true;
+            default -> false;
+        };
+    }
+
+    /**
+     * Combine two built in operand types under an arithmetic operator. A {@code +} with a {@code String} side is concatenation,
+     * otherwise both sides must be numeric end the result widens to {@code float} when either is {@code float}
+     * @param operator the arithmetic operator
+     * @param left the left operand's built in type name
+     * @param right the right operand's built in type name
+     * @return the result type name, or empty when the operands do not combine
+     */
+    private static Optional<String> arithmeticResult(BinaryExpression.Operator operator, String left, String right) {
+        if (operator == BinaryExpression.Operator.Add && (left.equals("String") || right.equals("String"))) return Optional.of("String");
+        if (!isNumeric(left) || !isNumeric(right)) return Optional.empty();
+        return Optional.of(left.equals("float") || right.equals("float") ? "float" : "int");
+    }
+
+    private static boolean isNumeric(String name) {
+        return name.equals("int") || name.equals("float");
+    }
+
+    private static TypeReference apiType(SourcePosition position, String fqn) {
+        TypeReference type = new TypeReference(position, fqn.substring(fqn.lastIndexOf('.') + 1), 0);
+        type.resolution = new Resolution.APIClassResolution(fqn);
+        return type;
+    }
+
+    public static TypeReference copyType(SourcePosition position, TypeReference source) {
+        TypeReference copy = new TypeReference(position, source.name, source.arrayDepth);
+        copy.resolution = source.resolution;
+        return copy;
+    }
+
+    private static boolean isNullLiteral(Expression expression) {
+        return expression instanceof LiteralExpression literal && literal.kind == LiteralExpression.Kind.Null;
     }
 
     private static Optional<String> methodReturnType(List<String> signatures) {
