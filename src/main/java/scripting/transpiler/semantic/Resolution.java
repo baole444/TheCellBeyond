@@ -26,6 +26,11 @@ public sealed interface Resolution {
      */
     record APIClassResolution(String fqn) implements Resolution {}
     /**
+     * A constructor call on a project or API class. Generation emits {@code new TypeName(...)}.
+     * @param fqn the fully qualified name of the constructed type
+     */
+    record ConstructorResolution(String fqn) implements Resolution {}
+    /**
      * A method or field of an API type.
      * @param receiverClassFQN the fully qualified name of the type
      * @param javaName the original java name of the member

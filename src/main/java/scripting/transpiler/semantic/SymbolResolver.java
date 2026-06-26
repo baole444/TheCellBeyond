@@ -325,6 +325,10 @@ public final class SymbolResolver {
             call.resolution = new Resolution.BuiltinLogResolution(logMethod);
             return;
         }
+        if (knownType(call.methodName)) {
+            call.resolution = constructorOf(call.methodName, call);
+            return;
+        }
         Optional<Resolution.APIMemberResolution> inherited = findInheritedAPIMember(call.methodName);
         if (inherited.isPresent()) {
             call.resolution = inherited.get();
@@ -333,10 +337,56 @@ public final class SymbolResolver {
         error(call, "Cannot resolve method '" + call.methodName + "'");
     }
 
+    /**
+     * Resolve a {@code [new] TypeName(...)} constructor call. Error happen when the type cannot be resolved or instantiated.
+     * @param constructor the constructor call to resolve
+     * @param scope the locals and parameters in scope
+     */
+    private void resolveConstructorCall(ConstructorCallExpression constructor, Map<String, TypeReference> scope) {
+        constructor.arguments.forEach(arg -> resolveExpression(arg, scope));
+        if (!knownType(constructor.type.name)) {
+            error(constructor.type, "Cannot construct unresolvable type '" + constructor.type.name + "'");
+            return;
+        }
+        constructor.resolution = constructorOf(constructor.type.name, constructor.type);
+    }
+
+    private boolean knownType(String name) {
+        return projectIndex.containsKey(name) || APIManifest.findClassBySimpleName(name).isPresent();
+    }
+
+    /**
+     * Resolve a constructor on a name that is a known type by the caller.
+     * <p>
+     * Project types are always constructable as only their headers are indexed.
+     * API types must not be an abstract class to be constructed.
+     * @param typeName the simple type name to construct
+     * @param node the node to write the error to
+     * @return the constructor resolution, or null when the type cannot be instantiated
+     */
+    private Resolution constructorOf(String typeName, AstNode node) {
+        ProjectClassEntry entry = projectIndex.get(typeName);
+        if (entry != null) {
+            if (entry.isEnum()) return constructError(node, "enum", typeName);
+            return new Resolution.ConstructorResolution(entry.fqn());
+        }
+        APIType type = APIManifest.findClassBySimpleName(typeName).orElseThrow();
+        if (type.kind != APIType.Kind.Class) return constructError(node, type.kind.name().toLowerCase(Locale.ROOT), typeName);
+        if (type.isAbstract) return constructError(node, "abstract type", typeName);
+        return new Resolution.ConstructorResolution(type.fqn);
+    }
+
+    private Resolution constructError(AstNode node, String kind, String typeName) {
+        error(node, String.format("Cannot construct %s '%s'", kind, typeName));
+        return null;
+    }
+
     private void resolveExpression(Expression expression, Map<String, TypeReference> scope) {
         switch (expression) {
             case IdentifierExpression identifier -> resolveIdentifier(identifier, scope);
             case MethodCallExpression call -> resolveCall(call, scope);
+            case ConstructorCallExpression constructor -> resolveConstructorCall(constructor, scope);
+            case ClassLiteralExpression classLiteral -> resolveType(classLiteral.type);
             case MemberAccessExpression access -> {
                 resolveExpression(access.target, scope);
                 access.resolution = resolveQualifiedMember(access.target, access.memberName, scope);
@@ -387,11 +437,22 @@ public final class SymbolResolver {
     private Optional<String> typeOf(Expression expression, Map<String, TypeReference> scope) {
         return switch (expression) {
             case IdentifierExpression identifier -> identifierType(identifier, scope);
-            case MethodCallExpression call -> memberType(call.resolution, call.methodName);
+            case SelfExpression _ -> Optional.ofNullable(apiReceiverFQN);
+            case MethodCallExpression call -> callType(call);
+            case ConstructorCallExpression constructor -> constructorType(constructor.resolution);
             case MemberAccessExpression access -> memberType(access.resolution, access.memberName);
             case CastExpression cast -> apiFQN(cast.type);
             default -> Optional.empty();
         };
+    }
+
+    private Optional<String> callType(MethodCallExpression call) {
+        Optional<String> constructed = constructorType(call.resolution);
+        return constructed.isPresent() ? constructed : memberType(call.resolution, call.methodName);
+    }
+
+    private static Optional<String> constructorType(Resolution resolution) {
+        return resolution instanceof Resolution.ConstructorResolution(String fqn) ? Optional.of(fqn) : Optional.empty();
     }
 
     private Optional<String> identifierType(IdentifierExpression identifier, Map<String, TypeReference> scope) {
@@ -462,6 +523,7 @@ public final class SymbolResolver {
             case IdentifierExpression identifier -> declaredType(identifier, scope).map(type -> copyType(initializer.position, type));
             case CastExpression cast -> Optional.of(copyType(initializer.position, cast.type));
             case MethodCallExpression call -> typeOf(call, scope).map(fqn -> apiType(initializer.position, fqn));
+            case ConstructorCallExpression constructor -> typeOf(constructor, scope).map(fqn -> apiType(initializer.position, fqn));
             case MemberAccessExpression access -> typeOf(access, scope).map(fqn -> apiType(initializer.position, fqn));
             case BinaryExpression binary -> binaryType(binary, scope);
             case UnaryExpression unary -> unaryType(unary, scope);

@@ -3,6 +3,7 @@ package scripting.transpiler.codegen;
 import scripting.transpiler.ast.*;
 import scripting.transpiler.semantic.Resolution;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -27,7 +28,10 @@ final class ExpressionEmitter {
         return switch (expression) {
             case LiteralExpression literal -> literal(literal, expectedType);
             case IdentifierExpression identifier -> identifier(identifier);
+            case SelfExpression _ -> "this";
             case MethodCallExpression call -> call(call);
+            case ConstructorCallExpression constructor -> constructorCall(fqnOf(constructor.resolution), constructor.arguments);
+            case ClassLiteralExpression classLiteral -> context.typeName(classLiteral.type) + ".class";
             case MemberAccessExpression access -> access(access);
             case IndexExpression index -> emit(index.target) + "[" + emit(index.index) + "]";
             case UnaryExpression unary -> unary(unary, expectedType);
@@ -59,13 +63,26 @@ final class ExpressionEmitter {
     }
 
     private String call(MethodCallExpression call) {
-        String arguments = call.arguments.stream().map(this::emit).collect(Collectors.joining(", "));
+        if (call.resolution instanceof Resolution.ConstructorResolution(String fqn)) return constructorCall(fqn, call.arguments);
+        String arguments = emitArguments(call.arguments);
         if (call.resolution instanceof Resolution.BuiltinLogResolution(String javaMethod)) {
             context.useLogger = true;
             return "Logger." + javaMethod + "(" + arguments + ")";
         }
         String receiver = call.target != null ? emit(call.target) + "." : "";
         return receiver + memberName(call.resolution, call.methodName) + "(" + arguments + ")";
+    }
+
+    private String constructorCall(String fqn, List<Expression> arguments) {
+        return "new " + context.writer.importType(fqn) + "(" + emitArguments(arguments) + ")";
+    }
+
+    private String emitArguments(List<Expression> arguments) {
+        return arguments.stream().map(this::emit).collect(Collectors.joining(", "));
+    }
+
+    private static String fqnOf(Resolution resolution) {
+        return ((Resolution.ConstructorResolution) resolution).fqn();
     }
 
     private String access(MemberAccessExpression access) {

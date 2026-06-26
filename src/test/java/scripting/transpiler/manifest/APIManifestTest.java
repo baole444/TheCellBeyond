@@ -36,6 +36,12 @@ public class APIManifestTest {
     }
 
     @Test
+    public void recordsAbstractModifier() {
+        assertTrue(APIManifest.findClassBySimpleName("PhysicBody2D").orElseThrow().isAbstract, "PhysicBody2D is an abstract class");
+        assertFalse(APIManifest.findClassBySimpleName("CharacterBody2D").orElseThrow().isAbstract, "CharacterBody2D is concrete");
+    }
+
+    @Test
     public void resolvesSnakeAliasedMember() {
         Optional<MemberInfo> member = APIManifest.findAPIMember("physic2d.CharacterBody2D", "move_and_slide");
         assertTrue(member.isPresent(), "move_and_slide should resolve to moveAndSlide");

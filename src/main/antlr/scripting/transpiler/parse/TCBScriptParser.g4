@@ -111,6 +111,9 @@ forStatement: FOR NAME IN expression COLON suite;
 
 expression
     : literal                                                           #literalExpr
+    | SELF                                                              #selfExpr
+    | NEW NAME OPEN_PAREN argumentList? CLOSE_PAREN                     #newExpr
+    | NAME DOT CLASS                                                    #classLiteralExpr
     | NAME OPEN_PAREN argumentList? CLOSE_PAREN                         #callExpr
     | NAME                                                              #nameExpr
     | OPEN_PAREN expression CLOSE_PAREN                                 #parenExpr

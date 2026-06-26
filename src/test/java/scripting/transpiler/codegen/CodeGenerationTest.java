@@ -55,7 +55,7 @@ public class CodeGenerationTest {    private static final String WorkedExample =
     @Test
     public void crossScriptReferenceStaysSamePackageNoImport() {
         String generated = ok("""
-                class User extends Object
+                class User
                 var partner : Helper
                 """, "User.tcbs", index(script()));
         assertTrue(generated.contains("Helper partner;"), generated);
@@ -93,7 +93,7 @@ public class CodeGenerationTest {    private static final String WorkedExample =
     @Test
     public void loggingBuiltinInjectsLoggerAndRoutesLevels() {
         String generated = ok("""
-                class Chatty extends Object
+                class Chatty
                 func run() -> void:
                     print("hello")
                     print_warning("careful")
@@ -109,7 +109,7 @@ public class CodeGenerationTest {    private static final String WorkedExample =
     @Test
     public void loggingBuiltinCompiles() {
         assertCompiles("Chatty", ok("""
-                class Chatty extends Object
+                class Chatty
                 func run() -> void:
                     print("hello")
                 """, "Chatty.tcbs", Map.of()));
@@ -118,7 +118,7 @@ public class CodeGenerationTest {    private static final String WorkedExample =
     @Test
     public void noLoggerFieldWhenUnused() {
         String generated = ok("""
-                class Quiet extends Object
+                class Quiet
                 var value : int = 0
                 """, "Quiet.tcbs", Map.of());
         assertFalse(generated.contains("Logger"), "no logger is injected when logging is unused");
@@ -137,9 +137,20 @@ public class CodeGenerationTest {    private static final String WorkedExample =
     }
 
     @Test
+    public void explicitExtendsObjectIsNormalizedToNoClause() {
+        String generated = ok("""
+                class Holder extends Object
+                var value : int = 0
+                """, "Holder.tcbs", Map.of());
+        assertTrue(generated.contains("public class Holder {"), generated);
+        assertFalse(generated.contains("extends"), generated);
+        assertFalse(generated.contains("@Register"), generated);
+    }
+
+    @Test
     public void fieldModifiersComposeStaticAndFinalOrthogonally() {
         String generated = ok("""
-                class Config extends Object
+                class Config
                 var count : int = 0
                 static var shared : int = 1
                 const Max : int = 10
@@ -205,7 +216,7 @@ public class CodeGenerationTest {    private static final String WorkedExample =
     @Test
     public void enumUsedAsTypeAndConstantReferenceEmits() {
         String generated = ok("""
-                class Caster extends Object
+                class Caster
                 var element : Element = Element.Fire
                 func run() -> void:
                     if element == Element.Water:
@@ -216,9 +227,73 @@ public class CodeGenerationTest {    private static final String WorkedExample =
     }
 
     @Test
+    public void selfEmitsThisAsReceiverAndArgument() {
+        String generated = ok("""
+                class Hero extends CharacterBody2D
+                func _ready() -> void:
+                    self.move_and_slide()
+                    Callable.get(self, "on_hit")
+                func on_hit(damage : int) -> void:
+                    pass
+                """, "Hero.tcbs", Map.of());
+        assertTrue(generated.contains("this.moveAndSlide();"), generated);
+        assertTrue(generated.contains("Callable.get(this, \"on_hit\");"), generated);
+        assertCompiles("Hero", generated);
+    }
+
+    @Test
+    public void bareConstructorEmitsNewAndCompiles() {
+        String generated = ok("""
+                class Builder
+                var sig : Signal = Signal()
+                """, "Builder.tcbs", Map.of());
+        assertTrue(generated.contains("public Signal sig = new Signal();"), generated);
+        assertTrue(generated.contains("import signal.Signal;"), generated);
+        assertCompiles("Builder", generated);
+    }
+
+    @Test
+    public void newKeywordConstructorEmitsIdenticallyAndCompiles() {
+        String generated = ok("""
+                class Builder
+                var sig : Signal = new Signal()
+                """, "Builder.tcbs", Map.of());
+        assertTrue(generated.contains("public Signal sig = new Signal();"), "a leading new emits identically to the bare form");
+        assertCompiles("Builder", generated);
+    }
+
+    @Test
+    public void classLiteralEmitsAndCompiles() {
+        String generated = ok("""
+                class Reflect
+                var bodyType : Object = CharacterBody2D.class
+                var stringType : Object = String.class
+                """, "Reflect.tcbs", Map.of());
+        assertTrue(generated.contains("public Object bodyType = CharacterBody2D.class;"), generated);
+        assertTrue(generated.contains("public Object stringType = String.class;"), generated);
+        assertTrue(generated.contains("import physic2d.CharacterBody2D;"), generated);
+        assertCompiles("Reflect", generated);
+    }
+
+    @Test
+    public void selfConstructorAndClassLiteralComposeAndCompile() {
+        String generated = ok("""
+                class Weapon extends CharacterBody2D
+                const cooldown : Signal = Signal(String.class)
+                func _ready() -> void:
+                    cooldown.connect(Callable.get(self, "on_cooldown"))
+                func on_cooldown() -> void:
+                    pass
+                """, "Weapon.tcbs", Map.of());
+        assertTrue(generated.contains("public final Signal cooldown = new Signal(String.class);"), generated);
+        assertTrue(generated.contains("cooldown.connect(Callable.get(this, \"on_cooldown\"));"), generated);
+        assertCompiles("Weapon", generated);
+    }
+
+    @Test
     public void inferredFieldEmitsConcreteTypeAndCompiles() {
         String generated = ok("""
-                class Inferred extends Object
+                class Inferred
                 var speed = 200
                 var ratio = 2.5
                 var label = "hi"
@@ -236,7 +311,7 @@ public class CodeGenerationTest {    private static final String WorkedExample =
     @Test
     public void exportOnInferredFieldEmitsAndCompiles() {
         String generated = ok("""
-                class Tuned extends Object
+                class Tuned
                 @export var speed = 200
                 """, "Tuned.tcbs", Map.of());
         assertTrue(generated.contains("@Export"), generated);
@@ -247,7 +322,7 @@ public class CodeGenerationTest {    private static final String WorkedExample =
     @Test
     public void inferredLocalEmitsConcreteTypeWhenObtainableAndCompiles() {
         String generated = ok("""
-                class Locals extends Object
+                class Locals
                 func run() -> void:
                     var count = 5
                     var ratio = 1.5
@@ -262,7 +337,7 @@ public class CodeGenerationTest {    private static final String WorkedExample =
     @Test
     public void inferredLocalFromApiCallEmitsConcreteTypeAndTranslatesCall() {
         String generated = ok("""
-                class Probe extends Object
+                class Probe
                 var cam : Camera2D
                 func run() -> void:
                     var copy = cam.copy()
@@ -276,7 +351,7 @@ public class CodeGenerationTest {    private static final String WorkedExample =
     @Test
     public void inferredFieldFromArithmeticEmitsAndCompiles() {
         String generated = ok("""
-                class Arith extends Object
+                class Arith
                 var a = 3
                 var b = 5
                 var sum = a + b
@@ -292,7 +367,7 @@ public class CodeGenerationTest {    private static final String WorkedExample =
     @Test
     public void inferredFieldFromStringConcatEmitsAndCompiles() {
         String generated = ok("""
-                class Concat extends Object
+                class Concat
                 var name = "hero"
                 var greeting = "hi " + name
                 """, "Concat.tcbs", Map.of());
@@ -303,7 +378,7 @@ public class CodeGenerationTest {    private static final String WorkedExample =
     @Test
     public void inferredFieldFromUnaryEmitsAndCompiles() {
         String generated = ok("""
-                class Unary extends Object
+                class Unary
                 var ready = true
                 var blocked = not ready
                 var a = 5
@@ -317,7 +392,7 @@ public class CodeGenerationTest {    private static final String WorkedExample =
     @Test
     public void inferredLocalFallsBackToVarWhenConcreteTypeUnobtainable() {
         String generated = ok("""
-                class Fallback extends Object
+                class Fallback
                 func compute() -> int:
                     return 5
                 func run() -> void:
@@ -331,7 +406,7 @@ public class CodeGenerationTest {    private static final String WorkedExample =
     @Test
     public void floatLiteralGainsSuffixForFloatTarget() {
         String generated = ok("""
-                class Phys extends Object
+                class Phys
                 var gravity : float = 9.8
                 var count : int = 5
                 func run(step : float) -> void:
@@ -353,7 +428,7 @@ public class CodeGenerationTest {    private static final String WorkedExample =
     @Test
     public void exportAnnotationCarriesArguments() {
         String generated = ok("""
-                class Tuned extends Object
+                class Tuned
                 @export(label = "Speed") var speed : int = 5
                 """, "Tuned.tcbs", Map.of());
         assertTrue(generated.contains("@Export(label = \"Speed\")"), generated);
@@ -362,7 +437,7 @@ public class CodeGenerationTest {    private static final String WorkedExample =
     @Test
     public void boolTypeMapsToJavaBoolean() {
         String generated = ok("""
-                class Flag extends Object
+                class Flag
                 var ready : bool = true
                 """, "Flag.tcbs", Map.of());
         assertTrue(generated.contains("public boolean ready = true;"), generated);
@@ -371,7 +446,7 @@ public class CodeGenerationTest {    private static final String WorkedExample =
     @Test
     public void stringLiteralIsRequotedToDoubleQuotes() {
         String generated = ok("""
-                class Greeter extends Object
+                class Greeter
                 var name : String = 'world'
                 """, "Greeter.tcbs", Map.of());
         assertTrue(generated.contains("public String name = \"world\";"), generated);
@@ -380,7 +455,7 @@ public class CodeGenerationTest {    private static final String WorkedExample =
     @Test
     public void forLoopOverArrayEmitsEnhancedForAndCompiles() {
         String generated = ok("""
-                class Counter extends Object
+                class Counter
                 var total : int = 0
                 var values : int[]
                 func run() -> void:

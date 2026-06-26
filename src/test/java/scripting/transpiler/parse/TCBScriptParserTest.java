@@ -69,7 +69,7 @@ public class TCBScriptParserTest {
     @Test
     public void constFieldCarriesStaticFlagIndependently() {
         ClassDeclaration cls = parseClass("""
-                class Config extends Object
+                class Config
                 const Max : int = 10
                 static const SharedMax : int = 20
                 """);
@@ -84,7 +84,7 @@ public class TCBScriptParserTest {
     @Test
     public void staticConstLocalIsASyntaxError() {
         ScriptParser.Result result = ScriptParser.parse("""
-                class Bad extends Object
+                class Bad
                 func run() -> void:
                     static const x : int = 1
                 """, "bad.tcbs");
@@ -94,7 +94,7 @@ public class TCBScriptParserTest {
     @Test
     public void parsesOmittedTypeClauseAsNullType() {
         ClassDeclaration cls = parseClass("""
-                class Inferred extends Object
+                class Inferred
                 var speed = 200
                 func run() -> void:
                     var count = 5
@@ -111,7 +111,7 @@ public class TCBScriptParserTest {
     @Test
     public void parsesMemberAccessAndCast() {
         Block body = parseClass("""
-                class Probe extends Object
+                class Probe
                 func run() -> void:
                     var spent : int = wallet.balance
                     var node : Node = thing as Node
@@ -124,6 +124,32 @@ public class TCBScriptParserTest {
         CastExpression cast = assertInstanceOf(CastExpression.class, castLocal.initializer);
         assertEquals("Node", cast.type.name);
         assertInstanceOf(IdentifierExpression.class, cast.value);
+    }
+
+    @Test
+    public void parsesSelfConstructorAndClassLiteral() {
+        Block body = parseClass("""
+                class Probe
+                func run() -> void:
+                    var a = self
+                    var b = new Camera2D()
+                    var c = Float.class
+                    Signal(Float.class)
+                """).methods.getFirst().body;
+        LocalVariableDeclaration a = assertInstanceOf(LocalVariableDeclaration.class, body.statements.get(0));
+        assertInstanceOf(SelfExpression.class, a.initializer);
+        LocalVariableDeclaration b = assertInstanceOf(LocalVariableDeclaration.class, body.statements.get(1));
+        ConstructorCallExpression ctor = assertInstanceOf(ConstructorCallExpression.class, b.initializer);
+        assertEquals("Camera2D", ctor.type.name);
+        assertTrue(ctor.arguments.isEmpty(), "a no-arg new keeps an empty argument list");
+        LocalVariableDeclaration c = assertInstanceOf(LocalVariableDeclaration.class, body.statements.get(2));
+        ClassLiteralExpression literal = assertInstanceOf(ClassLiteralExpression.class, c.initializer);
+        assertEquals("Float", literal.type.name);
+        ExpressionStatement statement = assertInstanceOf(ExpressionStatement.class, body.statements.get(3));
+        MethodCallExpression bareConstructor = assertInstanceOf(MethodCallExpression.class, statement.expression);
+        assertNull(bareConstructor.target, "a bare TypeName(args) parses as an unqualified call for the resolver to classify");
+        assertEquals("Signal", bareConstructor.methodName);
+        assertInstanceOf(ClassLiteralExpression.class, bareConstructor.arguments.getFirst());
     }
 
     @Test
@@ -174,7 +200,7 @@ public class TCBScriptParserTest {
     @Test
     public void handlesNestedIndentedBlocks() {
         ScriptFile file = parse("""
-                class Nest extends Object
+                class Nest
                 func run() -> void:
                     if ready:
                         while looping:
@@ -192,7 +218,7 @@ public class TCBScriptParserTest {
     @Test
     public void inlineSuiteAndTernaryAndLogicalAliases() {
         ScriptFile file = parse("""
-                class Demo extends Object
+                class Demo
                 func pick(flag : bool) -> int:
                     if flag and not done: return 1
                     elif flag && other: return 2
@@ -217,7 +243,7 @@ public class TCBScriptParserTest {
     @Test
     public void parsesBreakAndContinue() {
         Block body = parseClass("""
-                class Loops extends Object
+                class Loops
                 func run() -> void:
                     while active:
                         continue
@@ -257,7 +283,7 @@ public class TCBScriptParserTest {
     @Test
     public void syntaxErrorReportsFileAndLine() {
         ScriptParser.Result result = ScriptParser.parse("""
-                class Bad extends Object
+                class Bad
                 func oops() -> void
                     return
                 """, "bad.tcbs");
@@ -396,7 +422,7 @@ public class TCBScriptParserTest {
     public void parserToleratesWhitespaceAndComments() {
         ScriptFile file = parse("""
                 # a leading comment
-                class    Spaced   extends   Object
+                class    Spaced   extends   GameObject2D
                 # a comment between members
                 @export var    x : int = 1    # trailing comment
                 func    run()   ->   void:
@@ -404,7 +430,7 @@ public class TCBScriptParserTest {
                 """);
         ClassDeclaration cls = classOf(file);
         assertEquals("Spaced", cls.name);
-        assertEquals("Object", cls.superType.name);
+        assertEquals("GameObject2D", cls.superType.name);
         assertEquals(1, cls.fields.size());
         assertEquals("x", cls.fields.getFirst().name);
         assertEquals("export", cls.fields.getFirst().annotations.getFirst().name);

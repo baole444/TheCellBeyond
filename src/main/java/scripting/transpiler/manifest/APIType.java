@@ -41,6 +41,10 @@ public final class APIType {
      */
     public boolean isFinal;
     /**
+     * Whether the type is declared {@code abstract}, and cannot be constructed.
+     */
+    public boolean isAbstract;
+    /**
      * The chain of type's super class(es).
      */
     public List<String> superClassChain;
@@ -62,11 +66,12 @@ public final class APIType {
 
     public APIType() {}
 
-    public APIType(String fqn, String simpleName, Kind kind, boolean isFinal, List<String> superClassChain, List<MemberInfo> methods, List<MemberInfo> fields, List<String> enumConstants) {
+    public APIType(String fqn, String simpleName, Kind kind, boolean isFinal, boolean isAbstract, List<String> superClassChain, List<MemberInfo> methods, List<MemberInfo> fields, List<String> enumConstants) {
         this.fqn = fqn;
         this.simpleName = simpleName;
         this.kind = kind;
         this.isFinal = isFinal;
+        this.isAbstract = isAbstract;
         this.superClassChain = superClassChain;
         this.methods = methods;
         this.fields = fields;

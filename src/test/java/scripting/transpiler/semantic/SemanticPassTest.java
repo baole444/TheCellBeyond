@@ -42,7 +42,7 @@ public class SemanticPassTest {
     @Test
     public void userMemberResolution() {
         ClassDeclaration cls = ok("""
-                class Logic extends Object
+                class Logic
                 var counter : int = 0
                 func tick() -> void:
                     step()
@@ -60,7 +60,7 @@ public class SemanticPassTest {
     @Test
     public void projectClassTypeResolution() {
         ClassDeclaration cls = ok("""
-                class User extends Object
+                class User
                 var helper : Helper
                 """, index(script("Helper", "Object")));
         Resolution.ProjectClassResolution helper = assertInstanceOf(Resolution.ProjectClassResolution.class, cls.fields.getFirst().type.resolution);
@@ -86,7 +86,7 @@ public class SemanticPassTest {
     @Test
     public void apiClassTypeResolution() {
         ClassDeclaration cls = ok("""
-                class Holder extends Object
+                class Holder
                 var body : CharacterBody2D
                 """, Map.of());
         Resolution.APIClassResolution body = assertInstanceOf(Resolution.APIClassResolution.class, cls.fields.getFirst().type.resolution);
@@ -96,7 +96,7 @@ public class SemanticPassTest {
     @Test
     public void unresolvedIdentifierErrors() {
         SemanticAnalyzer.Result result = run("""
-                class Bad extends Object
+                class Bad
                 func run() -> void:
                     doesNotExist()
                 """, Map.of());
@@ -110,7 +110,7 @@ public class SemanticPassTest {
     @Test
     public void qualifiedTypedReceiverResolves() {
         ClassDeclaration cls = ok("""
-                class Probe extends Object
+                class Probe
                 var body : CharacterBody2D
                 func run() -> void:
                     body.move_and_slide()
@@ -124,7 +124,7 @@ public class SemanticPassTest {
     @Test
     public void staticClassReceiverResolves() {
         ClassDeclaration cls = ok("""
-                class Probe extends Object
+                class Probe
                 func run() -> void:
                     Input.get_input_action("jump")
                 """, Map.of());
@@ -137,7 +137,7 @@ public class SemanticPassTest {
     @Test
     public void builderChainResolvesThroughReturnType() {
         ClassDeclaration cls = ok("""
-                class Probe extends Object
+                class Probe
                 var cam : Camera2D
                 func run() -> void:
                     cam.copy().currently_active()
@@ -151,7 +151,7 @@ public class SemanticPassTest {
     @Test
     public void chainDeadEndsGracefullyOnPrimitiveReturn() {
         SemanticAnalyzer.Result result = run("""
-                class Probe extends Object
+                class Probe
                 var cam : Camera2D
                 func run() -> void:
                     cam.currently_active().whatever()
@@ -164,7 +164,7 @@ public class SemanticPassTest {
     @Test
     public void projectTypedReceiverPassesThrough() {
         SemanticAnalyzer.Result result = run("""
-                class Probe extends Object
+                class Probe
                 var helper : Helper
                 func run() -> void:
                     helper.do_thing()
@@ -172,6 +172,81 @@ public class SemanticPassTest {
         assertFalse(result.hasErrors(), () -> result.errors().toString());
         MethodCallExpression call = firstCall(classOf(result).methods.getFirst());
         assertNull(call.resolution);
+    }
+
+    @Test
+    public void selfResolvesAsReceiverAndArgument() {
+        ClassDeclaration cls = ok("""
+                class Hero extends CharacterBody2D
+                func _ready() -> void:
+                    self.move_and_slide()
+                    Callable.get(self, "on_hit")
+                func on_hit(damage : int) -> void:
+                    pass
+                """, Map.of());
+        List<Statement> body = cls.methods.getFirst().body.statements;
+        MethodCallExpression selfReceiver = assertInstanceOf(MethodCallExpression.class, ((ExpressionStatement) body.get(0)).expression);
+        assertInstanceOf(SelfExpression.class, selfReceiver.target);
+        assertEquals("moveAndSlide", assertInstanceOf(Resolution.APIMemberResolution.class, selfReceiver.resolution).javaName(), "self resolves the receiver against the nearest API ancestor");
+        MethodCallExpression callableGet = assertInstanceOf(MethodCallExpression.class, ((ExpressionStatement) body.get(1)).expression);
+        assertInstanceOf(SelfExpression.class, callableGet.arguments.getFirst(), "self is usable as a call argument");
+    }
+
+    @Test
+    public void bareAndNewConstructorResolveToConstructor() {
+        ClassDeclaration cls = ok("""
+                class Builder
+                var a : Signal = Signal()
+                var b : Signal = new Signal()
+                """, Map.of());
+        Resolution.ConstructorResolution bare = assertInstanceOf(Resolution.ConstructorResolution.class, ((MethodCallExpression) cls.fields.get(0).initializer).resolution);
+        assertEquals("signal.Signal", bare.fqn());
+        Resolution.ConstructorResolution explicitNew = assertInstanceOf(Resolution.ConstructorResolution.class, ((ConstructorCallExpression) cls.fields.get(1).initializer).resolution);
+        assertEquals("signal.Signal", explicitNew.fqn());
+    }
+
+    @Test
+    public void classLiteralResolvesType() {
+        ClassDeclaration cls = ok("""
+                class Reflect
+                var t : Object = CharacterBody2D.class
+                """, Map.of());
+        ClassLiteralExpression literal = assertInstanceOf(ClassLiteralExpression.class, cls.fields.getFirst().initializer);
+        assertEquals("physic2d.CharacterBody2D", assertInstanceOf(Resolution.APIClassResolution.class, literal.type.resolution).fqn());
+    }
+
+    @Test
+    public void constructingUnresolvableTypeFails() {
+        SemanticAnalyzer.Result result = run("""
+                class Bad
+                func run() -> void:
+                    new Nope()
+                """, Map.of());
+        assertTrue(result.hasErrors());
+        assertTrue(result.errors().getFirst().message().contains("construct"), () -> result.errors().toString());
+    }
+
+    @Test
+    public void constructingAbstractTypeFails() {
+        SemanticAnalyzer.Result result = run("""
+                class Bad
+                func run() -> void:
+                    PhysicBody2D()
+                """, Map.of());
+        assertTrue(result.hasErrors());
+        assertTrue(result.errors().getFirst().message().toLowerCase().contains("abstract"), () -> result.errors().toString());
+    }
+
+    @Test
+    public void classLiteralOnNonTypeFails() {
+        SemanticAnalyzer.Result result = run("""
+                class Bad
+                func run() -> void:
+                    var speed : int = 0
+                    speed.class
+                """, Map.of());
+        assertTrue(result.hasErrors());
+        assertTrue(result.errors().getFirst().message().contains("speed"), () -> result.errors().toString());
     }
 
     @Test
@@ -205,7 +280,7 @@ public class SemanticPassTest {
     @Test
     public void inferredLocalFromApiCallFeedsMemberResolution() {
         ClassDeclaration cls = ok("""
-                class Probe extends Object
+                class Probe
                 var cam : Camera2D
                 func run() -> void:
                     var copy = cam.copy()
@@ -312,7 +387,7 @@ public class SemanticPassTest {
     @Test
     public void forLoopArrayElementTypeIsInferred() {
         ClassDeclaration cls = ok("""
-                class Probe extends Object
+                class Probe
                 var bodies : CharacterBody2D[]
                 func run() -> void:
                     for body in bodies:
@@ -328,7 +403,7 @@ public class SemanticPassTest {
     @Test
     public void rangeIterableResolvesAsIndexLoopBuiltin() {
         ClassDeclaration cls = ok("""
-                class Probe extends Object
+                class Probe
                 var total : int = 0
                 func run(count : int) -> void:
                     for i in range(0, count):
@@ -342,7 +417,7 @@ public class SemanticPassTest {
     @Test
     public void rangeWithTooManyArgumentsFails() {
         SemanticAnalyzer.Result result = run("""
-                class Probe extends Object
+                class Probe
                 func run() -> void:
                     for i in range(0, 10, 2, 5):
                         pass
@@ -354,7 +429,7 @@ public class SemanticPassTest {
     @Test
     public void rangeIsContextualKeywordOnlyInLoopPosition() {
         ClassDeclaration cls = ok("""
-                class Probe extends Object
+                class Probe
                 var total : int = 0
                 func range(n : int) -> int:
                     return n
@@ -583,7 +658,7 @@ public class SemanticPassTest {
     public void reservedKeywordAsFieldFails() {
         SemanticAnalyzer.Result result = run("""
                 class C
-                var new : int = 0
+                var volatile : int = 0
                 """, Map.of());
         assertTrue(result.hasErrors());
         assertTrue(result.errors().getFirst().message().contains("reserved"), () -> result.errors().toString());

@@ -49,6 +49,9 @@ public final class AstPrinter {
             case ForStatement n -> "ForStatement " + n.variable + " in";
             case LiteralExpression n -> "LiteralExpression " + n.kind + " " + n.text;
             case IdentifierExpression n -> "IdentifierExpression " + n.name;
+            case SelfExpression _ -> "SelfExpression";
+            case ConstructorCallExpression n -> "ConstructorCallExpression new" + typeName(n.type) + "()";
+            case ClassLiteralExpression n -> "ClassLiteralExpression " + typeName(n.type) + ".class";
             case MemberAccessExpression n -> "MemberAccessExpression ." + n.memberName;
             case MethodCallExpression n -> "MethodCallExpression " + (n.target == null ? "" : ".") + n.methodName + "()";
             case IndexExpression _ -> "IndexExpression";
@@ -81,6 +84,8 @@ public final class AstPrinter {
             case ElifClause n -> List.of(n.condition, n.block);
             case WhileStatement n -> List.of(n.condition, n.body);
             case ForStatement n -> List.of(n.iterable, n.body);
+            case ConstructorCallExpression n -> concat(List.of(n.type), n.arguments);
+            case ClassLiteralExpression n -> List.of(n.type);
             case MemberAccessExpression n -> List.of(n.target);
             case MethodCallExpression n -> concat(nullable(n.target), n.arguments, List.of());
             case IndexExpression n -> List.of(n.target, n.index);

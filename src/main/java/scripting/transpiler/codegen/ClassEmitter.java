@@ -18,6 +18,7 @@ import java.util.Map;
  */
 public final class ClassEmitter {
     private static final String Package = "scripts";
+    private static final String ObjectType = "Object";
     private static final String EngineLogType = EngineLog.class.getName();
     private static final String RegisterGameObjectType = RegisterGameObject.class.getName();
     private static final String RegisterComponentType = RegisterComponent.class.getName();
@@ -55,8 +56,9 @@ public final class ClassEmitter {
 
     private static String declarationLine(EmitContext context, ClassDeclaration classDeclaration) {
         String line = "public class " + classDeclaration.name;
-        if (classDeclaration.superType == null) return line;
-        return line + " extends " + context.typeName(classDeclaration.superType);
+        TypeReference superType = classDeclaration.superType;
+        if (superType == null || superType.name.equals(ObjectType)) return line;
+        return line + " extends " + context.typeName(superType);
     }
 
     private static void body(EmitContext context, ClassDeclaration classDeclaration) {

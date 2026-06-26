@@ -23,13 +23,15 @@ public final class HierarchyGraphGenerator {
     private static final String DefaultGraphSize = "120";
     private static final String GraphDPIKey = "graph.dpi";
     private static final String DefaultGraphDPI = "150";
+    private static final String GraphRankSepKey = "graph.ranksep";
+    private static final String DefaultGraphRankSep = "0.75";
 
     private HierarchyGraphGenerator() {}
 
     static void main(String[] args) throws IOException {
         if (args.length < 3) throw new IllegalArgumentException("Usage: HierarchyGraphGenerator <classesDirsPath> <outputDir> <rootFqn> [<rootFqn> ...]");
         List<String> classpath = Arrays.asList(args[0].split(File.pathSeparator));
-        Path outputDir = Path.of(args[1]);
+        Path outputDir = resolveOutputDir(args[1]);
         List<String> roots = Arrays.asList(args).subList(2, args.length);
         Files.createDirectories(outputDir);
         boolean dotAvailable = dotAvailable();
@@ -39,6 +41,13 @@ public final class HierarchyGraphGenerator {
         }
         if (dotAvailable) return;
         System.out.println("GraphViz is not on system PATH, skipping image generation");
+    }
+
+    private static Path resolveOutputDir(String pathArg) {
+        Path base = Path.of("").toAbsolutePath().normalize();
+        Path outputDir = base.resolve(pathArg).normalize();
+        if (!outputDir.startsWith(base)) throw new IllegalArgumentException("Output directory must stay within the working directory: " + pathArg);
+        return outputDir;
     }
 
     private static void writeGraph(ScanResult scan, String rootFQN, Path outputDir, boolean dotAvailable) throws IOException {
@@ -64,7 +73,7 @@ public final class HierarchyGraphGenerator {
 
     private static void render(Path dotFile, Path output, String format) {
         try {
-            Process process = new ProcessBuilder("dot", "-T" + format, "-Gdpi=" + graphDPI(), dotFile.toString(), "-o", output.toString()).inheritIO().start();
+            Process process = new ProcessBuilder("dot", "-T" + format, "-Gdpi=" + graphDPI(), "-Granksep=" + graphRankSep(), dotFile.toString(), "-o", output.toString()).inheritIO().start();
             if (process.waitFor() != 0) System.err.println("Failed to render " + output);
         } catch (IOException | InterruptedException e) {
             System.err.println("Failed to render " + output + ": " + e.getMessage());
@@ -77,6 +86,10 @@ public final class HierarchyGraphGenerator {
 
     private static int graphDPI() {
         return Integer.parseInt(System.getProperty(GraphDPIKey, DefaultGraphDPI));
+    }
+
+    private static float graphRankSep() {
+        return Float.parseFloat(System.getProperty(GraphRankSepKey, DefaultGraphRankSep));
     }
 
     private static List<String> excludedPackages() {

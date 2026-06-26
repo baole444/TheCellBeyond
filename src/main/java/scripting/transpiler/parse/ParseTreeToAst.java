@@ -55,6 +55,23 @@ public final class ParseTreeToAst extends TCBScriptParserBaseVisitor<AstNode> {
     }
 
     @Override
+    public AstNode visitSelfExpr(SelfExprContext context) {
+        return new SelfExpression(position(context));
+    }
+
+    @Override
+    public AstNode visitNewExpr(NewExprContext context) {
+        TypeReference type = new TypeReference(position(context.NAME()), context.NAME().getText(), 0);
+        return new ConstructorCallExpression(position(context), type, arguments(context.argumentList()));
+    }
+
+    @Override
+    public AstNode visitClassLiteralExpr(ClassLiteralExprContext context) {
+        TypeReference type = new TypeReference(position(context.NAME()), context.NAME().getText(), 0);
+        return new ClassLiteralExpression(position(context), type);
+    }
+
+    @Override
     public AstNode visitParenExpr(ParenExprContext context) {
         return expression(context.expression());
     }

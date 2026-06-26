@@ -7,6 +7,7 @@ Adjustable (override using -P);
 - graphExcludeClasses: class FQNs to omit, separated by commas (default 'components.CrashComponent')
 - graphDpi: PNG resolution (default 150)
 - graphSize: GraphViz size bound in inches (default 120)
+- graphRankSep: vertical spacing between hierarchy levels in inches (default 0.75)
 
 Output can be found in build/reports/class-graph
  */
@@ -31,6 +32,7 @@ tasks.register('generateClassHierarchyGraph', JavaExec) {
     mainClass = 'devtools.HierarchyGraphGenerator'
     systemProperty 'graph.dpi', (project.findProperty('graphDpi') ?: '150')
     systemProperty 'graph.size', (project.findProperty('graphSize') ?: '120')
+    systemProperty 'graph.ranksep', (project.findProperty('graphRankSep') ?: '0.75')
     systemProperty 'graph.excludePackages', (project.findProperty('graphExclude') ?: 'editor')
     systemProperty 'graph.excludeClasses', (project.findProperty('graphExcludeClasses') ?: 'components.CrashComponent')
     def outputDir = layout.buildDirectory.dir('reports/class-graph')

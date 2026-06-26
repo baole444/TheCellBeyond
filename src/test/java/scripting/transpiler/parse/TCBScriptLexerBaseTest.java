@@ -32,24 +32,20 @@ public class TCBScriptLexerBaseTest {
 
     @Test
     public void singleIndentEmitsIndentDedent() {
-        assertEquals(
-                List.of("NAME", "COLON", "NEWLINE", "INDENT", "NAME", "NEWLINE", "DEDENT", "EOF"),
-                lex("a:\n    b\n"));
+        assertEquals(List.of("NAME", "COLON", "NEWLINE", "INDENT", "NAME", "NEWLINE", "DEDENT", "EOF"), lex("a:\n    b\n"));
     }
 
     @Test
     public void multiLevelIndent() {
         assertEquals(
-                List.of("NAME", "COLON", "NEWLINE", "INDENT", "NAME", "COLON", "NEWLINE", "INDENT",
-                        "NAME", "NEWLINE", "DEDENT", "DEDENT", "EOF"),
+                List.of("NAME", "COLON", "NEWLINE", "INDENT", "NAME", "COLON", "NEWLINE", "INDENT", "NAME", "NEWLINE", "DEDENT", "DEDENT", "EOF"),
                 lex("a:\n    b:\n        c\n"));
     }
 
     @Test
     public void dedentToMidLevel() {
         assertEquals(
-                List.of("NAME", "COLON", "NEWLINE", "INDENT", "NAME", "COLON", "NEWLINE", "INDENT",
-                        "NAME", "NEWLINE", "DEDENT", "NAME", "NEWLINE", "DEDENT", "EOF"),
+                List.of("NAME", "COLON", "NEWLINE", "INDENT", "NAME", "COLON", "NEWLINE", "INDENT", "NAME", "NEWLINE", "DEDENT", "NAME", "NEWLINE", "DEDENT", "EOF"),
                 lex("a:\n    b:\n        c\n    d\n"));
     }
 
@@ -63,17 +59,13 @@ public class TCBScriptLexerBaseTest {
     @Test
     public void implicitJoinInParens() {
         List<String> tokens = lex("f(\n    a\n)\n");
-        assertEquals(
-                List.of("NAME", "OPEN_PAREN", "NAME", "CLOSE_PAREN", "NEWLINE", "EOF"),
-                tokens);
+        assertEquals(List.of("NAME", "OPEN_PAREN", "NAME", "CLOSE_PAREN", "NEWLINE", "EOF"), tokens);
         assertFalse(tokens.contains("INDENT"));
         assertFalse(tokens.contains("DEDENT"));
     }
 
     @Test
     public void blankLineInBlockDoesNotDedent() {
-        assertEquals(
-                List.of("NAME", "COLON", "NEWLINE", "INDENT", "NAME", "NEWLINE", "NAME", "NEWLINE", "DEDENT", "EOF"),
-                lex("a:\n    b\n\n    c\n"));
+        assertEquals(List.of("NAME", "COLON", "NEWLINE", "INDENT", "NAME", "NEWLINE", "NAME", "NEWLINE", "DEDENT", "EOF"), lex("a:\n    b\n\n    c\n"));
     }
 }

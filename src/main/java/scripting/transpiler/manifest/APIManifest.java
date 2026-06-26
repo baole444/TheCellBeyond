@@ -20,7 +20,7 @@ public final class APIManifest {
         static final APIManifest Index = load();
     }
 
-    public static final int CurrentManifestVersion = 2;
+    public static final int CurrentManifestVersion = 3;
     private static final String IndexPath = "META-INF/script-api-index.json";
     private static final String GameObjectFQN = GameObject.class.getName();
     private static final String ComponentFQN = Component.class.getName();

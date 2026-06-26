@@ -23,6 +23,8 @@ CLASS    : 'class';
 ENUM     : 'enum';
 EXTENDS  : 'extends';
 FUNC     : 'func';
+NEW      : 'new';
+SELF     : 'self';
 VAR      : 'var';
 CONST    : 'const';
 STATIC   : 'static';
