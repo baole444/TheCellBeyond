@@ -14,15 +14,17 @@ public final class ClassDeclaration extends TypeDeclaration {
     public final TypeReference superType;
     public final List<FieldDeclaration> fields;
     public final List<MethodDeclaration> methods;
+    public final List<SignalDeclaration> signals;
     /**
      * How this class registered with the engine, set by the semantic pass, null until resolved.
      */
     public ClassRegistration registration;
 
-    public ClassDeclaration(SourcePosition position, String name, TypeReference superType, List<FieldDeclaration> fields, List<MethodDeclaration> methods) {
+    public ClassDeclaration(SourcePosition position, String name, TypeReference superType, List<FieldDeclaration> fields, List<MethodDeclaration> methods, List<SignalDeclaration> signals) {
         super(position, name);
         this.superType = superType;
         this.fields = fields;
         this.methods = methods;
+        this.signals = signals;
     }
 }

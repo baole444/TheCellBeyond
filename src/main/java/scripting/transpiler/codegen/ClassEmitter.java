@@ -2,8 +2,7 @@ package scripting.transpiler.codegen;
 
 import scripting.RegisterComponent;
 import scripting.RegisterGameObject;
-import scripting.transpiler.ast.ClassDeclaration;
-import scripting.transpiler.ast.TypeReference;
+import scripting.transpiler.ast.*;
 import scripting.transpiler.semantic.ClassRegistration;
 import utility.log.EngineLog;
 
@@ -14,7 +13,7 @@ import java.util.Map;
  * Drive the {@link JavaSourceWriter} to render the entire class including: registration annotation,
  * optional Logger field, and the class's methods.
  * <p>
- * The result is a complete java compilation unit in the flat {@code scripts} package.
+ * The result is a complete java compilation unit in the flat {@code scripts} package. {@code extends Object} is normalized and remove.
  */
 public final class ClassEmitter {
     private static final String Package = "scripts";
@@ -63,18 +62,24 @@ public final class ClassEmitter {
 
     private static void body(EmitContext context, ClassDeclaration classDeclaration) {
         FieldEmitter fields = new FieldEmitter(context);
+        SignalEmitter signals = new SignalEmitter(context);
         MethodEmitter methods = new MethodEmitter(context);
         boolean first = true;
         if (context.useLogger) {
             logger(context);
             first = false;
         }
-        for (var field : classDeclaration.fields) {
+        for (FieldDeclaration field : classDeclaration.fields) {
             if (!first) context.writer.blankLine();
             fields.emit(field);
             first = false;
         }
-        for (var method : classDeclaration.methods) {
+        for (SignalDeclaration signal : classDeclaration.signals) {
+            if (!first) context.writer.blankLine();
+            signals.emit(signal);
+            first = false;
+        }
+        for (MethodDeclaration method : classDeclaration.methods) {
             if (!first) context.writer.blankLine();
             methods.emit(method);
             first = false;
@@ -83,6 +88,6 @@ public final class ClassEmitter {
 
     private static void logger(EmitContext context) {
         String type = context.writer.importType(EngineLogType);
-        context.writer.field("private static final " + type + " Logger = new " + type + "(" + context.className + ".class)");
+        context.writer.field(String.format("private static final %s Logger = new %s(%s.class)", type, type, context.className));
     }
 }

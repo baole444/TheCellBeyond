@@ -20,7 +20,10 @@ classDeclaration: CLASS NAME ( EXTENDS typeReference NEWLINE
                              | NEWLINE (EXTENDS typeReference NEWLINE)?
                              ) classMember*;
 
-classMember: fieldDeclaration | methodDeclaration;
+classMember: fieldDeclaration | methodDeclaration | signalDeclration;
+
+// Signal declration shortcut, translated to public final Signal field
+signalDeclration : SIGNAL NAME (OPEN_PAREN parameterList? CLOSE_PAREN)? NEWLINE;
 
 // Enum body is an indented block, constants first then an optional traling field declaration
 enumDeclaration: ENUM NAME COLON NEWLINE INDENT enumConstant+ enumField* DEDENT;

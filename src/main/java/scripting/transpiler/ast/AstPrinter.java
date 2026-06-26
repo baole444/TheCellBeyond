@@ -31,6 +31,7 @@ public final class AstPrinter {
             case EnumConstant n -> "EnumConstant " + n.name;
             case FieldDeclaration n -> "FieldDeclaration " + (n.isConst ? "const " : "var ") + n.visibility + (n.isStatic ? " static" : "") + " " + n.name + " : " + typeClause(n.type);
             case MethodDeclaration n -> "MethodDeclaration " + n.visibility + (n.isStatic ? " static" : "") + " " + n.name + "() -> " + (n.returnType == null ? "void" : typeName(n.returnType));
+            case SignalDeclaration n -> "SignalDeclaration " + n.name;
             case ParameterDeclaration n -> "ParameterDeclaration " + n.name + " : " + typeName(n.type);
             case TypeReference n -> "TypeReference " + typeName(n);
             case Annotation n -> "Annotation @" + n.name;
@@ -67,7 +68,8 @@ public final class AstPrinter {
     private static List<AstNode> children(AstNode node) {
         return switch (node) {
             case ScriptFile n -> List.of(n.typeDeclaration);
-            case ClassDeclaration n -> concat(nullable(n.superType), n.fields, n.methods);
+            case ClassDeclaration n -> concat(nullable(n.superType), n.fields, n.methods, n.signals);
+            case SignalDeclaration n -> List.copyOf(n.parameters);
             case EnumDeclaration n -> concat(n.constants, n.fields);
             case EnumConstant n -> List.copyOf(n.arguments);
             case FieldDeclaration n -> concat(n.annotations, optionalType(n.type), nullable(n.initializer));

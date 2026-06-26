@@ -23,6 +23,7 @@ CLASS    : 'class';
 ENUM     : 'enum';
 EXTENDS  : 'extends';
 FUNC     : 'func';
+SIGNAL   : 'signal';
 NEW      : 'new';
 SELF     : 'self';
 VAR      : 'var';

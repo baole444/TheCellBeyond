@@ -227,6 +227,92 @@ public class CodeGenerationTest {    private static final String WorkedExample =
     }
 
     @Test
+    public void signalEmitsPublicFinalFieldWithBoxedContractAndCompiles() {
+        String generated = ok("""
+                class Weapon extends CharacterBody2D
+                signal weapon_cooldown(cooldown : float)
+                signal hit(damage : int, source : CharacterBody2D)
+                signal died
+                """, "Weapon.tcbs", Map.of());
+        assertTrue(generated.contains("public final Signal weapon_cooldown = new Signal(Float.class);"), generated);
+        assertTrue(generated.contains("public final Signal hit = new Signal(Integer.class, CharacterBody2D.class);"), generated);
+        assertTrue(generated.contains("public final Signal died = new Signal();"), generated);
+        assertTrue(generated.contains("import signal.Signal;"), generated);
+        assertCompiles("Weapon", generated);
+    }
+
+    @Test
+    public void signalEmitAndConnectionShortcutsCompile() {
+        String generated = ok("""
+                class Weapon extends CharacterBody2D
+                signal weapon_cooldown(cooldown : float)
+                func fire() -> void:
+                    weapon_cooldown.emit(2.5)
+                func _ready() -> void:
+                    weapon_cooldown.connect(self.on_cooldown)
+                    weapon_cooldown.connect(on_cooldown)
+                func on_cooldown(cooldown : float) -> void:
+                    pass
+                """, "Weapon.tcbs", Map.of());
+        assertTrue(generated.contains("weapon_cooldown.emit(2.5)"), generated);
+        assertTrue(generated.contains("weapon_cooldown.connect(Callable.get(this, \"on_cooldown\"));"), "self.handler and bare handler both lower identically");
+        assertTrue(generated.contains("import signal.Callable;"), generated);
+        assertCompiles("Weapon", generated);
+    }
+
+    @Test
+    public void signalSugarMatchesHandwrittenConstructorForm() {
+        String sugar = ok("""
+                class A
+                signal spawned(body : CharacterBody2D)
+                signal died
+                """, "A.tcbs", Map.of());
+        String handwritten = ok("""
+                class A
+                const spawned : Signal = Signal(CharacterBody2D.class)
+                const died : Signal = Signal()
+                """, "A.tcbs", Map.of());
+        assertEquals(normalize(handwritten), normalize(sugar), "the signal sugar emits the same Java as the const + constructor form");
+    }
+
+    @Test
+    public void instanceMethodConnectsAsCallableAndCompiles() {
+        String generated = ok("""
+                class Probe
+                var sig : Signal
+                var other : CharacterBody2D
+                func run() -> void:
+                    sig.connect(other.move_and_slide)
+                """, "Probe.tcbs", Map.of());
+        assertTrue(generated.contains("sig.connect(Callable.get(other, \"moveAndSlide\"));"), "a method reference on another instance binds a callable to it");
+        assertCompiles("Probe", generated);
+    }
+
+    @Test
+    public void crossScriptInstanceMethodConnectsAsCallable() {
+        String generated = ok("""
+                class Listener
+                var weapon : Weapon
+                func ready() -> void:
+                    weapon.fired.connect(weapon.on_fired)
+                """, "Listener.tcbs", index(weapon()));
+        assertTrue(generated.contains("weapon.fired.connect(Callable.get(weapon, \"on_fired\"));"), "even when the signal is cross-script, the handler instance binds a callable");
+    }
+
+    @Test
+    public void crossScriptSignalConnectionEmitsWithPassthroughName() {
+        String generated = ok("""
+                class Listener
+                var weapon : Weapon
+                func ready() -> void:
+                    weapon.weapon_cooldown.connect(self.on_cooldown)
+                func on_cooldown(cooldown : float) -> void:
+                    pass
+                """, "Listener.tcbs", index(weapon()));
+        assertTrue(generated.contains("weapon.weapon_cooldown.connect(Callable.get(this, \"on_cooldown\"));"), "the cross-script signal name passes through verbatim, matching the emitter's field");
+    }
+
+    @Test
     public void selfEmitsThisAsReceiverAndArgument() {
         String generated = ok("""
                 class Hero extends CharacterBody2D
@@ -593,5 +679,9 @@ public class CodeGenerationTest {    private static final String WorkedExample =
 
     private static ProjectClassEntry enumEntry(String name) {
         return new ProjectClassEntry(name, "src/script/" + name + ".tcbs", ProjectClassEntry.Kind.Script, null, "scripts", true);
+    }
+
+    private static ProjectClassEntry weapon() {
+        return new ProjectClassEntry("Weapon", "src/script/Weapon.tcbs", ProjectClassEntry.Kind.Script, "Object", "scripts", false);
     }
 }

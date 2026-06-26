@@ -136,7 +136,7 @@ public class TCBScriptParserTest {
                     var c = Float.class
                     Signal(Float.class)
                 """).methods.getFirst().body;
-        LocalVariableDeclaration a = assertInstanceOf(LocalVariableDeclaration.class, body.statements.get(0));
+        LocalVariableDeclaration a = assertInstanceOf(LocalVariableDeclaration.class, body.statements.getFirst());
         assertInstanceOf(SelfExpression.class, a.initializer);
         LocalVariableDeclaration b = assertInstanceOf(LocalVariableDeclaration.class, body.statements.get(1));
         ConstructorCallExpression ctor = assertInstanceOf(ConstructorCallExpression.class, b.initializer);
@@ -150,6 +150,24 @@ public class TCBScriptParserTest {
         assertNull(bareConstructor.target, "a bare TypeName(args) parses as an unqualified call for the resolver to classify");
         assertEquals("Signal", bareConstructor.methodName);
         assertInstanceOf(ClassLiteralExpression.class, bareConstructor.arguments.getFirst());
+    }
+
+    @Test
+    public void parsesSignalDeclarations() {
+        ClassDeclaration cls = parseClass("""
+                class Weapon
+                signal weapon_cooldown(cooldown : float)
+                signal died
+                """);
+        assertEquals(2, cls.signals.size());
+        SignalDeclaration cooldown = cls.signals.getFirst();
+        assertEquals("weapon_cooldown", cooldown.name);
+        assertEquals(1, cooldown.parameters.size());
+        assertEquals("cooldown", cooldown.parameters.getFirst().name);
+        assertEquals("float", cooldown.parameters.getFirst().type.name);
+        SignalDeclaration died = cls.signals.get(1);
+        assertEquals("died", died.name);
+        assertTrue(died.parameters.isEmpty(), "a parameterless signal carries no parens and no parameters");
     }
 
     @Test

@@ -22,6 +22,8 @@ import java.util.*;
  */
 public final class SymbolResolver {
     private static final String ObjectType = "Object";
+    private static final String SignalType = "Signal";
+    private static final String SignalFQN = "signal.Signal";
     private static final Set<String> BuiltInType = Set.of("int", "float", "bool", "String", "void", ObjectType);
     private static final Map<String, String> LogBuiltins = Map.of(
             "print", "info",
@@ -66,6 +68,7 @@ public final class SymbolResolver {
             if (field.type != null) resolveType(field.type);
             else inferFieldType(field);
         }
+        classDeclaration.signals.forEach(signal -> signal.parameters.forEach(param -> resolveType(param.type)));
         classDeclaration.methods.forEach(this::resolveMethodBody);
         return errors;
     }
@@ -85,6 +88,7 @@ public final class SymbolResolver {
         methodNames = new HashSet<>();
         selfCallResolution = new HashMap<>();
         classDeclaration.fields.forEach(field -> fieldTypes.put(field.name, field.type));
+        classDeclaration.signals.forEach(signal -> fieldTypes.put(signal.name, new TypeReference(signal.position, SignalType, 0)));
         classDeclaration.methods.forEach(method -> methodNames.add(method.name));
     }
 
@@ -235,8 +239,12 @@ public final class SymbolResolver {
 
     private void resolveIdentifier(IdentifierExpression identifier, Map<String, TypeReference> scope) {
         String name = identifier.name;
-        if (scope.containsKey(name) || fieldTypes.containsKey(name) || methodNames.contains(name)) {
+        if (scope.containsKey(name) || fieldTypes.containsKey(name)) {
             identifier.resolution = new Resolution.UserMemberResolution(name);
+            return;
+        }
+        if (methodNames.contains(name)) {
+            identifier.resolution = new Resolution.CallableShortcutResolution(methodJavaName(name));
             return;
         }
         Optional<Resolution.APIMemberResolution> inherited = findInheritedAPIMember(name);
@@ -310,6 +318,12 @@ public final class SymbolResolver {
 
     private void resolveCall(MethodCallExpression call, Map<String, TypeReference> scope) {
         for (Expression arg : call.arguments) resolveExpression(arg, scope);
+        resolveCallTarget(call, scope);
+        if (signalConnectionCall(call)) call.arguments.forEach(this::resolveCallableArgument);
+    }
+
+    private void resolveCallTarget(MethodCallExpression call, Map<String, TypeReference> scope) {
+
         if (call.target != null) {
             resolveExpression(call.target, scope);
             call.resolution = resolveQualifiedMember(call.target, call.methodName, scope);
@@ -335,6 +349,30 @@ public final class SymbolResolver {
             return;
         }
         error(call, "Cannot resolve method '" + call.methodName + "'");
+    }
+
+    /**
+     * Check if a call is a {@code Signal} connection {@code connect}/{@code disconnect}.
+     * @param call the call to check
+     * @return true when the call connects or disconnects a signal
+     */
+    private boolean signalConnectionCall(MethodCallExpression call) {
+        return switch (call.resolution) {
+            case Resolution.APIMemberResolution(String receiverFQN, String javaName) -> receiverFQN.equals(SignalFQN) && connectMethodName(javaName);
+            case null -> connectMethodName(SnakeCaseConverter.toSnake(call.methodName));
+            default -> false;
+        };
+    }
+
+    private void resolveCallableArgument(Expression arg) {
+        if (!(arg instanceof MemberAccessExpression access)) return;
+        if (access.resolution instanceof Resolution.CallableShortcutResolution) return;
+        String methodName = access.resolution instanceof Resolution.APIMemberResolution(String _, String javaName) ? javaName : access.memberName;
+        access.resolution = new Resolution.CallableShortcutResolution(methodName);
+    }
+
+    private static boolean connectMethodName(String name) {
+        return name.equals("connect") || name.equals("disconnect");
     }
 
     /**
@@ -387,10 +425,7 @@ public final class SymbolResolver {
             case MethodCallExpression call -> resolveCall(call, scope);
             case ConstructorCallExpression constructor -> resolveConstructorCall(constructor, scope);
             case ClassLiteralExpression classLiteral -> resolveType(classLiteral.type);
-            case MemberAccessExpression access -> {
-                resolveExpression(access.target, scope);
-                access.resolution = resolveQualifiedMember(access.target, access.memberName, scope);
-            }
+            case MemberAccessExpression access -> resolveMemberAccess(access, scope);
             case BinaryExpression binary -> {
                 resolveExpression(binary.left, scope);
                 resolveExpression(binary.right, scope);
@@ -415,6 +450,35 @@ public final class SymbolResolver {
             }
             default -> {}
         }
+    }
+
+    /**
+     * Resolve a member access. A {@code self.method} reference, the {@code method} is used as a name used for the callable shortcut.
+     * If {@code method} is not a method of the current class, it resolved as a qualified member.
+     * @param access the member access to resolve
+     * @param scope the locals and parameters in scope
+     */
+    private void resolveMemberAccess(MemberAccessExpression access, Map<String, TypeReference> scope) {
+        resolveExpression(access.target, scope);
+        if (access.target instanceof SelfExpression && methodNames.contains(access.memberName)) {
+            access.resolution = new Resolution.CallableShortcutResolution(methodJavaName(access.memberName));
+            return;
+        }
+        access.resolution = resolveQualifiedMember(access.target, access.memberName, scope);
+    }
+
+    /**
+     * Get the generated Java name of a method on the current class, using the translated name.
+     * User's declared methods pass through.
+     * @param name the method's script name
+     * @return the Java name to bind the callable to, or original script name
+     */
+    private String methodJavaName(String name) {
+        return switch (selfCallResolution.get(name)) {
+            case Resolution.LifecycleResolution(String javaName) -> javaName;
+            case Resolution.APIMemberResolution(String ignored, String javaName) -> javaName;
+            case null, default -> name;
+        };
     }
 
     /**

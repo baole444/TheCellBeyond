@@ -175,11 +175,18 @@ public final class ParseTreeToAst extends TCBScriptParserBaseVisitor<AstNode> {
         TypeReference superType = context.typeReference() != null ? typeReference(context.typeReference()) : null;
         List<FieldDeclaration> fields = new ArrayList<>();
         List<MethodDeclaration> methods = new ArrayList<>();
+        List<SignalDeclaration> signals = new ArrayList<>();
         for (ClassMemberContext member : context.classMember()) {
             if (member.fieldDeclaration() != null) fields.add(fieldDeclaration(member.fieldDeclaration()));
-            else methods.add(methodDeclaration(member.methodDeclaration()));
+            else if (member.methodDeclaration() != null) methods.add(methodDeclaration(member.methodDeclaration()));
+            else signals.add(signalDeclaration(member.signalDeclration()));
         }
-        return new ClassDeclaration(position(context), name, superType, fields, methods);
+        return new ClassDeclaration(position(context), name, superType, fields, methods, signals);
+    }
+
+    private SignalDeclaration signalDeclaration(SignalDeclrationContext context) {
+        List<ParameterDeclaration> params = context.parameterList() != null ? parameters(context.parameterList()) : List.of();
+        return new SignalDeclaration(position(context), context.NAME().getText(), params);
     }
 
     private FieldDeclaration fieldDeclaration(FieldDeclarationContext context) {

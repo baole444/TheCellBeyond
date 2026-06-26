@@ -2,6 +2,7 @@ package scripting.transpiler.codegen;
 
 import scripting.transpiler.ast.*;
 import scripting.transpiler.semantic.Resolution;
+import signal.Callable;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -14,6 +15,7 @@ import java.util.stream.Collectors;
  */
 final class ExpressionEmitter {
     private static final String FloatType = "float";
+    private static final String CallableType = Callable.class.getName();
     private final EmitContext context;
 
     ExpressionEmitter(EmitContext context) {
@@ -58,6 +60,7 @@ final class ExpressionEmitter {
             case Resolution.ProjectClassResolution(String fqn) -> context.writer.importType(fqn);
             case Resolution.APIMemberResolution(String ignored, String javaName) -> javaName;
             case Resolution.UserMemberResolution(String name) -> name;
+            case Resolution.CallableShortcutResolution(String methodName) -> callableGet("this", methodName);
             case null, default -> identifier.name;
         };
     }
@@ -86,7 +89,15 @@ final class ExpressionEmitter {
     }
 
     private String access(MemberAccessExpression access) {
+        if (access.resolution instanceof Resolution.CallableShortcutResolution(String methodName)) {
+            String receiver = access.target instanceof SelfExpression ? "this" : emit(access.target);
+            return callableGet(receiver, methodName);
+        }
         return emit(access.target) + "." + memberName(access.resolution, access.memberName);
+    }
+
+    private String callableGet(String receiver, String methodName) {
+        return context.writer.importType(CallableType) + ".get(" + receiver + ", " + JavaSourceWriter.escapeStringLiteral(methodName) + ")";
     }
 
     private String unary(UnaryExpression unary, String expectedType) {

@@ -185,7 +185,7 @@ public class SemanticPassTest {
                     pass
                 """, Map.of());
         List<Statement> body = cls.methods.getFirst().body.statements;
-        MethodCallExpression selfReceiver = assertInstanceOf(MethodCallExpression.class, ((ExpressionStatement) body.get(0)).expression);
+        MethodCallExpression selfReceiver = assertInstanceOf(MethodCallExpression.class, ((ExpressionStatement) body.getFirst()).expression);
         assertInstanceOf(SelfExpression.class, selfReceiver.target);
         assertEquals("moveAndSlide", assertInstanceOf(Resolution.APIMemberResolution.class, selfReceiver.resolution).javaName(), "self resolves the receiver against the nearest API ancestor");
         MethodCallExpression callableGet = assertInstanceOf(MethodCallExpression.class, ((ExpressionStatement) body.get(1)).expression);
@@ -199,7 +199,7 @@ public class SemanticPassTest {
                 var a : Signal = Signal()
                 var b : Signal = new Signal()
                 """, Map.of());
-        Resolution.ConstructorResolution bare = assertInstanceOf(Resolution.ConstructorResolution.class, ((MethodCallExpression) cls.fields.get(0).initializer).resolution);
+        Resolution.ConstructorResolution bare = assertInstanceOf(Resolution.ConstructorResolution.class, ((MethodCallExpression) cls.fields.getFirst().initializer).resolution);
         assertEquals("signal.Signal", bare.fqn());
         Resolution.ConstructorResolution explicitNew = assertInstanceOf(Resolution.ConstructorResolution.class, ((ConstructorCallExpression) cls.fields.get(1).initializer).resolution);
         assertEquals("signal.Signal", explicitNew.fqn());
@@ -213,6 +213,89 @@ public class SemanticPassTest {
                 """, Map.of());
         ClassLiteralExpression literal = assertInstanceOf(ClassLiteralExpression.class, cls.fields.getFirst().initializer);
         assertEquals("physic2d.CharacterBody2D", assertInstanceOf(Resolution.APIClassResolution.class, literal.type.resolution).fqn());
+    }
+
+    @Test
+    public void signalUsableAsTypedFieldForEmit() {
+        ClassDeclaration cls = ok("""
+                class Weapon
+                signal weapon_cooldown(cooldown : float)
+                func fire() -> void:
+                    weapon_cooldown.emit(2.5)
+                """, Map.of());
+        MethodCallExpression emit = firstCall(cls.methods.getFirst());
+        Resolution.APIMemberResolution member = assertInstanceOf(Resolution.APIMemberResolution.class, emit.resolution, "the signal field resolves as a Signal, so .emit is an API call");
+        assertEquals("signal.Signal", member.receiverClassFQN());
+        assertEquals("emit", member.javaName());
+    }
+
+    @Test
+    public void selfHandlerLowersToCallableShortcut() {
+        ClassDeclaration cls = ok("""
+                class Listener
+                var sig : Signal
+                func ready() -> void:
+                    sig.connect(self.on_event)
+                func on_event() -> void:
+                    pass
+                """, Map.of());
+        MethodCallExpression connect = firstCall(cls.methods.getFirst());
+        MemberAccessExpression handler = assertInstanceOf(MemberAccessExpression.class, connect.arguments.getFirst());
+        assertEquals("on_event", assertInstanceOf(Resolution.CallableShortcutResolution.class, handler.resolution).methodName());
+    }
+
+    @Test
+    public void bareHandlerLowersToCallableShortcut() {
+        ClassDeclaration cls = ok("""
+                class Listener
+                var sig : Signal
+                func ready() -> void:
+                    sig.connect(on_event)
+                func on_event() -> void:
+                    pass
+                """, Map.of());
+        MethodCallExpression connect = firstCall(cls.methods.getFirst());
+        IdentifierExpression handler = assertInstanceOf(IdentifierExpression.class, connect.arguments.getFirst());
+        assertEquals("on_event", assertInstanceOf(Resolution.CallableShortcutResolution.class, handler.resolution).methodName(), "a bare method name used as a value lowers to a self callable");
+    }
+
+    @Test
+    public void instanceMethodLowersToCallableShortcutInConnect() {
+        ClassDeclaration cls = ok("""
+                class Listener
+                var sig : Signal
+                var weapon : Weapon
+                func ready() -> void:
+                    sig.connect(weapon.on_fired)
+                """, index(script("Weapon", "Object")));
+        MethodCallExpression connect = firstCall(cls.methods.getFirst());
+        MemberAccessExpression handler = assertInstanceOf(MemberAccessExpression.class, connect.arguments.getFirst());
+        assertEquals("on_fired", assertInstanceOf(Resolution.CallableShortcutResolution.class, handler.resolution).methodName(), "a cross-instance method reference in a connect binds a callable to that instance");
+    }
+
+    @Test
+    public void localShadowsMethodForBareIdentifier() {
+        ClassDeclaration cls = ok("""
+                class C
+                func run() -> void:
+                    var on_event : int = 0
+                    var x : int = on_event
+                func on_event() -> void:
+                    pass
+                """, Map.of());
+        LocalVariableDeclaration assigned = assertInstanceOf(LocalVariableDeclaration.class, cls.methods.getFirst().body.statements.get(1));
+        IdentifierExpression reference = assertInstanceOf(IdentifierExpression.class, assigned.initializer);
+        assertInstanceOf(Resolution.UserMemberResolution.class, reference.resolution, "a local named like a method wins over the callable shortcut");
+    }
+
+    @Test
+    public void signalArrayParameterFails() {
+        SemanticAnalyzer.Result result = run("""
+                class Weapon
+                signal bad(values : int[])
+                """, Map.of());
+        assertTrue(result.hasErrors());
+        assertTrue(result.errors().getFirst().message().toLowerCase().contains("array"), () -> result.errors().toString());
     }
 
     @Test
@@ -260,7 +343,7 @@ public class SemanticPassTest {
                     var ready = true
                 """, Map.of());
         List<Statement> body = cls.methods.getFirst().body.statements;
-        assertEquals("int", localType(body.get(0)));
+        assertEquals("int", localType(body.getFirst()));
         assertEquals("float", localType(body.get(1)));
         assertEquals("String", localType(body.get(2)));
         assertEquals("bool", localType(body.get(3)));
@@ -273,7 +356,7 @@ public class SemanticPassTest {
                 var speed = 200
                 const Max = 10
                 """, Map.of());
-        assertEquals("int", cls.fields.get(0).type.name);
+        assertEquals("int", cls.fields.getFirst().type.name);
         assertEquals("int", cls.fields.get(1).type.name);
     }
 
@@ -461,7 +544,7 @@ public class SemanticPassTest {
                     return true
                 """, Map.of());
         assertEquals(ClassRegistration.None, cls.registration, "State is neither GameObject nor Component");
-        assertOverride(cls.methods.get(0), "onStateEnter");
+        assertOverride(cls.methods.getFirst(), "onStateEnter");
         assertOverride(cls.methods.get(1), "update");
         assertOverride(cls.methods.get(2), "physicUpdate");
         assertOverride(cls.methods.get(3), "isStateEnterConditionMet");
@@ -486,7 +569,7 @@ public class SemanticPassTest {
                 func update(dt : float) -> void:
                     on_state_enter()
                 """, Map.of());
-        assertOverride(cls.methods.get(0), "onStateEnter");
+        assertOverride(cls.methods.getFirst(), "onStateEnter");
         MethodCallExpression selfCall = firstCall(cls.methods.get(1));
         assertEquals("onStateEnter", assertInstanceOf(Resolution.APIMemberResolution.class, selfCall.resolution).javaName());
     }

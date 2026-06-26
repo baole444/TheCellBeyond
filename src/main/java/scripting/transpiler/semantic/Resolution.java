@@ -31,6 +31,11 @@ public sealed interface Resolution {
      */
     record ConstructorResolution(String fqn) implements Resolution {}
     /**
+     * The connection shortcut, a method of the current class reference as a value
+     * @param methodName
+     */
+    record CallableShortcutResolution(String methodName) implements Resolution {}
+    /**
      * A method or field of an API type.
      * @param receiverClassFQN the fully qualified name of the type
      * @param javaName the original java name of the member

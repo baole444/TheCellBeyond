@@ -18,6 +18,7 @@ public final class Validator {
     private static final String EnumConstantRole = "enum constant";
     private static final String FieldRole = "field";
     private static final String MethodRole = "method";
+    private static final String SignalRole = "signal";
     private static final String ParameterRole = "parameter";
     private static final String VariableRole = "variable";
     private final List<SemanticError> errors = new ArrayList<>();
@@ -45,7 +46,16 @@ public final class Validator {
         checkReserved(classDeclaration.name, classDeclaration, "class");
         classDeclaration.fields.forEach(this::validateField);
         classDeclaration.methods.forEach(this::validateMethod);
+        classDeclaration.signals.forEach(this::validateSignal);
         return errors;
+    }
+
+    private void validateSignal(SignalDeclaration signal) {
+        checkReserved(signal.name, signal, SignalRole);
+        for (ParameterDeclaration param : signal.parameters) {
+            checkReserved(param.name, param, ParameterRole);
+            if (param.type.arrayDepth != 0) error(param.type, String.format("Signal parameter '%s' has unsupported array type", param.name));
+        }
     }
 
     private void validateEnum(EnumDeclaration enumDeclaration) {
