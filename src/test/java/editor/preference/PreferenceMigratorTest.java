@@ -28,11 +28,9 @@ final class PreferenceMigratorTest {
     @Test
     public void versionlessFileGainsCleanBuildDefaultAndPreservesValues(@TempDir Path dir) throws IOException {
         Path config = write(dir, """
-                autoSaveOnExit: false
+                autoSaveOnExit: true
                 autoSaveOnChangeScene: false
-                showGridLine: false
-                cleanBuildScripts: false
-                version: 1
+                showGridLine: true
                 """);
         EditorPreferences result = PreferenceMigrator.migrate(config, Mapper);
         assertTrue(result.autoSaveOnExit(), "user value preserved");

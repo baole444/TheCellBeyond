@@ -38,15 +38,26 @@ public final class ProjectScanner {
     private ProjectScanner() {}
 
     /**
-     * Scan a project root to index script classes.
+     * Scan a project root to index script classes, excluding the Gradle default build directory.
      * @param scriptsRoot the project's {@code script-src} directory
      * @return the class index and collected errors
      */
     public static Result scan(Path scriptsRoot) {
+        return scan(scriptsRoot, scriptsRoot.resolve(BuildDir));
+    }
+
+    /**
+     * Scan a project root to index script classes, excluding the given build output directory,
+     * so the transpiler's own generated {@code .java} is not indexed against its {@code .tcbs} source.
+     * @param scriptsRoot the project's {@code script-src} directory
+     * @param buildOutputDir the Gradle build output director to exclude, or null to exclude nothing
+     * @return the class index and collected errors
+     */
+    public static Result scan(Path scriptsRoot, Path buildOutputDir) {
         Map<String, ProjectClassEntry> index = new HashMap<>();
         List<SemanticError> errors = new ArrayList<>();
-        for (Path file : walk(scriptsRoot, ".tcbs")) scriptEntry(scriptsRoot, file, errors).ifPresent(entry -> insert(index, entry, errors));
-        for (Path file : walk(scriptsRoot, ".java")) javaEntry(scriptsRoot, file, errors).ifPresent(entry -> insert(index, entry, errors));
+        for (Path file : walk(scriptsRoot, ".tcbs", buildOutputDir)) scriptEntry(scriptsRoot, file, errors).ifPresent(entry -> insert(index, entry, errors));
+        for (Path file : walk(scriptsRoot, ".java", buildOutputDir)) javaEntry(scriptsRoot, file, errors).ifPresent(entry -> insert(index, entry, errors));
         return new Result(index, errors);
     }
 
@@ -80,12 +91,11 @@ public final class ProjectScanner {
         }
     }
 
-    private static List<Path> walk(Path root, String extension) {
+    private static List<Path> walk(Path root, String extension, Path buildDir) {
         if (!Files.isDirectory(root)) return List.of();
-        Path buildDir = root.resolve(BuildDir);
         try (Stream<Path> stream = Files.walk(root)) {
             return stream.filter(Files::isRegularFile)
-                    .filter(p -> !p.startsWith(buildDir))
+                    .filter(p -> buildDir == null || !p.startsWith(buildDir))
                     .filter(p -> p.toString().endsWith(extension))
                     .sorted().toList();
         } catch (IOException e) {
