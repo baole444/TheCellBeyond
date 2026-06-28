@@ -30,7 +30,7 @@ public final class ExitToProjectListDialog {
      */
     public static void show() {
         showDialog = true;
-        isAutoSaveOnExit = UserPreference.reloadEditorPreferences().autoSaveOnExit();
+        isAutoSaveOnExit = UserPreference.reloadPreferences().autoSaveOnExit();
     }
 
     /**
@@ -66,7 +66,7 @@ public final class ExitToProjectListDialog {
             float cancelX = (availX * 0.85f) - (buttonPivotX);
             ImGui.setCursorPosX(saveX);
             if (ImGui.button("Save", buttonWidth, 0)) {
-                if (enableSaveOnExit.get()) setAutoSaveOn();
+                if (enableSaveOnExit.get()) enableAutosave();
                 if (LogicServer.currentSceneName() == null) SaveSceneAsDialog.show(ExitToProjectListDialog::saveAndExit);
                 else saveAndExit();
                 showDialog = false;
@@ -75,7 +75,7 @@ public final class ExitToProjectListDialog {
             ImGui.sameLine();
             ImGui.setCursorPosX(noSaveX);
             if (ImGui.button("Don't save", buttonWidth, 0)) {
-                if (enableSaveOnExit.get()) setAutoSaveOn();
+                if (enableSaveOnExit.get()) enableAutosave();
                 ExitToProjectList.toProjectList(true);
                 Window.get().forceClose();
                 showDialog = false;
@@ -93,11 +93,10 @@ public final class ExitToProjectListDialog {
         if (!ImGui.isPopupOpen(POPUP_ID)) showDialog = false;
     }
 
-    private static void setAutoSaveOn() {
-        EditorPreferences current = UserPreference.reloadEditorPreferences();
+    private static void enableAutosave() {
+        EditorPreferences current = UserPreference.reloadPreferences();
         if (current.autoSaveOnExit()) return;
-        EditorPreferences update = new EditorPreferences(true, current.autoSaveOnChangeScene(), current.showGridLine());
-        UserPreference.updateEditorPreferences(update);
+        UserPreference.updatePreferences(current.autoSaveOnExit(true));
     }
 
     private static void saveAndExit() {

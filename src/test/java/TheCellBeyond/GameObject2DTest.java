@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class GameObject2DTest {
+final class GameObject2DTest {
     private static final float epsilon = 0.001f;
 
     @Test

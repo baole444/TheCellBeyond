@@ -78,7 +78,7 @@ public final class ImGuiLayer {
                return Objects.requireNonNullElse(clipboardString, "");
            }
         });
-        io.setIniFilename(UserPreference.getEditorLayoutFilepath());
+        io.setIniFilename(UserPreference.editorLayoutFilepath());
         io.addConfigFlags(ImGuiConfigFlags.ViewportsEnable);
         io.setConfigFlags(ImGuiConfigFlags.DockingEnable);
         imGuiGlfw.init(windowPtr, true);

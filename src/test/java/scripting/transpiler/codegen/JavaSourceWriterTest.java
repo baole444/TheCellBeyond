@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class JavaSourceWriterTest {
+final class JavaSourceWriterTest {
     @Test
     public void escapeString_plain() {
         assertEquals("\"hello\"", JavaSourceWriter.escapeStringLiteral("hello"));

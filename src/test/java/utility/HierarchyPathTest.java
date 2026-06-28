@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class HierarchyPathTest {
+final class HierarchyPathTest {
     @Test
     public void parseSegmentsIgnoreBlankAndSeparator() {
         HierarchyPath path = new HierarchyPath("/root/Parent/Child");

@@ -12,7 +12,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-public class TCBScriptLexerBaseTest {
+final class TCBScriptLexerBaseTest {
     /**
      * Lex a source string into the sequence of emitted token symbolic names (EOF -> "EOF".)
      * @param source string to covert

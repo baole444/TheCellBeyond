@@ -8,7 +8,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class GameObjectTest {
+final class GameObjectTest {
     @Test
     public void getFirstComponentSupportSubclass() {
         GameObject gameObject = new GameObject("Test Object");

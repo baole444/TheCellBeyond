@@ -14,7 +14,7 @@ import imgui.type.ImBoolean;
 /**
  * Editor dialogue for confirm saving current editing scene.
  */
-public class ConfirmSaveSceneDialog {
+public final class ConfirmSaveSceneDialog {
     private static final String PopupID = "Save current scene?";
     private static final ImVec2 DialogSize = new ImVec2(400, 160);
     private static boolean showDialog = false;
@@ -42,7 +42,7 @@ public class ConfirmSaveSceneDialog {
      * @param cancelCallback callback to execute on decision reject
      */
     public static void show(Runnable decisionCallback, Runnable cancelCallback) {
-        isAutoSaveOnSceneChange = UserPreference.editorPreferences().autoSaveOnChangeScene();
+        isAutoSaveOnSceneChange = UserPreference.preferences().autoSaveOnChangeScene();
         showDialog = true;
         onCompleteDecision = decisionCallback;
         onCancelDecision = cancelCallback;
@@ -133,9 +133,8 @@ public class ConfirmSaveSceneDialog {
     }
 
     private static void setAutoSaveOn() {
-        EditorPreferences current = UserPreference.reloadEditorPreferences();
+        EditorPreferences current = UserPreference.reloadPreferences();
         if (current.autoSaveOnChangeScene()) return;
-        EditorPreferences update = new EditorPreferences(current.autoSaveOnExit(), true, current.showGridLine());
-        UserPreference.updateEditorPreferences(update);
+        UserPreference.updatePreferences(current.autoSaveOnChangeScene(true));
     }
 }

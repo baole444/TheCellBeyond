@@ -130,10 +130,8 @@ public final class EditProjectSettingsDialog {
             float buttonWidth = 120;
             float buttonHeight = 30;
             float regionHeight = ImGui.getContentRegionAvailY() - ButtonReserve - SeparatorReserve - buttonHeight - Padding;
-            if (ImGui.beginChild("##EPPD_Tab_Region", 0.0f, regionHeight, ImGuiChildFlags.Borders)) {
-                renderTabContent();
-                ImGui.endChild();
-            }
+            if (ImGui.beginChild("##EPPD_Tab_Region", 0.0f, regionHeight, ImGuiChildFlags.Borders)) renderTabContent();
+            ImGui.endChild();
             if (selectedTab == TabName.General) ProjectPreferenceTab.autoSavePreferences();
             renderCloseButton(buttonWidth, buttonHeight);
             ImGui.endPopup();
@@ -146,12 +144,11 @@ public final class EditProjectSettingsDialog {
         ImGui.setCursorPosY(ImGui.getWindowHeight() - ButtonReserve - (buttonHeight / 2) - ImGui.getStyle().getWindowPaddingY());
         float buttonPivotX = buttonWidth * 0.5f;
         float availX = ImGui.getContentRegionAvailX();
-        float cancelX = (availX * 0.5f) - buttonPivotX;
-        ImGui.setCursorPosX(cancelX);
-        if (ImGui.button("Close##EPPD_CLose_Dialog", buttonWidth, buttonHeight)) {
-            showDialog = false;
-            ImGui.closeCurrentPopup();
-        }
+        float closeX = (availX * 0.5f) - buttonPivotX;
+        ImGui.setCursorPosX(closeX);
+        if (!ImGui.button("Close##EPPD_CLose_Dialog", buttonWidth, buttonHeight)) return;
+        showDialog = false;
+        ImGui.closeCurrentPopup();
     }
 
     private static void renderTabContent() {

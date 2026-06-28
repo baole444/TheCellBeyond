@@ -301,7 +301,7 @@ public final class Window implements EngineEventListener {
                 glfwSetWindowShouldClose(windowPtr, true);
                 return;
             }
-            if (projectLoaded && UserPreference.editorPreferences().autoSaveOnExit()) SceneManager.saveCurrentScene();
+            if (projectLoaded && UserPreference.preferences().autoSaveOnExit()) SceneManager.saveCurrentScene();
             glfwSetWindowShouldClose(windowPtr, false);
             shouldClose = ExitConfirmDialog.exitDialog();
             if (shouldClose) glfwSetWindowShouldClose(windowPtr, true);

@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-public class SnakeCaseConverterTest {
+final class SnakeCaseConverterTest {
     @Test
     public void convertsCamelCaseMembers() {
         assertEquals("move_and_slide", SnakeCaseConverter.toSnake("moveAndSlide"));

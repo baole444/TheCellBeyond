@@ -6,7 +6,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class APIManifestTest {
+final class APIManifestTest {
     @Test
     public void loadsBundledManifest() {
         assertEquals(APIManifest.CurrentManifestVersion, APIManifest.manifestVersion());

@@ -18,7 +18,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class CodeGenerationTest {    private static final String WorkedExample = """
+final class CodeGenerationTest {
+    private static final String WorkedExample = """
             class MainPlayer extends CharacterBody2D
             @export var speed : int = 200
             func _physic_update(dt : float) -> void:

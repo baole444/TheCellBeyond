@@ -16,7 +16,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class SemanticPassTest {
+final class SemanticPassTest {
     private static final String WorkedExample = """
             class MainPlayer extends CharacterBody2D
             @export var speed : int = 200

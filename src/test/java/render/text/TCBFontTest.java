@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
-public class TCBFontTest {
+final class TCBFontTest {
     @Test
     public void loadFontCorrectly() throws InterruptedException {
         ResourceStatus status = awaitFont(Settings.FontPath.Caudex, GlyphRange.ASCII, 16, 16);

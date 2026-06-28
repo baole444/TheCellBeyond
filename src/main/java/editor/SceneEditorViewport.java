@@ -5,7 +5,6 @@ import TheCellBeyond.Viewport;
 import TheCellBeyond.Window;
 import TheCellBeyond.internal.LogicServer;
 import editor.dialog.SaveSceneAsDialog;
-import editor.preference.EditorPreferences;
 import editor.preference.UserPreference;
 import eventviewer.EngineEventCallback;
 import eventviewer.EngineEventListener;
@@ -81,12 +80,10 @@ final class SceneEditorViewport implements EngineEventListener {
         ImGui.tableNextColumn();
         renderSceneName();
         ImGui.tableNextColumn();
-        ImBoolean snapGrid = new ImBoolean(UserPreference.editorPreferences().showGridLine());
+        ImBoolean snapGrid = new ImBoolean(UserPreference.preferences().showGridLine());
         if (ImGui.checkbox("Grid snapping##Ctrl_Grid_Snap_nd_Show_ESV", snapGrid)) {
             boolean enable = snapGrid.get();
-            EditorPreferences currentPrefs = UserPreference.editorPreferences();
-            EditorPreferences newPrefs = new EditorPreferences(currentPrefs.autoSaveOnExit(), currentPrefs.autoSaveOnChangeScene(), enable);
-            UserPreference.updateEditorPreferences(newPrefs);
+            UserPreference.updatePreferences(UserPreference.preferences().showGridLine(enable));
         }
         ImGui.endTable();
         ImGui.endMenuBar();
@@ -197,10 +194,8 @@ final class SceneEditorViewport implements EngineEventListener {
     private static ImVec2 getViewportToCentral(ImVec2 usableSize) {
         ImVec2 winSize = new ImVec2();
         ImGui.getContentRegionAvail(winSize);
-
         float portX = (winSize.x / 2.0f) - (usableSize.x / 2.0f);
         float portY = (winSize.y / 2.0f) - (usableSize.y / 2.0f);
-
         return new ImVec2(portX + ImGui.getCursorPosX(), portY + ImGui.getCursorPosY());
     }
 

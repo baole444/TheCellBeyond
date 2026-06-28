@@ -7,7 +7,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class TCBScriptParserTest {
+final class TCBScriptParserTest {
     private static final String WorkingExample = """
             class MainPlayer extends CharacterBody2D
             @export var speed : int = 200

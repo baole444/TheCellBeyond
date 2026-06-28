@@ -1,25 +1,29 @@
 package editor.preference;
 
 import tools.jackson.core.exc.JacksonIOException;
+import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.type.MapType;
 import tools.jackson.dataformat.yaml.YAMLFactory;
+import utility.log.EngineLog;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class UserPreference {
-    private static final String APPLICATION = "TheCellBeyond";
-    private static Path CONFIG_DIR = null;
-    private static final String RECENT_PROJECT_FILE = "recent_project";
-    private static final String EDITOR_PREFERENCE_FILE = "configs";
-    private static final String EDITOR_LAYOUT_FILE = "layout.ini";
-    private static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory());
+public final class UserPreference {
+    private static final EngineLog Logger = new EngineLog(UserPreference.class);
+    private static final String Application = "TheCellBeyond";
+    private static Path ConfigDir = null;
+    private static final String RecentProjectFile = "recent_project";
+    private static final String EditorPreferenceFile = "configs";
+    private static final String EditorLayoutFile = "layout.ini";
+    private static final ObjectMapper YAMLMapper = new ObjectMapper(new YAMLFactory()).rebuild().disable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
     private static final HashMap<UUID, RecentProject> recentProjects = new HashMap<>();
     private static EditorPreferences editorPreferences = new EditorPreferences();
 
@@ -27,6 +31,7 @@ public class UserPreference {
         loadConfigDirectory();
         loadEditorPreferences();
         loadRecentProjects();
+        cleanupEditorPreferenceBackups();
     }
 
     private static void loadConfigDirectory() {
@@ -36,56 +41,50 @@ public class UserPreference {
         if (OS.contains("win")) dataDir = System.getenv("APPDATA");
         else if (OS.contains("mac")) dataDir = home + File.separator + "Library" + File.separator + "Application Support";
         else dataDir = home + File.separator + ".config";
-        Path tcbDir = Path.of(dataDir, APPLICATION);
-
+        Path tcbDir = Path.of(dataDir, Application);
         try {
             Files.createDirectories(tcbDir);
         } catch (IOException e) {
-            System.err.println("Failed to create config preference directory: " + e.getMessage());
+            Logger.warning("Failed to create config preference directory: " + e.getMessage());
             tcbDir = Path.of(System.getProperty("user.dir"), "config");
             try {
                 Files.createDirectories(tcbDir);
             } catch (IOException fallbackE) {
-                System.err.println("Cannot write to fallback config directory: " + fallbackE.getMessage());
+                Logger.warning("Cannot write to fallback config directory: " + fallbackE.getMessage());
                 tcbDir = null;
             }
         }
-
-        CONFIG_DIR = tcbDir;
+        ConfigDir = tcbDir;
     }
 
     private static void loadRecentProjects() {
-        if (CONFIG_DIR == null) return;
-
-        Path recents = CONFIG_DIR.resolve(RECENT_PROJECT_FILE);
-        if (Files.exists(recents)) {
-            try {
-                MapType mapType = YAML_MAPPER.getTypeFactory().constructMapType(HashMap.class, UUID.class, RecentProject.class);
-                recentProjects.clear();
-                recentProjects.putAll(YAML_MAPPER.readValue(recents.toFile(), mapType));
-            } catch (JacksonIOException e) {
-                System.err.println("Failed to load recent projects");
-            }
+        if (ConfigDir == null) return;
+        Path recents = ConfigDir.resolve(RecentProjectFile);
+        if (!Files.exists(recents)) return;
+        try {
+            MapType mapType = YAMLMapper.getTypeFactory().constructMapType(HashMap.class, UUID.class, RecentProject.class);
+            recentProjects.clear();
+            recentProjects.putAll(YAMLMapper.readValue(recents.toFile(), mapType));
+        } catch (JacksonIOException e) {
+            Logger.warning("Failed to load recent projects: " + e.getMessage());
         }
     }
 
     private static void loadEditorPreferences() {
-        if (CONFIG_DIR == null) return;
-
-        Path config = CONFIG_DIR.resolve(EDITOR_PREFERENCE_FILE);
-        if (Files.exists(config)) {
-            try {
-                editorPreferences = YAML_MAPPER.readValue(config.toFile(), EditorPreferences.class);
-            } catch (JacksonIOException e) {
-                System.err.println("Failed to load editor preferences");
-            }
-        }
+        if (ConfigDir == null) return;
+        Path config = ConfigDir.resolve(EditorPreferenceFile);
+        if (!Files.exists(config)) return;
+        editorPreferences = PreferenceMigrator.migrate(config, YAMLMapper);
     }
 
-    public static String getEditorLayoutFilepath() {
-        if (CONFIG_DIR == null) return EDITOR_LAYOUT_FILE;
+    private static void cleanupEditorPreferenceBackups() {
+        if (ConfigDir == null) return;
+        PreferenceMigrator.pruneBackups(ConfigDir.resolve(EditorPreferenceFile));
+    }
 
-        return CONFIG_DIR.resolve(EDITOR_LAYOUT_FILE).toString();
+    public static String editorLayoutFilepath() {
+        if (ConfigDir == null) return EditorLayoutFile;
+        return ConfigDir.resolve(EditorLayoutFile).toString();
     }
 
     public static HashMap<UUID, RecentProject> recentProjects() {
@@ -94,17 +93,14 @@ public class UserPreference {
 
     public static RecentProject recentProject(String path) {
         if (path == null) return null;
-
         for (RecentProject project : recentProjects.values()) {
             if (project.path().equals(path)) return project;
         }
-
         return null;
     }
 
     public static void updateRecentProject(RecentProject recentProject) {
         if (recentProject == null || recentProject.path() == null) return;
-
         for (Map.Entry<UUID, RecentProject> entry : recentProjects.entrySet()) {
             RecentProject project = entry.getValue();
             if (!project.path().equals(recentProject.path())) continue;
@@ -116,69 +112,62 @@ public class UserPreference {
 
     public static HashMap<UUID, RecentProject> reloadRecentProject() {
         loadRecentProjects();
-
         return recentProjects();
     }
 
     public static void addRecentProject(RecentProject recentProject) {
         if (recentProject == null) return;
-
         recentProjects.put(UUID.randomUUID(), recentProject);
         saveRecentProjects();
     }
 
     public static void updateRecentProject(UUID uuid, RecentProject recentProject) {
         if (uuid == null || recentProject == null) return;
-
         recentProjects.put(uuid, recentProject);
         saveRecentProjects();
     }
 
     public static void removeRecentProject(UUID uuid) {
         if (uuid == null) return;
-
         recentProjects.remove(uuid);
         saveRecentProjects();
     }
 
     private static void saveRecentProjects() {
-        if (CONFIG_DIR == null) return;
-
-        Path recents = CONFIG_DIR.resolve(RECENT_PROJECT_FILE);
-
+        if (ConfigDir == null) return;
+        Path recents = ConfigDir.resolve(RecentProjectFile);
         try {
-            YAML_MAPPER.writerWithDefaultPrettyPrinter().writeValue(recents.toFile(), recentProjects);
+            YAMLMapper.writerWithDefaultPrettyPrinter().writeValue(recents.toFile(), recentProjects);
         } catch (JacksonIOException e) {
-            System.err.println("Failed to save recent projects");
+            Logger.warning("Failed to save recent projects: " + e.getMessage());
         }
     }
 
-    public static EditorPreferences editorPreferences() {
+    public static EditorPreferences preferences() {
         return editorPreferences;
     }
 
-    public static void updateEditorPreferences(EditorPreferences newPreferences) {
+    public static void updatePreferences(EditorPreferences newPreferences) {
         if (newPreferences == null) return;
-
         editorPreferences = newPreferences;
-        saveEditorPreferences();
+        savePreferences();
     }
 
-    public static EditorPreferences reloadEditorPreferences() {
+    public static EditorPreferences reloadPreferences() {
         loadEditorPreferences();
-
-        return editorPreferences();
+        return preferences();
     }
 
-    private static void saveEditorPreferences() {
-        if (CONFIG_DIR == null) return;
-
-        Path config = CONFIG_DIR.resolve(EDITOR_PREFERENCE_FILE);
-
+    private static void savePreferences() {
+        if (ConfigDir == null) return;
+        Path config = ConfigDir.resolve(EditorPreferenceFile);
         try {
-            YAML_MAPPER.writerWithDefaultPrettyPrinter().writeValue(config.toFile(), editorPreferences);
-        } catch (JacksonIOException e) {
-            System.err.println("Failed to save editor preferences");
+            MapType mapType = YAMLMapper.getTypeFactory().constructMapType(LinkedHashMap.class, String.class, Object.class);
+            Map<String, Object> data = YAMLMapper.convertValue(editorPreferences, mapType);
+            data.put(EditorPreferences.VersionKey, EditorPreferences.SaveVersion);
+            YAMLMapper.writerWithDefaultPrettyPrinter().writeValue(config.toFile(), data);
+        } catch (JacksonIOException | IllegalArgumentException e) {
+            Logger.warning("Failed to save editor preferences: " + e.getMessage());
         }
     }
 }
