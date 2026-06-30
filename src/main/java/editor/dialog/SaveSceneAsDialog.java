@@ -9,9 +9,8 @@ import imgui.type.ImString;
 import scene.SceneManager;
 
 public class SaveSceneAsDialog {
-    private static final String POPUP_ID = "Save scene as...";
-    private static final ImVec2 DIALOG_SIZE = new ImVec2(400.0f, 200.0f);
-
+    private static final String PopupID = "Save scene as...";
+    private static final ImVec2 DialogSize = new ImVec2(400.0f, 200.0f);
     private static boolean showDialog = false;
     private static boolean nameTaken = false;
     private static final ImString sceneName = new ImString(128);
@@ -31,15 +30,15 @@ public class SaveSceneAsDialog {
     public static void imgui()  {
         if (!showDialog) return;
 
-        ImGui.openPopup(POPUP_ID);
+        ImGui.openPopup(PopupID);
 
         ImVec2 centre = ImGui.getMainViewport().getCenter();
         float pivotXY = 0.5f;
 
         ImGui.setNextWindowPos(centre.x, centre.y, ImGuiCond.Appearing, pivotXY, pivotXY);
-        ImGui.setNextWindowSize(DIALOG_SIZE);
+        ImGui.setNextWindowSize(DialogSize);
 
-        if (ImGui.beginPopupModal(POPUP_ID, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)) {
+        if (ImGui.beginPopupModal(PopupID, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)) {
             ImGui.spacing();
             ImGui.text("Scene's name:");
             ImGui.pushItemWidth(ImGui.getContentRegionAvailX());
@@ -86,7 +85,7 @@ public class SaveSceneAsDialog {
             ImGui.endPopup();
         }
 
-        if (!ImGui.isPopupOpen(POPUP_ID)) {
+        if (!ImGui.isPopupOpen(PopupID)) {
             showDialog = false;
             resetDialogData();
         }

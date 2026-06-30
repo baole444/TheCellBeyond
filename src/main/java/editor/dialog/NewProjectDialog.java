@@ -106,7 +106,7 @@ public class NewProjectDialog {
         ImGui.popItemWidth();
         ImGui.sameLine();
         if (ImGui.button("Select Directory", selectButtonW, 0)) {
-            Path openedPath = OpenFolderDialog.openFolderDialog();
+            Path openedPath = OpenDirectoryDialog.openDialog();
             if (openedPath != null) {
                 selectedDirectoryPath.set(openedPath.toString());
                 checkForExistingProject(openedPath);

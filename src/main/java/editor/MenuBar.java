@@ -32,6 +32,7 @@ final class MenuBar {
         ConfirmSaveSceneDialog.imgui();
         ChooseObjectTypeDialog.imgui();
         RenameSceneDialog.imgui();
+        MissingRunnerJDKDialog.imgui();
     }
 
     private static void renderEditorMenu() {

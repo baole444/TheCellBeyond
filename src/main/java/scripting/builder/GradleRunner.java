@@ -1,6 +1,7 @@
 package scripting.builder;
 
-import editor.preference.UserPreference;
+import eventviewer.EngineEventCallback;
+import eventviewer.event.EditorEvent;
 import project.Project;
 import utility.log.EngineLog;
 
@@ -10,6 +11,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -34,6 +36,8 @@ public final class GradleRunner {
     private static final String QuietFlag = "-q";
     private static final String BuildDirProperty = "buildDir:";
     private static final String DefaultBuildDir = "build";
+    private static final String JavaHomeEnv = "JAVA_HOME";
+    private static final String GradleJavaHomeProperty = "-Dorg.gradle.java.home=";
     private static final ExecutorService executor = Executors.newSingleThreadExecutor(GradleRunner::buildThread);
     private static final AtomicBoolean buildInProgress = new AtomicBoolean(false);
 
@@ -48,15 +52,21 @@ public final class GradleRunner {
     }
 
     /**
-     * Run {@code gradlew clean jar}, or {@code gradlew jar} when {@code cleanBuildScripts} preference is off, in the project's {@code scripts-src} directory.
+     * Run {@code gradlew clean jar} in the project's {@code scripts-src} directory, or {@code gradlew jar} when {@code cleanBuildScripts} is false.
      * The process output is redirected to {@link EngineLog}.
      * <p>
      * When there is a build in progress, no second build is launched, a completed future with {@link BuildResult#inProgress()} is returned instead.
+     * @param cleanBuildScripts the clean build scripts preference, callers are responsible for supplying this parameter
      * @return a future completing with the build outcome
      */
-    public static CompletableFuture<BuildResult> buildScripts() {
+    public static CompletableFuture<BuildResult> buildScripts(Path jdkHome, boolean cleanBuildScripts) {
+        if (jdkHome == null) {
+            Logger.error("No valid JDK provided for Gradle JVM to build scripts!");
+            EngineEventCallback.emit(new EditorEvent(EditorEvent.Type.MissingRunnerJDK));
+            return CompletableFuture.completedFuture(BuildResult.noJDK());
+        }
         if (!buildInProgress.compareAndSet(false, true)) return CompletableFuture.completedFuture(BuildResult.inProgress());
-        return CompletableFuture.supplyAsync(GradleRunner::runBuild, executor).whenComplete((_, _) -> buildInProgress.set(false));
+        return CompletableFuture.supplyAsync(() -> runBuild(jdkHome, cleanBuildScripts), executor).whenComplete((_, _) -> buildInProgress.set(false));
     }
 
     /**
@@ -66,11 +76,11 @@ public final class GradleRunner {
      * This is intended for callers that exclude the build output from a source scan.
      * @return a future completing with the build directory path, or null when no project is opened
      */
-    public static CompletableFuture<Path> resolveBuildDir() {
-        return CompletableFuture.supplyAsync(GradleRunner::runResolveBuildDir, executor);
+    public static CompletableFuture<Path> resolveBuildDir(Path jdkHome) {
+        return CompletableFuture.supplyAsync(() -> runResolveBuildDir(jdkHome), executor);
     }
 
-    private static BuildResult runBuild() {
+    private static BuildResult runBuild(Path jdkHome, boolean cleanBuildScripts) {
         Path scriptRoot = scriptsRoot();
         if (scriptRoot == null) {
             Logger.error("No project is opened, cannot build scripts");
@@ -82,14 +92,11 @@ public final class GradleRunner {
             return BuildResult.launchFailed();
         }
         ensureExecutable(wrapper);
-        List<String> command = buildCommand(wrapper);
+        List<String> command = buildCommand(wrapper, jdkHome, cleanBuildScripts);
         Logger.info("Building scripts: " + String.join(" ", command));
         long start = System.nanoTime();
         try {
-            Process process = new ProcessBuilder(command)
-                    .directory(scriptRoot.toFile())
-                    .redirectErrorStream(true)
-                    .start();
+            Process process = gradleProcess(command, scriptRoot, jdkHome).start();
             tee(process);
             int exitCode = process.waitFor();
             long durationMs = (System.nanoTime() - start) / 1_000_000L;
@@ -104,18 +111,16 @@ public final class GradleRunner {
         }
     }
 
-    private static Path runResolveBuildDir() {
+    private static Path runResolveBuildDir(Path jdkHome) {
         Path scriptsRoot = scriptsRoot();
         if (scriptsRoot == null) return null;
         Path fallback = scriptsRoot.resolve(DefaultBuildDir);
         Path wrapper = wrapper(scriptsRoot);
-        if (!Files.isRegularFile(wrapper)) return fallback;
+        if (!Files.isRegularFile(wrapper) || jdkHome == null) return fallback;
         ensureExecutable(wrapper);
         try {
-            Process process = new ProcessBuilder(wrapper.toString(), PropertiesTask, QuietFlag)
-                    .directory(scriptsRoot.toFile())
-                    .redirectErrorStream(true)
-                    .start();
+            List<String> command = List.of(wrapper.toString(), gradleJavaHomeArg(jdkHome), PropertiesTask, QuietFlag);
+            Process process = gradleProcess(command, scriptsRoot, jdkHome).start();
             Path resolved = parseBuildDir(process, fallback);
             process.waitFor();
             return resolved;
@@ -162,9 +167,23 @@ public final class GradleRunner {
         return new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8));
     }
 
-    private static List<String> buildCommand(Path wrapper) {
-        if (UserPreference.preferences().cleanBuildScripts()) return List.of(wrapper.toString(), CleanTask, JarTask);
-        return List.of(wrapper.toString(), JarTask);
+    private static ProcessBuilder gradleProcess(List<String> command, Path workingDir, Path jdkHome) {
+        ProcessBuilder process = new ProcessBuilder(command).directory(workingDir.toFile()).redirectErrorStream(true);
+        process.environment().put(JavaHomeEnv, jdkHome.toAbsolutePath().toString());
+        return process;
+    }
+
+    private static List<String> buildCommand(Path wrapper, Path jdkHome, boolean cleanBuildScripts) {
+        List<String> command = new ArrayList<>();
+        command.add(wrapper.toString());
+        command.add(gradleJavaHomeArg(jdkHome));
+        if (cleanBuildScripts) command.add(CleanTask);
+        command.add(JarTask);
+        return command;
+    }
+
+    private static String gradleJavaHomeArg(Path jdkHome) {
+        return GradleJavaHomeProperty + jdkHome.toAbsolutePath();
     }
 
     private static Path scriptsRoot() {

@@ -193,6 +193,7 @@ public abstract class Component {
 
     /**
      * Internal hook for engine core extension of component's editor logic process.
+     * @param dt delta time
      */
     protected void internalEditorUpdate(float dt) {}
 
@@ -222,6 +223,7 @@ public abstract class Component {
 
     /**
      * Internal hook for engine core extension of component's logic process.
+     * @param dt delta time
      */
     protected void internalUpdate(float dt) {}
 

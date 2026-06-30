@@ -1,13 +1,19 @@
 package editor.dialog;
 
+import editor.EditorIcons;
+import editor.EditorWidget;
 import editor.preference.EditorPreferences;
+import editor.preference.JDKRegistry;
 import editor.preference.UserPreference;
 import imgui.ImGui;
 import imgui.ImVec2;
-import imgui.flag.ImGuiChildFlags;
-import imgui.flag.ImGuiCond;
-import imgui.flag.ImGuiWindowFlags;
+import imgui.flag.*;
 import imgui.type.ImBoolean;
+import scripting.builder.jdk.JDKInstallation;
+import scripting.builder.jdk.JDKManager;
+
+import java.nio.file.Path;
+import java.util.List;
 
 /**
  * Editor dialogue for editing the editor behaviour and preferences.
@@ -22,6 +28,9 @@ public final class EditEditorPreferencesDialog {
     private static final ImBoolean autoSaveOnChangeScene = new ImBoolean(false);
     private static final ImBoolean showGridLine = new ImBoolean(false);
     private static final ImBoolean cleanBuildScripts = new ImBoolean(true);
+    private static final ImVec2 tmpCursorPos = new ImVec2();
+    private static final ImBoolean tmpInteracted = new ImBoolean();
+    private static JDKInstallation selectedJDK = null;
     private static boolean editorPreferenceChanged = false;
 
     private EditEditorPreferencesDialog() {}
@@ -87,6 +96,7 @@ public final class EditEditorPreferencesDialog {
         ImGui.spacing();
         renderPreferenceToggle("Clean before build", cleanBuildScripts, " - Clear old build's output before new build start");
         ImGui.spacing();
+        renderGradleJVM();
     }
 
     private static void renderPreferenceToggle(String label, ImBoolean dest, String extraInfo) {
@@ -97,6 +107,76 @@ public final class EditEditorPreferencesDialog {
         ImGui.endDisabled();
     }
 
+    private static void renderGradleJVM() {
+        if (!ImGui.beginTable("##EEPD_Gradle_JVM_Layout_Table", 2)) return;
+        ImGui.tableSetupColumn("##EEPD_Gradle_JVM_Label_Column", ImGuiTableColumnFlags.WidthFixed);
+        ImGui.tableSetupColumn("##EEPD_Gradle_JVM_Drop_Down_Column", ImGuiTableColumnFlags.WidthStretch);
+        ImGui.tableNextColumn();
+        ImGui.setCursorPosY(ImGui.getCursorPosY() + (ImGui.getFrameHeightWithSpacing() - ImGui.getTextLineHeightWithSpacing()) / 2.0f);
+        ImGui.text("Gradle JVM:");
+        ImGui.tableNextColumn();
+        renderJDKDropDown();
+        ImGui.sameLine();
+        if (EditorWidget.iconButton("Rescan##EEPD_Rescan_JDK_Button", EditorIcons.Icons.Reset, "Scan for JDK installations again")) UserPreference.rescanJDKs();
+        ImGui.endTable();
+    }
+
+    private static void renderJDKDropDown() {
+        JDKInstallation javaHome = JDKManager.javaHome();
+        List<JDKInstallation> userAdded = JDKManager.userAdded();
+        List<JDKInstallation> detected = JDKManager.detected();
+        int supID = 0;
+        if (!ImGui.beginCombo("##EEPD_JDK_Selection_Combo", selectedJDK == null ? "Select JDK..." : selectedJDK.displayName(), ImGuiComboFlags.HeightLarge)) return;
+        renderJDKSelectable(javaHome, supID++);
+        ImGui.separator();
+        if (userAdded.isEmpty()) ImGui.textDisabled("No JDK added");
+        else for (JDKInstallation jdk : userAdded) renderJDKSelectable(jdk, supID++);
+        ImGui.separator();
+        ImGui.pushStyleColor(ImGuiCol.Button, 0.0f, 0.0f, 0.0f, 0.0f);
+        if (ImGui.selectable("Download JDK...##EEPD_Download_JDK_Button")) {}
+        if (ImGui.selectable("Add JDK from disk...##EEPD_Add_JDK_From_Disk_Button")) browseJDK();
+        ImGui.popStyleColor(1);
+        ImGui.separator();
+        ImGui.text("Detected JDKs");
+        ImGui.spacing();
+        if (detected.isEmpty()) ImGui.textDisabled("No JDK detected");
+        else for (JDKInstallation jdk : detected) renderJDKSelectable(jdk, supID++);
+        ImGui.endCombo();
+    }
+
+    private static void renderJDKSelectable(JDKInstallation jdk, int supID) {
+        if (jdk == null) return;
+        boolean invalid = !jdk.valid();
+        boolean currentlySelected = jdk == selectedJDK;
+        ImGui.beginGroup();
+        if (invalid) ImGui.beginDisabled();
+        tmpCursorPos.set(ImGui.getCursorPos());
+        tmpInteracted.set(ImGui.selectable("##EEP_Select_JDK_" + jdk.home() + "_" + supID, currentlySelected));
+        ImGui.setCursorPos(tmpCursorPos);
+        renderJDKLabel(jdk);
+        if (invalid) ImGui.endDisabled();
+        ImGui.endGroup();
+        if (invalid || !tmpInteracted.get() || currentlySelected) return;
+        selectedJDK = jdk;
+        if (jdk.fromJavaHome()) UserPreference.selectJDK(JDKRegistry.JavaHomeSelection);
+        else UserPreference.selectJDK(jdk.home());
+    }
+
+    private static void browseJDK() {
+        Path selectedDir = OpenDirectoryDialog.openDialog();
+        if (selectedDir == null) return;
+        UserPreference.addJDK(selectedDir);
+    }
+
+    private static void renderJDKLabel(JDKInstallation jdk) {
+        if (jdk == null) return;
+        ImGui.text(jdk.displayName());
+        String version = jdk.version();
+        if (version == null || version.isBlank()) return;
+        ImGui.sameLine();
+        ImGui.textDisabled("- " + version);
+    }
+
     private static void syncWithEditor() {
         editorPreferenceChanged = false;
         EditorPreferences preferences = UserPreference.preferences();
@@ -104,6 +184,7 @@ public final class EditEditorPreferencesDialog {
         autoSaveOnExit.set(preferences.autoSaveOnExit());
         showGridLine.set(preferences.showGridLine());
         cleanBuildScripts.set(preferences.cleanBuildScripts());
+        selectedJDK = UserPreference.selectedJDK();
     }
 
     private static void autoSavePreference() {

@@ -6,7 +6,7 @@ package scripting.transpiler.semantic;
  */
 public sealed interface Resolution {
     /**
-     * A lifecycle hook method. Generation emits {@link @Override} and the engine method name.
+     * A lifecycle hook method. Generation emits {@code @Override} and the engine method name.
      * @param javaName the engine method overridden, such as {@code onPhysicUpdate}
      */
     record LifecycleResolution(String javaName) implements Resolution {}
@@ -32,7 +32,7 @@ public sealed interface Resolution {
     record ConstructorResolution(String fqn) implements Resolution {}
     /**
      * The connection shortcut, a method of the current class reference as a value
-     * @param methodName
+     * @param methodName the connecting method's name
      */
     record CallableShortcutResolution(String methodName) implements Resolution {}
     /**

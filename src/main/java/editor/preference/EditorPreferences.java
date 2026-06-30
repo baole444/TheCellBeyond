@@ -3,7 +3,7 @@ package editor.preference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
- * EditorPreferences contain user's choice on some functionality and behaviour of the Editor.
+ * Persisted user's choices on some functionality and behaviour of the Editor.
  * @param autoSaveOnExit  control auto save editing scene on exit
  * @param autoSaveOnChangeScene control auto save editing scene when switching to another scene
  * @param showGridLine control drawing and snapping to gridline on scene's editor viewport

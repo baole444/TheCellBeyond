@@ -94,7 +94,7 @@ public final class StartupWindow {
             ImGui.newFrame();
             ImGui.setNextWindowPos(EditorWindowSize.x / 2.0f, EditorWindowSize.y / 2.0f, ImGuiCond.Always, 0.5f, 0.5f);
             ImGui.setNextWindowSize(EditorWindowSize);
-            if (!ImGui.begin("Welcome to The Cell Beyond Editor", ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse)) {
+            if (!ImGui.begin("Welcome to TheCellBeyond Editor##TCB_Startup_Project_Manager", ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse)) {
                 ImGui.end();
                 continue;
             }

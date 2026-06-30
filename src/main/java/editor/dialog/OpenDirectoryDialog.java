@@ -8,8 +8,8 @@ import java.nio.file.Paths;
 import static org.lwjgl.system.MemoryUtil.memUTF8;
 import static org.lwjgl.util.nfd.NativeFileDialog.*;
 
-public final class OpenFolderDialog extends NativeDialog {
-    public static Path openFolderDialog() {
+public final class OpenDirectoryDialog extends NativeDialog {
+    public static Path openDialog() {
         setPlatform();
         try (MemoryStack stack = MemoryStack.stackPush()) {
             PointerBuffer outPath = stack.mallocPointer(1);
@@ -19,10 +19,9 @@ public final class OpenFolderDialog extends NativeDialog {
                             .handle(windowHandle)
                     )
             );
-            // Check the result, set project file path and free the pointer.
             return checkResult(result, outPath);
         } catch (Exception e) {
-            System.err.println("Error while opening file dialog: " + e.getMessage());
+            System.err.println("Error while opening directory dialog: " + e.getMessage());
             return null;
         }
     }
@@ -33,12 +32,11 @@ public final class OpenFolderDialog extends NativeDialog {
             case NFD_OKAY -> {
                 long pathPtr = pp.get(0);
                 String selectedPath = memUTF8(pathPtr);
-
-                if (isFolderValid(selectedPath)){
+                if (validDirectory(selectedPath)){
                     validPath = Paths.get(selectedPath);
                     NFD_FreePath(pathPtr);
                 } else {
-                    System.out.println("Selected folder does not exist");
+                    System.out.println("Selected directory does not exist");
                     NFD_FreePath(pathPtr);
                 }
             }
@@ -48,9 +46,9 @@ public final class OpenFolderDialog extends NativeDialog {
         return validPath;
     }
 
-    private static boolean isFolderValid(String path) {
+    private static boolean validDirectory(String path) {
         if (path == null || path.isEmpty()) return false;
-        Path newProjectRoot = Path.of(path);
-        return newProjectRoot.toFile().isDirectory();
+        Path check = Path.of(path);
+        return check.toFile().isDirectory();
     }
 }
