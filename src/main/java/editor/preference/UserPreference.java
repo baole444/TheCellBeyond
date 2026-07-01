@@ -2,6 +2,8 @@ package editor.preference;
 
 import scripting.builder.jdk.JDKInstallation;
 import scripting.builder.jdk.JDKManager;
+import scripting.builder.jdk.download.JDKDownloader;
+import scripting.builder.jdk.download.JDKProvider;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.exc.JacksonIOException;
 import tools.jackson.databind.DeserializationFeature;
@@ -140,6 +142,12 @@ public final class UserPreference {
             updateJDKRegistry(new JDKRegistry(paths, home));
             return jdk;
         });
+    }
+
+    public static CompletableFuture<JDKInstallation> downloadJDK(int version, JDKProvider provider) {
+        Path dir = jdkInstallDir();
+        if (dir == null) return CompletableFuture.completedFuture(null);
+        return JDKDownloader.download(dir, version, provider).thenCompose(home -> home == null ? CompletableFuture.completedFuture(null) : addJDK(home));
     }
 
     /**

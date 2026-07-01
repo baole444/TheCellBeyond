@@ -48,7 +48,7 @@ public final class JDKDownloader {
      * @return a future of the extracted JDK home, or completing with null if there is any failure
      */
     public static synchronized CompletableFuture<Path> download(Path installDir, int version, JDKProvider provider) {
-        if (installDir == null || provider == null) return null;
+        if (installDir == null || provider == null) CompletableFuture.completedFuture(null);
         if (ongoingDownload != null && !ongoingDownload.isDone()) return ongoingDownload;
         ongoingDownload = CompletableFuture.supplyAsync(() -> run(installDir, version, provider), executor);
         return ongoingDownload;
