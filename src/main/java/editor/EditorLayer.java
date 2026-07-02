@@ -6,10 +6,7 @@ import editor.preference.UserPreference;
 import imgui.*;
 import imgui.callback.ImStrConsumer;
 import imgui.callback.ImStrSupplier;
-import imgui.flag.ImGuiBackendFlags;
-import imgui.flag.ImGuiConfigFlags;
-import imgui.flag.ImGuiStyleVar;
-import imgui.flag.ImGuiWindowFlags;
+import imgui.flag.*;
 import imgui.gl3.ImGuiImplGl3;
 import imgui.glfw.ImGuiImplGlfw;
 import imgui.type.ImBoolean;
@@ -31,9 +28,9 @@ import static org.lwjgl.opengl.GL30.GL_FRAMEBUFFER;
 import static org.lwjgl.opengl.GL30.glBindFramebuffer;
 
 /**
- * The Editor UI layer.
+ * The Editor UI layer, allow interacting and control TCB Game Engine.
  */
-public final class ImGuiLayer {
+public final class EditorLayer {
     private static final String DockID = "###EDITOR_DOCK";
     private final ImGuiImplGlfw imGuiGlfw = new ImGuiImplGlfw();
     private final ImGuiImplGl3 imGuiGl3 = new ImGuiImplGl3();
@@ -45,12 +42,13 @@ public final class ImGuiLayer {
     private static final AtomicBoolean wantedCaptureKey = new AtomicBoolean(false);
     private static final AtomicBoolean prioritizeEngineInputCallback = new AtomicBoolean(false);
     private static final boolean[] enginePresses = new boolean[GLFW_MOUSE_BUTTON_LAST + 1];
+    private static final float WindowRounding = 6.0f;
 
     /**
-     * Create a new {@link ImGuiLayer} with the given window pointer.
+     * Create a new {@link EditorLayer} with the given window pointer.
      * @param windowPtr the window pointer to put the layer in
      */
-    public ImGuiLayer(long windowPtr) {
+    public EditorLayer(long windowPtr) {
         this.windowPtr = windowPtr;
         EditorEventHandler.init();
     }
@@ -150,17 +148,18 @@ public final class ImGuiLayer {
         imGuiGlfw.newFrame();
         imGuiGl3.newFrame();
         ImGui.newFrame();
-        renderDocking();
-        if (exitFrameEarly) {
-            exitFrameEarly = false;
-            ImGui.endFrame();
-            return;
-        }
-        ResourcePanel.imgui();
-        SceneEditorViewport.imgui();
-        Properties.imgui();
-        SceneTree.imgui();
-        BottomPanel.imgui();
+        applyStyle(() -> {
+            renderDocking();
+            if (exitFrameEarly) {
+                exitFrameEarly = false;
+                return;
+            }
+            ResourcePanel.imgui();
+            SceneEditorViewport.imgui();
+            Properties.imgui();
+            SceneTree.imgui();
+            BottomPanel.imgui();
+        });
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glViewport(0,0, Window.getWidth(), Window.getHeight());
         glClearColor(0, 0,0,1);
@@ -169,42 +168,54 @@ public final class ImGuiLayer {
         wantedCaptureKey.set(io.getWantCaptureKeyboard());
         ImGui.render();
         imGuiGl3.renderDrawData(ImGui.getDrawData());
-        if (ImGui.getIO().hasConfigFlags(ImGuiConfigFlags.ViewportsEnable)) {
-            final long backupWindowPtr = glfwGetCurrentContext();
-            ImGui.updatePlatformWindows();
-            ImGui.renderPlatformWindowsDefault();
-            glfwMakeContextCurrent(backupWindowPtr);
-        }
+        if (!ImGui.getIO().hasConfigFlags(ImGuiConfigFlags.ViewportsEnable)) return;
+        final long backupWindowPtr = glfwGetCurrentContext();
+        ImGui.updatePlatformWindows();
+        ImGui.renderPlatformWindowsDefault();
+        glfwMakeContextCurrent(backupWindowPtr);
     }
 
     private void renderDocking() {
         int winFlag = ImGuiWindowFlags.MenuBar | ImGuiWindowFlags.NoDocking | ImGuiWindowFlags.NoTitleBar
                 | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove |
                 ImGuiWindowFlags.NoBringToFrontOnFocus | ImGuiWindowFlags.NoNavFocus;
-
         ImGuiViewport mainViewport = ImGui.getMainViewport();
         ImGui.setNextWindowPos(mainViewport.getWorkPosX(), mainViewport.getWorkPosY());
         ImGui.setNextWindowSize(mainViewport.getWorkSizeX(), mainViewport.getWorkSizeY());
         ImGui.setNextWindowViewport(mainViewport.getID());
-
         ImGui.setNextWindowPos(0.0f, 0.0f);
         ImGui.setNextWindowSize(Window.getWidth(), Window.getHeight());
-
         ImGui.pushStyleVar(ImGuiStyleVar.WindowRounding, 0.0f);
         ImGui.pushStyleVar(ImGuiStyleVar.WindowBorderSize, 0.0f);
         ImGui.begin(DockID, new ImBoolean(true), winFlag);
         ImGui.popStyleVar(2);
         int id = ImGui.getID(DockID);
         ImGui.dockSpace(id);
-
         if (!DefaultEditorLayout.dockingValid(id) || resetLayout) {
             DefaultEditorLayout.resetLayout(id);
             resetLayout = false;
             exitFrameEarly = true;
         }
-
         MenuBar.imgui();
         ImGui.end();
+    }
+
+    /**
+     * Render Editor content under global style.
+     * @param content the content to render
+     */
+    public static void applyStyle(Runnable content) {
+        if (content == null) return;
+        ImGui.pushStyleColor(ImGuiCol.MenuBarBg, EditorColors.PanelBgColor);
+        ImGui.pushStyleColor(ImGuiCol.WindowBg, EditorColors.PanelBgColor);
+        ImGui.pushStyleColor(ImGuiCol.ChildBg, EditorColors.PanelBgColor);
+        ImGui.pushStyleColor(ImGuiCol.PopupBg, EditorColors.PanelBgColor);
+        ImGui.pushStyleColor(ImGuiCol.TitleBg, EditorColors.PanelBgColor);
+        ImGui.pushStyleVar(ImGuiStyleVar.PopupRounding, WindowRounding);
+        ImGui.pushStyleVar(ImGuiStyleVar.WindowRounding, WindowRounding);
+        content.run();
+        ImGui.popStyleColor(5);
+        ImGui.popStyleVar(2);
     }
 
     /**

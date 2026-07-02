@@ -101,6 +101,11 @@ public final class EditorColors {
     }
 
     /**
+     * Default colour for window, menu bar and popup background.
+     */
+    public static final int PanelBgColor = ImGui.colorConvertFloat4ToU32(0.1f, 0.1f, 0.1f, 1.0f);
+
+    /**
      * Yellow highlight colour.
      */
     public static final int YellowHighLight = ImGui.colorConvertFloat4ToU32(0.9f, 0.9f, 0.3f, 1.0f);

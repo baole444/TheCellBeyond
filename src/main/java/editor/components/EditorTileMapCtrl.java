@@ -9,7 +9,7 @@ import components.Component;
 import components.IsNotSelectable;
 import components.NotSerializeComponent;
 import components.SpriteRenderer;
-import editor.ImGuiLayer;
+import editor.EditorLayer;
 import editor.TileMapEditor;
 import imgui.ImGui;
 import imgui.flag.ImGuiPopupFlags;
@@ -50,7 +50,7 @@ public class EditorTileMapCtrl extends Component implements NotSerializeComponen
 
     @Override
     protected void internalEditorUpdate(float dt) {
-        if (!ImGuiLayer.editorWantCaptureMouse() || ImGui.isPopupOpen("", ImGuiPopupFlags.AnyPopup)) return;
+        if (!EditorLayer.editorWantCaptureMouse() || ImGui.isPopupOpen("", ImGuiPopupFlags.AnyPopup)) return;
         TileMap editingTileMap = TileMapEditor.getEditingTileMap();
         if (editingTileMap == null) {
             clearData();

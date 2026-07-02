@@ -89,8 +89,8 @@ public final class AddObjectDialog {
             float buttonWidth = 120;
             float buttonPivotX = buttonWidth * 0.5f;
             float availX = ImGui.getContentRegionAvailX();
-            float createX = (availX * 0.25f) - (buttonPivotX);
-            float cancelX = (availX * 0.75f) - (buttonPivotX);
+            float createX = (availX * 0.25f) - buttonPivotX;
+            float cancelX = (availX * 0.75f) - buttonPivotX;
             ImGui.setCursorPosX(createX);
             boolean canCreate = selectedType != null || selectedCustomType != null;
             if (!canCreate) ImGui.beginDisabled();

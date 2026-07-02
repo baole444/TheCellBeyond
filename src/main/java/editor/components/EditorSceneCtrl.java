@@ -4,7 +4,7 @@ import TheCellBeyond.KeyListener;
 import TheCellBeyond.MouseListener;
 import TheCellBeyond.Viewport;
 import components.Component;
-import editor.ImGuiLayer;
+import editor.EditorLayer;
 import imgui.ImGui;
 import imgui.flag.ImGuiPopupFlags;
 import org.joml.Vector2f;
@@ -36,7 +36,7 @@ public final class EditorSceneCtrl extends Component {
 
     @Override
     protected void internalEditorUpdate(float dt) {
-        if (!ImGuiLayer.editorWantCaptureMouse() || ImGuiLayer.editorWantCaptureKeyboard() || ImGui.isPopupOpen("", ImGuiPopupFlags.AnyPopup)) return;
+        if (!EditorLayer.editorWantCaptureMouse() || EditorLayer.editorWantCaptureKeyboard() || ImGui.isPopupOpen("", ImGuiPopupFlags.AnyPopup)) return;
         if (MouseListener.isButtonPressed(GLFW_MOUSE_BUTTON_MIDDLE) && dragInit > 0) {
             clickOrigin.set(MouseListener.getWorldPosition());
             dragInit -= dt;

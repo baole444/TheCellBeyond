@@ -3,7 +3,7 @@ package editor.dialog;
 import TheCellBeyond.*;
 import editor.EditorIcons;
 import editor.EditorWidget;
-import editor.ImGuiLayer;
+import editor.EditorLayer;
 import imgui.ImGui;
 import imgui.flag.*;
 import imgui.type.ImString;
@@ -13,7 +13,7 @@ import project.ProjectData;
 import java.util.*;
 import java.util.stream.Collectors;
 
-class InputMapTab {
+final class InputMapTab {
     private static final int transparentColor = ImGui.colorConvertFloat4ToU32(0.0f, 0.0f, 0.0f, 0.0f);
     private static final float padding = 4.0f;
 
@@ -50,7 +50,7 @@ class InputMapTab {
         inputActions.putAll(project.inputActions());
     }
 
-    static void closeListForInputDialog() {
+    static void closeListenForInputDialog() {
         showListenForInputDialog = false;
         pendingCallback = null;
     }
@@ -74,7 +74,7 @@ class InputMapTab {
     static void clearInputFilter() {
         filterChanged = true;
         listeningInput = false;
-        ImGuiLayer.prioritizeEngineInputCallback(false);
+        EditorLayer.prioritizeEngineInputCallback(false);
         actionKeySearchFilter.clear();
         actionNameSearchFilter.clear();
         currentMods.clear();
@@ -274,7 +274,7 @@ class InputMapTab {
 
         boolean isActive = ImGui.isItemActive();
         if (isActive && !listeningInput) {
-            ImGuiLayer.prioritizeEngineInputCallback(true);
+            EditorLayer.prioritizeEngineInputCallback(true);
             listeningInput = true;
             currentMods.clear();
             actionKeySearchFilter.clear();
@@ -289,7 +289,7 @@ class InputMapTab {
         });
 
         if (!isActive && listeningInput) {
-            ImGuiLayer.prioritizeEngineInputCallback(false);
+            EditorLayer.prioritizeEngineInputCallback(false);
             listeningInput = false;
         }
 

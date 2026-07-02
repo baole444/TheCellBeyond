@@ -54,7 +54,6 @@ public final class EditProjectSettingsDialog {
     private static final String PopupID = "Project Preferences";
     private static final ImVec2 DialogSize = new ImVec2(720.0f, 640.0f);
     private static final float ButtonReserve = ImGui.getFrameHeightWithSpacing();
-    private static final float SeparatorReserve = ImGui.getStyle().getItemSpacingY();
     private static final float Padding = 4.0f;
     private static boolean showDialog = false;
     private static float tabWidth;
@@ -129,7 +128,7 @@ public final class EditProjectSettingsDialog {
             ImGui.separator();
             float buttonWidth = 120;
             float buttonHeight = 30;
-            float regionHeight = ImGui.getContentRegionAvailY() - ButtonReserve - SeparatorReserve - buttonHeight - Padding;
+            float regionHeight = ImGui.getContentRegionAvailY() - ButtonReserve - buttonHeight;
             if (ImGui.beginChild("##EPPD_Tab_Region", 0.0f, regionHeight, ImGuiChildFlags.Borders)) renderTabContent();
             ImGui.endChild();
             if (selectedTab == TabName.General) ProjectPreferenceTab.autoSavePreferences();
@@ -141,7 +140,7 @@ public final class EditProjectSettingsDialog {
     }
 
     private static void renderCloseButton(float buttonWidth, float buttonHeight) {
-        ImGui.setCursorPosY(ImGui.getWindowHeight() - ButtonReserve - (buttonHeight / 2) - ImGui.getStyle().getWindowPaddingY());
+        ImGui.setCursorPosY(ImGui.getWindowHeight() - ButtonReserve - buttonHeight / 2.0f);
         float buttonPivotX = buttonWidth * 0.5f;
         float availX = ImGui.getContentRegionAvailX();
         float closeX = (availX * 0.5f) - buttonPivotX;

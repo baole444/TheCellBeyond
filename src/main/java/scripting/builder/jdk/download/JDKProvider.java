@@ -10,14 +10,19 @@ public enum JDKProvider {
     /**
      * Eclipse Temurin, Adoptium.
      */
-    Temurin("temurin");
+    Temurin("temurin", "Eclipse Temurin");
 
     /**
      * The {@code distribution} token for this provider.
      */
     public final String distribution;
+    /**
+     * The vendor's formal name for display
+     */
+    public final String formalName;
 
-    JDKProvider(String distribution) {
+    JDKProvider(String distribution, String formalName) {
         this.distribution = distribution;
+        this.formalName = formalName;
     }
 }

@@ -83,7 +83,7 @@ public class EditorMouseCtrl extends Component implements NotSerializeComponent 
             holdObj = null;
         }
         clickInit -= dt;
-        if (!ImGuiLayer.editorWantCaptureMouse() || ImGui.isPopupOpen("", ImGuiPopupFlags.AnyPopup)) return;
+        if (!EditorLayer.editorWantCaptureMouse() || ImGui.isPopupOpen("", ImGuiPopupFlags.AnyPopup)) return;
         if (holdObj == null) {
             onNotHoldingObject();
             return;

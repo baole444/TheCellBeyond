@@ -99,13 +99,13 @@ public final class ConfirmSaveSceneDialog {
             }
             ImGui.sameLine();
             ImGui.setCursorPosX(noSaveX);
-            if (ImGui.button("Don't save")) {
+            if (ImGui.button("Don't save", buttonWidth, 0.0f)) {
                 if (enableSaveOnChangeScene.get()) setAutoSaveOn();
                 closeConfirmation();
             }
             ImGui.sameLine();
             ImGui.setCursorPosX(cancelX);
-            if (ImGui.button("Cancel", buttonWidth, 0)) {
+            if (ImGui.button("Cancel", buttonWidth, 0.0f)) {
                 showDialog = false;
                 onCompleteDecision = null;
                 Runnable cancelCallback = onCancelDecision;

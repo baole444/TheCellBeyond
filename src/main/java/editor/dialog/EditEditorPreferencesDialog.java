@@ -32,6 +32,7 @@ public final class EditEditorPreferencesDialog {
     private static final ImBoolean tmpInteracted = new ImBoolean();
     private static JDKInstallation selectedJDK = null;
     private static boolean editorPreferenceChanged = false;
+    private static boolean showDownloadJDKDialog = false;
 
     private EditEditorPreferencesDialog() {}
 
@@ -43,22 +44,30 @@ public final class EditEditorPreferencesDialog {
         syncWithEditor();
     }
 
+    static void closeDownloadJDKDialog() {
+        showDownloadJDKDialog = false;
+    }
+
     /**
      * Render the dialogue on screen.
      */
     public static void imgui() {
         if (!showDialog) return;
         syncWithEditor();
+        if (showDownloadJDKDialog) {
+            DownloadJDKDialog.imgui();
+            return;
+        }
         ImGui.openPopup(PopupID);
-        ImVec2 centre = ImGui.getMainViewport().getCenter();
+        ImVec2 center = ImGui.getMainViewport().getCenter();
         float pivotXY = 0.5f;
-        ImGui.setNextWindowPos(centre.x, centre.y, ImGuiCond.Appearing, pivotXY, pivotXY);
+        ImGui.setNextWindowPos(center.x, center.y, ImGuiCond.Appearing, pivotXY, pivotXY);
         ImGui.setNextWindowSize(DialogSize);
         if (ImGui.beginPopupModal(PopupID, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)) {
             ImGui.text("Adjust Editor's preferences");
             float buttonWidth = 120;
             float buttonHeight = 30;
-            float regionHeight = ImGui.getContentRegionAvailY() - ButtonReserve - buttonHeight - Padding;
+            float regionHeight = ImGui.getContentRegionAvailY() - ButtonReserve - buttonHeight;
             if (ImGui.beginChild("##EEPD_Preference_Region", 0.0f, regionHeight, ImGuiChildFlags.Borders)) renderPreferenceEditor();
             ImGui.endChild();
             autoSavePreference();
@@ -69,7 +78,7 @@ public final class EditEditorPreferencesDialog {
     }
 
     private static void renderCloseButton(float buttonWidth, float buttonHeight) {
-        ImGui.setCursorPosY(ImGui.getWindowHeight() - ButtonReserve - (buttonHeight / 2) - ImGui.getStyle().getWindowPaddingY());
+        ImGui.setCursorPosY(ImGui.getWindowHeight() - ButtonReserve - buttonHeight / 2.0f);
         float buttonPivotX = buttonWidth * 0.5f;
         float availX = ImGui.getContentRegionAvailX();
         float closeX = (availX * 0.5f) - buttonPivotX;
@@ -133,7 +142,10 @@ public final class EditEditorPreferencesDialog {
         else for (JDKInstallation jdk : userAdded) renderJDKSelectable(jdk, supID++);
         ImGui.separator();
         ImGui.pushStyleColor(ImGuiCol.Button, 0.0f, 0.0f, 0.0f, 0.0f);
-        if (ImGui.selectable("Download JDK...##EEPD_Download_JDK_Button")) {}
+        if (ImGui.selectable("Download JDK...##EEPD_Download_JDK_Button")) {
+            showDownloadJDKDialog = true;
+            DownloadJDKDialog.show();
+        }
         if (ImGui.selectable("Add JDK from disk...##EEPD_Add_JDK_From_Disk_Button")) browseJDK();
         ImGui.popStyleColor(1);
         ImGui.separator();

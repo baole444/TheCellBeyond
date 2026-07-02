@@ -7,7 +7,7 @@ import TheCellBeyond.internal.LogicServer;
 import components.Component;
 import components.NotSerializeComponent;
 import components.SpriteRenderer;
-import editor.ImGuiLayer;
+import editor.EditorLayer;
 import editor.Properties;
 import eventviewer.EngineEventCallback;
 import eventviewer.event.EditorEvent;
@@ -33,7 +33,7 @@ public final class EditorKeyCtrl extends Component implements NotSerializeCompon
 
     @Override
     protected void internalEditorUpdate(float dt) {
-        if (ImGuiLayer.editorWantCaptureKeyboard() || ImGui.isPopupOpen("", ImGuiPopupFlags.AnyPopup)) return;
+        if (EditorLayer.editorWantCaptureKeyboard() || ImGui.isPopupOpen("", ImGuiPopupFlags.AnyPopup)) return;
         GameObject activeGameObj = Properties.getActiveGameObject();
         List<GameObject> activeObjList = Properties.getActiveGameObjects();
         if (KeyListener.isKeyTapped(GLFW_KEY_D, GLFW_MOD_CONTROL) && activeGameObj != null) {
