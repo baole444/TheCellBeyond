@@ -81,7 +81,7 @@ public final class EditEditorPreferencesDialog {
         ImGui.setCursorPosY(ImGui.getWindowHeight() - ButtonReserve - buttonHeight / 2.0f);
         float buttonPivotX = buttonWidth * 0.5f;
         float availX = ImGui.getContentRegionAvailX();
-        float closeX = (availX * 0.5f) - buttonPivotX;
+        float closeX = ImGui.getCursorStartPosX() + availX * 0.5f - buttonPivotX;
         ImGui.setCursorPosX(closeX);
         if (!ImGui.button("Close##EPPD_CLose_Dialog", buttonWidth, buttonHeight)) return;
         showDialog = false;

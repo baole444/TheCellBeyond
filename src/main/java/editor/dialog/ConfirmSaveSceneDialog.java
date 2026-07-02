@@ -75,12 +75,13 @@ public final class ConfirmSaveSceneDialog {
             ImGui.checkbox("Enable auto save on change scene", enableSaveOnChangeScene);
             float buttonReserverY = ImGui.getFrameHeightWithSpacing();
             ImGui.setCursorPosY(ImGui.getWindowHeight() - buttonReserverY - ImGui.getStyle().getWindowPaddingY());
+            float startX = ImGui.getCursorStartPosX();
             float buttonWidth = 100;
             float buttonPivotX = buttonWidth * 0.5f;
             float availX = ImGui.getContentRegionAvailX();
-            float saveX = (availX * 0.15f) - (buttonPivotX);
-            float noSaveX = (availX * 0.5f) - (buttonPivotX);
-            float cancelX = (availX * 0.85f) - (buttonPivotX);
+            float saveX = startX + availX * 0.15f - buttonPivotX;
+            float noSaveX = startX + availX * 0.5f - buttonPivotX;
+            float cancelX = startX + availX * 0.85f - buttonPivotX;
             ImGui.setCursorPosX(saveX);
             if (ImGui.button("Save", buttonWidth, 0.0f)) {
                 if (enableSaveOnChangeScene.get()) setAutoSaveOn();

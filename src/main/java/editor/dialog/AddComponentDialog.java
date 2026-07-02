@@ -125,20 +125,18 @@ public final class AddComponentDialog {
             ImGui.text("Description:");
             sectionY = (int) (DIALOG_SIZE.y * descriptionYPercentage);
             ImGui.beginChild(DESCRIPTION_SECTION_ID, 0.0f, sectionY, ImGuiChildFlags.Borders);
-            if (selectedType != null) {
-                ImGui.textWrapped(selectedType.description());
-            } else {
-                ImGui.textDisabled("Select a component type to see it's description.");
-            }
+            if (selectedType != null) ImGui.textWrapped(selectedType.description());
+            else ImGui.textDisabled("Select a component type to see it's description.");
             ImGui.endChild();
             ImGui.separator();
             float buttonReserverY = ImGui.getFrameHeightWithSpacing();
             ImGui.setCursorPosY(ImGui.getWindowHeight() - buttonReserverY - ImGui.getStyle().getWindowPaddingY());
-            float buttonWidth = 120;
+            float startX = ImGui.getCursorStartPosX();
+            float buttonWidth = 120.0f;
             float buttonPivotX = buttonWidth * 0.5f;
             float availX = ImGui.getContentRegionAvailX();
-            float addX = (availX * 0.25f) - (buttonPivotX);
-            float cancelX = (availX * 0.75f) - (buttonPivotX);
+            float addX = startX + availX * 0.3f - (buttonPivotX);
+            float cancelX = startX + availX * 0.7f - (buttonPivotX);
             ImGui.setCursorPosX(addX);
             boolean canAdd = selectedType != null || selectedCustomType != null;
             if (!canAdd) ImGui.beginDisabled();
@@ -173,7 +171,6 @@ public final class AddComponentDialog {
             case RemoteTransform2D -> c = new RemoteTransform2D();
             default -> c = null;
         }
-
         if (c != null) selectedObject.addComponent(c);
         closeDialog();
         ImGui.closeCurrentPopup();

@@ -1,5 +1,6 @@
 package editor.dialog;
 
+import editor.preference.UserPreference;
 import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.ImGuiCond;
@@ -14,11 +15,11 @@ final class DownloadJDKDialog {
         v26("26", 26);
 
         final String display;
-        final int val;
+        final int version;
 
-        FeatureVersion(String display, int val) {
+        FeatureVersion(String display, int version) {
             this.display = display;
-            this.val = val;
+            this.version = version;
         }
     }
 
@@ -57,6 +58,7 @@ final class DownloadJDKDialog {
     }
 
     private static void renderOptions() {
+        ImGui.spacing();
         float margin = (ImGui.getContentRegionAvailX() * 0.2f) / 2.0f;
         ImGui.indent(margin);
         ImGui.beginGroup();
@@ -80,6 +82,7 @@ final class DownloadJDKDialog {
         ImGui.setCursorPosY(ImGui.getCursorPosY() + (ImGui.getFrameHeightWithSpacing() - ImGui.getTextLineHeightWithSpacing()) / 2.0f);
         ImGui.text("Vendor:");
         ImGui.tableNextColumn();
+        ImGui.spacing();
         ImGui.pushItemWidth(ImGui.getContentRegionAvailX() - margin);
         if (ImGui.beginCombo("##DJ_Vendor_Selection_Combo", selectedProvider != null ? selectedProvider.formalName : "Select vendor...")) {
             for (JDKProvider provider : JDKProvider.values()) {
@@ -95,18 +98,23 @@ final class DownloadJDKDialog {
         ImGui.endTable();
         ImGui.endGroup();
         ImGui.getItemRectSize(optionSize);
-        ImGui.unindent();
+        ImGui.unindent(margin);
     }
 
     private static void renderControlButtons() {
-        float buttonY = ImGui.getWindowHeight() - ButtonReserve - ButtonHeight / 2.0f;
+        ImGui.setCursorPosY(ImGui.getWindowHeight() - ButtonReserve - ButtonHeight / 2.0f);
+        float startX = ImGui.getCursorStartPosX();
         float buttonPivotX = ButtonWidth * 0.5f;
         float availX = ImGui.getContentRegionAvailX();
-        float downloadX = (availX * 0.25f) - buttonPivotX;
-        float cancelX = (availX * 0.75f) - buttonPivotX;
-        ImGui.setCursorPos(downloadX, buttonY);
-        if (ImGui.button("Download##DJ_Download_Selected_JDK_Button", ButtonWidth, ButtonHeight)) {}
-        ImGui.setCursorPos(cancelX, buttonY);
+        float downloadX = startX + availX * 0.25f - buttonPivotX;
+        float cancelX = startX + availX * 0.75f - buttonPivotX;
+        ImGui.setCursorPosX(downloadX);
+        boolean canDownload = selectedProvider != null && selectedVersion != null;
+        if (!canDownload) ImGui.beginDisabled();
+        if (ImGui.button("Download##DJ_Download_Selected_JDK_Button", ButtonWidth, ButtonHeight)) UserPreference.downloadJDK(selectedVersion.version, selectedProvider);
+        if (!canDownload) ImGui.endDisabled();
+        ImGui.sameLine();
+        ImGui.setCursorPosX(cancelX);
         if (!ImGui.button("Cancel##DJ_Cancel_Button", ButtonWidth, ButtonHeight)) return;
         showDialog = false;
         ImGui.closeCurrentPopup();

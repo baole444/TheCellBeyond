@@ -15,7 +15,7 @@ import org.joml.Vector4f;
 import physic2d.Physic2D;
 import project.*;
 
-class ProjectPreferenceTab {
+final class ProjectPreferenceTab {
     private static final ImString gameTitle = new ImString(128);
     private static final Vector2i gameWindowSize = new Vector2i(640, 480);
     private static final ImBoolean allowResize = new ImBoolean(false);

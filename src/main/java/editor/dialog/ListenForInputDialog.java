@@ -18,6 +18,9 @@ import java.util.stream.Collectors;
 final class ListenForInputDialog {
     private static final String PopupID = "Listen For Input";
     private static final ImVec2 DialogSize = new ImVec2(400.0f, 160.0f);
+    private static final float ButtonReserve = ImGui.getFrameHeightWithSpacing();
+    private static final float ButtonWidth = 100.0f;
+    private static final float ButtonHeight = 30.0f;
     private static boolean showDialog = false;
     private static boolean listeningInput = false;
     private static final List<Integer> recordedKeys = new ArrayList<>();
@@ -47,12 +50,9 @@ final class ListenForInputDialog {
         ImGui.setNextWindowSize(DialogSize);
         if (ImGui.beginPopupModal(PopupID, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)) {
             ImGui.spacing();
-            ImGui.text("Click to record input:");
+            ImGui.text("Recorded key/mouse combo:");
             ImGui.spacing();
             renderInputField();
-            ImGui.spacing();
-            ImGui.separator();
-            ImGui.spacing();
             renderButtons();
             ImGui.endPopup();
         }
@@ -80,21 +80,20 @@ final class ListenForInputDialog {
     }
 
     private static void renderButtons() {
-        float buttonReserveY = ImGui.getFrameHeightWithSpacing();
-        ImGui.setCursorPosY(ImGui.getWindowHeight() - buttonReserveY - ImGui.getStyle().getWindowPaddingY());
-        float buttonWidth = 120.0f;
-        float buttonPivotX = buttonWidth * 0.5f;
+        ImGui.setCursorPosY(ImGui.getWindowHeight() - ButtonReserve - ButtonHeight / 2.0f);
+        float startX = ImGui.getCursorStartPosX();
+        float buttonPivotX = ButtonWidth * 0.5f;
         float availX = ImGui.getContentRegionAvailX();
-        float confirmX = (availX * 0.25f) - buttonPivotX;
-        float cancelX = (availX* 0.75f) - buttonPivotX;
+        float confirmX = startX + availX * 0.25f - buttonPivotX;
+        float cancelX = startX + availX* 0.75f - buttonPivotX;
         ImGui.setCursorPosX(confirmX);
         boolean hasKeys = !recordedKeys.isEmpty();
         if (!hasKeys) ImGui.beginDisabled();
-        if (ImGui.button("Confirm##KeyCombo_Confirm", buttonWidth, 0.0f)) closeDialog(true);
+        if (ImGui.button("Confirm##KeyCombo_Confirm", ButtonWidth, ButtonHeight)) closeDialog(true);
         if (!hasKeys) ImGui.endDisabled();
         ImGui.sameLine();
         ImGui.setCursorPosX(cancelX);
-        if (ImGui.button("Cancel##KeyCombo_Cancel", buttonWidth, 0.0f)) closeDialog(false);
+        if (ImGui.button("Cancel##KeyCombo_Cancel", ButtonWidth, ButtonHeight)) closeDialog(false);
     }
 
     private static void recordInput() {

@@ -126,8 +126,8 @@ public final class EditProjectSettingsDialog {
         if (ImGui.beginPopupModal(PopupID, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)) {
             renderTabButtons();
             ImGui.separator();
-            float buttonWidth = 120;
-            float buttonHeight = 30;
+            float buttonWidth = 120.0f;
+            float buttonHeight = 30.0f;
             float regionHeight = ImGui.getContentRegionAvailY() - ButtonReserve - buttonHeight;
             if (ImGui.beginChild("##EPPD_Tab_Region", 0.0f, regionHeight, ImGuiChildFlags.Borders)) renderTabContent();
             ImGui.endChild();
@@ -143,7 +143,7 @@ public final class EditProjectSettingsDialog {
         ImGui.setCursorPosY(ImGui.getWindowHeight() - ButtonReserve - buttonHeight / 2.0f);
         float buttonPivotX = buttonWidth * 0.5f;
         float availX = ImGui.getContentRegionAvailX();
-        float closeX = (availX * 0.5f) - buttonPivotX;
+        float closeX = ImGui.getCursorStartPosX() + availX * 0.5f - buttonPivotX;
         ImGui.setCursorPosX(closeX);
         if (!ImGui.button("Close##EPPD_CLose_Dialog", buttonWidth, buttonHeight)) return;
         showDialog = false;
