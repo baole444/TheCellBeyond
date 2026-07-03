@@ -56,17 +56,21 @@ public final class GradleRunner {
      * The process output is redirected to {@link EngineLog}.
      * <p>
      * When there is a build in progress, no second build is launched, a completed future with {@link BuildResult#inProgress()} is returned instead.
-     * @param cleanBuildScripts the clean build scripts preference, callers are responsible for supplying this parameter
+     * </p>
+     * When overriding JVM is enabled, the runner will not enforce the JVM home, and user can use whatever they choose to supply.
+     * @param jdkHome the JDK home to use
+     * @param cleanBuildScripts the flag to run clean task before build and jar
+     * @param overrideJVM  the flag to allow user to supply their own JVM
      * @return a future completing with the build outcome
      */
-    public static CompletableFuture<BuildResult> buildScripts(Path jdkHome, boolean cleanBuildScripts) {
-        if (jdkHome == null) {
+    public static CompletableFuture<BuildResult> buildScripts(Path jdkHome, boolean cleanBuildScripts, boolean overrideJVM) {
+        if (!overrideJVM && jdkHome == null) {
             Logger.error("No valid JDK provided for Gradle JVM to build scripts!");
             EngineEventCallback.emit(new EditorEvent(EditorEvent.Type.MissingRunnerJDK));
             return CompletableFuture.completedFuture(BuildResult.noJDK());
         }
         if (!buildInProgress.compareAndSet(false, true)) return CompletableFuture.completedFuture(BuildResult.inProgress());
-        return CompletableFuture.supplyAsync(() -> runBuild(jdkHome, cleanBuildScripts), executor).whenComplete((_, _) -> buildInProgress.set(false));
+        return CompletableFuture.supplyAsync(() -> runBuild(jdkHome, cleanBuildScripts, overrideJVM), executor).whenComplete((_, _) -> buildInProgress.set(false));
     }
 
     /**
@@ -74,13 +78,15 @@ public final class GradleRunner {
      * The system fallback to Gradle's default if the custom layout can't be read.
      * <p>
      * This is intended for callers that exclude the build output from a source scan.
+     * @param jdkHome the JDK home to use
+     * @param overrideJVM  the flag to allow user to supply their own JVM
      * @return a future completing with the build directory path, or null when no project is opened
      */
-    public static CompletableFuture<Path> resolveBuildDir(Path jdkHome) {
-        return CompletableFuture.supplyAsync(() -> runResolveBuildDir(jdkHome), executor);
+    public static CompletableFuture<Path> resolveBuildDir(Path jdkHome, boolean overrideJVM) {
+        return CompletableFuture.supplyAsync(() -> runResolveBuildDir(jdkHome, overrideJVM), executor);
     }
 
-    private static BuildResult runBuild(Path jdkHome, boolean cleanBuildScripts) {
+    private static BuildResult runBuild(Path jdkHome, boolean cleanBuildScripts, boolean overrideJVM) {
         Path scriptRoot = scriptsRoot();
         if (scriptRoot == null) {
             Logger.error("No project is opened, cannot build scripts");
@@ -92,11 +98,11 @@ public final class GradleRunner {
             return BuildResult.launchFailed();
         }
         ensureExecutable(wrapper);
-        List<String> command = buildCommand(wrapper, jdkHome, cleanBuildScripts);
+        List<String> command = buildCommand(wrapper, jdkHome, cleanBuildScripts, overrideJVM);
         Logger.info("Building scripts: " + String.join(" ", command));
         long start = System.nanoTime();
         try {
-            Process process = gradleProcess(command, scriptRoot, jdkHome).start();
+            Process process = gradleProcess(command, scriptRoot, jdkHome, overrideJVM).start();
             tee(process);
             int exitCode = process.waitFor();
             long durationMs = (System.nanoTime() - start) / 1_000_000L;
@@ -111,16 +117,16 @@ public final class GradleRunner {
         }
     }
 
-    private static Path runResolveBuildDir(Path jdkHome) {
+    private static Path runResolveBuildDir(Path jdkHome, boolean overrideJVM) {
         Path scriptsRoot = scriptsRoot();
         if (scriptsRoot == null) return null;
         Path fallback = scriptsRoot.resolve(DefaultBuildDir);
         Path wrapper = wrapper(scriptsRoot);
-        if (!Files.isRegularFile(wrapper) || jdkHome == null) return fallback;
+        if (!Files.isRegularFile(wrapper) || (!overrideJVM && jdkHome == null)) return fallback;
         ensureExecutable(wrapper);
         try {
-            List<String> command = List.of(wrapper.toString(), gradleJavaHomeArg(jdkHome), PropertiesTask, QuietFlag);
-            Process process = gradleProcess(command, scriptsRoot, jdkHome).start();
+            List<String> command = overrideJVM ? List.of(wrapper.toString(), PropertiesTask, QuietFlag) : List.of(wrapper.toString(), gradleJavaHomeArg(jdkHome), PropertiesTask, QuietFlag);
+            Process process = gradleProcess(command, scriptsRoot, jdkHome, overrideJVM).start();
             Path resolved = parseBuildDir(process, fallback);
             process.waitFor();
             return resolved;
@@ -167,16 +173,16 @@ public final class GradleRunner {
         return new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8));
     }
 
-    private static ProcessBuilder gradleProcess(List<String> command, Path workingDir, Path jdkHome) {
+    private static ProcessBuilder gradleProcess(List<String> command, Path workingDir, Path jdkHome, boolean overrideJVM) {
         ProcessBuilder process = new ProcessBuilder(command).directory(workingDir.toFile()).redirectErrorStream(true);
-        process.environment().put(JavaHomeEnv, jdkHome.toAbsolutePath().toString());
+        if (!overrideJVM && jdkHome != null) process.environment().put(JavaHomeEnv, jdkHome.toAbsolutePath().toString());
         return process;
     }
 
-    private static List<String> buildCommand(Path wrapper, Path jdkHome, boolean cleanBuildScripts) {
+    private static List<String> buildCommand(Path wrapper, Path jdkHome, boolean cleanBuildScripts, boolean overrideJVM) {
         List<String> command = new ArrayList<>();
         command.add(wrapper.toString());
-        command.add(gradleJavaHomeArg(jdkHome));
+        if (!overrideJVM) command.add(gradleJavaHomeArg(jdkHome));
         if (cleanBuildScripts) command.add(CleanTask);
         command.add(JarTask);
         return command;

@@ -80,6 +80,7 @@ public final class JDKDownloader {
         progress = DownloadProgress.extracting();
         Path home = ArchiveExtractor.extract(archive, installDir, archiveType);
         deleteSilently(archive);
+        if (os.equals("macos")) QuarantineRemover.strip(home);
         progress = DownloadProgress.done(home);
         return home;
     }

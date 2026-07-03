@@ -29,6 +29,7 @@ public final class EditEditorPreferencesDialog {
     private static final ImBoolean autoSaveOnChangeScene = new ImBoolean(false);
     private static final ImBoolean showGridLine = new ImBoolean(false);
     private static final ImBoolean cleanBuildScripts = new ImBoolean(true);
+    private static final ImBoolean overrideJVM = new ImBoolean(false);
     private static final ImVec2 tmpCursorPos = new ImVec2();
     private static final ImBoolean tmpInteracted = new ImBoolean();
     private static JDKInstallation selectedJDK = null;
@@ -104,7 +105,15 @@ public final class EditEditorPreferencesDialog {
         ImGui.spacing();
         renderPreferenceToggle("Clean before build", cleanBuildScripts, " - Clear old build's output before new build start");
         ImGui.spacing();
+        boolean disabled = overrideJVM.get();
+        if (disabled) ImGui.beginDisabled();
         renderGradleJVM();
+        if (disabled) {
+            ImGui.setItemTooltip("Disable Override JVM to let the editor manage Gradle JVM");
+            ImGui.endDisabled();
+        }
+        ImGui.spacing();
+        renderPreferenceToggle("Override JVM", overrideJVM, "- Allow overriding editor's managed JVM for the Gradle runner");
     }
 
     private static void renderPreferenceToggle(String label, ImBoolean dest, String extraInfo) {
@@ -197,6 +206,7 @@ public final class EditEditorPreferencesDialog {
         autoSaveOnExit.set(preferences.autoSaveOnExit());
         showGridLine.set(preferences.showGridLine());
         cleanBuildScripts.set(preferences.cleanBuildScripts());
+        overrideJVM.set(preferences.overrideGradleJVM());
         selectedJDK = UserPreference.selectedJDK();
     }
 
@@ -206,7 +216,8 @@ public final class EditEditorPreferencesDialog {
                 autoSaveOnExit.get(),
                 autoSaveOnChangeScene.get(),
                 showGridLine.get(),
-                cleanBuildScripts.get()
+                cleanBuildScripts.get(),
+                overrideJVM.get()
         ));
         editorPreferenceChanged = false;
     }

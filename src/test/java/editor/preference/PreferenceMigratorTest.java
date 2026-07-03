@@ -37,6 +37,7 @@ final class PreferenceMigratorTest {
         assertFalse(result.autoSaveOnChangeScene());
         assertTrue(result.showGridLine(), "user value preserved");
         assertTrue(result.cleanBuildScripts(), "new field takes its current default");
+        assertFalse(result.overrideGradleJVM(), "override defaults off: the editor forces the selected JDK");
     }
 
     @Test

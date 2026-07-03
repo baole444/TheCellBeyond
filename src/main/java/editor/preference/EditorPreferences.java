@@ -8,8 +8,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
  * @param autoSaveOnChangeScene control auto save editing scene when switching to another scene
  * @param showGridLine control drawing and snapping to gridline on scene's editor viewport
  * @param cleanBuildScripts control invoking clean task before jar in Gradle runner for user's scripts
+ * @param overrideGradleJVM control user's ability to override important settings for Gradle runner and build script.
  */
-public record EditorPreferences(boolean autoSaveOnExit, boolean autoSaveOnChangeScene, boolean showGridLine, boolean cleanBuildScripts) {
+public record EditorPreferences(boolean autoSaveOnExit, boolean autoSaveOnChangeScene, boolean showGridLine, boolean cleanBuildScripts, boolean overrideGradleJVM) {
     /**
      * The current preference schema version. Files without a version a treated as version 0.
      */
@@ -24,26 +25,31 @@ public record EditorPreferences(boolean autoSaveOnExit, boolean autoSaveOnChange
      */
     @JsonIgnore
     public EditorPreferences() {
-        this(false, false, false, true);
+        this(false, false, false, true, false);
     }
 
     @JsonIgnore
     public EditorPreferences autoSaveOnExit(boolean autoSaveOnExit) {
-        return new EditorPreferences(autoSaveOnExit, autoSaveOnChangeScene, showGridLine, cleanBuildScripts);
+        return new EditorPreferences(autoSaveOnExit, autoSaveOnChangeScene, showGridLine, cleanBuildScripts, overrideGradleJVM);
     }
 
     @JsonIgnore
     public EditorPreferences autoSaveOnChangeScene(boolean autoSaveOnChangeScene) {
-        return new EditorPreferences(autoSaveOnExit, autoSaveOnChangeScene, showGridLine, cleanBuildScripts);
+        return new EditorPreferences(autoSaveOnExit, autoSaveOnChangeScene, showGridLine, cleanBuildScripts, overrideGradleJVM);
     }
 
     @JsonIgnore
     public EditorPreferences showGridLine(boolean showGridLine) {
-        return new EditorPreferences(autoSaveOnExit, autoSaveOnChangeScene, showGridLine, cleanBuildScripts);
+        return new EditorPreferences(autoSaveOnExit, autoSaveOnChangeScene, showGridLine, cleanBuildScripts, overrideGradleJVM);
     }
 
     @JsonIgnore
     public EditorPreferences cleanBuildScripts(boolean cleanBuildScripts) {
-        return new EditorPreferences(autoSaveOnExit, autoSaveOnChangeScene, showGridLine, cleanBuildScripts);
+        return new EditorPreferences(autoSaveOnExit, autoSaveOnChangeScene, showGridLine, cleanBuildScripts, overrideGradleJVM);
+    }
+
+    @JsonIgnore
+    public EditorPreferences overrideGradleJVM(boolean overrideGradleJVM) {
+        return new EditorPreferences(autoSaveOnExit, autoSaveOnChangeScene, showGridLine, cleanBuildScripts, overrideGradleJVM);
     }
 }
