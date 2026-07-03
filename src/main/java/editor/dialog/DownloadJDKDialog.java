@@ -1,13 +1,17 @@
 package editor.dialog;
 
+import editor.EditorIcons;
+import editor.EditorWidget;
 import editor.preference.UserPreference;
 import imgui.ImGui;
 import imgui.ImVec2;
-import imgui.flag.ImGuiCond;
-import imgui.flag.ImGuiTableColumnFlags;
-import imgui.flag.ImGuiTableFlags;
-import imgui.flag.ImGuiWindowFlags;
+import imgui.flag.*;
+import imgui.type.ImString;
+import scripting.builder.jdk.download.DownloadProgress;
+import scripting.builder.jdk.download.JDKDownloader;
 import scripting.builder.jdk.download.JDKProvider;
+
+import java.nio.file.Path;
 
 final class DownloadJDKDialog {
     private enum FeatureVersion {
@@ -24,22 +28,25 @@ final class DownloadJDKDialog {
     }
 
     private static final String PopupID = "Download JDK";
-    private static final ImVec2 DialogSize = new ImVec2(400.0f, 200.0f);
+    private static final ImVec2 DialogSize = new ImVec2(480.0f, 240.0f);
     private static final float ButtonReserve = ImGui.getFrameHeightWithSpacing();
-    private static final float Padding = 4.0f;
     private static final float ButtonWidth = 100.0f;
     private static final float ButtonHeight = 30.0f;
-    private static final ImVec2 optionSize = new ImVec2();
     private static boolean showDialog = false;
+    private static final ImString selectedPathDisplay = new ImString(256);
     private static JDKProvider selectedProvider = JDKProvider.Temurin;
     private static FeatureVersion selectedVersion = FeatureVersion.v25;
+    private static Path selectedPath = UserPreference.jdkInstallDir();
+    private static boolean downloadRequested = false;
     private static String message = "";
 
     static void show() {
         showDialog = true;
+        downloadRequested = false;
         message = "";
         selectedProvider = JDKProvider.Temurin;
         selectedVersion = FeatureVersion.v25;
+        selectedPath = UserPreference.jdkInstallDir();
     }
 
     static void imgui() {
@@ -50,7 +57,10 @@ final class DownloadJDKDialog {
         ImGui.setNextWindowPos(center.x, center.y, ImGuiCond.Appearing, pivotXY, pivotXY);
         ImGui.setNextWindowSize(DialogSize);
         if (ImGui.beginPopupModal(PopupID, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)) {
+            refreshStatus();
             renderOptions();
+            ImGui.spacing();
+            EditorWidget.textCenterAlign(message);
             renderControlButtons();
             ImGui.endPopup();
         }
@@ -59,31 +69,32 @@ final class DownloadJDKDialog {
 
     private static void renderOptions() {
         ImGui.spacing();
-        float margin = (ImGui.getContentRegionAvailX() * 0.2f) / 2.0f;
+        float margin = (ImGui.getContentRegionAvailX() * 0.15f) / 2.0f;
         ImGui.indent(margin);
-        ImGui.beginGroup();
-        if (!ImGui.beginTable("##DJ_Selection_Layout_Table", 2, ImGuiTableFlags.SizingStretchProp, ImGui.getContentRegionAvailX() - margin)) return;
+        if (!ImGui.beginTable("##DJ_Selection_Layout_Table", 2, ImGuiTableFlags.SizingStretchProp, ImGui.getContentRegionAvailX() - margin, 0.0f)) {
+            ImGui.unindent(margin);
+            return;
+        }
         ImGui.tableSetupColumn("##DJ_Selection_Label_Column", ImGuiTableColumnFlags.WidthFixed);
-        ImGui.tableSetupColumn("##DJ_Selection_Dropdown_COlumn", ImGuiTableColumnFlags.WidthStretch);
+        ImGui.tableSetupColumn("##DJ_Selection_Dropdown_Column", ImGuiTableColumnFlags.WidthStretch);
         ImGui.tableNextColumn();
         ImGui.setCursorPosY(ImGui.getCursorPosY() + (ImGui.getFrameHeightWithSpacing() - ImGui.getTextLineHeightWithSpacing()) / 2.0f);
-        ImGui.text("Version:");
+        ImGui.textUnformatted("Version: ");
         ImGui.tableNextColumn();
-        ImGui.pushItemWidth(ImGui.getContentRegionAvailX() - margin);
+        ImGui.setNextItemWidth(ImGui.getContentRegionAvailX());
         if (ImGui.beginCombo("##DJ_Version_Selection_Combo", selectedVersion != null ? selectedVersion.display : "Select version...")) {
             for (FeatureVersion version : FeatureVersion.values()) {
                 if (ImGui.selectable(version.display + "##DJ_Version_Selectable_" + version.display, version == selectedVersion)) selectedVersion = version;
             }
             ImGui.endCombo();
         }
-        ImGui.popItemWidth();
         ImGui.tableNextColumn();
         ImGui.spacing();
         ImGui.setCursorPosY(ImGui.getCursorPosY() + (ImGui.getFrameHeightWithSpacing() - ImGui.getTextLineHeightWithSpacing()) / 2.0f);
-        ImGui.text("Vendor:");
+        ImGui.textUnformatted("Vendor:  ");
         ImGui.tableNextColumn();
         ImGui.spacing();
-        ImGui.pushItemWidth(ImGui.getContentRegionAvailX() - margin);
+        ImGui.setNextItemWidth(ImGui.getContentRegionAvailX());
         if (ImGui.beginCombo("##DJ_Vendor_Selection_Combo", selectedProvider != null ? selectedProvider.formalName : "Select vendor...")) {
             for (JDKProvider provider : JDKProvider.values()) {
                 if (ImGui.selectable(provider.formalName + "##DJ_Version_Selectable_" + provider.distribution, provider == selectedProvider)) selectedProvider = provider;
@@ -94,10 +105,31 @@ final class DownloadJDKDialog {
             ImGui.endDisabled();
             ImGui.endCombo();
         }
-        ImGui.popItemWidth();
         ImGui.endTable();
-        ImGui.endGroup();
-        ImGui.getItemRectSize(optionSize);
+        if (!ImGui.beginTable("##DJ_Select_Location_Layout_Table", 3, ImGuiTableFlags.SizingStretchProp, ImGui.getContentRegionAvailX() - margin, 0.0f)) {
+            ImGui.unindent(margin);
+            return;
+        }
+        ImGui.tableSetupColumn("##DJ_Select_Location_Label_Column", ImGuiTableColumnFlags.WidthFixed);
+        ImGui.tableSetupColumn("##DJ_Select_Location_Input_Column", ImGuiTableColumnFlags.WidthStretch);
+        ImGui.tableSetupColumn("##DJ_Select_Location_Browse_Column", ImGuiTableColumnFlags.WidthFixed);
+        ImGui.tableNextColumn();
+        ImGui.setCursorPosY(ImGui.getCursorPosY() + (ImGui.getFrameHeightWithSpacing() - ImGui.getTextLineHeightWithSpacing()) / 2.0f);
+        ImGui.text("Location:");
+        ImGui.tableNextColumn();
+        if (selectedPath != null) selectedPathDisplay.set(selectedPath.toString());
+        ImGui.setNextItemWidth(ImGui.getContentRegionAvailX());
+        ImGui.inputTextWithHint("##DJ_Select_Location_Input", "Click \"Select Directory\" to choose root directory...", selectedPathDisplay, ImGuiInputTextFlags.ReadOnly);
+        if (ImGui.calcTextSizeX(selectedPathDisplay.get()) > ImGui.getContentRegionAvailX()) ImGui.setItemTooltip(selectedPathDisplay.get());
+        ImGui.beginDisabled();
+        ImGui.textWrapped("The JDK home directory will be created under the selected location");
+        ImGui.endDisabled();
+        ImGui.tableNextColumn();
+        if (EditorWidget.iconButton("Select Directory##DJ_Select_Directory_Button", EditorIcons.Icons.Open, "Click to select the root directory to install the JDK into")) {
+            Path selected = OpenDirectoryDialog.openDialog();
+            if (selected != null) selectedPath = selected;
+        }
+        ImGui.endTable();
         ImGui.unindent(margin);
     }
 
@@ -111,7 +143,7 @@ final class DownloadJDKDialog {
         ImGui.setCursorPosX(downloadX);
         boolean canDownload = selectedProvider != null && selectedVersion != null;
         if (!canDownload) ImGui.beginDisabled();
-        if (ImGui.button("Download##DJ_Download_Selected_JDK_Button", ButtonWidth, ButtonHeight)) UserPreference.downloadJDK(selectedVersion.version, selectedProvider);
+        if (ImGui.button("Download##DJ_Download_Selected_JDK_Button", ButtonWidth, ButtonHeight)) startDownload();
         if (!canDownload) ImGui.endDisabled();
         ImGui.sameLine();
         ImGui.setCursorPosX(cancelX);
@@ -119,5 +151,22 @@ final class DownloadJDKDialog {
         showDialog = false;
         ImGui.closeCurrentPopup();
         EditEditorPreferencesDialog.closeDownloadJDKDialog();
+    }
+
+    private static void startDownload() {
+        downloadRequested = true;
+        message = "Starting download...";
+        UserPreference.downloadJDK(selectedPath ,selectedVersion.version, selectedProvider);
+    }
+
+    private static void refreshStatus() {
+        if (!downloadRequested) return;
+        DownloadProgress snapshot = JDKDownloader.progress();
+        if (snapshot == null) return;
+        if (snapshot.phase() == DownloadProgress.Phase.Downloading) {
+            message = snapshot.byteTotal() > 0 ? String.format("Downloading... %d%%", Math.round(snapshot.fraction() * 100.0f)) : "Downloading...";
+            return;
+        }
+        message = snapshot.message();
     }
 }

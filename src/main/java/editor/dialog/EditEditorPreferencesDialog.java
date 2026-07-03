@@ -22,7 +22,8 @@ public final class EditEditorPreferencesDialog {
     private static final String PopupID = "Editor Preferences";
     private static final ImVec2 DialogSize = new ImVec2(720.0f, 400.0f);
     private static final float ButtonReserve = ImGui.getFrameHeightWithSpacing();
-    private static final float Padding = 4.0f;
+    private static final float ButtonWidth = 120.0f;
+    private static final float ButtonHeight = 30.0f;
     private static boolean showDialog = false;
     private static final ImBoolean autoSaveOnExit = new ImBoolean(false);
     private static final ImBoolean autoSaveOnChangeScene = new ImBoolean(false);
@@ -65,25 +66,23 @@ public final class EditEditorPreferencesDialog {
         ImGui.setNextWindowSize(DialogSize);
         if (ImGui.beginPopupModal(PopupID, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)) {
             ImGui.text("Adjust Editor's preferences");
-            float buttonWidth = 120;
-            float buttonHeight = 30;
-            float regionHeight = ImGui.getContentRegionAvailY() - ButtonReserve - buttonHeight;
+            float regionHeight = ImGui.getContentRegionAvailY() - ButtonReserve - ButtonHeight;
             if (ImGui.beginChild("##EEPD_Preference_Region", 0.0f, regionHeight, ImGuiChildFlags.Borders)) renderPreferenceEditor();
             ImGui.endChild();
             autoSavePreference();
-            renderCloseButton(buttonWidth, buttonHeight);
+            renderCloseButton();
             ImGui.endPopup();
         }
         if (!ImGui.isPopupOpen(PopupID)) showDialog = false;
     }
 
-    private static void renderCloseButton(float buttonWidth, float buttonHeight) {
-        ImGui.setCursorPosY(ImGui.getWindowHeight() - ButtonReserve - buttonHeight / 2.0f);
-        float buttonPivotX = buttonWidth * 0.5f;
+    private static void renderCloseButton() {
+        ImGui.setCursorPosY(ImGui.getWindowHeight() - ButtonReserve - ButtonHeight / 2.0f);
+        float buttonPivotX = ButtonWidth * 0.5f;
         float availX = ImGui.getContentRegionAvailX();
         float closeX = ImGui.getCursorStartPosX() + availX * 0.5f - buttonPivotX;
         ImGui.setCursorPosX(closeX);
-        if (!ImGui.button("Close##EPPD_CLose_Dialog", buttonWidth, buttonHeight)) return;
+        if (!ImGui.button("Close##EPPD_CLose_Dialog", ButtonWidth, ButtonHeight)) return;
         showDialog = false;
         ImGui.closeCurrentPopup();
     }
@@ -136,7 +135,8 @@ public final class EditEditorPreferencesDialog {
         List<JDKInstallation> detected = JDKManager.detected();
         int supID = 0;
         if (!ImGui.beginCombo("##EEPD_JDK_Selection_Combo", selectedJDK == null ? "Select JDK..." : selectedJDK.displayName(), ImGuiComboFlags.HeightLarge)) return;
-        renderJDKSelectable(javaHome, supID++);
+        if (javaHome != null) renderJDKSelectable(javaHome, supID++);
+        else ImGui.textDisabled("No JAVA_HOME detected");
         ImGui.separator();
         if (userAdded.isEmpty()) ImGui.textDisabled("No JDK added");
         else for (JDKInstallation jdk : userAdded) renderJDKSelectable(jdk, supID++);
@@ -164,6 +164,7 @@ public final class EditEditorPreferencesDialog {
         if (invalid) ImGui.beginDisabled();
         tmpCursorPos.set(ImGui.getCursorPos());
         tmpInteracted.set(ImGui.selectable("##EEP_Select_JDK_" + jdk.home() + "_" + supID, currentlySelected));
+        ImGui.setItemTooltip(jdk.home().toString());
         ImGui.setCursorPos(tmpCursorPos);
         renderJDKLabel(jdk);
         if (invalid) ImGui.endDisabled();

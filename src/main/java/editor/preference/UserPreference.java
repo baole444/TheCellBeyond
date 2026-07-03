@@ -144,10 +144,28 @@ public final class UserPreference {
         });
     }
 
+    /**
+     * Download the requested JDK into the managed installation directory, where the JDK home will be created under it.
+     * On success, the extracted JDK will be selected.
+     * @param version the Java feature version to download
+     * @param provider the vendor to download from
+     * @return a future of the registered installation, completing with null when the provider is null, or when download failed
+     */
     public static CompletableFuture<JDKInstallation> downloadJDK(int version, JDKProvider provider) {
-        Path dir = jdkInstallDir();
-        if (dir == null) return CompletableFuture.completedFuture(null);
-        return JDKDownloader.download(dir, version, provider).thenCompose(home -> home == null ? CompletableFuture.completedFuture(null) : addJDK(home));
+        return downloadJDK(jdkInstallDir(), version, provider);
+    }
+
+    /**
+     * Download the requested JDK into the given installing directory, where the JDK home will be created under it.
+     * On success, the extracted JDK will be selected.
+     * @param installDir the directory to download and extract the JDK into
+     * @param version the Java feature version to download
+     * @param provider the vendor to download from
+     * @return a future of the registered installation, completing with null when installing directory or provider is null, or when download failed
+     */
+    public static CompletableFuture<JDKInstallation> downloadJDK(Path installDir ,int version, JDKProvider provider) {
+        if (installDir == null || provider == null) return CompletableFuture.completedFuture(null);
+        return JDKDownloader.download(installDir, version, provider).thenCompose(home -> home == null ? CompletableFuture.completedFuture(null) : addJDK(home));
     }
 
     /**

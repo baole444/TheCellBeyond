@@ -2,8 +2,8 @@ package editor.dialog;
 
 import TheCellBeyond.*;
 import editor.EditorIcons;
-import editor.EditorWidget;
 import editor.EditorLayer;
+import editor.EditorWidget;
 import imgui.ImGui;
 import imgui.flag.*;
 import imgui.type.ImString;

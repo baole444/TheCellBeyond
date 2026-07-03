@@ -17,7 +17,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Handle download, checksum verification, and extraction of JDK via foojay API for the requested provider/version for the host platform.
+ * Handle download, checksum verification, and extraction of JDK via foojay API for the requested provider/version and the host platform.
  * <p>
  * The download process run on a dedicated executor with progress obtainable via {@link #progress()}.
  * Requesting download while there is an ongoing request will return the ongoing's outcome instead.
@@ -48,7 +48,7 @@ public final class JDKDownloader {
      * @return a future of the extracted JDK home, or completing with null if there is any failure
      */
     public static synchronized CompletableFuture<Path> download(Path installDir, int version, JDKProvider provider) {
-        if (installDir == null || provider == null) CompletableFuture.completedFuture(null);
+        if (installDir == null || provider == null) return CompletableFuture.completedFuture(null);
         if (ongoingDownload != null && !ongoingDownload.isDone()) return ongoingDownload;
         ongoingDownload = CompletableFuture.supplyAsync(() -> run(installDir, version, provider), executor);
         return ongoingDownload;
