@@ -6,10 +6,6 @@
 
 </div>
 
-> [!IMPORTANT]
-> You are currently viewing the Scripting branch, contains the development of **TCBScript transpiler** and the scripting language itself.
-> Some of engine's functions might not work properly or work incorrectly.
-
 ## Running the engine
 The executable from release contains a bundled JRE needed to run the core engine and potential prebuilt script jar file.
 
