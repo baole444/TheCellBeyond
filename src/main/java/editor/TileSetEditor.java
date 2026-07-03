@@ -148,24 +148,19 @@ final class TileSetEditor {
             ImVec2 max = ImGui.getItemRectMax();
             drawList.addRect(min, max, ImGui.colorConvertFloat4ToU32(0.2f, 0.7f, 0.2f, 0.8f), 0 , 0 , 2);
         }
-
         Object payLoad = ImGui.acceptDragDropPayload(SpriteDragDropPayload.getPayloadType());
-
         if (payLoad == null) {
             ImGui.endDragDropTarget();
             return;
         }
-
         Sprite dropSprite = SpriteDragDropPayload.getPayload();
         if (dropSprite == null || editingTileMap == null) {
             ImGui.endDragDropTarget();
             return;
         }
-
         TileSet tileSet = editingTileMap.tileSet();
         if (tileSet == null) Logger.error("Internal state error: TileSet is null");
         else tileSet.tileSetSprite(dropSprite);
-
         ImGui.endDragDropTarget();
     }
 

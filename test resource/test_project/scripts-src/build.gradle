@@ -1,0 +1,43 @@
+plugins {
+    id 'java'
+}
+
+int targetJavaVersion = 25
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
+}
+
+repositories {
+    flatDir {
+        dirs 'library'
+    }
+
+    mavenCentral()
+}
+
+dependencies {
+    // Make sure to check for latest api version at
+    // https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api
+    compileOnly "io.github.baole444:thecellbeyond-api:1.8"
+    compileOnly ":jbox2d-library"
+    // For any other library that you might use outside the engine,
+    // they need to be implementation instead of compile only for them to be import properly
+}
+
+tasks.withType(JavaCompile).configureEach {
+    // ensure that the encoding is set to UTF-8, no matter what the system default is
+    // this fixes some edge cases with special characters not displaying correctly
+    // see http://yodaconditions.net/blog/fix-for-java-file-encoding-problems-with-gradle.html
+    // If Javadoc is generated, this must be specified in that task too.
+    it.options.encoding = "UTF-8"
+    if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
+        it.options.release.set(targetJavaVersion)
+    }
+}
+
+// Alternatively, open terminal in the same directory as this file and run ./gradlew jar
+jar {
+    destinationDirectory = file('../scripts')
+}

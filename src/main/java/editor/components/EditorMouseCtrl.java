@@ -83,7 +83,7 @@ public class EditorMouseCtrl extends Component implements NotSerializeComponent 
             holdObj = null;
         }
         clickInit -= dt;
-        if (!ImGuiLayer.editorWantCaptureMouse() || ImGui.isPopupOpen("", ImGuiPopupFlags.AnyPopup)) return;
+        if (!EditorLayer.editorWantCaptureMouse() || ImGui.isPopupOpen("", ImGuiPopupFlags.AnyPopup)) return;
         if (holdObj == null) {
             onNotHoldingObject();
             return;
@@ -154,7 +154,7 @@ public class EditorMouseCtrl extends Component implements NotSerializeComponent 
                 return new Vector2f(targetX, targetY);
             }
         }
-        if (!UserPreference.editorPreferences().showGridLine()) {
+        if (!UserPreference.preferences().showGridLine()) {
             targetX = MouseListener.getWorldPositionX();
             targetY = MouseListener.getWorldPositionY();
         } else {

@@ -38,15 +38,15 @@ import static org.lwjgl.util.nfd.NativeFileDialog.NFD_Init;
 import static org.lwjgl.util.nfd.NativeFileDialog.NFD_Quit;
 
 public final class StartupWindow {
-    private static final String TABLE_ID = "Project Manager";
-    private static final ImVec2 EditorWindowSize = new ImVec2(960, 720);
+    private static final String WindowID = "Project Manager##TCB_Startup_Project_Manager";
+    private static final ImVec2 EditorWindowSize = new ImVec2(960, 600);
     private static final float projectListXPercentage = 0.75f;
     private static final HashMap<UUID, RecentProject> recentProjects = new HashMap<>();
     private static RecentProject selectedProject = null;
     private static UUID selectedUUID = null;
     private static String pendingSelection = null;
     private static long windowPtr;
-    private static ImGuiLayer imGuiLayer;
+    private static EditorLayer editorLayer;
     private static final ObjectMapper YAMLMapper = new ObjectMapper(new YAMLFactory()).rebuild().disable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES).build();
 
     public static void init() {
@@ -75,8 +75,8 @@ public final class StartupWindow {
         freeOld(glfwSetCharCallback(windowPtr, KeyListener::charCallback));
         glfwSetInputMode(windowPtr, GLFW_IME, GLFW_TRUE);
         NFD_Init();
-        imGuiLayer = new ImGuiLayer(windowPtr);
-        imGuiLayer.initImGui("#version 330 core");
+        editorLayer = new EditorLayer(windowPtr);
+        editorLayer.initImGui("#version 330 core");
         ImGui.getIO().setIniFilename(null);
         glfwShowWindow(windowPtr);
     }
@@ -89,20 +89,22 @@ public final class StartupWindow {
             glfwPollEvents();
             glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
             glClear(GL_COLOR_BUFFER_BIT);
-            imGuiLayer.getImGuiGlfw().newFrame();
-            imGuiLayer.getImGuiGl3().newFrame();
+            editorLayer.getImGuiGlfw().newFrame();
+            editorLayer.getImGuiGl3().newFrame();
             ImGui.newFrame();
-            ImGui.setNextWindowPos(EditorWindowSize.x / 2.0f, EditorWindowSize.y / 2.0f, ImGuiCond.Always, 0.5f, 0.5f);
-            ImGui.setNextWindowSize(EditorWindowSize);
-            if (!ImGui.begin("Welcome to The Cell Beyond Editor", ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse)) {
+            EditorLayer.applyStyle(() -> {
+                ImGui.setNextWindowPos(EditorWindowSize.x / 2.0f, EditorWindowSize.y / 2.0f, ImGuiCond.Always, 0.5f, 0.5f);
+                ImGui.setNextWindowSize(EditorWindowSize);
+                if (!ImGui.begin("Welcome to TheCellBeyond Editor##TCB_Startup_Project_Manager", ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse)) {
+                    ImGui.end();
+                    return;
+                }
+                ImGui.text("Project Manager");
+                renderProjectList();
                 ImGui.end();
-                continue;
-            }
-            ImGui.text("Project Manager");
-            renderProjectList();
-            ImGui.end();
+            });
             ImGui.render();
-            imGuiLayer.getImGuiGl3().renderDrawData(ImGui.getDrawData());
+            editorLayer.getImGuiGl3().renderDrawData(ImGui.getDrawData());
             if (ImGui.getIO().hasConfigFlags(ImGuiConfigFlags.ViewportsEnable)) {
                 final long backupWindowPtr = glfwGetCurrentContext();
                 ImGui.updatePlatformWindows();
@@ -123,13 +125,13 @@ public final class StartupWindow {
     public static void dispose() {
         MouseListener.clear();
         KeyListener.clear();
-        imGuiLayer.getImGuiGl3().shutdown();
-        imGuiLayer.getImGuiGlfw().shutdown();
+        editorLayer.getImGuiGl3().shutdown();
+        editorLayer.getImGuiGlfw().shutdown();
         ImGui.destroyContext();
         glfwFreeCallbacks(windowPtr);
         glfwDestroyWindow(windowPtr);
         windowPtr = 0;
-        imGuiLayer = null;
+        editorLayer = null;
         glfwTerminate();
         NFD_Quit();
         Objects.requireNonNull(glfwSetErrorCallback(null)).free();
@@ -144,13 +146,12 @@ public final class StartupWindow {
     }
 
     private static void renderProjectList() {
-        float sectionY = ImGui.getContentRegionAvailY() * 0.9f;
-        if (!ImGui.beginChild("Project_Section" ,0.0f, sectionY, false)) {
+        if (!ImGui.beginChild("Project_Section" ,0.0f, 0.0f)) {
             ImGui.endChild();
             return;
         }
         ImVec2 remainTableSize = ImGui.getContentRegionAvail();
-        if (!ImGui.beginTable(TABLE_ID, 2, ImGuiTableFlags.NoBordersInBody | ImGuiTableFlags.SizingStretchProp, remainTableSize)) {
+        if (!ImGui.beginTable(WindowID, 2, ImGuiTableFlags.NoBordersInBody | ImGuiTableFlags.SizingStretchProp, remainTableSize)) {
             ImGui.endChild();
             return;
         }

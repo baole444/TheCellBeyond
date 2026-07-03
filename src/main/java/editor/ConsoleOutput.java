@@ -1,15 +1,17 @@
 package editor;
 
+import editor.widgets.SelectableTextView;
+import editor.widgets.SelectableTextView.Row;
 import imgui.ImGui;
-import imgui.ImVec4;
-import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiTableColumnFlags;
 import imgui.flag.ImGuiTableFlags;
 import imgui.type.ImBoolean;
 import utility.RingBuffer;
 import utility.log.*;
 
+import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.IdentityHashMap;
 import java.util.List;
 
 /**
@@ -18,15 +20,15 @@ import java.util.List;
 public final class ConsoleOutput implements EngineLogListener {
     private static ConsoleOutput instance;
 
-    private static final ImVec4 debugColor = new ImVec4(0.35f, 0.35f, 0.35f, 1.0f);
-    private static final ImVec4 infoColor = new ImVec4(0.85f, 0.85f, 0.85f, 1.0f);
-    private static final ImVec4 warningColor = new ImVec4(0.85f, 0.85f, 0.25f, 1.0f);
-    private static final ImVec4 errorColor = new ImVec4(0.85f, 0.25f, 0.25f, 1.0f);
-    private static final float iconSize = 28.0f;
-    private static final String debugId = "Debug##enable_debug_log_history";
-    private static final String infoId = "Info##enable_info_log_history";
-    private static final String warningId = "Warning##enable_warning_log_history";
-    private static final String errorId = "Error##enable_error_log_history";
+    private static final int DebugColor = ImGui.colorConvertFloat4ToU32(0.35f, 0.35f, 0.35f, 1.0f);
+    private static final int InfoColor = ImGui.colorConvertFloat4ToU32(0.85f, 0.85f, 0.85f, 1.0f);
+    private static final int WarningColor = ImGui.colorConvertFloat4ToU32(0.85f, 0.85f, 0.25f, 1.0f);
+    private static final int ErrorColor = ImGui.colorConvertFloat4ToU32(0.85f, 0.25f, 0.25f, 1.0f);
+    private static final float IconSize = 28.0f;
+    private static final String DebugId = "Debug##enable_debug_log_history";
+    private static final String InfoId = "Info##enable_info_log_history";
+    private static final String WarningId = "Warning##enable_warning_log_history";
+    private static final String ErrorId = "Error##enable_error_log_history";
 
     private final ImBoolean enableDebug = new ImBoolean(false);
     private final ImBoolean enableInfo = new ImBoolean(true);
@@ -34,6 +36,12 @@ public final class ConsoleOutput implements EngineLogListener {
     private final ImBoolean enableError = new ImBoolean(true);
     private final EnumMap<Level, ImBoolean> logFilter;
     private final RingBuffer<LogEntry> entries;
+
+    private final SelectableTextView logView = new SelectableTextView();
+    private final IdentityHashMap<LogEntry, Row> rowByEntry = new IdentityHashMap<>();
+    private final List<Row> rowCache = new ArrayList<>();
+    private volatile boolean dirty = true;
+    private int lastFilterMask = -1;
 
     static {
         init();
@@ -49,17 +57,14 @@ public final class ConsoleOutput implements EngineLogListener {
         logFilter.put(Level.Info, enableInfo);
         logFilter.put(Level.Warning, enableWarning);
         logFilter.put(Level.Error, enableError);
+        logView.stickToBottom(true);
         List<LogEntry> backlogs = EngineLog.logs();
-        for (LogEntry entry : backlogs) {
-            entries.add(entry);
-        }
+        for (LogEntry entry : backlogs) entries.add(entry);
         EngineLogCallback.register(this);
     }
 
     private static void init() {
-        if (instance != null) {
-            EngineLogCallback.unregister(instance);
-        }
+        if (instance != null) EngineLogCallback.unregister(instance);
         instance = new ConsoleOutput();
     }
 
@@ -83,29 +88,63 @@ public final class ConsoleOutput implements EngineLogListener {
     }
 
     private void drawLogsRegion() {
-        if (!ImGui.beginChild("##Scrolling_logs")) {
-            ImGui.textDisabled("Cannot initialize region to display logs.");
-            ImGui.endChild();
-            return;
-        }
-        List<LogEntry> logs = entries.toList();
-        for (LogEntry entry : logs) {
-            printLog(entry);
-        }
-        if (ImGui.getScrollY() >= ImGui.getScrollMaxY() - 1.0f) ImGui.setScrollHereY(1.0f);
-        ImGui.endChild();
+        refreshFilterDirty();
+        if (dirty) rebuildRows();
+        logView.render("##Scrolling_Logs", rowCache, this::logContextMenu);
     }
 
     private void drawLogFilter() {
-        EditorWidget.selectableIcon(debugId, EditorIcons.LogLevelIcons.Debug, "Show/hide debug log level", enableDebug, iconSize, iconSize);
-        EditorWidget.selectableIcon(infoId, EditorIcons.LogLevelIcons.Info, "Show/hide info log level", enableInfo, iconSize, iconSize);
-        EditorWidget.selectableIcon(warningId, EditorIcons.LogLevelIcons.Warning, "Show/hide warning log level", enableWarning, iconSize, iconSize);
-        EditorWidget.selectableIcon(errorId, EditorIcons.LogLevelIcons.Error, "Show/hide error log level", enableError, iconSize, iconSize);
+        EditorWidget.selectableIcon(DebugId, EditorIcons.LogLevelIcons.Debug, "Show/hide debug log level", enableDebug, IconSize, IconSize);
+        EditorWidget.selectableIcon(InfoId, EditorIcons.LogLevelIcons.Info, "Show/hide info log level", enableInfo, IconSize, IconSize);
+        EditorWidget.selectableIcon(WarningId, EditorIcons.LogLevelIcons.Warning, "Show/hide warning log level", enableWarning, IconSize, IconSize);
+        EditorWidget.selectableIcon(ErrorId, EditorIcons.LogLevelIcons.Error, "Show/hide error log level", enableError, IconSize, IconSize);
         ImGui.separator();
-        if (EditorWidget.iconButton("Clear##Clear_log_history", EditorIcons.Icons.Delete, "Click to clear log history", iconSize, iconSize)) {
-            EngineLog.clear();
-            entries.clear();
+        if (!EditorWidget.iconButton("Clear##Clear_log_history", EditorIcons.Icons.Delete, "Click to clear log history", IconSize, IconSize)) return;
+        EngineLog.clear();
+        entries.clear();
+        dirty = true;
+    }
+
+    private void logContextMenu(Row row) {
+        if (ImGui.menuItem("Copy all")) ImGui.setClipboardText(allText());
+    }
+
+    private void refreshFilterDirty() {
+        int mask = (enableDebug.get() ? 1 : 0) | (enableInfo.get() ? 2 : 0) | (enableWarning.get() ? 4 : 0) | (enableError.get() ? 8 : 0);
+        if (mask == lastFilterMask) return;
+        lastFilterMask = mask;
+        dirty = true;
+    }
+
+    private void rebuildRows() {
+        List<LogEntry> all = entries.toList();
+        IdentityHashMap<LogEntry, Boolean> present = new IdentityHashMap<>();
+        for (LogEntry entry : all) present.put(entry, Boolean.TRUE);
+        rowByEntry.keySet().retainAll(present.keySet());
+        rowCache.clear();
+        for (LogEntry entry : all) {
+            if (!isLogLevelEnable(entry)) continue;
+            rowCache.add(rowByEntry.computeIfAbsent(entry, e -> new Row(formatEntry(e), colorFor(e.level()))));
         }
+        dirty = false;
+    }
+
+    private String allText() {
+        StringBuilder sb = new StringBuilder();
+        for (Row row : rowCache) {
+            sb.append(row.text);
+            sb.append('\n');
+        }
+        return sb.toString();
+    }
+
+    private static int colorFor(Level level) {
+        return switch (level) {
+            case Debug -> DebugColor;
+            case Info -> InfoColor;
+            case Warning -> WarningColor;
+            case Error -> ErrorColor;
+        };
     }
 
     private static String formatEntry(LogEntry entry) {
@@ -116,20 +155,6 @@ public final class ConsoleOutput implements EngineLogListener {
                 + entry.message();
     }
 
-    private static void printLog(LogEntry entry) {
-        if (instance == null || !instance.isLogLevelEnable(entry)) return;
-        String log = formatEntry(entry);
-        ImVec4 color = switch (entry.level()) {
-            case Debug -> debugColor;
-            case Info -> infoColor;
-            case Warning -> warningColor;
-            case Error -> errorColor;
-        };
-        ImGui.pushStyleColor(ImGuiCol.Text, color);
-        ImGui.textWrapped(log);
-        ImGui.popStyleColor(1);
-    }
-
     private boolean isLogLevelEnable(LogEntry entry) {
         if (entry == null) return false;
         Level level = entry.level();
@@ -137,8 +162,9 @@ public final class ConsoleOutput implements EngineLogListener {
     }
 
     @Override
-    public final void onNewLog(LogEntry entry) {
+    public void onNewLog(LogEntry entry) {
         if (entry == null) return;
         entries.add(entry);
+        dirty = true;
     }
 }

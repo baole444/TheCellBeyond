@@ -14,7 +14,7 @@ import java.util.List;
 /**
  * Properties hold the selected object inspector panel.
  */
-public class Properties {
+public final class Properties {
     public static final String WindowID = "Inspector###Object_Properties";
     private static final int ButtonReservedHeight = 36;
     private static final List<GameObject> activeGameObjects = new ArrayList<>();
@@ -46,8 +46,11 @@ public class Properties {
         float buttonH = ButtonReservedHeight * 0.9f;
         if (ImGui.button("Add new Component##Properties_Inspector_Add_Component_Button", buttonW, buttonH)) AddComponentDialog.show(activeGameObject);
         ImGui.separator();
-        EditorTemplate.render(activeGameObject);
-        renderContextMenu();
+        if (ImGui.beginChild("##Inspector_Detail_Region", 0.0f, 0.0f)) {
+            EditorTemplate.render(activeGameObject);
+            renderContextMenu();
+        }
+        ImGui.endChild();
         AddComponentDialog.imgui();
         ImGui.end();
         updateActives();

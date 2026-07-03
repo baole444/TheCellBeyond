@@ -17,7 +17,6 @@ import project.Project;
 import project.ProjectSheetMap;
 import render.Texture;
 import utility.IdPool;
-import utility.TextureScale;
 import utility.UnifiedPaths;
 
 import java.io.IOException;
@@ -93,7 +92,7 @@ public class AddSpriteSheetDialog {
         if (ImGui.beginPopupModal(PopupID, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)) {
             float buttonWidth = 120;
             float buttonHeight = 30;
-            float regionHeight = ImGui.getContentRegionAvailY() - ButtonReserver - SeparatorReserve - buttonHeight - Padding;
+            float regionHeight = ImGui.getContentRegionAvailY() - ButtonReserver - SeparatorReserve - buttonHeight;
             if (ImGui.beginChild("##ASSD_Dialog_Region", 0.0f, regionHeight, ImGuiChildFlags.Borders)) {
                 renderDialogContent();
                 ImGui.endChild();
@@ -116,10 +115,11 @@ public class AddSpriteSheetDialog {
 
     private static void renderDialogButtons(float buttonWidth, float buttonHeight) {
         ImGui.setCursorPosY(ImGui.getWindowHeight() - ButtonReserver - (buttonHeight / 2) -ImGui.getStyle().getWindowPaddingY());
+        float startX = ImGui.getCursorStartPosX();
         float buttonPivotX = buttonWidth * 0.5f;
         float availX = ImGui.getContentRegionAvailX();
-        float addX = (availX * 0.25f) - buttonPivotX;
-        float cancelX = (availX * 0.75f) - buttonPivotX;
+        float addX = startX + availX * 0.25f - buttonPivotX;
+        float cancelX = startX + availX * 0.75f - buttonPivotX;
         boolean canAdd = !selectedFilePath.isEmpty() && !sheetName.isEmpty() && spriteSize.x > 0 && spriteSize.y > 0 && numberOfSprite > 0;
         ImGui.setCursorPosX(addX);
         if (!canAdd) ImGui.beginDisabled();
@@ -142,11 +142,10 @@ public class AddSpriteSheetDialog {
         ImGui.setCursorPosY(ImGui.getCursorPosY() + (ImGui.getFrameHeightWithSpacing() - ImGui.getTextLineHeightWithSpacing()) / 2.0f);
         ImGui.text("Image file:");
         ImGui.tableNextColumn();
-        int browseButtonW = 120;
         ImGui.setNextItemWidth(ImGui.getContentRegionAvailX());
         ImGui.inputTextWithHint("##ASSD_Filepath_Input", "Click \"Browse File\" to select a path...", selectedFilePath, ImGuiInputTextFlags.ReadOnly);
         ImGui.tableNextColumn();
-        if (ImGui.button("Browse Files", browseButtonW, 0)) {
+        if (ImGui.button("Browse Files##NPD_Browse_Files", 120.0f, 0.0f)) {
             OpenFileDialog fileDialog = OpenFileDialog.get("Sheet Image", PictureFormats);
             String path = fileDialog.openDialog();
             if (path != null) {

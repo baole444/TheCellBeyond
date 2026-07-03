@@ -1,0 +1,44 @@
+/*
+Class hierarchy illustration tool via GraphViz
+
+Adjustable (override using -P);
+- graphRoots: root FQNs, separated by commas (default 'TheCellBeyond.GameObject,components.Component')
+- graphExclude: package prefixes to omit, separated by commas (default 'editor')
+- graphExcludeClasses: class FQNs to omit, separated by commas (default 'components.CrashComponent')
+- graphDpi: PNG resolution (default 150)
+- graphSize: GraphViz size bound in inches (default 120)
+- graphRankSep: vertical spacing between hierarchy levels in inches (default 0.75)
+
+Output can be found in build/reports/class-graph
+ */
+
+sourceSets {
+    classGraphTool {
+        java {
+            srcDir "$rootDir/tools/classgraph/java"
+        }
+    }
+}
+
+dependencies {
+    classGraphToolImplementation "io.github.classgraph:classgraph:$classgraph_version"
+}
+
+tasks.register('generateClassHierarchyGraph', JavaExec) {
+    group = 'documentation'
+    description = 'Render the engine class hierarchies to GraphViz .dot (+ PNG if GraphViz is installed.)'
+    dependsOn 'classes', 'compileClassGraphToolJava'
+    classpath = sourceSets.classGraphTool.runtimeClasspath
+    mainClass = 'devtools.HierarchyGraphGenerator'
+    systemProperty 'graph.dpi', (project.findProperty('graphDpi') ?: '150')
+    systemProperty 'graph.size', (project.findProperty('graphSize') ?: '120')
+    systemProperty 'graph.ranksep', (project.findProperty('graphRankSep') ?: '0.75')
+    systemProperty 'graph.excludePackages', (project.findProperty('graphExclude') ?: 'editor')
+    systemProperty 'graph.excludeClasses', (project.findProperty('graphExcludeClasses') ?: 'components.CrashComponent')
+    def outputDir = layout.buildDirectory.dir('reports/class-graph')
+    doFirst {
+        def roots = (project.findProperty('graphRoots') ?: 'TheCellBeyond.GameObject,components.Component')
+                .split(',').collect { it.trim() }.findAll { it }
+        args([sourceSets.main.output.classesDirs.asPath, outputDir.get().asFile.absolutePath] + roots)
+    }
+}

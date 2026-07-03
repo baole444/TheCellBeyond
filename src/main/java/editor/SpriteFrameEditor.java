@@ -24,19 +24,19 @@ import java.util.Map;
 import java.util.Objects;
 
 class SpriteFrameEditor {
-    private static final String CONTROL_SECTION = "##Sprite frame controls";
-    private static final float PREVIEW_FRAME_SIZE = 96.0f;
-    private static final float INPUT_WIDTH = ImGui.calcTextSizeX("999.999");
+    private static final String ControlSection = "##Sprite frame controls";
+    private static final float PreviewFrameSize = 96.0f;
+    private static final float InputWidth = ImGui.calcTextSizeX("999.999");
     private static AnimatedSpriteRenderer editingAnimatedSprite;
     private static String selectedName;
     private static int selectedFrame;
 
     private static String editingName;
-    private static final ImString editingNameBuffer = new ImString(512);
+    private static final ImString EditingNameBuffer = new ImString(512);
 
     private static final float animationListXPercentage = 0.25f;
     private static final float animationListWidth = 120.0f;
-    private static final float CONTROL_RESERVE = ImGui.getFrameHeightWithSpacing();
+    private static final float ControlReserve = ImGui.getFrameHeightWithSpacing();
     private static final float padding = 4.0f;
 
     static void edit(AnimatedSpriteRenderer animatedSprite) {
@@ -62,7 +62,7 @@ class SpriteFrameEditor {
             selectedFrame = 0;
         }
 
-        if (!ImGui.beginChild(CONTROL_SECTION, 0, CONTROL_RESERVE + padding, false)) {
+        if (!ImGui.beginChild(ControlSection, 0, ControlReserve + padding, false)) {
             ImGui.endChild();
             return;
         }
@@ -127,7 +127,7 @@ class SpriteFrameEditor {
             editingAnimatedSprite.removeAnimation(selectedName);
             if (Objects.equals(editingName, selectedName)) {
                 editingName = null;
-                editingNameBuffer.clear();
+                EditingNameBuffer.clear();
             }
             selectedName = null;
             ImGui.endTable();
@@ -152,7 +152,7 @@ class SpriteFrameEditor {
 
         ImGui.sameLine();
         ImFloat fps = new ImFloat(editingAnimatedSprite.getAnimationFPS(selectedName));
-        ImGui.pushItemWidth(INPUT_WIDTH);
+        ImGui.pushItemWidth(InputWidth);
         if (ImGui.inputFloat("FPS", fps, 0.0f, 0.0f, "%.2f")) editingAnimatedSprite.setFPS(fps.get(), selectedName);
         ImGui.popItemWidth();
 
@@ -228,7 +228,7 @@ class SpriteFrameEditor {
         ImGui.tableNextColumn();
         Animation animation = editingAnimatedSprite.currentAnimation();
         ImFloat speedMultiplier = new ImFloat(animation.speedMultiplier());
-        ImGui.pushItemWidth(INPUT_WIDTH);
+        ImGui.pushItemWidth(InputWidth);
         if (ImGui.inputFloat("Speed", speedMultiplier, 0.0f, 0.0f, "%.2f")) animation.setSpeed(speedMultiplier.get());
         ImGui.popItemWidth();
 
@@ -255,7 +255,7 @@ class SpriteFrameEditor {
 
             if (ImGui.isItemHovered() && ImGui.isMouseDoubleClicked(ImGuiMouseButton.Left)) {
                 editingName = entry.getKey();
-                editingNameBuffer.set(editingName);
+                EditingNameBuffer.set(editingName);
                 ImGui.spacing();
                 continue;
             }
@@ -285,7 +285,7 @@ class SpriteFrameEditor {
             Sprite sprite = frames.get(i).sprite;
             if (sprite == null) continue;
             int textureID = sprite.getTextureID();
-            Vector2f scaledSpriteSize = TextureScale.calculateFitDimension(sprite.getWidth(), sprite.getHeight(), PREVIEW_FRAME_SIZE, PREVIEW_FRAME_SIZE - textLineHeight);
+            Vector2f scaledSpriteSize = TextureScale.calculateFitDimension(sprite.getWidth(), sprite.getHeight(), PreviewFrameSize, PreviewFrameSize - textLineHeight);
             Vector2f[] textureCoordinates = sprite.getTextureCoordinates();
 
             String compositeId = selectedName + "_frame_" + i;
@@ -328,19 +328,19 @@ class SpriteFrameEditor {
         if (!Objects.equals(editingName, name)) return false;
         ImGui.setCursorPos(cursorPos);
         ImGui.setKeyboardFocusHere();
-        ImGui.inputText("##SFC_" + "Edit_" + name, editingNameBuffer);
+        ImGui.inputText("##SFC_" + "Edit_" + name, EditingNameBuffer);
         if (ImGui.isItemFocused() &&  ImGui.isKeyPressed(ImGuiKey.Escape)) {
-            editingNameBuffer.clear();
+            EditingNameBuffer.clear();
             editingName = null;
             ImGui.spacing();
             return true;
         }
 
         if ((ImGui.isItemFocused() && ImGui.isKeyPressed(ImGuiKey.Enter)) || !isSelected) {
-            String newName = editingNameBuffer.get().trim();
+            String newName = EditingNameBuffer.get().trim();
             boolean success = editingAnimatedSprite.renameAnimation(name, newName);
             if (success) selectedName = newName;
-            editingNameBuffer.clear();
+            EditingNameBuffer.clear();
             editingName = null;
             ImGui.spacing();
             return true;
@@ -386,7 +386,7 @@ class SpriteFrameEditor {
     static void clearDialogData() {
         selectedFrame = 0;
         editingName = null;
-        editingNameBuffer.clear();
+        EditingNameBuffer.clear();
         editingAnimatedSprite = null;
         selectedName = null;
     }

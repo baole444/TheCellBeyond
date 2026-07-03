@@ -17,8 +17,8 @@ import imgui.type.ImBoolean;
  * Editor dialogue for saving before exiting back to project list.
  */
 public final class ExitToProjectListDialog {
-    private static final String POPUP_ID = "Save before exit?";
-    private static final ImVec2 DIALOG_SIZE = new ImVec2(400, 160);
+    private static final String PopupID = "Save before exit?";
+    private static final ImVec2 DialogSize = new ImVec2(400, 160);
     private static boolean showDialog = false;
     private static boolean isAutoSaveOnExit = false;
     private static final ImBoolean enableSaveOnExit = new ImBoolean(false);
@@ -30,7 +30,7 @@ public final class ExitToProjectListDialog {
      */
     public static void show() {
         showDialog = true;
-        isAutoSaveOnExit = UserPreference.reloadEditorPreferences().autoSaveOnExit();
+        isAutoSaveOnExit = UserPreference.reloadPreferences().autoSaveOnExit();
     }
 
     /**
@@ -44,12 +44,12 @@ public final class ExitToProjectListDialog {
             showDialog = false;
             return;
         }
-        ImGui.openPopup(POPUP_ID);
+        ImGui.openPopup(PopupID);
         ImVec2 centre = ImGui.getMainViewport().getCenter();
         float pivotXY = 0.5f;
         ImGui.setNextWindowPos(centre.x, centre.y, ImGuiCond.Appearing, pivotXY, pivotXY);
-        ImGui.setNextWindowSize(DIALOG_SIZE);
-        if (ImGui.beginPopupModal(POPUP_ID, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)) {
+        ImGui.setNextWindowSize(DialogSize);
+        if (ImGui.beginPopupModal(PopupID, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)) {
             ImGui.spacing();
             ImGui.textWrapped("Save before exit? All unsaved changes will be lost.");
             ImGui.setCursorPosY(ImGui.getCursorPosY() + ImGui.getTextLineHeight());
@@ -59,14 +59,15 @@ public final class ExitToProjectListDialog {
             float buttonWidth = 100;
             float buttonReserverY = ImGui.getFrameHeightWithSpacing();
             ImGui.setCursorPosY(ImGui.getWindowHeight() - buttonReserverY - ImGui.getStyle().getWindowPaddingY());
+            float startX = ImGui.getCursorStartPosX();
             float buttonPivotX = buttonWidth * 0.5f;
             float availX = ImGui.getContentRegionAvailX();
-            float saveX = (availX * 0.15f) - (buttonPivotX);
-            float noSaveX = (availX * 0.5f) - (buttonPivotX);
-            float cancelX = (availX * 0.85f) - (buttonPivotX);
+            float saveX = startX + availX * 0.15f - buttonPivotX;
+            float noSaveX = startX + availX * 0.5f - buttonPivotX;
+            float cancelX = startX + availX * 0.85f - buttonPivotX;
             ImGui.setCursorPosX(saveX);
             if (ImGui.button("Save", buttonWidth, 0)) {
-                if (enableSaveOnExit.get()) setAutoSaveOn();
+                if (enableSaveOnExit.get()) enableAutosave();
                 if (LogicServer.currentSceneName() == null) SaveSceneAsDialog.show(ExitToProjectListDialog::saveAndExit);
                 else saveAndExit();
                 showDialog = false;
@@ -75,7 +76,7 @@ public final class ExitToProjectListDialog {
             ImGui.sameLine();
             ImGui.setCursorPosX(noSaveX);
             if (ImGui.button("Don't save", buttonWidth, 0)) {
-                if (enableSaveOnExit.get()) setAutoSaveOn();
+                if (enableSaveOnExit.get()) enableAutosave();
                 ExitToProjectList.toProjectList(true);
                 Window.get().forceClose();
                 showDialog = false;
@@ -90,14 +91,13 @@ public final class ExitToProjectListDialog {
             }
             ImGui.endPopup();
         }
-        if (!ImGui.isPopupOpen(POPUP_ID)) showDialog = false;
+        if (!ImGui.isPopupOpen(PopupID)) showDialog = false;
     }
 
-    private static void setAutoSaveOn() {
-        EditorPreferences current = UserPreference.reloadEditorPreferences();
+    private static void enableAutosave() {
+        EditorPreferences current = UserPreference.reloadPreferences();
         if (current.autoSaveOnExit()) return;
-        EditorPreferences update = new EditorPreferences(true, current.autoSaveOnChangeScene(), current.showGridLine());
-        UserPreference.updateEditorPreferences(update);
+        UserPreference.updatePreferences(current.autoSaveOnExit(true));
     }
 
     private static void saveAndExit() {

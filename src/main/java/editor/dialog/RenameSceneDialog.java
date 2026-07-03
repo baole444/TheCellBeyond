@@ -10,8 +10,11 @@ import imgui.type.ImString;
 import scene.SceneManager;
 
 public final class RenameSceneDialog {
-    private static final String PopupID = "Rename Scene";
-    private static final ImVec2 DialogSize = new ImVec2(400.0f, 200.0f);
+    private static final String PopupID = "Rename Scene##TCB_Rename_Scene_Dialog";
+    private static final ImVec2 DialogSize = new ImVec2(400.0f, 160.0f);
+    private static final float ButtonReserve = ImGui.getFrameHeightWithSpacing();
+    private static final float ButtonWidth = 100.0f;
+    private static final float ButtonHeight = 30.0f;
     private static boolean showDialog = false;
     private static boolean nameTaken = false;
     private static final ImString sceneName = new ImString(128);
@@ -37,7 +40,8 @@ public final class RenameSceneDialog {
         ImGui.setNextWindowSize(DialogSize);
         if (ImGui.beginPopupModal(PopupID, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)) {
             ImGui.spacing();
-            ImGui.text("New name: ");
+            ImGui.text("New name:");
+            ImGui.spacing();
             ImGui.pushItemWidth(ImGui.getContentRegionAvailX());
             if (ImGui.inputTextWithHint("##RenameSceneInput", "Enter a new name...", sceneName)) checkName();
             ImGui.popItemWidth();
@@ -46,24 +50,20 @@ public final class RenameSceneDialog {
                 ImGui.textWrapped(errorMessage);
                 ImGui.popStyleColor(1);
             } else ImGui.text("    ");
-            ImGui.spacing();
-            ImGui.separator();
-            ImGui.spacing();
-            float buttonReserverY = ImGui.getFrameHeightWithSpacing();
-            ImGui.setCursorPosY(ImGui.getWindowHeight() - buttonReserverY - ImGui.getStyle().getWindowPaddingY());
-            float buttonWidth = 120;
-            float buttonPivotX = buttonWidth * 0.5f;
+            ImGui.setCursorPosY(ImGui.getWindowHeight() - ButtonReserve - ButtonHeight / 2.0f);
+            float buttonPivotX = ButtonWidth * 0.5f;
+            float startX = ImGui.getCursorStartPosX();
             float availX = ImGui.getContentRegionAvailX();
-            float createX = (availX * 0.25f) - (buttonPivotX);
-            float cancelX = (availX * 0.75f) - (buttonPivotX);
+            float createX = startX + availX * 0.25f - buttonPivotX;
+            float cancelX = startX + availX * 0.75f - buttonPivotX;
             boolean canRename = !sceneName.isEmpty() && !nameTaken && errorMessage.isEmpty();
             ImGui.setCursorPosX(createX);
             if (!canRename) ImGui.beginDisabled();
-            if (ImGui.button("Rename##RenameSceneConfirm", buttonWidth, 0.0f)) rename();
+            if (ImGui.button("Rename##RSD_Confirm_Rename_Scene_Button", ButtonWidth, ButtonHeight)) rename();
             if (!canRename) ImGui.endDisabled();
             ImGui.sameLine();
             ImGui.setCursorPosX(cancelX);
-            if (ImGui.button("Cancel##RenameSceneCancel", buttonWidth, 0.0f)) {
+            if (ImGui.button("Cancel##RSD_Cancel_Rename_Scene_Button", ButtonWidth, ButtonHeight)) {
                 showDialog = false;
                 ImGui.closeCurrentPopup();
             }

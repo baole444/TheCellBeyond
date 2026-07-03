@@ -52,7 +52,7 @@ public final class EditorGrid extends Component implements NotSerializeComponent
         float gameWindowWidth = WorldUnit.pixelToWorld(Project.preference().gameWindowWidth());
         float gameWindowHeight = WorldUnit.pixelToWorld(Project.preference().gameWindowHeight());
 
-        if (UserPreference.editorPreferences().showGridLine() && prioritizing.isEmpty()) {
+        if (UserPreference.preferences().showGridLine() && prioritizing.isEmpty()) {
             int countVertical = (int) (projectSize.x * totalZoom.x / Settings.GRID_WIDTH) + 2;
             int countHorizontal = (int) (projectSize.y * totalZoom.y / Settings.GRID_HEIGHT) + 2;
             int maxLines = Math.max(countVertical, countHorizontal);

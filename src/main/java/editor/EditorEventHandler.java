@@ -2,6 +2,7 @@ package editor;
 
 import TheCellBeyond.internal.LogicServer;
 import editor.dialog.ConfirmSaveSceneDialog;
+import editor.dialog.MissingRunnerJDKDialog;
 import editor.dialog.SaveSceneAsDialog;
 import editor.preference.RecentProject;
 import editor.preference.UserPreference;
@@ -72,6 +73,7 @@ final class EditorEventHandler implements EngineEventListener {
                 ResourcePanel.refreshCache();
             }
             case RequestSaveSceneAs -> SaveSceneAsDialog.show(SceneManager::saveCurrentScene);
+            case MissingRunnerJDK -> MissingRunnerJDKDialog.show();
             case ScriptClassLoaded -> ScriptExportCache.buildAndCache((Class<?>) object);
             case ScriptClassUnloaded -> ScriptExportCache.clear();
             case ScriptCLassReloaded -> {

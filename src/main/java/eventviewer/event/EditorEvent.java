@@ -47,7 +47,11 @@ public class EditorEvent extends Event {
         /**
          * The script loader finish unloading a script class.
          */
-        ScriptClassUnloaded
+        ScriptClassUnloaded,
+        /**
+         * A build script request failed because no valid JDK provided for the Gradle JVM.
+         */
+        MissingRunnerJDK
     }
 
     /**

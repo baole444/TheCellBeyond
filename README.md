@@ -1,8 +1,8 @@
 <div style="text-align: center;" align="center">
 
- # TheCellBeyond Game Engine
+# TheCellBeyond Game Engine
 
- A 2D game engine in Java, with scripting support and editor UI for building scenes and levels
+**A 2D game engine in Java, with scripting support and editor UI for building scenes and levels**
 
 </div>
 

@@ -54,7 +54,6 @@ public final class EditProjectSettingsDialog {
     private static final String PopupID = "Project Preferences";
     private static final ImVec2 DialogSize = new ImVec2(720.0f, 640.0f);
     private static final float ButtonReserve = ImGui.getFrameHeightWithSpacing();
-    private static final float SeparatorReserve = ImGui.getStyle().getItemSpacingY();
     private static final float Padding = 4.0f;
     private static boolean showDialog = false;
     private static float tabWidth;
@@ -127,13 +126,11 @@ public final class EditProjectSettingsDialog {
         if (ImGui.beginPopupModal(PopupID, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)) {
             renderTabButtons();
             ImGui.separator();
-            float buttonWidth = 120;
-            float buttonHeight = 30;
-            float regionHeight = ImGui.getContentRegionAvailY() - ButtonReserve - SeparatorReserve - buttonHeight - Padding;
-            if (ImGui.beginChild("##EPPD_Tab_Region", 0.0f, regionHeight, ImGuiChildFlags.Borders)) {
-                renderTabContent();
-                ImGui.endChild();
-            }
+            float buttonWidth = 120.0f;
+            float buttonHeight = 30.0f;
+            float regionHeight = ImGui.getContentRegionAvailY() - ButtonReserve - buttonHeight;
+            if (ImGui.beginChild("##EPPD_Tab_Region", 0.0f, regionHeight, ImGuiChildFlags.Borders)) renderTabContent();
+            ImGui.endChild();
             if (selectedTab == TabName.General) ProjectPreferenceTab.autoSavePreferences();
             renderCloseButton(buttonWidth, buttonHeight);
             ImGui.endPopup();
@@ -143,15 +140,14 @@ public final class EditProjectSettingsDialog {
     }
 
     private static void renderCloseButton(float buttonWidth, float buttonHeight) {
-        ImGui.setCursorPosY(ImGui.getWindowHeight() - ButtonReserve - (buttonHeight / 2) - ImGui.getStyle().getWindowPaddingY());
+        ImGui.setCursorPosY(ImGui.getWindowHeight() - ButtonReserve - buttonHeight / 2.0f);
         float buttonPivotX = buttonWidth * 0.5f;
         float availX = ImGui.getContentRegionAvailX();
-        float cancelX = (availX * 0.5f) - buttonPivotX;
-        ImGui.setCursorPosX(cancelX);
-        if (ImGui.button("Close##EPPD_CLose_Dialog", buttonWidth, buttonHeight)) {
-            showDialog = false;
-            ImGui.closeCurrentPopup();
-        }
+        float closeX = ImGui.getCursorStartPosX() + availX * 0.5f - buttonPivotX;
+        ImGui.setCursorPosX(closeX);
+        if (!ImGui.button("Close##EPPD_CLose_Dialog", buttonWidth, buttonHeight)) return;
+        showDialog = false;
+        ImGui.closeCurrentPopup();
     }
 
     private static void renderTabContent() {

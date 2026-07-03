@@ -24,7 +24,6 @@ final class MenuBar {
         renderScriptingMenu();
         renderSceneMenu();
         ImGui.endMenuBar();
-
         EditProjectSettingsDialog.imgui();
         EditEditorPreferencesDialog.imgui();
         ExitToProjectListDialog.imgui();
@@ -32,12 +31,14 @@ final class MenuBar {
         ConfirmSaveSceneDialog.imgui();
         ChooseObjectTypeDialog.imgui();
         RenameSceneDialog.imgui();
+        MissingRunnerJDKDialog.imgui();
     }
 
     private static void renderEditorMenu() {
         if (!ImGui.beginMenu("Editor##MenuBar_Editor_Menu")) return;
         if (ImGui.menuItem("Preferences##MenuBar_Editor_prefs")) EditEditorPreferencesDialog.show();
-        if (ImGui.menuItem("Reset Layout##MenuBar_Reset_Editor_layout")) ImGuiLayer.resetLayout();
+        ImGui.separator();
+        if (ImGui.menuItem("Reset Layout##MenuBar_Reset_Editor_layout")) EditorLayer.resetLayout();
         ImGui.endMenu();
     }
 

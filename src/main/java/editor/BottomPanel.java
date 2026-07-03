@@ -82,9 +82,7 @@ public class BottomPanel {
                 SpriteFrameEditor.edit(spriteFrame);
                 workingTab = selectedTab = TabName.SpriteFrame;
             }
-            case AnimationPlayer animationPlayer -> {
-                workingTab = selectedTab = TabName.AnimationPlayer;
-            }
+            case AnimationPlayer _ -> workingTab = selectedTab = TabName.AnimationPlayer;
             default -> clear();
         }
     }

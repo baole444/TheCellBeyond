@@ -2,7 +2,7 @@ package TheCellBeyond;
 
 import TheCellBeyond.internal.LogicServer;
 import TheCellBeyond.internal.RenderingServer;
-import editor.ImGuiLayer;
+import editor.EditorLayer;
 import editor.dialog.ExitConfirmDialog;
 import editor.preference.UserPreference;
 import eventviewer.EngineEventCallback;
@@ -68,19 +68,19 @@ public final class Window implements EngineEventListener {
     /**
      * The red component of the overriding texture clear colour, will take effect if {@link #overrideClearColor} is true.
      * <p>
-     * This value is normalized internally to range of (0,1).
+     * This value is normalized internally to range of [0,1].
      */
     public float r;
     /**
      * The green component of the overriding texture clear colour, will take effect if {@link #overrideClearColor} is true.
      * <p>
-     * This value is normalized internally to range of (0,1).
+     * This value is normalized internally to range of [0,1].
      */
     public float g;
     /**
      * The blue component of the overriding texture clear colour, will take effect if {@link #overrideClearColor} is true.
      * <p>
-     * This value is normalized internally to range of (0,1).
+     * This value is normalized internally to range of [0,1].
      */
     public float b;
     /**
@@ -94,7 +94,7 @@ public final class Window implements EngineEventListener {
     private final String title;
     private long windowPtr;
     private static Window window = null;
-    private ImGuiLayer imGuiLayer;
+    private EditorLayer editorLayer;
     private FrameBuffer frameBuffer;
     private ObjectSelection objectSelection;
     private final IconLoader iconFile = IconLoader.loadIcon(Settings.TexturePath.TCBIcon);
@@ -173,8 +173,8 @@ public final class Window implements EngineEventListener {
         return Project.getGameAspectRatio();
     }
 
-    public static ImGuiLayer getImGuiLayer() {
-        return get().imGuiLayer;
+    public static EditorLayer getImGuiLayer() {
+        return get().editorLayer;
     }
 
     public static ObjectSelection getObjectSelection() {
@@ -226,8 +226,8 @@ public final class Window implements EngineEventListener {
         frameBuffer = new FrameBuffer(width, height);
         objectSelection = new ObjectSelection(width, height);
         glViewport(0, 0, width, height);
-        imGuiLayer = new ImGuiLayer(windowPtr);
-        imGuiLayer.initImGui(glslVer);
+        editorLayer = new EditorLayer(windowPtr);
+        editorLayer.initImGui(glslVer);
         glfwMaximizeWindow(windowPtr);
         loadIcon();
     }
@@ -301,7 +301,7 @@ public final class Window implements EngineEventListener {
                 glfwSetWindowShouldClose(windowPtr, true);
                 return;
             }
-            if (projectLoaded && UserPreference.editorPreferences().autoSaveOnExit()) SceneManager.saveCurrentScene();
+            if (projectLoaded && UserPreference.preferences().autoSaveOnExit()) SceneManager.saveCurrentScene();
             glfwSetWindowShouldClose(windowPtr, false);
             shouldClose = ExitConfirmDialog.exitDialog();
             if (shouldClose) glfwSetWindowShouldClose(windowPtr, true);
@@ -318,8 +318,8 @@ public final class Window implements EngineEventListener {
         AssetManager.clearCache();
         RendererState.cleanup();
         EngineEventCallback.dispose();
-        imGuiLayer.getImGuiGl3().shutdown();
-        imGuiLayer.getImGuiGlfw().shutdown();
+        editorLayer.getImGuiGl3().shutdown();
+        editorLayer.getImGuiGlfw().shutdown();
         ImGui.destroyContext();
         if (soundContext != 0) alcDestroyContext(soundContext);
         if (audioDevice != 0) alcCloseDevice(audioDevice);
@@ -362,7 +362,7 @@ public final class Window implements EngineEventListener {
                 objectSelectionPass(rendererState, objectSelectShader);
                 normalPass(rendererState, defaultShader);
                 RenderingServer.postFrameClear();
-                imGuiLayer.update(dt, LogicServer.currentScene());
+                editorLayer.update(dt, LogicServer.currentScene());
             }
             MouseListener.endFrame();
             KeyListener.endFrame();

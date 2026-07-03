@@ -1,0 +1,40 @@
+/*
+Script API index manifest generation
+
+Define the manifest generation source set, isolated from the engine.
+This define the task to generate the manifest by scanning the API archive.
+
+The output is store at "src/script-api-resources/META-INF/script-api-index.json",
+generated per API publishing, and packaged into the engine as-is on application distribution.
+*/
+
+sourceSets {
+    manifestGen {
+        java {
+            srcDir 'src/manifest-gen/java'
+        }
+    }
+}
+
+sourceSets.manifestGen.compileClasspath += sourceSets.main.output
+sourceSets.manifestGen.runtimeClasspath += sourceSets.main.output
+
+dependencies {
+    manifestGenImplementation "io.github.classgraph:classgraph:$classgraph_version"
+    manifestGenImplementation "com.google.code.gson:gson:$google_gson_version"
+}
+
+sourceSets.main.resources.srcDir("src/script-api-resources")
+
+tasks.register('generateScriptAPIManifest', JavaExec) {
+    group = 'build'
+    description = 'Scans the API jar and create the script API index manifest'
+    dependsOn apiJar, 'compileManifestGenJava'
+    classpath = sourceSets.manifestGen.runtimeClasspath
+    mainClass = 'generator.ManifestGenerator'
+    doFirst {
+        args tasks.named('apiJar').get().archiveFile.get().asFile.absolutePath,
+        file('src/script-api-resources/META-INF/script-api-index.json').absolutePath,
+        TCB_API_version
+    }
+}

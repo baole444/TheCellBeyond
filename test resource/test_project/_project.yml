@@ -1,0 +1,86 @@
+---
+version: "1.2"
+project:
+  name: "Test project"
+  gameWindowWidth: 640
+  gameWindowHeight: 480
+  allowResize: false
+  maintainAspectRatio: true
+  textureGlobalScale: 1.0
+  clearColor:
+    r: 0.4444444
+    g: 0.6666666
+    b: 0.53801167
+    a: 1.0
+  physicFrameRate: 60
+  renderingSetting:
+    vsyncMode: "Enabled"
+    targetFrameRate: 60
+assets:
+  e7f6ffae-3d1c-4c42-84b1-7b9a829a432a:
+    path: "assets/Alula inside.png"
+    sizeX: 442
+    sizeY: 576
+sheets:
+  Char:
+    Alula:
+      path: "sheets/green_npc_alula.png"
+      numberOfSprite: 16
+      spriteSizeX: 48
+      spriteSizeY: 64
+      spriteSpacingX: 0
+      spriteSpacingY: 0
+      spriteStartPosX: 0
+      spriteStartPosY: 0
+scenes:
+  scene 1:
+    path: "scenes/scene_1.cell"
+inputActions:
+  move_up:
+    name: "move_up"
+    keys:
+    - - type: "Keyboard"
+        code: 265
+    - - type: "Keyboard"
+        code: 87
+  move_down:
+    name: "move_down"
+    keys:
+    - - type: "Keyboard"
+        code: 264
+    - - type: "Keyboard"
+        code: 83
+  move_left:
+    name: "move_left"
+    keys:
+    - - type: "Keyboard"
+        code: 263
+    - - type: "Keyboard"
+        code: 65
+  move_right:
+    name: "move_right"
+    keys:
+    - - type: "Keyboard"
+        code: 262
+    - - type: "Keyboard"
+        code: 68
+physicLayers:
+  layerNames:
+  - "Layer 0"
+  - "Layer 1"
+  - "Layer 2"
+  - "Layer 3"
+  - "Layer 4"
+  - "Layer 5"
+  - "Layer 6"
+  - "Layer 7"
+  - "Layer 8"
+  - "Layer 9"
+  - "Layer 10"
+  - "Layer 11"
+  - "Layer 12"
+  - "Layer 13"
+  - "Layer 14"
+  - "Layer 15"
+scriptScanDirs:
+- "scripts"

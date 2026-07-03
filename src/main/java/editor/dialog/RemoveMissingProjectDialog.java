@@ -13,9 +13,9 @@ import tools.jackson.dataformat.yaml.YAMLFactory;
 
 import java.io.File;
 
-public class RemoveMissingProjectDialog {
-    private static final String POPUP_ID = "Missing project";
-    private static final ImVec2 DIALOG_SIZE = new ImVec2(400.0f, 160.0f);
+public final class RemoveMissingProjectDialog {
+    private static final String PopupID = "Missing project";
+    private static final ImVec2 DialogSize = new ImVec2(400.0f, 160.0f);
     private static boolean showDialog = false;
 
     private static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory());
@@ -30,25 +30,26 @@ public class RemoveMissingProjectDialog {
 
     public static void imgui() {
         if (!showDialog) return;
-        ImGui.openPopup(POPUP_ID);
+        ImGui.openPopup(PopupID);
         ImVec2 centre = ImGui.getMainViewport().getCenter();
         float pivotXY = 0.5f;
         ImGui.setNextWindowPos(centre.x, centre.y, ImGuiCond.Appearing, pivotXY, pivotXY);
-        ImGui.setNextWindowSize(DIALOG_SIZE);
-        if (ImGui.beginPopupModal(POPUP_ID, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)) {
+        ImGui.setNextWindowSize(DialogSize);
+        if (ImGui.beginPopupModal(PopupID, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)) {
             ImGui.spacing();
             String title = "NULL";
             if (selectedProject != null) title = selectedProject.title() != null ? selectedProject.title() : "Unknow title";
             ImGui.textWrapped("Selected project '" + title + "'cannot be found. Remove it from the list?");
             ImGui.spacing();
-            float buttonWidth = 120;
-            float buttonHeight = 30;
+            float buttonWidth = 100.0f;
+            float buttonHeight = 30.0f;
             float buttonReserverY = ImGui.getFrameHeightWithSpacing();
-            ImGui.setCursorPosY(ImGui.getWindowHeight() - buttonReserverY - (buttonHeight / 2) - ImGui.getStyle().getWindowPaddingY());
+            ImGui.setCursorPosY(ImGui.getWindowHeight() - buttonReserverY - buttonHeight / 2.0f);
+            float startX = ImGui.getCursorStartPosX();
             float buttonPivotX = buttonWidth * 0.5f;
             float availX = ImGui.getContentRegionAvailX();
-            float removeX = (availX * 0.25f) - buttonPivotX;
-            float cancelX = (availX * 0.75f) - buttonPivotX;
+            float removeX = startX + availX * 0.25f - buttonPivotX;
+            float cancelX = startX + availX * 0.75f - buttonPivotX;
             ImGui.setCursorPosX(removeX);
             if (ImGui.button("Remove", buttonWidth, buttonHeight)) {
                 if (onRemoveCallback != null) {
@@ -67,7 +68,7 @@ public class RemoveMissingProjectDialog {
             }
             ImGui.endPopup();
         }
-        if (!ImGui.isPopupOpen(POPUP_ID)) {
+        if (!ImGui.isPopupOpen(PopupID)) {
             showDialog = false;
             onRemoveCallback = null;
         }

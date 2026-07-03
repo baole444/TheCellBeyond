@@ -40,7 +40,7 @@ public final class EditorWidget {
         float textWidth = ImGui.calcTextSizeX(label);
         float offset = Math.max((remainWidth - textWidth) * 0.5f, 0.0f);
         ImGui.setCursorPosX(ImGui.getCursorPosX() + offset);
-        ImGui.text(label);
+        ImGui.textUnformatted(label);
     }
 
     public static boolean dragVec2Ctrl(String label, Vector2f source, float resetVal, Object caller) {

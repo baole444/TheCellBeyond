@@ -5,6 +5,7 @@ plugins {
     id 'application'
     id 'maven-publish'
     id 'signing'
+    id 'antlr'
 }
 
 application {
@@ -51,12 +52,33 @@ repositories {
 
 test {
     useJUnitPlatform()
+    jvmArgs('--enable-native-access=ALL-UNNAMED')
+}
+
+generateGrammarSource {
+    // Generate parse tree visitors, ParseTreeToAst extends the generated base visitor.
+    // -lib points at the generated output so TCBScriptParser's tokenVocab finds
+    // TCBScriptLexer.tokens as ANTLR sorts the lexer ahead of the parser.
+    def antlrLibDir = layout.buildDirectory.dir("generated-src/antlr/main/scripting/transpiler/parse")
+    arguments += ["-visitor", "-lib", antlrLibDir.get().asFile.absolutePath]
+    doFirst {
+        antlrLibDir.get().asFile.mkdirs()
+    }
+}
+
+configurations.runtimeClasspath {
+    // The ANTLR plugin leaks the full antlr4 tool (ST4, icu4j, treelayout, antlr3 runtime)
+    // onto the runtime classpath. Only antlr4-runtime is needed at runtime.
+    exclude group: 'org.antlr', module: 'antlr4'
 }
 
 dependencies {
     implementation "com.google.code.gson:gson:$google_gson_version"
     implementation fileTree('library') { include '*.jar' }
     implementation ":jbox2d-library"
+
+    antlr "org.antlr:antlr4:$antlr_version"
+    implementation "org.antlr:antlr4-runtime:$antlr_version"
 
     // LWJGL
     implementation platform("org.lwjgl:lwjgl-bom:$lwjgl_version")
@@ -66,7 +88,10 @@ dependencies {
         implementation "org.lwjgl:lwjgl$it::$project.ext.lwjglNatives"
     }
 
-    implementation "org.joml:joml:${joml_version}"
+    // Excluding the kotlin-stdlib that is originated from JOML's POM declaration
+    implementation("org.joml:joml:${joml_version}") {
+        exclude group: 'org.jetbrains.kotlin'
+    }
     implementation "com.code-disaster.steamworks4j:steamworks4j:${steamworks4j_version}"
     implementation "tools.jackson.dataformat:jackson-dataformat-yaml:$jacksonYaml_version"
 
@@ -133,6 +158,7 @@ tasks.register('packageInput', Copy) {
     mustRunAfter clean
     from (jar.archiveFile) { into '.' }
     from (layout.buildDirectory.dir('packaging/libs')) { into 'libs' }
+    from (files('build resources/LICENSE', 'build resources/THIRD-PARTY-NOTICES.txt')) { into '.' }
     into layout.buildDirectory.dir('packaging/input')
 }
 
@@ -290,6 +316,7 @@ tasks.register('apiJar', Jar) {
     group = 'build'
     description = 'Build the engine API jar for compiled classes'
     archiveBaseName = TCB_API
+    archiveVersion = TCB_API_version
     dependsOn compileJava
     from(sourceSets.main.output.classesDirs) {
         includes = apiIncludes
@@ -301,6 +328,7 @@ tasks.register('apiSourcesJar', Jar) {
     description = 'Package API sources for Maven Central publication'
     archiveBaseName = TCB_API
     archiveClassifier = 'sources'
+    archiveVersion = TCB_API_version
     from(sourceSets.main.java.srcDirs) {
         includes = apiIncludes.collect { it.replace('.class', '.java').replace('$*', '') } as Iterable<String>
     }
@@ -329,15 +357,23 @@ tasks.register('apiJavadocJar', Jar) {
     group = 'build'
     description = 'Package API Javadoc for Maven Central publication'
     archiveBaseName = TCB_API
+    archiveVersion = TCB_API_version
     archiveClassifier = 'javadoc'
     dependsOn apiJavadoc
     from apiJavadoc.destinationDir
 }
 
+// Script API index manifest generation (source set and task)
+apply from: "$rootDir/gradle/script-api-manifest.gradle"
+
+// Standalone tool for class hierarchy visualization (source set and standalone task)
+apply from: "$rootDir/gradle/class-hierarchy-visualization.gradle"
+
 publishing {
     publications {
         engineApi(MavenPublication) {
             artifactId = TCB_API
+            version = TCB_API_version
             artifact apiJar
             artifact apiSourcesJar
             artifact apiJavadocJar

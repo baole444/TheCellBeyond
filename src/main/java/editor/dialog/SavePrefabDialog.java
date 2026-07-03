@@ -11,7 +11,10 @@ import utility.prefabrication.PrefabManager;
 
 public final class SavePrefabDialog {
     private static final String PopupID = "Save Prefab";
-    private static final ImVec2 DialogSize = new ImVec2(400.0f, 200.0f);
+    private static final ImVec2 DialogSize = new ImVec2(400.0f, 160.0f);
+    private static final float ButtonReserver = ImGui.getFrameHeightWithSpacing();
+    private static final float ButtonWidth = 100.0f;
+    private static final float ButtonHeight = 30.0f;
     private static boolean showDialog = false;
     private static boolean nameTaken = false;
     private static final ImString prefabName = new ImString(128);
@@ -39,33 +42,30 @@ public final class SavePrefabDialog {
         ImGui.setNextWindowSize(DialogSize);
         if (ImGui.beginPopupModal(PopupID, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)) {
             ImGui.spacing();
-            ImGui.text("Prefab name: ");
+            ImGui.text("Prefab name:");
+            ImGui.spacing();
             ImGui.pushItemWidth(ImGui.getContentRegionAvailX());
-            if (ImGui.inputTextWithHint("##SavePrefabInput", "Enter a new name...", prefabName)) checkName();
+            if (ImGui.inputTextWithHint("##SPD_Save_Prefab_Input", "Enter a new name...", prefabName)) checkName();
             ImGui.popItemWidth();
             if (nameTaken || !errorMessage.isEmpty()) {
                 ImGui.pushStyleColor(ImGuiCol.Text, 1.0f, 0.2f, 0.2f, 1.0f);
                 ImGui.textWrapped(errorMessage);
                 ImGui.popStyleColor(1);
             } else ImGui.text("    ");
-            ImGui.spacing();
-            ImGui.separator();
-            ImGui.spacing();
-            float buttonReserverY = ImGui.getFrameHeightWithSpacing();
-            ImGui.setCursorPosY(ImGui.getWindowHeight() - buttonReserverY - ImGui.getStyle().getWindowPaddingY());
-            float buttonWidth = 120;
-            float buttonPivotX = buttonWidth * 0.5f;
+            ImGui.setCursorPosY(ImGui.getWindowHeight() - ButtonReserver - ButtonHeight / 2.0f);
+            float startX = ImGui.getCursorStartPosX();
+            float buttonPivotX = ButtonWidth * 0.5f;
             float availX = ImGui.getContentRegionAvailX();
-            float createX = (availX * 0.25f) - (buttonPivotX);
-            float cancelX = (availX * 0.75f) - (buttonPivotX);
+            float createX = startX + availX * 0.25f - buttonPivotX;
+            float cancelX = startX + availX * 0.75f - buttonPivotX;
             boolean canRename = !prefabName.isEmpty() && !nameTaken && errorMessage.isEmpty();
             ImGui.setCursorPosX(createX);
             if (!canRename) ImGui.beginDisabled();
-            if (ImGui.button("Save##SavePrefabConfirm", buttonWidth, 0.0f)) save();
+            if (ImGui.button("Save##SavePrefabConfirm", ButtonWidth, ButtonHeight)) save();
             if (!canRename) ImGui.endDisabled();
             ImGui.sameLine();
             ImGui.setCursorPosX(cancelX);
-            if (ImGui.button("Cancel##SavePrefabCancel", buttonWidth, 0.0f)) {
+            if (ImGui.button("Cancel##SavePrefabCancel", ButtonWidth, ButtonHeight)) {
                 showDialog = false;
                 ImGui.closeCurrentPopup();
             }

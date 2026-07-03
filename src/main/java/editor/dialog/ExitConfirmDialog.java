@@ -66,7 +66,7 @@ public final class ExitConfirmDialog {
             return false;
         }
         Result result = showDialog();
-        if (result.autoSave) setAutoSaveOn();
+        if (result.autoSave) enableAutosave();
         if (result.choice != ChoiceSaveExit) return result.choice == ChoiceExit;
         if (LogicServer.currentSceneName() != null) {
             EngineEventCallback.emit(new EditorEvent(EditorEvent.Type.SaveEditingSceneToDisk));
@@ -80,14 +80,13 @@ public final class ExitConfirmDialog {
     }
 
     private static boolean isAutoSaveOnExitOn() {
-        return UserPreference.editorPreferences().autoSaveOnExit();
+        return UserPreference.preferences().autoSaveOnExit();
     }
 
-    private static void setAutoSaveOn() {
-        EditorPreferences current = UserPreference.reloadEditorPreferences();
+    private static void enableAutosave() {
+        EditorPreferences current = UserPreference.reloadPreferences();
         if (current.autoSaveOnExit()) return;
-        EditorPreferences update = new EditorPreferences(true, current.autoSaveOnChangeScene(), current.showGridLine());
-        UserPreference.updateEditorPreferences(update);
+        UserPreference.updatePreferences(current.autoSaveOnExit(true));
     }
 
     private static Result showDialog() {

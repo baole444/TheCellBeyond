@@ -71,23 +71,20 @@ public class AddTextureUnitDialog {
             renderPreviewSection();
             float buttonReserverY = ImGui.getFrameHeightWithSpacing();
             ImGui.setCursorPosY(ImGui.getWindowHeight() - buttonReserverY - ImGui.getStyle().getWindowPaddingY());
-            float buttonWidth = 120;
+            float startX = ImGui.getCursorStartPosX();
+            float buttonWidth = 120.0f;
             float buttonPivotX = buttonWidth * 0.5f;
             float availX = ImGui.getContentRegionAvailX();
-            float addX = (availX * 0.25f) - (buttonPivotX);
-            float cancelX = (availX * 0.75f) - (buttonPivotX);
+            float addX = startX + availX * 0.25f - buttonPivotX;
+            float cancelX = startX + availX * 0.75f - buttonPivotX;
             boolean canAdd = !selectedFilePath.isEmpty();
             ImGui.setCursorPosX(addX);
-            if (canAdd) {
-                if (ImGui.button("Add Unit", buttonWidth, 0)) addTextureUnit();
-            } else {
-                ImGui.beginDisabled();
-                ImGui.button("Add Unit", buttonWidth, 0);
-                ImGui.endDisabled();
-            }
+            if (!canAdd) ImGui.beginDisabled();
+            if (ImGui.button("Add Unit", buttonWidth, 0.0f)) addTextureUnit();
+            if (!canAdd) ImGui.endDisabled();
             ImGui.sameLine();
             ImGui.setCursorPosX(cancelX);
-            if (ImGui.button("Cancel", buttonWidth, 0)) {
+            if (ImGui.button("Cancel", buttonWidth, 0.0f)) {
                 showDialog = false;
                 ImGui.closeCurrentPopup();
             }
