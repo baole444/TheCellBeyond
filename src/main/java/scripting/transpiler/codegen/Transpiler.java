@@ -102,6 +102,7 @@ public final class Transpiler {
      * @return the translating result
      */
     public static TranspileResult transpileProject(Path scriptsSrcRoot, Path buildOutputDir) {
+        Logger.info("Translating scripts...");
         ProjectScanner.Result scan = ProjectScanner.scan(scriptsSrcRoot, buildOutputDir);
         if (scan.hasErrors()) return TranspileResult.failed(scan.errors().stream().map(Objects::toString).toList());
         List<Result> outputs = new ArrayList<>();
