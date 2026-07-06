@@ -1,5 +1,6 @@
 package scripting.transpiler.semantic;
 
+import scripting.transpiler.TranspilerProperties;
 import scripting.transpiler.ast.*;
 import scripting.transpiler.manifest.APIManifest;
 import scripting.transpiler.manifest.APIType;
@@ -7,6 +8,8 @@ import scripting.transpiler.manifest.MemberInfo;
 import scripting.transpiler.manifest.SnakeCaseConverter;
 
 import java.util.*;
+
+import static scripting.transpiler.TranspilerProperties.*;
 
 /**
  * Second pass of the semantic phase. Resolves type references and identifiers of a parsed script against the lifecycle table,
@@ -21,17 +24,6 @@ import java.util.*;
  * @see #resolveQualifiedMember(Expression, String, Map) More on member resolution
  */
 public final class SymbolResolver {
-    private static final String ObjectType = "Object";
-    private static final String SignalType = "Signal";
-    private static final String SignalFQN = "signal.Signal";
-    private static final Set<String> BuiltInType = Set.of("int", "float", "bool", "String", "void", ObjectType);
-    private static final Map<String, String> LogBuiltins = Map.of(
-            "print", "info",
-            "print_debug", "debug",
-            "print_info", "info",
-            "print_warning", "warning",
-            "print_error", "error"
-    );
     private final Map<String, ProjectClassEntry> projectIndex;
     private final List<SemanticError> errors = new ArrayList<>();
     private Map<String, TypeReference> fieldTypes;
@@ -99,7 +91,7 @@ public final class SymbolResolver {
             classDeclaration.registration = ClassRegistration.None;
             return;
         }
-        if (BuiltInType.contains(superType.name)) {
+        if (TranspilerProperties.BuiltInTypes.contains(superType.name)) {
             error(superType, "Cannot extend built in type '" + superType.name + "'");
             classDeclaration.registration = ClassRegistration.None;
             return;
@@ -334,7 +326,7 @@ public final class SymbolResolver {
             call.resolution = translated != null ? translated : new Resolution.UserMemberResolution(call.methodName);
             return;
         }
-        String logMethod = LogBuiltins.get(call.methodName);
+        String logMethod = TranspilerProperties.LogBuiltIns.get(call.methodName);
         if (logMethod != null) {
             call.resolution = new Resolution.BuiltinLogResolution(logMethod);
             return;
@@ -632,7 +624,7 @@ public final class SymbolResolver {
      * @return the built-in type name, or empty
      */
     private Optional<String> builtinName(Expression expression, Map<String, TypeReference> scope) {
-        return inferType(expression, scope).map(type -> type.name).filter(BuiltInType::contains);
+        return inferType(expression, scope).map(type -> type.name).filter(TranspilerProperties.BuiltInTypes::contains);
     }
 
     private Optional<String> memberType(Resolution resolution, String name) {
@@ -670,7 +662,7 @@ public final class SymbolResolver {
     }
 
     private void resolveType(TypeReference type) {
-        if (type == null || BuiltInType.contains(type.name)) return;
+        if (type == null || TranspilerProperties.BuiltInTypes.contains(type.name)) return;
         ProjectClassEntry entry = projectIndex.get(type.name);
         if (entry != null) {
             type.resolution = new Resolution.ProjectClassResolution(entry.fqn());

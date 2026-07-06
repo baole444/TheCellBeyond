@@ -19,7 +19,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Runner for the Editor to invoke the script project's Gradle wrapper and build the scripts jar.
+ * Runner the script project's Gradle wrapper and build the scripts jar.
  * <p>
  * Builds run on a single background thread to not block the editor's rendering. Only 1 build runs at a time per runner.
  * Build's output is redirected to {@link EngineLog} for previewing in the console.
@@ -38,7 +38,7 @@ public final class GradleRunner {
     private static final String DefaultBuildDir = "build";
     private static final String JavaHomeEnv = "JAVA_HOME";
     private static final String GradleJavaHomeProperty = "-Dorg.gradle.java.home=";
-    private static final ExecutorService executor = Executors.newSingleThreadExecutor(GradleRunner::buildThread);
+    private static final ExecutorService Executor = Executors.newSingleThreadExecutor(GradleRunner::buildThread);
     private static final AtomicBoolean buildInProgress = new AtomicBoolean(false);
 
     private GradleRunner() {}
@@ -70,7 +70,7 @@ public final class GradleRunner {
             return CompletableFuture.completedFuture(BuildResult.noJDK());
         }
         if (!buildInProgress.compareAndSet(false, true)) return CompletableFuture.completedFuture(BuildResult.inProgress());
-        return CompletableFuture.supplyAsync(() -> runBuild(jdkHome, cleanBuildScripts, overrideJVM), executor).whenComplete((_, _) -> buildInProgress.set(false));
+        return CompletableFuture.supplyAsync(() -> runBuild(jdkHome, cleanBuildScripts, overrideJVM), Executor).whenComplete((_, _) -> buildInProgress.set(false));
     }
 
     /**
@@ -83,7 +83,7 @@ public final class GradleRunner {
      * @return a future completing with the build directory path, or null when no project is opened
      */
     public static CompletableFuture<Path> resolveBuildDir(Path jdkHome, boolean overrideJVM) {
-        return CompletableFuture.supplyAsync(() -> runResolveBuildDir(jdkHome, overrideJVM), executor);
+        return CompletableFuture.supplyAsync(() -> runResolveBuildDir(jdkHome, overrideJVM), Executor);
     }
 
     private static BuildResult runBuild(Path jdkHome, boolean cleanBuildScripts, boolean overrideJVM) {

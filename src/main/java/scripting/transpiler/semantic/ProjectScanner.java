@@ -1,5 +1,6 @@
 package scripting.transpiler.semantic;
 
+import scripting.transpiler.TranspilerProperties;
 import scripting.transpiler.parse.HeaderScanner;
 
 import java.io.IOException;
@@ -9,7 +10,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 /**
@@ -30,11 +30,6 @@ public final class ProjectScanner {
         }
     }
 
-    private static final String ScriptPackage = "scripts";
-    private static final String BuildDir = "build";
-    private static final Pattern JavaPackage = Pattern.compile("(?m)^[ \\t]*package[ \\t]+([A-Za-z_][A-Za-z_0-9.]*)[ \\t]*;");
-    private static final Pattern JavaType = Pattern.compile("(?m)^[ \\t]*(?:@[\\w.]+(?:\\([^)]*\\))?[ \\t]*)*(?:[a-z][\\w-]*[ \\t]+)*(class|enum)[ \\t]+([A-Za-z_]\\w*)(?:[ \\t]*<[^>]*>)?(?:[ \\t]+extends[ \\t]+([A-Za-z_][\\w.]*))?");
-
     private ProjectScanner() {}
 
     /**
@@ -43,7 +38,7 @@ public final class ProjectScanner {
      * @return the class index and collected errors
      */
     public static Result scan(Path scriptsRoot) {
-        return scan(scriptsRoot, scriptsRoot.resolve(BuildDir));
+        return scan(scriptsRoot, scriptsRoot.resolve(TranspilerProperties.BuildDir));
     }
 
     /**
@@ -56,21 +51,21 @@ public final class ProjectScanner {
     public static Result scan(Path scriptsRoot, Path buildOutputDir) {
         Map<String, ProjectClassEntry> index = new HashMap<>();
         List<SemanticError> errors = new ArrayList<>();
-        for (Path file : walk(scriptsRoot, ".tcbs", buildOutputDir)) scriptEntry(scriptsRoot, file, errors).ifPresent(entry -> insert(index, entry, errors));
-        for (Path file : walk(scriptsRoot, ".java", buildOutputDir)) javaEntry(scriptsRoot, file, errors).ifPresent(entry -> insert(index, entry, errors));
+        for (Path file : walk(scriptsRoot, TranspilerProperties.ScriptFileExtension, buildOutputDir)) scriptEntry(scriptsRoot, file, errors).ifPresent(entry -> insert(index, entry, errors));
+        for (Path file : walk(scriptsRoot, TranspilerProperties.JavaFileExtension, buildOutputDir)) javaEntry(scriptsRoot, file, errors).ifPresent(entry -> insert(index, entry, errors));
         return new Result(index, errors);
     }
 
     private static Optional<ProjectClassEntry> scriptEntry(Path root, Path file, List<SemanticError> errors) {
         String source = read(root, file, errors);
         if (source == null) return Optional.empty();
-        return HeaderScanner.scan(source).map(header -> new ProjectClassEntry(header.className(), relative(root, file), ProjectClassEntry.Kind.Script, header.superName(), ScriptPackage, header.isEnum()));
+        return HeaderScanner.scan(source).map(header -> new ProjectClassEntry(header.className(), relative(root, file), ProjectClassEntry.Kind.Script, header.superName(), TranspilerProperties.ScriptPackage, header.isEnum()));
     }
 
     private static Optional<ProjectClassEntry> javaEntry(Path root, Path file, List<SemanticError> errors) {
         String source = read(root, file, errors);
         if (source == null) return Optional.empty();
-        Matcher typeMatcher = JavaType.matcher(source);
+        Matcher typeMatcher = TranspilerProperties.JavaType.matcher(source);
         if (!typeMatcher.find()) return Optional.empty();
         boolean isEnum = typeMatcher.group(1).equals("enum");
         return Optional.of(new ProjectClassEntry(typeMatcher.group(2), relative(root, file), ProjectClassEntry.Kind.Java, simpleName(typeMatcher.group(3)), packageOf(source), isEnum));
@@ -104,7 +99,7 @@ public final class ProjectScanner {
     }
 
     private static String packageOf(String source) {
-        Matcher matcher = JavaPackage.matcher(source);
+        Matcher matcher = TranspilerProperties.JavaPackage.matcher(source);
         return matcher.find() ? matcher.group(1) : "";
     }
 

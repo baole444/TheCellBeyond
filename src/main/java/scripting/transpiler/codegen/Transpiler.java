@@ -1,10 +1,12 @@
 package scripting.transpiler.codegen;
 
+import scripting.transpiler.TranspilerProperties;
 import scripting.transpiler.ast.ClassDeclaration;
 import scripting.transpiler.ast.EnumDeclaration;
 import scripting.transpiler.ast.TypeDeclaration;
 import scripting.transpiler.parse.ScriptParser;
 import scripting.transpiler.semantic.ProjectClassEntry;
+import scripting.transpiler.semantic.ProjectScanner;
 import scripting.transpiler.semantic.SemanticAnalyzer;
 import utility.log.EngineLog;
 
@@ -12,9 +14,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Stream;
 
 /**
@@ -23,7 +23,7 @@ import java.util.stream.Stream;
  * On parse or semantic errors, no source java file is produced, as the errors are returned for the caller to handle.
  */
 public final class Transpiler {
-    static final EngineLog Logger = new EngineLog(Transpiler.class);
+    private static final EngineLog Logger = new EngineLog(Transpiler.class);
     /**
      * The outcome of a translation.
      * @param className the generated class's simple name, null on error
@@ -35,11 +35,6 @@ public final class Transpiler {
             return !errors.isEmpty();
         }
     }
-
-    /**
-     * The flat package every generated script belong to.
-     */
-    public static final String GeneratedPackage = "scripts";
 
     private Transpiler() {}
 
@@ -69,7 +64,7 @@ public final class Transpiler {
      * @return true when the directory was cleared or absent, or false when Io exception occurred
      */
     public static boolean clearGenerated(Path generatedRoot) {
-        Path packageDir = generatedRoot.resolve(GeneratedPackage);
+        Path packageDir = generatedRoot.resolve(TranspilerProperties.ScriptPackage);
         if (!Files.exists(packageDir)) return true;
         try (Stream<Path> walk = Files.walk(packageDir)) {
             List<Path> entries = walk.sorted(Comparator.reverseOrder()).toList();
@@ -89,7 +84,7 @@ public final class Transpiler {
      * @return the written file path, or null when IO exception occurred
      */
     public static Path write(Path generatedRoot, String className, String javaSource) {
-        Path file = generatedRoot.resolve(GeneratedPackage).resolve(className + ".java");
+        Path file = generatedRoot.resolve(TranspilerProperties.ScriptPackage).resolve(className + TranspilerProperties.JavaFileExtension);
         try {
             Files.createDirectories(file.getParent());
             Files.writeString(file, javaSource, StandardCharsets.UTF_8);
@@ -98,5 +93,54 @@ public final class Transpiler {
             Logger.error(String.format("Failed to write generated source %s: %s", file, e.getMessage()));
             return null;
         }
+    }
+
+    public static TranspileResult transpileProject(Path scriptsSrcRoot, Path buildOutputDir) {
+        ProjectScanner.Result scan = ProjectScanner.scan(scriptsSrcRoot, buildOutputDir);
+        if (scan.hasErrors()) return TranspileResult.failed(scan.errors().stream().map(Objects::toString).toList());
+        List<Result> outputs = new ArrayList<>();
+        List<String> errors = new ArrayList<>();
+        scriptFiles(scriptsSrcRoot, buildOutputDir).forEach(script -> {
+            String source = readScript(scriptsSrcRoot, script, errors);
+            if (source == null) return;
+            Result result = transpile(source, relative(scriptsSrcRoot, script), scan.index());
+            if (result.hasErrors()) errors.addAll(result.errors);
+            else outputs.add(result);
+        });
+        if (!errors.isEmpty()) return TranspileResult.failed(errors);
+        Path generatedRoot = buildOutputDir.resolve(TranspilerProperties.TranspilerOutputDir);
+        if (!clearGenerated(generatedRoot)) return TranspileResult.failed(List.of("Failed to clear generated sources at " + generatedRoot.resolve(TranspilerProperties.ScriptPackage)));
+        for (Result output : outputs) {
+            if (write(generatedRoot, output.className, output.javaSource) == null) return TranspileResult.failed(List.of("Failed to write generated source for " + output.className));
+        }
+        return TranspileResult.ok(outputs.size());
+    }
+
+
+
+    private static String readScript(Path root, Path script, List<String> errors) {
+        try {
+            return Files.readString(script, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            errors.add(relative(root, script) + ": could not read file: " + e.getMessage());
+            return null;
+        }
+    }
+
+    private static List<Path> scriptFiles(Path scriptsSrcRoot, Path buildOutputDir) {
+        if (!Files.isDirectory(scriptsSrcRoot)) return List.of();
+        try (Stream<Path> walk = Files.walk(scriptsSrcRoot)) {
+            return walk.filter(Files::isRegularFile)
+                    .filter(p -> buildOutputDir == null || !p.startsWith(buildOutputDir))
+                    .filter(p -> p.toString().endsWith(TranspilerProperties.ScriptFileExtension))
+                    .sorted().toList();
+        } catch (IOException e) {
+            Logger.error(String.format("Failed to walk %s: %s", scriptsSrcRoot, e.getMessage()));
+            return List.of();
+        }
+    }
+
+    private static String relative(Path root, Path file) {
+        return root.relativize(file).toString().replace('\\', '/');
     }
 }

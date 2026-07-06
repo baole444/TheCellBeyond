@@ -1,7 +1,8 @@
 package scripting.transpiler.semantic;
 
+import scripting.transpiler.TranspilerProperties;
+
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -16,20 +17,6 @@ public final class LifecycleTable {
      */
     public record LifecycleHook(String javaName, List<String> parameterTypes) {}
 
-    /**
-     * Script hook name to its engine target.
-     */
-    public static final Map<String, LifecycleHook> LifeCycle = Map.of(
-            "_start", new LifecycleHook("onStart", List.of()),
-            "_editor_start", new LifecycleHook("onEditorStart", List.of()),
-            "_ready", new LifecycleHook("onReady", List.of()),
-            "_update", new LifecycleHook("onUpdate", List.of("float")),
-            "_editor_update", new LifecycleHook("onEditorUpdate", List.of("float")),
-            "_physic_update", new LifecycleHook("onPhysicUpdate", List.of("float")),
-            "_destroy", new LifecycleHook("onDestroy", List.of()),
-            "_transform_dirty", new LifecycleHook("onTransformDirty", List.of())
-    );
-
     private LifecycleTable() {}
 
     /**
@@ -38,6 +25,6 @@ public final class LifecycleTable {
      * @return the hook, or empty when the name is not a lifecycle hook
      */
     public static Optional<LifecycleHook> find(String scriptName) {
-        return Optional.ofNullable(LifeCycle.get(scriptName));
+        return Optional.ofNullable(TranspilerProperties.LifeCycle.get(scriptName));
     }
 }

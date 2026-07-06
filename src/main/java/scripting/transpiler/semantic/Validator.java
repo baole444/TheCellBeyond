@@ -1,17 +1,18 @@
 package scripting.transpiler.semantic;
 
+import scripting.transpiler.TranspilerProperties;
 import scripting.transpiler.ast.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
+
+import static scripting.transpiler.TranspilerProperties.ExportAnnotation;
 
 /**
  * Run the structure validation rules, such as annotation placement, lifecycle hook signatures,
  * along with incorrect reserved java keywords usages as user identifiers.
  */
 public final class Validator {
-    private static final String ExportAnnotation = "export";
     private static final String VoidType = "void";
     private static final String CLassRole = "class";
     private static final String EnumRole = "enum";
@@ -22,15 +23,6 @@ public final class Validator {
     private static final String ParameterRole = "parameter";
     private static final String VariableRole = "variable";
     private final List<SemanticError> errors = new ArrayList<>();
-    private static final Set<String> JavaKeywords = Set.of(
-            "abstract", "assert", "boolean", "break", "byte", "case", "catch", "char", "class",
-            "const", "continue", "default", "do", "double", "else", "enum", "extends", "final",
-            "finally", "float", "for", "goto", "if", "implements", "import", "instanceof", "int",
-            "interface", "long", "native", "new", "package", "private", "protected", "public",
-            "return", "short", "static", "strictfp", "super", "switch", "synchronized", "this",
-            "throw", "throws", "transient", "try", "void", "volatile", "while",
-            "true", "false", "null"
-    );
 
     /**
      * Validate the script in place
@@ -43,7 +35,7 @@ public final class Validator {
             return errors;
         }
         ClassDeclaration classDeclaration = (ClassDeclaration) scriptFile.typeDeclaration;
-        checkReserved(classDeclaration.name, classDeclaration, "class");
+        checkReserved(classDeclaration.name, classDeclaration, CLassRole);
         classDeclaration.fields.forEach(this::validateField);
         classDeclaration.methods.forEach(this::validateMethod);
         classDeclaration.signals.forEach(this::validateSignal);
@@ -136,7 +128,7 @@ public final class Validator {
     }
 
     private void checkReserved(String name, AstNode node, String role) {
-        if (!JavaKeywords.contains(name)) return;
+        if (!TranspilerProperties.JavaKeywords.contains(name)) return;
         error(node, String.format("'%s' is a reserved java keyword and cannot be used as a %s name", name, role));
     }
 

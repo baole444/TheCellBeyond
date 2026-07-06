@@ -1,5 +1,6 @@
 package scripting.transpiler.codegen;
 
+import scripting.transpiler.TranspilerProperties;
 import scripting.transpiler.ast.Annotation;
 import scripting.transpiler.ast.AnnotationArgument;
 import scripting.transpiler.ast.FieldDeclaration;
@@ -15,8 +16,6 @@ import java.util.stream.Collectors;
  * </ul>
  */
 final class FieldEmitter {
-    private static final String ExportAnnotation = "export";
-    private static final String ExportType = "scripting.Export";
     private final EmitContext context;
     private final ExpressionEmitter expressions;
 
@@ -26,12 +25,12 @@ final class FieldEmitter {
     }
 
     void emit(FieldDeclaration field) {
-        field.annotations.stream().filter(annotation -> annotation.name.equals(ExportAnnotation)).forEach(this::exportAnnotation);
+        field.annotations.stream().filter(annotation -> annotation.name.equals(TranspilerProperties.ExportAnnotation)).forEach(this::exportAnnotation);
         context.writer.field(declarationLine(field));
     }
 
     private void exportAnnotation(Annotation annotation) {
-        String name = context.writer.importType(ExportType);
+        String name = context.writer.importType(TranspilerProperties.ExportFQN);
         if (annotation.arguments == null || annotation.arguments.isEmpty()) {
             context.writer.annotation("@" + name);
             return;

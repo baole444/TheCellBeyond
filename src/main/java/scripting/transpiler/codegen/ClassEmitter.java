@@ -1,10 +1,8 @@
 package scripting.transpiler.codegen;
 
-import scripting.RegisterComponent;
-import scripting.RegisterGameObject;
+import scripting.transpiler.TranspilerProperties;
 import scripting.transpiler.ast.*;
 import scripting.transpiler.semantic.ClassRegistration;
-import utility.log.EngineLog;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -16,11 +14,6 @@ import java.util.Map;
  * The result is a complete java compilation unit in the flat {@code scripts} package. {@code extends Object} is normalized and remove.
  */
 public final class ClassEmitter {
-    private static final String Package = "scripts";
-    private static final String ObjectType = "Object";
-    private static final String EngineLogType = EngineLog.class.getName();
-    private static final String RegisterGameObjectType = RegisterGameObject.class.getName();
-    private static final String RegisterComponentType = RegisterComponent.class.getName();
 
     /**
      * Render a resolved class declaration into java source.
@@ -29,7 +22,7 @@ public final class ClassEmitter {
      * @return the rendered Java source
      */
     public static String emit(ClassDeclaration classDeclaration, String sourceName) {
-        EmitContext context = new EmitContext(new JavaSourceWriter(Package), classDeclaration.name, fieldTypes(classDeclaration));
+        EmitContext context = new EmitContext(new JavaSourceWriter(TranspilerProperties.ScriptPackage), classDeclaration.name, fieldTypes(classDeclaration));
         context.useLogger = CheckLogger.inUse(classDeclaration);
         context.writer.fileComment(String.format("// generated from %s - edit if you know what you are doing", sourceName));
         registration(context, classDeclaration.registration);
@@ -47,8 +40,8 @@ public final class ClassEmitter {
 
     private static void registration(EmitContext context, ClassRegistration registration) {
         switch (registration) {
-            case GameObject -> context.writer.annotation("@" + context.writer.importType(RegisterGameObjectType));
-            case Component -> context.writer.annotation("@" + context.writer.importType(RegisterComponentType));
+            case GameObject -> context.writer.annotation("@" + context.writer.importType(TranspilerProperties.RegisterGameObjectFQN));
+            case Component -> context.writer.annotation("@" + context.writer.importType(TranspilerProperties.RegisterComponentFQN));
             case null, default -> {}
         }
     }
@@ -56,7 +49,7 @@ public final class ClassEmitter {
     private static String declarationLine(EmitContext context, ClassDeclaration classDeclaration) {
         String line = "public class " + classDeclaration.name;
         TypeReference superType = classDeclaration.superType;
-        if (superType == null || superType.name.equals(ObjectType)) return line;
+        if (superType == null || superType.name.equals(TranspilerProperties.ObjectType)) return line;
         return line + " extends " + context.typeName(superType);
     }
 
@@ -87,7 +80,7 @@ public final class ClassEmitter {
     }
 
     private static void logger(EmitContext context) {
-        String type = context.writer.importType(EngineLogType);
+        String type = context.writer.importType(TranspilerProperties.EngineLogFQN);
         context.writer.field(String.format("private static final %s Logger = new %s(%s.class)", type, type, context.className));
     }
 }
