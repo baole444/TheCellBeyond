@@ -58,12 +58,22 @@ public final class ScriptBuilder {
      */
     public static void build(Path jdkHome, boolean cleanBuildScripts, boolean overrideJVM, boolean reloadOnFinish) {
         if (!inProgress.compareAndSet(false, true)) return;
+        Logger.info("Project script building started...");
         status = BuildStatus.transpiling();
         CompletableFuture.supplyAsync(() -> run(jdkHome, cleanBuildScripts, overrideJVM), Executor).whenComplete((succeeded, _) -> {
-            if (!reloadOnFinish || !succeeded) return;
-            ScriptLoader.reload();
-            status = BuildStatus.succeeded(pendingScriptCount, pendingBuildDurationMs);
-            inProgress.set(false);
+            if (!succeeded) {
+                inProgress.set(false);
+                return;
+            }
+            if (!reloadOnFinish) {
+                status = BuildStatus.succeeded(pendingScriptCount, pendingBuildDurationMs);
+                inProgress.set(false);
+                return;
+            }
+            ScriptLoader.reload().whenComplete((_, _) -> {
+                status = BuildStatus.succeeded(pendingScriptCount, pendingBuildDurationMs);
+                inProgress.set(false);
+            });
         });
     }
 
@@ -83,6 +93,7 @@ public final class ScriptBuilder {
                 return false;
             }
             int scriptCount = transpiled.transpileCount();
+            Logger.info(String.format("Translated %d TCBScript (.tcbs) files", scriptCount));
             status = BuildStatus.building(scriptCount);
             BuildResult result = GradleRunner.buildScripts(jdkHome, cleanBuildScripts, overrideJVM).join();
             if (!result.success()) {

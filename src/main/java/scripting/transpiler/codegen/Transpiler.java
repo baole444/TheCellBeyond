@@ -95,6 +95,12 @@ public final class Transpiler {
         }
     }
 
+    /**
+     * Start the transpile process for the entire project under the given source root.
+     * @param scriptsSrcRoot the project's script source root directory
+     * @param buildOutputDir the build output directory to exclude from indexing
+     * @return the translating result
+     */
     public static TranspileResult transpileProject(Path scriptsSrcRoot, Path buildOutputDir) {
         ProjectScanner.Result scan = ProjectScanner.scan(scriptsSrcRoot, buildOutputDir);
         if (scan.hasErrors()) return TranspileResult.failed(scan.errors().stream().map(Objects::toString).toList());

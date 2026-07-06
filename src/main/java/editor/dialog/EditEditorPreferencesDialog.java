@@ -1,5 +1,6 @@
 package editor.dialog;
 
+import editor.EditorColors;
 import editor.EditorIcons;
 import editor.EditorWidget;
 import editor.preference.EditorPreferences;
@@ -20,7 +21,7 @@ import java.util.List;
  */
 public final class EditEditorPreferencesDialog {
     private static final String PopupID = "Editor Preferences";
-    private static final ImVec2 DialogSize = new ImVec2(720.0f, 400.0f);
+    private static final ImVec2 DialogSize = new ImVec2(720.0f, 480.0f);
     private static final float ButtonReserve = ImGui.getFrameHeightWithSpacing();
     private static final float ButtonWidth = 120.0f;
     private static final float ButtonHeight = 30.0f;
@@ -30,6 +31,7 @@ public final class EditEditorPreferencesDialog {
     private static final ImBoolean showGridLine = new ImBoolean(false);
     private static final ImBoolean cleanBuildScripts = new ImBoolean(true);
     private static final ImBoolean overrideJVM = new ImBoolean(false);
+    private static final ImBoolean reloadSceneOnBuildFinish = new ImBoolean(true);
     private static final ImVec2 tmpCursorPos = new ImVec2();
     private static final ImBoolean tmpInteracted = new ImBoolean();
     private static JDKInstallation selectedJDK = null;
@@ -66,7 +68,8 @@ public final class EditEditorPreferencesDialog {
         ImGui.setNextWindowPos(center.x, center.y, ImGuiCond.Appearing, pivotXY, pivotXY);
         ImGui.setNextWindowSize(DialogSize);
         if (ImGui.beginPopupModal(PopupID, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)) {
-            ImGui.text("Adjust Editor's preferences");
+            ImGui.textColored(EditorColors.InstructionHighLight, "Adjust Editor's preferences");
+            ImGui.spacing();
             float regionHeight = ImGui.getContentRegionAvailY() - ButtonReserve - ButtonHeight;
             if (ImGui.beginChild("##EEPD_Preference_Region", 0.0f, regionHeight, ImGuiChildFlags.Borders)) renderPreferenceEditor();
             ImGui.endChild();
@@ -104,6 +107,8 @@ public final class EditEditorPreferencesDialog {
         ImGui.text("Scripting:");
         ImGui.spacing();
         renderPreferenceToggle("Clean before build", cleanBuildScripts, " - Clear old build's output before new build start");
+        ImGui.spacing();
+        renderPreferenceToggle("Reload scene after build", reloadSceneOnBuildFinish, "- Reload current scene on finished building script");
         ImGui.spacing();
         boolean disabled = overrideJVM.get();
         if (disabled) ImGui.beginDisabled();
@@ -207,6 +212,7 @@ public final class EditEditorPreferencesDialog {
         showGridLine.set(preferences.showGridLine());
         cleanBuildScripts.set(preferences.cleanBuildScripts());
         overrideJVM.set(preferences.overrideGradleJVM());
+        reloadSceneOnBuildFinish.set(preferences.reloadOnFinishBuildScripts());
         selectedJDK = UserPreference.selectedJDK();
     }
 
@@ -217,7 +223,8 @@ public final class EditEditorPreferencesDialog {
                 autoSaveOnChangeScene.get(),
                 showGridLine.get(),
                 cleanBuildScripts.get(),
-                overrideJVM.get()
+                overrideJVM.get(),
+                reloadSceneOnBuildFinish.get()
         ));
         editorPreferenceChanged = false;
     }

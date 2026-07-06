@@ -14,21 +14,148 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.stream.Stream;
 
+/**
+ * ScriptLoader is a collection of static method use to load or unload classes from JAR files into the engine.
+ * <p>
+ * All classes in the JAR files are loaded in. For any class annotated with either {@link RegisterGameObject} or {@link RegisterComponent},
+ * They are cached to use elsewhere.
+ * </p>
+ * ScriptLoader's operation are synchronous on the thread it bound to with {@link #bindMainThread()}.
+ * Call to {@link #load(List)}, {@link #reload()} and {@link #unload()} are thread safe.
+ */
 public final class ScriptLoader {
     private static final EngineLog Logger = new EngineLog(ScriptLoader.class);
     private static final String ClassExtension = ".class";
     private static URLClassLoader ScriptClassLoader;
-    private static List<Path> scanDirectories = new ArrayList<>();
+    private static volatile List<Path> scanDirectories = List.of();
     private static final List<TypeEntry> gameObjectTypes = new ArrayList<>();
     private static final List<TypeEntry> componentTypes = new ArrayList<>();
+    private static final ConcurrentLinkedQueue<Runnable> tasks = new ConcurrentLinkedQueue<>();
+    private static final AtomicReference<CompletableFuture<Void>> currentTask = new AtomicReference<>();
+    private static volatile Thread mainThread = null;
 
     private ScriptLoader() {}
 
-    public static void load(List<Path> scanDirs) {
+    /**
+     * Bind the script loader to the current thread. This should be called once on the main thread before any script loading process started.
+     * <p>
+     * All load and unload process will be run on the bound thread.
+     */
+    public static void bindMainThread() {
+        if (mainThread == null) mainThread = Thread.currentThread();
+    }
+
+    /**
+     * Execute any load or reload request queued by other threads.
+     * <p>
+     * This should be call oncer per engine main loop.
+     */
+    public static void processPending() {
+        Runnable task;
+        while ((task = tasks.poll()) != null) {
+            try {
+                task.run();
+            } catch (RuntimeException e) {
+                Logger.error("Failed to run queued script loader task: " + e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Request to load the script JAR files from the given scan directories.
+     * <p>
+     * If the request not originated from the loader's main thread, the task i8s queued for polling.
+     * @param scanDirs the directories to scan for script JARs
+     * @return a future completing when loading finished, or a completed future if there is nothing to load
+     */
+    public static CompletableFuture<Void> load(List<Path> scanDirs) {
+        if (scanDirs == null || scanDirs.isEmpty()) return CompletableFuture.completedFuture(null);
+        scanDirectories = List.copyOf(scanDirs);
+        return requestLoad(scanDirectories, false);
+    }
+
+    /**
+     * Unload all script classes and close the current class loader.
+     */
+    public static void unload() {
+        gameObjectTypes.clear();
+        componentTypes.clear();
+        EngineEventCallback.emit(new EditorEvent(EditorEvent.Type.ScriptClassUnloaded));
+        if (ScriptClassLoader == null) return;
+        try {
+            ScriptClassLoader.close();
+        } catch (IOException e) {
+            Logger.error(String.format("Failed to close script classloader: %s", e.getMessage()));
+        }
+        ScriptClassLoader = null;
+    }
+
+    /**
+     * Request to reload the script JAR files using the last scan directories.
+     * @return a future completing when reloading finished, or an ongoing load's future
+     */
+    public static CompletableFuture<Void> reload() {
+        return requestLoad(scanDirectories, true);
+    }
+
+    /**
+     * Get the current class loader of {@link ScriptLoader}.
+     * @return the in used class loader
+     */
+    public static ClassLoader classLoader() {
+        if (ScriptClassLoader != null) return ScriptClassLoader;
+        return ScriptLoader.class.getClassLoader();
+    }
+
+    /**
+     * Get an unmodifiable view of the loaded game object types annotated with {@link RegisterGameObject}.
+     * @return the list of type entries for game objects
+     */
+    public static List<TypeEntry> gameObjectTypes() {
+        return Collections.unmodifiableList(gameObjectTypes);
+    }
+
+    /**
+     * Get an unmodifiable view of the loaded component types annotated with {@link RegisterComponent}.
+     * @return the list of type entries for components
+     */
+    public static List<TypeEntry> componentTypes() {
+        return Collections.unmodifiableList(componentTypes);
+    }
+
+    private static CompletableFuture<Void> requestLoad(List<Path> dirs, boolean emitReload) {
+        Thread bound = mainThread;
+        if (bound == null) {
+            Logger.error("Failed to load scripts: main thread for script loader not bounded");
+            return CompletableFuture.failedFuture(new IllegalStateException("ScriptLoader main thread unbound, please bound the main thread on engine startup"));
+        }
+        CompletableFuture<Void> task = new CompletableFuture<>();
+        CompletableFuture<Void> existing = currentTask.compareAndExchange(null, task);
+        if (existing != null) return existing;
+        Runnable job = () -> {
+            try {
+                loadScripts(dirs);
+                if (emitReload) EngineEventCallback.emit(new EditorEvent(EditorEvent.Type.ScriptCLassReloaded));
+                task.complete(null);
+            } catch (RuntimeException e) {
+                task.completeExceptionally(e);
+            } finally {
+                currentTask.set(null);
+            }
+        };
+        if (Thread.currentThread() == bound) job.run();
+        else tasks.add(job);
+        return task;
+    }
+
+    private static void loadScripts(List<Path> scanDirs) {
         if (scanDirs == null || scanDirs.isEmpty()) return;
         unload();
         scanDirectories = new ArrayList<>(scanDirs);
@@ -45,37 +172,6 @@ public final class ScriptLoader {
         ScriptClassLoader = new URLClassLoader(jarUrls.toArray(URL[]::new), ScriptLoader.class.getClassLoader());
         for (Path jarPath : jarPaths) scanJar(jarPath);
         Logger.info(String.format("Loaded %d custom game object types(s) and %d custom component type(s)", gameObjectTypes.size(), componentTypes.size()));
-    }
-
-    public static void unload() {
-        gameObjectTypes.clear();
-        componentTypes.clear();
-        EngineEventCallback.emit(new EditorEvent(EditorEvent.Type.ScriptClassUnloaded));
-        if (ScriptClassLoader == null) return;
-        try {
-            ScriptClassLoader.close();
-        } catch (IOException e) {
-            Logger.error(String.format("Failed to close script classloader: %s", e.getMessage()));
-        }
-        ScriptClassLoader = null;
-    }
-
-    public static void reload() {
-        load(scanDirectories);
-        EngineEventCallback.emit(new EditorEvent(EditorEvent.Type.ScriptCLassReloaded));
-    }
-
-    public static ClassLoader classLoader() {
-        if (ScriptClassLoader != null) return ScriptClassLoader;
-        return ScriptLoader.class.getClassLoader();
-    }
-
-    public static List<TypeEntry> gameObjectTypes() {
-        return Collections.unmodifiableList(gameObjectTypes);
-    }
-
-    public static List<TypeEntry> componentTypes() {
-        return Collections.unmodifiableList(componentTypes);
     }
 
     private static void collectJars(Path dir, List<URL> jarUrls, List<Path> jarPaths) {
@@ -98,7 +194,7 @@ public final class ScriptLoader {
         try (JarFile jarFile = new JarFile(jarPath.toFile())) {
             jarFile.stream()
                     .map(JarEntry::getName)
-                    .filter(name -> name.endsWith(".class"))
+                    .filter(name -> name.endsWith(ClassExtension))
                     .map(ScriptLoader::entryToClassName)
                     .forEach(ScriptLoader::tryRegisterClass);
         } catch (IOException e) {

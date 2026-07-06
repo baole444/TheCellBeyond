@@ -2,11 +2,14 @@ package editor;
 
 import TheCellBeyond.internal.LogicServer;
 import editor.dialog.*;
+import editor.preference.EditorPreferences;
+import editor.preference.UserPreference;
 import imgui.ImGui;
 import imgui.flag.ImGuiHoveredFlags;
 import project.Project;
 import scene.SceneManager;
 import scripting.ScriptLoader;
+import scripting.builder.ScriptBuilder;
 
 import java.util.List;
 
@@ -52,6 +55,10 @@ final class MenuBar {
 
     private static void renderScriptingMenu() {
         if (!ImGui.beginMenu("Scripting##MenuBar_Scripting_Menu")) return;
+        if (ImGui.menuItem("Build script##MenuBar_Scripting_Build_Script")) {
+            EditorPreferences preferences = UserPreference.preferences();
+            ScriptBuilder.build(UserPreference.selectedJDKHome(), preferences.cleanBuildScripts(), preferences.overrideGradleJVM(), preferences.reloadOnFinishBuildScripts());
+        }
         if (ImGui.menuItem("Reload scripts##MenuBar_Scripting_Reload_Script")) ScriptLoader.reload();
         ImGui.separator();
         if (ImGui.menuItem("Edit scan directories##MenuBar_Scripting_Edit_ScanDir")) EditProjectSettingsDialog.showToScriptTab();
