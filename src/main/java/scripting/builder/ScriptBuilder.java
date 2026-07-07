@@ -47,7 +47,7 @@ public final class ScriptBuilder {
     }
 
     /**
-     * Start the transpile and build process. If there is an ongoing proceed, this do nothing.
+     * Start the transpile and build process. If there is an ongoing proceed, this does nothing.
      * <p>
      * The transpile and build process run in the background async. Upon completed, if {@code reloadOnFinish} is true,
      * This will invoke {@link ScriptLoader} to reload the script jars.
@@ -88,6 +88,7 @@ public final class ScriptBuilder {
             Path buildDir = GradleRunner.resolveBuildDir(jdkHome, overrideJVM).join();
             TranspileResult transpiled = Transpiler.transpileProject(scriptRoot, buildDir);
             if (!transpiled.success()) {
+                logTranspileErrors(transpiled.errors());
                 status = BuildStatus.transpileFail(transpiled.errors());
                 inProgress.set(false);
                 return false;
@@ -97,8 +98,7 @@ public final class ScriptBuilder {
             status = BuildStatus.building(scriptCount);
             BuildResult result = GradleRunner.buildScripts(jdkHome, cleanBuildScripts, overrideJVM).join();
             if (!result.success()) {
-                status = new BuildStatus(BuildPhase.BuildFailed, scriptCount, result.durationMs(), result.exitCode(), List.of());
-                inProgress.set(false);
+                fail(new BuildStatus(BuildPhase.BuildFailed, scriptCount, result.durationMs(), result.exitCode(), List.of()), String.format("Script build failed during Gradle build (exit code %d)", result.exitCode()));
                 return false;
             }
             pendingScriptCount = scriptCount;
@@ -114,6 +114,11 @@ public final class ScriptBuilder {
         Logger.error(message);
         status = failure;
         inProgress.set(false);
+    }
+
+    private static void logTranspileErrors(List<String> errors) {
+        Logger.error(String.format("Translation failed with %d error(s):", errors.size()));
+        errors.forEach(e -> Logger.error("\t" + e));
     }
 
     private static Thread builder(Runnable task) {

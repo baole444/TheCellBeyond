@@ -7,11 +7,18 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+/**
+ * SystemExplorer contain static method use to determine the host platform and open the file manager.
+ */
 final class SystemExplorer {
     private static final EngineLog Logger = new EngineLog(SystemExplorer.class);
 
     private SystemExplorer() {}
 
+    /**
+     * Open the file manager UI to the given path.
+     * @param directory the path to the opening directory
+     */
     static void open(Path directory) {
         if (directory == null || !Files.isDirectory(directory)) {
             Logger.warning(String.format("Cannot open %s: no such directory or not a directory", directory));

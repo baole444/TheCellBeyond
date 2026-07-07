@@ -361,6 +361,38 @@ final class SemanticPassTest {
     }
 
     @Test
+    public void inferredFieldFromEnumConstantBackfillsEnumType() {
+        ClassDeclaration cls = ok("""
+                class Calamus extends CharacterBody2D
+                @export var direction = Direction.Up
+                """, index(enumEntry("Direction")));
+        TypeReference type = cls.fields.getFirst().type;
+        assertEquals("Direction", type.name);
+        Resolution.ProjectClassResolution resolution = assertInstanceOf(Resolution.ProjectClassResolution.class, type.resolution);
+        assertEquals("scripts.Direction", resolution.fqn());
+    }
+
+    @Test
+    public void inferredFieldFromApiStringMemberBackfillsBuiltin() {
+        ClassDeclaration cls = ok("""
+                class C
+                const delimiter = HierarchyPath.ComponentDelimiter
+                """, Map.of());
+        TypeReference type = cls.fields.getFirst().type;
+        assertEquals("String", type.name, "a java.lang.String API field maps to the script String built-in");
+        assertNull(type.resolution, "a built-in type carries no API class resolution");
+    }
+
+    @Test
+    public void inferredFieldFromApiStringConcatBackfillsBuiltin() {
+        ClassDeclaration cls = ok("""
+                class C
+                const animation_path = HierarchyPath.ComponentDelimiter + "Animation"
+                """, Map.of());
+        assertEquals("String", cls.fields.getFirst().type.name, "String concatenation with a String-typed API member infers String");
+    }
+
+    @Test
     public void inferredLocalFromApiCallFeedsMemberResolution() {
         ClassDeclaration cls = ok("""
                 class Probe
