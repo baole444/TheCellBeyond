@@ -33,26 +33,17 @@ public final class ProjectScanner {
     private ProjectScanner() {}
 
     /**
-     * Scan a project root to index script classes, excluding the Gradle default build directory.
+     * Scan a project root to index script classes, excluding the Gradle default build output directory and the transpiler's generated source directory,
+     * so the transpiler's own generated {@code .java} is not indexed against its {@code .tcbs} source.
      * @param scriptsRoot the project's {@code script-src} directory
      * @return the class index and collected errors
      */
     public static Result scan(Path scriptsRoot) {
-        return scan(scriptsRoot, scriptsRoot.resolve(TranspilerProperties.BuildDir));
-    }
-
-    /**
-     * Scan a project root to index script classes, excluding the given build output directory,
-     * so the transpiler's own generated {@code .java} is not indexed against its {@code .tcbs} source.
-     * @param scriptsRoot the project's {@code script-src} directory
-     * @param buildOutputDir the Gradle build output director to exclude, or null to exclude nothing
-     * @return the class index and collected errors
-     */
-    public static Result scan(Path scriptsRoot, Path buildOutputDir) {
+        Set<Path> excludedDirs = Set.of(scriptsRoot.resolve(TranspilerProperties.BuildDir), scriptsRoot.resolve(TranspilerProperties.TranspilerOutputDir));
         Map<String, ProjectClassEntry> index = new HashMap<>();
         List<SemanticError> errors = new ArrayList<>();
-        for (Path file : walk(scriptsRoot, TranspilerProperties.ScriptFileExtension, buildOutputDir)) scriptEntry(scriptsRoot, file, errors).ifPresent(entry -> insert(index, entry, errors));
-        for (Path file : walk(scriptsRoot, TranspilerProperties.JavaFileExtension, buildOutputDir)) javaEntry(scriptsRoot, file, errors).ifPresent(entry -> insert(index, entry, errors));
+        for (Path file : walk(scriptsRoot, TranspilerProperties.ScriptFileExtension, excludedDirs)) scriptEntry(scriptsRoot, file, errors).ifPresent(entry -> insert(index, entry, errors));
+        for (Path file : walk(scriptsRoot, TranspilerProperties.JavaFileExtension, excludedDirs)) javaEntry(scriptsRoot, file, errors).ifPresent(entry -> insert(index, entry, errors));
         return new Result(index, errors);
     }
 
@@ -86,11 +77,11 @@ public final class ProjectScanner {
         }
     }
 
-    private static List<Path> walk(Path root, String extension, Path buildDir) {
+    private static List<Path> walk(Path root, String extension, Set<Path> excludeDirs) {
         if (!Files.isDirectory(root)) return List.of();
         try (Stream<Path> stream = Files.walk(root)) {
             return stream.filter(Files::isRegularFile)
-                    .filter(p -> buildDir == null || !p.startsWith(buildDir))
+                    .filter(p -> excludeDirs.stream().noneMatch(p::startsWith))
                     .filter(p -> p.toString().endsWith(extension))
                     .sorted().toList();
         } catch (IOException e) {

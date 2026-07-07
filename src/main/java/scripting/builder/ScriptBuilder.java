@@ -85,8 +85,7 @@ public final class ScriptBuilder {
                 return false;
             }
             Path scriptRoot = Path.of(root, ScriptsSrcDir);
-            Path buildDir = GradleRunner.resolveBuildDir(jdkHome, overrideJVM).join();
-            TranspileResult transpiled = Transpiler.transpileProject(scriptRoot, buildDir);
+            TranspileResult transpiled = Transpiler.transpileProject(scriptRoot);
             if (!transpiled.success()) {
                 logTranspileErrors(transpiled.errors());
                 status = BuildStatus.transpileFail(transpiled.errors());

@@ -98,16 +98,16 @@ public final class Transpiler {
     /**
      * Start the transpile process for the entire project under the given source root.
      * @param scriptsSrcRoot the project's script source root directory
-     * @param buildOutputDir the build output directory to exclude from indexing
      * @return the translating result
      */
-    public static TranspileResult transpileProject(Path scriptsSrcRoot, Path buildOutputDir) {
+    public static TranspileResult transpileProject(Path scriptsSrcRoot) {
         Logger.info("Translating scripts...");
-        ProjectScanner.Result scan = ProjectScanner.scan(scriptsSrcRoot, buildOutputDir);
+        Path generatedRoot = scriptsSrcRoot.resolve(TranspilerProperties.TranspilerOutputDir);
+        ProjectScanner.Result scan = ProjectScanner.scan(scriptsSrcRoot);
         if (scan.hasErrors()) return TranspileResult.failed(scan.errors().stream().map(Objects::toString).toList());
         List<Result> outputs = new ArrayList<>();
         List<String> errors = new ArrayList<>();
-        scriptFiles(scriptsSrcRoot, buildOutputDir).forEach(script -> {
+        scriptFiles(scriptsSrcRoot, generatedRoot).forEach(script -> {
             String source = readScript(scriptsSrcRoot, script, errors);
             if (source == null) return;
             Result result = transpile(source, relative(scriptsSrcRoot, script), scan.index());
@@ -115,15 +115,12 @@ public final class Transpiler {
             else outputs.add(result);
         });
         if (!errors.isEmpty()) return TranspileResult.failed(errors);
-        Path generatedRoot = buildOutputDir.resolve(TranspilerProperties.TranspilerOutputDir);
         if (!clearGenerated(generatedRoot)) return TranspileResult.failed(List.of("Failed to clear generated sources at " + generatedRoot.resolve(TranspilerProperties.ScriptPackage)));
         for (Result output : outputs) {
             if (write(generatedRoot, output.className, output.javaSource) == null) return TranspileResult.failed(List.of("Failed to write generated source for " + output.className));
         }
         return TranspileResult.ok(outputs.size());
     }
-
-
 
     private static String readScript(Path root, Path script, List<String> errors) {
         try {
