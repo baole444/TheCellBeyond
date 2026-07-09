@@ -1,19 +1,22 @@
 package editor;
 
+import TheCellBeyond.IconLoader;
 import TheCellBeyond.KeyListener;
 import TheCellBeyond.MouseListener;
 import TheCellBeyond.Window;
-import editor.dialog.NewProjectDialog;
-import editor.dialog.OpenProjectDialog;
-import editor.dialog.RemoveMissingProjectDialog;
+import editor.dialogs.NewProjectDialog;
+import editor.dialogs.OpenProjectDialog;
+import editor.dialogs.RemoveMissingProjectDialog;
 import editor.preference.RecentProject;
 import editor.preference.UserPreference;
 import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.*;
 import org.lwjgl.glfw.GLFWErrorCallback;
+import org.lwjgl.glfw.GLFWImage;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.system.Callback;
+import org.lwjgl.system.Platform;
 import project.Project;
 import project.ProjectData;
 import project.ProjectPreference;
@@ -21,6 +24,7 @@ import tools.jackson.core.exc.JacksonIOException;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.dataformat.yaml.YAMLFactory;
+import utility.Settings;
 import utility.log.Stream2Log;
 
 import java.io.File;
@@ -42,6 +46,7 @@ public final class StartupWindow {
     private static final ImVec2 EditorWindowSize = new ImVec2(960, 600);
     private static final float projectListXPercentage = 0.75f;
     private static final HashMap<UUID, RecentProject> recentProjects = new HashMap<>();
+    private static final IconLoader iconFile = IconLoader.loadIcon(Settings.TexturePath.TCBIcon);
     private static RecentProject selectedProject = null;
     private static UUID selectedUUID = null;
     private static String pendingSelection = null;
@@ -79,6 +84,17 @@ public final class StartupWindow {
         editorLayer.initImGui("#version 330 core");
         ImGui.getIO().setIniFilename(null);
         glfwShowWindow(windowPtr);
+        loadIcon();
+    }
+
+    private static void loadIcon() {
+        if (iconFile == null) return;
+        if (Platform.get() == Platform.LINUX || Platform.get() == Platform.FREEBSD) return;
+        GLFWImage icon = GLFWImage.malloc();
+        GLFWImage.Buffer bufferIcon = GLFWImage.malloc(1);
+        icon.set(iconFile.width(), iconFile.height(), iconFile.icon());
+        bufferIcon.put(0, icon);
+        glfwSetWindowIcon(windowPtr, bufferIcon);
     }
 
     public static String show() {

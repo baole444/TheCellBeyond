@@ -1,4 +1,4 @@
-package editor.dialog;
+package editor.dialogs;
 
 import editor.EditorIcons;
 import editor.EditorWidget;

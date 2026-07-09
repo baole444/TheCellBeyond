@@ -1,4 +1,4 @@
-package editor.dialog;
+package editor.dialogs;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.glfw.GLFWNativeCocoa.glfwGetCocoaWindow;

@@ -1,5 +1,6 @@
 package scripting.transpiler.codegen;
 
+import scripting.transpiler.TranspilerProperties;
 import scripting.transpiler.ast.EnumConstant;
 import scripting.transpiler.ast.EnumDeclaration;
 import scripting.transpiler.ast.TypeReference;
@@ -17,13 +18,12 @@ import java.util.stream.IntStream;
  * A bare enum has no fields and no constructor.
  */
 public final class EnumEmitter {
-    private static final String Package = "scripts";
     private final EmitContext context;
     private final ExpressionEmitter expressions;
     private final EnumDeclaration enumDeclaration;
 
     private EnumEmitter(EnumDeclaration enumDeclaration) {
-        context = new EmitContext(new JavaSourceWriter(Package), enumDeclaration.name, fieldTypes(enumDeclaration));
+        context = new EmitContext(new JavaSourceWriter(TranspilerProperties.ScriptPackage), enumDeclaration.name, fieldTypes(enumDeclaration));
         expressions = new ExpressionEmitter(context);
         this.enumDeclaration = enumDeclaration;
     }

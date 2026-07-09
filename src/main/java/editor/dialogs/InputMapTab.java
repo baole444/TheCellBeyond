@@ -1,4 +1,4 @@
-package editor.dialog;
+package editor.dialogs;
 
 import TheCellBeyond.*;
 import editor.EditorIcons;
@@ -31,11 +31,11 @@ final class InputMapTab {
     private static boolean showListenForInputDialog = false;
     private static KeyComboCallback pendingCallback = null;
 
-    static boolean isShowListeningDialog() {
+    static boolean openedListenForInput() {
         return showListenForInputDialog;
     }
 
-    static void clearInputMapDialogData() {
+    static void clear() {
         newActionName.clear();
         clearInputFilter();
     }

@@ -12,12 +12,12 @@ import java.nio.IntBuffer;
 
 import static org.lwjgl.stb.STBImage.stbi_load_from_memory;
 
-record IconLoader(int width, int height, ByteBuffer icon, AssetReference assetReference) {
-    String getFilePath() {
+public record IconLoader(int width, int height, ByteBuffer icon, AssetReference assetReference) {
+    public String getFilePath() {
         return assetReference != null ? assetReference.canonicalPath() : null;
     }
 
-    static IconLoader loadIcon(String filepath) {
+    public static IconLoader loadIcon(String filepath) {
         AssetReference assetRef = new AssetReference(filepath);
         try (InputStream stream = UnifiedPaths.getAssetStream(assetRef.resolvedPath())) {
             byte[] data = stream.readAllBytes();

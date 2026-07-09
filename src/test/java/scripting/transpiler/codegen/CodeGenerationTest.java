@@ -1,6 +1,7 @@
 package scripting.transpiler.codegen;
 
 import org.junit.jupiter.api.Test;
+import scripting.transpiler.TranspilerProperties;
 import scripting.transpiler.semantic.ProjectClassEntry;
 
 import javax.tools.*;
@@ -627,7 +628,7 @@ final class CodeGenerationTest {
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         assertNotNull(compiler, "a JDK java compiler is required for this test");
         DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
-        JavaFileObject unit = new SimpleJavaFileObject(URI.create("string:///" + Transpiler.GeneratedPackage + "/" + className + ".java"), JavaFileObject.Kind.SOURCE) {
+        JavaFileObject unit = new SimpleJavaFileObject(URI.create("string:///" + TranspilerProperties.ScriptPackage + "/" + className + ".java"), JavaFileObject.Kind.SOURCE) {
             @Override
             public CharSequence getCharContent(boolean ignoreEncodingErrors) {
                 return source;

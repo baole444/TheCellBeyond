@@ -1,4 +1,4 @@
-package editor.dialog;
+package editor.dialogs;
 
 import imgui.ImGui;
 import imgui.ImVec2;

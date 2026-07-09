@@ -1,4 +1,4 @@
-package editor.dialog;
+package editor.dialogs;
 
 import editor.EditorWidget;
 import imgui.ImGui;

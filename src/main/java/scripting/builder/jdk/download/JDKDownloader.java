@@ -24,7 +24,7 @@ import java.util.concurrent.Executors;
  */
 public final class JDKDownloader {
     private static final EngineLog Logger = new EngineLog(JDKDownloader.class);
-    private static final ExecutorService executor = Executors.newSingleThreadExecutor(JDKDownloader::worker);
+    private static final ExecutorService Executor = Executors.newSingleThreadExecutor(JDKDownloader::worker);
     private static volatile DownloadProgress progress = DownloadProgress.idle();
     private static volatile CompletableFuture<Path> ongoingDownload;
     private static final int BufferSize = 64 * 1024;
@@ -50,7 +50,7 @@ public final class JDKDownloader {
     public static synchronized CompletableFuture<Path> download(Path installDir, int version, JDKProvider provider) {
         if (installDir == null || provider == null) return CompletableFuture.completedFuture(null);
         if (ongoingDownload != null && !ongoingDownload.isDone()) return ongoingDownload;
-        ongoingDownload = CompletableFuture.supplyAsync(() -> run(installDir, version, provider), executor);
+        ongoingDownload = CompletableFuture.supplyAsync(() -> run(installDir, version, provider), Executor);
         return ongoingDownload;
     }
 

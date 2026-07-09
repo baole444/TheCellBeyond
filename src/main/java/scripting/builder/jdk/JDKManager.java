@@ -21,7 +21,7 @@ import java.util.concurrent.Executors;
  * </ul>
  */
 public final class JDKManager {
-    private static final ExecutorService executor = Executors.newSingleThreadExecutor(JDKManager::worker);
+    private static final ExecutorService Executor = Executors.newSingleThreadExecutor(JDKManager::worker);
     private static volatile JDKInstallation javaHome;
     private static volatile List<JDKInstallation> detected = List.of();
     private static volatile List<JDKInstallation> userAdded = List.of();
@@ -41,7 +41,7 @@ public final class JDKManager {
     public static CompletableFuture<Void> scan(Collection<Path> userPaths) {
         javaHome = resolveJavaHome(false);
         List<Path> snapshot = userPaths == null ? List.of() : List.copyOf(userPaths);
-        return CompletableFuture.runAsync(() -> rebuild(snapshot), executor);
+        return CompletableFuture.runAsync(() -> rebuild(snapshot), Executor);
     }
 
     /**
@@ -52,7 +52,7 @@ public final class JDKManager {
      */
     public static synchronized CompletableFuture<Void> rescan() {
         if (rescanInFlight != null && !rescanInFlight.isDone()) return rescanInFlight;
-        rescanInFlight = CompletableFuture.runAsync(() -> rebuild(userPaths()), executor);
+        rescanInFlight = CompletableFuture.runAsync(() -> rebuild(userPaths()), Executor);
         return rescanInFlight;
     }
 
@@ -63,7 +63,7 @@ public final class JDKManager {
      * @return a future of the inspection result
      */
     public static CompletableFuture<JDKInstallation> add(Path directory) {
-        return CompletableFuture.supplyAsync(() -> inspectAndCache(directory), executor);
+        return CompletableFuture.supplyAsync(() -> inspectAndCache(directory), Executor);
     }
 
     /**
@@ -74,7 +74,7 @@ public final class JDKManager {
     public static CompletableFuture<Void> remove(Path home) {
         if (home == null) return CompletableFuture.completedFuture(null);
         Path target = home.toAbsolutePath().normalize();
-        return CompletableFuture.runAsync(() -> filterUserAdded(userAdded, target), executor);
+        return CompletableFuture.runAsync(() -> filterUserAdded(userAdded, target), Executor);
     }
 
     /**

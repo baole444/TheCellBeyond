@@ -9,6 +9,15 @@ java {
     targetCompatibility = JavaVersion.VERSION_25
 }
 
+// Source set of TCBScript (.tcbs) generated java classes.
+sourceSets {
+    main {
+        java {
+            srcDirs += 'generated/tcb-script-java'
+        }
+    }
+}
+
 repositories {
     flatDir {
         dirs 'library'
@@ -18,9 +27,8 @@ repositories {
 }
 
 dependencies {
-    // Make sure to check for latest api version at
-    // https://central.sonatype.com/artifact/io.github.baole444/thecellbeyond-api
-    compileOnly "io.github.baole444:thecellbeyond-api:1.8"
+    // API version can be adjusted by changing the value of TCB_API_version key in gradle.properties
+    compileOnly "io.github.baole444:thecellbeyond-api:$TCB_API_version"
     compileOnly ":jbox2d-library"
     // For any other library that you might use outside the engine,
     // they need to be implementation instead of compile only for them to be import properly

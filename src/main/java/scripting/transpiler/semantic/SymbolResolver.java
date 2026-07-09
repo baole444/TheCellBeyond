@@ -1,5 +1,6 @@
 package scripting.transpiler.semantic;
 
+import scripting.transpiler.TranspilerProperties;
 import scripting.transpiler.ast.*;
 import scripting.transpiler.manifest.APIManifest;
 import scripting.transpiler.manifest.APIType;
@@ -7,6 +8,8 @@ import scripting.transpiler.manifest.MemberInfo;
 import scripting.transpiler.manifest.SnakeCaseConverter;
 
 import java.util.*;
+
+import static scripting.transpiler.TranspilerProperties.*;
 
 /**
  * Second pass of the semantic phase. Resolves type references and identifiers of a parsed script against the lifecycle table,
@@ -21,17 +24,14 @@ import java.util.*;
  * @see #resolveQualifiedMember(Expression, String, Map) More on member resolution
  */
 public final class SymbolResolver {
-    private static final String ObjectType = "Object";
-    private static final String SignalType = "Signal";
-    private static final String SignalFQN = "signal.Signal";
-    private static final Set<String> BuiltInType = Set.of("int", "float", "bool", "String", "void", ObjectType);
-    private static final Map<String, String> LogBuiltins = Map.of(
-            "print", "info",
-            "print_debug", "debug",
-            "print_info", "info",
-            "print_warning", "warning",
-            "print_error", "error"
+    private static final Map<String, String> JavaTypeToBuiltIns = Map.of(
+            "java.lang.String", "String",
+            "java.lang.Object", "Object",
+            "boolean", "bool",
+            "int", "int",
+            "float", "float"
     );
+
     private final Map<String, ProjectClassEntry> projectIndex;
     private final List<SemanticError> errors = new ArrayList<>();
     private Map<String, TypeReference> fieldTypes;
@@ -99,7 +99,7 @@ public final class SymbolResolver {
             classDeclaration.registration = ClassRegistration.None;
             return;
         }
-        if (BuiltInType.contains(superType.name)) {
+        if (TranspilerProperties.BuiltInTypes.contains(superType.name)) {
             error(superType, "Cannot extend built in type '" + superType.name + "'");
             classDeclaration.registration = ClassRegistration.None;
             return;
@@ -334,7 +334,7 @@ public final class SymbolResolver {
             call.resolution = translated != null ? translated : new Resolution.UserMemberResolution(call.methodName);
             return;
         }
-        String logMethod = LogBuiltins.get(call.methodName);
+        String logMethod = TranspilerProperties.LogBuiltIns.get(call.methodName);
         if (logMethod != null) {
             call.resolution = new Resolution.BuiltinLogResolution(logMethod);
             return;
@@ -586,13 +586,38 @@ public final class SymbolResolver {
             case LiteralExpression literal -> literalType(literal);
             case IdentifierExpression identifier -> declaredType(identifier, scope).map(type -> copyType(initializer.position, type));
             case CastExpression cast -> Optional.of(copyType(initializer.position, cast.type));
-            case MethodCallExpression call -> typeOf(call, scope).map(fqn -> apiType(initializer.position, fqn));
+            case MethodCallExpression call -> typeOf(call, scope).map(fqn -> typeFormName(initializer.position, fqn));
             case ConstructorCallExpression constructor -> typeOf(constructor, scope).map(fqn -> apiType(initializer.position, fqn));
-            case MemberAccessExpression access -> typeOf(access, scope).map(fqn -> apiType(initializer.position, fqn));
+            case MemberAccessExpression access -> memberAccessType(access, scope);
             case BinaryExpression binary -> binaryType(binary, scope);
             case UnaryExpression unary -> unaryType(unary, scope);
             default -> Optional.empty();
         };
+    }
+
+    /**
+     * Inter the type of member access initializer.
+     * <p>
+     * A member accessed on a project's enum constant, yield the enum type, is knowable from the header index without member indexing.
+     * Otherwise, the type comes from a resolved API member.
+     * @param access the member access initializer
+     * @param scope the locals and paramaters in scope
+     * @return the inferred type, or empty when not obtainable
+     */
+    private Optional<TypeReference> memberAccessType(MemberAccessExpression access, Map<String, TypeReference> scope) {
+        Optional<TypeReference> enumConstant = projectEnumReceiver(access.target).map(entry -> {
+            TypeReference type = new TypeReference(access.position, entry.simpleName(), 0);
+            type.resolution = new Resolution.ProjectClassResolution(entry.fqn());
+            return type;
+        });
+        if (enumConstant.isPresent()) return enumConstant;
+        return typeOf(access, scope).map(fqn -> typeFormName(access.position, fqn));
+    }
+
+    private Optional<ProjectClassEntry> projectEnumReceiver(Expression target) {
+        if (!(target instanceof IdentifierExpression identifier)) return Optional.empty();
+        ProjectClassEntry entry = projectIndex.get(identifier.name);
+        return entry != null && entry.isEnum() ? Optional.of(entry) : Optional.empty();
     }
 
     /**
@@ -632,7 +657,7 @@ public final class SymbolResolver {
      * @return the built-in type name, or empty
      */
     private Optional<String> builtinName(Expression expression, Map<String, TypeReference> scope) {
-        return inferType(expression, scope).map(type -> type.name).filter(BuiltInType::contains);
+        return inferType(expression, scope).map(type -> type.name).filter(TranspilerProperties.BuiltInTypes::contains);
     }
 
     private Optional<String> memberType(Resolution resolution, String name) {
@@ -640,7 +665,7 @@ public final class SymbolResolver {
         Optional<MemberInfo> info = APIManifest.findAPIMember(member.receiverClassFQN(), SnakeCaseConverter.toSnake(name));
         if (info.isEmpty()) return Optional.empty();
         MemberInfo memberInfo = info.get();
-        return memberInfo.signatures() != null ? methodReturnType(memberInfo.signatures()) : knownApiFqn(memberInfo.type());
+        return memberInfo.signatures() != null ? methodReturnType(memberInfo.signatures()) : memberTypeName(memberInfo.type());
     }
 
     private Optional<String> apiFQN(TypeReference type) {
@@ -670,7 +695,7 @@ public final class SymbolResolver {
     }
 
     private void resolveType(TypeReference type) {
-        if (type == null || BuiltInType.contains(type.name)) return;
+        if (type == null || TranspilerProperties.BuiltInTypes.contains(type.name)) return;
         ProjectClassEntry entry = projectIndex.get(type.name);
         if (entry != null) {
             type.resolution = new Resolution.ProjectClassResolution(entry.fqn());
@@ -758,7 +783,7 @@ public final class SymbolResolver {
             if (returnType == null) returnType = parsed.get();
             else if (!returnType.equals(parsed.get())) return Optional.empty();
         }
-        return returnType == null ? Optional.empty() : knownApiFqn(returnType);
+        return returnType == null ? Optional.empty() : memberTypeName(returnType);
     }
 
     private static Optional<String> parseReturnType(String descriptor) {
@@ -771,6 +796,15 @@ public final class SymbolResolver {
 
     private static Optional<String> knownApiFqn(String fqn) {
         return APIManifest.findClassByFQN(fqn).map(apiType -> apiType.fqn);
+    }
+
+    private static Optional<String> memberTypeName(String type) {
+        Optional<String> apiClass = knownApiFqn(type);
+        return apiClass.isPresent() ? apiClass : Optional.ofNullable(JavaTypeToBuiltIns.get(type));
+    }
+
+    private static TypeReference typeFormName(SourcePosition position, String name) {
+        return BuiltInTypes.contains(name) ? builtin(position, name) : apiType(position, name);
     }
 
     private static boolean anyOverride(MethodDeclaration method, List<String> signatures) {

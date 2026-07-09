@@ -1,9 +1,9 @@
 package scripting.transpiler.codegen;
 
+import scripting.transpiler.TranspilerProperties;
 import scripting.transpiler.ast.ParameterDeclaration;
 import scripting.transpiler.ast.SignalDeclaration;
 import scripting.transpiler.ast.TypeReference;
-import signal.Signal;
 
 import java.util.stream.Collectors;
 
@@ -12,7 +12,6 @@ import java.util.stream.Collectors;
  * with its constructor carries the boxed contract types (primitives) or object type class.
  */
 final class SignalEmitter {
-    private static final String SignalType = Signal.class.getName();
     private final EmitContext context;
 
     SignalEmitter(EmitContext context) {
@@ -20,7 +19,7 @@ final class SignalEmitter {
     }
 
     void emit(SignalDeclaration signal) {
-        String type = context.writer.importType(SignalType);
+        String type = context.writer.importType(TranspilerProperties.SignalFQN);
         String contract = signal.parameters.stream().map(this::contractType).collect(Collectors.joining(", "));
         context.writer.field(String.format("public final %s %s = new %s(%s)", type, signal.name, type, contract));
     }

@@ -1,13 +1,17 @@
 package editor;
 
 import TheCellBeyond.internal.LogicServer;
-import editor.dialog.*;
+import editor.dialogs.*;
+import editor.preference.EditorPreferences;
+import editor.preference.UserPreference;
 import imgui.ImGui;
 import imgui.flag.ImGuiHoveredFlags;
 import project.Project;
 import scene.SceneManager;
 import scripting.ScriptLoader;
+import scripting.builder.ScriptBuilder;
 
+import java.nio.file.Path;
 import java.util.List;
 
 /**
@@ -45,6 +49,7 @@ final class MenuBar {
     private static void renderProjectMenu() {
         if (!ImGui.beginMenu("Project##MenuBar_Project_Menu")) return;
         if (ImGui.menuItem("Preferences##MenuBar_Project_prefs")) EditProjectSettingsDialog.show();
+        if (ImGui.menuItem("Open Project Directory##MenuBar_Project_Open_Directory")) SystemExplorer.open(Path.of(Project.projectRoot()));
         ImGui.separator();
         if (ImGui.menuItem("Exit to Project List##MenuBar_Exit_To_Project_List")) ExitToProjectListDialog.show();
         ImGui.endMenu();
@@ -52,6 +57,10 @@ final class MenuBar {
 
     private static void renderScriptingMenu() {
         if (!ImGui.beginMenu("Scripting##MenuBar_Scripting_Menu")) return;
+        if (ImGui.menuItem("Build script##MenuBar_Scripting_Build_Script")) {
+            EditorPreferences preferences = UserPreference.preferences();
+            ScriptBuilder.build(UserPreference.selectedJDKHome(), preferences.cleanBuildScripts(), preferences.overrideGradleJVM(), preferences.reloadOnFinishBuildScripts());
+        }
         if (ImGui.menuItem("Reload scripts##MenuBar_Scripting_Reload_Script")) ScriptLoader.reload();
         ImGui.separator();
         if (ImGui.menuItem("Edit scan directories##MenuBar_Scripting_Edit_ScanDir")) EditProjectSettingsDialog.showToScriptTab();

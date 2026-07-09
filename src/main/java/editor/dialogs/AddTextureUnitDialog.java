@@ -1,4 +1,4 @@
-package editor.dialog;
+package editor.dialogs;
 
 import eventviewer.EngineEventCallback;
 import eventviewer.event.EditorEvent;

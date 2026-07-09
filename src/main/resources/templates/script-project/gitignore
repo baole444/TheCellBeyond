@@ -1,5 +1,6 @@
 .gradle
 build/
+generated/
 
 ### IntelliJ IDEA ###
 .idea
@@ -33,9 +34,6 @@ bin/
 
 ### Generated ###
 imgui.ini
-*.tcb
 *.cell
 /Pref
 *.log
-**/tempFont_*.png
-untitled.cell

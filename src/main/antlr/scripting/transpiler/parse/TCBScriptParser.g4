@@ -34,7 +34,7 @@ enumField: (VAR | CONST) NAME COLON typeReference NEWLINE;
 
 // Members
 
-// Anotation may sit linline with the field or drop to their own  preceding lines.
+// Anotation may sit linline with the field or drop to their own preceding lines.
 // The type clause is optional, inferred from the initializer in the semantic pass when omitted.
 fieldDeclaration
     : (annotation NEWLINE*)* visibility? STATIC? VAR NAME (COLON typeReference)? (ASSIGN expression)? NEWLINE #varField

@@ -3,7 +3,7 @@ package TheCellBeyond;
 import TheCellBeyond.internal.LogicServer;
 import TheCellBeyond.internal.RenderingServer;
 import editor.EditorLayer;
-import editor.dialog.ExitConfirmDialog;
+import editor.dialogs.ExitConfirmDialog;
 import editor.preference.UserPreference;
 import eventviewer.EngineEventCallback;
 import eventviewer.EngineEventListener;
@@ -31,6 +31,7 @@ import project.VsyncMode;
 import render.*;
 import render.text.FontManager;
 import scene.SceneManager;
+import scripting.ScriptLoader;
 import utility.AssetManager;
 import utility.Settings;
 import utility.log.EngineLog;
@@ -345,6 +346,7 @@ public final class Window implements EngineEventListener {
         RendererState rendererState = RendererState.get();
         while (!glfwWindowShouldClose(windowPtr)) {
             glfwPollEvents();
+            ScriptLoader.processPending();
             LogicServer.updatePhysic(dt);
             Physic2D physic2D = LogicServer.currentScenePhysic2D();
             if (physic2D != null && LogicServer.runtimeMode()) RenderingServer.interpolationFactor = physic2D.interpolateAlpha();

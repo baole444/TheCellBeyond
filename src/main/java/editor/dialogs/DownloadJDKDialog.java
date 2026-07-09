@@ -1,4 +1,4 @@
-package editor.dialog;
+package editor.dialogs;
 
 import editor.EditorIcons;
 import editor.EditorWidget;
@@ -37,12 +37,11 @@ final class DownloadJDKDialog {
     private static JDKProvider selectedProvider = JDKProvider.Temurin;
     private static FeatureVersion selectedVersion = FeatureVersion.v25;
     private static Path selectedPath = UserPreference.jdkInstallDir();
-    private static boolean downloadRequested = false;
+    private static volatile boolean downloadRequested = false;
     private static String message = "";
 
     static void show() {
         showDialog = true;
-        downloadRequested = false;
         message = "";
         selectedProvider = JDKProvider.Temurin;
         selectedVersion = FeatureVersion.v25;
@@ -154,9 +153,10 @@ final class DownloadJDKDialog {
     }
 
     private static void startDownload() {
+        if (downloadRequested) return;
         downloadRequested = true;
         message = "Starting download...";
-        UserPreference.downloadJDK(selectedPath ,selectedVersion.version, selectedProvider);
+        UserPreference.downloadJDK(selectedPath ,selectedVersion.version, selectedProvider).whenComplete((_, _) -> downloadRequested = false);
     }
 
     private static void refreshStatus() {

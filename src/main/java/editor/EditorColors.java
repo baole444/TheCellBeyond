@@ -7,6 +7,11 @@ import imgui.flag.ImGuiCol;
  * Common colours used by editor UI.
  */
 public final class EditorColors {
+    public static final int DebugLogColor = ImGui.colorConvertFloat4ToU32(0.36f, 0.36f, 0.36f, 1.0f);
+    public static final int InfoLogColor = ImGui.colorConvertFloat4ToU32(0.86f, 0.86f, 0.86f, 1.0f);
+    public static final int WarningLogColor = ImGui.colorConvertFloat4ToU32(0.86f, 0.86f, 0.28f, 1.0f);
+    public static final int ErrorLogColor = ImGui.colorConvertFloat4ToU32(0.86f, 0.28f, 0.28f, 1.0f);
+
     private EditorColors() {}
     /**
      * Common red button style.
@@ -101,10 +106,13 @@ public final class EditorColors {
     }
 
     /**
+     * Transparent colour with all 4 components set to 0.0f.
+     */
+    public static final int TransparentColor = ImGui.colorConvertFloat4ToU32(0.0f, 0.0f, 0.0f, 0.0f);
+    /**
      * Default colour for window, menu bar and popup background.
      */
     public static final int PanelBgColor = ImGui.colorConvertFloat4ToU32(0.1f, 0.1f, 0.1f, 1.0f);
-
     /**
      * Yellow highlight colour.
      */

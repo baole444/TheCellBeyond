@@ -89,10 +89,10 @@ dependencies {
     }
 
     // Excluding the kotlin-stdlib that is originated from JOML's POM declaration
-    implementation("org.joml:joml:${joml_version}") {
+    implementation("org.joml:joml:$joml_version") {
         exclude group: 'org.jetbrains.kotlin'
     }
-    implementation "com.code-disaster.steamworks4j:steamworks4j:${steamworks4j_version}"
+    implementation "com.code-disaster.steamworks4j:steamworks4j:$steamworks4j_version"
     implementation "tools.jackson.dataformat:jackson-dataformat-yaml:$jacksonYaml_version"
 
     // SpaiR-imgui

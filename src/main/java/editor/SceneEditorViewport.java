@@ -4,7 +4,7 @@ import TheCellBeyond.MouseListener;
 import TheCellBeyond.Viewport;
 import TheCellBeyond.Window;
 import TheCellBeyond.internal.LogicServer;
-import editor.dialog.SaveSceneAsDialog;
+import editor.dialogs.SaveSceneAsDialog;
 import editor.preference.UserPreference;
 import eventviewer.EngineEventCallback;
 import eventviewer.EngineEventListener;

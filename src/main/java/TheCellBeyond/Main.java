@@ -2,6 +2,7 @@ package TheCellBeyond;
 
 import editor.ExitToProjectList;
 import editor.StartupWindow;
+import scripting.ScriptLoader;
 import utility.CrashReport;
 
 public class Main {
@@ -9,6 +10,7 @@ public class Main {
 
     static void main(String[] args) {
         CrashReport.install();
+        ScriptLoader.bindMainThread();
         StartupWindow.init();
         openProjectPath = StartupWindow.show();
         StartupWindow.dispose();

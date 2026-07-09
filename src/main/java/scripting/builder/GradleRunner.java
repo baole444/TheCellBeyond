@@ -3,6 +3,7 @@ package scripting.builder;
 import eventviewer.EngineEventCallback;
 import eventviewer.event.EditorEvent;
 import project.Project;
+import scripting.transpiler.TranspilerProperties;
 import utility.log.EngineLog;
 
 import java.io.BufferedReader;
@@ -19,7 +20,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Runner for the Editor to invoke the script project's Gradle wrapper and build the scripts jar.
+ * Runner the script project's Gradle wrapper and build the scripts jar.
  * <p>
  * Builds run on a single background thread to not block the editor's rendering. Only 1 build runs at a time per runner.
  * Build's output is redirected to {@link EngineLog} for previewing in the console.
@@ -32,13 +33,22 @@ public final class GradleRunner {
     private static final String WrapperWindows = "gradlew.bat";
     private static final String CleanTask = "clean";
     private static final String JarTask = "jar";
-    private static final String PropertiesTask = "properties";
-    private static final String QuietFlag = "-q";
-    private static final String BuildDirProperty = "buildDir:";
-    private static final String DefaultBuildDir = "build";
     private static final String JavaHomeEnv = "JAVA_HOME";
     private static final String GradleJavaHomeProperty = "-Dorg.gradle.java.home=";
-    private static final ExecutorService executor = Executors.newSingleThreadExecutor(GradleRunner::buildThread);
+    private static final String InitScriptFlag = "--init-script";
+    private static final String InitScriptFileName = "tcb-script-sourceset.init.gradle";
+    /**
+     * Init script injected when Editor control the build JVM, applying the transpiler's generate
+     * source directory onto {@code main} java source set.
+     */
+    private static final String InitScriptContent = String.format("""
+            allprojects { proj ->
+                proj.pluginManager.withPlugin('java') {
+                    proj.sourceSets.main.java.srcDir(proj.file('%s'))
+                }
+            }
+            """, TranspilerProperties.TranspilerOutputDir);
+    private static final ExecutorService Executor = Executors.newSingleThreadExecutor(GradleRunner::buildThread);
     private static final AtomicBoolean buildInProgress = new AtomicBoolean(false);
 
     private GradleRunner() {}
@@ -70,20 +80,7 @@ public final class GradleRunner {
             return CompletableFuture.completedFuture(BuildResult.noJDK());
         }
         if (!buildInProgress.compareAndSet(false, true)) return CompletableFuture.completedFuture(BuildResult.inProgress());
-        return CompletableFuture.supplyAsync(() -> runBuild(jdkHome, cleanBuildScripts, overrideJVM), executor).whenComplete((_, _) -> buildInProgress.set(false));
-    }
-
-    /**
-     * Resolve the project's actual Gradle build output directory, honouring user's customized {@code layout.buildDirectory}.
-     * The system fallback to Gradle's default if the custom layout can't be read.
-     * <p>
-     * This is intended for callers that exclude the build output from a source scan.
-     * @param jdkHome the JDK home to use
-     * @param overrideJVM  the flag to allow user to supply their own JVM
-     * @return a future completing with the build directory path, or null when no project is opened
-     */
-    public static CompletableFuture<Path> resolveBuildDir(Path jdkHome, boolean overrideJVM) {
-        return CompletableFuture.supplyAsync(() -> runResolveBuildDir(jdkHome, overrideJVM), executor);
+        return CompletableFuture.supplyAsync(() -> runBuild(jdkHome, cleanBuildScripts, overrideJVM), Executor).whenComplete((_, _) -> buildInProgress.set(false));
     }
 
     private static BuildResult runBuild(Path jdkHome, boolean cleanBuildScripts, boolean overrideJVM) {
@@ -92,13 +89,14 @@ public final class GradleRunner {
             Logger.error("No project is opened, cannot build scripts");
             return BuildResult.launchFailed();
         }
-        Path wrapper = wrapper(scriptRoot);
+        Path wrapper = scriptRoot.resolve(onWindows() ? WrapperWindows : WrapperUnix);
         if (!Files.isRegularFile(wrapper)) {
             Logger.error(String.format("Gradle wrapper not found at '%s'. Please generate script project first!", wrapper));
             return BuildResult.launchFailed();
         }
         ensureExecutable(wrapper);
-        List<String> command = buildCommand(wrapper, jdkHome, cleanBuildScripts, overrideJVM);
+        Path initScript = overrideJVM ? null : ensureInitScript();
+        List<String> command = buildCommand(wrapper, jdkHome, initScript, cleanBuildScripts, overrideJVM);
         Logger.info("Building scripts: " + String.join(" ", command));
         long start = System.nanoTime();
         try {
@@ -117,28 +115,6 @@ public final class GradleRunner {
         }
     }
 
-    private static Path runResolveBuildDir(Path jdkHome, boolean overrideJVM) {
-        Path scriptsRoot = scriptsRoot();
-        if (scriptsRoot == null) return null;
-        Path fallback = scriptsRoot.resolve(DefaultBuildDir);
-        Path wrapper = wrapper(scriptsRoot);
-        if (!Files.isRegularFile(wrapper) || (!overrideJVM && jdkHome == null)) return fallback;
-        ensureExecutable(wrapper);
-        try {
-            List<String> command = overrideJVM ? List.of(wrapper.toString(), PropertiesTask, QuietFlag) : List.of(wrapper.toString(), gradleJavaHomeArg(jdkHome), PropertiesTask, QuietFlag);
-            Process process = gradleProcess(command, scriptsRoot, jdkHome, overrideJVM).start();
-            Path resolved = parseBuildDir(process, fallback);
-            process.waitFor();
-            return resolved;
-        } catch (IOException e) {
-            Logger.warning("Could not resolve Gradle build directory: " + e.getMessage());
-            return fallback;
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            return fallback;
-        }
-    }
-
     private static BuildResult finish(int exitCode, long durationMs) {
         String elapsed = formatDuration(durationMs);
         if (exitCode == 0) {
@@ -147,19 +123,6 @@ public final class GradleRunner {
         }
         Logger.error(String.format("Script build failed (exit code %d) in %s", exitCode, elapsed));
         return new BuildResult(false, exitCode, durationMs);
-    }
-
-    private static Path parseBuildDir(Process process, Path fallback) throws IOException {
-        Path result = fallback;
-        try (BufferedReader reader = reader(process)) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (!line.startsWith(BuildDirProperty)) continue;
-                String value = line.substring(BuildDirProperty.length()).trim();
-                if (!value.isEmpty()) result = Path.of(value);
-            }
-        }
-        return result;
     }
 
     private static void tee(Process process) throws IOException {
@@ -179,17 +142,17 @@ public final class GradleRunner {
         return process;
     }
 
-    private static List<String> buildCommand(Path wrapper, Path jdkHome, boolean cleanBuildScripts, boolean overrideJVM) {
+    private static List<String> buildCommand(Path wrapper, Path jdkHome, Path initScript, boolean cleanBuildScripts, boolean overrideJVM) {
         List<String> command = new ArrayList<>();
         command.add(wrapper.toString());
-        if (!overrideJVM) command.add(gradleJavaHomeArg(jdkHome));
+        if (!overrideJVM) command.add(GradleJavaHomeProperty + jdkHome.toAbsolutePath());
+        if (initScript != null) {
+            command.add(InitScriptFlag);
+            command.add(initScript.toString());
+        }
         if (cleanBuildScripts) command.add(CleanTask);
         command.add(JarTask);
         return command;
-    }
-
-    private static String gradleJavaHomeArg(Path jdkHome) {
-        return GradleJavaHomeProperty + jdkHome.toAbsolutePath();
     }
 
     private static Path scriptsRoot() {
@@ -198,8 +161,20 @@ public final class GradleRunner {
         return Path.of(root, ScriptsSrcDir);
     }
 
-    private static Path wrapper(Path scriptRoot) {
-        return scriptRoot.resolve(onWindows() ? WrapperWindows : WrapperUnix);
+    /**
+     * Write the source set init script to a temp file. If this operation failed,
+     * the build will proceed and relying on the declared source set.
+     * @return the init script path, or null on failure
+     */
+    private static Path ensureInitScript() {
+        Path initScript = Path.of(System.getProperty("java.io.tmpdir"), InitScriptFileName);
+        try {
+            Files.writeString(initScript, InitScriptContent, StandardCharsets.UTF_8);
+            return initScript;
+        } catch (IOException e) {
+            Logger.warning("Failed to write the script source set init script: " + e.getMessage());
+            return null;
+        }
     }
 
     private static void ensureExecutable(Path wrapper) {

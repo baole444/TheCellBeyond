@@ -4,6 +4,7 @@ import TheCellBeyond.GameObject;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import components.Component;
+import scripting.transpiler.TranspilerProperties;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,7 +22,6 @@ public final class APIManifest {
     }
 
     public static final int CurrentManifestVersion = 3;
-    private static final String IndexPath = "META-INF/script-api-index.json";
     private static final String GameObjectFQN = GameObject.class.getName();
     private static final String ComponentFQN = Component.class.getName();
     public int manifestVersion;
@@ -77,8 +77,8 @@ public final class APIManifest {
 
     private static APIManifest load() {
         ClassLoader loader = APIManifest.class.getClassLoader();
-        try (InputStream stream = loader.getResourceAsStream(IndexPath)) {
-            if (stream == null) throw new IllegalStateException("Script API manifest not found on classpath at " + IndexPath);
+        try (InputStream stream = loader.getResourceAsStream(TranspilerProperties.ManifestIndexPath)) {
+            if (stream == null) throw new IllegalStateException("Script API manifest not found on classpath at " + TranspilerProperties.ManifestIndexPath);
             try (Reader reader = new InputStreamReader(stream, StandardCharsets.UTF_8)) {
                 Gson gson = new GsonBuilder().enableComplexMapKeySerialization().create();
                 APIManifest manifest = gson.fromJson(reader, APIManifest.class);

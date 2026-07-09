@@ -2,7 +2,7 @@ package editor;
 
 import TheCellBeyond.GameObject;
 import components.SpriteRenderer;
-import editor.dialog.AddComponentDialog;
+import editor.dialogs.AddComponentDialog;
 import editor.template.EditorTemplate;
 import imgui.ImGui;
 import imgui.flag.ImGuiWindowFlags;

@@ -1,4 +1,4 @@
-package editor.dialog;
+package editor.dialogs;
 
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;

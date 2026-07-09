@@ -12,7 +12,7 @@ public class ScriptProjectGenerator {
     private static final EngineLog Logger = new EngineLog(ScriptProjectGenerator.class);
     private static final String TemplatePath = "engine://templates/script-project/";
     private static final String[] TemplateFiles = {
-            "build.gradle", "settings.gradle",
+            "build.gradle", "settings.gradle", "gradle.properties",
             "gradlew", "gradlew.bat",
             "gradle/wrapper/gradle-wrapper.jar",
             "gradle/wrapper/gradle-wrapper.properties",
@@ -29,6 +29,7 @@ public class ScriptProjectGenerator {
         Path scriptSource = Path.of(projectRoot, "scripts-src");
         try {
             Files.createDirectories(scriptSource.resolve("src/main/java"));
+            Files.createDirectories(scriptSource.resolve("src/script"));
         } catch (IOException e) {
             Logger.error(String.format("Failed to create script project directories: %s", e.getMessage()));
             return false;

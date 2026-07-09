@@ -1,5 +1,6 @@
 package scripting.transpiler.codegen;
 
+import scripting.transpiler.TranspilerProperties;
 import scripting.transpiler.ast.TypeReference;
 import scripting.transpiler.semantic.Resolution;
 
@@ -16,17 +17,6 @@ import java.util.Map;
  * and routing class references through the writer's import registry.
  */
 final class EmitContext {
-    /**
-     * Script built in type names mapped to their java spelling.
-     */
-    private static final Map<String, String> BuiltInTypeName = Map.of(
-            "int", "int",
-            "float", "float",
-            "bool", "boolean",
-            "String", "String",
-            "void", "void",
-            "Object", "Object"
-    );
     final JavaSourceWriter writer;
     final String className;
     /**
@@ -55,7 +45,7 @@ final class EmitContext {
         return switch (type.resolution) {
             case Resolution.APIClassResolution(String fqn) -> writer.importType(fqn);
             case Resolution.ProjectClassResolution(String fqn) -> writer.importType(fqn);
-            case null, default -> BuiltInTypeName.getOrDefault(type.name, type.name);
+            case null, default -> TranspilerProperties.BuiltInToJavas.getOrDefault(type.name, type.name);
         };
     }
 }

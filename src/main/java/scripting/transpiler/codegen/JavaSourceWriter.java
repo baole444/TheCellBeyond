@@ -1,5 +1,7 @@
 package scripting.transpiler.codegen;
 
+import scripting.transpiler.TranspilerProperties;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeSet;
@@ -13,11 +15,6 @@ import java.util.TreeSet;
  * Other character, including printable none ASCII, is emitted as is, relying on UTF-8 encoding.
  */
 public final class JavaSourceWriter {
-    /**
-     * 4 spaces per indent unit, equal to 1 TAB, {@code /t}.
-     */
-    private static final String IndentUnit = "    ";
-    private static final String JavaLangPackage = "java.lang";
     private final String packageName;
     private final Map<String, String> importBySimpleName = new HashMap<>();
     private final StringBuilder body = new StringBuilder();
@@ -90,7 +87,7 @@ public final class JavaSourceWriter {
      * @param text the line content to append after the indentation
      */
     public void line(String text) {
-        body.repeat(IndentUnit, Math.max(0, indentDepth));
+        body.repeat(TranspilerProperties.IndentUnit, Math.max(0, indentDepth));
         body.append(text).append('\n');
     }
 
@@ -151,7 +148,7 @@ public final class JavaSourceWriter {
         int lastDot = fqn.lastIndexOf('.');
         if (lastDot < 0) return false;
         String pkg = fqn.substring(0, lastDot);
-        if (pkg.equals(JavaLangPackage)) return false;
+        if (pkg.equals(TranspilerProperties.JavaLangPackage)) return false;
         return !pkg.equals(packageName);
     }
 
