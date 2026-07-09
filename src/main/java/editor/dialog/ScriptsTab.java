@@ -3,25 +3,47 @@ package editor.dialog;
 import editor.EditorColors;
 import editor.EditorIcons;
 import editor.EditorWidget;
+import editor.preference.EditorPreferences;
+import editor.preference.UserPreference;
 import imgui.ImGui;
 import imgui.ImVec2;
-import imgui.flag.ImGuiCol;
-import imgui.flag.ImGuiTableColumnFlags;
-import imgui.flag.ImGuiTableFlags;
+import imgui.flag.*;
 import imgui.type.ImString;
 import project.Project;
 import scripting.ScriptLoader;
 import scripting.ScriptProjectGenerator;
+import scripting.builder.ScriptBuilder;
 import utility.log.EngineLog;
 
 import java.util.List;
 
 
-class ScriptsTab {
-    private static final int transparentColor = ImGui.colorConvertFloat4ToU32(0.0f, 0.0f, 0.0f, 0.0f);
-    private static final float padding = 4.0f;
+final class ScriptsTab {
+    private enum HoveredControl {
+        None,
+        BuildScript,
+        UpdateScriptProject,
+        GenerateScriptProject,
+    }
+
+    private static final float Padding = 4.0f;
     private static final ImString newScanDirName = new ImString(256);
     private static final ImVec2 sizeCache = new ImVec2();
+    private static final float IconSize = 28.0f;
+    private static final String BuildScriptLabel = "Build Script##ST_Build_Script_Control_Button";
+    private static final String UpdateScriptProjectLabel = "Update Script Project##ST_Update_Script_Project_Control_Button";
+    private static final String GenerateScriptProjectButton = "Generate Script Project##ST_Generate_Script_Project_Control_Button";
+    private static final float ButtonWidth = Math.max(ImGui.calcTextSizeX("Update Script Project"), ImGui.calcTextSizeX("Generate Script Project")) + Padding + ImGui.getStyle().getFramePaddingX();
+    private static final float ButtonHeight = 30.0f;
+    private static final float ErrorReserveRegionHeight = ImGui.getTextLineHeightWithSpacing() * 5.0f;
+    private static float scanDirLayoutInnerHeight = IconSize;
+    private static float mainScriptControlLayoutInnerHeight = ButtonHeight * 3.0f;
+    private static HoveredControl hoveredControl = HoveredControl.None;
+
+    static void clear() {
+        hoveredControl = HoveredControl.None;
+        newScanDirName.clear();
+    }
 
     static void imgui() {
         ImGui.spacing();
@@ -31,31 +53,28 @@ class ScriptsTab {
         ImGui.popStyleColor(1);
         ImGui.spacing();
         ImGui.separator();
-        if (!ImGui.beginTable("##ST_New_ScanDir_Table", 4, ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.SizingFixedFit)) return;
+        if (!ImGui.beginTable("##ST_New_ScanDir_Layout_Table", 5, ImGuiTableFlags.SizingFixedFit, ImGui.getContentRegionAvailX(), scanDirLayoutInnerHeight)) return;
+        ImGui.tableSetupColumn("##ST_Build_Script_Column", ImGuiTableColumnFlags.WidthFixed);
         ImGui.tableSetupColumn("##ST_Reload_Script_Column", ImGuiTableColumnFlags.WidthFixed);
-        ImGui.tableSetupColumn("##ST_Padding_Column", ImGuiTableColumnFlags.WidthFixed, padding);
         ImGui.tableSetupColumn("##ST_New_ScanDir_Input_Layout_Column", ImGuiTableColumnFlags.WidthStretch);
+        ImGui.tableSetupColumn("ST_Clear_New_ScanDir_Column", ImGuiTableColumnFlags.WidthFixed);
         ImGui.tableSetupColumn("##ST_Add_New_ScanDir_Column", ImGuiTableColumnFlags.WidthFixed);
         ImGui.tableNextColumn();
-        if (EditorWidget.iconButton("Reload Script##ST_Reload_Script_Button", EditorIcons.Icons.Reset, "Click to reload scripts")) ScriptLoader.reload();
+        if (EditorWidget.iconButton("Build Script##ST_Build_Script_Icon_Button", EditorIcons.ScriptIcons.BuildScript, "Click to build scripts", IconSize, IconSize)) requestBuildScript();
         ImGui.tableNextColumn();
-        ImGui.text("\t");
+        if (EditorWidget.iconButton("Reload Script##ST_Reload_Script_Icon_Button", EditorIcons.Icons.Reset, "Click to reload scripts", IconSize, IconSize)) ScriptLoader.reload();
+        scanDirLayoutInnerHeight = ImGui.getItemRectSizeY();
         ImGui.tableNextColumn();
-        if (ImGui.beginTable("##ST_New_ScanDir_Input_Layout", 2, ImGuiTableFlags.SizingFixedFit)) {
-            ImGui.tableSetupColumn("ST_New_ScanDir_Input_Column", ImGuiTableColumnFlags.WidthStretch);
-            ImGui.tableSetupColumn("ST_Clear_New_ScanDir_Column", ImGuiTableColumnFlags.WidthFixed);
-            ImGui.tableNextColumn();
-            ImGui.pushItemWidth(ImGui.getContentRegionAvailX());
-            ImGui.inputTextWithHint("##ST_New_ScanDir_Input", "Add new Scan directory...", newScanDirName);
-            ImGui.popItemWidth();
-            ImGui.tableNextColumn();
-            renderClearButton("##ST_Clear_New_ScanDir_Name", "Clear new scan directory name", newScanDirName::clear);
-            ImGui.endTable();
-        }
+        float newCursorY = ImGui.getCursorPosY() + (scanDirLayoutInnerHeight - ImGui.getFrameHeight()) / 2.0f;
+        ImGui.setCursorPosY(newCursorY);
+        ImGui.setNextItemWidth(ImGui.getContentRegionAvailX());
+        ImGui.inputTextWithHint("##ST_New_ScanDir_Input", "Add new Scan directory...", newScanDirName);
+        ImGui.tableNextColumn();
+        renderClearButton(newScanDirName::clear, scanDirLayoutInnerHeight);
         ImGui.tableNextColumn();
         boolean canAdd = canAddNewScanDir(newScanDirName.get());
         if (!canAdd) ImGui.beginDisabled();
-        if (ImGui.button("Add Directory##ST_Add_New_ScanDir_Button")) {
+        if (ImGui.button("Add Directory##ST_Add_New_ScanDir_Button", 120.0f, scanDirLayoutInnerHeight)) {
             String dirName = newScanDirName.get().trim();
             if (Project.addScriptScanDir(dirName)) newScanDirName.clear();
         }
@@ -63,11 +82,7 @@ class ScriptsTab {
         ImGui.endTable();
         ImGui.separator();
         float remainHeight = ImGui.getContentRegionAvailY();
-        if (!ImGui.beginChild("##ST_ScanDir_List_Region", 0.0f, remainHeight - sizeCache.y - padding)) {
-            ImGui.endChild();
-            return;
-        }
-        renderScanDirList();
+        if (ImGui.beginChild("##ST_ScanDir_List_Region", 0.0f, remainHeight - sizeCache.y - ErrorReserveRegionHeight - Padding)) renderScanDirList();
         ImGui.endChild();
         ImGui.beginGroup();
         ImGui.separator();
@@ -75,26 +90,19 @@ class ScriptsTab {
         ImGui.textWrapped(String.format("Loaded %d object type(s) and %d component type(s)", ScriptLoader.gameObjectTypes().size(), ScriptLoader.componentTypes().size()));
         ImGui.endDisabled();
         ImGui.separator();
-        if (!ImGui.beginTable("##ST_Create_Script_Project_Layout", 2, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.BordersInnerV)) return;
-        ImGui.tableSetupColumn("##ST_Create_Script_Project_Instruction_Column", ImGuiTableColumnFlags.WidthStretch);
-        ImGui.tableSetupColumn("##ST_Create_Script_Project_Button_Column", ImGuiTableColumnFlags.WidthFixed);
-        ImGui.tableNextColumn();
-        ImGui.beginGroup();
-        ImGui.pushStyleColor(ImGuiCol.Text,  EditorColors.InstructionHighLight);
-        ImGui.textWrapped("To get started, click \"Generate Script Project\" to create a Gradle project in scripts-src/.");
-        ImGui.textWrapped("Write your classes there, annotate them with @RegisterGameObject or @RegisterComponent, " +
-                "then jar them with 'gradlew jar'. The output JAR goes to scripts/ automatically.");
-        ImGui.popStyleColor(1);
-        ImGui.endGroup();
-        ImVec2 size = new ImVec2();
-        ImGui.getItemRectSize(size);
-        ImGui.tableNextColumn();
-        if (ImGui.button("Generate Script Project##ST_Generate_Script_Project_Button", 0.0f, size.y)) {
-            if (!ScriptProjectGenerator.generate(Project.projectRoot())) EngineLog.error("Project Generator", "Failed to create script project");
-        }
-        ImGui.endTable();
+        renderScriptControl();
         ImGui.endGroup();
         ImGui.getItemRectSize(sizeCache);
+    }
+
+    private static void renderClearButton(Runnable onClear, float height) {
+        ImGui.beginGroup();
+        ImGui.pushStyleColor(ImGuiCol.Button, EditorColors.TransparentColor);
+        ImGui.pushStyleColor(ImGuiCol.ButtonHovered, EditorColors.TransparentColor);
+        if (ImGui.button("X" + "##ST_Clear_New_ScanDir_Name", 0.0f, height)) onClear.run();
+        ImGui.setItemTooltip("Clear new scan directory name");
+        ImGui.popStyleColor(2);
+        ImGui.endGroup();
     }
 
     private static void renderScanDirList() {
@@ -107,25 +115,67 @@ class ScriptsTab {
             ImGui.text(dir);
             ImGui.tableNextColumn();
             String deleteDirId = "Remove##ST_Remove_ScanDir_" + dir;
-            if (EditorWidget.iconButton(deleteDirId, EditorIcons.Icons.Delete, "Remove scan for this directory")) {
-                if (Project.removeScriptScanDir(dir)) break;
-            }
+            if (!EditorWidget.iconButton(deleteDirId, EditorIcons.Icons.Delete, "Remove scan for this directory")) continue;
+            if (Project.removeScriptScanDir(dir)) break;
         }
         ImGui.endTable();
     }
 
-    private static void renderClearButton(String id, String hint, Runnable onClear) {
-        ImGui.beginGroup();
-        ImGui.pushStyleColor(ImGuiCol.Button, transparentColor);
-        ImGui.pushStyleColor(ImGuiCol.ButtonHovered, transparentColor);
-        if (ImGui.button("X" + id)) onClear.run();
-        ImGui.popStyleColor(2);
-        if (ImGui.isItemHovered()) {
-            ImGui.beginTooltip();
-            ImGui.text(hint);
-            ImGui.endTooltip();
+    private static void renderScriptControl() {
+        if (!ImGui.beginTable("ST_Main_Script_Control_Table_Layout", 2, ImGuiTableFlags.SizingFixedFit, ImGui.getContentRegionAvailX(), mainScriptControlLayoutInnerHeight)) {
+            ImGui.endGroup();
+            return;
         }
+        ImGui.tableSetupColumn("ST_Main_Script_Control_Buton_Column", ImGuiTableColumnFlags.WidthFixed);
+        ImGui.tableSetupColumn("ST_Main_Script_Control_Description_Column", ImGuiTableColumnFlags.WidthStretch);
+        ImGui.tableNextColumn();
+        ImGui.beginGroup();
+        ImGui.spacing();
+        if (ImGui.button(BuildScriptLabel, ButtonWidth, ButtonHeight)) requestBuildScript();
+        if (ImGui.isItemHovered()) hoveredControl = HoveredControl.BuildScript;
+        ImGui.spacing();
+        if (ImGui.button(UpdateScriptProjectLabel, ButtonWidth, ButtonHeight)) {}
+        if (ImGui.isItemHovered()) hoveredControl = HoveredControl.UpdateScriptProject;
+        ImGui.spacing();
+        if (ImGui.button(GenerateScriptProjectButton, ButtonWidth, ButtonHeight)) {
+            if (!ScriptProjectGenerator.generate(Project.projectRoot())) EngineLog.error("Project Generator", "Failed to create script project");
+        }
+        if (ImGui.isItemHovered()) hoveredControl = HoveredControl.GenerateScriptProject;
+        ImGui.spacing();
         ImGui.endGroup();
+        mainScriptControlLayoutInnerHeight = ImGui.getItemRectSizeY();
+        ImGui.tableNextColumn();
+        if (ImGui.beginChild("##ST_Main_Script_Control_Description_Region", ImGui.getContentRegionAvailX(), mainScriptControlLayoutInnerHeight, ImGuiChildFlags.Borders)) renderDescription();
+        ImGui.endChild();
+        ImGui.endTable();
+        ImGui.separator();
+
+    }
+
+    private static void renderDescription() {
+        ImGui.pushStyleColor(ImGuiCol.Text,  EditorColors.InstructionHighLight);
+        switch (hoveredControl) {
+            case BuildScript -> {
+                ImGui.textWrapped("Click \"Build Script\" to compile script classes into JAR and load them into the engine.");
+                ImGui.textWrapped("All .tcbs script file will be translated to .java source first.");
+                ImGui.textWrapped("This will also reload the current scene if that option is enabled in Editor Preference");
+            }
+            case UpdateScriptProject -> {
+                ImGui.textWrapped("Click \"Update Script Project\" to update the API version to the latest version supported by the engine.");
+                ImGui.textWrapped("This will also update the Gradle's wrapper. None of your build script will be affected.");
+                ImGui.textWrapped("Please check for breaking change after updating if available.");
+            }
+            case GenerateScriptProject -> {
+                ImGui.textWrapped("Click \"Generate Script Project\" to create a new script project in \"scripts-src\" directory.");
+                ImGui.textWrapped("A fully functional Java project with Gradle will be created, along with the engine's API dependencies setup.");
+                ImGui.textWrapped("Note: only missing template files will be created.");
+            }
+            default -> {
+                ImGui.textWrapped("To get started on writing script for your game, click \"Generate Script Project\" to generate required directories and files");
+                ImGui.textWrapped("If you already have a script project, you can click \"Build Script\" to build and import your script into the engine, or click \"Update Script Project\" to update your existing script project.");
+            }
+        }
+        ImGui.popStyleColor(1);
     }
 
     private static boolean canAddNewScanDir(String newDirName) {
@@ -133,5 +183,10 @@ class ScriptsTab {
         newDirName = newDirName.trim();
         List<String> dirs = Project.scriptScanDirs();
         return !dirs.contains(newDirName);
+    }
+
+    private static void requestBuildScript() {
+        EditorPreferences preferences = UserPreference.preferences();
+        ScriptBuilder.build(UserPreference.selectedJDKHome(), preferences.cleanBuildScripts(), preferences.overrideGradleJVM(), preferences.reloadOnFinishBuildScripts());
     }
 }

@@ -12,7 +12,7 @@ public final class EditorIcons {
     private static final String Path = Settings.TexturePath.EditorControls;
     private static final int width = 28;
     private static final int height = 28;
-    private static final int iconCount = 28;
+    private static final int iconCount = 29;
     private static SpriteSheet icons;
     private static boolean isInitialized = false;
 
@@ -184,6 +184,21 @@ public final class EditorIcons {
         final int index;
 
         TileIcons(int index) {
+            this.index = index;
+        }
+
+        @Override
+        public Sprite getIcon() {
+            return icons == null ? null : icons.spriteIndex(index);
+        }
+    }
+
+    public enum ScriptIcons implements EditorIconSprite {
+        BuildScript(28);
+
+        final int index;
+
+        ScriptIcons(int index) {
             this.index = index;
         }
 

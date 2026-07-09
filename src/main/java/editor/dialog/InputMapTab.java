@@ -35,7 +35,7 @@ final class InputMapTab {
         return showListenForInputDialog;
     }
 
-    static void clearInputMapDialogData() {
+    static void clear() {
         newActionName.clear();
         clearInputFilter();
     }

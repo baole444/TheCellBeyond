@@ -71,8 +71,10 @@ public final class EditProjectSettingsDialog {
     public static void show() {
         showDialog = true;
         resetTab();
-        InputMapTab.clearInputMapDialogData();
+        InputMapTab.clear();
+        ScriptsTab.clear();
         syncWithProject();
+
     }
 
     /**

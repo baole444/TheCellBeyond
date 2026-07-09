@@ -101,10 +101,13 @@ public final class EditorColors {
     }
 
     /**
+     * Transparent colour with all 4 components set to 0.0f.
+     */
+    public static final int TransparentColor = ImGui.colorConvertFloat4ToU32(0.0f, 0.0f, 0.0f, 0.0f);
+    /**
      * Default colour for window, menu bar and popup background.
      */
     public static final int PanelBgColor = ImGui.colorConvertFloat4ToU32(0.1f, 0.1f, 0.1f, 1.0f);
-
     /**
      * Yellow highlight colour.
      */
