@@ -20,10 +20,6 @@ import java.util.List;
 public final class ConsoleOutput implements EngineLogListener {
     private static ConsoleOutput instance;
 
-    private static final int DebugColor = ImGui.colorConvertFloat4ToU32(0.35f, 0.35f, 0.35f, 1.0f);
-    private static final int InfoColor = ImGui.colorConvertFloat4ToU32(0.85f, 0.85f, 0.85f, 1.0f);
-    private static final int WarningColor = ImGui.colorConvertFloat4ToU32(0.85f, 0.85f, 0.25f, 1.0f);
-    private static final int ErrorColor = ImGui.colorConvertFloat4ToU32(0.85f, 0.25f, 0.25f, 1.0f);
     private static final float IconSize = 28.0f;
     private static final String DebugId = "Debug##enable_debug_log_history";
     private static final String InfoId = "Info##enable_info_log_history";
@@ -140,10 +136,10 @@ public final class ConsoleOutput implements EngineLogListener {
 
     private static int colorFor(Level level) {
         return switch (level) {
-            case Debug -> DebugColor;
-            case Info -> InfoColor;
-            case Warning -> WarningColor;
-            case Error -> ErrorColor;
+            case Debug -> EditorColors.DebugLogColor;
+            case Info -> EditorColors.InfoLogColor;
+            case Warning -> EditorColors.WarningLogColor;
+            case Error -> EditorColors.ErrorLogColor;
         };
     }
 

@@ -1,34 +1,27 @@
-package editor.dialog;
+package editor.dialogs;
 
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
-import org.lwjgl.util.nfd.NFDFilterItem;
-import org.lwjgl.util.nfd.NFDOpenDialogArgs;
-import java.nio.file.Files;
+import org.lwjgl.util.nfd.NFDPickFolderArgs;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import static org.lwjgl.system.MemoryUtil.memUTF8;
 import static org.lwjgl.util.nfd.NativeFileDialog.*;
 
-public final class OpenProjectDialog extends NativeDialog {
-    public static Path openProjectDialog() {
+public final class OpenDirectoryDialog extends NativeDialog {
+    public static Path openDialog() {
         setPlatform();
         try (MemoryStack stack = MemoryStack.stackPush()) {
-            NFDFilterItem.Buffer filter = NFDFilterItem.malloc(1);
-            filter.get(0)
-                    .name(stack.UTF8("_project"))
-                    .spec(stack.UTF8("yml,yaml"));
-            PointerBuffer pointerBuffer = stack.mallocPointer(1);
-            int result = NFD_OpenDialog_With(pointerBuffer, NFDOpenDialogArgs.calloc(stack)
-                    .filterList(filter)
+            PointerBuffer outPath = stack.mallocPointer(1);
+            int result = NFD_PickFolder_With(outPath, NFDPickFolderArgs.calloc(stack)
                     .parentWindow(it -> it
                             .type(handleType)
                             .handle(windowHandle)
                     )
             );
-            return checkResult(result, pointerBuffer);
+            return checkResult(result, outPath);
         } catch (Exception e) {
-            System.err.println("Error while opening file dialog: " + e.getMessage());
+            System.err.println("Error while opening directory dialog: " + e.getMessage());
             return null;
         }
     }
@@ -39,11 +32,11 @@ public final class OpenProjectDialog extends NativeDialog {
             case NFD_OKAY -> {
                 long pathPtr = pp.get(0);
                 String selectedPath = memUTF8(pathPtr);
-                if (isFileValid(selectedPath)){
+                if (validDirectory(selectedPath)){
                     validPath = Paths.get(selectedPath);
                     NFD_FreePath(pathPtr);
                 } else {
-                    System.out.println("Selected file format not supported.");
+                    System.out.println("Selected directory does not exist");
                     NFD_FreePath(pathPtr);
                 }
             }
@@ -53,8 +46,9 @@ public final class OpenProjectDialog extends NativeDialog {
         return validPath;
     }
 
-    private static boolean isFileValid(String path) {
-        if (path == null || path.isEmpty() || !Files.exists(Paths.get(path))) return false;
-        return path.toLowerCase().endsWith(".yml") || path.toLowerCase().endsWith(".yaml");
+    private static boolean validDirectory(String path) {
+        if (path == null || path.isEmpty()) return false;
+        Path check = Path.of(path);
+        return check.toFile().isDirectory();
     }
 }

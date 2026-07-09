@@ -1,7 +1,7 @@
 package editor;
 
 import TheCellBeyond.internal.LogicServer;
-import editor.dialog.*;
+import editor.dialogs.*;
 import editor.preference.EditorPreferences;
 import editor.preference.UserPreference;
 import imgui.ImGui;

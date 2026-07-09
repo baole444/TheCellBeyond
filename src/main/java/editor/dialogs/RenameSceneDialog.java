@@ -1,5 +1,6 @@
-package editor.dialog;
+package editor.dialogs;
 
+import TheCellBeyond.internal.LogicServer;
 import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.ImGuiCol;
@@ -8,8 +9,8 @@ import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImString;
 import scene.SceneManager;
 
-public final class SaveSceneAsDialog {
-    private static final String PopupID = "Save scene as...##TCB_Save_Scene_As_Dialog";
+public final class RenameSceneDialog {
+    private static final String PopupID = "Rename Scene##TCB_Rename_Scene_Dialog";
     private static final ImVec2 DialogSize = new ImVec2(400.0f, 160.0f);
     private static final float ButtonReserve = ImGui.getFrameHeightWithSpacing();
     private static final float ButtonWidth = 100.0f;
@@ -18,19 +19,19 @@ public final class SaveSceneAsDialog {
     private static boolean nameTaken = false;
     private static final ImString sceneName = new ImString(128);
     private static String errorMessage = "";
-    private static Runnable onSaveCallback = null;
+
+    private RenameSceneDialog() {}
 
     public static void show() {
-        show(null);
-    }
-
-    public static void show(Runnable callback) {
-        resetDialogData();
+        String current = LogicServer.currentSceneName();
+        if (current == null) return;
         showDialog = true;
-        onSaveCallback = callback;
+        sceneName.set(current);
+        nameTaken = false;
+        errorMessage = "";
     }
 
-    public static void imgui()  {
+    public static void imgui() {
         if (!showDialog) return;
         ImGui.openPopup(PopupID);
         ImVec2 centre = ImGui.getMainViewport().getCenter();
@@ -39,32 +40,30 @@ public final class SaveSceneAsDialog {
         ImGui.setNextWindowSize(DialogSize);
         if (ImGui.beginPopupModal(PopupID, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)) {
             ImGui.spacing();
-            ImGui.text("Scene's name:");
+            ImGui.text("New name:");
             ImGui.spacing();
             ImGui.pushItemWidth(ImGui.getContentRegionAvailX());
-            if (ImGui.inputTextWithHint("##SSAD_Scene_Name_Input", "Enter a name for the scene...", sceneName)) checkNewSceneName();
+            if (ImGui.inputTextWithHint("##RenameSceneInput", "Enter a new name...", sceneName)) checkName();
             ImGui.popItemWidth();
             if (nameTaken || !errorMessage.isEmpty()) {
                 ImGui.pushStyleColor(ImGuiCol.Text, 1.0f, 0.2f, 0.2f, 1.0f);
                 ImGui.textWrapped(errorMessage);
                 ImGui.popStyleColor(1);
-            } else {
-                ImGui.text("    ");
-            }
+            } else ImGui.text("    ");
             ImGui.setCursorPosY(ImGui.getWindowHeight() - ButtonReserve - ButtonHeight / 2.0f);
             float buttonPivotX = ButtonWidth * 0.5f;
             float startX = ImGui.getCursorStartPosX();
             float availX = ImGui.getContentRegionAvailX();
-            float saveX = startX + availX * 0.25f - buttonPivotX;
+            float createX = startX + availX * 0.25f - buttonPivotX;
             float cancelX = startX + availX * 0.75f - buttonPivotX;
-            boolean canSave = !sceneName.isEmpty() && !nameTaken && errorMessage.isEmpty();
-            ImGui.setCursorPosX(saveX);
-            if (!canSave) ImGui.beginDisabled();
-            if (ImGui.button("Save##SSAD_Save_As_Button", ButtonWidth, ButtonHeight)) saveScene();
-            if (!canSave) ImGui.endDisabled();
+            boolean canRename = !sceneName.isEmpty() && !nameTaken && errorMessage.isEmpty();
+            ImGui.setCursorPosX(createX);
+            if (!canRename) ImGui.beginDisabled();
+            if (ImGui.button("Rename##RSD_Confirm_Rename_Scene_Button", ButtonWidth, ButtonHeight)) rename();
+            if (!canRename) ImGui.endDisabled();
             ImGui.sameLine();
             ImGui.setCursorPosX(cancelX);
-            if (ImGui.button("Cancel##SSAD_Cancel_Save_Button", ButtonWidth, ButtonHeight)) {
+            if (ImGui.button("Cancel##RSD_Cancel_Rename_Scene_Button", ButtonWidth, ButtonHeight)) {
                 showDialog = false;
                 ImGui.closeCurrentPopup();
             }
@@ -76,46 +75,51 @@ public final class SaveSceneAsDialog {
         }
     }
 
-    private static void resetDialogData() {
-        sceneName.clear();
-        nameTaken = false;
-        onSaveCallback = null;
-        errorMessage = "";
-    }
-
-    private static void checkNewSceneName() {
+    private static void checkName() {
         String name = sceneName.get().trim();
         if (!SceneManager.validSceneName(name)) {
             nameTaken = false;
-            errorMessage = "Name cannot be empty";
+            errorMessage = "Name cannot be blank";
+            return;
+        }
+        String currentName = LogicServer.currentSceneName();
+        if (name.equals(currentName)) {
+            nameTaken = false;
+            errorMessage = "";
             return;
         }
         if (SceneManager.sceneNameTaken(name)) {
             nameTaken = true;
-            errorMessage = "Scene '" + name + "' already existed";
+            errorMessage = "Scene '" + name + "' already exist";
             return;
         }
         nameTaken = false;
         errorMessage = "";
     }
 
-    private static void saveScene() {
+    private static void rename() {
         String name = sceneName.get().trim();
+        String currentName = LogicServer.currentSceneName();
         if (!SceneManager.validSceneName(name) || nameTaken) {
             errorMessage = "Entered name is empty or already taken";
             return;
         }
-        if (!SceneManager.saveSceneAs(name)) {
-            errorMessage = "Failed to save new scene '" + name + "'";
+        if (name.equals(currentName)) {
+            showDialog = false;
+            ImGui.closeCurrentPopup();
             return;
         }
-        if (onSaveCallback != null) {
-            Runnable callback = onSaveCallback;
-            onSaveCallback = null;
-            callback.run();
+        if (!SceneManager.renameScene(currentName, name)) {
+            errorMessage = "Failed to rename scene";
+            return;
         }
         showDialog = false;
         ImGui.closeCurrentPopup();
     }
 
+    private static void resetDialogData() {
+        nameTaken = false;
+        sceneName.clear();
+        errorMessage = "";
+    }
 }

@@ -1,9 +1,9 @@
 package editor;
 
 import TheCellBeyond.internal.LogicServer;
-import editor.dialog.ConfirmSaveSceneDialog;
-import editor.dialog.MissingRunnerJDKDialog;
-import editor.dialog.SaveSceneAsDialog;
+import editor.dialogs.ConfirmSaveSceneDialog;
+import editor.dialogs.MissingRunnerJDKDialog;
+import editor.dialogs.SaveSceneAsDialog;
 import editor.preference.RecentProject;
 import editor.preference.UserPreference;
 import editor.template.ScriptExportCache;

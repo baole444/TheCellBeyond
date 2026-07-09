@@ -1,8 +1,8 @@
 package editor;
 
 import TheCellBeyond.GameObject;
-import editor.dialog.AddSpriteSheetDialog;
-import editor.dialog.AddTextureUnitDialog;
+import editor.dialogs.AddSpriteSheetDialog;
+import editor.dialogs.AddTextureUnitDialog;
 import editor.payload.SpriteDragDropPayload;
 import imgui.ImGui;
 import imgui.flag.*;

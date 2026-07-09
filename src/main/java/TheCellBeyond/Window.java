@@ -3,7 +3,7 @@ package TheCellBeyond;
 import TheCellBeyond.internal.LogicServer;
 import TheCellBeyond.internal.RenderingServer;
 import editor.EditorLayer;
-import editor.dialog.ExitConfirmDialog;
+import editor.dialogs.ExitConfirmDialog;
 import editor.preference.UserPreference;
 import eventviewer.EngineEventCallback;
 import eventviewer.EngineEventListener;

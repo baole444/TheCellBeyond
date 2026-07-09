@@ -1,4 +1,4 @@
-package editor.dialog;
+package editor.dialogs;
 
 import imgui.ImGui;
 import imgui.ImVec2;
@@ -116,7 +116,7 @@ public final class EditProjectSettingsDialog {
     public static void imgui() {
         if (!showDialog) return;
         syncWithProject();
-        if (InputMapTab.isShowListeningDialog()) {
+        if (InputMapTab.openedListenForInput() || ConfirmSaveSceneDialog.opened()) {
             ListenForInputDialog.imgui();
             return;
         }

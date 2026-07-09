@@ -5,7 +5,7 @@ import components.Controller2D;
 import components.ControllerBinding;
 import components.ControllerDirection;
 import components.InputActivation;
-import editor.dialog.EditProjectSettingsDialog;
+import editor.dialogs.EditProjectSettingsDialog;
 import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.*;

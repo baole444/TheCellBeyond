@@ -7,6 +7,11 @@ import imgui.flag.ImGuiCol;
  * Common colours used by editor UI.
  */
 public final class EditorColors {
+    public static final int DebugLogColor = ImGui.colorConvertFloat4ToU32(0.36f, 0.36f, 0.36f, 1.0f);
+    public static final int InfoLogColor = ImGui.colorConvertFloat4ToU32(0.86f, 0.86f, 0.86f, 1.0f);
+    public static final int WarningLogColor = ImGui.colorConvertFloat4ToU32(0.86f, 0.86f, 0.28f, 1.0f);
+    public static final int ErrorLogColor = ImGui.colorConvertFloat4ToU32(0.86f, 0.28f, 0.28f, 1.0f);
+
     private EditorColors() {}
     /**
      * Common red button style.
