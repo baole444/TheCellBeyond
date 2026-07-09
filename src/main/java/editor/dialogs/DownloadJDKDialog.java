@@ -153,7 +153,7 @@ final class DownloadJDKDialog {
     }
 
     private static void startDownload() {
-        if (!downloadRequested) return;
+        if (downloadRequested) return;
         downloadRequested = true;
         message = "Starting download...";
         UserPreference.downloadJDK(selectedPath ,selectedVersion.version, selectedProvider).whenComplete((_, _) -> downloadRequested = false);
