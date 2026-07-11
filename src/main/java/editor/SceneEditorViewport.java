@@ -20,7 +20,6 @@ import org.joml.Vector2f;
 import project.Project;
 import project.ProjectPreference;
 import project.WindowResizeMode;
-import render.FrameBuffer;
 import scene.SceneManager;
 
 final class SceneEditorViewport implements EngineEventListener {
@@ -41,11 +40,7 @@ final class SceneEditorViewport implements EngineEventListener {
 
     static void imgui() {
         currentSceneName = resolveDisplaySceneName();
-        if (!ImGui.begin(WindowID, ImGuiWindowFlags.NoScrollbar
-                | ImGuiWindowFlags.NoScrollWithMouse
-                | ImGuiWindowFlags.MenuBar
-                | ImGuiWindowFlags.NoCollapse
-        )) {
+        if (!ImGui.begin(WindowID, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.MenuBar | ImGuiWindowFlags.NoCollapse)) {
             ImGui.end();
             return;
         }
@@ -89,6 +84,7 @@ final class SceneEditorViewport implements EngineEventListener {
         }
         ImGui.endTable();
         ImGui.endMenuBar();
+        ImVec2 cursorPos = ImGui.getCursorPos();
         ImVec2 winSize = getMaxViewportSize();
         ImVec2 winPos = getViewportToCentral(winSize);
         ImGui.setCursorPos(winPos.x, winPos.y);
@@ -101,7 +97,6 @@ final class SceneEditorViewport implements EngineEventListener {
         topY = winPos.y + winSize.y + ImGui.getWindowPosY();
         int texID = Window.getFrameBuffer().getTextureID();
         ImGui.beginGroup();
-        ImVec2 cursorPos = ImGui.getCursorPos();
         ImGui.image(texID, winSize.x, winSize.y, 0, 1, 1, 0);
         renderFPS(cursorPos);
         ImGui.endGroup();
@@ -112,7 +107,7 @@ final class SceneEditorViewport implements EngineEventListener {
 
     private static void renderFPS(ImVec2 cursorPos) {
         String fps = String.format("%.2f FPS", Window.FPS);
-        float remainWidth = ImGui.getContentRegionAvailX();
+        float remainWidth = ImGui.getContentRegionMaxX() - ImGui.getStyle().getWindowPaddingX();
         float textWidth = ImGui.calcTextSizeX(fps);
         float offset = Math.max(remainWidth - textWidth, 0.0f);
         ImGui.setCursorPos(cursorPos.x + offset, cursorPos.y);
@@ -175,42 +170,42 @@ final class SceneEditorViewport implements EngineEventListener {
     /**
      * Calculate max viewport size base on available space and viewport's properties.
      * Size is clamped when the project does not allow window resize so it does not go above the game window's dimension preferences.
-     * @return the usable space
+     * @return the usable space size vector in pixels
      */
     private static ImVec2 getMaxViewportSize() {
         ImVec2 avail = ImGui.getContentRegionAvail();
-        FrameBuffer fb = Window.getFrameBuffer();
         Viewport viewport = LogicServer.currentSceneViewport();
         boolean runtime = LogicServer.runtimeMode();
         WindowResizeMode mode = runtime && viewport != null ? viewport.resizeMode() : WindowResizeMode.Expand;
         boolean maintainAspectRatio = viewport != null && viewport.maintainAspectRatio();
         ProjectPreference preference = Project.preference();
-        float usableWidth;
-        float usableHeight;
-        if (mode == WindowResizeMode.Scale && !maintainAspectRatio) {
-            usableWidth = avail.x;
-            usableHeight = avail.y;
-        } else {
-            float aspectRatio = LogicServer.runtimeMode() ? Project.getGameAspectRatio() : (float) fb.getWidth() / fb.getHeight();
-            usableWidth = avail.x;
-            usableHeight = usableWidth / aspectRatio;
-            if (usableHeight > avail.y) {
-                usableHeight = avail.y;
-                usableWidth = usableHeight * aspectRatio;
+        int gameWidth = preference != null ? preference.gameWindowWidth() : 1;
+        int gameHeight = preference != null ? preference.gameWindowHeight() : 1;
+        boolean allowResize = preference == null || preference.allowResize();
+        ImVec2 usableSpace = calculateUsableSize(avail, Project.getGameAspectRatio(), maintainAspectRatio, runtime, allowResize, gameWidth, gameHeight);
+        if (usableSpace.x != currentWidth || usableSpace.y != currentHeight) {
+            currentWidth = usableSpace.x;
+            currentHeight = usableSpace.y;
+        }
+        if (viewport == null || mode != WindowResizeMode.Expand) return usableSpace;
+        viewport.updateAspectRatio(usableSpace.x, usableSpace.y);
+        viewport.adjustSceneScale(usableSpace.y);
+        return usableSpace;
+    }
+
+    private static ImVec2 calculateUsableSize(ImVec2 availSpace, float gameAspectRatio, boolean maintainAspectRatio, boolean runtime, boolean allowResize, int gameWidth, int gameHeight) {
+        float usableWidth = availSpace.x;
+        float usableHeight = availSpace.y;
+        if (maintainAspectRatio) {
+            usableHeight = usableWidth / gameAspectRatio;
+            if (usableHeight > availSpace.y) {
+                usableHeight = availSpace.y;
+                usableWidth = usableHeight * gameAspectRatio;
             }
         }
-        if (runtime && !preference.allowResize()) {
-            usableWidth = Math.min(usableWidth, preference.gameWindowWidth());
-            usableHeight = Math.min(usableHeight, preference.gameWindowHeight());
-        }
-        if (usableWidth != currentWidth || usableHeight != currentHeight) {
-            currentWidth = usableWidth;
-            currentHeight = usableHeight;
-        }
-        if (viewport != null && mode == WindowResizeMode.Expand) {
-            viewport.updateAspectRatio(usableWidth, usableHeight);
-            viewport.adjustSceneScale(usableHeight);
-        }
+        if (!runtime || allowResize) return new ImVec2(usableWidth, usableHeight);
+        usableWidth = Math.min(usableWidth, gameWidth);
+        usableHeight = Math.min(usableHeight, gameHeight);
         return new ImVec2(usableWidth, usableHeight);
     }
 

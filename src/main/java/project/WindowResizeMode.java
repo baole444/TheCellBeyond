@@ -14,7 +14,7 @@ public enum WindowResizeMode {
      * On resizing, change the visible area at a fixed scale. Growing the window reveal more of the world,
      * while shrinking it reveal less. Size of objects drawn on screen stay constant.
      * <p>
-     * This mode does not affected by aspect ratio.
+     * When aspect ratio is unlocked, the visible area expanded to fill the surplus space.
      */
     Expand
 }
