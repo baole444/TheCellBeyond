@@ -7,6 +7,7 @@ public record ProjectPreference(
         String name,
         int gameWindowWidth, int gameWindowHeight,
         boolean allowResize, boolean maintainAspectRatio,
+        WindowResizeMode resizeMode,
         float textureGlobalScale,
         ClearColor clearColor,
         int physicFrameRate,
@@ -16,6 +17,7 @@ public record ProjectPreference(
         if (name == null || name.isBlank()) name = "Untitled Project";
         gameWindowWidth = Math.max(1, gameWindowWidth);
         gameWindowHeight = Math.max(1, gameWindowHeight);
+        if (resizeMode == null) resizeMode = WindowResizeMode.Scale;
         textureGlobalScale = Math.max(0.01f, textureGlobalScale);
         if (clearColor == null) clearColor = new ClearColor();
         if (physicFrameRate <= 0) physicFrameRate = 60;
@@ -25,11 +27,27 @@ public record ProjectPreference(
 
     @JsonIgnore
     public ProjectPreference() {
-        this("Untitled Project", 640, 480, false, true, 1.0f, new ClearColor(), 60, new RenderingSetting());
+        this("Untitled Project",
+                640, 480,
+                false, true,
+                WindowResizeMode.Scale,
+                1.0f,
+                new ClearColor(),
+                60,
+                new RenderingSetting()
+        );
     }
 
     @JsonIgnore
     public ProjectPreference(String name) {
-        this(name, 640, 480, false, true, 1.0f, new ClearColor(), 60, new RenderingSetting());
+        this(name,
+                640, 480,
+                false, true,
+                WindowResizeMode.Scale,
+                1.0f,
+                new ClearColor(),
+                60,
+                new RenderingSetting()
+        );
     }
 }

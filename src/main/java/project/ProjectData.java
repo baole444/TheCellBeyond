@@ -5,7 +5,7 @@ import TheCellBeyond.InputAction;
 import java.util.*;
 
 public record ProjectData(
-        String version, ProjectPreference project,
+        int version, ProjectPreference project,
         Map<UUID, ProjectAssetMap> assets,
         Map<String, Map<String, ProjectSheetMap>> sheets,
         Map<String, ProjectSceneMap> scenes,
@@ -13,6 +13,14 @@ public record ProjectData(
         PhysicLayerName physicLayers,
         List<String> scriptScanDirs
 ) {
+    /**
+     * The current project file schema version. Files without version are treated as version 0.
+     */
+    static final int SaveVersion = 1;
+    /**
+     * The YAML key that store the project file schema version number.
+     */
+    static final String VersionKey = "version";
     private static final List<String> DefaultScriptScanDir = List.of("scripts");
 
     public ProjectData {
@@ -25,7 +33,11 @@ public record ProjectData(
         if (scriptScanDirs == null) scriptScanDirs = new ArrayList<>(DefaultScriptScanDir);
     }
 
-    public ProjectData(String version, ProjectPreference preference) {
+    public ProjectData(ProjectPreference preference) {
+        this(SaveVersion, preference, new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new PhysicLayerName(), new ArrayList<>(DefaultScriptScanDir));
+    }
+
+    public ProjectData(int version, ProjectPreference preference) {
         this(version, preference, new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new PhysicLayerName(), new ArrayList<>(DefaultScriptScanDir));
     }
 }

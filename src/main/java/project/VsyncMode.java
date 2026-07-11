@@ -1,7 +1,7 @@
 package project;
 
 /**
- * VsyncMode enums provide 3 vsync behaviour for the engine.
+ * Vsync mode allow the engine to handle its event poll rate and render frame rate according to the host's display refresh rate.
  */
 public enum VsyncMode {
     /**

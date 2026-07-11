@@ -25,6 +25,7 @@ final class ProjectPreferenceTab {
     private static final ImInt physicFramerate = new ImInt(60);
     private static final ImInt renderFramerate = new ImInt(60);
     private static VsyncMode vsyncMode = VsyncMode.Enabled;
+    private static WindowResizeMode resizeMode = WindowResizeMode.Scale;
     private static boolean projectPreferencesChanged = false;
 
     static void reloadPreferenceData() {
@@ -39,6 +40,7 @@ final class ProjectPreferenceTab {
         physicFramerate.set(preference.physicFrameRate());
         renderFramerate.set(preference.renderingSetting().targetFrameRate());
         vsyncMode = preference.renderingSetting().vsyncMode();
+        resizeMode = preference.resizeMode();
     }
 
     static void autoSavePreferences() {
@@ -46,7 +48,7 @@ final class ProjectPreferenceTab {
         if (gameTitle.isEmpty() || gameWindowSize.x <= 0 || gameWindowSize.y <= 0) return;
         boolean success = Project.updateProjectPreference(gameTitle.get(),
                 gameWindowSize.x, gameWindowSize.y,
-                allowResize.get(), maintainAspectRatio.get(),
+                allowResize.get(), resizeMode, maintainAspectRatio.get(),
                 textureGlobalScale.get(), new ClearColor(clearColor),
                 physicFramerate.get(),
                 new RenderingSetting(vsyncMode, renderFramerate.get())
@@ -91,26 +93,31 @@ final class ProjectPreferenceTab {
         ImGui.beginDisabled();
         ImGui.textWrapped("Determine the default size of game window");
         ImGui.endDisabled();
+        ImGui.spacing();
         Vector2i oldSize = new Vector2i(gameWindowSize);
         gameWindowSize.x = inputInt("Width", gameWindowSize.x, 1);
         gameWindowSize.y = inputInt("Height", gameWindowSize.y, 1);
         if (!oldSize.equals(gameWindowSize)) projectPreferencesChanged = true;
         ImGui.spacing();
-        boolean resizable = allowResize.get();
-        ImGui.checkbox("Resizable", allowResize);
-        if (resizable != allowResize.get()) projectPreferencesChanged = true;
-        ImGui.beginDisabled();
-        ImGui.textWrapped("Allow user to resize the game window");
-        ImGui.endDisabled();
+        renderPreferenceToggle("Resizable", allowResize, "Allow player to resize the game window");
         ImGui.spacing();
-        boolean lockAspectRatio = maintainAspectRatio.get();
-        ImGui.checkbox("Lock aspect ratio", maintainAspectRatio);
-        if (lockAspectRatio != maintainAspectRatio.get()) projectPreferencesChanged = true;
-        ImGui.beginDisabled();
-        ImGui.textWrapped("Maintain the game's intended aspect ratio when window is resized");
-        ImGui.endDisabled();
+        renderPreferenceToggle("Lock aspect ratio", maintainAspectRatio, "Maintain the game's intended aspect ratio when window is resized");
         ImGui.spacing();
         if (EditorWidget.colorCtrl("Clear color", clearColor, ProjectPreferenceTab.class)) projectPreferencesChanged = true;
+        ImGui.spacing();
+        WindowResizeMode oldMode = resizeMode;
+        if (ImGui.beginCombo("Resize Mode", oldMode != null ? oldMode.name() : "Select a Resize mode...")) {
+            for (WindowResizeMode mode : WindowResizeMode.values()) {
+                String id = mode.name() + "##EPTD_Window_Resize_Mode_" + mode + "_Selectable";
+                if (!ImGui.selectable(id, oldMode == mode)) continue;
+                resizeMode = mode;
+                projectPreferencesChanged = true;
+            }
+            ImGui.endCombo();
+        }
+        ImGui.beginDisabled();
+        ImGui.textWrapped("Scale: resize the game view | Expand: resize the visible area");
+        ImGui.endDisabled();
         ImGui.unindent();
         ImGui.separator();
     }
@@ -139,7 +146,7 @@ final class ProjectPreferenceTab {
         ImGui.endDisabled();
         ImGui.spacing();
         ImGui.pushStyleColor(ImGuiCol.Header, 0.0f, 0.0f, 0.0f, 0.0f);
-        boolean openLayer = ImGui.collapsingHeader("Physic Layer Name##Physic_Layer_Name_Edit_Preference_Header", ImGuiTreeNodeFlags.DefaultOpen);
+        boolean openLayer = ImGui.collapsingHeader("Physic Layer Name##EPTD_Physic_Layer_Name_Edit_Preference_Header", ImGuiTreeNodeFlags.DefaultOpen);
         ImGui.popStyleColor(1);
         if (openLayer) renderPhysicLayerNames();
         ImGui.unindent();
@@ -148,13 +155,12 @@ final class ProjectPreferenceTab {
 
     private static void renderPhysicLayerNames() {
         ImGui.indent();
-        if (!ImGui.beginTable("##Physic_Layer_Name_Edit_Table", 2, ImGuiTableFlags.SizingFixedFit)) {
+        if (!ImGui.beginTable("##EPTD_Physic_Layer_Name_Edit_Layout_Table", 2, ImGuiTableFlags.SizingFixedFit)) {
             ImGui.unindent();
             return;
         }
-        ImGui.tableSetupColumn("Physic_Layer_Label_Column", ImGuiTableColumnFlags.WidthFixed);
-        ImGui.tableSetupColumn("Physic_Layer_Name_Input_Column", ImGuiTableColumnFlags.WidthStretch);
-
+        ImGui.tableSetupColumn("##EPTD_Physic_Layer_Label_Column", ImGuiTableColumnFlags.WidthFixed);
+        ImGui.tableSetupColumn("##EPTD_Physic_Layer_Name_Input_Column", ImGuiTableColumnFlags.WidthStretch);
         int maxLayer = Physic2D.MaxLayer;
         for (int i = 0; i < maxLayer; i++) {
             ImGui.tableNextColumn();
@@ -162,7 +168,7 @@ final class ProjectPreferenceTab {
             ImGui.tableNextColumn();
             String oldLayerName = Project.getPhysicLayerName(i);
             ImString newLayerName = new ImString(oldLayerName, 128);
-            boolean edited = ImGui.inputTextWithHint("##Custom_Layer_Name_" + i, "Enter a custom name for layer " + i + "...", newLayerName);
+            boolean edited = ImGui.inputTextWithHint("##EPTD_Custom_Layer_Name_" + i, "Enter a custom name for layer " + i + "...", newLayerName);
             if (edited) Project.updatePhysicLayerName(i, newLayerName.get().trim());
         }
         ImGui.endTable();
@@ -175,7 +181,7 @@ final class ProjectPreferenceTab {
         VsyncMode oldMode = vsyncMode;
         if (ImGui.beginCombo("Vsync Mode", oldMode != null ? oldMode.name() : "Select a Vsync mode...")) {
             for (VsyncMode mode : VsyncMode.values()) {
-                String id = mode.name() + "##RenderingSetting_VsyncMode_" + mode + "_Selectable";
+                String id = mode.name() + "####EPTD_Rendering_Setting_VsyncMode_" + mode + "_Selectable";
                 if (!ImGui.selectable(id, oldMode == mode)) continue;
                 vsyncMode = mode;
                 projectPreferencesChanged = true;
@@ -187,7 +193,7 @@ final class ProjectPreferenceTab {
         ImGui.endDisabled();
         ImGui.spacing();
         int oldFrameRate = renderFramerate.get();
-        renderFramerate.set(inputInt("Frame Rate Limit", renderFramerate.get(), RenderingSetting.MinFrameRate));
+        renderFramerate.set(inputInt("Frame Rate Limit##EPTD_FPS_Limit_Input", renderFramerate.get(), RenderingSetting.MinFrameRate));
         if (oldFrameRate != renderFramerate.get()) projectPreferencesChanged = true;
         ImGui.beginDisabled();
         ImGui.textWrapped("Max rendering FPS, default is 60 (0 = unlimited)");
@@ -196,12 +202,25 @@ final class ProjectPreferenceTab {
         ImGui.separator();
     }
 
+    private static void renderPreferenceToggle(String label, ImBoolean dest, String extraInfo) {
+        if (!ImGui.beginTable("##EPTD_Toggle_Preference_Layout_Table_" + label, 2)) return;
+        ImGui.tableSetupColumn("##EPTD_Toggle_Preference_Checkbox_Column_" + label, ImGuiTableColumnFlags.WidthFixed);
+        ImGui.tableSetupColumn("##EPTD_Toggle_Preference_Info_Column_" + label, ImGuiTableColumnFlags.WidthStretch);
+        ImGui.tableNextColumn();
+        if (ImGui.checkbox(label + "##EPTD_" + label, dest)) projectPreferencesChanged = true;
+        ImGui.tableNextColumn();
+        ImGui.beginDisabled();
+        ImGui.textWrapped(extraInfo);
+        ImGui.endDisabled();
+        ImGui.endTable();
+    }
+
     private static int inputInt(String label, int target, int minValue) {
         String id = label + "_" + EditProjectSettingsDialog.IDPool().newId();
         ImGui.pushID(id);
         final boolean modified;
         final ImInt destination = new ImInt(target);
-        modified = ImGui.inputInt(label, destination);
+        modified = ImGui.inputInt(label, destination, 1, 8);
         if (modified) target = Math.max(destination.get(), minValue);
         ImGui.popID();
         return target;

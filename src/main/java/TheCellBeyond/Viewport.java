@@ -5,6 +5,7 @@ import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 import project.Project;
+import project.WindowResizeMode;
 import render.FrameBuffer;
 import utility.WorldUnit;
 
@@ -22,16 +23,24 @@ public class Viewport {
     private Vector2f projectionSize;
     private final Vector2f zoom = new Vector2f(1.0f);
     private float rotation = 0.0f;
+    /**
+     * Player's option lock/unlock API.
+     */
     private boolean isDynamic = true;
+    private boolean maintainAspectRatio = false;
+    private WindowResizeMode resizeMode = WindowResizeMode.Expand;
 
     public Viewport() {
         globalScale = Project.preference().textureGlobalScale();
         aspectRatio = (float) Window.getWidth() / Window.getHeight();
         sceneScale = WorldUnit.pixelToWorld(Window.getHeight());
         if (LogicServer.runtimeMode()) {
-            isDynamic = false;
-            aspectRatio = Window.getTargetAspectRatio();
-            sceneScale = WorldUnit.pixelToWorld(Project.preference().gameWindowHeight());
+            resizeMode = Project.preference().resizeMode();
+            maintainAspectRatio = Project.preference().maintainAspectRatio();
+            if (resizeMode == WindowResizeMode.Scale) {
+                aspectRatio = Window.getTargetAspectRatio();
+                sceneScale = WorldUnit.pixelToWorld(Project.preference().gameWindowHeight());
+            }
         }
         projectionSize = new Vector2f(aspectRatio * sceneScale, sceneScale);
         adjustProjection();
@@ -43,11 +52,10 @@ public class Viewport {
     }
 
     public void updateAspectRatio(float width, float height) {
-        if (isDynamic && width > 0 && height > 0) {
-            aspectRatio = width / height;
-            projectionSize = new Vector2f(aspectRatio * sceneScale, sceneScale);
-            adjustProjection();
-        }
+        if (width <= 0.0f || height <= 0.0f) return;
+        aspectRatio = width / height;
+        projectionSize = new Vector2f(aspectRatio * sceneScale, sceneScale);
+        adjustProjection();
     }
 
     public void lockToGameAspectRatio() {
@@ -144,5 +152,13 @@ public class Viewport {
 
     public boolean isDynamic() {
         return isDynamic;
+    }
+
+    public WindowResizeMode resizeMode() {
+        return resizeMode;
+    }
+
+    public boolean maintainAspectRatio() {
+        return maintainAspectRatio;
     }
 }

@@ -17,7 +17,7 @@ public record EditorPreferences(
         boolean reloadOnFinishBuildScripts
 ) {
     /**
-     * The current preference schema version. Files without a version a treated as version 0.
+     * The current preference schema version. Files without a version are treated as version 0.
      */
     static final int SaveVersion = 1;
     /**

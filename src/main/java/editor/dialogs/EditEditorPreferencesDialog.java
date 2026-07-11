@@ -122,11 +122,16 @@ public final class EditEditorPreferencesDialog {
     }
 
     private static void renderPreferenceToggle(String label, ImBoolean dest, String extraInfo) {
+        if (!ImGui.beginTable("##EEPD_Toggle_Preference_Layout_Table_" + label, 2)) return;
+        ImGui.tableSetupColumn("##EEPD_Toggle_Preference_Checkbox_Column_" + label, ImGuiTableColumnFlags.WidthFixed);
+        ImGui.tableSetupColumn("##EEPD_Toggle_Preference_Info_Column_" + label, ImGuiTableColumnFlags.WidthStretch);
+        ImGui.tableNextColumn();
         if (ImGui.checkbox(label + "##EEPD_" + label, dest)) editorPreferenceChanged = true;
-        ImGui.sameLine();
+        ImGui.tableNextColumn();
         ImGui.beginDisabled();
         ImGui.textWrapped(extraInfo);
         ImGui.endDisabled();
+        ImGui.endTable();
     }
 
     private static void renderGradleJVM() {

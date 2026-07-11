@@ -18,6 +18,8 @@ import imgui.type.ImBoolean;
 import imgui.type.ImString;
 import org.joml.Vector2f;
 import project.Project;
+import project.ProjectPreference;
+import project.WindowResizeMode;
 import render.FrameBuffer;
 import scene.SceneManager;
 
@@ -170,24 +172,45 @@ final class SceneEditorViewport implements EngineEventListener {
                 MouseListener.getY() <= topY;
     }
 
+    /**
+     * Calculate max viewport size base on available space and viewport's properties.
+     * Size is clamped when the project does not allow window resize so it does not go above the game window's dimension preferences.
+     * @return the usable space
+     */
     private static ImVec2 getMaxViewportSize() {
-        ImVec2 winSize = ImGui.getContentRegionAvail();
+        ImVec2 avail = ImGui.getContentRegionAvail();
         FrameBuffer fb = Window.getFrameBuffer();
-        float aspectRatio = LogicServer.runtimeMode() ?
-                Project.getGameAspectRatio() :
-                (float) fb.getWidth() / fb.getHeight();
-        float usableWidth = winSize.x;
-        float usableHeight = usableWidth / aspectRatio;
-        if (usableHeight > winSize.y) {
-            usableHeight = winSize.y;
-            usableWidth = usableHeight * aspectRatio;
+        Viewport viewport = LogicServer.currentSceneViewport();
+        boolean runtime = LogicServer.runtimeMode();
+        WindowResizeMode mode = runtime && viewport != null ? viewport.resizeMode() : WindowResizeMode.Expand;
+        boolean maintainAspectRatio = viewport != null && viewport.maintainAspectRatio();
+        ProjectPreference preference = Project.preference();
+        float usableWidth;
+        float usableHeight;
+        if (mode == WindowResizeMode.Scale && !maintainAspectRatio) {
+            usableWidth = avail.x;
+            usableHeight = avail.y;
+        } else {
+            float aspectRatio = LogicServer.runtimeMode() ? Project.getGameAspectRatio() : (float) fb.getWidth() / fb.getHeight();
+            usableWidth = avail.x;
+            usableHeight = usableWidth / aspectRatio;
+            if (usableHeight > avail.y) {
+                usableHeight = avail.y;
+                usableWidth = usableHeight * aspectRatio;
+            }
+        }
+        if (runtime && !preference.allowResize()) {
+            usableWidth = Math.min(usableWidth, preference.gameWindowWidth());
+            usableHeight = Math.min(usableHeight, preference.gameWindowHeight());
         }
         if (usableWidth != currentWidth || usableHeight != currentHeight) {
             currentWidth = usableWidth;
             currentHeight = usableHeight;
         }
-        Viewport viewport = LogicServer.currentSceneViewport();
-        if (!LogicServer.runtimeMode() && viewport != null) viewport.adjustSceneScale(usableHeight);
+        if (viewport != null && mode == WindowResizeMode.Expand) {
+            viewport.updateAspectRatio(usableWidth, usableHeight);
+            viewport.adjustSceneScale(usableHeight);
+        }
         return new ImVec2(usableWidth, usableHeight);
     }
 

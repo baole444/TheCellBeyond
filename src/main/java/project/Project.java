@@ -27,14 +27,15 @@ import java.util.*;
 /**
  * Project stores user's project data structure, resource import and paths to scene files.
  */
-public class Project {
+public final class Project {
     private static ProjectData CurrentProject = null;
     private static String ProjectRoot = null;
     private static ProjectPreference preference = null;
     private static String _projectYmlPath = null;
     private static final ObjectMapper YAMLMapper = new ObjectMapper(new YAMLFactory()).rebuild().disable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES).build();
     private static final List<String> requiredDirs = List.of("assets", "prefabs", "scenes", "sheets", "scripts", "scripts-src");
-    public static final String ProjectVersion = "1.2";
+
+    private Project() {}
 
     /**
      * Check if there is a project with valid path loaded or not.
@@ -47,7 +48,7 @@ public class Project {
     public static void loadFromYaml(String path) {
         try {
             File projectFile = new File(path);
-            CurrentProject = YAMLMapper.readValue(projectFile, ProjectData.class);
+            CurrentProject = ProjectMigrator.migrate(projectFile.toPath(), YAMLMapper);
             ProjectRoot = UnifiedPaths.toRoot(path);
             UnifiedPaths.projectRoot(ProjectRoot);
             _projectYmlPath = path;
@@ -101,7 +102,7 @@ public class Project {
         }
         ProjectPreference newPref = preference;
         if (newPref == null) newPref = new ProjectPreference();
-        ProjectData newProject = new ProjectData(ProjectVersion, newPref);
+        ProjectData newProject = new ProjectData(newPref);
         try {
             YAMLMapper.writeValue(potentialProject.toFile(), newProject);
         } catch (JacksonIOException e) {
@@ -119,10 +120,10 @@ public class Project {
         return true;
     }
 
-    public static boolean updateProjectPreference(String name, int windowWidth, int windowHeight, boolean allowResize, boolean maintainAspectRatio, float textureGlobalScale, ClearColor clearColor, int physicFrameRate, RenderingSetting renderingSetting) {
+    public static boolean updateProjectPreference(String name, int windowWidth, int windowHeight, boolean allowResize, WindowResizeMode resizeMode, boolean maintainAspectRatio, float textureGlobalScale, ClearColor clearColor, int physicFrameRate, RenderingSetting renderingSetting) {
         if (noProjectLoaded()) return false;
         ProjectPreference oldPref = preference;
-        preference = new ProjectPreference(name, windowWidth, windowHeight, allowResize, maintainAspectRatio, textureGlobalScale, clearColor, physicFrameRate, renderingSetting);
+        preference = new ProjectPreference(name, windowWidth, windowHeight, allowResize, maintainAspectRatio, resizeMode, textureGlobalScale, clearColor, physicFrameRate, renderingSetting);
         CurrentProject = new ProjectData(CurrentProject.version(),
                 preference, CurrentProject.assets(),
                 CurrentProject.sheets(), CurrentProject.scenes(),

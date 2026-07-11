@@ -15,8 +15,8 @@ import java.util.*;
 import java.util.stream.Stream;
 
 /**
- * Migrator for {@link EditorPreferences} for breaking and none breaking changes. Value of old entries are preserve via
- * mapping on none breaking changes, and explicit remap on breaking changes. Entries that are no longer exist in new version are dropped.
+ * Migrator for {@link EditorPreferences}. Value of old entries are preserve via mapping on none breaking changes,
+ * and explicit remap on breaking changes. Entries that are no longer exist in new version are dropped.
  * <p>
  * Migration happen incrementally at the bound of each breaking change and fast-forward between none breaking change.
  */
@@ -59,8 +59,28 @@ final class PreferenceMigrator {
         migrator.backup(fileVersion);
         Map<String, Object> migrated = migrator.migrateToLatest(stored, fileVersion);
         migrator.write(migrated);
-        Logger.debug(String.format("Editor preferences finished updating. Took %dms.", System.currentTimeMillis() - start));
+        Logger.debug(String.format("Editor preferences finished updating, took %dms", System.currentTimeMillis() - start));
         return migrator.bind(migrated);
+    }
+
+    /**
+     * Clear up timestamped backups of the given preference file, keep only the {@value MaxBackups} most recent.
+     * @param configFile the preference file to look for backups
+     */
+    static void pruneBackups(Path configFile) {
+        Path dir = configFile.getParent();
+        if (dir == null) return;
+        String prefix = configFile.getFileName().toString();
+        try (Stream<Path> entries = Files.list(dir)) {
+            List<Path> backups = entries
+                    .filter(Files::isRegularFile)
+                    .filter(p -> isBackup(prefix, p))
+                    .sorted(Comparator.comparingLong(PreferenceMigrator::lastModified).reversed())
+                    .toList();
+            for (int i = MaxBackups; i < backups.size(); i++) delete(backups.get(i));
+        } catch (IOException e) {
+            Logger.warning("Failed to prune editor preferences backups: " + e.getMessage());
+        }
     }
 
     private Map<String, Object> migrateToLatest(Map<String, Object> stored, int fileVersion) {
@@ -79,13 +99,6 @@ final class PreferenceMigrator {
             current = nextBreaking;
         }
         return data;
-    }
-
-    private static int nextBreakingChange(int from) {
-        for (int v = from + 1; v <= EditorPreferences.SaveVersion; v++) {
-            if (BreakingChanges.contains(v)) return v;
-        }
-        return -1;
     }
 
     /**
@@ -114,11 +127,6 @@ final class PreferenceMigrator {
      */
     private Map<String, Object> remapBreakingChange(Map<String, Object> data, int version) {
         return data;
-    }
-
-    private static int version(Map<String, Object> stored) {
-        Object raw = stored.get(EditorPreferences.VersionKey);
-        return raw instanceof Number number ? number.intValue() : 0;
     }
 
     private Map<String, Object> read() {
@@ -158,24 +166,16 @@ final class PreferenceMigrator {
         }
     }
 
-    /**
-     * Clear up timestamped backups of the given preference file, keep only the {@value MaxBackups} most recent.
-     * @param configFile the preference file to look for backups
-     */
-    static void pruneBackups(Path configFile) {
-        Path dir = configFile.getParent();
-        if (dir == null) return;
-        String prefix = configFile.getFileName().toString();
-        try (Stream<Path> entries = Files.list(dir)) {
-            List<Path> backups = entries
-                    .filter(Files::isRegularFile)
-                    .filter(p -> isBackup(prefix, p))
-                    .sorted(Comparator.comparingLong(PreferenceMigrator::lastModified).reversed())
-                    .toList();
-            for (int i = MaxBackups; i < backups.size(); i++) delete(backups.get(i));
-        } catch (IOException e) {
-            Logger.warning("Failed to prune editor preferences backups: " + e.getMessage());
+    private static int version(Map<String, Object> stored) {
+        Object raw = stored.get(EditorPreferences.VersionKey);
+        return raw instanceof Number number ? number.intValue() : 0;
+    }
+
+    private static int nextBreakingChange(int from) {
+        for (int v = from + 1; v <= EditorPreferences.SaveVersion; v++) {
+            if (BreakingChanges.contains(v)) return v;
         }
+        return -1;
     }
 
     private static long lastModified(Path path) {

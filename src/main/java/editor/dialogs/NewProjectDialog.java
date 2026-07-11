@@ -13,15 +13,12 @@ import imgui.type.ImFloat;
 import imgui.type.ImInt;
 import imgui.type.ImString;
 import org.joml.Vector2i;
-import project.ClearColor;
-import project.Project;
-import project.ProjectPreference;
-import project.RenderingSetting;
+import project.*;
 import utility.IdPool;
 
 import java.nio.file.Path;
 
-public class NewProjectDialog {
+public final class NewProjectDialog {
     private static final IdPool IDPool = new IdPool(0, false);
     private static final String PopupID = "Create new game project##TCB_Create_New_Game_Project_Dialog";
     private static final String PreferenceID = "Preference_Editor";
@@ -30,7 +27,6 @@ public class NewProjectDialog {
     private static final float ButtonHeight = 30.0f;
     private static final float ButtonReserve = ImGui.getFrameHeightWithSpacing();
     private static boolean showDialog = false;
-    private static final boolean enableBorder = true;
     private static final ImString selectedDirectoryPath = new ImString(256);
     private static final ImBoolean projectAlreadyExist = new ImBoolean(false);
     private static final ImString gameTitle = new ImString(128);
@@ -165,7 +161,7 @@ public class NewProjectDialog {
         if (gameWindowSize.x < 1 || gameWindowSize.y < 1) return;
         ProjectPreference preference = new ProjectPreference(gameTitle.get(),
                 gameWindowSize.x, gameWindowSize.y,
-                allowResize.get(), maintainAspectRatio.get(),
+                allowResize.get(), maintainAspectRatio.get(), WindowResizeMode.Scale,
                 globalTextureScale.get(), new ClearColor(), 60,
                 new RenderingSetting()
         );
