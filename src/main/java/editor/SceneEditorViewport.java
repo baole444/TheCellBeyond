@@ -36,12 +36,14 @@ final class SceneEditorViewport implements EngineEventListener {
     private static float currentHeight;
     private static final float IconSize = 28.0f;
     private static final ImVec2 gizmoModeSizeCache = new ImVec2(28.0f, 56.0f);
+    private static boolean hoveringGizmoMode = false;
 
     private SceneEditorViewport() {
         register();
     }
 
     static void imgui() {
+        hoveringGizmoMode = false;
         currentSceneName = resolveDisplaySceneName();
         if (!ImGui.begin(WindowID, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.MenuBar | ImGuiWindowFlags.NoCollapse)) {
             ImGui.end();
@@ -57,8 +59,8 @@ final class SceneEditorViewport implements EngineEventListener {
             return;
         }
         ImGui.tableSetupColumn("##Runtime_switch_column_ESV", ImGuiTableColumnFlags.WidthFixed);
-        ImGui.tableSetupColumn("Scene_name_column_ESV", ImGuiTableColumnFlags.WidthStretch);
-        ImGui.tableSetupColumn("Scene_Editing_Controls_ESV", ImGuiTableColumnFlags.WidthFixed);
+        ImGui.tableSetupColumn("##Scene_name_column_ESV", ImGuiTableColumnFlags.WidthStretch);
+        ImGui.tableSetupColumn("##Scene_Editing_Controls_ESV", ImGuiTableColumnFlags.WidthFixed);
         ImGui.tableNextColumn();
         if (ImGui.menuItem("Play","", isPlaying, !isPlaying)) {
             if (LogicServer.currentSceneName() == null) {
@@ -164,6 +166,7 @@ final class SceneEditorViewport implements EngineEventListener {
         if (EditorWidget.selectableIcon("##SEV_Gizmo_Move_Mode_Selectable", EditorIcons.GizmoModeIcons.MoveMode, null, EditorGizmoCtrl.inMoveMode(), IconSize, IconSize)) EditorGizmoCtrl.useMoveGizmo();
         ImGui.getItemRectSize(gizmoModeSizeCache);
         if (ImGui.isItemHovered()) {
+            hoveringGizmoMode = true;
             ImGui.beginTooltip();
             ImGui.textColored(EditorColors.YellowHighLight, "Move Drag Handle");
             ImGui.sameLine();
@@ -175,6 +178,7 @@ final class SceneEditorViewport implements EngineEventListener {
         ImGui.setCursorPosX(cursorX);
         if (EditorWidget.selectableIcon("##SEV_Gizmo_Scale_Mode_Selectable", EditorIcons.GizmoModeIcons.ScaleMode, null, EditorGizmoCtrl.inScaleMode(), IconSize, IconSize)) EditorGizmoCtrl.useScaleGizmo();
         if (ImGui.isItemHovered()) {
+            hoveringGizmoMode = true;
             ImGui.beginTooltip();
             ImGui.textColored(EditorColors.YellowHighLight, "Scale Drag Handle");
             ImGui.sameLine();
@@ -195,7 +199,7 @@ final class SceneEditorViewport implements EngineEventListener {
     }
 
     public static boolean getWantCaptureMouse() {
-        if (ImGui.isPopupOpen("", ImGuiPopupFlags.AnyPopup)) return false;
+        if (ImGui.isPopupOpen("", ImGuiPopupFlags.AnyPopup) || hoveringGizmoMode) return false;
         return MouseListener.getX() >= leftX &&
                 MouseListener.getX() <= rightX &&
                 MouseListener.getY() >= bottomY &&
