@@ -11,7 +11,7 @@ import utility.Settings;
  */
 public class EditorGizmoCtrl extends Component {
     private static final String Path = Settings.TexturePath.Gizmo;
-    private static EditorGizmoType gizmoType = EditorGizmoType.Translate;
+    private static EditorGizmoMode gizmoType = EditorGizmoMode.Move;
     private transient SpriteSheet gizmo;
     private transient boolean isInitialized = false;
 
@@ -24,20 +24,33 @@ public class EditorGizmoCtrl extends Component {
     }
 
     /**
-     * Get the current type of Gizmo.
-     * @return the Gizmo type
+     * Switch gizmo control to scale mode.
      */
-    public static EditorGizmoType getGizmoType() {
-        return gizmoType;
+    public static void useScaleGizmo() {
+        gizmoType = EditorGizmoMode.Scale;
     }
 
     /**
-     * Set the current type of Gizmo.
-     * @param gizmoType the gizmo type to switch to
+     * Switch gizmo control to move mode.
      */
-    public static void setGizmoType(EditorGizmoType gizmoType) {
-        if (gizmoType == null) return;
-        EditorGizmoCtrl.gizmoType = gizmoType;
+    public static void useMoveGizmo() {
+        gizmoType = EditorGizmoMode.Move;
+    }
+
+    /**
+     * Check if gizmo control is in scale mode.
+     * @return true if is in scale mode
+     */
+    public static boolean inScaleMode() {
+        return gizmoType == EditorGizmoMode.Scale;
+    }
+
+    /**
+     * Check if gizmo control is in move mode.
+     * @return true if is in move mode
+     */
+    public static boolean inMoveMode() {
+        return gizmoType == EditorGizmoMode.Move;
     }
 
     @Override
@@ -84,12 +97,12 @@ public class EditorGizmoCtrl extends Component {
             completeInit();
             return;
         }
-        if (gizmoType == EditorGizmoType.Translate) {
+        if (gizmoType == EditorGizmoMode.Move) {
             gameObject.getFirstComponent(EditorGizmoMove.class).use();
             gameObject.getFirstComponent(EditorGizmoScale.class).stopUse();
             return;
         }
-        if (gizmoType == EditorGizmoType.Scale) {
+        if (gizmoType == EditorGizmoMode.Scale) {
             gameObject.getFirstComponent(EditorGizmoMove.class).stopUse();
             gameObject.getFirstComponent(EditorGizmoScale.class).use();
         }

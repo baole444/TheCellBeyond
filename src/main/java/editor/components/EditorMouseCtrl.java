@@ -26,7 +26,7 @@ import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT;
 /**
  * Handler for mouse input on scene in Editor UI.
  */
-public class EditorMouseCtrl extends Component implements NotSerializeComponent {
+public final class EditorMouseCtrl extends Component implements NotSerializeComponent {
     private static final Vector4f resetColor = new Vector4f(1.0f, 1.0f, 1.0f, 1.0f);
     private static final Vector4f pickUpColor = new Vector4f(1f, 1f, 1f, 0.35f);
     GameObject holdObj = null;

@@ -61,19 +61,11 @@ public final class EditorKeyCtrl extends Component implements NotSerializeCompon
                 Properties.addActiveGameObject(copy);
             }
         } else if (KeyListener.isKeyPressed(GLFW_KEY_DELETE)) {
-            for (GameObject go : activeObjList) {
-                go.destroy();
-            }
+            for (GameObject go : activeObjList) go.destroy();
             Properties.clearSelection();
         }
-
-        // Make keybinding of Shift + S = scale | Shift + T = translate
-        if (KeyListener.isKeyTapped(GLFW_KEY_T, GLFW_MOD_SHIFT)) {
-            EditorGizmoCtrl.setGizmoType(EditorGizmoType.Translate);
-        } else if (KeyListener.isKeyTapped(GLFW_KEY_S, GLFW_MOD_SHIFT)) {
-            EditorGizmoCtrl.setGizmoType(EditorGizmoType.Scale);
-        }
-        // Make keybinding of Ctrl + S = Save file | Ctrl + O = open file
+        if (KeyListener.isKeyTapped(GLFW_KEY_T, GLFW_MOD_SHIFT)) EditorGizmoCtrl.useMoveGizmo();
+        else if(KeyListener.isKeyTapped(GLFW_KEY_S, GLFW_MOD_SHIFT)) EditorGizmoCtrl.useScaleGizmo();
         if (KeyListener.isKeyTapped(GLFW_KEY_S, GLFW_MOD_CONTROL)) {
             EngineEventCallback.emit(null, new EditorEvent(EditorEvent.Type.SaveEditingSceneToDisk));
         }

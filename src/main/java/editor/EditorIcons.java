@@ -12,7 +12,7 @@ public final class EditorIcons {
     private static final String Path = Settings.TexturePath.EditorControls;
     private static final int width = 28;
     private static final int height = 28;
-    private static final int iconCount = 29;
+    private static final int iconCount = 31;
     private static SpriteSheet icons;
     private static boolean isInitialized = false;
 
@@ -199,6 +199,22 @@ public final class EditorIcons {
         final int index;
 
         ScriptIcons(int index) {
+            this.index = index;
+        }
+
+        @Override
+        public Sprite getIcon() {
+            return icons == null ? null : icons.spriteIndex(index);
+        }
+    }
+
+    public enum GizmoModeIcons implements EditorIconSprite {
+        MoveMode(29),
+        ScaleMode(30);
+
+        final int index;
+
+        GizmoModeIcons(int index) {
             this.index = index;
         }
 

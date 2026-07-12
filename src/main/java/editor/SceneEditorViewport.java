@@ -4,6 +4,7 @@ import TheCellBeyond.MouseListener;
 import TheCellBeyond.Viewport;
 import TheCellBeyond.Window;
 import TheCellBeyond.internal.LogicServer;
+import editor.components.EditorGizmoCtrl;
 import editor.dialogs.SaveSceneAsDialog;
 import editor.preference.UserPreference;
 import eventviewer.EngineEventCallback;
@@ -33,6 +34,8 @@ final class SceneEditorViewport implements EngineEventListener {
     private static final ImString renameBuffer = new ImString(128);
     private static float currentWidth;
     private static float currentHeight;
+    private static final float IconSize = 28.0f;
+    private static final ImVec2 gizmoModeSizeCache = new ImVec2(28.0f, 56.0f);
 
     private SceneEditorViewport() {
         register();
@@ -100,6 +103,7 @@ final class SceneEditorViewport implements EngineEventListener {
         ImGui.image(texID, winSize.x, winSize.y, 0, 1, 1, 0);
         renderFPS(cursorPos);
         ImGui.endGroup();
+        renderGizmoMode();
         MouseListener.setCurrentViewportPosition(new Vector2f(leftX, bottomY));
         MouseListener.setCurrentViewportSize(new Vector2f(winSize.x, winSize.y));
         ImGui.end();
@@ -149,6 +153,37 @@ final class SceneEditorViewport implements EngineEventListener {
         renaming = true;
         renameFocus = false;
         renameBuffer.set(currentSceneName);
+    }
+
+    private static void renderGizmoMode() {
+        if (LogicServer.runtimeMode()) return;
+        ImGui.setCursorPosY(ImGui.getContentRegionMaxY() - gizmoModeSizeCache.y * 2.0f - ImGui.getStyle().getWindowPaddingY());
+        float cursorX = ImGui.getContentRegionMaxX() - gizmoModeSizeCache.x - ImGui.getStyle().getWindowPaddingX() ;
+        ImGui.beginGroup();
+        ImGui.setCursorPosX(cursorX);
+        if (EditorWidget.selectableIcon("##SEV_Gizmo_Move_Mode_Selectable", EditorIcons.GizmoModeIcons.MoveMode, null, EditorGizmoCtrl.inMoveMode(), IconSize, IconSize)) EditorGizmoCtrl.useMoveGizmo();
+        ImGui.getItemRectSize(gizmoModeSizeCache);
+        if (ImGui.isItemHovered()) {
+            ImGui.beginTooltip();
+            ImGui.textColored(EditorColors.YellowHighLight, "Move Drag Handle");
+            ImGui.sameLine();
+            ImGui.textDisabled("Shift + T");
+            ImGui.spacing();
+            ImGui.textColored(EditorColors.InstructionHighLight, "When selecting an object, use the arrow handle to move it.");
+            ImGui.endTooltip();
+        }
+        ImGui.setCursorPosX(cursorX);
+        if (EditorWidget.selectableIcon("##SEV_Gizmo_Scale_Mode_Selectable", EditorIcons.GizmoModeIcons.ScaleMode, null, EditorGizmoCtrl.inScaleMode(), IconSize, IconSize)) EditorGizmoCtrl.useScaleGizmo();
+        if (ImGui.isItemHovered()) {
+            ImGui.beginTooltip();
+            ImGui.textColored(EditorColors.YellowHighLight, "Scale Drag Handle");
+            ImGui.sameLine();
+            ImGui.textDisabled("Shift + S");
+            ImGui.spacing();
+            ImGui.textColored(EditorColors.InstructionHighLight, "When selecting an object, use the arrow handle to scale it.");
+            ImGui.endTooltip();
+        }
+        ImGui.endGroup();
     }
 
     private static void rename() {

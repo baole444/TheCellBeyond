@@ -31,7 +31,7 @@ import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_1;
 /**
  * Handler for editing tile map in Editor UI.
  */
-public class EditorTileMapCtrl extends Component implements NotSerializeComponent {
+public final class EditorTileMapCtrl extends Component implements NotSerializeComponent {
     private static final Vector4f previewColor = new Vector4f(1.0f, 1.0f, 1.0f, 0.35f);
     private static final Vector4f eraserColor = new Vector4f(1.0f, 0.25f, 0.25f, 0.75f);
 
