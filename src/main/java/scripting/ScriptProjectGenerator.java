@@ -8,7 +8,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public class ScriptProjectGenerator {
+public final class ScriptProjectGenerator {
     private static final EngineLog Logger = new EngineLog(ScriptProjectGenerator.class);
     private static final String TemplatePath = "engine://templates/script-project/";
     private static final String[] TemplateFiles = {

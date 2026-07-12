@@ -1,6 +1,5 @@
 package editor.dialogs;
 
-import editor.EditorWidget;
 import imgui.ImGui;
 import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiTableColumnFlags;
@@ -89,6 +88,7 @@ final class ProjectPreferenceTab {
     private static void renderGameWindowHeaderContent() {
         ImGui.separator();
         ImGui.indent();
+        ImGui.spacing();
         ImGui.text("Window size:");
         ImGui.beginDisabled();
         ImGui.textWrapped("Determine the default size of game window");
@@ -99,38 +99,45 @@ final class ProjectPreferenceTab {
         gameWindowSize.y = inputInt("Height", gameWindowSize.y, 1);
         if (!oldSize.equals(gameWindowSize)) projectPreferencesChanged = true;
         ImGui.spacing();
-        renderPreferenceToggle("Resizable", allowResize, "Allow player to resize the game window");
+        renderPreferenceToggle("Resizable", allowResize, "- Allow player to resize the game window");
         ImGui.spacing();
-        renderPreferenceToggle("Lock aspect ratio", maintainAspectRatio, "Maintain the game's intended aspect ratio when window is resized");
+        renderResizeMode();
         ImGui.spacing();
-        if (EditorWidget.colorCtrl("Clear color", clearColor, ProjectPreferenceTab.class)) projectPreferencesChanged = true;
+        renderPreferenceToggle("Lock aspect ratio", maintainAspectRatio, "- Maintain the game's intended aspect ratio when window is resized");
         ImGui.spacing();
-        WindowResizeMode oldMode = resizeMode;
-        if (ImGui.beginCombo("Resize Mode", oldMode != null ? oldMode.name() : "Select a Resize mode...")) {
-            for (WindowResizeMode mode : WindowResizeMode.values()) {
-                String id = mode.name() + "##EPTD_Window_Resize_Mode_" + mode + "_Selectable";
-                if (!ImGui.selectable(id, oldMode == mode)) continue;
-                resizeMode = mode;
-                projectPreferencesChanged = true;
-            }
-            ImGui.endCombo();
-        }
-        ImGui.beginDisabled();
-        ImGui.textWrapped("Scale: resize the game view | Expand: resize the visible area");
-        ImGui.endDisabled();
+        renderClearColor();
+        ImGui.spacing();
         ImGui.unindent();
         ImGui.separator();
+    }
+
+    private static void renderClearColor() {
+        if (!ImGui.beginTable("##EPTD_Clear_Color_Layout_Table", 2)) return;
+        ImGui.tableSetupColumn("##ETPD_Clear_Color_Label_Column", ImGuiTableColumnFlags.WidthFixed);
+        ImGui.tableSetupColumn("##ETPD_Clear_Color_Edit_Column", ImGuiTableColumnFlags.WidthStretch);
+        ImGui.tableNextColumn();
+        ImGui.setCursorPosY(ImGui.getCursorPosY() + (ImGui.getFrameHeightWithSpacing() - ImGui.getTextLineHeightWithSpacing()) / 2.0f);
+        ImGui.text("Clear Color:");
+        ImGui.tableNextColumn();
+        float[] color = {clearColor.x, clearColor.y, clearColor.z, clearColor.w};
+        if (ImGui.colorEdit4("##EPTD_Clear_Color_Editor", color)) {
+            clearColor.set(color[0], color[1], color[2], color[3]);
+            projectPreferencesChanged = true;
+        }
+        ImGui.endTable();
     }
 
     private static void renderGameTextureHeaderContent() {
         ImGui.separator();
         ImGui.indent();
+        ImGui.spacing();
         float textureScale = textureGlobalScale.get();
         textureGlobalScale.set(inputFloat("Global Scaling", textureGlobalScale.get(), 0.01f));
         if (textureScale != textureGlobalScale.get()) projectPreferencesChanged = true;
         ImGui.beginDisabled();
         ImGui.textWrapped("Rendering scale of textures on scene, project-wise.");
         ImGui.endDisabled();
+        ImGui.spacing();
         ImGui.unindent();
         ImGui.separator();
     }
@@ -138,6 +145,7 @@ final class ProjectPreferenceTab {
     private static void renderGamePhysicHeaderContent() {
         ImGui.separator();
         ImGui.indent();
+        ImGui.spacing();
         int oldFrameRate = physicFramerate.get();
         physicFramerate.set(inputInt("Physic Framerate", physicFramerate.get(), 5));
         if (oldFrameRate != physicFramerate.get()) projectPreferencesChanged = true;
@@ -149,6 +157,7 @@ final class ProjectPreferenceTab {
         boolean openLayer = ImGui.collapsingHeader("Physic Layer Name##EPTD_Physic_Layer_Name_Edit_Preference_Header", ImGuiTreeNodeFlags.DefaultOpen);
         ImGui.popStyleColor(1);
         if (openLayer) renderPhysicLayerNames();
+        ImGui.spacing();
         ImGui.unindent();
         ImGui.separator();
     }
@@ -178,8 +187,54 @@ final class ProjectPreferenceTab {
     private static void renderGameRenderingHeaderContent() {
         ImGui.separator();
         ImGui.indent();
+        ImGui.spacing();
+        renderVsyncMode();
+        ImGui.spacing();
+        int oldFrameRate = renderFramerate.get();
+        renderFramerate.set(inputInt("Frame Rate Limit##EPTD_FPS_Limit_Input", renderFramerate.get(), RenderingSetting.MinFrameRate));
+        if (oldFrameRate != renderFramerate.get()) projectPreferencesChanged = true;
+        ImGui.beginDisabled();
+        ImGui.textWrapped("Max rendering FPS, default is 60 (0 = unlimited)");
+        ImGui.endDisabled();
+        ImGui.spacing();
+        ImGui.unindent();
+        ImGui.separator();
+    }
+
+    private static void renderResizeMode() {
+        if (!ImGui.beginTable("##EPTD_Resize_Mode_Layout_Table", 2)) return;
+        ImGui.tableSetupColumn("##EPTD_Resize_Mode_Label_Column", ImGuiTableColumnFlags.WidthFixed);
+        ImGui.tableSetupColumn("##EPTD_Resize_Mode_Drop_Down_Column", ImGuiTableColumnFlags.WidthStretch);
+        ImGui.tableNextColumn();
+        ImGui.setCursorPosY(ImGui.getCursorPosY() + (ImGui.getFrameHeightWithSpacing() - ImGui.getTextLineHeightWithSpacing()) / 2.0f);
+        ImGui.text("Resize Mode:");
+        ImGui.tableNextColumn();
+        WindowResizeMode oldMode = resizeMode;
+        if (ImGui.beginCombo("##EPTD_Resize_Mode_Drop_Down", oldMode != null ? oldMode.name() : "Select a Resize mode...")) {
+            for (WindowResizeMode mode : WindowResizeMode.values()) {
+                String id = mode.name() + "##EPTD_Window_Resize_Mode_" + mode + "_Selectable";
+                if (!ImGui.selectable(id, oldMode == mode)) continue;
+                resizeMode = mode;
+                projectPreferencesChanged = true;
+            }
+            ImGui.endCombo();
+        }
+        ImGui.beginDisabled();
+        ImGui.textWrapped("Scale: resize the game view | Expand: resize the visible area");
+        ImGui.endDisabled();
+        ImGui.endTable();
+    }
+
+    private static void renderVsyncMode() {
+        if (!ImGui.beginTable("##EPTD_Vsync_Mode_Layout_Table", 2)) return;
+        ImGui.tableSetupColumn("##EPTD_Vsync_Mode_Label_Column", ImGuiTableColumnFlags.WidthFixed);
+        ImGui.tableSetupColumn("##EPTD_Vsync_Mode_Drop_Down_Column", ImGuiTableColumnFlags.WidthStretch);
+        ImGui.tableNextColumn();
+        ImGui.setCursorPosY(ImGui.getCursorPosY() + (ImGui.getFrameHeightWithSpacing() - ImGui.getTextLineHeightWithSpacing()) / 2.0f);
+        ImGui.text("Vsync Mode:");
+        ImGui.tableNextColumn();
         VsyncMode oldMode = vsyncMode;
-        if (ImGui.beginCombo("Vsync Mode", oldMode != null ? oldMode.name() : "Select a Vsync mode...")) {
+        if (ImGui.beginCombo("##EPTD_Vsync_Mode_Drop_Down", oldMode != null ? oldMode.name() : "Select a Vsync mode...")) {
             for (VsyncMode mode : VsyncMode.values()) {
                 String id = mode.name() + "####EPTD_Rendering_Setting_VsyncMode_" + mode + "_Selectable";
                 if (!ImGui.selectable(id, oldMode == mode)) continue;
@@ -189,17 +244,10 @@ final class ProjectPreferenceTab {
             ImGui.endCombo();
         }
         ImGui.beginDisabled();
-        ImGui.textWrapped("Disabled: vsync disabled | Adaptive: sync when above refresh rate | Enabled: sync to monitor");
+        ImGui.textWrapped("Disabled: vsync disabled");
+        ImGui.textWrapped("Adaptive: sync when above refresh rate | Enabled: sync to monitor");
         ImGui.endDisabled();
-        ImGui.spacing();
-        int oldFrameRate = renderFramerate.get();
-        renderFramerate.set(inputInt("Frame Rate Limit##EPTD_FPS_Limit_Input", renderFramerate.get(), RenderingSetting.MinFrameRate));
-        if (oldFrameRate != renderFramerate.get()) projectPreferencesChanged = true;
-        ImGui.beginDisabled();
-        ImGui.textWrapped("Max rendering FPS, default is 60 (0 = unlimited)");
-        ImGui.endDisabled();
-        ImGui.unindent();
-        ImGui.separator();
+        ImGui.endTable();
     }
 
     private static void renderPreferenceToggle(String label, ImBoolean dest, String extraInfo) {

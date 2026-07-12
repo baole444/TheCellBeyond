@@ -94,19 +94,19 @@ public final class EditEditorPreferencesDialog {
     private static void renderPreferenceEditor() {
         ImGui.text("Auto save:");
         ImGui.spacing();
-        renderPreferenceToggle("On exit", autoSaveOnExit, " - Auto save current scene on exiting editor");
+        renderPreferenceToggle("On exit", autoSaveOnExit, "- Auto save current scene on exiting editor");
         ImGui.spacing();
-        renderPreferenceToggle("On change scene", autoSaveOnChangeScene, " - Auto save current scene on switching to a new one");
+        renderPreferenceToggle("On change scene", autoSaveOnChangeScene, "- Auto save current scene on switching to a new one");
         ImGui.spacing();
         ImGui.separator();
         ImGui.text("Object Control:");
         ImGui.spacing();
-        renderPreferenceToggle("Grid snapping", showGridLine, " - Holding object snap to nearest grid square");
+        renderPreferenceToggle("Grid snapping", showGridLine, "- Holding object snap to nearest grid square");
         ImGui.spacing();
         ImGui.separator();
         ImGui.text("Scripting:");
         ImGui.spacing();
-        renderPreferenceToggle("Clean before build", cleanBuildScripts, " - Clear old build's output before new build start");
+        renderPreferenceToggle("Clean before build", cleanBuildScripts, "- Clear old build's output before new build start");
         ImGui.spacing();
         renderPreferenceToggle("Reload scene after build", reloadSceneOnBuildFinish, "- Reload current scene on finished building script");
         ImGui.spacing();

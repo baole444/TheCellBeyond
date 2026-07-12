@@ -14,6 +14,7 @@ import imgui.type.ImString;
 import project.Project;
 import scripting.ScriptLoader;
 import scripting.ScriptProjectGenerator;
+import scripting.ScriptProjectUpdater;
 import scripting.builder.BuildPhase;
 import scripting.builder.BuildStatus;
 import scripting.builder.ScriptBuilder;
@@ -153,11 +154,21 @@ final class ScriptsTab {
         if (ImGui.button(BuildScriptLabel, ButtonWidth, ButtonHeight)) requestBuildScript();
         if (ImGui.isItemHovered()) hoveredControl = HoveredControl.BuildScript;
         ImGui.spacing();
-        if (ImGui.button(UpdateScriptProjectLabel, ButtonWidth, ButtonHeight)) {}
+        if (ImGui.button(UpdateScriptProjectLabel, ButtonWidth, ButtonHeight)) {
+            if (ScriptProjectUpdater.update(Project.projectRoot())) message = "Script project updated";
+            else {
+                EngineLog.error("Project Updater", "Failed to update script project");
+                message = "Failed to update script project, see console for more info";
+            }
+        }
         if (ImGui.isItemHovered()) hoveredControl = HoveredControl.UpdateScriptProject;
         ImGui.spacing();
         if (ImGui.button(GenerateScriptProjectButton, ButtonWidth, ButtonHeight)) {
-            if (!ScriptProjectGenerator.generate(Project.projectRoot())) EngineLog.error("Project Generator", "Failed to create script project");
+            if (ScriptProjectGenerator.generate(Project.projectRoot())) message = "Script project generated";
+            else {
+                EngineLog.error("Project Generator", "Failed to create script project");
+                message = "Failed to generate script project, see console for more info";
+            }
         }
         if (ImGui.isItemHovered()) hoveredControl = HoveredControl.GenerateScriptProject;
         ImGui.spacing();

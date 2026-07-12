@@ -236,7 +236,7 @@ public final class EditorWidget {
         boolean useLabel = label != null && !label.isBlank();
         ImGui.pushID(id);
         if (useLabel) {
-            if (!ImGui.beginTable("##Table_" + id, 2, ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.SizingStretchProp, ImGui.getContentRegionAvailX())) {
+            if (!ImGui.beginTable("##Table_" + id, 2, ImGuiTableFlags.SizingStretchProp, ImGui.getContentRegionAvailX())) {
                 ImGui.popID();
                 return false;
             }
@@ -244,12 +244,9 @@ public final class EditorWidget {
             ImGui.tableSetupColumn("##content_" + label + id, ImGuiTableColumnFlags.WidthStretch);
             ImGui.tableNextColumn();
             float labelSpace = ImGui.getContentRegionAvailX();
+            ImGui.setCursorPosY(ImGui.getCursorPosY() + (ImGui.getFrameHeightWithSpacing() - ImGui.getTextLineHeightWithSpacing()) / 2.0f);
             ImGui.text(shortenLabel(label, labelSpace));
-            if (ImGui.isItemHovered() && labelSpace <= ImGui.calcTextSizeX(label)) {
-                ImGui.beginTooltip();
-                ImGui.text(label);
-                ImGui.endTooltip();
-            }
+            if (ImGui.isItemHovered() && labelSpace <= ImGui.calcTextSizeX(label)) ImGui.setItemTooltip(label);
             ImGui.tableNextColumn();
         }
         ImGui.pushItemWidth(ImGui.getContentRegionAvailX());
