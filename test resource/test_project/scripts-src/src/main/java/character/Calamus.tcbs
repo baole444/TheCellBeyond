@@ -1,0 +1,31 @@
+class Calamus extends CharacterBody2D
+
+const animation_path = HierarchyPath.ComponentDelimiter + "animation"
+const alula_detector_path = "alula_detector"
+
+@export var moveSpeed = 0.16
+
+@export var direction = Direction.Up
+
+var animation : AnimatedSpriteRenderer
+
+var alula : Alula
+
+func _ready() -> void:
+    animation = HierarchyPaths.to_component(animation_path, self) as AnimatedSpriteRenderer
+
+    var alula_detector = HierarchyPaths.to_game_object(alula_detector_path, self) as Area2D
+
+    if alula_detector != null:
+        alula_detector.body_entered.connect(on_alula_enter)
+        alula_detector.body_exited.connect(on_alula_exit)
+
+func on_alula_enter(body : GameObject2D) -> void:
+    if not body is Alula: return
+    alula = body as Alula
+    print("Alula entered")
+
+func on_alula_exit(body : GameObject2D) -> void:
+    if not body is Alula: return
+    alula = null
+    print("Alula left")
