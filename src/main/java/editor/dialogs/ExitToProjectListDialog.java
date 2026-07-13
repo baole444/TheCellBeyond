@@ -19,6 +19,8 @@ import imgui.type.ImBoolean;
 public final class ExitToProjectListDialog {
     private static final String PopupID = "Save before exit?";
     private static final ImVec2 DialogSize = new ImVec2(400, 160);
+    private static final float ButtonWidth = 100.0f;
+    private static final float ButtonHeight = 30.0f;
     private static boolean showDialog = false;
     private static boolean isAutoSaveOnExit = false;
     private static final ImBoolean enableSaveOnExit = new ImBoolean(false);
@@ -51,22 +53,19 @@ public final class ExitToProjectListDialog {
         ImGui.setNextWindowSize(DialogSize);
         if (ImGui.beginPopupModal(PopupID, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)) {
             ImGui.spacing();
-            ImGui.textWrapped("Save before exit? All unsaved changes will be lost.");
-            ImGui.setCursorPosY(ImGui.getCursorPosY() + ImGui.getTextLineHeight());
-            ImGui.separator();
+            ImGui.textWrapped("All unsaved changes will be lost.");
             ImGui.spacing();
             ImGui.checkbox("Enable auto save on exit", enableSaveOnExit);
-            float buttonWidth = 100;
             float buttonReserverY = ImGui.getFrameHeightWithSpacing();
-            ImGui.setCursorPosY(ImGui.getWindowHeight() - buttonReserverY - ImGui.getStyle().getWindowPaddingY());
+            ImGui.setCursorPosY(ImGui.getWindowHeight() - buttonReserverY - ButtonHeight / 2.0f);
             float startX = ImGui.getCursorStartPosX();
-            float buttonPivotX = buttonWidth * 0.5f;
+            float buttonPivotX = ButtonWidth * 0.5f;
             float availX = ImGui.getContentRegionAvailX();
             float saveX = startX + availX * 0.15f - buttonPivotX;
             float noSaveX = startX + availX * 0.5f - buttonPivotX;
             float cancelX = startX + availX * 0.85f - buttonPivotX;
             ImGui.setCursorPosX(saveX);
-            if (ImGui.button("Save", buttonWidth, 0)) {
+            if (ImGui.button("Save", ButtonWidth, ButtonHeight)) {
                 if (enableSaveOnExit.get()) enableAutosave();
                 if (LogicServer.currentSceneName() == null) SaveSceneAsDialog.show(ExitToProjectListDialog::saveAndExit);
                 else saveAndExit();
@@ -75,7 +74,7 @@ public final class ExitToProjectListDialog {
             }
             ImGui.sameLine();
             ImGui.setCursorPosX(noSaveX);
-            if (ImGui.button("Don't save", buttonWidth, 0)) {
+            if (ImGui.button("Don't save", ButtonWidth, ButtonHeight)) {
                 if (enableSaveOnExit.get()) enableAutosave();
                 ExitToProjectList.toProjectList(true);
                 Window.get().forceClose();
@@ -84,10 +83,9 @@ public final class ExitToProjectListDialog {
             }
             ImGui.sameLine();
             ImGui.setCursorPosX(cancelX);
-            if (ImGui.button("Cancel", buttonWidth, 0)) {
+            if (ImGui.button("Cancel", ButtonWidth, ButtonHeight)) {
                 showDialog = false;
                 ImGui.closeCurrentPopup();
-
             }
             ImGui.endPopup();
         }
