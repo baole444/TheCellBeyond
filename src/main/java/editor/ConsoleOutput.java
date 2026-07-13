@@ -103,7 +103,7 @@ public final class ConsoleOutput implements EngineLogListener {
             dirty = true;
         }
         if (!EditorWidget.iconButton("Open##Open_project_log_directory", EditorIcons.Icons.Open, "Click to open project's log directory", IconSize, IconSize)) return;
-        SystemExplorer.open(UserPreference.logDirectory(Project.uuid()));
+        SystemExplorer.openDirectory(UserPreference.logDirectory(Project.uuid()));
     }
 
     private void logContextMenu(Row row) {

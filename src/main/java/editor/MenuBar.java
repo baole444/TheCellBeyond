@@ -49,7 +49,7 @@ final class MenuBar {
     private static void renderProjectMenu() {
         if (!ImGui.beginMenu("Project##MenuBar_Project_Menu")) return;
         if (ImGui.menuItem("Preferences##MenuBar_Project_prefs")) EditProjectSettingsDialog.show();
-        if (ImGui.menuItem("Open Project Directory##MenuBar_Project_Open_Directory")) SystemExplorer.open(Path.of(Project.projectRoot()));
+        if (ImGui.menuItem("Open Project Directory##MenuBar_Project_Open_Directory")) SystemExplorer.openDirectory(Path.of(Project.projectRoot()));
         ImGui.separator();
         if (ImGui.menuItem("Exit to Project List##MenuBar_Exit_To_Project_List")) ExitToProjectListDialog.show();
         ImGui.endMenu();

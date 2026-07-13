@@ -3,6 +3,7 @@ package editor.dialogs;
 import editor.EditorColors;
 import editor.EditorIcons;
 import editor.EditorWidget;
+import editor.SystemExplorer;
 import editor.preference.EditorPreferences;
 import editor.preference.UserPreference;
 import editor.widgets.SelectableTextView;
@@ -20,6 +21,12 @@ import scripting.builder.BuildStatus;
 import scripting.builder.ScriptBuilder;
 import utility.log.EngineLog;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,6 +59,9 @@ final class ScriptsTab {
     private static final List<Row> ErrorRows = new ArrayList<>();
     private static BuildStatus lastStatus;
     private static boolean hasError = false;
+
+    private static final String ErrorFileName = "last-build-error.txt";
+    private static final DateTimeFormatter ErrorFileTimeFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     static void clear() {
         hoveredControl = HoveredControl.None;
@@ -114,8 +124,7 @@ final class ScriptsTab {
             EditorWidget.textCenterAlign(message);
             return;
         }
-        if (ImGui.beginChild("##ST_Build_Error_View_Region", ImGuiChildFlags.Borders)) ErrorView.render("##ST_Build_Error_View", ErrorRows);
-        ImGui.endChild();
+        renderErrorView();
     }
 
     private static void renderClearButton(Runnable onClear, float height) {
@@ -207,6 +216,24 @@ final class ScriptsTab {
         ImGui.popStyleColor(1);
     }
 
+    private static void renderErrorView() {
+        if (!ImGui.beginTable("##ST_Build_Error_View_Layout_Table", 2)) return;
+        ImGui.tableSetupColumn("##ST_Build_Error_Content_Column", ImGuiTableColumnFlags.WidthStretch);
+        ImGui.tableSetupColumn("##ST_Build_Error_Control_Column", ImGuiTableColumnFlags.WidthFixed);
+        ImGui.tableNextColumn();
+        if (ImGui.beginChild("##ST_Build_Error_View_Region", ImGuiChildFlags.Borders)) ErrorView.render("##ST_Build_Error_View", ErrorRows);
+        ImGui.endChild();
+        ImGui.tableNextColumn();
+        if (EditorWidget.iconButton("Dismiss##ST_Dismiss_Build_Error_Button", EditorIcons.Icons.Delete, "Dismiss current build error", IconSize, IconSize)) {
+            hasError = false;
+            ErrorView.clearSelection();
+            message = "Error dismissed";
+        }
+        ImGui.spacing();
+        if (EditorWidget.iconButton("Open##ST_Open_Build_Error_In_File", EditorIcons.Icons.Open, "Show build error in file", IconSize, IconSize)) openErrorInFile();
+        ImGui.endTable();
+    }
+
     private static boolean canAddNewScanDir(String newDirName) {
         if (newDirName == null || newDirName.isBlank()) return false;
         newDirName = newDirName.trim();
@@ -246,6 +273,34 @@ final class ScriptsTab {
             return;
         }
         status.errors().forEach(e -> ErrorRows.add(new Row(e, EditorColors.ErrorLogColor)));
+    }
+
+    private static void openErrorInFile() {
+        Path logDir = UserPreference.logDirectory(Project.uuid());
+        if (logDir == null) {
+            EngineLog.warning("Script Error", "Cannot write build error file: no log directory available");
+            return;
+        }
+        Path file = logDir.resolve(ErrorFileName);
+        try {
+            Files.createDirectories(logDir);
+            final String newLine = System.lineSeparator();
+            StringBuilder content = new StringBuilder();
+            content.append("TheCellBeyond script build error - Game Project: ").append(Project.preference().name()).append(newLine);
+            content.repeat("-", 16).append(newLine);
+            content.append("Generated: ").append(LocalDateTime.now().format(ErrorFileTimeFormat)).append(newLine);
+            if (lastStatus != null) {
+                content.append("Phase: ").append(lastStatus.phase()).append(newLine);
+                content.append("Exit code: ").append(lastStatus.exitCode()).append(newLine);
+            }
+            content.append(newLine);
+            ErrorRows.forEach(row -> content.append(row.text).append(newLine));
+            Files.writeString(file, content.toString(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            EngineLog.error("Script Error", "Failed to write build error file: " + e.getMessage());
+            return;
+        }
+        SystemExplorer.openFile(file);
     }
 
     private static String formatDuration(long durationMs) {
