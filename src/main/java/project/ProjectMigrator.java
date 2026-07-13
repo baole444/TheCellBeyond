@@ -14,6 +14,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * Migrator for the project file {@link ProjectData}. Values of old entries are preserve via mapping on none breaking changes,
@@ -51,7 +52,10 @@ final class ProjectMigrator {
         Map<String, Object> stored = migrator.read();
         if (stored == null) return null;
         int fileVersion = version(stored);
-        if (fileVersion >= ProjectData.SaveVersion) return migrator.bind(stored);
+        if (fileVersion >= ProjectData.SaveVersion) {
+            if (addUUID(stored)) migrator.write(stored);
+            return migrator.bind(stored);
+        }
         Logger.debug(String.format("Updating project file version %d to version %d...", fileVersion, ProjectData.SaveVersion));
         long start = System.currentTimeMillis();
         migrator.backup(fileVersion);
@@ -149,6 +153,13 @@ final class ProjectMigrator {
         } catch (IOException e) {
             Logger.warning("Failed to backup project file: " + e.getMessage());
         }
+    }
+
+    private static boolean addUUID(Map<String, Object> stored) {
+        Object uuid = stored.get(ProjectData.UUIDKey);
+        if (uuid != null && !uuid.toString().isBlank()) return false;
+        stored.put(ProjectData.UUIDKey, UUID.randomUUID().toString());
+        return true;
     }
 
     private static int version(Map<String, Object> stored) {

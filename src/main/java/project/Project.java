@@ -124,7 +124,7 @@ public final class Project {
         if (noProjectLoaded()) return false;
         ProjectPreference oldPref = preference;
         preference = new ProjectPreference(name, windowWidth, windowHeight, allowResize, maintainAspectRatio, resizeMode, textureGlobalScale, clearColor, physicFrameRate, renderingSetting);
-        CurrentProject = new ProjectData(CurrentProject.version(),
+        CurrentProject = new ProjectData(CurrentProject.version(), CurrentProject.uuid(),
                 preference, CurrentProject.assets(),
                 CurrentProject.sheets(), CurrentProject.scenes(),
                 CurrentProject.inputActions(), CurrentProject.physicLayers(),
@@ -328,7 +328,6 @@ public final class Project {
 
     public static String getPhysicLayerName(int layerIndex) {
         if (CurrentProject == null) return "Layer " + layerIndex;
-        PhysicLayerName physicLayerName = CurrentProject.physicLayers();
         return CurrentProject.physicLayers().layerName(layerIndex);
     }
 
@@ -342,7 +341,8 @@ public final class Project {
         String name = newName.trim();
         if (name.isEmpty()) return false;
         PhysicLayerName update = CurrentProject.physicLayers().updateLayerName(layerIndex, name);
-        CurrentProject = new ProjectData(CurrentProject.version(), CurrentProject.project(), CurrentProject.assets(),
+        CurrentProject = new ProjectData(CurrentProject.version(), CurrentProject.uuid(),
+                CurrentProject.project(), CurrentProject.assets(),
                 CurrentProject.sheets(), CurrentProject.scenes(),
                 CurrentProject.inputActions(), update,
                 CurrentProject.scriptScanDirs()
@@ -479,6 +479,14 @@ public final class Project {
                 System.err.println("Cannot create missing '" + dir + "' directory for the project");
             }
         }
+    }
+
+    /**
+     * Get the current project UUID.
+     * @return the uuid, or null if there is no project loaded
+     */
+    public static UUID uuid() {
+        return CurrentProject != null ? CurrentProject.uuid() : null;
     }
 
     public static List<String> getSceneNames() {

@@ -27,6 +27,7 @@ public final class UserPreference {
     private static final String EditorPreferenceFile = "configs";
     private static final String JDKRegistryFile = "jdk_registry";
     private static final String JDKInstallDir = "jdks";
+    private static final String LogDir = "logs";
     private static final String EditorLayoutFile = "layout.ini";
     private static final ObjectMapper YAMLMapper = new ObjectMapper(new YAMLFactory()).rebuild().disable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
     private static final HashMap<UUID, RecentProject> recentProjects = new HashMap<>();
@@ -43,6 +44,16 @@ public final class UserPreference {
     }
 
     private UserPreference() {}
+
+    /**
+     * Get the log directory of the given project UUID.
+     * @param projectID the loaded project's UUID
+     * @return the project's log directory, or null when there is no config file or the id is null
+     */
+    public static Path logDirectory(UUID projectID) {
+        if (ConfigDir == null || projectID == null) return null;
+        return ConfigDir.resolve(LogDir).resolve(projectID.toString());
+    }
 
     /**
      * Get the currently cached entries of JDK installations.

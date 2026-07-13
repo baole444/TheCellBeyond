@@ -1,11 +1,13 @@
 package editor;
 
+import editor.preference.UserPreference;
 import editor.widgets.SelectableTextView;
 import editor.widgets.SelectableTextView.Row;
 import imgui.ImGui;
 import imgui.flag.ImGuiTableColumnFlags;
 import imgui.flag.ImGuiTableFlags;
 import imgui.type.ImBoolean;
+import project.Project;
 import utility.RingBuffer;
 import utility.log.*;
 
@@ -95,10 +97,13 @@ public final class ConsoleOutput implements EngineLogListener {
         EditorWidget.selectableIcon(WarningId, EditorIcons.LogLevelIcons.Warning, "Show/hide warning log level", enableWarning, IconSize, IconSize);
         EditorWidget.selectableIcon(ErrorId, EditorIcons.LogLevelIcons.Error, "Show/hide error log level", enableError, IconSize, IconSize);
         ImGui.separator();
-        if (!EditorWidget.iconButton("Clear##Clear_log_history", EditorIcons.Icons.Delete, "Click to clear log history", IconSize, IconSize)) return;
-        EngineLog.clear();
-        entries.clear();
-        dirty = true;
+        if (EditorWidget.iconButton("Clear##Clear_log_history", EditorIcons.Icons.Delete, "Click to clear log history", IconSize, IconSize)) {
+            EngineLog.clear();
+            entries.clear();
+            dirty = true;
+        }
+        if (!EditorWidget.iconButton("Open##Open_project_log_directory", EditorIcons.Icons.Open, "Click to open project's log directory", IconSize, IconSize)) return;
+        SystemExplorer.open(UserPreference.logDirectory(Project.uuid()));
     }
 
     private void logContextMenu(Row row) {

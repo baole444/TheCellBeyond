@@ -5,20 +5,11 @@ import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiWindowFlags;
-import project.ProjectData;
-import project.ProjectPreference;
-import tools.jackson.core.exc.JacksonIOException;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.dataformat.yaml.YAMLFactory;
-
-import java.io.File;
 
 public final class RemoveMissingProjectDialog {
     private static final String PopupID = "Missing project";
     private static final ImVec2 DialogSize = new ImVec2(400.0f, 160.0f);
     private static boolean showDialog = false;
-
-    private static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory());
     private static Runnable onRemoveCallback = null;
     private static RecentProject selectedProject = null;
 
@@ -71,27 +62,6 @@ public final class RemoveMissingProjectDialog {
         if (!ImGui.isPopupOpen(PopupID)) {
             showDialog = false;
             onRemoveCallback = null;
-        }
-    }
-
-    private static ProjectData getFromYaml(String path) {
-        ProjectData selectedProject;
-        try {
-            File projectFile = new File(path);
-            selectedProject = YAML_MAPPER.readValue(projectFile, ProjectData.class);
-            if (selectedProject != null && selectedProject.project() == null) {
-                System.err.println("Project preference is missing, generating new preference...");
-                selectedProject = new ProjectData(selectedProject.version(),
-                        new ProjectPreference(), selectedProject.assets(),
-                        selectedProject.sheets(), selectedProject.scenes(),
-                        selectedProject.inputActions(), selectedProject.physicLayers(),
-                        selectedProject.scriptScanDirs()
-                );
-            }
-            return selectedProject;
-        } catch (JacksonIOException e) {
-            System.err.println("Failed to load project file: " + e.getMessage());
-            return null;
         }
     }
 }

@@ -4,6 +4,7 @@ import TheCellBeyond.internal.LogicServer;
 import TheCellBeyond.internal.RenderingServer;
 import editor.EditorLayer;
 import editor.dialogs.ExitConfirmDialog;
+import editor.log.LogFileWriter;
 import editor.preference.UserPreference;
 import eventviewer.EngineEventCallback;
 import eventviewer.EngineEventListener;
@@ -330,6 +331,7 @@ public final class Window implements EngineEventListener {
         glfwTerminate();
         NFD_Quit();
         Objects.requireNonNull(glfwSetErrorCallback(null)).free();
+        LogFileWriter.stop();
     }
 
     private void loop() {
@@ -429,6 +431,7 @@ public final class Window implements EngineEventListener {
         if (event.type != EditorEvent.Type.ProjectLoaded) return;
         projectLoaded = Project.loaded();
         if (!projectLoaded) return;
+        LogFileWriter.start(UserPreference.logDirectory(Project.uuid()));
         ClearColor clearColor = Project.preference().clearColor();
         r = clearColor.r();
         g = clearColor.g();

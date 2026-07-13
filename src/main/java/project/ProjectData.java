@@ -5,7 +5,7 @@ import TheCellBeyond.InputAction;
 import java.util.*;
 
 public record ProjectData(
-        int version, ProjectPreference project,
+        int version, UUID uuid, ProjectPreference project,
         Map<UUID, ProjectAssetMap> assets,
         Map<String, Map<String, ProjectSheetMap>> sheets,
         Map<String, ProjectSceneMap> scenes,
@@ -21,9 +21,14 @@ public record ProjectData(
      * The YAML key that store the project file schema version number.
      */
     static final String VersionKey = "version";
+    /**
+     * The YAML key that store the project's uuid.
+     */
+    static final String UUIDKey = "uuid";
     private static final List<String> DefaultScriptScanDir = List.of("scripts");
 
     public ProjectData {
+        if (uuid == null) uuid = UUID.randomUUID();
         if (project == null) project = new ProjectPreference();
         if (assets == null) assets = new HashMap<>();
         if (sheets == null) sheets = new HashMap<>();
@@ -34,10 +39,10 @@ public record ProjectData(
     }
 
     public ProjectData(ProjectPreference preference) {
-        this(SaveVersion, preference, new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new PhysicLayerName(), new ArrayList<>(DefaultScriptScanDir));
+        this(SaveVersion, null, preference, new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new PhysicLayerName(), new ArrayList<>(DefaultScriptScanDir));
     }
 
     public ProjectData(int version, ProjectPreference preference) {
-        this(version, preference, new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new PhysicLayerName(), new ArrayList<>(DefaultScriptScanDir));
+        this(version, null, preference, new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new PhysicLayerName(), new ArrayList<>(DefaultScriptScanDir));
     }
 }

@@ -19,7 +19,6 @@ import org.lwjgl.system.Callback;
 import org.lwjgl.system.Platform;
 import project.Project;
 import project.ProjectData;
-import project.ProjectPreference;
 import tools.jackson.core.exc.JacksonIOException;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
@@ -283,20 +282,9 @@ public final class StartupWindow {
     }
 
     private static ProjectData getFromYaml(String path) {
-        ProjectData selectedProject;
         try {
             File projectFile = new File(path);
-            selectedProject = YAMLMapper.readValue(projectFile, ProjectData.class);
-            if (selectedProject != null && selectedProject.project() == null) {
-                System.err.println("Project preference is missing, generating new preference...");
-                selectedProject = new ProjectData(selectedProject.version(),
-                        new ProjectPreference(), selectedProject.assets(),
-                        selectedProject.sheets(), selectedProject.scenes(),
-                        selectedProject.inputActions(), selectedProject.physicLayers(),
-                        selectedProject.scriptScanDirs()
-                );
-            }
-            return selectedProject;
+            return YAMLMapper.readValue(projectFile, ProjectData.class);
         } catch (JacksonIOException e) {
             System.err.println("Failed to load project file: " + e.getMessage());
             return null;
