@@ -15,12 +15,13 @@ import render.texture.TileSet;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TileMapEditor {
+public final class TileMapEditor {
     private enum Mode {
         Draw,
         Select,
         Erase
     }
+
     private static final float modeRegionReserve = ImGui.getFrameHeightWithSpacing();
     private static final float modeSelectableSize = 20.0f;
     private static Mode editingMode = Mode.Select;

@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-class SpriteFrameEditor {
+final class SpriteFrameEditor {
     private static final String ControlSection = "##Sprite frame controls";
     private static final float PreviewFrameSize = 96.0f;
     private static final float InputWidth = ImGui.calcTextSizeX("999.999");
@@ -68,19 +68,15 @@ class SpriteFrameEditor {
         }
         renderAnimationControl();
         ImGui.endChild();
-
         if (!ImGui.beginTable("##SFE_Table_Id", 2, ImGuiTableFlags.NoBordersInBody | ImGuiTableFlags.SizingStretchProp, ImGui.getContentRegionAvail())) return;
-
         float remainWidth = Math.max(animationListWidth, ImGui.getContentRegionAvailX() * animationListXPercentage);
         ImGui.tableSetupColumn("##SFE_AnimationList_Column", ImGuiTableColumnFlags.WidthFixed, remainWidth);
         ImGui.tableSetupColumn("##SFE_AnimationFrames_Column", ImGuiTableColumnFlags.WidthStretch);
-
         ImGui.tableNextColumn();
         if (ImGui.beginChild("##SFE_AnimationList", ImGui.getContentRegionAvail(), true)) {
             renderAnimationList();
             ImGui.endChild();
         }
-
         ImGui.tableNextColumn();
         if (ImGui.beginChild("##SFE_AnimationFrames", ImGui.getContentRegionAvail(), true)) {
             if (selectedName == null) {
@@ -94,10 +90,8 @@ class SpriteFrameEditor {
                 renderFrameList();
             }
         }
-
         ImGui.endChild();
         spriteDragDropPayload();
-
         ImGui.endTable();
     }
 
@@ -106,7 +100,6 @@ class SpriteFrameEditor {
             if (EditorWidget.iconButton("Add##Add_New_Animation_SFC", EditorIcons.Icons.New, "Create new animation")) selectedName = editingAnimatedSprite.newAnimation();
             return;
         }
-
         if (!ImGui.beginTable("##Animation_Frame_Control_SFC", 5, ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.SizingFixedFit)) {
             ImGui.textDisabled("Control function failed to initiate");
             return;
@@ -118,10 +111,8 @@ class SpriteFrameEditor {
         ImGui.tableSetupColumn("##FrameTime_Animation_Column_SFC");
         ImGui.tableNextColumn();
         if (EditorWidget.iconButton("Add##Add_New_Animation_SFC", EditorIcons.Icons.New, "Create new animation")) editingAnimatedSprite.newAnimation();
-
         ImGui.sameLine();
         if (EditorWidget.iconButton("Duplicate##Duplicate_Animation_SFC", EditorIcons.Icons.Copy, "Duplicate selected animation")) editingAnimatedSprite.duplicateAnimation(selectedName);
-
         ImGui.sameLine();
         if (EditorWidget.iconButton("Delete##Delete_Animation_SFC", EditorIcons.Icons.Delete, "Delete selected animation")) {
             editingAnimatedSprite.removeAnimation(selectedName);
@@ -133,29 +124,22 @@ class SpriteFrameEditor {
             ImGui.endTable();
             return;
         }
-
         ImGui.tableNextColumn();
         boolean currentlyDefault = Objects.equals(editingAnimatedSprite.defaultAnimation(), selectedName);
         ImBoolean setAsDefault = new ImBoolean(currentlyDefault);
         if (ImGui.checkbox("Default", setAsDefault)) {
             boolean setVal = setAsDefault.get();
-            if (setVal) {
-                editingAnimatedSprite.setDefaultAnimation(selectedName);
-            } else {
-                editingAnimatedSprite.setDefaultAnimation(null);
-            }
+            if (setVal) editingAnimatedSprite.setDefaultAnimation(selectedName);
+            else editingAnimatedSprite.setDefaultAnimation(null);
         }
-
         ImGui.tableNextColumn();
         ImBoolean enableLoop = new ImBoolean(editingAnimatedSprite.isAnimationLoop(selectedName));
         if (ImGui.checkbox("Loop", enableLoop)) editingAnimatedSprite.setAnimationLoop(enableLoop.get(), selectedName);
-
         ImGui.sameLine();
         ImFloat fps = new ImFloat(editingAnimatedSprite.getAnimationFPS(selectedName));
         ImGui.pushItemWidth(InputWidth);
         if (ImGui.inputFloat("FPS", fps, 0.0f, 0.0f, "%.2f")) editingAnimatedSprite.setFPS(fps.get(), selectedName);
         ImGui.popItemWidth();
-
         ImGui.sameLine();
         if (EditorWidget.iconButton("Step Back##Step_Back_Frame_SFC", EditorIcons.SpriteFrameIcons.PreviousFrame, "Step animation back 1 frame")) {
             editingAnimatedSprite.pause();
@@ -165,35 +149,21 @@ class SpriteFrameEditor {
                 selectedFrame = current.currentFrameIndex();
             }
         }
-
         boolean play = editingAnimatedSprite.isPlaying();
         boolean backward = editingAnimatedSprite.isBackward();
-
         ImGui.sameLine();
         if (EditorWidget.iconButton("Play Backward##Play_Animation_Backward_SFC", EditorIcons.SpriteFrameIcons.PlayBackward, "Play/Resume the animation backward")) {
-            if (play && !backward) {
-                editingAnimatedSprite.playBackward(selectedName);
-            } else if (!play) {
-                editingAnimatedSprite.resume();
-            }
+            if (play && !backward) editingAnimatedSprite.playBackward(selectedName);
+            else if (!play) editingAnimatedSprite.resume();
         }
-
         ImGui.sameLine();
-        if (play) {
-            if (EditorWidget.iconButton("Pause##Pause_Animation_SFC", EditorIcons.SpriteFrameIcons.Pause, "Pause the animation")) editingAnimatedSprite.pause();
-        } else {
-            if (EditorWidget.iconButton("Stop##Stop_Animation_SFC", EditorIcons.SpriteFrameIcons.Stop, "Stop the animation")) editingAnimatedSprite.stop();
-        }
-
+        if (play) if (EditorWidget.iconButton("Pause##Pause_Animation_SFC", EditorIcons.SpriteFrameIcons.Pause, "Pause the animation")) editingAnimatedSprite.pause();
+        else if (EditorWidget.iconButton("Stop##Stop_Animation_SFC", EditorIcons.SpriteFrameIcons.Stop, "Stop the animation")) editingAnimatedSprite.stop();
         ImGui.sameLine();
         if (EditorWidget.iconButton("Play#Play_Animation_SFC", EditorIcons.SpriteFrameIcons.Play, "Play/Resume the animation")) {
-            if (play && backward) {
-                editingAnimatedSprite.play(selectedName);
-            } else if (!play) {
-                editingAnimatedSprite.resume();
-            }
+            if (play && backward) editingAnimatedSprite.play(selectedName);
+            else if (!play) editingAnimatedSprite.resume();
         }
-
         ImGui.sameLine();
         if (EditorWidget.iconButton("Step Forward##Step_Forward_Frame_SFC", EditorIcons.SpriteFrameIcons.NextFrame, "Step animation forward 1 frame")) {
             editingAnimatedSprite.pause();
@@ -203,41 +173,35 @@ class SpriteFrameEditor {
                 selectedFrame = animation.currentFrameIndex();
             }
         }
-
         ImGui.tableNextColumn();
         if (EditorWidget.iconButton("Move Frame Left##Move_Frame_Left_SFC", EditorIcons.SpriteFrameIcons.MoveFrameLeft, "Move selected frame to the left of the current index")) {
             editingAnimatedSprite.stop();
             boolean moved = editingAnimatedSprite.moveFrameLeft(selectedName, selectedFrame);
             if (moved) selectedFrame--;
         }
-
         ImGui.sameLine();
         if (EditorWidget.iconButton("Move Frame Right##Move_Frame_Right_SFC", EditorIcons.SpriteFrameIcons.MoveFrameRight, "Move selected frame to the right of the current index")) {
             editingAnimatedSprite.stop();
             boolean moved = editingAnimatedSprite.moveFrameRight(selectedName, selectedFrame);
             if (moved) selectedFrame++;
         }
-
         ImGui.sameLine();
         if (EditorWidget.iconButton("Delete Frame##Delete_Frame_SFC", EditorIcons.Icons.Delete, "Delete the selected frame from the animation")) {
             editingAnimatedSprite.stop();
             editingAnimatedSprite.removeFrame(selectedName, selectedFrame);
             selectedFrame = 0;
         }
-
         ImGui.tableNextColumn();
         Animation animation = editingAnimatedSprite.currentAnimation();
         ImFloat speedMultiplier = new ImFloat(animation.speedMultiplier());
         ImGui.pushItemWidth(InputWidth);
         if (ImGui.inputFloat("Speed", speedMultiplier, 0.0f, 0.0f, "%.2f")) animation.setSpeed(speedMultiplier.get());
         ImGui.popItemWidth();
-
         ImGui.endTable();
     }
 
     private static void renderAnimationList() {
         HashMap<String, Animation> animations = editingAnimatedSprite.animations();
-
         for (Map.Entry<String, Animation> entry : animations.entrySet()) {
             boolean isSelected = Objects.equals(selectedName, entry.getKey());
             ImVec2 cursorPos = ImGui.getCursorPos();
@@ -250,16 +214,13 @@ class SpriteFrameEditor {
                     editingAnimatedSprite.setCurrentAnimation(entry.getKey());
                 }
             }
-
             if (renderAnimationNameEdit(entry.getKey(), cursorPos, isSelected)) continue;
-
             if (ImGui.isItemHovered() && ImGui.isMouseDoubleClicked(ImGuiMouseButton.Left)) {
                 editingName = entry.getKey();
                 EditingNameBuffer.set(editingName);
                 ImGui.spacing();
                 continue;
             }
-
             ImGui.setCursorPos(cursorPos.x, cursorPos.y + (height - ImGui.getTextLineHeight()) / 2.0f);
             if (Objects.equals(editingAnimatedSprite.defaultAnimation(), entry.getKey())) {
                 ImGui.text("(Default)");
@@ -276,7 +237,6 @@ class SpriteFrameEditor {
         if (animation == null) return;
         List<Frame> frames = animation.frames();
         if (frames.isEmpty()) return;
-
         float spacing = ImGui.getStyle().getItemSpacingX();
         float availWidth = ImGui.getContentRegionAvailX();
         float textLineHeight = ImGui.getTextLineHeightWithSpacing();
@@ -287,7 +247,6 @@ class SpriteFrameEditor {
             int textureID = sprite.getTextureID();
             Vector2f scaledSpriteSize = TextureScale.calculateFitDimension(sprite.getWidth(), sprite.getHeight(), PreviewFrameSize, PreviewFrameSize - textLineHeight);
             Vector2f[] textureCoordinates = sprite.getTextureCoordinates();
-
             String compositeId = selectedName + "_frame_" + i;
             ImGui.pushID(compositeId);
             ImVec2 cursorPos = ImGui.getCursorPos();
@@ -304,7 +263,6 @@ class SpriteFrameEditor {
             );
             float buttonWidth = ImGui.getItemRectSizeX();
             consumedWidth += (buttonWidth + spacing);
-
             float cursorX = ImGui.getCursorPosX();
             String frameIndex = Integer.toString(i);
             float indexWidth = ImGui.calcTextSizeX(frameIndex);
@@ -312,13 +270,11 @@ class SpriteFrameEditor {
             ImGui.setCursorPosX(cursorX + offset);
             ImGui.text(frameIndex);
             ImGui.endGroup();
-
             ImGui.popID();
             if (consumedWidth + buttonWidth + spacing <= availWidth) {
                 ImGui.sameLine();
                 continue;
             }
-
             consumedWidth = 0.0f;
             ImGui.spacing();
         }
@@ -335,7 +291,6 @@ class SpriteFrameEditor {
             ImGui.spacing();
             return true;
         }
-
         if ((ImGui.isItemFocused() && ImGui.isKeyPressed(ImGuiKey.Enter)) || !isSelected) {
             String newName = EditingNameBuffer.get().trim();
             boolean success = editingAnimatedSprite.renameAnimation(name, newName);
@@ -345,7 +300,6 @@ class SpriteFrameEditor {
             ImGui.spacing();
             return true;
         }
-
         ImGui.spacing();
         return true;
     }
@@ -357,28 +311,23 @@ class SpriteFrameEditor {
                 ImGui.endDragDropTarget();
                 return;
             }
-
             if (ImGui.isWindowHovered()) {
                 ImDrawList drawList = ImGui.getWindowDrawList();
                 ImVec2 min = ImGui.getItemRectMin();
                 ImVec2 max = ImGui.getItemRectMax();
                 drawList.addRect(min, max, ImGui.colorConvertFloat4ToU32(0.2f, 0.7f, 0.2f, 0.8f), 0 , 0 , 2);
             }
-
             Object payLoad = ImGui.acceptDragDropPayload(SpriteDragDropPayload.getPayloadType());
-
             if (payLoad == null) {
                 ImGui.endDragDropTarget();
                 return;
             }
-
             Sprite dropSprite = SpriteDragDropPayload.getPayload();
             if (dropSprite != null) {
                 currentAnimation.addFrame(dropSprite, 1.0f);
                 float fps = editingAnimatedSprite.getAnimationFPS(selectedName);
                 editingAnimatedSprite.setFPS(fps, selectedName);
             }
-
             ImGui.endDragDropTarget();
         }
     }
@@ -390,5 +339,4 @@ class SpriteFrameEditor {
         editingAnimatedSprite = null;
         selectedName = null;
     }
-
 }

@@ -26,7 +26,7 @@ import java.util.UUID;
 /**
  * Editor dialogue for adding texture unit to user project.
  */
-public class AddTextureUnitDialog {
+public final class AddTextureUnitDialog {
     private static final String PopupID = "Add new TextureUnit";
     private static final String FileSelectionID = "File_Selection";
     private static final String PreviewImageID = "TextureUnit_Preview";

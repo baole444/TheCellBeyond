@@ -268,11 +268,8 @@ public final class StartupWindow {
             ImGui.textWrapped(recentProject.path());
             ImGui.endDisabled();
             ImGui.setCursorPosX(cursorPos.x);
-            if (!recentProject.isPresentedAtPath()) {
-                ImGui.textColored(ImGui.colorConvertFloat4ToU32(1.0f, 0.2f, 0.2f, 1.0f), "Cannot locate project at designated location");
-            } else {
-                ImGui.newLine();
-            }
+            if (!recentProject.isPresentedAtPath()) ImGui.textColored(ImGui.colorConvertFloat4ToU32(1.0f, 0.2f, 0.2f, 1.0f), "Cannot locate project at designated location");
+            else ImGui.newLine();
             float finalY = ImGui.getCursorPosY();
             ImGui.setCursorPos(originalX, finalY + ImGui.getStyle().getWindowPaddingY());
             ImGui.separator();

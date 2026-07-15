@@ -20,7 +20,7 @@ import java.util.List;
 /**
  * The auxiliary inspector panel beneath the scene editor viewport.
  */
-public class BottomPanel {
+public final class BottomPanel {
     /**
      * The ID string of the bottom panel for layout control.
      */
@@ -50,9 +50,6 @@ public class BottomPanel {
         }
     }
 
-    /**
-     * Create the bottom panel module.
-     */
     private BottomPanel() {}
 
     /**
@@ -156,19 +153,16 @@ public class BottomPanel {
             tabWidth = getMaxTabNameWidth();
             widthCalculated = true;
         }
-
         List<TabName> workingTabs = getWorkingTabs();
         ImVec2 remainTableSize = ImGui.getContentRegionAvail();
         if (!ImGui.beginTable(TableID, workingTabs.size(), ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.SizingStretchProp, remainTableSize)) {
             ImGui.endChild();
             return;
         }
-
         for (TabName tab : workingTabs) {
             String id = "##Bottom panel " + tab.name + " column";
             ImGui.tableSetupColumn(id, ImGuiTableColumnFlags.WidthFixed, tabWidth + Padding);
         }
-
         ImVec2 availSpace;
         ImVec2 cursorPos;
         for (TabName tab : workingTabs) {
@@ -184,7 +178,6 @@ public class BottomPanel {
             ImGui.setCursorPos(cursorPos.x + offset, cursorPos.y);
             ImGui.text(tab.name);
         }
-
         ImGui.endTable();
         ImGui.endChild();
     }
@@ -192,12 +185,10 @@ public class BottomPanel {
     private static List<TabName> getWorkingTabs() {
         List<TabName> tabs = new ArrayList<>();
         tabs.add(TabName.Output);
-
         if (workingTab != null) {
             tabs.add(workingTab);
             if (workingTab == TabName.TileSet) tabs.add(TabName.TileMap);
         }
-
         return tabs;
     }
 

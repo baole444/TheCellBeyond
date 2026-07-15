@@ -19,7 +19,7 @@ import utility.log.EngineLog;
 
 import java.util.List;
 
-public class SceneTree {
+public final class SceneTree {
     private static final EngineLog Logger = new EngineLog(SceneTree.class);
     public static final String WindowID = "Scene Tree###Editor_Current_Scene_Tree";
     private static final String SceneTreeID = "Scene_Tree_Section";
@@ -123,11 +123,8 @@ public class SceneTree {
             ImGui.endDragDropTarget();
             return;
         }
-        if (scene.reorderObject(dropGO, sibling, insertBefore)) {
-            Logger.info(String.format("Reordered '%s' %s '%s'", dropGO.name(), order, sibling.name()));
-        } else {
-            Logger.warning(String.format("Cannot reorder '%s' %s '%s'", dropGO.name(), order, sibling.name()));
-        }
+        if (scene.reorderObject(dropGO, sibling, insertBefore)) Logger.info(String.format("Reordered '%s' %s '%s'", dropGO.name(), order, sibling.name()));
+        else Logger.warning(String.format("Cannot reorder '%s' %s '%s'", dropGO.name(), order, sibling.name()));
         ImGui.endDragDropTarget();
     }
 
@@ -145,36 +142,33 @@ public class SceneTree {
 
     private static void renderContextMenu(GameObject go, Scene scene) {
         if (go == null || scene == null) return;
-        if (ImGui.beginPopupContextItem()) {
-            if (ImGui.menuItem("Delete")) {
-                scene.queueObjectForRemoval(go);
-                Properties.clearSelection();
-                clearSelection();
-            }
-            if (ImGui.beginMenu("Duplicate...")) {
-                GameObject copy = null;
-                if (ImGui.menuItem("Without children")) copy = go.copy();
-                if (ImGui.menuItem("With children")) copy = go.copy(true);
-                if (copy != null) {
-                    copy.name(go.name() + "_copy");
-                    scene.queueForObjectAddition(copy, go.getParent());
-                }
-                ImGui.endMenu();
-            }
-            if (go.getParent() != null && ImGui.menuItem("Move to Root")) scene.reparentObject(go, null);
-            if (ImGui.menuItem("Change type...")) ChooseObjectTypeDialog.showReplace(go);
-            ImGui.separator();
-            if (ImGui.menuItem("Add child Object...")) {
-                AddObjectDialog.show(go);
-            }
-            ImGui.separator();
-            if (ImGui.beginMenu("Save as Prefab...")) {
-                if (ImGui.menuItem("Without children")) savePrefabDialog(go, false);
-                if (!go.getChildren().isEmpty() && ImGui.menuItem("With children")) savePrefabDialog(go, true);
-                ImGui.endMenu();
-            }
-            ImGui.endPopup();
+        if (!ImGui.beginPopupContextItem()) return;
+        if (ImGui.menuItem("Delete")) {
+            scene.queueObjectForRemoval(go);
+            Properties.clearSelection();
+            clearSelection();
         }
+        if (ImGui.beginMenu("Duplicate...")) {
+            GameObject copy = null;
+            if (ImGui.menuItem("Without children")) copy = go.copy();
+            if (ImGui.menuItem("With children")) copy = go.copy(true);
+            if (copy != null) {
+                copy.name(go.name() + "_copy");
+                scene.queueForObjectAddition(copy, go.getParent());
+            }
+            ImGui.endMenu();
+        }
+        if (go.getParent() != null && ImGui.menuItem("Move to Root")) scene.reparentObject(go, null);
+        if (ImGui.menuItem("Change type...")) ChooseObjectTypeDialog.showReplace(go);
+        ImGui.separator();
+        if (ImGui.menuItem("Add child Object...")) AddObjectDialog.show(go);
+        ImGui.separator();
+        if (ImGui.beginMenu("Save as Prefab...")) {
+            if (ImGui.menuItem("Without children")) savePrefabDialog(go, false);
+            if (!go.getChildren().isEmpty() && ImGui.menuItem("With children")) savePrefabDialog(go, true);
+            ImGui.endMenu();
+        }
+        ImGui.endPopup();
     }
 
     private static void savePrefabDialog(GameObject go, boolean withChildren) {

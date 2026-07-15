@@ -26,7 +26,7 @@ import java.util.List;
 /**
  * Editor dialogue for importing sprite sheet to user project.
  */
-public class AddSpriteSheetDialog {
+public final class AddSpriteSheetDialog {
     private static final IdPool IDPool = new IdPool(0, false);
     private static final String PopupID = "Add new SpriteSheet";
     private static final String PreviewSheetID = "SpriteSheet_Preview";

@@ -6,7 +6,7 @@ import imgui.internal.ImGuiDockNode;
 import imgui.internal.flag.ImGuiDockNodeFlags;
 import imgui.type.ImInt;
 
-class DefaultEditorLayout {
+final class DefaultEditorLayout {
     private static final float SIDE_COLUMNS = 0.2f;
     private static final float BOTTOM_LEFT_ROW = 0.4f;
     private static final float BOTTOM_CENTRE_ROW = 0.3f;

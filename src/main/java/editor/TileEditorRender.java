@@ -24,7 +24,6 @@ final class TileEditorRender {
     static final int FirstSelectedTileFillColor = ImGui.getColorU32(1.0f, 0.5f, 0.5f, 0.25f);
     static final float SelectedThickness = 2.0f;
     static final long TickLimitNanos = 10_000_000L;
-
     private static final int OutlineSegmentSize = 4;
     private static final int OutlineSegmentPerTile = 4;
     private static final int OutlineSegmentSizePerTile = OutlineSegmentSize * OutlineSegmentPerTile;

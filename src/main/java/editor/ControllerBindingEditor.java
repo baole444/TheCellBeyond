@@ -17,7 +17,7 @@ import utility.log.EngineLog;
 import java.util.*;
 import java.util.stream.Collectors;
 
-class ControllerBindingEditor {
+final class ControllerBindingEditor {
     private static final String CONTROL_SECTION = "##Controller bindings controls";
     private static Controller2D editingController;
     private static String selectedName;

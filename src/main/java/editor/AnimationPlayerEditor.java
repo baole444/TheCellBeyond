@@ -5,11 +5,7 @@ import imgui.ImGui;
 /**
  * Placeholder for animation player editor.
  */
-public class AnimationPlayerEditor {
-
-    /**
-     * Create the module.
-     */
+public final class AnimationPlayerEditor {
     private AnimationPlayerEditor() {}
 
     /**
