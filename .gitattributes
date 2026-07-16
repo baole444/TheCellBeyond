@@ -1,3 +1,4 @@
-# Lock manifest end of line to use LF, match the generator.
+# Lock end of line to use LF on generated files, match the generator.
 # Prevent line end diffs.
 src/script-api-resources/META-INF/script-api-index.json text eol=lf
+gradle/api-surface/api-includes.text text eol=lf
