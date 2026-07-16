@@ -10,6 +10,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
+@API
 public @interface RegisterGameObject {
     /**
      * Get the display label for the custom game object.

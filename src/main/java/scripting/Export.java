@@ -11,6 +11,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
+@API
 public @interface Export {
     /**
      * Get the display label for the custom field.

@@ -2,11 +2,13 @@ package utility.prefabrication;
 
 import TheCellBeyond.GameObject;
 import TheCellBeyond.internal.LogicServer;
+import scripting.API;
 
 /**
  * Prefab provide static method to instantiate a prefab file and/or add that instance to scene.
  * To instantiate directly to scene, use {@link #instantiateToScene(String)}.
  */
+@API
 public final class Prefab {
     private Prefab() {}
     /**

@@ -5,6 +5,7 @@ import TheCellBeyond.internal.ResourceStatus;
 import org.joml.Vector2f;
 import org.joml.Vector2i;
 import render.Texture;
+import scripting.API;
 import utility.AssetManager;
 import utility.ResourceTracker;
 
@@ -16,6 +17,7 @@ import java.util.List;
  * SpriteSheet will calculate its sprites' texture coordinate and size once the texture assigned to it is ready.
  * @see TextureUnit calculate sprite as a full texture.
  */
+@API
 public class SpriteSheet {
     private Texture texture;
     private final List<Sprite> sprites;

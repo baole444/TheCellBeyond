@@ -4,7 +4,9 @@ import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.BodyDef;
 import org.joml.Vector2f;
 import physic2d.enums.PhysicBodyType;
+import scripting.API;
 
+@API
 public class KinematicBody2D extends PhysicBody2D {
     private final Vector2f velocity = new Vector2f();
     private float angularVelocity = 0.0f;

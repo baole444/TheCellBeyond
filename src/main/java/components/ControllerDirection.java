@@ -1,11 +1,13 @@
 package components;
 
 import org.joml.Vector2f;
+import scripting.API;
 
 /**
  * ControllerDirection is a record wrapper for the direction vector used by a controller binding.
  * @param directionVector the direction vector
  */
+@API
 public record ControllerDirection(Vector2f directionVector) {
     /**
      * Create a new {@link ControllerDirection}.

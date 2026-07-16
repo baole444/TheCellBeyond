@@ -1,5 +1,7 @@
 package utility;
 
+import scripting.API;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -21,6 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *      <li> <i><u>/dir/path/to/asset</u></i> - Potential absolute path, can be resolved as external or project asset</li>
  * </ul>
  */
+@API
 public final class UnifiedPaths {
     /**
      * Prefix to mark a path belong to the engine classpath, not on file system.

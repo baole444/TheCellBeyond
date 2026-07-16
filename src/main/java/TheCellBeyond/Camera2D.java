@@ -3,6 +3,7 @@ package TheCellBeyond;
 import TheCellBeyond.internal.LogicServer;
 import org.joml.Vector2f;
 import scene.Scene;
+import scripting.API;
 
 import java.util.List;
 
@@ -16,6 +17,7 @@ import java.util.List;
  * The position of the Camera2D's transform does not represent the actual position of the screen,
  * which may be differed due to smoothing or limits.
  */
+@API
 public class Camera2D extends GameObject2D {
     /**
      * Control how the position of the camera is mapped to the viewport.

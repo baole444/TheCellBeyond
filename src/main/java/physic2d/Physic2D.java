@@ -14,6 +14,7 @@ import org.jbox2d.dynamics.*;
 import org.joml.Math;
 import org.joml.Vector2f;
 import physic2d.collider.*;
+import scripting.API;
 import utility.log.EngineLog;
 
 import java.util.ArrayList;
@@ -24,6 +25,7 @@ import java.util.Set;
 /**
  * <a href="https://box2d.org">Reference Box2D code (C code)</a>
  */
+@API
 public final class Physic2D {
     private static final EngineLog Logger = new EngineLog(Physic2D.class);
     /**

@@ -1,12 +1,14 @@
 package render;
 
 import org.lwjgl.BufferUtils;
+import scripting.API;
 
 import java.nio.IntBuffer;
 
 import static org.lwjgl.glfw.GLFW.glfwGetFramebufferSize;
 import static org.lwjgl.opengl.GL30.*;
 
+@API
 public class FrameBuffer {
     private int width;
     private int height;

@@ -13,6 +13,7 @@ import render.commands.RenderCommand;
 import render.texture.Tile;
 import render.texture.TileSet;
 import scene.Scene;
+import scripting.API;
 import utility.WorldUnit;
 
 import java.util.HashMap;
@@ -21,6 +22,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
+@API
 public class TileMap extends GameObject2D {
     public record TilePlacement(Vector2i sourceCoordinate, int quarterRotations, boolean flipVertical, boolean flipHorizontal) {
         public TilePlacement {

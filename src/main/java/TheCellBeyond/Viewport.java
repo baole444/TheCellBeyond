@@ -7,8 +7,10 @@ import org.joml.Vector3f;
 import project.Project;
 import project.WindowResizeMode;
 import render.FrameBuffer;
+import scripting.API;
 import utility.WorldUnit;
 
+@API
 public class Viewport {
     public static final int NearZIndex = -16;
     public static final int FarZIndex = 1024;

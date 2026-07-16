@@ -1835,6 +1835,20 @@
           ]
         },
         {
+          "javaName": "maintainAspectRatio",
+          "snakeAlias": "maintain_aspect_ratio",
+          "signatures": [
+            "()Z"
+          ]
+        },
+        {
+          "javaName": "resizeMode",
+          "snakeAlias": "resize_mode",
+          "signatures": [
+            "()Lproject/WindowResizeMode;"
+          ]
+        },
+        {
           "javaName": "sceneScale",
           "snakeAlias": "scene_scale",
           "signatures": [
@@ -2022,6 +2036,30 @@
         "READY",
         "FAILED",
         "DISPOSED"
+      ]
+    },
+    {
+      "fqn": "TheCellBeyond.internal.ResourceType",
+      "simpleName": "ResourceType",
+      "kind": "Interface",
+      "isFinal": false,
+      "isAbstract": true,
+      "superClassChain": [],
+      "methods": [
+        {
+          "javaName": "value",
+          "snakeAlias": "value",
+          "signatures": [
+            "()I"
+          ]
+        }
+      ],
+      "fields": [
+        {
+          "javaName": "Undefined",
+          "snakeAlias": "undefined",
+          "type": "TheCellBeyond.internal.ResourceType"
+        }
       ]
     },
     {
@@ -2958,18 +2996,6 @@
           ]
         }
       ],
-      "fields": []
-    },
-    {
-      "fqn": "components.CrashComponent",
-      "simpleName": "CrashComponent",
-      "kind": "Class",
-      "isFinal": true,
-      "isAbstract": false,
-      "superClassChain": [
-        "components.Component"
-      ],
-      "methods": [],
       "fields": []
     },
     {
@@ -4452,45 +4478,6 @@
       "fields": []
     },
     {
-      "fqn": "physic2d.Physic2DContactListener",
-      "simpleName": "Physic2DContactListener",
-      "kind": "Class",
-      "isFinal": false,
-      "isAbstract": false,
-      "superClassChain": [],
-      "methods": [
-        {
-          "javaName": "beginContact",
-          "snakeAlias": "begin_contact",
-          "signatures": [
-            "(Lorg/jbox2d/dynamics/contacts/Contact;)V"
-          ]
-        },
-        {
-          "javaName": "endContact",
-          "snakeAlias": "end_contact",
-          "signatures": [
-            "(Lorg/jbox2d/dynamics/contacts/Contact;)V"
-          ]
-        },
-        {
-          "javaName": "postSolve",
-          "snakeAlias": "post_solve",
-          "signatures": [
-            "(Lorg/jbox2d/dynamics/contacts/Contact;Lorg/jbox2d/callbacks/ContactImpulse;)V"
-          ]
-        },
-        {
-          "javaName": "preSolve",
-          "snakeAlias": "pre_solve",
-          "signatures": [
-            "(Lorg/jbox2d/dynamics/contacts/Contact;Lorg/jbox2d/collision/Manifold;)V"
-          ]
-        }
-      ],
-      "fields": []
-    },
-    {
       "fqn": "physic2d.PhysicBody2D",
       "simpleName": "PhysicBody2D",
       "kind": "Class",
@@ -5229,10 +5216,134 @@
       ]
     },
     {
+      "fqn": "project.ClearColor",
+      "simpleName": "ClearColor",
+      "kind": "Class",
+      "isFinal": true,
+      "isAbstract": false,
+      "superClassChain": [
+        "java.lang.Record"
+      ],
+      "methods": [
+        {
+          "javaName": "a",
+          "snakeAlias": "a",
+          "signatures": [
+            "()F"
+          ]
+        },
+        {
+          "javaName": "b",
+          "snakeAlias": "b",
+          "signatures": [
+            "()F"
+          ]
+        },
+        {
+          "javaName": "equals",
+          "snakeAlias": "equals",
+          "signatures": [
+            "(Ljava/lang/Object;)Z"
+          ]
+        },
+        {
+          "javaName": "g",
+          "snakeAlias": "g",
+          "signatures": [
+            "()F"
+          ]
+        },
+        {
+          "javaName": "hashCode",
+          "snakeAlias": "hash_code",
+          "signatures": [
+            "()I"
+          ]
+        },
+        {
+          "javaName": "r",
+          "snakeAlias": "r",
+          "signatures": [
+            "()F"
+          ]
+        },
+        {
+          "javaName": "toString",
+          "snakeAlias": "to_string",
+          "signatures": [
+            "()Ljava/lang/String;"
+          ]
+        },
+        {
+          "javaName": "toVector",
+          "snakeAlias": "to_vector",
+          "signatures": [
+            "()Lorg/joml/Vector4f;"
+          ]
+        }
+      ],
+      "fields": []
+    },
+    {
+      "fqn": "project.PhysicLayerName",
+      "simpleName": "PhysicLayerName",
+      "kind": "Class",
+      "isFinal": true,
+      "isAbstract": false,
+      "superClassChain": [
+        "java.lang.Record"
+      ],
+      "methods": [
+        {
+          "javaName": "equals",
+          "snakeAlias": "equals",
+          "signatures": [
+            "(Ljava/lang/Object;)Z"
+          ]
+        },
+        {
+          "javaName": "hashCode",
+          "snakeAlias": "hash_code",
+          "signatures": [
+            "()I"
+          ]
+        },
+        {
+          "javaName": "layerName",
+          "snakeAlias": "layer_name",
+          "signatures": [
+            "(I)Ljava/lang/String;"
+          ]
+        },
+        {
+          "javaName": "layerNames",
+          "snakeAlias": "layer_names",
+          "signatures": [
+            "()Ljava/util/List;"
+          ]
+        },
+        {
+          "javaName": "toString",
+          "snakeAlias": "to_string",
+          "signatures": [
+            "()Ljava/lang/String;"
+          ]
+        },
+        {
+          "javaName": "updateLayerName",
+          "snakeAlias": "update_layer_name",
+          "signatures": [
+            "(ILjava/lang/String;)Lproject/PhysicLayerName;"
+          ]
+        }
+      ],
+      "fields": []
+    },
+    {
       "fqn": "project.Project",
       "simpleName": "Project",
       "kind": "Class",
-      "isFinal": false,
+      "isFinal": true,
       "isAbstract": false,
       "superClassChain": [],
       "methods": [
@@ -5450,7 +5561,7 @@
           "javaName": "updateProjectPreference",
           "snakeAlias": "update_project_preference",
           "signatures": [
-            "(Ljava/lang/String;IIZZFLproject/ClearColor;ILproject/RenderingSetting;)Z"
+            "(Ljava/lang/String;IIZLproject/WindowResizeMode;ZFLproject/ClearColor;ILproject/RenderingSetting;)Z"
           ]
         },
         {
@@ -5466,15 +5577,181 @@
           "signatures": [
             "(Ljava/lang/String;Ljava/lang/String;Lproject/ProjectSheetMap;)Z"
           ]
+        },
+        {
+          "javaName": "uuid",
+          "snakeAlias": "uuid",
+          "signatures": [
+            "()Ljava/util/UUID;"
+          ]
+        }
+      ],
+      "fields": []
+    },
+    {
+      "fqn": "project.ProjectAssetMap",
+      "simpleName": "ProjectAssetMap",
+      "kind": "Class",
+      "isFinal": true,
+      "isAbstract": false,
+      "superClassChain": [
+        "java.lang.Record"
+      ],
+      "methods": [
+        {
+          "javaName": "equals",
+          "snakeAlias": "equals",
+          "signatures": [
+            "(Ljava/lang/Object;)Z"
+          ]
+        },
+        {
+          "javaName": "hashCode",
+          "snakeAlias": "hash_code",
+          "signatures": [
+            "()I"
+          ]
+        },
+        {
+          "javaName": "metadata",
+          "snakeAlias": "metadata",
+          "signatures": [
+            "()Ljava/lang/String;"
+          ]
+        },
+        {
+          "javaName": "path",
+          "snakeAlias": "path",
+          "signatures": [
+            "()Ljava/lang/String;"
+          ]
+        },
+        {
+          "javaName": "sizeX",
+          "snakeAlias": "size_x",
+          "signatures": [
+            "()I"
+          ]
+        },
+        {
+          "javaName": "sizeY",
+          "snakeAlias": "size_y",
+          "signatures": [
+            "()I"
+          ]
+        },
+        {
+          "javaName": "toString",
+          "snakeAlias": "to_string",
+          "signatures": [
+            "()Ljava/lang/String;"
+          ]
         }
       ],
       "fields": [
         {
-          "javaName": "ProjectVersion",
-          "snakeAlias": "project_version",
+          "javaName": "metadataTag",
+          "snakeAlias": "metadata_tag",
           "type": "java.lang.String"
         }
       ]
+    },
+    {
+      "fqn": "project.ProjectData",
+      "simpleName": "ProjectData",
+      "kind": "Class",
+      "isFinal": true,
+      "isAbstract": false,
+      "superClassChain": [
+        "java.lang.Record"
+      ],
+      "methods": [
+        {
+          "javaName": "assets",
+          "snakeAlias": "assets",
+          "signatures": [
+            "()Ljava/util/Map;"
+          ]
+        },
+        {
+          "javaName": "equals",
+          "snakeAlias": "equals",
+          "signatures": [
+            "(Ljava/lang/Object;)Z"
+          ]
+        },
+        {
+          "javaName": "hashCode",
+          "snakeAlias": "hash_code",
+          "signatures": [
+            "()I"
+          ]
+        },
+        {
+          "javaName": "inputActions",
+          "snakeAlias": "input_actions",
+          "signatures": [
+            "()Ljava/util/Map;"
+          ]
+        },
+        {
+          "javaName": "physicLayers",
+          "snakeAlias": "physic_layers",
+          "signatures": [
+            "()Lproject/PhysicLayerName;"
+          ]
+        },
+        {
+          "javaName": "project",
+          "snakeAlias": "project",
+          "signatures": [
+            "()Lproject/ProjectPreference;"
+          ]
+        },
+        {
+          "javaName": "scenes",
+          "snakeAlias": "scenes",
+          "signatures": [
+            "()Ljava/util/Map;"
+          ]
+        },
+        {
+          "javaName": "scriptScanDirs",
+          "snakeAlias": "script_scan_dirs",
+          "signatures": [
+            "()Ljava/util/List;"
+          ]
+        },
+        {
+          "javaName": "sheets",
+          "snakeAlias": "sheets",
+          "signatures": [
+            "()Ljava/util/Map;"
+          ]
+        },
+        {
+          "javaName": "toString",
+          "snakeAlias": "to_string",
+          "signatures": [
+            "()Ljava/lang/String;"
+          ]
+        },
+        {
+          "javaName": "uuid",
+          "snakeAlias": "uuid",
+          "signatures": [
+            "()Ljava/util/UUID;"
+          ]
+        },
+        {
+          "javaName": "version",
+          "snakeAlias": "version",
+          "signatures": [
+            "()I"
+          ]
+        }
+      ],
+      "fields": []
     },
     {
       "fqn": "project.ProjectPreference",
@@ -5557,6 +5834,13 @@
           ]
         },
         {
+          "javaName": "resizeMode",
+          "snakeAlias": "resize_mode",
+          "signatures": [
+            "()Lproject/WindowResizeMode;"
+          ]
+        },
+        {
           "javaName": "textureGlobalScale",
           "snakeAlias": "texture_global_scale",
           "signatures": [
@@ -5572,6 +5856,329 @@
         }
       ],
       "fields": []
+    },
+    {
+      "fqn": "project.ProjectSceneMap",
+      "simpleName": "ProjectSceneMap",
+      "kind": "Class",
+      "isFinal": true,
+      "isAbstract": false,
+      "superClassChain": [
+        "java.lang.Record"
+      ],
+      "methods": [
+        {
+          "javaName": "equals",
+          "snakeAlias": "equals",
+          "signatures": [
+            "(Ljava/lang/Object;)Z"
+          ]
+        },
+        {
+          "javaName": "hashCode",
+          "snakeAlias": "hash_code",
+          "signatures": [
+            "()I"
+          ]
+        },
+        {
+          "javaName": "path",
+          "snakeAlias": "path",
+          "signatures": [
+            "()Ljava/lang/String;"
+          ]
+        },
+        {
+          "javaName": "toString",
+          "snakeAlias": "to_string",
+          "signatures": [
+            "()Ljava/lang/String;"
+          ]
+        }
+      ],
+      "fields": []
+    },
+    {
+      "fqn": "project.ProjectSheetMap",
+      "simpleName": "ProjectSheetMap",
+      "kind": "Class",
+      "isFinal": true,
+      "isAbstract": false,
+      "superClassChain": [
+        "java.lang.Record"
+      ],
+      "methods": [
+        {
+          "javaName": "equals",
+          "snakeAlias": "equals",
+          "signatures": [
+            "(Ljava/lang/Object;)Z"
+          ]
+        },
+        {
+          "javaName": "hashCode",
+          "snakeAlias": "hash_code",
+          "signatures": [
+            "()I"
+          ]
+        },
+        {
+          "javaName": "metadata",
+          "snakeAlias": "metadata",
+          "signatures": [
+            "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;"
+          ]
+        },
+        {
+          "javaName": "numberOfSprite",
+          "snakeAlias": "number_of_sprite",
+          "signatures": [
+            "()I"
+          ]
+        },
+        {
+          "javaName": "path",
+          "snakeAlias": "path",
+          "signatures": [
+            "()Ljava/lang/String;"
+          ]
+        },
+        {
+          "javaName": "spriteSizeX",
+          "snakeAlias": "sprite_size_x",
+          "signatures": [
+            "()I"
+          ]
+        },
+        {
+          "javaName": "spriteSizeY",
+          "snakeAlias": "sprite_size_y",
+          "signatures": [
+            "()I"
+          ]
+        },
+        {
+          "javaName": "spriteSpacingX",
+          "snakeAlias": "sprite_spacing_x",
+          "signatures": [
+            "()I"
+          ]
+        },
+        {
+          "javaName": "spriteSpacingY",
+          "snakeAlias": "sprite_spacing_y",
+          "signatures": [
+            "()I"
+          ]
+        },
+        {
+          "javaName": "spriteStartPosX",
+          "snakeAlias": "sprite_start_pos_x",
+          "signatures": [
+            "()I"
+          ]
+        },
+        {
+          "javaName": "spriteStartPosY",
+          "snakeAlias": "sprite_start_pos_y",
+          "signatures": [
+            "()I"
+          ]
+        },
+        {
+          "javaName": "toString",
+          "snakeAlias": "to_string",
+          "signatures": [
+            "()Ljava/lang/String;"
+          ]
+        }
+      ],
+      "fields": [
+        {
+          "javaName": "metadataTag",
+          "snakeAlias": "metadata_tag",
+          "type": "java.lang.String"
+        }
+      ]
+    },
+    {
+      "fqn": "project.RenderingSetting",
+      "simpleName": "RenderingSetting",
+      "kind": "Class",
+      "isFinal": true,
+      "isAbstract": false,
+      "superClassChain": [
+        "java.lang.Record"
+      ],
+      "methods": [
+        {
+          "javaName": "equals",
+          "snakeAlias": "equals",
+          "signatures": [
+            "(Ljava/lang/Object;)Z"
+          ]
+        },
+        {
+          "javaName": "hashCode",
+          "snakeAlias": "hash_code",
+          "signatures": [
+            "()I"
+          ]
+        },
+        {
+          "javaName": "targetFrameRate",
+          "snakeAlias": "target_frame_rate",
+          "signatures": [
+            "()I"
+          ]
+        },
+        {
+          "javaName": "toString",
+          "snakeAlias": "to_string",
+          "signatures": [
+            "()Ljava/lang/String;"
+          ]
+        },
+        {
+          "javaName": "vsyncMode",
+          "snakeAlias": "vsync_mode",
+          "signatures": [
+            "()Lproject/VsyncMode;"
+          ]
+        }
+      ],
+      "fields": [
+        {
+          "javaName": "MaxFrameRate",
+          "snakeAlias": "max_frame_rate",
+          "type": "int"
+        },
+        {
+          "javaName": "MinFrameRate",
+          "snakeAlias": "min_frame_rate",
+          "type": "int"
+        }
+      ]
+    },
+    {
+      "fqn": "project.VsyncMode",
+      "simpleName": "VsyncMode",
+      "kind": "Enum",
+      "isFinal": true,
+      "isAbstract": false,
+      "superClassChain": [
+        "java.lang.Enum"
+      ],
+      "methods": [],
+      "fields": [],
+      "enumConstants": [
+        "Disabled",
+        "Adaptive",
+        "Enabled"
+      ]
+    },
+    {
+      "fqn": "project.WindowResizeMode",
+      "simpleName": "WindowResizeMode",
+      "kind": "Enum",
+      "isFinal": true,
+      "isAbstract": false,
+      "superClassChain": [
+        "java.lang.Enum"
+      ],
+      "methods": [],
+      "fields": [],
+      "enumConstants": [
+        "Scale",
+        "Expand"
+      ]
+    },
+    {
+      "fqn": "render.FontAtlasTexture",
+      "simpleName": "FontAtlasTexture",
+      "kind": "Class",
+      "isFinal": false,
+      "isAbstract": false,
+      "superClassChain": [],
+      "methods": [
+        {
+          "javaName": "bind",
+          "snakeAlias": "bind",
+          "signatures": [
+            "()V"
+          ]
+        },
+        {
+          "javaName": "dispose",
+          "snakeAlias": "dispose",
+          "signatures": [
+            "()V"
+          ]
+        },
+        {
+          "javaName": "getCanonicalPath",
+          "snakeAlias": "get_canonical_path",
+          "signatures": [
+            "()Ljava/lang/String;"
+          ]
+        },
+        {
+          "javaName": "getHeight",
+          "snakeAlias": "get_height",
+          "signatures": [
+            "()I"
+          ]
+        },
+        {
+          "javaName": "getID",
+          "snakeAlias": "get_id",
+          "signatures": [
+            "()I"
+          ]
+        },
+        {
+          "javaName": "getWidth",
+          "snakeAlias": "get_width",
+          "signatures": [
+            "()I"
+          ]
+        },
+        {
+          "javaName": "init",
+          "snakeAlias": "init",
+          "signatures": [
+            "(Ljava/lang/String;Lrender/text/GlyphRange;)V"
+          ]
+        },
+        {
+          "javaName": "isFailed",
+          "snakeAlias": "is_failed",
+          "signatures": [
+            "()Z"
+          ]
+        },
+        {
+          "javaName": "isReady",
+          "snakeAlias": "is_ready",
+          "signatures": [
+            "()Z"
+          ]
+        },
+        {
+          "javaName": "unbind",
+          "snakeAlias": "unbind",
+          "signatures": [
+            "()V"
+          ]
+        }
+      ],
+      "fields": [
+        {
+          "javaName": "RID",
+          "snakeAlias": "rid",
+          "type": "TheCellBeyond.internal.ResourceID"
+        }
+      ]
     },
     {
       "fqn": "render.FrameBuffer",
@@ -5763,6 +6370,292 @@
         }
       ],
       "fields": []
+    },
+    {
+      "fqn": "render.Shader",
+      "simpleName": "Shader",
+      "kind": "Class",
+      "isFinal": false,
+      "isAbstract": false,
+      "superClassChain": [],
+      "methods": [
+        {
+          "javaName": "compile",
+          "snakeAlias": "compile",
+          "signatures": [
+            "()V"
+          ]
+        },
+        {
+          "javaName": "copy",
+          "snakeAlias": "copy",
+          "signatures": [
+            "()Lrender/Shader;"
+          ]
+        },
+        {
+          "javaName": "detach",
+          "snakeAlias": "detach",
+          "signatures": [
+            "()V"
+          ]
+        },
+        {
+          "javaName": "dispose",
+          "snakeAlias": "dispose",
+          "signatures": [
+            "()V"
+          ]
+        },
+        {
+          "javaName": "equals",
+          "snakeAlias": "equals",
+          "signatures": [
+            "(Ljava/lang/Object;)Z"
+          ]
+        },
+        {
+          "javaName": "exists",
+          "snakeAlias": "exists",
+          "signatures": [
+            "()Z"
+          ]
+        },
+        {
+          "javaName": "getFilePath",
+          "snakeAlias": "get_file_path",
+          "signatures": [
+            "()Ljava/lang/String;"
+          ]
+        },
+        {
+          "javaName": "hashCode",
+          "snakeAlias": "hash_code",
+          "signatures": [
+            "()I"
+          ]
+        },
+        {
+          "javaName": "loadFloat",
+          "snakeAlias": "load_float",
+          "signatures": [
+            "(Ljava/lang/String;F)V"
+          ]
+        },
+        {
+          "javaName": "loadInt",
+          "snakeAlias": "load_int",
+          "signatures": [
+            "(Ljava/lang/String;I)V"
+          ]
+        },
+        {
+          "javaName": "loadIntA",
+          "snakeAlias": "load_int_a",
+          "signatures": [
+            "(Ljava/lang/String;[I)V"
+          ]
+        },
+        {
+          "javaName": "loadMat3f",
+          "snakeAlias": "load_mat3f",
+          "signatures": [
+            "(Ljava/lang/String;Lorg/joml/Matrix3f;)V"
+          ]
+        },
+        {
+          "javaName": "loadMat4f",
+          "snakeAlias": "load_mat4f",
+          "signatures": [
+            "(Ljava/lang/String;Lorg/joml/Matrix4f;)V"
+          ]
+        },
+        {
+          "javaName": "loadTexture",
+          "snakeAlias": "load_texture",
+          "signatures": [
+            "(Ljava/lang/String;I)V"
+          ]
+        },
+        {
+          "javaName": "loadVec2f",
+          "snakeAlias": "load_vec2f",
+          "signatures": [
+            "(Ljava/lang/String;Lorg/joml/Vector2f;)V"
+          ]
+        },
+        {
+          "javaName": "loadVec3f",
+          "snakeAlias": "load_vec3f",
+          "signatures": [
+            "(Ljava/lang/String;Lorg/joml/Vector3f;)V"
+          ]
+        },
+        {
+          "javaName": "loadVec4f",
+          "snakeAlias": "load_vec4f",
+          "signatures": [
+            "(Ljava/lang/String;Lorg/joml/Vector4f;)V"
+          ]
+        },
+        {
+          "javaName": "reload",
+          "snakeAlias": "reload",
+          "signatures": [
+            "()V"
+          ]
+        },
+        {
+          "javaName": "toString",
+          "snakeAlias": "to_string",
+          "signatures": [
+            "()Ljava/lang/String;"
+          ]
+        },
+        {
+          "javaName": "use",
+          "snakeAlias": "use",
+          "signatures": [
+            "()V"
+          ]
+        }
+      ],
+      "fields": [
+        {
+          "javaName": "RID",
+          "snakeAlias": "rid",
+          "type": "TheCellBeyond.internal.ResourceID"
+        }
+      ]
+    },
+    {
+      "fqn": "render.Texture",
+      "simpleName": "Texture",
+      "kind": "Class",
+      "isFinal": false,
+      "isAbstract": false,
+      "superClassChain": [],
+      "methods": [
+        {
+          "javaName": "bind",
+          "snakeAlias": "bind",
+          "signatures": [
+            "()V"
+          ]
+        },
+        {
+          "javaName": "copy",
+          "snakeAlias": "copy",
+          "signatures": [
+            "()Lrender/Texture;"
+          ]
+        },
+        {
+          "javaName": "dispose",
+          "snakeAlias": "dispose",
+          "signatures": [
+            "()V"
+          ]
+        },
+        {
+          "javaName": "equals",
+          "snakeAlias": "equals",
+          "signatures": [
+            "(Ljava/lang/Object;)Z"
+          ]
+        },
+        {
+          "javaName": "getCanonicalPath",
+          "snakeAlias": "get_canonical_path",
+          "signatures": [
+            "()Ljava/lang/String;"
+          ]
+        },
+        {
+          "javaName": "getErrorMessage",
+          "snakeAlias": "get_error_message",
+          "signatures": [
+            "()Ljava/lang/String;"
+          ]
+        },
+        {
+          "javaName": "getHeight",
+          "snakeAlias": "get_height",
+          "signatures": [
+            "()I"
+          ]
+        },
+        {
+          "javaName": "getID",
+          "snakeAlias": "get_id",
+          "signatures": [
+            "()I"
+          ]
+        },
+        {
+          "javaName": "getStatus",
+          "snakeAlias": "get_status",
+          "signatures": [
+            "()LTheCellBeyond/internal/ResourceStatus;"
+          ]
+        },
+        {
+          "javaName": "getWidth",
+          "snakeAlias": "get_width",
+          "signatures": [
+            "()I"
+          ]
+        },
+        {
+          "javaName": "hashCode",
+          "snakeAlias": "hash_code",
+          "signatures": [
+            "()I"
+          ]
+        },
+        {
+          "javaName": "init",
+          "snakeAlias": "init",
+          "signatures": [
+            "(Ljava/lang/String;)V"
+          ]
+        },
+        {
+          "javaName": "isFailed",
+          "snakeAlias": "is_failed",
+          "signatures": [
+            "()Z"
+          ]
+        },
+        {
+          "javaName": "isReady",
+          "snakeAlias": "is_ready",
+          "signatures": [
+            "()Z"
+          ]
+        },
+        {
+          "javaName": "toString",
+          "snakeAlias": "to_string",
+          "signatures": [
+            "()Ljava/lang/String;"
+          ]
+        },
+        {
+          "javaName": "unbind",
+          "snakeAlias": "unbind",
+          "signatures": [
+            "()V"
+          ]
+        }
+      ],
+      "fields": [
+        {
+          "javaName": "RID",
+          "snakeAlias": "rid",
+          "type": "TheCellBeyond.internal.ResourceID"
+        }
+      ]
     },
     {
       "fqn": "render.commands.CommandType",
@@ -5958,16 +6851,6 @@
       ]
     },
     {
-      "fqn": "render.commands.RenderCommandPool",
-      "simpleName": "RenderCommandPool",
-      "kind": "Class",
-      "isFinal": false,
-      "isAbstract": false,
-      "superClassChain": [],
-      "methods": [],
-      "fields": []
-    },
-    {
       "fqn": "render.commands.TextCommand",
       "simpleName": "TextCommand",
       "kind": "Class",
@@ -6110,6 +6993,194 @@
       ]
     },
     {
+      "fqn": "render.text.CharMetric",
+      "simpleName": "CharMetric",
+      "kind": "Class",
+      "isFinal": true,
+      "isAbstract": false,
+      "superClassChain": [
+        "java.lang.Record"
+      ],
+      "methods": [
+        {
+          "javaName": "advance",
+          "snakeAlias": "advance",
+          "signatures": [
+            "()F"
+          ]
+        },
+        {
+          "javaName": "equals",
+          "snakeAlias": "equals",
+          "signatures": [
+            "(Ljava/lang/Object;)Z"
+          ]
+        },
+        {
+          "javaName": "fontSize",
+          "snakeAlias": "font_size",
+          "signatures": [
+            "()F"
+          ]
+        },
+        {
+          "javaName": "hashCode",
+          "snakeAlias": "hash_code",
+          "signatures": [
+            "()I"
+          ]
+        },
+        {
+          "javaName": "toString",
+          "snakeAlias": "to_string",
+          "signatures": [
+            "()Ljava/lang/String;"
+          ]
+        }
+      ],
+      "fields": []
+    },
+    {
+      "fqn": "render.text.CharUV",
+      "simpleName": "CharUV",
+      "kind": "Class",
+      "isFinal": true,
+      "isAbstract": false,
+      "superClassChain": [
+        "java.lang.Record"
+      ],
+      "methods": [
+        {
+          "javaName": "equals",
+          "snakeAlias": "equals",
+          "signatures": [
+            "(Ljava/lang/Object;)Z"
+          ]
+        },
+        {
+          "javaName": "hashCode",
+          "snakeAlias": "hash_code",
+          "signatures": [
+            "()I"
+          ]
+        },
+        {
+          "javaName": "toString",
+          "snakeAlias": "to_string",
+          "signatures": [
+            "()Ljava/lang/String;"
+          ]
+        },
+        {
+          "javaName": "x0",
+          "snakeAlias": "x0",
+          "signatures": [
+            "()F"
+          ]
+        },
+        {
+          "javaName": "x1",
+          "snakeAlias": "x1",
+          "signatures": [
+            "()F"
+          ]
+        },
+        {
+          "javaName": "xOffset",
+          "snakeAlias": "x_offset",
+          "signatures": [
+            "()D"
+          ]
+        },
+        {
+          "javaName": "y0",
+          "snakeAlias": "y0",
+          "signatures": [
+            "()F"
+          ]
+        },
+        {
+          "javaName": "y1",
+          "snakeAlias": "y1",
+          "signatures": [
+            "()F"
+          ]
+        },
+        {
+          "javaName": "yOffset",
+          "snakeAlias": "y_offset",
+          "signatures": [
+            "()D"
+          ]
+        }
+      ],
+      "fields": []
+    },
+    {
+      "fqn": "render.text.GlyphRange",
+      "simpleName": "GlyphRange",
+      "kind": "Enum",
+      "isFinal": true,
+      "isAbstract": false,
+      "superClassChain": [
+        "java.lang.Enum"
+      ],
+      "methods": [
+        {
+          "javaName": "getDescription",
+          "snakeAlias": "get_description",
+          "signatures": [
+            "()Ljava/lang/String;"
+          ]
+        },
+        {
+          "javaName": "getNumGlyphs",
+          "snakeAlias": "get_num_glyphs",
+          "signatures": [
+            "()I"
+          ]
+        },
+        {
+          "javaName": "getStartChar",
+          "snakeAlias": "get_start_char",
+          "signatures": [
+            "()I"
+          ]
+        },
+        {
+          "javaName": "getUnicodeRange",
+          "snakeAlias": "get_unicode_range",
+          "signatures": [
+            "()[[I"
+          ]
+        },
+        {
+          "javaName": "hasUnicodeRanges",
+          "snakeAlias": "has_unicode_ranges",
+          "signatures": [
+            "()Z"
+          ]
+        },
+        {
+          "javaName": "totalGlyphCount",
+          "snakeAlias": "total_glyph_count",
+          "signatures": [
+            "()I"
+          ]
+        }
+      ],
+      "fields": [],
+      "enumConstants": [
+        "ASCII",
+        "ASCII_EXTENDED",
+        "JAPANESE",
+        "LATIN_EXTENDED",
+        "LATIN_CYRILLIC",
+        "LATIN_GREEK",
+        "VIETNAMESE"
+      ]
+    },
+    {
       "fqn": "render.text.HorizontalAlignment",
       "simpleName": "HorizontalAlignment",
       "kind": "Enum",
@@ -6225,18 +7296,6 @@
         "Middle",
         "Bottom"
       ]
-    },
-    {
-      "fqn": "render.texture.DisposeTextureCommand",
-      "simpleName": "DisposeTextureCommand",
-      "kind": "Class",
-      "isFinal": false,
-      "isAbstract": false,
-      "superClassChain": [
-        "render.texture.TextureCommand"
-      ],
-      "methods": [],
-      "fields": []
     },
     {
       "fqn": "render.texture.Sprite",
@@ -6389,147 +7448,6 @@
           "snakeAlias": "sprite_index",
           "signatures": [
             "(I)Lrender/texture/Sprite;"
-          ]
-        }
-      ],
-      "fields": []
-    },
-    {
-      "fqn": "render.texture.TextureHandle",
-      "simpleName": "TextureHandle",
-      "kind": "Class",
-      "isFinal": false,
-      "isAbstract": false,
-      "superClassChain": [],
-      "methods": [
-        {
-          "javaName": "getErrorMsg",
-          "snakeAlias": "get_error_msg",
-          "signatures": [
-            "()Ljava/lang/String;"
-          ]
-        },
-        {
-          "javaName": "getStatus",
-          "snakeAlias": "get_status",
-          "signatures": [
-            "()LTheCellBeyond/internal/ResourceStatus;"
-          ]
-        },
-        {
-          "javaName": "getTextureId",
-          "snakeAlias": "get_texture_id",
-          "signatures": [
-            "()I"
-          ]
-        },
-        {
-          "javaName": "isDisposed",
-          "snakeAlias": "is_disposed",
-          "signatures": [
-            "()Z"
-          ]
-        },
-        {
-          "javaName": "isFailed",
-          "snakeAlias": "is_failed",
-          "signatures": [
-            "()Z"
-          ]
-        },
-        {
-          "javaName": "isReady",
-          "snakeAlias": "is_ready",
-          "signatures": [
-            "()Z"
-          ]
-        },
-        {
-          "javaName": "resourceID",
-          "snakeAlias": "resource_id",
-          "signatures": [
-            "()LTheCellBeyond/internal/ResourceID;"
-          ]
-        },
-        {
-          "javaName": "toString",
-          "snakeAlias": "to_string",
-          "signatures": [
-            "()Ljava/lang/String;"
-          ]
-        }
-      ],
-      "fields": []
-    },
-    {
-      "fqn": "render.texture.TextureManager",
-      "simpleName": "TextureManager",
-      "kind": "Class",
-      "isFinal": false,
-      "isAbstract": false,
-      "superClassChain": [],
-      "methods": [
-        {
-          "javaName": "clearPathCache",
-          "snakeAlias": "clear_path_cache",
-          "signatures": [
-            "()V"
-          ]
-        },
-        {
-          "javaName": "dispose",
-          "snakeAlias": "dispose",
-          "signatures": [
-            "()V"
-          ]
-        },
-        {
-          "javaName": "disposeFontAtlasTexture",
-          "snakeAlias": "dispose_font_atlas_texture",
-          "signatures": [
-            "(Lrender/texture/TextureHandle;Ljava/lang/String;Lrender/text/GlyphRange;)V"
-          ]
-        },
-        {
-          "javaName": "disposeTexture",
-          "snakeAlias": "dispose_texture",
-          "signatures": [
-            "(Lrender/texture/TextureHandle;Ljava/lang/String;)V"
-          ]
-        },
-        {
-          "javaName": "forceDisposeTexture",
-          "snakeAlias": "force_dispose_texture",
-          "signatures": [
-            "(Lrender/texture/TextureHandle;)V"
-          ]
-        },
-        {
-          "javaName": "get",
-          "snakeAlias": "get",
-          "signatures": [
-            "()Lrender/texture/TextureManager;"
-          ]
-        },
-        {
-          "javaName": "getFontAtlasHandle",
-          "snakeAlias": "get_font_atlas_handle",
-          "signatures": [
-            "(Ljava/nio/ByteBuffer;Lutility/AssetReference;Lrender/text/GlyphRange;IIILTheCellBeyond/internal/ResourceID;)Lrender/texture/TextureHandle;"
-          ]
-        },
-        {
-          "javaName": "getTextureHandle",
-          "snakeAlias": "get_texture_handle",
-          "signatures": [
-            "(Ljava/nio/ByteBuffer;Lutility/AssetReference;LTheCellBeyond/internal/ResourceID;)Lrender/texture/TextureHandle;"
-          ]
-        },
-        {
-          "javaName": "processCommands",
-          "snakeAlias": "process_commands",
-          "signatures": [
-            "()V"
           ]
         }
       ],
@@ -7165,54 +8083,6 @@
         "String",
         "Enum"
       ]
-    },
-    {
-      "fqn": "serialization.EngineSerializer",
-      "simpleName": "EngineSerializer",
-      "kind": "Class",
-      "isFinal": false,
-      "isAbstract": false,
-      "superClassChain": [],
-      "methods": [
-        {
-          "javaName": "deserialize",
-          "snakeAlias": "deserialize",
-          "signatures": [
-            "(Lcom/google/gson/JsonElement;Ljava/lang/Class;)Ljava/lang/Object;",
-            "(Ljava/lang/String;Ljava/lang/Class;)Ljava/lang/Object;"
-          ]
-        },
-        {
-          "javaName": "prettyPrint",
-          "snakeAlias": "pretty_print",
-          "signatures": [
-            "()Lserialization/EngineSerializer;"
-          ]
-        },
-        {
-          "javaName": "serialize",
-          "snakeAlias": "serialize",
-          "signatures": [
-            "(Ljava/lang/Object;)Ljava/lang/String;",
-            "(Ljava/lang/Object;Ljava/lang/Appendable;)V"
-          ]
-        },
-        {
-          "javaName": "standard",
-          "snakeAlias": "standard",
-          "signatures": [
-            "()Lserialization/EngineSerializer;"
-          ]
-        },
-        {
-          "javaName": "toJsonTree",
-          "snakeAlias": "to_json_tree",
-          "signatures": [
-            "(Ljava/lang/Object;)Lcom/google/gson/JsonElement;"
-          ]
-        }
-      ],
-      "fields": []
     },
     {
       "fqn": "signal.Callable",
@@ -8013,114 +8883,6 @@
       ]
     },
     {
-      "fqn": "utility.Settings$FontPath",
-      "simpleName": "FontPath",
-      "kind": "Class",
-      "isFinal": false,
-      "isAbstract": false,
-      "superClassChain": [],
-      "methods": [],
-      "fields": [
-        {
-          "javaName": "Caudex",
-          "snakeAlias": "caudex",
-          "type": "java.lang.String"
-        },
-        {
-          "javaName": "FontClassPath",
-          "snakeAlias": "font_class_path",
-          "type": "java.lang.String"
-        },
-        {
-          "javaName": "NotoSansJapan",
-          "snakeAlias": "noto_sans_japan",
-          "type": "java.lang.String"
-        },
-        {
-          "javaName": "NotoSansMono",
-          "snakeAlias": "noto_sans_mono",
-          "type": "java.lang.String"
-        },
-        {
-          "javaName": "NotoSansRegular",
-          "snakeAlias": "noto_sans_regular",
-          "type": "java.lang.String"
-        }
-      ]
-    },
-    {
-      "fqn": "utility.Settings$ShaderPath",
-      "simpleName": "ShaderPath",
-      "kind": "Class",
-      "isFinal": false,
-      "isAbstract": false,
-      "superClassChain": [],
-      "methods": [],
-      "fields": [
-        {
-          "javaName": "DebugLine2Shader",
-          "snakeAlias": "debug_line2_shader",
-          "type": "java.lang.String"
-        },
-        {
-          "javaName": "DefaultFontShader",
-          "snakeAlias": "default_font_shader",
-          "type": "java.lang.String"
-        },
-        {
-          "javaName": "DefaultTextureShader",
-          "snakeAlias": "default_texture_shader",
-          "type": "java.lang.String"
-        },
-        {
-          "javaName": "ObjectSelectionShader",
-          "snakeAlias": "object_selection_shader",
-          "type": "java.lang.String"
-        },
-        {
-          "javaName": "ShaderCLassPath",
-          "snakeAlias": "shader_c_lass_path",
-          "type": "java.lang.String"
-        }
-      ]
-    },
-    {
-      "fqn": "utility.Settings$TexturePath",
-      "simpleName": "TexturePath",
-      "kind": "Class",
-      "isFinal": false,
-      "isAbstract": false,
-      "superClassChain": [],
-      "methods": [],
-      "fields": [
-        {
-          "javaName": "EditorControls",
-          "snakeAlias": "editor_controls",
-          "type": "java.lang.String"
-        },
-        {
-          "javaName": "Gizmo",
-          "snakeAlias": "gizmo",
-          "type": "java.lang.String"
-        },
-        {
-          "javaName": "ObjectIndicator",
-          "snakeAlias": "object_indicator",
-          "type": "java.lang.String"
-        },
-        {
-          "javaName": "TCBIcon",
-          "snakeAlias": "tcb_icon",
-          "type": "java.lang.String"
-        },
-        {
-          "javaName": "TextureClassPath",
-          "snakeAlias": "texture_class_path",
-          "type": "java.lang.String"
-        }
-      ]
-    },
-    {
       "fqn": "utility.TCBMath",
       "simpleName": "TCBMath",
       "kind": "Class",
@@ -8591,49 +9353,6 @@
       ]
     },
     {
-      "fqn": "utility.log.EngineLogCallback",
-      "simpleName": "EngineLogCallback",
-      "kind": "Class",
-      "isFinal": true,
-      "isAbstract": false,
-      "superClassChain": [],
-      "methods": [
-        {
-          "javaName": "register",
-          "snakeAlias": "register",
-          "signatures": [
-            "(Lutility/log/EngineLogListener;)V"
-          ]
-        },
-        {
-          "javaName": "unregister",
-          "snakeAlias": "unregister",
-          "signatures": [
-            "(Lutility/log/EngineLogListener;)V"
-          ]
-        }
-      ],
-      "fields": []
-    },
-    {
-      "fqn": "utility.log.EngineLogListener",
-      "simpleName": "EngineLogListener",
-      "kind": "Interface",
-      "isFinal": false,
-      "isAbstract": true,
-      "superClassChain": [],
-      "methods": [
-        {
-          "javaName": "onNewLog",
-          "snakeAlias": "on_new_log",
-          "signatures": [
-            "(Lutility/log/LogEntry;)V"
-          ]
-        }
-      ],
-      "fields": []
-    },
-    {
       "fqn": "utility.log.Level",
       "simpleName": "Level",
       "kind": "Enum",
@@ -8732,34 +9451,6 @@
       "fields": []
     },
     {
-      "fqn": "utility.log.Stream2Log",
-      "simpleName": "Stream2Log",
-      "kind": "Class",
-      "isFinal": true,
-      "isAbstract": false,
-      "superClassChain": [
-        "java.io.PrintStream"
-      ],
-      "methods": [],
-      "fields": [
-        {
-          "javaName": "debug",
-          "snakeAlias": "debug",
-          "type": "utility.log.Stream2Log"
-        },
-        {
-          "javaName": "err",
-          "snakeAlias": "err",
-          "type": "utility.log.Stream2Log"
-        },
-        {
-          "javaName": "out",
-          "snakeAlias": "out",
-          "type": "utility.log.Stream2Log"
-        }
-      ]
-    },
-    {
       "fqn": "utility.prefabrication.Prefab",
       "simpleName": "Prefab",
       "kind": "Class",
@@ -8779,135 +9470,6 @@
           "snakeAlias": "instantiate_to_scene",
           "signatures": [
             "(Ljava/lang/String;)LTheCellBeyond/GameObject;"
-          ]
-        }
-      ],
-      "fields": []
-    },
-    {
-      "fqn": "utility.prefabrication.PrefabData",
-      "simpleName": "PrefabData",
-      "kind": "Class",
-      "isFinal": true,
-      "isAbstract": false,
-      "superClassChain": [
-        "java.lang.Record"
-      ],
-      "methods": [
-        {
-          "javaName": "description",
-          "snakeAlias": "description",
-          "signatures": [
-            "()Ljava/lang/String;"
-          ]
-        },
-        {
-          "javaName": "equals",
-          "snakeAlias": "equals",
-          "signatures": [
-            "(Ljava/lang/Object;)Z"
-          ]
-        },
-        {
-          "javaName": "hashCode",
-          "snakeAlias": "hash_code",
-          "signatures": [
-            "()I"
-          ]
-        },
-        {
-          "javaName": "json",
-          "snakeAlias": "json",
-          "signatures": [
-            "()Ljava/lang/String;"
-          ]
-        },
-        {
-          "javaName": "name",
-          "snakeAlias": "name",
-          "signatures": [
-            "()Ljava/lang/String;"
-          ]
-        },
-        {
-          "javaName": "toString",
-          "snakeAlias": "to_string",
-          "signatures": [
-            "()Ljava/lang/String;"
-          ]
-        }
-      ],
-      "fields": []
-    },
-    {
-      "fqn": "utility.prefabrication.PrefabManager",
-      "simpleName": "PrefabManager",
-      "kind": "Class",
-      "isFinal": false,
-      "isAbstract": false,
-      "superClassChain": [],
-      "methods": [
-        {
-          "javaName": "clear",
-          "snakeAlias": "clear",
-          "signatures": [
-            "()V"
-          ]
-        },
-        {
-          "javaName": "deletePrefab",
-          "snakeAlias": "delete_prefab",
-          "signatures": [
-            "(Ljava/lang/String;)V"
-          ]
-        },
-        {
-          "javaName": "getPrefabData",
-          "snakeAlias": "get_prefab_data",
-          "signatures": [
-            "(Ljava/lang/String;)Lutility/prefabrication/PrefabData;"
-          ]
-        },
-        {
-          "javaName": "getPrefabNames",
-          "snakeAlias": "get_prefab_names",
-          "signatures": [
-            "()Ljava/util/List;"
-          ]
-        },
-        {
-          "javaName": "instantiatePrefab",
-          "snakeAlias": "instantiate_prefab",
-          "signatures": [
-            "(Ljava/lang/String;)LTheCellBeyond/GameObject;"
-          ]
-        },
-        {
-          "javaName": "invalidPrefabName",
-          "snakeAlias": "invalid_prefab_name",
-          "signatures": [
-            "(Ljava/lang/String;)Z"
-          ]
-        },
-        {
-          "javaName": "loadAllPrefabs",
-          "snakeAlias": "load_all_prefabs",
-          "signatures": [
-            "()V"
-          ]
-        },
-        {
-          "javaName": "prefabNameTaken",
-          "snakeAlias": "prefab_name_taken",
-          "signatures": [
-            "(Ljava/lang/String;)Z"
-          ]
-        },
-        {
-          "javaName": "savePrefab",
-          "snakeAlias": "save_prefab",
-          "signatures": [
-            "(LTheCellBeyond/GameObject;Ljava/lang/String;Z)V"
           ]
         }
       ],

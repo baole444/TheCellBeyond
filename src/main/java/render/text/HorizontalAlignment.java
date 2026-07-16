@@ -1,9 +1,12 @@
 package render.text;
 
+import scripting.API;
+
 /**
  * Text horizontal alignment enums control the offset of the horizontal offset of text,
  * relative to the position of the object component.
  */
+@API
 public enum HorizontalAlignment {
     /**
      * Nop offset, text started from the base position toward the right.

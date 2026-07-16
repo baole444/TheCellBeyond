@@ -1,11 +1,14 @@
 package utility;
 
+import scripting.API;
+
 import java.awt.*;
 
 /**
  * FontPT is a static utility class providing conversion between screen pixels and typographic points.
  * This dynamically calculate the pixel ratio base on the current display DPI and {@link #PointPerInch} value.
  */
+@API
 public final class FontPT {
     /**
      * Traditional typography measured 72 points per inch.

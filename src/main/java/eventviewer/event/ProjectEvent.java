@@ -1,9 +1,12 @@
 package eventviewer.event;
 
+import scripting.API;
+
 /**
  * Possible events emitted by the Project system.
  *
  */
+@API
 public class ProjectEvent extends Event {
     /**
      * Types of project event.

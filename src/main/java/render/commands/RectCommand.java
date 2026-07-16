@@ -3,7 +3,9 @@ package render.commands;
 import TheCellBeyond.internal.ResourceID;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
+import scripting.API;
 
+@API
 public class RectCommand extends RenderCommand {
     public ResourceID textureRID = null;
     public final Vector2f[] uvCoordinates = {

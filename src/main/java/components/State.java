@@ -1,7 +1,10 @@
 package components;
 
+import scripting.API;
+
 import java.util.HashSet;
 
+@API
 public class State implements Comparable<State> {
     public final HashSet<String> stateFilters = new HashSet<>();
 

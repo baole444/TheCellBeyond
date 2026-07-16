@@ -3,6 +3,7 @@ package physic2d;
 import TheCellBeyond.GameObject2D;
 import org.jbox2d.dynamics.BodyDef;
 import org.jbox2d.dynamics.BodyType;
+import scripting.API;
 import signal.Signal;
 
 import java.util.Collections;
@@ -13,6 +14,7 @@ import java.util.Set;
  * Area2D is a region of 2D space defined by one or multiple {@link physic2d.collider.CollisionShape2D}.
  * It detects when other {@link CollisionObject2D} enter or exit it
  */
+@API
 public class Area2D extends CollisionObject2D {
     /**
      * Signal that emits when the received body enters the area, requires {@link #monitoring} to be true.

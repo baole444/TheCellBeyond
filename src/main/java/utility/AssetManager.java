@@ -13,6 +13,7 @@ import render.text.TCBFont;
 import render.texture.SpriteSheet;
 import render.texture.TextureManager;
 import render.texture.TextureUnit;
+import scripting.API;
 
 import java.util.Collection;
 import java.util.Map;
@@ -22,6 +23,7 @@ import java.util.function.BiConsumer;
 /**
  * AssetManager is a collection of static methods providing control for caching resource while the engine is running.
  */
+@API
 public final class AssetManager {
     private record AtlasKey(String canonicalPath, GlyphRange glyphRange) {}
     private record FontKey(String canonicalPath, GlyphRange glyphRange, float points) {}

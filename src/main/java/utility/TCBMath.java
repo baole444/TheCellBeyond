@@ -2,10 +2,12 @@ package utility;
 
 import org.joml.Math;
 import org.joml.Vector2f;
+import scripting.API;
 
 /**
  * TCBMath is a collection of static method for some custom math operations.
  */
+@API
 public final class TCBMath {
     private TCBMath() {}
 

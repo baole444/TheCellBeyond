@@ -5,7 +5,9 @@ import org.jbox2d.callbacks.RayCastCallback;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Fixture;
 import org.joml.Vector2f;
+import scripting.API;
 
+@API
 public class RayCastInfo implements RayCastCallback {
     public Fixture fixture;
     public Vector2f contactedPoint;

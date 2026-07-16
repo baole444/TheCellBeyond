@@ -4,6 +4,7 @@ import TheCellBeyond.GameObject;
 import TheCellBeyond.internal.LogicServer;
 import components.Component;
 import scene.Scene;
+import scripting.API;
 import utility.log.EngineLog;
 
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ import java.util.List;
  * Absolute hierarchy paths can be resolved without context object while relative paths do.
  * @see HierarchyPath Hierarchy path format
  */
+@API
 public class HierarchyPaths {
     private static final EngineLog Logger = new EngineLog(HierarchyPaths.class);
     private HierarchyPaths() {}

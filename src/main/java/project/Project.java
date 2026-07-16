@@ -9,6 +9,7 @@ import physic2d.PhysicLayer;
 import render.Texture;
 import render.texture.SpriteSheet;
 import render.texture.TextureUnit;
+import scripting.API;
 import scripting.ScriptLoader;
 import tools.jackson.core.exc.JacksonIOException;
 import tools.jackson.databind.DeserializationFeature;
@@ -27,6 +28,7 @@ import java.util.*;
 /**
  * Project stores user's project data structure, resource import and paths to scene files.
  */
+@API
 public final class Project {
     private static ProjectData CurrentProject = null;
     private static String ProjectRoot = null;

@@ -1,12 +1,14 @@
 package components;
 
 import TheCellBeyond.internal.LogicServer;
+import scripting.API;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+@API
 public class StateEngine extends Component {
     private final ConcurrentHashMap<String, State> states = new ConcurrentHashMap<>();
     private String defaultState = null;

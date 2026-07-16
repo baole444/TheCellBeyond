@@ -2,6 +2,7 @@ package signal;
 
 import TheCellBeyond.internal.LogicServer;
 import scene.Scene;
+import scripting.API;
 import utility.log.EngineLog;
 
 import java.lang.reflect.InvocationTargetException;
@@ -35,6 +36,7 @@ import java.util.WeakHashMap;
  * }
  * }
  */
+@API
 public class Callable {
     private static final EngineLog Logger = new EngineLog(Callable.class);
     private static final WeakHashMap<Object, Map<String, Callable>> cache = new WeakHashMap<>();

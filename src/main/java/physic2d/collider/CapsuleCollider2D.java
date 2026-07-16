@@ -2,10 +2,12 @@ package physic2d.collider;
 
 import org.jbox2d.collision.shapes.Shape;
 import org.joml.Vector2f;
+import scripting.API;
 
 /**
  * CapsuleCollider2D is a combination of 2 circle collider and a box collider forming a 2D capsule/pillbox collision shape.
  */
+@API
 public class CapsuleCollider2D extends CollisionShape2D {
     private final transient CircleCollider2D headCircle = new CircleCollider2D();
     private final transient CircleCollider2D footCircle = new CircleCollider2D();

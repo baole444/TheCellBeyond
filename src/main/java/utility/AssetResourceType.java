@@ -1,10 +1,12 @@
 package utility;
 
 import TheCellBeyond.internal.ResourceType;
+import scripting.API;
 
 /**
  * AssetResourceType enums are unclassified type of resource managed by AssetManager.
  */
+@API
 public enum AssetResourceType implements ResourceType {
     /**
      * Sprite sheet resource.

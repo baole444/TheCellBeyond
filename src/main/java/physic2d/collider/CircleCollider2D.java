@@ -4,10 +4,12 @@ import org.jbox2d.collision.shapes.CircleShape;
 import org.jbox2d.collision.shapes.Shape;
 import org.joml.Vector2f;
 import render.DebugDraw;
+import scripting.API;
 
 /**
  * CircleCollider2D is a circular 2D collision shape.
  */
+@API
 public class CircleCollider2D extends CollisionShape2D {
     private float radius = 0.16f;
 

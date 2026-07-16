@@ -5,10 +5,12 @@ import org.jbox2d.collision.shapes.Shape;
 import org.jbox2d.common.Vec2;
 import org.joml.Vector2f;
 import render.DebugDraw;
+import scripting.API;
 
 /**
  * BoxCollider2D is a rectangular 2D collision shape.
  */
+@API
 public class BoxCollider2D extends CollisionShape2D {
     private final Vector2f halfSize = new Vector2f(0.16f);
 

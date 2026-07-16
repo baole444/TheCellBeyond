@@ -4,9 +4,11 @@ import TheCellBeyond.TileMap;
 import org.joml.Vector2i;
 import org.joml.Vector4f;
 import render.texture.TileSet;
+import scripting.API;
 
 import java.util.Map;
 
+@API
 public class MeshCommand extends RenderCommand {
     public Map<Vector2i, TileMap.TilePlacement> tilePlacements = null;
     public TileSet tileSet = null;

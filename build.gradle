@@ -233,82 +233,26 @@ tasks.register('packageApp', Exec) {
 }
 
 // Engine Scripting API
-// Packages and classes exposed to script authors via the API jar.
-// Add entries when new API are introduced.
 
-// Include a class and their inner classes
-def cls = { String path -> ["${path}.class", "${path}\$*.class"] }
-def TCB = 'TheCellBeyond/'
-def TCBClasses = [
-        'GameObject', 'GameObject2D', 'Camera2D', 'TileMap', 'Parallax2D',
-        'Transform2D', 'Viewport', 'RenderableObject', 'Sound',
-        'AudioResourceType', 'KeyListener', 'MouseListener',
-]
-def TCBInternals = ['LogicServer', 'ResourceID', 'ResourceStatus']
-def InputClasses = ['Input', 'InputAction', 'InputKey', 'InputType']
-def UTL = 'utility/'
-def UtilityClasses = [
-        'AssetManager', 'AssetResourceType', 'AssetReference', 'UnifiedPaths',
-        'HierarchyPath', 'HierarchyPaths', 'WorldUnit', 'Settings',
-        'TCBMath', 'TextureScale', 'FontPT', 'IdPool', 'RingBuffer',
-        'ResourceTracker'
-]
-def SPT = 'scripting/'
-def ScriptingClasses = ['Export', 'TypeHint', 'RegisterComponent', 'RegisterGameObject', 'TypeEntry']
+// The derived set of classes packaged into the API jar, each type carry @API as transitive public/protected signature closure.
+// Computed by generateAPIIncludes task, do not edit the include list.
+ext.apiSurfaceFile = file("$rootDir/gradle/api-surface/api-includes.txt")
 
-ext.apiIncludes = [
-        // Core classes
-        TCBClasses.collect { cls(TCB + it) },
+def apiSurfaceLines = {
+    if (!apiSurfaceFile.exists()) throw new GradleException("API surface list ${apiSurfaceFile} is missing - run generateAPIIncludes first")
+    apiSurfaceFile.readLines()*.trim().findAll { !it.isEmpty() }
+}
 
-        // Scene and LogicServer
-        TCBInternals.collect { cls(TCB + 'internal/' + it) },
-        cls('scene/Scene'),
-        cls('scene/SceneLoader'),
-
-        // InputAction
-        InputClasses.collect { cls(TCB + it) },
-
-        // Render
-        'render/commands/**',
-        'render/texture/**',
-        cls('render/Renderable'),
-        cls('render/FrameBuffer'),
-        'render/text/HorizontalAlignment.class',
-        'render/text/VerticalAlignment.class',
-        cls('render/text/TCBFont'),
-
-        // All components
-        'components/**',
-
-        // All physic
-        'physic2d/**',
-
-        // Signal
-        cls('signal/Signal'),
-        cls('signal/Callable'),
-
-        // Event Viewer
-        cls('eventviewer/EngineEventListener'),
-        cls('eventviewer/EngineEventCallback'),
-        cls('eventviewer/event/SceneEvent'),
-        cls('eventviewer/event/ProjectEvent'),
-        cls('eventviewer/event/Event'),
-
-        // Project
-        cls('project/Project'),
-        cls('project/ProjectPreference'),
-
-        // Serialization
-        cls('serialization/EngineSerializer'),
-
-        // Script annotations
-        ScriptingClasses.collect { cls(SPT + it) },
-
-        // Utils and prefabs
-        UtilityClasses.collect { cls(UTL + it) },
-        UTL + 'log/**',
-        UTL + 'prefabrication/**'
-].flatten()
+def apiClassIncludeCache = new LinkedHashSet<String>()
+def apiClassIncludes = {
+    if (apiClassIncludeCache.isEmpty()) apiClassIncludeCache.addAll(apiSurfaceLines().collect { it + '.class' })
+    apiClassIncludeCache
+}
+def apiJavaIncludeCache = new LinkedHashSet<String>()
+def apiJavaIncludes = {
+    if (apiJavaIncludeCache.isEmpty()) apiJavaIncludeCache.addAll(apiSurfaceLines().collect { it.replaceFirst(/\$.*/, '') + '.java' })
+    apiJavaIncludeCache
+}
 
 def TCB_API = 'thecellbeyond-api'
 
@@ -317,9 +261,9 @@ tasks.register('apiJar', Jar) {
     description = 'Build the engine API jar for compiled classes'
     archiveBaseName = TCB_API
     archiveVersion = TCB_API_version
-    dependsOn compileJava
+    dependsOn compileJava, 'generateAPIIncludes'
     from(sourceSets.main.output.classesDirs) {
-        includes = apiIncludes
+        include { detail -> detail.directory || apiClassIncludes().contains(detail.relativePath.pathString) }
     }
 }
 
@@ -329,18 +273,18 @@ tasks.register('apiSourcesJar', Jar) {
     archiveBaseName = TCB_API
     archiveClassifier = 'sources'
     archiveVersion = TCB_API_version
+    dependsOn 'generateAPIIncludes'
     from(sourceSets.main.java.srcDirs) {
-        includes = apiIncludes.collect { it.replace('.class', '.java').replace('$*', '') } as Iterable<String>
+        include { detail -> detail.directory || apiJavaIncludes().contains(detail.relativePath.pathString) }
     }
 }
 
 tasks.register('apiJavadoc', Javadoc) {
     group = 'documentation'
     description = 'Generates Javadoc for engine API classes'
-    dependsOn compileJava
+    dependsOn compileJava, 'generateAPIIncludes'
     source = sourceSets.main.java
     classpath = sourceSets.main.compileClasspath + sourceSets.main.output
-    include apiIncludes.collect { it.replace('.class', '.java').replace('$*', '') } as Iterable<String>
     failOnError = false
     options.encoding = "UTF-8"
     options {
@@ -351,6 +295,7 @@ tasks.register('apiJavadoc', Javadoc) {
         ]
         source = "25"
     }
+    doFirst { include(apiJavaIncludes() as List<String>) }
 }
 
 tasks.register('apiJavadocJar', Jar) {
@@ -365,6 +310,9 @@ tasks.register('apiJavadocJar', Jar) {
 
 // Script API index manifest generation (source set and task)
 apply from: "$rootDir/gradle/script-api-manifest.gradle"
+
+// API surface closure tool base on script API manifest
+apply from: "$rootDir/gradle/api-closure.gradle"
 
 // Standalone tool for class hierarchy visualization (source set and standalone task)
 apply from: "$rootDir/gradle/class-hierarchy-visualization.gradle"

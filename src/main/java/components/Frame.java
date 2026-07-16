@@ -1,11 +1,13 @@
 package components;
 
 import render.texture.Sprite;
+import scripting.API;
 
 /**
  * Frame contain the sprite to render and its duration in second.
  * The end of a frame is determined by the sequence it is in.
  */
+@API
 public class Frame {
     /**
      * The sprite to render during this frame.

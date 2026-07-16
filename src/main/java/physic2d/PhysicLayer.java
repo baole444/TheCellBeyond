@@ -2,7 +2,9 @@ package physic2d;
 
 import project.Project;
 import project.ProjectData;
+import scripting.API;
 
+@API
 public class PhysicLayer {
     public static int layerToBit(int layerIndex) {
         return isLayerIndexValid(layerIndex) ? 1 << layerIndex : 1;

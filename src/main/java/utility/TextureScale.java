@@ -2,7 +2,9 @@ package utility;
 
 import org.joml.Math;
 import org.joml.Vector2f;
+import scripting.API;
 
+@API
 public class TextureScale {
     /**
      * Calculate texture's dimension that will fit in a rectangle region.

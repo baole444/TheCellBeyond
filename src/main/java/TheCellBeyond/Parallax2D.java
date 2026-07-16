@@ -3,7 +3,9 @@ package TheCellBeyond;
 import TheCellBeyond.internal.LogicServer;
 import org.joml.Vector2f;
 import scene.Scene;
+import scripting.API;
 
+@API
 public class Parallax2D extends GameObject2D {
     /**
      * The multiplier for the {@link Parallax2D}'s final offset.

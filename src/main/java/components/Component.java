@@ -3,6 +3,7 @@ package components;
 import TheCellBeyond.GameObject;
 import org.jbox2d.dynamics.contacts.Contact;
 import org.joml.Vector2f;
+import scripting.API;
 import utility.HierarchyPath;
 import utility.HierarchyPaths;
 import utility.log.EngineLog;
@@ -61,6 +62,7 @@ import java.util.UUID;
  * }
  *}
  */
+@API
 public abstract class Component {
     /**
      * Logger for components.

@@ -1,6 +1,7 @@
 package eventviewer;
 
 import eventviewer.event.Event;
+import scripting.API;
 
 /**
  * The EngineEventListener interface provide the common method {@link #onEventEmit(Object, Event)},
@@ -9,6 +10,7 @@ import eventviewer.event.Event;
  * The interface also provide default {@link #register()} and {@link #dispose()} methods,
  * which register and unregister the instance that implemented this interface with {@link EngineEventCallback}.
  */
+@API
 public interface EngineEventListener {
     /**
      * If the implement of {@link EngineEventListener} is registered with {@link EngineEventCallback},

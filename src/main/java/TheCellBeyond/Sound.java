@@ -4,6 +4,7 @@ import TheCellBeyond.internal.ResourceID;
 import TheCellBeyond.internal.ResourceStatus;
 import TheCellBeyond.internal.ResourceStatusCallback;
 import org.lwjgl.system.MemoryStack;
+import scripting.API;
 import utility.AssetReference;
 
 import java.nio.IntBuffer;
@@ -13,6 +14,7 @@ import static org.lwjgl.openal.AL10.*;
 import static org.lwjgl.stb.STBVorbis.stb_vorbis_decode_filename;
 import static org.lwjgl.system.libc.LibCStdlib.free;
 
+@API
 public class Sound {
     public final ResourceID RID = new ResourceID(AudioResourceType.Clip);
     private int bufferId;

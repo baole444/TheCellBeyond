@@ -1,7 +1,9 @@
 package utility;
 
 import org.joml.Vector2f;
+import scripting.API;
 
+@API
 public class WorldUnit {
     public static final float PixelsPerWorldUnit = 100.0f;
     public static final float WorldUnitsPerPixel = 1.0f / PixelsPerWorldUnit;

@@ -1,8 +1,11 @@
 package scene;
 
+import scripting.API;
+
 /**
  * Scene loader is used by the {@link Scene} to execute logic at important point in scene life cycle.
  */
+@API
 public abstract class SceneLoader {
     /**
      * Called on scene finish loading resource.

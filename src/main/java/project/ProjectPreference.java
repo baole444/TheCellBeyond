@@ -2,7 +2,9 @@ package project;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import physic2d.Physic2D;
+import scripting.API;
 
+@API
 public record ProjectPreference(
         String name,
         int gameWindowWidth, int gameWindowHeight,

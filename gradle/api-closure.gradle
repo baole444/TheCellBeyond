@@ -1,0 +1,99 @@
+/*
+API surface closure
+
+Compute the transitive public and protected signature of API types and writes the class file include list to form the API jar.
+External dependency are check to ensure that they are declared on POM or had been provisioned in flat jar form by the editor.
+
+The include list is store at gradle/api-surface/api-includes.txt and can be preview for changes following the API surface.
+It is a build tool resource and does not packaged into the engine.
+
+Depend on the manifest gen source set defined in script-api-manifest.gradle, this file must be applied after it.
+*/
+
+def apiSurfaceReport = layout.buildDirectory.file('api-surface/report.txt')
+def jbox2dEngineJar = file('library/jbox2d-library.jar')
+def jbox2dTemplateJar = file('src/main/resources/templates/script-project/library/jbox2d-library.jar')
+
+tasks.register('generateAPIIncludes', JavaExec) {
+    group = 'build'
+    description = 'Compute the API surface closure from @API seeds and run the external dependency gate'
+    dependsOn compileJava, 'compileManifestGenJava'
+    classpath = sourceSets.manifestGen.runtimeClasspath
+    mainClass = 'generator.APISurfaceGenerator'
+    inputs.files(sourceSets.main.output.classesDirs).withPropertyName('engineClasses')
+    inputs.files(jbox2dEngineJar, jbox2dTemplateJar).withPropertyName('provisionedJars').optional()
+    outputs.file(apiSurfaceFile).withPropertyName('apiIncludes')
+    outputs.file(apiSurfaceReport).withPropertyName('report')
+    doFirst {
+        args '--classpath', sourceSets.main.output.classesDirs.asPath,
+                '--out', apiSurfaceFile.absolutePath,
+                '--report', apiSurfaceReport.get().asFile.absolutePath,
+                '--seed-annotation', 'scripting.API',
+                '--declared', 'org.joml',
+                '--provisioned', 'org.jbox2d',
+                '--provisioned-jar', jbox2dEngineJar.absolutePath,
+                '--provisioned-jar', jbox2dTemplateJar.absolutePath
+    }
+}
+
+tasks.register('verifyAPIClosure', Exec) {
+    group = 'verification'
+    description = 'Check the API jar surface for consistency with jdeps --api-only'
+    dependsOn apiJar
+    def out = new ByteArrayOutputStream()
+    standardOutput = out
+    errorOutput = out
+    ignoreExitValue = true
+    doFirst {
+        commandLine 'jdeps', '--api-only', '--multi-release', 'base', '-verbose:class', '-cp',
+                sourceSets.main.compileClasspath.asPath,
+                tasks.named('apiJar').get().archiveFile.get().asFile.absolutePath
+    }
+    doLast {
+        def text = out.toString()
+        // The archive summary line ("<jar> -> not found") only restates that some dependency is out of the classpath.
+        // The per-class lines are the signal, the @API marker is expected to be absent from the jar by design.
+        def holes = text.readLines().findAll {
+            it.contains('not found') && !(it =~ /\.jar\s*->\s*not found/) && !it.contains('scripting.API')
+        }
+        if (!holes.isEmpty()) {
+            holes.each { logger.error("  API surface hole: ${it.trim()}") }
+            throw new GradleException("jdeps --api-only found ${holes.size()} engine type(s) on the API surface missing from the jar")
+        }
+        logger.lifecycle('jdeps --api-only check: API jar surface is consistent')
+    }
+}
+
+def canarySrcDir = file("${layout.buildDirectory.get().asFile}/canary/src")
+def canaryProbe = new File(canarySrcDir, 'canary/APICanary.java')
+
+tasks.register('generateAPICanary', JavaExec) {
+    group = 'verification'
+    description = 'Generate the API canary probe from the built API jar'
+    dependsOn apiJar, 'compileManifestGenJava'
+    classpath = sourceSets.manifestGen.runtimeClasspath
+    mainClass = 'generator.CanaryGenerator'
+    doFirst {
+        args tasks.named('apiJar').get().archiveFile.get().asFile.absolutePath, canaryProbe.absolutePath
+    }
+}
+
+tasks.register('compileAPICanary', JavaCompile) {
+    group = 'verification'
+    description = 'Compile the API canary against the API jar and provisioned flat jars (the script classpath)'
+    dependsOn 'generateAPICanary'
+    source = canarySrcDir
+    destinationDirectory = layout.buildDirectory.dir('canary/classes')
+    classpath = files(tasks.named('apiJar').flatMap { it.archiveFile }) +
+            sourceSets.main.compileClasspath.filter { it.name.contains('joml') || it.name.contains('jbox2d') }
+    options.release = 25
+    options.encoding = 'UTF-8'
+}
+
+tasks.register('verifyAPISurface') {
+    group = 'verification'
+    description = 'Run the full API surface jdeps check and canary compile verification'
+    dependsOn 'verifyAPIClosure', 'compileAPICanary'
+}
+
+tasks.matching { it.name == 'check' }.configureEach { dependsOn 'verifyAPISurface' }

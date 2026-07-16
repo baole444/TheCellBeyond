@@ -5,6 +5,7 @@ import TheCellBeyond.Input;
 import TheCellBeyond.InputAction;
 import org.joml.Vector2f;
 import physic2d.PhysicBody2D;
+import scripting.API;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,6 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * The movement is applied base on {@link ControllerDirection}s and their bound {@link InputAction}s.
  * @see ControlMode Controller2D's control modes
  */
+@API
 public final class Controller2D extends Component {
     /**
      * ControlMode define how the controller apply movement.

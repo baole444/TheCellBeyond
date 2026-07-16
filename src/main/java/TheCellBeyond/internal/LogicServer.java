@@ -11,8 +11,10 @@ import eventviewer.event.SceneEvent;
 import physic2d.Physic2D;
 import project.Project;
 import scene.*;
+import scripting.API;
 import utility.log.EngineLog;
 
+@API
 public class LogicServer implements EngineEventListener {
     private static final LogicServer instance = new LogicServer();
     private static final EngineLog Logger = new EngineLog(LogicServer.class);

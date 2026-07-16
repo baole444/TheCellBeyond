@@ -2,6 +2,7 @@ package components;
 
 import TheCellBeyond.GameObject;
 import TheCellBeyond.GameObject2D;
+import scripting.API;
 import utility.HierarchyPath;
 import utility.HierarchyPaths;
 
@@ -16,6 +17,7 @@ import utility.HierarchyPaths;
  *
  * @apiNote RemoteTransform2D use its global transform as update source regardless of {@link #useGlobalTransform}.
  */
+@API
 public class RemoteTransform2D extends Component2D {
     private String targetPath = "";
 

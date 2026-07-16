@@ -1,9 +1,11 @@
 package eventviewer.event;
 
 import scene.Scene;
+import scripting.API;
 
 import java.util.List;
 
+@API
 public class SceneEvent extends Event {
     public enum Type {
         SceneChanging,

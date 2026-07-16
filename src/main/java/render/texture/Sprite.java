@@ -3,6 +3,7 @@ package render.texture;
 import TheCellBeyond.internal.ResourceID;
 import org.joml.Vector2f;
 import render.Texture;
+import scripting.API;
 import utility.AssetManager;
 import utility.AssetReference;
 
@@ -11,6 +12,7 @@ import utility.AssetReference;
  * Sprite will mark itself dirty (volatile) when its parameters are updated,
  * which will be cleared by its responsible SpriteRenderer.
  */
+@API
 public class Sprite {
     private float width, height;
     private String textureCanonicalPath = null;

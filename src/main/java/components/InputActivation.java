@@ -1,10 +1,13 @@
 package components;
 
+import scripting.API;
+
 /**
  * InputActivation evaluate whether an input press signal meets activate conditions base on {@link ActivationMode}.
  * It tracks internal state like hold progress and tap consumption across calls.
  * Upon releasing the input, all states are reset.
  */
+@API
 public class InputActivation {
     /**
      * Input activation mode, support for immediate, hold and tap activation.

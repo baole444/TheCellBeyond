@@ -1,10 +1,13 @@
 package utility;
 
+import scripting.API;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
+@API
 public class RingBuffer<T> {
     private final AtomicReferenceArray<T> buffer;
     private final int capacity;

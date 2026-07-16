@@ -2,6 +2,7 @@ package TheCellBeyond;
 
 import org.lwjgl.glfw.GLFW;
 import project.Project;
+import scripting.API;
 import utility.log.EngineLog;
 
 import java.lang.reflect.Field;
@@ -19,6 +20,7 @@ import static org.lwjgl.glfw.GLFW.*;
  * <p>
  * It also contains method to retrieve user-friendly name for input code and method to check if a key is modifier key or a mouse button.
  */
+@API
 public final class Input {
     private static final HashMap<Integer, String> keyNames = new HashMap<>();
     private static final HashSet<Integer> modifierKeysCode = new HashSet<>();

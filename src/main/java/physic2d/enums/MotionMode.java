@@ -1,5 +1,7 @@
 package physic2d.enums;
 
+import scripting.API;
+
 /**
  * Motion mode will affect physic interpretation of wall, floor and celling on the body.
  * <p>
@@ -9,6 +11,7 @@ package physic2d.enums;
  *     <li>{@link #Floating}</li>
  * </ul>
  */
+@API
 public enum MotionMode {
     /**
      * Apply for when walls, ceiling and floor are relevant.

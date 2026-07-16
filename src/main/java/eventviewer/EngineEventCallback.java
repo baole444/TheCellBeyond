@@ -1,6 +1,7 @@
 package eventviewer;
 
 import eventviewer.event.Event;
+import scripting.API;
 
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -8,6 +9,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * EngineEventCallback provide static methods for emitting engine event, register and unregister as listener to these event.
  * Classes that implemented the {@link EngineEventListener} interface can handle these event.
  */
+@API
 public class EngineEventCallback {
     private static final CopyOnWriteArrayList<EngineEventListener> engineEventListeners = new CopyOnWriteArrayList<>();
     private EngineEventCallback() {}

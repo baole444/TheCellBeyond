@@ -2,6 +2,7 @@ package TheCellBeyond;
 
 import components.Component;
 import org.joml.Vector2f;
+import scripting.API;
 import utility.WorldUnit;
 
 /**
@@ -27,6 +28,7 @@ import utility.WorldUnit;
  * @apiNote
  * Rotation is Y-flip, which make positive rotation angle appear clockwise. It is still counter-clockwise rotation mathematically.
  */
+@API
 public class Transform2D extends Component {
     /**
      * The transform position vector.

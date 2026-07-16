@@ -36,7 +36,7 @@ public class GameObject {
     /**
      * Standard serializer for game object.
      */
-    protected static final EngineSerializer Serializer = EngineSerializer.standard();
+    private static final EngineSerializer Serializer = EngineSerializer.standard();
     /**
      * Unique ID distributor for {@link GameObject}, managed the {@link #cachedID} of each object.
      */

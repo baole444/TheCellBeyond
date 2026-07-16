@@ -1,11 +1,14 @@
 package TheCellBeyond;
 
+import scripting.API;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import static org.lwjgl.glfw.GLFW.*;
 
+@API
 public class KeyListener {
     private static KeyListener instance;
     private final boolean[] keyTapped = new boolean[GLFW_KEY_LAST + 1];

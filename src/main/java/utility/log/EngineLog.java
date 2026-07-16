@@ -1,5 +1,6 @@
 package utility.log;
 
+import scripting.API;
 import utility.RingBuffer;
 
 import java.time.LocalDateTime;
@@ -13,6 +14,7 @@ import java.util.List;
  *
  * @param source The source's prefix string.
  */
+@API
 public record EngineLog(String source) {
     private static final RingBuffer<LogEntry> history = new RingBuffer<>(1024);
     /**

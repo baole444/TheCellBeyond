@@ -1,5 +1,7 @@
 package TheCellBeyond;
 
+import scripting.API;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -12,6 +14,7 @@ import java.util.UUID;
  * @param keys the collection of keycode or key combo that can be used to activate this action
  * @see Input Checking input with InputAction
  */
+@API
 public record InputAction(String name, List<Set<InputKey>> keys) {
     /**
      * Compact constructor, ensure valid name and valid key collection.

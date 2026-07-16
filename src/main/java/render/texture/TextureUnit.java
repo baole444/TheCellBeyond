@@ -4,6 +4,7 @@ import TheCellBeyond.internal.ResourceID;
 import TheCellBeyond.internal.ResourceStatus;
 import org.joml.Vector2i;
 import render.Texture;
+import scripting.API;
 import utility.AssetManager;
 import utility.ResourceTracker;
 
@@ -12,6 +13,7 @@ import utility.ResourceTracker;
  * TextureUnit will pass the texture's size and canonical path to the sprite once the texture is ready.
  * @see SpriteSheet calculate multiple sprites from a texture.
  */
+@API
 public class TextureUnit {
     private Texture texture;
     private final Sprite sprite = new Sprite();

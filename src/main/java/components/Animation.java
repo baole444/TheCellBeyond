@@ -1,6 +1,7 @@
 package components;
 
 import render.texture.Sprite;
+import scripting.API;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,6 +10,7 @@ import java.util.List;
  * Animation hold the sequence of frames, the duration of the total sequence
  * and animation loop flag along with animation speed multiplier.
  */
+@API
 public class Animation {
     private final List<Frame> frames = new ArrayList<>();
     private float speedMultiplier = 1.0f;

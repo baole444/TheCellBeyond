@@ -4,6 +4,7 @@ import TheCellBeyond.internal.LogicServer;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
+import scripting.API;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,6 +12,7 @@ import java.util.List;
 
 import static org.lwjgl.glfw.GLFW.*;
 
+@API
 public class MouseListener {
     private static MouseListener instance;
     private double scrollX, scrollY;

@@ -7,6 +7,7 @@ import org.lwjgl.stb.STBImage;
 import org.lwjgl.system.MemoryStack;
 import physic2d.PhysicLayer;
 import render.Texture;
+import scripting.API;
 import utility.AssetReference;
 import utility.UnifiedPaths;
 import utility.log.EngineLog;
@@ -25,6 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Similar to Sprite, TileSet will mark itself dirty on parameter update ot it's sprite is dirty.
  * If the sprite that it is holding is null, TileSet will disable its dirty flag.
  */
+@API
 public class TileSet {
     private static final EngineLog LOGGER = new EngineLog(TileSet.class);
 

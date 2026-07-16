@@ -2,7 +2,9 @@ package render.texture;
 
 import org.joml.Vector2f;
 import org.joml.Vector2i;
+import scripting.API;
 
+@API
 public class Tile {
     public Vector2i setCoordinate;
     public Vector2f[] textureCoordinates;

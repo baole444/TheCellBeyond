@@ -5,12 +5,14 @@ import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.BodyDef;
 import org.joml.Vector2f;
 import physic2d.enums.PhysicBodyType;
+import scripting.API;
 
 /**
  * RigidBody2D is a fully simulated physic body. It cannot be controlled directly, instead, forces (gravity, impulses, etc.)
  * are applied for physic simulation to calculate the resulting movement, rotation and react to collisions.
  * This allows the body to affect other physic bodies in its path.
  */
+@API
 public class RigidBody2D extends PhysicBody2D {
     private final Vector2f initialVelocity = new Vector2f();
     private float rollResistance = 0.8f;

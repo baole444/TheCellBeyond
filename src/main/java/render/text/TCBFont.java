@@ -2,6 +2,7 @@ package render.text;
 
 import TheCellBeyond.internal.ResourceID;
 import render.RenderResourceType;
+import scripting.API;
 import utility.AssetReference;
 import utility.FontPT;
 
@@ -11,6 +12,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Font meta data.
  */
+@API
 public class TCBFont {
     public final ResourceID RID = new ResourceID(RenderResourceType.Font);
     final AssetReference assetReference;

@@ -10,6 +10,7 @@ import eventviewer.EngineEventCallback;
 import eventviewer.event.SceneEvent;
 import physic2d.CollisionObject2D;
 import physic2d.Physic2D;
+import scripting.API;
 import signal.Callable;
 import utility.log.EngineLog;
 
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
  * Scene manage its objects life cycle, consist of physic process and idle (logic) process update.
  * When an object is added or remove from scene, it is first queued and then process at the end of logic process update.
  */
+@API
 public class Scene {
     private record DeferredCall(Callable callable, Object[] args) {}
 

@@ -2,6 +2,7 @@ package utility;
 
 import TheCellBeyond.GameObject;
 import components.Component;
+import scripting.API;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,6 +32,7 @@ import java.util.List;
  * </p>
  * When a path is appended with component delimiter and component name, it can still be resolved to object as normal.
  */
+@API
 public final class HierarchyPath {
     /**
      * Path segment separator symbol.

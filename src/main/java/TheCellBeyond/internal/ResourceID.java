@@ -1,5 +1,6 @@
 package TheCellBeyond.internal;
 
+import scripting.API;
 import utility.IdPool;
 
 /**
@@ -8,6 +9,7 @@ import utility.IdPool;
  * <p>
  * This can be referred as {@code RID} for short.
  */
+@API
 public class ResourceID {
     private static final IdPool IdPool = new IdPool(1, false);
 

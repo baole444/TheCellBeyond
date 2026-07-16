@@ -9,6 +9,7 @@ import org.jbox2d.dynamics.Fixture;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import render.DebugDraw;
+import scripting.API;
 
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -22,6 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * RayCast2D can ignore objects that are added to its exception list
  * or outside its {@link #collisionMask}.
  */
+@API
 public class RayCast2D extends GameObject2D {
     /**
      * Should the ray's collisions with {@link Area2D} be reported.

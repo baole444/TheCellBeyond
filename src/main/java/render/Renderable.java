@@ -4,7 +4,9 @@ import org.joml.Vector2f;
 import org.joml.Vector4f;
 import render.commands.RenderCommand;
 import render.commands.TransformCommand;
+import scripting.API;
 
+@API
 public interface Renderable {
     /**
      * Build rendering command to manipulate the rendering tree, this could be a single command or a chain of commands.

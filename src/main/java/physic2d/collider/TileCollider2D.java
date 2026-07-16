@@ -7,6 +7,7 @@ import org.joml.Vector2f;
 import org.joml.Vector2i;
 import render.texture.Tile;
 import render.texture.TileSet;
+import scripting.API;
 import utility.WorldUnit;
 
 import java.util.HashMap;
@@ -14,6 +15,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+@API
 public class TileCollider2D extends CollisionShape2D {
     public static final int MinNode = 3;
     public static final int MaxNode = 8;

@@ -2,7 +2,9 @@ package physic2d;
 
 import org.jbox2d.dynamics.BodyDef;
 import physic2d.enums.PhysicBodyType;
+import scripting.API;
 
+@API
 public class StaticBody2D extends PhysicBody2D {
     public StaticBody2D() {
         String name = StaticBody2D.class.getSimpleName();

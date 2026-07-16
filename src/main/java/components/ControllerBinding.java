@@ -1,12 +1,14 @@
 package components;
 
 import org.joml.Vector2f;
+import scripting.API;
 
 import java.util.HashSet;
 
 /**
  * ControllerBinding contains the direction, activation mechanic, and triggering input actions for a binding of a {@link Controller2D}.
  */
+@API
 public class ControllerBinding {
     /**
      * The direction of this controller binding.

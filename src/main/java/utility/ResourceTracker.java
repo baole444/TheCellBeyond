@@ -4,6 +4,7 @@ import TheCellBeyond.internal.ResourceID;
 import TheCellBeyond.internal.ResourceStatus;
 import TheCellBeyond.internal.ResourceStatusCallback;
 import TheCellBeyond.internal.ResourceStatusListener;
+import scripting.API;
 
 import java.util.function.BiConsumer;
 
@@ -18,6 +19,7 @@ import java.util.function.BiConsumer;
  * If the consumer no longer need updates (destroyed, or change resource),
  * the tracker should manually cancel using {@link #cancel()}.
  */
+@API
 public final class ResourceTracker {
     private final ResourceID RID;
     private final BiConsumer<ResourceID, ResourceStatus> onChange;

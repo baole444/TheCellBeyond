@@ -1,8 +1,11 @@
 package components;
 
+import scripting.API;
+
 /**
  * Placeholder for future AnimationPlayer
  */
+@API
 public class AnimationPlayer extends SpriteRenderer {
     /**
      * Create a new {@link AnimationPlayer} component.

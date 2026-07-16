@@ -8,10 +8,12 @@ import render.DebugDraw;
 import render.commands.RenderCommand;
 import render.commands.TextCommand;
 import render.text.*;
+import scripting.API;
 import utility.*;
 
 import java.util.Objects;
 
+@API
 public class TextRenderer extends Component2D {
     private String text = "Text";
     private AssetReference assetReference = new AssetReference(Settings.FontPath.NotoSansMono);

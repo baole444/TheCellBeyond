@@ -1,5 +1,6 @@
 package signal;
 
+import scripting.API;
 import utility.log.EngineLog;
 
 import java.util.List;
@@ -48,6 +49,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * }
  * }
  */
+@API
 public class Signal {
     private static final EngineLog Logger = new EngineLog(Signal.class);
     private final Class<?>[] types;

@@ -4,6 +4,7 @@ import components.Component2D;
 import org.joml.Matrix3x2f;
 import org.joml.Vector2f;
 import render.commands.TransformCommand;
+import scripting.API;
 
 import java.util.List;
 
@@ -29,6 +30,7 @@ import java.util.List;
  * <b>Inherited by:</b> {@link physic2d.PhysicBody2D}
  * @see Transform2D Transform2D data structure
  */
+@API
 public class GameObject2D extends RenderableObject {
     /**
      * This 2D object's local transform.

@@ -8,6 +8,7 @@ import org.jbox2d.dynamics.Fixture;
 import org.joml.Vector2f;
 import physic2d.enums.MotionMode;
 import physic2d.enums.PhysicBodyType;
+import scripting.API;
 
 import java.util.List;
 
@@ -19,6 +20,7 @@ import java.util.List;
  * in additional to collision detection. This make it useful for physic bodies that must move
  * in specific ways and collide with the world, which is often the case for user-controlled characters.
  */
+@API
 public class CharacterBody2D extends PhysicBody2D {
     /**
      * The limit on how many times can the character change direction per {@link #moveAndSlide()} call.

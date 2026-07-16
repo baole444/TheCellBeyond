@@ -1,11 +1,14 @@
 package utility;
 
+import scripting.API;
+
 import java.util.Objects;
 
 /**
  * AssetReference contains the canonical unified path of the asset.<br>
  * Wrapper for asset's raw file path.
  */
+@API
 public class AssetReference {
     private final String canonicalPath;
     private transient volatile UnifiedPaths.AssetPath resolvedPath;

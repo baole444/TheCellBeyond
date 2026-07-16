@@ -1,6 +1,7 @@
 package components;
 
 import render.texture.Sprite;
+import scripting.API;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,9 +14,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * The frame times is even between frames of an animation and is managed via FPS value
  * ({@code frame time = 1 / fps}).
  * </p>
- * <p>
  * The component facilitates animation playback over time and default animation that autoplay on start.
  */
+@API
 public class AnimatedSpriteRenderer extends SpriteRenderer {
     /**
      * The default FPS value given to a new animation if not specified.

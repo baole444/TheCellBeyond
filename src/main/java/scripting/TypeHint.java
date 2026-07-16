@@ -10,6 +10,7 @@ import java.util.List;
  * TypeHint is optional parameter in {@link Export} to enforce specific type for an exporting field.
  * @see Export
  */
+@API
 public enum TypeHint {
     /**
      * Let the editor detect the type automatically.

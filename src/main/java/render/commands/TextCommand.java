@@ -5,7 +5,9 @@ import org.joml.Vector2f;
 import org.joml.Vector4f;
 import render.text.HorizontalAlignment;
 import render.text.VerticalAlignment;
+import scripting.API;
 
+@API
 public class TextCommand extends RenderCommand {
     public String text = "";
     public ResourceID fontRID = null;

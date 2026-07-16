@@ -1,5 +1,6 @@
 package utility;
 
+import scripting.API;
 import utility.log.EngineLog;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -11,6 +12,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * IdPool also support recycling the value by releasing it back to the pool,
  * which can be dispatch again via {@link #newId()}.
  */
+@API
 public class IdPool {
     private static final EngineLog Logger = new EngineLog(IdPool.class);
     // Use for when respect floating point limit is enabled
