@@ -19,19 +19,19 @@ final class TCBFontTest {
     @Test
     public void loadFontCorrectly() throws InterruptedException {
         ResourceStatus status = awaitFont(Settings.FontPath.Caudex, GlyphRange.ASCII, 16, 16);
-        assertEquals(ResourceStatus.READY, status);
+        assertEquals(ResourceStatus.Ready, status);
     }
 
     @Test
     public void loadNoneExistingFontThrowIOException() throws InterruptedException {
         ResourceStatus status = awaitFont("engine://assets/fonts/NoneExistenceFile.ttf", GlyphRange.ASCII, 12, 10);
-        assertEquals(ResourceStatus.FAILED, status);
+        assertEquals(ResourceStatus.Failed, status);
     }
 
     @Test
     public void loadFontWithGlyphASCII_EXTENDED() throws InterruptedException {
         ResourceStatus status = awaitFont(Settings.FontPath.NotoSansMono, GlyphRange.ASCII_EXTENDED, 13, 16);
-        assertEquals(ResourceStatus.READY, status);
+        assertEquals(ResourceStatus.Ready, status);
     }
 
     private static ResourceStatus awaitFont(String path, GlyphRange range, float point, long timeOut) throws InterruptedException {
@@ -45,7 +45,7 @@ final class TCBFontTest {
         ResourceID RID = AssetManager.loadFont(path, range, point);
         RIDHolder.set(RID);
         TCBFont font = AssetManager.getFont(RID);
-        if (font != null && font.loaded() && result.compareAndSet(null, ResourceStatus.READY)) latch.countDown();
+        if (font != null && font.loaded() && result.compareAndSet(null, ResourceStatus.Ready)) latch.countDown();
         latch.await(timeOut, TimeUnit.SECONDS);
         ResourceStatusCallback.unregister(listener);
         return result.get();

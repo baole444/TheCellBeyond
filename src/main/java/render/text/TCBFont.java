@@ -53,9 +53,9 @@ public class TCBFont {
      * @param source the existing font meta
      * @param charMetrics the new size metric
      */
-    void populateExisting(TCBFont source, Map<Character, CharMetric> charMetrics) {
-        this.charUVs = source.charUVs;
-        this.atlasRID = source.atlasRID;
+    void populateExisting(FontManager.AtlasSource source, Map<Character, CharMetric> charMetrics) {
+        this.charUVs = source.charUVs();
+        this.atlasRID = source.atlasRID();
         this.charMetrics = charMetrics;
         loaded.set(true);
     }

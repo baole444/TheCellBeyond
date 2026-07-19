@@ -134,6 +134,7 @@ public final class EditorObjectIndicator extends Component2D implements NotSeria
         RectCommand rect = RectCommand.acquire();
         rect.submitterID = gameObject != null ? gameObject.getUID() : 0;
         rect.modulate.set(color);
+        rect.hasTextureReference = sprite != null && sprite.hasTexture();
         if (sprite != null) {
             rect.size.set(WorldUnit.pixelToWorld(sprite.getWidth(), sprite.getHeight()));
             if (sprite.textureRID() != null) {

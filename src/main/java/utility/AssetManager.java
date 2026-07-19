@@ -4,6 +4,7 @@ import TheCellBeyond.Sound;
 import TheCellBeyond.internal.ResourceID;
 import TheCellBeyond.internal.ResourceRegistry;
 import TheCellBeyond.internal.ResourceStatus;
+import TheCellBeyond.internal.ResourceStatusCallback;
 import render.FontAtlasTexture;
 import render.Shader;
 import render.Texture;
@@ -15,7 +16,6 @@ import render.texture.TextureManager;
 import render.texture.TextureUnit;
 import scripting.API;
 
-import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
@@ -326,7 +326,6 @@ public final class AssetManager {
         Texture texture = textureRegistry.get(RID);
         textureRegistry.unregister(RID);
         if (texture != null) texture.dispose();
-        RID.release();
     }
 
     public static void unloadSpriteSheet(String path) {
@@ -336,18 +335,74 @@ public final class AssetManager {
         if (RID == null) return;
         SpriteSheet sheet = spriteSheetRegistry.get(RID);
         spriteSheetRegistry.unregister(RID);
-        RID.release();
         if (sheet != null) sheet.dispose();
     }
 
     public static void unloadTextureUnit(String path) {
+        if (path == null || path.isBlank()) return;
         String canonicalPath = asCanonicalPath(path);
         ResourceID RID = textureUnitIDs.remove(canonicalPath);
         if (RID == null) return;
         TextureUnit unit = textureUnitRegistry.get(RID);
-        textureRegistry.unregister(RID);
-        RID.release();
+        textureUnitRegistry.unregister(RID);
         if (unit != null) unit.dispose();
+    }
+
+    /**
+     * Unload a cached shader, disposing its program.
+     * @param path the path to the shader file
+     */
+    public static void unloadShader(String path) {
+        if (path == null || path.isBlank()) return;
+        ResourceID RID = shaderIDs.remove(asCanonicalPath(path));
+        if (RID == null) return;
+        Shader shader = shaderRegistry.get(RID);
+        shaderRegistry.unregister(RID);
+        if (shader != null) shader.dispose();
+    }
+
+    /**
+     * Unload a cached sound, disposing its native buffer and source.
+     * @param path the path to the sound file
+     */
+    public static void unloadSound(String path) {
+        if (path == null || path.isBlank()) return;
+        ResourceID RID = soundIDs.remove(asCanonicalPath(path));
+        if (RID == null) return;
+        Sound sound = soundRegistry.get(RID);
+        soundRegistry.unregister(RID);
+        if (sound != null) sound.dispose();
+    }
+
+    /**
+     * Unload a cached font, its font's atlas is disposed only when there is no other loaded font on the same path and glyph range remains.
+     * @param path the unified path or system file path to the font
+     * @param glyphRange the glyph range used by that font
+     * @param point the size of the font in point ({@link FontPT})
+     */
+    public static void unloadFont(String path, GlyphRange glyphRange, float point) {
+        if (path == null || path.isBlank()) return;
+        String canonicalPath = asCanonicalPath(path);
+        ResourceID RID = fontIDs.remove(new FontKey(canonicalPath, glyphRange, point));
+        if (RID == null) return;
+        fontRegistry.unregister(RID);
+        ResourceStatusCallback.emit(RID, ResourceStatus.Disposed);
+        unloadFontAtlas(canonicalPath, glyphRange);
+    }
+
+    /**
+     * Unload the font atlas for the given path and glyph range, if no loaded font still reference it.
+     * @param canonicalPath the canonical path to the font
+     * @param glyphRange the glyph range used by that atlas
+     */
+    private static void unloadFontAtlas(String canonicalPath, GlyphRange glyphRange) {
+        for (FontKey key : fontIDs.keySet()) if (key.canonicalPath.equals(canonicalPath) && key.glyphRange == glyphRange) return;
+        FontManager.get().releaseAtlas(new AssetReference(canonicalPath), glyphRange);
+        ResourceID atlasRID = fontAtlasIDs.remove(new AtlasKey(canonicalPath, glyphRange));
+        if (atlasRID == null) return;
+        FontAtlasTexture atlas = fontAtlasRegistry.get(atlasRID);
+        fontAtlasRegistry.unregister(atlasRID);
+        if (atlas != null) atlas.dispose();
     }
 
     /**
@@ -356,13 +411,6 @@ public final class AssetManager {
     public static void clearCache() {
         for (Shader shader : shaderRegistry.values()) shader.dispose();
         for (Sound sound : soundRegistry.values()) sound.dispose();
-        releaseAll(textureIDs.values());
-        releaseAll(fontAtlasIDs.values());
-        releaseAll(fontIDs.values());
-        releaseAll(shaderIDs.values());
-        releaseAll(spriteSheetIDs.values());
-        releaseAll(textureUnitIDs.values());
-        releaseAll(soundIDs.values());
         textureIDs.clear();
         fontAtlasIDs.clear();
         fontIDs.clear();
@@ -378,10 +426,6 @@ public final class AssetManager {
         textureUnitRegistry.clear();
         soundRegistry.clear();
         TextureManager.get().clearPathCache();
-    }
-
-    private static void releaseAll(Collection<ResourceID> RIDs) {
-        for (ResourceID RID : RIDs) RID.release();
     }
 
     private static String asCanonicalPath(String path) {

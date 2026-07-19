@@ -77,9 +77,14 @@ public class FontAtlasTexture {
     public void dispose() {
         if (handle == null) return;
         TextureManager.get().disposeFontAtlasTexture(handle, getCanonicalPath(), glyphRange);
-        handle = null;
     }
 
+    /**
+     * Upload the atlas if its bitmap has been generated on this atlas was never uploaded.
+     * <p>
+     * A null handle must only mean that the atlas is not uploaded yet. A disposed atlas keep its handle, held terminal by {@link TextureHandle}.
+     * Otherise this would incorrectly upload again on next call.
+     */
     private void checkInitialization() {
         if (assetReference != null && handle == null) loadTextureData();
     }

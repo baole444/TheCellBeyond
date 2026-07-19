@@ -47,18 +47,21 @@ public class TextureUnit {
         textureReadyCheck(texture);
     }
 
+    /**
+     * Check if the texture is ready to be use or not, then update tracking accordingly.
+     * <p>
+     * Sprites are computed after updating, so readied texture end with requirement flag cleared.
+     * @param texture the texture to check for
+     */
     private void textureReadyCheck(Texture texture) {
         if (texture == null) return;
         int currentId = texture.RID.id;
         if (currentId == lastHandleId) return;
         lastHandleId = currentId;
-        if (texture.isReady()) {
-            requireCompute = true;
-            computeSprite();
-        }
         if (tracker != null) tracker.cancel();
         tracker = AssetManager.track(texture.RID, this::onTextureStatusChange);
         requireCompute = true;
+        if (texture.isReady()) computeSprite();
     }
 
     private void computeSprite() {
@@ -105,10 +108,10 @@ public class TextureUnit {
     public void onTextureStatusChange(ResourceID RID, ResourceStatus status) {
         if (texture == null) return;
         switch (status) {
-            case READY -> {
+            case Ready -> {
                 if (requireCompute) computeSprite();
             }
-            case DISPOSED, FAILED -> {
+            case Disposed, Failed -> {
                 requireCompute = false;
                 lastHandleId = -1;
                 tracker = null;

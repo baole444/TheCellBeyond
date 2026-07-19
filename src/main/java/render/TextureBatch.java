@@ -13,13 +13,41 @@ import utility.AssetManager;
 import utility.log.EngineLog;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.lwjgl.opengl.GL30.*;
 
+/**
+ * Batching system for texture.
+ * {@snippet lang="TEXT":
+ * Vertices layout:
+ * |Position| |   Color  | |Coordinate| |TexID| |ObjID|
+ * |  f, f  | |f, f, f, f| |   f, f   | |  f  | |  f  |
+ *
+ * (f = float)
+ * }
+ */
 public class TextureBatch {
-    // Vertices
-    // |Position| |   Color  | |Coordinate| |TexID| |ObjID|
-    // |  f, f  | |f, f, f, f| |   f, f   | |  f  | |  f  |
+    private static final EngineLog Logger = new EngineLog(TextureBatch.class);
+
+    /**
+     * What a command draw once its texture reference is resolved.
+     */
+    private enum TextureDraw {
+        /**
+         * Draw nothing. The command claim no texture, or its texture is still loading.
+         */
+        Skip,
+        /**
+         * Draw the texture.
+         */
+        Draw,
+        /**
+         * Draw the missing resource placeholder. The command claim a texture the pipeline cannot give it.
+         */
+        Missing
+    }
+
     private static final int[] TextureSlot = {0, 1, 2, 3, 4, 5, 6, 7};
     private static final int SeenBuffer = 16;
     private static final int DefaultBucketCapacity = 64;
@@ -31,7 +59,10 @@ public class TextureBatch {
     private static final int VertexSize = PositionSize + ColorSize + TextureCoordinateSize + TextureSlotIdSize + ObjectIdSize;
     private static final int VerticesPerQuad = 4;
     private static final int IndicesPerQuad = 6;
+    private static final int ColorOffset = 2;
     private static final int TextureSlotOffset = PositionSize + ColorSize + TextureCoordinateSize;
+    private static final Vector4f MissingTextureColor = new Vector4f(1.0f, 0.2f, 1.0f, 1.0f);
+    private static final Set<ResourceID> ReportedMissingTextures = ConcurrentHashMap.newKeySet();
     private int maxBindingTexture = 7;
     private final TreeMap<Integer, ZBucket> zBuckets = new TreeMap<>();
     private final IdentityHashMap<RectCommand, Integer> commandZIndex = new IdentityHashMap<>();
@@ -275,7 +306,9 @@ public class TextureBatch {
         for (int i = 0; i < count; i++) {
             RectCommand command = bucket.commands.get(i);
             Texture texture = resolveTexture(command.textureRID);
-            if (texture != null && !drawTextures.contains(texture)) {
+            TextureDraw draw = textureDraw(command, texture);
+            if (draw == TextureDraw.Missing) reportMissingTexture(command.textureRID);
+            if (draw == TextureDraw.Draw && !drawTextures.contains(texture)) {
                 if (drawTextures.size() >= maxBindingTexture) {
                     glBindBuffer(GL_ARRAY_BUFFER, bucket.vboID);
                     glBufferSubData(GL_ARRAY_BUFFER, 0, bucket.vertices);
@@ -285,10 +318,18 @@ public class TextureBatch {
                 }
                 drawTextures.add(texture);
             }
-            int slotID = 0;
-            if (texture != null) slotID = drawTextures.indexOf(texture) + 1;
+            int slotID = draw == TextureDraw.Draw ? drawTextures.indexOf(texture) + 1 : 0;
+            Vector4f color = draw == TextureDraw.Missing ? MissingTextureColor : command.modulate;
+            float alpha = draw == TextureDraw.Skip ? 0.0f : color.w;
             int baseOffset = i * VerticesPerQuad * VertexSize;
-            for (int v = 0; v < VerticesPerQuad; v++) bucket.vertices[baseOffset + v * VertexSize + TextureSlotOffset] = slotID;
+            for (int v = 0; v < VerticesPerQuad; v++) {
+                int colorOffset = baseOffset + v * VertexSize + ColorOffset;
+                bucket.vertices[colorOffset] = color.x;
+                bucket.vertices[colorOffset + 1] = color.y;
+                bucket.vertices[colorOffset + 2] = color.z;
+                bucket.vertices[colorOffset + 3] = alpha;
+                bucket.vertices[baseOffset + v * VertexSize + TextureSlotOffset] = slotID;
+            }
         }
         glBindBuffer(GL_ARRAY_BUFFER, bucket.vboID);
         glBufferSubData(GL_ARRAY_BUFFER, 0, bucket.vertices);
@@ -315,6 +356,25 @@ public class TextureBatch {
         return AssetManager.getTexture(textureRID);
     }
 
+    private static TextureDraw textureDraw(RectCommand command, Texture texture) {
+        if (!command.hasTextureReference) return TextureDraw.Skip;
+        if (texture == null) return TextureDraw.Missing;
+        return switch (texture.getStatus()) {
+            case Ready -> TextureDraw.Draw;
+            case Waiting -> TextureDraw.Skip;
+            case Failed, Disposed -> TextureDraw.Missing;
+        };
+    }
+
+    /**
+     * Report a texture that could not be drawn, once per RID.
+     * @param textureRID the texture RID to log report with
+     */
+    private static void reportMissingTexture(ResourceID textureRID) {
+        if (textureRID == null || !ReportedMissingTextures.add(textureRID)) return;
+        Logger.warning(String.format("Failed to resolve texture %s, rendering with placeholder", textureRID));
+    }
+
     private static int[] genIndicesForBuffer(int capacity) {
         int[] elements = new int[IndicesPerQuad * capacity];
         for (int i = 0; i < capacity; i++) {
@@ -334,8 +394,6 @@ public class TextureBatch {
         int offset = index * VerticesPerQuad * VertexSize;
         Vector4f color = command.modulate;
         Vector2f[] uv = command.uvCoordinates;
-        boolean hasTexture = command.textureRID != null;
-        if (!hasTexture) color = new Vector4f(color.x, color.y, color.z, 0.0f);
         if (command.flipHorizontally || command.flipVertically) {
             Vector2f[] flipped = new Vector2f[VerticesPerQuad];
             for (int i = 0; i < VerticesPerQuad; i++) {

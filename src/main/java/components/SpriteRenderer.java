@@ -13,9 +13,9 @@ import utility.WorldUnit;
 import java.util.Objects;
 
 /**
- * SpriteRenderer hold a Sprite, tint color vector and dirty flag which are used by Renderer.<br>
- * The sprite dirty flag is set when Sprite, tint color or transformation updated.
- * This flag is volatile and clear by the Renderer.
+ * SpriteRenderer component allow rendering texture via {@link Sprite} in world space, with additional tint colour and transformation.
+ * <p>
+ * SpriteRenderer marks itself dirty when its sprite, tint colour or transform changed, which will be cleared by the rendering server.
  */
 @API
 public class SpriteRenderer extends Component2D {
@@ -23,6 +23,7 @@ public class SpriteRenderer extends Component2D {
     private volatile Sprite sprite = new Sprite();
     private volatile boolean flipHorizontally = false;
     private volatile boolean flipVertically = false;
+    private transient ResourceID lastBuiltTextureRID = null;
 
     public SpriteRenderer() {
         String name = SpriteRenderer.class.getSimpleName();
@@ -44,8 +45,8 @@ public class SpriteRenderer extends Component2D {
     }
 
     /**
-     * Get the tint color that is applied onto the Sprite.
-     * @return tint color vector
+     * Get the tint colour that is applied onto the Sprite.
+     * @return tint colour vector
      */
     public Vector4f color() {
         return color;
@@ -144,11 +145,15 @@ public class SpriteRenderer extends Component2D {
     }
 
     /**
-     * Check the sprite dirty flag of this SpriteRenderer.
+     * Check if the sprite is dirty or not.
+     * <p>
+     * If the sprite requesting renderer update or when the sprite is now resolving to a different texture, this flag will be set to true.
      * @return true if the sprite needs update
      */
     public boolean isSpriteDirty() {
         if (sprite != null && sprite.requestRendererUpdate()) renderDirty = true;
+        ResourceID currentTextureRID = sprite != null ? sprite.textureRID() : null;
+        if (!Objects.equals(currentTextureRID, lastBuiltTextureRID)) renderDirty = true;
         return renderDirty;
     }
 
@@ -183,6 +188,8 @@ public class SpriteRenderer extends Component2D {
         RectCommand command = RectCommand.acquire();
         command.submitterID = gameObject != null ? gameObject.getUID() : 0;
         ResourceID textureRID = sprite != null ? sprite.textureRID() : null;
+        lastBuiltTextureRID = textureRID;
+        command.hasTextureReference = sprite != null && sprite.hasTexture();
         command.flipVertically = flipVertically;
         command.flipHorizontally = flipHorizontally;
         command.modulate.set(color());

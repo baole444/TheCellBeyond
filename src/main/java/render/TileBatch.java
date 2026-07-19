@@ -171,10 +171,9 @@ public class TileBatch {
             }
             if (cached.tileCount <= 0) continue;
             Texture texture = command.tileSet.texture();
-            if (texture != null) {
-                glActiveTexture(GL_TEXTURE0 + 1);
-                texture.bind();
-            }
+            if (texture == null || !texture.isReady()) continue;
+            glActiveTexture(GL_TEXTURE0 + 1);
+            texture.bind();
             glBindVertexArray(vaoID);
             glBindBuffer(GL_ARRAY_BUFFER, vboID);
             glBufferData(GL_ARRAY_BUFFER, cached.vertices, GL_DYNAMIC_DRAW);
@@ -186,7 +185,7 @@ public class TileBatch {
             glDisableVertexAttribArray(0);
             glDisableVertexAttribArray(1);
             glBindVertexArray(0);
-            if (texture != null) texture.unbind();
+            texture.unbind();
         }
     }
 

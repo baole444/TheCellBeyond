@@ -14,7 +14,7 @@ import java.util.function.BiConsumer;
  * A tracker can be obtained via {@link AssetManager#track(ResourceID, BiConsumer)}.
  * Once created, a tracker is bounded to a single RID with callback triggered on matching RID.
  * </p>
- * Once a terminal status is reached ({@link ResourceStatus#DISPOSED} or {@link ResourceStatus#FAILED}),
+ * Once a terminal status is reached ({@link ResourceStatus#Disposed} or {@link ResourceStatus#Failed}),
  * the tracker will cancel itself.
  * If the consumer no longer need updates (destroyed, or change resource),
  * the tracker should manually cancel using {@link #cancel()}.
@@ -61,7 +61,7 @@ public final class ResourceTracker {
     private void dispatch(ResourceID changed, ResourceStatus status) {
         if (!active || !RID.equals(changed)) return;
         onChange.accept(changed, status);
-        if (status == ResourceStatus.DISPOSED || status == ResourceStatus.FAILED) cancel();
+        if (status == ResourceStatus.Disposed || status == ResourceStatus.Failed) cancel();
     }
 
 

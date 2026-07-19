@@ -61,20 +61,20 @@ public class TextureHandle {
     void markReady() {
         if (invalidTransition(InternalStatus.READY)) return;
         status.set(InternalStatus.READY);
-        ResourceStatusCallback.emit(RID, ResourceStatus.READY);
+        ResourceStatusCallback.emit(RID, ResourceStatus.Ready);
     }
 
     void markFailed(String message) {
         if (invalidTransition(InternalStatus.FAILED)) return;
         errorMsg = message;
         status.set(InternalStatus.FAILED);
-        ResourceStatusCallback.emit(RID, ResourceStatus.FAILED);
+        ResourceStatusCallback.emit(RID, ResourceStatus.Failed);
     }
 
     void markDisposed() {
         if (invalidTransition(InternalStatus.DISPOSED)) return;
         status.set(InternalStatus.DISPOSED);
-        ResourceStatusCallback.emit(RID, ResourceStatus.DISPOSED);
+        ResourceStatusCallback.emit(RID, ResourceStatus.Disposed);
     }
 
     protected void setTextureId(int id) {
@@ -83,10 +83,10 @@ public class TextureHandle {
 
     private static ResourceStatus asResourceStatus(InternalStatus internalStatus) {
         return switch (internalStatus) {
-            case WAITING, LOADING -> ResourceStatus.WAITING;
-            case READY -> ResourceStatus.READY;
-            case FAILED -> ResourceStatus.FAILED;
-            case DISPOSED -> ResourceStatus.DISPOSED;
+            case WAITING, LOADING -> ResourceStatus.Waiting;
+            case READY -> ResourceStatus.Ready;
+            case FAILED -> ResourceStatus.Failed;
+            case DISPOSED -> ResourceStatus.Disposed;
         };
     }
 

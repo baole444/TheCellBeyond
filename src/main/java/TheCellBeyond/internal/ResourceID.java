@@ -1,24 +1,22 @@
 package TheCellBeyond.internal;
 
 import scripting.API;
-import utility.IdPool;
 
 /**
  * ResourceID is a universal unique ID system for resources, which can be safely pass between different pipelines,
  * while not carrying any live object reference.
  * <p>
  * This can be referred as {@code RID} for short.
+ * <p>
+ * Once a resource is disposed, its associated RID will never be recycled. Such RID will resolve to nothing for the rest of the session and never point to a different resource.
  */
 @API
 public class ResourceID {
-    private static final IdPool IdPool = new IdPool(1, false);
-
+    private static final IdCounter IdCounter = new IdCounter(1);
     /**
-     * The unique ID for the resource, this is created from the shared ID Pool across pipelines.
-     * @see IdPool
+     * The unique ID for the resource, this is created from the shared ID counter across pipelines.
      */
-    public final int id = IdPool.newId();
-
+    public final int id = IdCounter.newId();
     /**
      * The type of the resource, its meaning depend on the pipeline that create and use it.
      */
@@ -33,10 +31,22 @@ public class ResourceID {
     }
 
     /**
-     * Release the RID, this should be done when the resource that this RID pointed to is disposed.
+     * Compare this RID against another by their id.
+     * <p>
+     * Equality of RIDs are not affect by the states of the resources behind them, as they keep the same identities for the entire session.
+     * @param obj the object to compare against
+     * @return true if the target is a RID carrying the same id
      */
-    public void release() {
-        IdPool.releaseId(id);
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof ResourceID target)) return false;
+        return id == target.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Integer.hashCode(id);
     }
 
     @Override

@@ -268,7 +268,7 @@ public final class AddTextureUnitDialog {
 
     private static void clearPreviewTexture() {
         if (previewTexture == null) return;
-        String path = previewTexture.getCanonicalPath();
+        String path = previewTexture.canonicalPath();
         if (path != null && !UnifiedPaths.isPathInsideProject(path)) previewTexture.dispose();
         previewTexture = null;
     }

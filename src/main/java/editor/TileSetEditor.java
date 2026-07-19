@@ -125,7 +125,7 @@ final class TileSetEditor {
                 textureCoordinates[0].x, textureCoordinates[2].y
         );
         ImGui.setCursorPos(cursorPos.x + maxHeight + 2.0f, cursorPos.y + Math.max(0.0f, (maxHeight - ImGui.getTextLineHeight() * 2.0f)));
-        String path = mainSprite.getTexture().getCanonicalPath();
+        String path = mainSprite.getTexture().canonicalPath();
         path = path == null ? "Unknow texture" : path.substring(path.lastIndexOf("/") + 1);
         ImGui.text(path);
         ImGui.endGroup();

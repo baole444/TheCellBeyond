@@ -7,6 +7,7 @@ import render.texture.TextureHandle;
 import render.texture.TextureManager;
 import utility.AssetReference;
 import utility.UnifiedPaths;
+import utility.log.EngineLog;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,7 +19,14 @@ import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL11.glBindTexture;
 import static org.lwjgl.stb.STBImage.stbi_info_from_memory;
 
+/**
+ * Texture is a native GPU resource represent the corresponding texture image on disk.
+ * <p>
+ * For each unique texture image loaded from disk, there will only be one texture resource for each image.
+ * The resources are shared and can be used by various consumers.
+ */
 public class Texture {
+    private static final EngineLog Logger = new EngineLog(Texture.class);
     public final ResourceID RID = new ResourceID(RenderResourceType.Texture);
     private AssetReference assetReference;
     private transient TextureHandle handle;
@@ -32,6 +40,9 @@ public class Texture {
         loadTextureData();
     }
 
+    /**
+     * Load the texture data. When a load failed, it is terminal with failed handle status.
+     */
     private void loadTextureData() {
         try (InputStream stream = UnifiedPaths.getAssetStream(assetReference.resolvedPath())) {
             byte[] data = stream.readAllBytes();
@@ -45,10 +56,10 @@ public class Texture {
                 width = wBuffer.get(0);
                 height = hBuffer.get(0);
             }
-            this.handle = TextureManager.get().getTextureHandle(buffer, assetReference, RID);
+            handle = TextureManager.get().getTextureHandle(buffer, assetReference, RID);
         } catch (IOException e) {
-            System.err.println("Failed to load texture: " + assetReference.canonicalPath());
-            System.err.println("Cause: " + e.getMessage());
+            handle = TextureManager.get().failedHandle(RID, "Failed to read texture file:" + e.getMessage());
+            Logger.error(String.format("Failed to load texture %s: %s", assetReference.canonicalPath(), e.getMessage()));
         }
     }
 
@@ -88,24 +99,27 @@ public class Texture {
     }
 
     public ResourceStatus getStatus() {
-        return handle != null ? handle.getStatus() : ResourceStatus.WAITING;
+        return handle != null ? handle.getStatus() : ResourceStatus.Waiting;
     }
 
-    public String getErrorMessage() {
+    public String errorMessage() {
         return handle != null ? handle.getErrorMsg() : null;
     }
 
-    public String getCanonicalPath() {
+    public String canonicalPath() {
         return assetReference != null ? assetReference.canonicalPath() : null;
     }
 
     public void dispose() {
         if (handle == null) return;
-        String canonicalPath = getCanonicalPath();
-        TextureManager.get().disposeTexture(handle, canonicalPath);
-        handle = null;
+        TextureManager.get().disposeTexture(handle, canonicalPath());
     }
 
+    /**
+     * Check for the texture initialization state and load the texture if it was never loaded.
+     * <p>
+     * A null handle mean the texture was never loaded. If the load process failed, the texture will receive a terminally failed handle instead.
+     */
     private void checkInitialization() {
         if (assetReference != null && handle == null) loadTextureData();
     }
@@ -120,15 +134,15 @@ public class Texture {
     public boolean equals(Object obj) {
         if (obj == null) return false;
         if (!(obj instanceof Texture other)) return false;
-        if (this.getCanonicalPath() != null && other.getCanonicalPath() != null) {
-            return Objects.equals(this.getCanonicalPath(), other.getCanonicalPath());
+        if (this.canonicalPath() != null && other.canonicalPath() != null) {
+            return Objects.equals(this.canonicalPath(), other.canonicalPath());
         }
         return this.RID.id == other.RID.id;
     }
 
     @Override
     public int hashCode() {
-        if (getCanonicalPath() != null) return Objects.hash(getCanonicalPath());
+        if (canonicalPath() != null) return Objects.hash(canonicalPath());
         return Objects.hash(RID.id);
     }
 

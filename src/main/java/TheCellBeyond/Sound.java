@@ -25,7 +25,7 @@ public class Sound {
     public Sound(String filepath, boolean isLoop) {
         assetReference = new AssetReference(filepath);
         if (Window.noAudioSupport()) {
-            ResourceStatusCallback.emit(RID, ResourceStatus.FAILED);
+            ResourceStatusCallback.emit(RID, ResourceStatus.Failed);
         }
         try (MemoryStack stack = MemoryStack.stackPush()) {
             IntBuffer channelBuffer = stack.mallocInt(1);
@@ -33,7 +33,7 @@ public class Sound {
             ShortBuffer rawSoundBuffer = stb_vorbis_decode_filename(filepath, channelBuffer, sampleRateBuffer);
             if (rawSoundBuffer == null) {
                 System.out.println("Error: failed to load sound file '" + filepath + "'");
-                ResourceStatusCallback.emit(RID, ResourceStatus.FAILED);
+                ResourceStatusCallback.emit(RID, ResourceStatus.Failed);
                 return;
             }
             int channels = channelBuffer.get();
@@ -50,15 +50,14 @@ public class Sound {
             alSourcef(sourceId, AL_GAIN, 1f);
             free(rawSoundBuffer);
         }
-        ResourceStatusCallback.emit(RID, ResourceStatus.READY);
+        ResourceStatusCallback.emit(RID, ResourceStatus.Ready);
     }
 
     public void dispose() {
         if (Window.noAudioSupport()) return;
         alDeleteSources(sourceId);
         alDeleteBuffers(bufferId);
-        ResourceStatusCallback.emit(RID, ResourceStatus.DISPOSED);
-        RID.release();
+        ResourceStatusCallback.emit(RID, ResourceStatus.Disposed);
     }
 
     public void play() {

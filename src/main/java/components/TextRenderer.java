@@ -40,7 +40,7 @@ public class TextRenderer extends Component2D {
     }
 
     public void onFontStatusChange(ResourceID RID, ResourceStatus status) {
-        if (status != ResourceStatus.READY) return;
+        if (status != ResourceStatus.Ready) return;
         calculateTextDimensions();
         renderDirty = true;
     }

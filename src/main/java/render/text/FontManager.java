@@ -25,10 +25,18 @@ public final class FontManager {
     private static final EngineLog Logger = new EngineLog(FontManager.class);
     private record FontLoadingJob(TCBFont font, ResourceID atlasRID) {}
 
+    /**
+     * The reusable atlas source, produced from building an atlas.
+     * <p>
+     * Each entry are stored as data than the font that built it, so the entry is bound by the atlas lifetime than the point size that is happened to load first.
+     * @param charUVs the glyph UV map
+     * @param atlasRID the RID for indexing the atlas
+     */
+    record AtlasSource(Map<Character, CharUV> charUVs, ResourceID atlasRID) {}
+
     private static FontManager instance;
     private static Thread processor;
-
-    private final ConcurrentHashMap<AssetReference, Map<GlyphRange, TCBFont>> atlasSources = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<AssetReference, Map<GlyphRange, AtlasSource>> atlasSources = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<AssetReference, ByteBuffer> fontDataCache = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<AssetReference, Map<GlyphRange, ByteBuffer>> atlases = new ConcurrentHashMap<>();
     private final BlockingQueue<FontLoadingJob> pendingRequests = new LinkedBlockingQueue<>();
@@ -47,10 +55,56 @@ public final class FontManager {
     }
 
     public void processFont(TCBFont font, ResourceID atlasRID) {
-        if (!pendingRequests.offer(new FontLoadingJob(font, atlasRID))) {
-            Logger.warning(String.format("Failed to queue font job for '%s'", font.canonicalPath()));
-            ResourceStatusCallback.emit(font.RID, ResourceStatus.FAILED);
+        if (pendingRequests.offer(new FontLoadingJob(font, atlasRID))) return;
+        Logger.warning(String.format("Failed to queue font job for '%s'", font.canonicalPath()));
+        ResourceStatusCallback.emit(font.RID, ResourceStatus.Failed);
+    }
+
+    public ByteBuffer getFontAtlas(AssetReference assetReference, GlyphRange glyphRange) {
+        if (assetReference == null || glyphRange == null) return null;
+        return atlases.getOrDefault(assetReference, Map.of()).get(glyphRange);
+    }
+
+    /**
+     * Remove the cached {@link AtlasSource}.
+     * <p>
+     * This should be call when the atlas is unloaded, as they are generated in pair.
+     * @param assetReference the reference to the font whose atlas was unloaded
+     * @param glyphRange the glyph range of that atlas
+     */
+    public void releaseAtlas(AssetReference assetReference, GlyphRange glyphRange) {
+        if (assetReference == null || glyphRange == null) return;
+        Map<GlyphRange, AtlasSource> sources = atlasSources.get(assetReference);
+        if (sources != null) sources.remove(glyphRange);
+        Map<GlyphRange, ByteBuffer> bitmaps = atlases.get(assetReference);
+        if (bitmaps != null) bitmaps.remove(glyphRange);
+    }
+
+    public synchronized void dispose() {
+        if (processor != null) {
+            processor.interrupt();
+            try {
+                processor.join(200);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            processor = null;
         }
+        cleanup();
+        Logger.info("Thread shutdown completed");
+        instance = null;
+    }
+
+    public void cleanup() {
+        fontDataCache.clear();
+        atlasSources.clear();
+        atlases.clear();
+        pendingRequests.clear();
+    }
+
+    void cacheFontAtlas(AssetReference assetReference, GlyphRange glyphRange, ByteBuffer atlasData) {
+        if (assetReference == null || glyphRange == null || atlasData == null) return;
+        atlases.computeIfAbsent(assetReference, k -> new ConcurrentHashMap<>()).put(glyphRange, atlasData);
     }
 
     private void startProcessingThread() {
@@ -78,35 +132,35 @@ public final class FontManager {
         GlyphRange glyphRange = font.glyphRange;
         int fontSizePixels = font.fontSizePixels();
         try {
-            TCBFont source = getAtlasSource(assetReference, glyphRange);
-            if (source != null && source.loaded()) {
+            AtlasSource source = getAtlasSource(assetReference, glyphRange);
+            if (source != null) {
                 ByteBuffer fontData = fontDataCache.get(assetReference);
                 if (fontData != null) {
                     Map<Character, CharMetric> charMetrics = TCBFontLoader.computeMetrics(fontData, source.charUVs, fontSizePixels, assetReference);
                     font.populateExisting(source, charMetrics);
-                    ResourceStatusCallback.emit(font.RID, ResourceStatus.READY);
+                    ResourceStatusCallback.emit(font.RID, ResourceStatus.Ready);
                     return;
                 }
             }
             ByteBuffer fontData = loadFontData(assetReference);
             if (fontData == null) {
                 Logger.error(String.format("Failed to load font file '%s'", assetReference.canonicalPath()));
-                ResourceStatusCallback.emit(font.RID, ResourceStatus.FAILED);
+                ResourceStatusCallback.emit(font.RID, ResourceStatus.Failed);
                 return;
             }
             TCBFontLoader.LoadResult result = TCBFontLoader.generate(fontData, glyphRange, fontSizePixels);
             cacheFontAtlas(assetReference, glyphRange, result.atlasData());
             font.populate(result.charUVs(), result.charMetrics(), atlasRID);
-            atlasSources.computeIfAbsent(assetReference, k -> new ConcurrentHashMap<>()).put(glyphRange, font);
-            ResourceStatusCallback.emit(font.RID, ResourceStatus.READY);
+            atlasSources.computeIfAbsent(assetReference, _ -> new ConcurrentHashMap<>()).put(glyphRange, new AtlasSource(result.charUVs(), atlasRID));
+            ResourceStatusCallback.emit(font.RID, ResourceStatus.Ready);
         } catch (Exception e) {
             Logger.error(String.format("Failed to process font '%s': %s", font.canonicalPath(), e.getMessage()));
-            ResourceStatusCallback.emit(font.RID, ResourceStatus.FAILED);
+            ResourceStatusCallback.emit(font.RID, ResourceStatus.Failed);
         }
     }
 
-    private TCBFont getAtlasSource(AssetReference assetReference, GlyphRange glyphRange) {
-        Map<GlyphRange, TCBFont> ranges = atlasSources.get(assetReference);
+    private AtlasSource getAtlasSource(AssetReference assetReference, GlyphRange glyphRange) {
+        Map<GlyphRange, AtlasSource> ranges = atlasSources.get(assetReference);
         return ranges != null ? ranges.get(glyphRange) : null;
     }
 
@@ -123,36 +177,5 @@ public final class FontManager {
             Logger.error(String.format("Cannot read font file '%s': %s", assetReference.canonicalPath(), e.getMessage()));
             return null;
         }
-    }
-
-    void cacheFontAtlas(AssetReference assetReference, GlyphRange glyphRange, ByteBuffer atlasData) {
-        if (assetReference == null || glyphRange == null || atlasData == null) return;
-        atlases.computeIfAbsent(assetReference, k -> new ConcurrentHashMap<>()).put(glyphRange, atlasData);
-    }
-
-    public ByteBuffer getFontAtlas(AssetReference assetReference, GlyphRange glyphRange) {
-        if (assetReference == null || glyphRange == null) return null;
-        return atlases.getOrDefault(assetReference, Map.of()).get(glyphRange);
-    }
-
-    public void cleanup() {
-        fontDataCache.clear();
-        atlasSources.clear();
-        pendingRequests.clear();
-    }
-
-    public synchronized void dispose() {
-        if (processor != null) {
-            processor.interrupt();
-            try {
-                processor.join(200);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-            processor = null;
-        }
-        cleanup();
-        Logger.info("Thread shutdown completed");
-        instance = null;
     }
 }

@@ -13,8 +13,10 @@ import render.commands.TransformCommand;
 import utility.AssetManager;
 import utility.Settings;
 import utility.WorldUnit;
+import utility.log.EngineLog;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.glEnableVertexAttribArray;
@@ -23,6 +25,7 @@ import static org.lwjgl.opengl.GL30.glBindVertexArray;
 import static org.lwjgl.opengl.GL30.glGenVertexArrays;
 
 public class TextBatch {
+    private static final EngineLog Logger = new EngineLog(TextBatch.class);
     // |Position| |   Color  | |Coordinate|
     // |  f, f  | |f, f, f, f| |   f, f   |
     private static final int PositionSize = 2;
@@ -32,6 +35,7 @@ public class TextBatch {
     private static final int VertexSize = PositionSize + ColorSize + TextureCoordinateSize + ObjectIdSize;
     private static final int VerticesPerChar = 6;
     private static final int ColorOffset = PositionSize;
+    private static final Set<ResourceID> ReportedMissingFonts = ConcurrentHashMap.newKeySet();
 
     private static class CachedTextData {
         TransformCommand transform;
@@ -181,17 +185,33 @@ public class TextBatch {
         glBindVertexArray(0);
     }
 
+    /**
+     * Report a font that failed to be resolved, once per RID.
+     * @param fontRID the font RID to log report with
+     */
+    private static void reportMissingFont(ResourceID fontRID) {
+        if (fontRID == null || !ReportedMissingFonts.add(fontRID)) return;
+        Logger.warning(String.format("Failed to resolve font %s, unable to render is texts", fontRID));
+    }
+
     private void renderFontGroups(Shader instShader, Map<ResourceID, List<TextCommand>> fontGroups, boolean selectionPass) {
         for (Map.Entry<ResourceID, List<TextCommand>> entry : fontGroups.entrySet()) {
             ResourceID fontRID = entry.getKey();
             List<TextCommand> commands = entry.getValue();
             TCBFont font = AssetManager.getFont(fontRID);
-            if (font == null || !font.loaded()) continue;
+            if (font == null) {
+                reportMissingFont(fontRID);
+                continue;
+            }
+            if (!font.loaded()) continue;
             if (!selectionPass) {
                 ResourceID atlasRID = font.atlasRID();
-                if (atlasRID == null) continue;
-                FontAtlasTexture atlas = AssetManager.getFontAtlas(atlasRID);
-                if (atlas == null || !atlas.isReady()) continue;
+                FontAtlasTexture atlas = atlasRID != null ? AssetManager.getFontAtlas(atlasRID) : null;
+                if (atlas == null) {
+                    reportMissingFont(fontRID);
+                    continue;
+                }
+                if (!atlas.isReady()) continue;
                 glActiveTexture(GL_TEXTURE0);
                 glBindTexture(GL_TEXTURE_2D, atlas.getID());
                 instShader.loadInt("uFontTex", 0);
@@ -250,7 +270,6 @@ public class TextBatch {
             posX = transform.position.x;
             posY = transform.position.y;
         }
-        Vector2f position = transform.position;
         Vector4f color = command.modulate;
         Vector2f textDimension = command.textDimension;
         int objectID = command.submitterID;

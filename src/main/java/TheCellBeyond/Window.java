@@ -206,6 +206,7 @@ public final class Window implements EngineEventListener {
     }
 
     private void initWindow() {
+        if (glfwPlatformSupported(GLFW_PLATFORM_WAYLAND)) glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_WAYLAND);
         GLFWErrorCallback.createPrint(Stream2Log.err).set();
         if (!glfwInit()) throw new RuntimeException("Failed to initialize GLFW");
         String glslVer = "#version 330 core";

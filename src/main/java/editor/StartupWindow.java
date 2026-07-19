@@ -54,6 +54,7 @@ public final class StartupWindow {
     private static final ObjectMapper YAMLMapper = new ObjectMapper(new YAMLFactory()).rebuild().disable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES).build();
 
     public static void init() {
+        if (glfwPlatformSupported(GLFW_PLATFORM_WAYLAND)) glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_WAYLAND);
         GLFWErrorCallback.createPrint(Stream2Log.err).set();
         if (!glfwInit()) throw new RuntimeException("Failed to initialize GLFW");
         glfwDefaultWindowHints();

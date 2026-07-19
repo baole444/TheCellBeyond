@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static org.lwjgl.opengl.GL11.glDeleteTextures;
 
-public class TextureManager {
+public final class TextureManager {
     private record AtlasKey(String canonicalPath, GlyphRange glyphRange) {}
     static final EngineLog Logger = new EngineLog(TextureManager.class);
     private static TextureManager instance;
@@ -73,6 +73,20 @@ public class TextureManager {
         commandQueue.offer(new CreateFontAtlasTextureCommand(handle, atlasData, assetReference, width, height, channels));
         activeHandles.put(RID.id, handle);
         Logger.debug("Created new atlas handle for " + assetReference.canonicalPath() + " with glyph " + glyphRange.toString());
+        return handle;
+    }
+
+    /**
+     * Create a handle for a load that failed before it could reach the GPU stage.
+     * <p>
+     * This is an uncached handle, carry the terminal state of a single resource. It holds no OpenGL texture to clean up.
+     * @param RID the RID of the resource that failed to load
+     * @param message the failure reason
+     * @return a handle with its status set to {@link TheCellBeyond.internal.ResourceStatus#Failed} state
+     */
+    public TextureHandle failedHandle(ResourceID RID, String message) {
+        TextureHandle handle = new TextureHandle(RID);
+        handle.markFailed(message);
         return handle;
     }
 

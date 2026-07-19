@@ -42,7 +42,7 @@ public class Shader {
         } catch (IOException e) {
             Logger.error(String.format("Failed to open shader at '%s': %s", getFilePath(), e.getMessage()));
             failed = true;
-            ResourceStatusCallback.emit(RID, ResourceStatus.FAILED);
+            ResourceStatusCallback.emit(RID, ResourceStatus.Failed);
         }
     }
 
@@ -50,7 +50,7 @@ public class Shader {
         if (src == null || src.isBlank()) {
             Logger.error(String.format("Cannot parse shader source from '%s': empty or null source", getFilePath()));
             failed = true;
-            ResourceStatusCallback.emit(RID, ResourceStatus.FAILED);
+            ResourceStatusCallback.emit(RID, ResourceStatus.Failed);
             return;
         }
         Matcher matcher = ShaderRegex.matcher(src);
@@ -71,13 +71,13 @@ public class Shader {
         if (vertexSrc == null) {
             Logger.error(String.format("Cannot parse shader '%s': missing a #type vertex section", getFilePath()));
             failed = true;
-            ResourceStatusCallback.emit(RID, ResourceStatus.FAILED);
+            ResourceStatusCallback.emit(RID, ResourceStatus.Failed);
             return;
         }
         if (fragmentSrc == null) {
             Logger.error(String.format("Cannot parse shader '%s': missing a #type fragment section", getFilePath()));
             failed = true;
-            ResourceStatusCallback.emit(RID, ResourceStatus.FAILED);
+            ResourceStatusCallback.emit(RID, ResourceStatus.Failed);
         }
     }
 
@@ -92,7 +92,7 @@ public class Shader {
             int len = glGetShaderi(vertexID, GL_INFO_LOG_LENGTH);
             Logger.error(String.format("Failed to compile vertex shader from '%s': %s", getFilePath(), glGetShaderInfoLog(vertexID, len)));
             failed = true;
-            ResourceStatusCallback.emit(RID, ResourceStatus.FAILED);
+            ResourceStatusCallback.emit(RID, ResourceStatus.Failed);
             return;
         }
         fragmentID = glCreateShader(GL_FRAGMENT_SHADER);
@@ -103,7 +103,7 @@ public class Shader {
             int len = glGetShaderi(fragmentID, GL_INFO_LOG_LENGTH);
             Logger.error(String.format("Failed to compile fragment shader from '%s': %s", getFilePath(), glGetShaderInfoLog(fragmentID, len)));
             failed = true;
-            ResourceStatusCallback.emit(RID, ResourceStatus.FAILED);
+            ResourceStatusCallback.emit(RID, ResourceStatus.Failed);
             return;
         }
         shaderProgramID = glCreateProgram();
@@ -115,11 +115,11 @@ public class Shader {
             int len = glGetProgrami(shaderProgramID, GL_INFO_LOG_LENGTH);
             Logger.error(String.format("Failed to link shader from '%s': %s", getFilePath(), glGetProgramInfoLog(shaderProgramID, len)));
             failed = true;
-            ResourceStatusCallback.emit(RID, ResourceStatus.FAILED);
+            ResourceStatusCallback.emit(RID, ResourceStatus.Failed);
             return;
         }
         compiled = true;
-        ResourceStatusCallback.emit(RID, ResourceStatus.READY);
+        ResourceStatusCallback.emit(RID, ResourceStatus.Ready);
     }
 
     /**
@@ -247,8 +247,7 @@ public class Shader {
             compiled = false;
             inUsed = false;
         }
-        ResourceStatusCallback.emit(RID, ResourceStatus.DISPOSED);
-        RID.release();
+        ResourceStatusCallback.emit(RID, ResourceStatus.Disposed);
     }
 
     @Override
@@ -275,7 +274,7 @@ public class Shader {
             default -> {
                 Logger.error(String.format("Shader '%s' contains unknown #type '%s'", getFilePath(), type));
                 failed = true;
-                ResourceStatusCallback.emit(RID, ResourceStatus.FAILED);
+                ResourceStatusCallback.emit(RID, ResourceStatus.Failed);
             }
         }
     }

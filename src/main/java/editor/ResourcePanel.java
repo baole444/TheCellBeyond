@@ -221,7 +221,7 @@ final class ResourcePanel {
             if (ImGui.beginDragDropSource()) {
                 SpriteDragDropPayload.setPayload(sprite);
                 ImGui.setDragDropPayload(SpriteDragDropPayload.getPayloadType(), sprite);
-                ImGui.text("Texture: " + sprite.getTexture().getCanonicalPath());
+                ImGui.text("Texture: " + sprite.getTexture().canonicalPath());
                 Vector2f previewImageSize = TextureScale.calculateFitDimension(sprite.getWidth(), sprite.getHeight(), 80.0f, 80.f);
                 int textureID = sprite.getTextureID();
                 Vector2f[] textureCoordinates = sprite.getTextureCoordinates();
@@ -286,7 +286,7 @@ final class ResourcePanel {
             if (ImGui.beginDragDropSource()) {
                 SpriteDragDropPayload.setPayload(sprite);
                 ImGui.setDragDropPayload(SpriteDragDropPayload.getPayloadType(), sprite);
-                ImGui.text("Sheet: " + sprite.getTexture().getCanonicalPath());
+                ImGui.text("Sheet: " + sprite.getTexture().canonicalPath());
                 ImGui.text("Index: " + i);
                 Vector2f previewImageSize = TextureScale.calculateFitDimension(sprite.getWidth(), sprite.getHeight(), 80.0f, 80.f);
                 ImGui.image(textureID, previewImageSize.x, previewImageSize.y,

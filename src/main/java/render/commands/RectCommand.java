@@ -8,6 +8,13 @@ import scripting.API;
 @API
 public class RectCommand extends RenderCommand {
     public ResourceID textureRID = null;
+    /**
+     * Set this when the command refer to a texture, even if {@link #textureRID} could not be resolved.
+     * A command referring to a texture that cannot be resolved draw a placeholder,
+     * while a command referring to no texture at all draw nothing.
+     * @apiNote Temporary flag until full solution deployed
+     */
+    public boolean hasTextureReference = false;
     public final Vector2f[] uvCoordinates = {
             new Vector2f(1.0f),
             new Vector2f(1.0f, 0.0f),
@@ -37,6 +44,7 @@ public class RectCommand extends RenderCommand {
         super.copyFrom(source);
         if (!(source instanceof RectCommand rect)) return;
         textureRID = rect.textureRID;
+        hasTextureReference = rect.hasTextureReference;
         for (int i = 0; i < 4; i++) uvCoordinates[i].set(rect.uvCoordinates[i]);
         flipHorizontally = rect.flipHorizontally;
         flipVertically = rect.flipVertically;
@@ -48,6 +56,7 @@ public class RectCommand extends RenderCommand {
     protected void reset() {
         super.reset();
         textureRID = null;
+        hasTextureReference = false;
         uvCoordinates[0].set(1.0f);
         uvCoordinates[1].set(1.0f, 0.0f);
         uvCoordinates[2].zero();

@@ -8,9 +8,11 @@ import utility.AssetManager;
 import utility.AssetReference;
 
 /**
- * Sprite store the canonical path to the texture image, the texture UV coordinates and the size of the sprite.<br>
- * Sprite will mark itself dirty (volatile) when its parameters are updated,
- * which will be cleared by its responsible SpriteRenderer.
+ * Sprite is a persisting value, allow describing a texture on disk, using texture UV coordinates and the size of the sprite.
+ * <p>
+ * Sprite mark itself dirty (volatile) when its parameters are updated, and will be cleared by its responsible SpriteRenderer.
+ * </p>
+ * A sprite that does not have a texture will appear transparent, while those that has a texture but failed to resolve, will appear with missing colour texture, magenta by default.
  */
 @API
 public class Sprite {
@@ -24,9 +26,25 @@ public class Sprite {
     };
     private volatile transient boolean dirty = true;
 
+    /**
+     * Get the {@link ResourceID} of this sprite's texture and load it if the texture is not loaded or had been unloaded.
+     * @return the RID of the texture, or null if this sprite has no texture
+     * @apiNote
+     * A sprite that has a texture always resolve its RID, even if that texture is missing or failed to load.
+     * This method return null exclusively means that this sprite has no texture, not that the texture could not be resolved.
+     */
     public ResourceID textureRID() {
         if (textureCanonicalPath == null) return null;
-        return AssetManager.getTextureRID(textureCanonicalPath);
+        // Currently resolve using path, load if the texture is unloaded, don't revert to plain lookup.
+        return AssetManager.loadTexture(textureCanonicalPath);
+    }
+
+    /**
+     * Check if this sprite was given a texture ot not, regardless of the texture's state.
+     * @return true if there is a texture assigned to this sprite
+     */
+    public boolean hasTexture() {
+        return textureCanonicalPath != null;
     }
 
     public Texture getTexture() {
@@ -44,7 +62,7 @@ public class Sprite {
             textureCanonicalPath = null;
             return;
         }
-        String canonPath = texture.getCanonicalPath();
+        String canonPath = texture.canonicalPath();
         textureCanonicalPath = canonPath;
         if (canonPath != null) AssetManager.loadTexture(canonPath);
     }

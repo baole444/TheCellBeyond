@@ -230,9 +230,9 @@ public class TileSet {
         if (tileSetSprite == null) return;
 
         Texture texture = tileSetSprite.getTexture();
-        if (texture == null || texture.getCanonicalPath() == null) return;
+        if (texture == null || texture.canonicalPath() == null) return;
 
-        String canonicalPath = texture.getCanonicalPath();
+        String canonicalPath = texture.canonicalPath();
         AssetReference assetReference = new AssetReference(canonicalPath);
         try (InputStream stream = UnifiedPaths.getAssetStream(assetReference.resolvedPath())) {
             byte[] data = stream.readAllBytes();
