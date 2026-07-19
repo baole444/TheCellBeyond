@@ -461,7 +461,7 @@ public final class SelectableTextView {
 
     private static int segmentIndexOf(RowLayout layout, int charOffset) {
         for (int i = 0; i < layout.segments.length; i++) {
-            if (charOffset <= layout.segments[i][i]) return i;
+            if (charOffset <= layout.segments[i][1]) return i;
         }
         return layout.segments.length - 1;
     }
