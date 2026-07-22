@@ -3,9 +3,7 @@ package scripting.transpiler.codegen;
 import scripting.transpiler.ast.*;
 import scripting.transpiler.semantic.Resolution;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Walk a method body and emit each statement as java source lines through the writer.
@@ -15,12 +13,10 @@ import java.util.Map;
 final class StatementEmitter {
     private final EmitContext context;
     private final ExpressionEmitter expressions;
-    private final Map<String, TypeReference> scope = new HashMap<>();
 
-    StatementEmitter(EmitContext context, List<ParameterDeclaration> params) {
+    StatementEmitter(EmitContext context) {
         this.context = context;
         this.expressions = new ExpressionEmitter(context);
-        params.forEach(p -> scope.put(p.name, p.type));
     }
 
     void emit(Statement statement) {
@@ -48,29 +44,16 @@ final class StatementEmitter {
     private void local(LocalVariableDeclaration local) {
         String prefix = local.isConst ? "final " : "";
         String typeName = local.type != null ? context.typeName(local.type) : "var";
-        String expectedType = local.type != null ? local.type.name : null;
-        String initializer = local.initializer == null ? "" : " = " + expressions.emit(local.initializer, expectedType);
+        String initializer = local.initializer == null ? "" : " = " + expressions.emit(local.initializer);
         context.writer.line(prefix + typeName + " " + local.name + initializer + ";");
-        scope.put(local.name, local.type);
     }
 
     private String assignment(AssignmentStatement assign) {
-        return expressions.emit(assign.target) + " " + assignmentOperator(assign.operator) + " " + expressions.emit(assign.value, targetType(assign.target));
+        return expressions.emit(assign.target) + " " + assignmentOperator(assign.operator) + " " + expressions.emit(assign.value);
     }
 
     private String returnStatement(ReturnStatement returnStatement) {
         return returnStatement.value == null ? "return;" : "return " + expressions.emit(returnStatement.value) + ";";
-    }
-
-    /**
-     * Get the declared type name of an assignment target when it is a bare identifier of a known local, parameter, or field.
-     * @param target the assignment target expression
-     * @return the target type name, or null when not statically known
-     */
-    private String targetType(Expression target) {
-        if (!(target instanceof IdentifierExpression identifier)) return null;
-        TypeReference type = scope.containsKey(identifier.name) ? scope.get(identifier.name) : context.fieldTypes.get(identifier.name);
-        return type != null && type.arrayDepth == 0 ? type.name : null;
     }
 
     private void ifStatement(IfStatement ifStatement) {

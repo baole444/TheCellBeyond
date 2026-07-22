@@ -4,8 +4,6 @@ import scripting.transpiler.TranspilerProperties;
 import scripting.transpiler.ast.TypeReference;
 import scripting.transpiler.semantic.Resolution;
 
-import java.util.Map;
-
 /**
  * Shared state for the code generation emitters, including:
  * <ul>
@@ -19,16 +17,11 @@ import java.util.Map;
 final class EmitContext {
     final JavaSourceWriter writer;
     final String className;
-    /**
-     * Declared field types by name, used to resolve the target type, for an assignment to a field.
-     */
-    final Map<String, TypeReference> fieldTypes;
     boolean useLogger;
 
-    EmitContext(JavaSourceWriter writer, String className, Map<String, TypeReference> fieldTypes) {
+    EmitContext(JavaSourceWriter writer, String className) {
         this.writer = writer;
         this.className = className;
-        this.fieldTypes = fieldTypes;
     }
 
     /**

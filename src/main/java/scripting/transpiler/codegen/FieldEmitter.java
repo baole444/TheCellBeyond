@@ -48,7 +48,7 @@ final class FieldEmitter {
         if (field.isStatic) line.append(" static");
         if (field.isConst) line.append(" final");
         line.append(' ').append(context.typeName(field.type)).append(' ').append(field.name);
-        if (field.initializer != null) line.append(" = ").append(expressions.emit(field.initializer, field.type.name));
+        if (field.initializer != null) line.append(" = ").append(expressions.emit(field.initializer));
         return line.toString();
     }
 }

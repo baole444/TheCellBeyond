@@ -3,12 +3,8 @@ package scripting.transpiler.codegen;
 import scripting.transpiler.TranspilerProperties;
 import scripting.transpiler.ast.EnumConstant;
 import scripting.transpiler.ast.EnumDeclaration;
-import scripting.transpiler.ast.TypeReference;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 /**
  * Drive the {@link JavaSourceWriter} to render the entire enum class.
@@ -23,7 +19,7 @@ public final class EnumEmitter {
     private final EnumDeclaration enumDeclaration;
 
     private EnumEmitter(EnumDeclaration enumDeclaration) {
-        context = new EmitContext(new JavaSourceWriter(TranspilerProperties.ScriptPackage), enumDeclaration.name, fieldTypes(enumDeclaration));
+        context = new EmitContext(new JavaSourceWriter(TranspilerProperties.ScriptPackage), enumDeclaration.name);
         expressions = new ExpressionEmitter(context);
         this.enumDeclaration = enumDeclaration;
     }
@@ -59,9 +55,7 @@ public final class EnumEmitter {
 
     private String constant(EnumConstant constant) {
         if (constant.arguments.isEmpty()) return constant.name;
-        String arguments = IntStream.range(0, constant.arguments.size())
-                .mapToObj(i -> expressions.emit(constant.arguments.get(i), enumDeclaration.fields.get(i).type.name))
-                .collect(Collectors.joining(", "));
+        String arguments = constant.arguments.stream().map(expressions::emit).collect(Collectors.joining(", "));
         return constant.name + "(" + arguments + ")";
     }
 
@@ -74,11 +68,5 @@ public final class EnumEmitter {
         context.writer.openMethod(enumDeclaration.name + "(" + parameters + ")");
         enumDeclaration.fields.forEach(field -> context.writer.line("this." + field.name + " = " + field.name + ";"));
         context.writer.closeMethod();
-    }
-
-    private static Map<String, TypeReference> fieldTypes(EnumDeclaration enumDeclaration) {
-        Map<String, TypeReference> types = new LinkedHashMap<>();
-        enumDeclaration.fields.forEach(field -> types.put(field.name, field.type));
-        return types;
     }
 }

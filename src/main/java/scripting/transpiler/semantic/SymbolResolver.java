@@ -668,9 +668,26 @@ public final class SymbolResolver {
         return memberInfo.signatures() != null ? methodReturnType(memberInfo.signatures()) : memberTypeName(memberInfo.type());
     }
 
+    /**
+     * Resolve a type name to the FQN used for API member lookup. This can be the nearest APi ancestor when the class extends into the API,
+     * or none when inherit chain cannot be resolved, or the chain does not reach API surface. API type passthrough identically.
+     * @param type the type reference to resolve
+     * @return the API ancestor FQN, or empty if not reach API surface
+     */
     private Optional<String> apiFQN(TypeReference type) {
         if (type == null || type.arrayDepth != 0) return Optional.empty();
-        return APIManifest.findClassBySimpleName(type.name).map(apiType -> apiType.fqn);
+        String typeName = type.name;
+        ProjectClassEntry entry = projectIndex.get(typeName);
+        if (entry == null) return APIManifest.findClassBySimpleName(typeName).map(apiType -> apiType.fqn);
+        Set<String> visited = new HashSet<>();
+        for (ProjectClassEntry current = entry; visited.add(current.simpleName());) {
+            String superRef = current.superClassRef();
+            if (superRef == null || superRef.equals(ObjectType)) return Optional.empty();
+            ProjectClassEntry next = projectIndex.get(superRef);
+            if (next == null) return APIManifest.findClassBySimpleName(superRef).map(apiType -> apiType.fqn);
+            current = next;
+        }
+        return Optional.empty();
     }
 
     private Optional<Resolution.APIMemberResolution> findInheritedAPIMember(String name) {

@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
  * Composite sub-expressions are parenthesized to preserve parsed grouping.
  */
 final class ExpressionEmitter {
-    private static final String FloatType = "float";
     private static final String CallableType = Callable.class.getName();
     private final EmitContext context;
 
@@ -23,12 +22,8 @@ final class ExpressionEmitter {
     }
 
     String emit(Expression expression) {
-        return emit(expression, null);
-    }
-
-    String emit(Expression expression, String expectedType) {
         return switch (expression) {
-            case LiteralExpression literal -> literal(literal, expectedType);
+            case LiteralExpression literal -> literal(literal);
             case IdentifierExpression identifier -> identifier(identifier);
             case SelfExpression _ -> "this";
             case MethodCallExpression call -> call(call);
@@ -36,19 +31,19 @@ final class ExpressionEmitter {
             case ClassLiteralExpression classLiteral -> context.typeName(classLiteral.type) + ".class";
             case MemberAccessExpression access -> access(access);
             case IndexExpression index -> emit(index.target) + "[" + emit(index.index) + "]";
-            case UnaryExpression unary -> unary(unary, expectedType);
-            case BinaryExpression binary -> binary(binary, expectedType);
-            case ConditionalExpression conditional -> conditional(conditional, expectedType);
+            case UnaryExpression unary -> unary(unary);
+            case BinaryExpression binary -> binary(binary);
+            case ConditionalExpression conditional -> conditional(conditional);
             case CastExpression cast -> "((" + context.typeName(cast.type) + ") " + emit(cast.value) + ")";
             case TypeCheckExpression check -> "(" + emit(check.value) + " instanceof " + context.typeName(check.type) + ")";
             default -> throw new IllegalStateException("Unsupported expression: " + expression.getClass().getSimpleName());
         };
     }
 
-    private String literal(LiteralExpression literal, String expectedType) {
+    private String literal(LiteralExpression literal) {
         return switch (literal.kind) {
             case String -> JavaSourceWriter.escapeStringLiteral(decodeString(literal.text));
-            case Float -> FloatType.equals(expectedType) ? literal.text + "f" : literal.text;
+            case Float -> literal.text + "f";
             case Null -> "null";
             case Integer, Boolean -> literal.text;
         };
@@ -100,19 +95,17 @@ final class ExpressionEmitter {
         return context.writer.importType(CallableType) + ".get(" + receiver + ", " + JavaSourceWriter.escapeStringLiteral(methodName) + ")";
     }
 
-    private String unary(UnaryExpression unary, String expectedType) {
+    private String unary(UnaryExpression unary) {
         String operator = unary.operator == UnaryExpression.Operator.Negate ? "-" : "!";
-        String propagated = unary.operator == UnaryExpression.Operator.Negate ? expectedType : null;
-        return "(" + operator + emit(unary.operand, propagated) + ")";
+        return "(" + operator + emit(unary.operand) + ")";
     }
 
-    private String binary(BinaryExpression binary, String expectedType) {
-        String propagated = isArithmetic(binary.operator) ? expectedType : null;
-        return "(" + emit(binary.left, propagated) + " " + operatorSymbol(binary.operator) + " " + emit(binary.right, propagated) + ")";
+    private String binary(BinaryExpression binary) {
+        return "(" + emit(binary.left) + " " + operatorSymbol(binary.operator) + " " + emit(binary.right) + ")";
     }
 
-    private String conditional(ConditionalExpression conditional, String expectedType) {
-        return "(" + emit(conditional.condition) + " ? " + emit(conditional.thenValue, expectedType) + " : " + emit(conditional.elseValue, expectedType) + ")";
+    private String conditional(ConditionalExpression conditional) {
+        return "(" + emit(conditional.condition) + " ? " + emit(conditional.thenValue) + " : " + emit(conditional.elseValue) + ")";
     }
 
     /**
@@ -127,13 +120,6 @@ final class ExpressionEmitter {
             case Resolution.LifecycleResolution(String javaName) -> javaName;
             case Resolution.UserMemberResolution(String name) -> name;
             case null, default -> fallback;
-        };
-    }
-
-    private static boolean isArithmetic(BinaryExpression.Operator operator) {
-        return switch (operator) {
-            case Add, Subtract, Multiply, Divide, Modulo -> true;
-            default -> false;
         };
     }
 

@@ -19,7 +19,7 @@ final class MethodEmitter {
     void emit(MethodDeclaration method) {
         if (method.resolution != null) context.writer.annotation("@Override");
         context.writer.openMethod(signature(method));
-        StatementEmitter statements = new StatementEmitter(context, method.parameters);
+        StatementEmitter statements = new StatementEmitter(context);
         method.body.statements.forEach(statements::emit);
         context.writer.closeMethod();
     }

@@ -66,6 +66,18 @@ final class CodeGenerationTest {
     }
 
     @Test
+    public void inheritedApiMemberResolvesOnScriptTypedReceiver() {
+        String generated = ok("""
+                class Spotter
+                var box : Hitbox
+                func check() -> void:
+                    if box != null: box.get_parent()
+                """, "Spotter.tcbs", index(hitbox()));
+        assertTrue(generated.contains("box.getParent()"), "an inherited API method resolves through a script type's API ancestor");
+        assertFalse(generated.contains("get_parent"), generated);
+    }
+
+    @Test
     public void multipleLifecycleOverridesEachGetOverride() {
         String generated = ok("""
                 class Mover extends CharacterBody2D
@@ -256,7 +268,7 @@ final class CodeGenerationTest {
                 func on_cooldown(cooldown : float) -> void:
                     pass
                 """, "Weapon.tcbs", Map.of());
-        assertTrue(generated.contains("weapon_cooldown.emit(2.5)"), generated);
+        assertTrue(generated.contains("weapon_cooldown.emit(2.5f)"), generated);
         assertTrue(generated.contains("weapon_cooldown.connect(Callable.get(this, \"on_cooldown\"));"), "self.handler and bare handler both lower identically");
         assertTrue(generated.contains("import signal.Callable;"), generated);
         assertCompiles("Weapon", generated);
@@ -514,6 +526,19 @@ final class CodeGenerationTest {
     }
 
     @Test
+    public void floatLiteralInArgumentPositionGainsSuffix() {
+        String generated = ok("""
+                class Calc
+                func scale(factor : float) -> void:
+                    pass
+                func run() -> void:
+                    scale(1.5)
+                """, "Calc.tcbs", Map.of());
+        assertTrue(generated.contains("scale(1.5f)"), "a float literal argument keeps float precision, so it narrows into a float parameter");
+        assertCompiles("Calc", generated);
+    }
+
+    @Test
     public void exportAnnotationCarriesArguments() {
         String generated = ok("""
                 class Tuned
@@ -685,5 +710,9 @@ final class CodeGenerationTest {
 
     private static ProjectClassEntry weapon() {
         return new ProjectClassEntry("Weapon", "src/script/Weapon.tcbs", ProjectClassEntry.Kind.Script, "Object", "scripts", false);
+    }
+
+    private static ProjectClassEntry hitbox() {
+        return new ProjectClassEntry("Hitbox", "src/script/Hitbox.tcbs", ProjectClassEntry.Kind.Script, "Area2D", "scripts", false);
     }
 }

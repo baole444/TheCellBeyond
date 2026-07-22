@@ -4,9 +4,6 @@ import scripting.transpiler.TranspilerProperties;
 import scripting.transpiler.ast.*;
 import scripting.transpiler.semantic.ClassRegistration;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 /**
  * Drive the {@link JavaSourceWriter} to render the entire class including: registration annotation,
  * optional Logger field, and the class's methods.
@@ -22,7 +19,7 @@ public final class ClassEmitter {
      * @return the rendered Java source
      */
     public static String emit(ClassDeclaration classDeclaration, String sourceName) {
-        EmitContext context = new EmitContext(new JavaSourceWriter(TranspilerProperties.ScriptPackage), classDeclaration.name, fieldTypes(classDeclaration));
+        EmitContext context = new EmitContext(new JavaSourceWriter(TranspilerProperties.ScriptPackage), classDeclaration.name);
         context.useLogger = CheckLogger.inUse(classDeclaration);
         context.writer.fileComment(String.format("// generated from %s - edit if you know what you are doing", sourceName));
         registration(context, classDeclaration.registration);
@@ -30,12 +27,6 @@ public final class ClassEmitter {
         body(context, classDeclaration);
         context.writer.closeType();
         return context.writer.render();
-    }
-
-    private static Map<String, TypeReference> fieldTypes(ClassDeclaration classDeclaration) {
-        Map<String, TypeReference> types = new LinkedHashMap<>();
-        classDeclaration.fields.forEach(field -> types.put(field.name, field.type));
-        return types;
     }
 
     private static void registration(EmitContext context, ClassRegistration registration) {
