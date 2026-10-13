@@ -96,9 +96,7 @@ public final class Physic2D {
     /**
      * Create new 2D physic world instance.
      */
-    public Physic2D() {
-        world.setContactListener(new Physic2DContactListener());
-    }
+    public Physic2D() {}
 
     /**
      * Get the current constant physic delta rate of the engine. This is the delta per physic world step

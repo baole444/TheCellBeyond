@@ -7,7 +7,6 @@ import utility.AssetManager;
 import utility.Settings;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 final class SpriteSheetTest {
     private static final String Path = Settings.TexturePath.EditorControls;

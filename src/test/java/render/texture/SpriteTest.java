@@ -9,8 +9,6 @@ import utility.Settings;
 import utility.UnifiedPaths;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 final class SpriteTest {
     private static final String Path = Settings.TexturePath.EditorControls;

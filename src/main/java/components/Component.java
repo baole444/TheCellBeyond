@@ -1,8 +1,6 @@
 package components;
 
 import TheCellBeyond.GameObject;
-import org.jbox2d.dynamics.contacts.Contact;
-import org.joml.Vector2f;
 import scripting.API;
 import utility.HierarchyPath;
 import utility.HierarchyPaths;
@@ -264,38 +262,6 @@ public abstract class Component {
      * @param dt the fixed delta time of physic tick
      */
     protected void onPhysicUpdate(float dt) {}
-
-    /**
-     * Callback at the start of physic collision.
-     * @param targetObj the contacted object
-     * @param contact the physic contact
-     * @param hitNormalization normalization vector
-     */
-    public void startCollision(GameObject targetObj, Contact contact, Vector2f hitNormalization) {}
-
-    /**
-     * Callback at the end of physic collision.
-     * @param targetObj the contacted object
-     * @param contact the physic contact
-     * @param hitNormalization normalization vector
-     */
-    public void endCollision(GameObject targetObj, Contact contact, Vector2f hitNormalization) {}
-
-    /**
-     * Callback before resolving physic collision.
-     * @param targetObj the contacted object
-     * @param contact the physic contact
-     * @param hitNormalization normalization vector
-     */
-    public void preSolve(GameObject targetObj, Contact contact, Vector2f hitNormalization) {}
-
-    /**
-     * Callback after physic collision is resolved.
-     * @param targetObj the contacted object
-     * @param contact the physic contact
-     * @param hitNormalization normalization vector
-     */
-    public void postSolve(GameObject targetObj, Contact contact, Vector2f hitNormalization) {}
 
     /**
      * Check if this component has been destroyed / removed or not.

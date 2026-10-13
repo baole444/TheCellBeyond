@@ -2475,13 +2475,6 @@
           ]
         },
         {
-          "javaName": "endCollision",
-          "snakeAlias": "end_collision",
-          "signatures": [
-            "(LTheCellBeyond/GameObject;Lorg/jbox2d/dynamics/contacts/Contact;Lorg/joml/Vector2f;)V"
-          ]
-        },
-        {
           "javaName": "getComponent",
           "snakeAlias": "get_component",
           "signatures": [
@@ -2521,20 +2514,6 @@
           ]
         },
         {
-          "javaName": "postSolve",
-          "snakeAlias": "post_solve",
-          "signatures": [
-            "(LTheCellBeyond/GameObject;Lorg/jbox2d/dynamics/contacts/Contact;Lorg/joml/Vector2f;)V"
-          ]
-        },
-        {
-          "javaName": "preSolve",
-          "snakeAlias": "pre_solve",
-          "signatures": [
-            "(LTheCellBeyond/GameObject;Lorg/jbox2d/dynamics/contacts/Contact;Lorg/joml/Vector2f;)V"
-          ]
-        },
-        {
           "javaName": "ready",
           "snakeAlias": "ready",
           "signatures": [
@@ -2553,13 +2532,6 @@
           "snakeAlias": "start",
           "signatures": [
             "()V"
-          ]
-        },
-        {
-          "javaName": "startCollision",
-          "snakeAlias": "start_collision",
-          "signatures": [
-            "(LTheCellBeyond/GameObject;Lorg/jbox2d/dynamics/contacts/Contact;Lorg/joml/Vector2f;)V"
           ]
         },
         {
