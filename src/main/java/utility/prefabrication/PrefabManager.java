@@ -4,6 +4,7 @@ import TheCellBeyond.GameObject;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import project.Project;
+import scene.ObjectDataMigrator;
 import serialization.EngineSerializer;
 import utility.log.EngineLog;
 
@@ -30,7 +31,8 @@ public class PrefabManager {
     private static final String PrefabName = "prefab_name";
     private static final String RootUUID = "rootUUID";
     private static final String Timestamp = "timestamp";
-    private static final String Data = "data";
+    static final String DataKey = "data";
+    static final String VersionKey = "version";
     private static final String PrefabDir = "prefabs";
     private static final String Extension = ".prefab";
     private static final String IncludeChild = "includesChildren";
@@ -69,12 +71,13 @@ public class PrefabManager {
                 gosToPrefab.add(prefabRoot);
             }
             JsonObject prefabJson = new JsonObject();
+            prefabJson.addProperty(VersionKey, ObjectDataMigrator.currentVersion());
             prefabJson.addProperty(PrefabName, prefabName);
             prefabJson.addProperty(IncludeChild, includeChildren);
             prefabJson.addProperty(Timestamp, System.currentTimeMillis());
             prefabJson.addProperty(RootUUID, gosToPrefab.getFirst().getUUID().toString());
             JsonElement objectData = PrettySerializer.toJsonTree(gosToPrefab);
-            prefabJson.add(Data, objectData);
+            prefabJson.add(DataKey, objectData);
             String filename = prefabName.replaceAll(NamePattern, "_") + Extension;
             Path prefabFile = prefabsPath.resolve(filename);
             try (FileWriter writer = new FileWriter(prefabFile.toFile())) {
@@ -110,7 +113,7 @@ public class PrefabManager {
         }
         try {
             JsonObject prefabJson = parsedPrefabCache.get(prefabName);
-            JsonElement objectData = prefabJson.get(Data);
+            JsonElement objectData = prefabJson.get(DataKey);
             List<GameObject> gameObjects = new ArrayList<>();
             if (objectData.isJsonArray()) {
                 for (JsonElement goElement : objectData.getAsJsonArray()) {
@@ -123,19 +126,16 @@ public class PrefabManager {
                 return null;
             }
             Map<UUID, GameObject> goMap = new HashMap<>();
-            for (GameObject go : gameObjects) {
-                goMap.put(go.getUUID(), go);
-            }
+            for (GameObject go : gameObjects) goMap.put(go.getUUID(), go);
             for (GameObject go : gameObjects) {
                 if (go.getParentUUID() != null) {
                     GameObject parent = goMap.get(go.getParentUUID());
                     if (parent != null) parent.addChild(go);
                 }
-                if (go.getChildrenUUIDs() != null && !go.getChildrenUUIDs().isEmpty()) {
-                    for (UUID childUUID : go.getChildrenUUIDs()) {
-                        GameObject child = goMap.get(childUUID);
-                        if (child != null && child.getParent() == null) go.addChild(child);
-                    }
+                if (go.getChildrenUUIDs() == null || go.getChildrenUUIDs().isEmpty()) continue;
+                for (UUID childUUID : go.getChildrenUUIDs()) {
+                    GameObject child = goMap.get(childUUID);
+                    if (child != null && child.getParent() == null) go.addChild(child);
                 }
             }
             JsonElement rootUUID = prefabJson.get(RootUUID);
@@ -145,9 +145,7 @@ public class PrefabManager {
                 return null;
             }
             boolean includeChildren = false;
-            if (prefabJson.has(IncludeChild)) {
-                includeChildren = prefabJson.get(IncludeChild).getAsBoolean();
-            }
+            if (prefabJson.has(IncludeChild)) includeChildren = prefabJson.get(IncludeChild).getAsBoolean();
             return root.copy(includeChildren);
         } catch (Exception e) {
             Logger.error(String.format("Failed to instantiate '%s': %s", prefabName, e.getMessage()));
@@ -180,11 +178,17 @@ public class PrefabManager {
         return loadedPrefabs.get(name);
     }
 
+    /**
+     * Load and perform migration for outdated prefab file.
+     * @param file the prefab file path to load
+     */
     private static void loadPrefabFile(Path file) {
         try {
             String content = new String(Files.readAllBytes(file));
             JsonObject prefabJson = Serializer.deserialize(content, JsonObject.class);
             String name = prefabJson.get(PrefabName).getAsString();
+            PrefabMigrator.migrateToLatest(prefabJson, name, file);
+            content = PrettySerializer.serialize(prefabJson);
             String description = name;
             if (prefabJson.has(IncludeChild) && prefabJson.get(IncludeChild).getAsBoolean()) description += " (with children)";
             loadedPrefabs.put(name, new PrefabData(name, content, description));

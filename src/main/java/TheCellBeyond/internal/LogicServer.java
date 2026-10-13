@@ -10,6 +10,8 @@ import eventviewer.event.RuntimeEvent;
 import eventviewer.event.SceneEvent;
 import physic2d.Physic2D;
 import project.Project;
+import render.texture.SingleSprites;
+import render.texture.SpriteSheets;
 import scene.*;
 import scripting.API;
 import utility.log.EngineLog;
@@ -31,15 +33,15 @@ public class LogicServer implements EngineEventListener {
     /**
      * Request a scene change to the scene of the given name. The change is deferred to the start of the next frame.
      * <p>
-     * Change scene like this only availiable during runtime.
+     * Change scene like this only available during runtime.
      * @param sceneName the name of the scene tro switch to
      */
     public static void changeScene(String sceneName) {
         if (!runtimeMode) {
-            Logger.warning("Change scene via this call is not availiable outside runtime");
+            Logger.warning("Change scene via this call is not available outside runtime");
             return;
         }
-        if (!SceneManager.validSceneName(sceneName) || Project.getScene(sceneName) == null) {
+        if (!SceneManager.validSceneName(sceneName) || Project.scene(sceneName) == null) {
             Logger.warning(String.format("Cannot change to scene '%s': no such scene exist", sceneName));
             return;
         }
@@ -106,7 +108,7 @@ public class LogicServer implements EngineEventListener {
     /**
      * Step the scene's physic world by fixed delta time.
      * <p>
-     * The delta provide to this method is use to step physic world step.
+     * The delta provide to this method is used to step physic world step.
      * @param dt variable delta time
      */
     public static void updatePhysic(float dt) {
@@ -196,6 +198,8 @@ public class LogicServer implements EngineEventListener {
     private void handleRuntimeEvent(RuntimeEvent event) {
         switch (event.type) {
             case RuntimeEvent.Type.RuntimeStarted -> {
+                SpriteSheets.clear();
+                SingleSprites.clear();
                 SceneManager.saveCurrentScene();
                 if (!SceneManager.validSceneName(currentSceneName())) {
                     Logger.error("Cannot start runtime: no valid scene loaded");

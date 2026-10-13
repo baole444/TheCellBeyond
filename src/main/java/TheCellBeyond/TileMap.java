@@ -75,8 +75,8 @@ public class TileMap extends GameObject2D {
         physicBody2D.addComponents(new IsNotSelectable(), new TileCollider2D());
         physicBody2D.friction(1.0f);
         if (tileSet != null) {
-            physicBody2D.setCollisionLayer(tileSet.getCollisionLayer());
-            physicBody2D.setCollisionMask(tileSet.getCollisionMask());
+            physicBody2D.setCollisionLayer(tileSet.collisionLayer());
+            physicBody2D.setCollisionMask(tileSet.collisionMask());
         }
         addChild(physicBody2D);
         Scene scene = LogicServer.currentScene();
@@ -88,13 +88,13 @@ public class TileMap extends GameObject2D {
     }
 
     public boolean isTileDirty() {
-        if (tileSet != null && tileSet.requestRendererUpdate()) renderDirty = true;
+        if (tileSet != null && tileSet.dirtied()) renderDirty = true;
         return renderDirty;
     }
 
     public void setTileDirty(boolean needsUpdate) {
         renderDirty = needsUpdate;
-        if (!needsUpdate && tileSet != null) tileSet.rendererUpdated();
+        if (!needsUpdate && tileSet != null) tileSet.markClean();
     }
 
     public Vector2f getTileSetSize() {
@@ -139,7 +139,7 @@ public class TileMap extends GameObject2D {
         if (tileSet == null || mapCoordinate == null || tileSetCoordinate == null) return;
         Tile tile = tileSet.tile(tileSetCoordinate);
         if (tile == null) return;
-        tiles.put(mapCoordinate, new TilePlacement(tileSetCoordinate, quarterRotations, flipVertical, flipHorizontal));
+        tiles.put(new Vector2i(mapCoordinate), new TilePlacement(tileSetCoordinate, quarterRotations, flipVertical, flipHorizontal));
         renderDirty = true;
     }
 

@@ -13,9 +13,9 @@ public enum AssetResourceType implements ResourceType {
      */
     SpriteSheet(2),
     /**
-     * Texture unit resource.
+     * Single sprite resource.
      */
-    TextureUnit(4);
+    SingleSprite(4);
 
     /**
      * Numeric ID for the resource type.

@@ -53,7 +53,7 @@ final class EditorEventHandler implements EngineEventListener {
                 Project.loadFromYaml(projectPath);
                 boolean projectLoaded = (Project.currentProject() != null && Project.projectRoot() != null);
                 if (!projectLoaded) return;
-                List<String> availScenes = Project.getSceneNames();
+                List<String> availScenes = Project.sceneNames();
                 if (availScenes.isEmpty()) return;
                 RecentProject project = UserPreference.recentProject(projectPath);
                 String lastOpenScene = project != null ? project.lastOpenScene() : null;

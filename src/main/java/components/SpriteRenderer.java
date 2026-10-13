@@ -3,7 +3,6 @@ package components;
 import TheCellBeyond.internal.ResourceID;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
-import render.Texture;
 import render.commands.RectCommand;
 import render.commands.RenderCommand;
 import render.texture.Sprite;
@@ -25,11 +24,18 @@ public class SpriteRenderer extends Component2D {
     private volatile boolean flipVertically = false;
     private transient ResourceID lastBuiltTextureRID = null;
 
+    /**
+     * Create a new {@link SpriteRenderer} component.
+     */
     public SpriteRenderer() {
         String name = SpriteRenderer.class.getSimpleName();
         this(name);
     }
 
+    /**
+     * Create a new {@link SpriteRenderer} component with the given name.
+     * @param name the new name for the sprite renderer
+     */
     public SpriteRenderer(String name) {
         if (invalidName(name)) name = SpriteRenderer.class.getSimpleName();
         super(name);
@@ -41,11 +47,11 @@ public class SpriteRenderer extends Component2D {
      */
     public void spriteDirty(boolean needsUpdate) {
         renderDirty = needsUpdate;
-        if (!needsUpdate && sprite != null) sprite.rendererUpdated();
+        if (!needsUpdate && sprite != null) sprite.markClean();
     }
 
     /**
-     * Get the tint colour that is applied onto the Sprite.
+     * Get the tint colour that is applied onto the sprite.
      * @return tint colour vector
      */
     public Vector4f color() {
@@ -58,8 +64,7 @@ public class SpriteRenderer extends Component2D {
      */
     public Vector2f spriteSize() {
         if (sprite == null) return new Vector2f(1.0f);
-
-        return new Vector2f(sprite.getWidth(), sprite.getHeight());
+        return new Vector2f(sprite.width(), sprite.height());
     }
 
     /**
@@ -72,19 +77,11 @@ public class SpriteRenderer extends Component2D {
     }
 
     /**
-     * Get the texture of the Sprite.
-     * @return texture reference of the sprite or null if the sprite/texture is null
-     */
-    public Texture texture() {
-        return sprite != null ? sprite.getTexture() : null;
-    }
-
-    /**
      * Get the texture coordinates of the Sprite.
      * @return the array of 4 UV corners in the follow order: {@code (1,1), (1,0), (0,0), (0,1)}
      */
     public Vector2f[] textureCoordinates() {
-        return sprite != null ? sprite.getTextureCoordinates() : null;
+        return sprite != null ? sprite.textureCoordinates() : null;
     }
 
     /**
@@ -151,7 +148,7 @@ public class SpriteRenderer extends Component2D {
      * @return true if the sprite needs update
      */
     public boolean isSpriteDirty() {
-        if (sprite != null && sprite.requestRendererUpdate()) renderDirty = true;
+        if (sprite != null && sprite.dirtied()) renderDirty = true;
         ResourceID currentTextureRID = sprite != null ? sprite.textureRID() : null;
         if (!Objects.equals(currentTextureRID, lastBuiltTextureRID)) renderDirty = true;
         return renderDirty;
@@ -189,7 +186,6 @@ public class SpriteRenderer extends Component2D {
         command.submitterID = gameObject != null ? gameObject.getUID() : 0;
         ResourceID textureRID = sprite != null ? sprite.textureRID() : null;
         lastBuiltTextureRID = textureRID;
-        command.hasTextureReference = sprite != null && sprite.hasTexture();
         command.flipVertically = flipVertically;
         command.flipHorizontally = flipHorizontally;
         command.modulate.set(color());

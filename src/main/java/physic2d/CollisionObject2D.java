@@ -322,7 +322,7 @@ public abstract class CollisionObject2D extends GameObject2D {
      * @param newMasks the bit values for the collision mask
      */
     public void setCollisionMask(int newMasks) {
-        if (newMasks == collisionMask || !PhysicLayer.isMaskValid(newMasks)) return;
+        if (newMasks == collisionMask || !PhysicLayer.validMask(newMasks)) return;
         collisionMask = newMasks;
         needFixtureUpdate = true;
     }
@@ -333,7 +333,7 @@ public abstract class CollisionObject2D extends GameObject2D {
      * @param newMasks the bit values for the collision layer mask
      */
     public void setCollisionLayer(int newMasks) {
-        if (newMasks == collisionLayer || !PhysicLayer.isMaskValid(newMasks)) return;
+        if (newMasks == collisionLayer || !PhysicLayer.validMask(newMasks)) return;
         collisionLayer = newMasks;
         needFixtureUpdate = true;
     }

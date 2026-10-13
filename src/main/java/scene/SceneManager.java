@@ -9,7 +9,7 @@ import com.google.gson.JsonSyntaxException;
 import eventviewer.EngineEventCallback;
 import eventviewer.event.EditorEvent;
 import project.Project;
-import project.ProjectSceneMap;
+import project.ProjectScene;
 import serialization.EngineSerializer;
 import utility.UnifiedPaths;
 import utility.log.EngineLog;
@@ -62,7 +62,7 @@ public final class SceneManager {
      */
     public static boolean sceneNameTaken(String name) {
         if (!validSceneName(name) || !Project.loaded()) return true;
-        return Project.getScene(name.trim()) != null;
+        return Project.scene(name.trim()) != null;
     }
 
     /**
@@ -160,7 +160,7 @@ public final class SceneManager {
             Logger.error(String.format(CannotSaveAsFormat, newSceneName, ProjectNotLoaded));
             return false;
         }
-        if (Project.getScene(newSceneName) != null) {
+        if (Project.scene(newSceneName) != null) {
             Logger.error(String.format(CannotSaveAsFormat, newSceneName, SceneAlreadyExist));
             return false;
         }
@@ -170,7 +170,7 @@ public final class SceneManager {
             return false;
         }
         String path = createScenePath(newSceneName);
-        ProjectSceneMap sceneMap = new ProjectSceneMap(path);
+        ProjectScene sceneMap = new ProjectScene(path);
         if (!Project.addScene(newSceneName, sceneMap)) {
             Logger.error(String.format(CannotSaveAsFormat, newSceneName, RegisterSceneFailed));
             return false;
@@ -197,12 +197,12 @@ public final class SceneManager {
             Logger.error(String.format(CannotCreateFormat, sceneName, ProjectNotLoaded));
             return false;
         }
-        if (Project.getScene(sceneName) != null) {
+        if (Project.scene(sceneName) != null) {
             Logger.error(String.format(CannotCreateFormat, sceneName, SceneAlreadyExist));
             return false;
         }
         String path = createScenePath(sceneName);
-        ProjectSceneMap sceneMap = new ProjectSceneMap(path);
+        ProjectScene sceneMap = new ProjectScene(path);
         if (!Project.addScene(sceneName, sceneMap)) {
             Logger.error(String.format(CannotCreateFormat, sceneName, RegisterSceneFailed));
             return false;
@@ -230,7 +230,7 @@ public final class SceneManager {
             Logger.error(String.format(CannotRenameFormat, oldName, newName, SceneAlreadyExist));
             return false;
         }
-        ProjectSceneMap oldSceneMap = Project.getScene(oldName);
+        ProjectScene oldSceneMap = Project.scene(oldName);
         if (oldSceneMap == null) {
             Logger.error(String.format(CannotRenameFormat, oldName, newName, NoSuchScene));
             return false;
@@ -247,7 +247,7 @@ public final class SceneManager {
             return false;
         }
         Project.removeScene(oldName);
-        ProjectSceneMap newSceneMap = new ProjectSceneMap(newRelativePath);
+        ProjectScene newSceneMap = new ProjectScene(newRelativePath);
         if (!Project.addScene(newName, newSceneMap)) {
             try {
                 Files.move(destination, source);
@@ -275,7 +275,7 @@ public final class SceneManager {
             Logger.error(String.format(CannotLoadFormat, sceneName, ProjectNotLoaded));
             return ;
         }
-        if (Project.getScene(sceneName) == null) {
+        if (Project.scene(sceneName) == null) {
             Logger.error(String.format(CannotLoadFormat, sceneName, NoSuchScene));
             return;
         }
@@ -320,7 +320,7 @@ public final class SceneManager {
             Logger.error(String.format(CannotLoadFormat, sceneName, ProjectNotLoaded));
             return null;
         }
-        ProjectSceneMap sceneMap = Project.getScene(sceneName);
+        ProjectScene sceneMap = Project.scene(sceneName);
         if (sceneMap == null) {
             Logger.error(String.format(CannotLoadFormat, sceneName, NoSuchScene));
             return null;
@@ -355,11 +355,11 @@ public final class SceneManager {
     private static boolean saveSceneFile(SceneFile file) {
         if (!Project.loaded()) return false;
         String sceneName = file.name();
-        ProjectSceneMap sceneMap = Project.getScene(sceneName);
+        ProjectScene sceneMap = Project.scene(sceneName);
         if (sceneMap == null) {
             Logger.info(String.format("Registering missing scene '%s' with the project", sceneName));
             String newPath = createScenePath(sceneName);
-            sceneMap = new ProjectSceneMap(newPath);
+            sceneMap = new ProjectScene(newPath);
             if (!Project.addScene(sceneName, sceneMap)) {
                 Logger.error(String.format(CannotSaveFormat, sceneName, RegisterSceneFailed));
             }                return false;

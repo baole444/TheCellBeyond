@@ -13,8 +13,6 @@ import render.commands.RectCommand;
 import render.commands.RenderCommand;
 import render.commands.TransformCommand;
 import render.texture.Sprite;
-import render.texture.TextureUnit;
-import utility.AssetManager;
 import utility.Settings;
 import utility.WorldUnit;
 
@@ -26,11 +24,12 @@ import utility.WorldUnit;
  */
 public final class EditorObjectIndicator extends Component2D implements NotSerializeComponent {
     private static final String IndicatorPath = Settings.TexturePath.ObjectIndicator;
+    private static final int IndicatorSize = 12;
     private static final int VerticesPerQuad = 4;
-    private transient TextureUnit textureUnit;
+    private static Sprite indicatorSprite;
     private transient Sprite sprite;
     private transient final Vector4f color = new Vector4f();
-    private transient boolean isInitialized = false;
+    private transient boolean initialized = false;
     private transient boolean active = false;
 
     /**
@@ -50,43 +49,32 @@ public final class EditorObjectIndicator extends Component2D implements NotSeria
     }
 
     private void initIndicator() {
-        if (isInitialized || gameObject == null  || !gameObject.isSerialize() || !(gameObject instanceof GameObject2D)) return;
-        try {
-            if (!AssetManager.hasTextureUnit(IndicatorPath)) AssetManager.addTextureUnit(IndicatorPath, new TextureUnit(AssetManager.getTexture(AssetManager.loadTexture(IndicatorPath)), 12, 12));
-            textureUnit = AssetManager.getTextureUnit(IndicatorPath);
-            setActive();
-            completeInit();
-        } catch (Exception e) {
-            Logger.error(String.format("Failed to initialize editor object indicator: %s", e.getMessage()));
+        if (initialized || gameObject == null || !gameObject.isSerialize() || !(gameObject instanceof GameObject2D)) return;
+        if (indicatorSprite == null) {
+            Sprite crosshair = new Sprite();
+            crosshair.texture(IndicatorPath);
+            crosshair.width(IndicatorSize);
+            crosshair.height(IndicatorSize);
+            indicatorSprite = crosshair;
         }
-    }
-
-    private void completeInit() {
-        if (textureUnit == null) return;
-        Sprite sprite = textureUnit.getSprite();
-        if (sprite == null) return;
-        this.sprite = sprite;
-        renderDirty = true;
-        isInitialized = true;
+        sprite = indicatorSprite;
+        activate();
+        initialized = true;
     }
 
     @Override
     protected void internalEditorUpdate(float dt) {
         if (gameObject == null || !gameObject.isSerialize()) return;
-        if (textureUnit == null) {
+        if (!initialized) {
             initIndicator();
             return;
         }
-        if (!isInitialized) {
-            completeInit();
-            return;
-        }
-        if (!active) setActive();
+        if (!active) activate();
     }
 
     @Override
     protected void internalUpdate(float dt) {
-        if (active) setInactive();
+        if (active) deactivate();
     }
 
     /**
@@ -101,13 +89,13 @@ public final class EditorObjectIndicator extends Component2D implements NotSeria
         if (go instanceof GameObject2D go2D) go2D.addComponent(new EditorObjectIndicator());
     }
 
-    private void setInactive() {
+    private void deactivate() {
         active = false;
         color.zero();
         renderDirty = true;
     }
 
-    private void setActive() {
+    private void activate() {
         active = true;
         color.set(1.0f, 1.0f, 1.0f, 0.8f);
         renderDirty = true;
@@ -134,12 +122,11 @@ public final class EditorObjectIndicator extends Component2D implements NotSeria
         RectCommand rect = RectCommand.acquire();
         rect.submitterID = gameObject != null ? gameObject.getUID() : 0;
         rect.modulate.set(color);
-        rect.hasTextureReference = sprite != null && sprite.hasTexture();
         if (sprite != null) {
-            rect.size.set(WorldUnit.pixelToWorld(sprite.getWidth(), sprite.getHeight()));
+            rect.size.set(WorldUnit.pixelToWorld(sprite.width(), sprite.height()));
             if (sprite.textureRID() != null) {
                 rect.textureRID = sprite.textureRID();
-                Vector2f[] uv = sprite.getTextureCoordinates();
+                Vector2f[] uv = sprite.textureCoordinates();
                 if (uv != null) for (int i = 0; i < VerticesPerQuad; i++) rect.uvCoordinates[i].set(uv[i]);
             }
         }

@@ -244,9 +244,9 @@ final class SpriteFrameEditor {
         for (int i = 0; i < frames.size(); i++) {
             Sprite sprite = frames.get(i).sprite;
             if (sprite == null) continue;
-            int textureID = sprite.getTextureID();
-            Vector2f scaledSpriteSize = TextureScale.calculateFitDimension(sprite.getWidth(), sprite.getHeight(), PreviewFrameSize, PreviewFrameSize - textLineHeight);
-            Vector2f[] textureCoordinates = sprite.getTextureCoordinates();
+            int textureID = sprite.textureID();
+            Vector2f scaledSpriteSize = TextureScale.calculateFitDimension(sprite.width(), sprite.height(), PreviewFrameSize, PreviewFrameSize - textLineHeight);
+            Vector2f[] textureCoordinates = sprite.textureCoordinates();
             String compositeId = selectedName + "_frame_" + i;
             ImGui.pushID(compositeId);
             ImVec2 cursorPos = ImGui.getCursorPos();

@@ -385,9 +385,9 @@ public final class EditorWidget {
         Sprite icon = sprite.getIcon();
         if (icon == null) return ImGui.button(id);
         float sizeLimit = ImGui.getFontSize();
-        int textureID = icon.getTextureID();
-        Vector2f scaledSize = TextureScale.calculateFitSquare(icon.getWidth(), icon.getHeight(), sizeLimit);
-        Vector2f[] textureCoordinates = icon.getTextureCoordinates();
+        int textureID = icon.textureID();
+        Vector2f scaledSize = TextureScale.calculateFitSquare(icon.width(), icon.height(), sizeLimit);
+        Vector2f[] textureCoordinates = icon.textureCoordinates();
         ImGui.pushStyleColor(ImGuiCol.Button, 1.0f, 1.0f, 1.0f, 0.0f);
         boolean clicked = ImGui.imageButton(id, textureID, scaledSize.x, scaledSize.y,
                 textureCoordinates[2].x, textureCoordinates[0].y,
@@ -415,8 +415,8 @@ public final class EditorWidget {
         if (width <= 0.0f || height <= 0.0f) width = height = ImGui.getFontSize();
         Sprite icon = sprite.getIcon();
         if (icon == null) return ImGui.button(id);
-        int textureID = icon.getTextureID();
-        Vector2f[] textureCoordinates = icon.getTextureCoordinates();
+        int textureID = icon.textureID();
+        Vector2f[] textureCoordinates = icon.textureCoordinates();
         ImGui.pushStyleColor(ImGuiCol.Button, 1.0f, 1.0f, 1.0f, 0.0f);
         boolean clicked = ImGui.imageButton(id, textureID, width, height,
                 textureCoordinates[2].x, textureCoordinates[0].y,
@@ -434,8 +434,8 @@ public final class EditorWidget {
     public static boolean iconButton(String id, Sprite icon, String toolTip, float width, float height) {
         if (width <= 0.0f || height <= 0.0f) width = height = ImGui.getFontSize();
         if (icon == null) return ImGui.button(id);
-        int textureID = icon.getTextureID();
-        Vector2f[] textureCoordinates = icon.getTextureCoordinates();
+        int textureID = icon.textureID();
+        Vector2f[] textureCoordinates = icon.textureCoordinates();
         ImGui.pushStyleColor(ImGuiCol.Button, 1.0f, 1.0f, 1.0f, 0.0f);
         boolean clicked = ImGui.imageButton(id, textureID, width, height,
                 textureCoordinates[2].x, textureCoordinates[0].y,
@@ -476,8 +476,8 @@ public final class EditorWidget {
             ImGui.endTooltip();
         }
         ImGui.setCursorPos(cursorPos.x + framePadding.x, cursorPos.y + framePadding.y * 1.5f);
-        int textureID = icon.getTextureID();
-        Vector2f[] textureCoordinates = icon.getTextureCoordinates();
+        int textureID = icon.textureID();
+        Vector2f[] textureCoordinates = icon.textureCoordinates();
         ImGui.image(textureID, width, height,
                 textureCoordinates[2].x, textureCoordinates[0].y,
                 textureCoordinates[0].x, textureCoordinates[2].y
@@ -541,7 +541,7 @@ public final class EditorWidget {
             ImGui.endGroup();
             if (ImGui.isItemHovered()) {
                 ImGui.beginTooltip();
-                ImGui.text(Project.getPhysicLayerName(i));
+                ImGui.text(Project.physicLayerName(i));
                 ImGui.endTooltip();
             }
         }

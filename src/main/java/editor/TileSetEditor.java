@@ -12,6 +12,7 @@ import org.joml.Vector2i;
 import render.texture.Sprite;
 import render.texture.Tile;
 import render.texture.TileSet;
+import utility.AssetReference;
 import utility.TextureScale;
 import utility.log.EngineLog;
 
@@ -114,18 +115,19 @@ final class TileSetEditor {
         ImVec2 cursorPos = ImGui.getCursorPos();
         float maxHeight = ImGui.getTextLineHeight() * 3.0f;
         ImGui.selectable("##TSE_Main_TileSet_Sprite_Selectable", false, ImGui.getContentRegionAvailX(), maxHeight);
-        int textureId = mainSprite.getTextureID();
-        float sWidth = mainSprite.getWidth();
-        float sHeight = mainSprite.getHeight();
+        int textureId = mainSprite.textureID();
+        float sWidth = mainSprite.width();
+        float sHeight = mainSprite.height();
         Vector2f scaledSize = TextureScale.calculateFitSquare(sWidth, sHeight, maxHeight);
-        Vector2f[] textureCoordinates = mainSprite.getTextureCoordinates();
+        Vector2f[] textureCoordinates = mainSprite.textureCoordinates();
         ImGui.setCursorPos(cursorPos);
         ImGui.image(textureId, scaledSize.x, scaledSize.y,
                 textureCoordinates[2].x, textureCoordinates[0].y,
                 textureCoordinates[0].x, textureCoordinates[2].y
         );
         ImGui.setCursorPos(cursorPos.x + maxHeight + 2.0f, cursorPos.y + Math.max(0.0f, (maxHeight - ImGui.getTextLineHeight() * 2.0f)));
-        String path = mainSprite.getTexture().canonicalPath();
+        AssetReference reference = mainSprite.textureReference();
+        String path = reference != null ? reference.canonicalPath() : null;
         path = path == null ? "Unknow texture" : path.substring(path.lastIndexOf("/") + 1);
         ImGui.text(path);
         ImGui.endGroup();
@@ -285,10 +287,10 @@ final class TileSetEditor {
             ImGui.endChild();
             return;
         }
-        int textureID = sprite.getTextureID();
-        float w = sprite.getWidth() * zoom;
-        float h = sprite.getHeight() * zoom;
-        Vector2f[] textureCoordinates = sprite.getTextureCoordinates();
+        int textureID = sprite.textureID();
+        float w = sprite.width() * zoom;
+        float h = sprite.height() * zoom;
+        Vector2f[] textureCoordinates = sprite.textureCoordinates();
         ImVec2 cursorScreenPos = ImGui.getCursorScreenPos();
         TileEditorRender.drawCheckerboard(renderCache, cursorScreenPos, zoom);
         ImGui.image(textureID, w, h,
@@ -313,6 +315,7 @@ final class TileSetEditor {
         float startY = startPos.y * zoom;
         float gridW = gridSize.x * zoom;
         float gridH = gridSize.y * zoom;
+        if (gridW <= 0 || gridH <= 0) return;
         if (relativeX < startX || relativeY < startY || relativeX > width || relativeY > height) return;
         float clickedPixelX = relativeX - startX;
         float clickedPixelY = relativeY - startY;
@@ -343,12 +346,12 @@ final class TileSetEditor {
         if (isItemHovered && isMouseClick && !isShift) {
             selectedTiles.clear();
             isBoxSelection = true;
-            selectionStart = getGridCoordinate(tileSet, cursorScreenPos, width, height);
+            selectionStart = gridCoordinate(tileSet, cursorScreenPos, width, height);
             selectionEnd = selectionStart;
             if (selectionStart != null) selectTiles(tileSet, selectionStart, selectionEnd);
         }
         if (isBoxSelection && isMouseDown) {
-            Vector2i current = getGridCoordinate(tileSet, cursorScreenPos, width, height);
+            Vector2i current = gridCoordinate(tileSet, cursorScreenPos, width, height);
             if (current != null && !current.equals(selectionEnd)) {
                 selectionEnd = current;
                 selectedTiles.clear();
@@ -365,7 +368,7 @@ final class TileSetEditor {
         if (!isItemHovered || !isMouseClick) return false;
         if (!isShift && !isControl) return false;
         if (isShift && !isControl) {
-            Vector2i clicked = getGridCoordinate(tileSet, cursorScreenPos, width, height);
+            Vector2i clicked = gridCoordinate(tileSet, cursorScreenPos, width, height);
             if (clicked == null) return true;
             if (!selectedTiles.isEmpty()) {
                 Tile first = selectedTiles.getFirst();
@@ -379,7 +382,7 @@ final class TileSetEditor {
             return true;
         }
         if (isShift) return false;
-        Vector2i clicked = getGridCoordinate(tileSet, cursorScreenPos, width, height);
+        Vector2i clicked = gridCoordinate(tileSet, cursorScreenPos, width, height);
         if (clicked == null) return true;
         Tile tile = tileSet.tile(clicked);
         if (tile == null) return true;
@@ -387,7 +390,7 @@ final class TileSetEditor {
         return true;
     }
 
-    private static Vector2i getGridCoordinate(TileSet tileSet, ImVec2 cursorScreenPos, float width, float height) {
+    private static Vector2i gridCoordinate(TileSet tileSet, ImVec2 cursorScreenPos, float width, float height) {
         ImVec2 mousePos = ImGui.getMousePos();
         float relativeX = mousePos.x - cursorScreenPos.x;
         float relativeY = mousePos.y - cursorScreenPos.y;
@@ -397,6 +400,7 @@ final class TileSetEditor {
         float startY = startPos.y * zoom;
         float gridW = gridSize.x * zoom;
         float gridH = gridSize.y * zoom;
+        if (gridW <= 0 || gridH <= 0) return null;
         if (relativeX < startX || relativeY < startY || relativeX > width || relativeY > height) return null;
         float clickedPixelX = relativeX - startX;
         float clickedPixelY = relativeY - startY;

@@ -175,7 +175,7 @@ final class ProjectPreferenceTab {
             ImGui.tableNextColumn();
             ImGui.text("Layer " + i);
             ImGui.tableNextColumn();
-            String oldLayerName = Project.getPhysicLayerName(i);
+            String oldLayerName = Project.physicLayerName(i);
             ImString newLayerName = new ImString(oldLayerName, 128);
             boolean edited = ImGui.inputTextWithHint("##EPTD_Custom_Layer_Name_" + i, "Enter a custom name for layer " + i + "...", newLayerName);
             if (edited) Project.updatePhysicLayerName(i, newLayerName.get().trim());

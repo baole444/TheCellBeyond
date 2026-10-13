@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 final class GameObject2DTest {
-    private static final float epsilon = 0.001f;
+    private static final float epsilon = 0.0001f;
 
     @Test
     void globalPosition() {

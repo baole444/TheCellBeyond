@@ -1,6 +1,8 @@
 package render.texture;
 
 import TheCellBeyond.internal.ResourceID;
+import TheCellBeyond.internal.ResourceRegistry;
+import render.Texture;
 import render.text.GlyphRange;
 import utility.AssetReference;
 import utility.log.EngineLog;
@@ -19,6 +21,8 @@ public final class TextureManager {
     private final ConcurrentHashMap<Integer, TextureHandle> activeHandles;
     private final ConcurrentHashMap<String, TextureHandle> textureHandles;
     private final ConcurrentHashMap<AtlasKey, TextureHandle> fontAtlasHandles;
+    private final ConcurrentHashMap<String, ResourceID> textureIDs = new ConcurrentHashMap<>();
+    private final ResourceRegistry<Texture> textureRegistry = new ResourceRegistry<>();
 
     private int createdTextures = 0;
     private int disposedTextures = 0;
@@ -36,16 +40,59 @@ public final class TextureManager {
         return instance;
     }
 
-    void stepCreatedTexture() {
-        this.createdTextures++;
+    /**
+     * Get the texture native resource bound to the given RID.
+     * @param RID the RID of the texture
+     * @return the texture resource, or null if the RID point to no texture
+     */
+    public Texture texture(ResourceID RID) {
+        return RID != null ? textureRegistry.get(RID) : null;
     }
 
-    void stepDisposedTexture() {
-        this.disposedTextures++;
+    /**
+     * Get the RID of the texture on the given path. The texture will be loaded and cached if it hasn't.
+     * @param canonicalPath the canonical path to the image, with no metadata tag
+     * @return the RID of the texture
+     */
+    public ResourceID loadTexture(String canonicalPath) {
+        ResourceID RID = textureIDs.get(canonicalPath);
+        if (RID != null) return RID;
+        Texture texture = new Texture();
+        texture.init(canonicalPath);
+        RID = texture.RID;
+        textureIDs.put(canonicalPath, RID);
+        textureRegistry.register(RID, texture);
+        return RID;
     }
 
-    void removeActiveHandle(int RID) {
-        activeHandles.remove(RID);
+    /**
+     * Get the RID of the cached texture on the given path. This does not load the texture.
+     * @param canonicalPath the canonical path to the image, with no metadata tag
+     * @return the RID of the texture, or null when there is no texture loaded on the canonical path
+     * @see #loadTexture(String) Load and get texture RID
+     */
+    public ResourceID textureRID(String canonicalPath) {
+        return textureIDs.get(canonicalPath);
+    }
+
+    /**
+     * Unload the texture native resource from the given path.
+     * @param canonicalPath the canonical path to the image, with no metadata tag
+     */
+    public void unloadTexture(String canonicalPath) {
+        ResourceID RID = textureIDs.remove(canonicalPath);
+        if (RID == null) return;
+        Texture texture = textureRegistry.get(RID);
+        textureRegistry.unregister(RID);
+        if (texture != null) texture.dispose();
+    }
+
+    /**
+     * Clear the texture cache. This does not free the texture native resource.
+     */
+    public void clearTextures() {
+        textureIDs.clear();
+        textureRegistry.clear();
     }
 
     /**
@@ -128,9 +175,10 @@ public final class TextureManager {
                 Logger.error("Failed to execute texture command: " + command + e);
                 if (command instanceof CreateTextureCommand textureCmd) {
                     textureCmd.handle.markFailed("Command execution failed: " + e.getMessage());
-                } else if (command instanceof CreateFontAtlasTextureCommand fontCmd) {
-                    fontCmd.handle.markFailed("Command execution failed: " + e.getMessage());
+                    continue;
                 }
+                if (!(command instanceof CreateFontAtlasTextureCommand fontCmd)) continue;
+                fontCmd.handle.markFailed("Command execution failed: " + e.getMessage());
             }
         }
     }
@@ -152,6 +200,18 @@ public final class TextureManager {
         commandQueue.clear();
 
         Logger.info("TextureManager cleanup completed");
+    }
+
+    void stepCreatedTexture() {
+        this.createdTextures++;
+    }
+
+    void stepDisposedTexture() {
+        this.disposedTextures++;
+    }
+
+    void removeActiveHandle(int RID) {
+        activeHandles.remove(RID);
     }
 
     public static void dispose() {

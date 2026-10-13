@@ -23,7 +23,6 @@ final class TileMapTemplate implements IObjectTemplate<TileMap> {
     /**
      * Execute the rendering code for the Editor UI, related to this object.
      * This method is passive, and mst be call to render the UI.
-     *
      * @param object the context object
      */
     @Override
@@ -84,22 +83,22 @@ final class TileMapTemplate implements IObjectTemplate<TileMap> {
         Vector2i size = tileSet.gridSize();
         int x = EditorWidget.dragIntCtrl("With", size.x, 16, tileSet, 1);
         int y = EditorWidget.dragIntCtrl("Height", size.y, 16, tileSet, 1);
-        if (x != size.x || y != size.y) tileSet.gridSize(size.set(x, y));
+        if (x != size.x || y != size.y) tileSet.gridSize(x, y);
         ImGui.separator();
         ImGui.text("Start position offset:");
         Vector2i startOffset = tileSet.startPosition();
         int xF = EditorWidget.dragIntCtrl("X offset", startOffset.x, 0, tileSet, 0);
         int yF = EditorWidget.dragIntCtrl("Y offset", startOffset.y, 0, tileSet, 0);
-        if (xF != startOffset.x || yF != startOffset.y) tileSet.startPosition(startOffset.set(xF, yF));
+        if (xF != startOffset.x || yF != startOffset.y) tileSet.startPosition(xF, yF);
         ImGui.separator();
         ImGui.text("Physic layers");
         ImGui.spacing();
         ImGui.indent();
-        int collisionLayer = EditorWidget.physicLayerSelectable("Collision Layer", tileSet.getCollisionLayer(), object);
+        int collisionLayer = EditorWidget.physicLayerSelectable("Collision Layer", tileSet.collisionLayer(), object);
         ImGui.spacing();
-        int collisionMask = EditorWidget.physicLayerSelectable("Collision Mask", tileSet.getCollisionMask(), object);
-        tileSet.setCollisionLayer(collisionLayer);
-        tileSet.setCollisionMask(collisionMask);
+        int collisionMask = EditorWidget.physicLayerSelectable("Collision Mask", tileSet.collisionMask(), object);
+        tileSet.collisionLayer(collisionLayer);
+        tileSet.collisionMask(collisionMask);
         ImGui.unindent();
         ImGui.separator();
         ImGui.spacing();

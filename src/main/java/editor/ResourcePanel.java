@@ -1,8 +1,8 @@
 package editor;
 
 import TheCellBeyond.GameObject;
+import editor.dialogs.AddSingleSpriteDialog;
 import editor.dialogs.AddSpriteSheetDialog;
-import editor.dialogs.AddTextureUnitDialog;
 import editor.payload.SpriteDragDropPayload;
 import imgui.ImGui;
 import imgui.flag.*;
@@ -10,12 +10,12 @@ import imgui.type.ImString;
 import org.joml.Vector2f;
 import org.joml.Vector2i;
 import project.Project;
-import project.ProjectAssetMap;
+import project.ProjectAsset;
 import project.ProjectData;
-import project.ProjectSheetMap;
+import project.ProjectSheet;
+import render.texture.SingleSprite;
 import render.texture.Sprite;
 import render.texture.SpriteSheet;
-import render.texture.TextureUnit;
 import scene.SceneEditor;
 import utility.AssetManager;
 import utility.TextureScale;
@@ -24,9 +24,9 @@ import utility.prefabrication.PrefabData;
 import utility.prefabrication.PrefabManager;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 final class ResourcePanel {
@@ -34,14 +34,14 @@ final class ResourcePanel {
     private static final Vector2i prefabButtonSize = new Vector2i(200, 30);
     private static final Map<String, Map<String, SpriteSheet>> categorizedSpriteSheetList = new HashMap<>();
     private static final Map<String, Map<String, SpriteSheet>> filteredSpriteSheetList = new HashMap<>();
-    private static final Map<UUID, TextureUnit> textureUnits = new HashMap<>();
+    private static final Map<ProjectAsset, SingleSprite> singleSprites = new LinkedHashMap<>();
     private static final ImString spriteSearchFilter = new ImString(256);
     private static boolean filterChanged = true;
     private static boolean removedSkip = false;
 
     static void refreshCache() {
         loadCategorizedSheet();
-        loadTextureUnits();
+        loadSingleSprites();
         filterChanged = true;
     }
 
@@ -93,9 +93,9 @@ final class ResourcePanel {
                 ImGui.pushStyleColor(ImGuiCol.Button, 0.2f, 0.7f, 0.2f, 1.0f);
                 ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.3f, 0.8f, 0.3f, 1.0f);
                 ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0.2f, 0.7f, 0.2f, 1.0f);
-                if (ImGui.button("Add", ImGui.getContentRegionAvailX(), 0.0f)) AddTextureUnitDialog.show();
+                if (ImGui.button("Add", ImGui.getContentRegionAvailX(), 0.0f)) AddSingleSpriteDialog.show();
                 ImGui.popStyleColor(3);
-                drawAssetsTextureUnit();
+                drawAssetsSingleSprite();
                 ImGui.endTabItem();
             }
             if (ImGui.beginTabItem("Prefabrication")) {
@@ -105,7 +105,7 @@ final class ResourcePanel {
             ImGui.endTabBar();
         }
         AddSpriteSheetDialog.imgui();
-        AddTextureUnitDialog.imgui();
+        AddSingleSpriteDialog.imgui();
         ImGui.end();
     }
 
@@ -185,10 +185,10 @@ final class ResourcePanel {
         ImGui.endTabBar();
     }
 
-    private static void drawAssetsTextureUnit() {
-        if (textureUnits.isEmpty()) {
+    private static void drawAssetsSingleSprite() {
+        if (singleSprites.isEmpty()) {
             ImGui.beginDisabled();
-            ImGui.textWrapped("No texture unit added, click \"Add\" to import new unit");
+            ImGui.textWrapped("No single sprite added, click \"Add\" to import new sprite");
             ImGui.endDisabled();
             return;
         }
@@ -196,23 +196,24 @@ final class ResourcePanel {
         ImGui.tableSetupColumn("#SE_Asset_Content_Preview_Column", ImGuiTableColumnFlags.WidthFixed);
         ImGui.tableSetupColumn("SE_Asset_Content_Name_Column", ImGuiTableColumnFlags.WidthStretch);
         ImGui.tableSetupColumn("SE_Asset_Content_Delete_Column", ImGuiTableColumnFlags.WidthFixed);
-        for (Map.Entry<UUID, TextureUnit> unit : textureUnits.entrySet()) {
+        for (Map.Entry<ProjectAsset, SingleSprite> unit : singleSprites.entrySet()) {
             if (removedSkip) break;
             ImGui.tableNextColumn();
-            Sprite sprite = unit.getValue().getSprite();
-            if (sprite == null) {
+            Sprite sprite = unit.getValue().sprite();
+            if (!sprite.hasTexture()) {
                 ImGui.tableNextColumn();
                 ImGui.tableNextColumn();
                 continue;
             }
-            EditorWidget.iconButton(unit.getKey().toString() + "_TU", sprite, null, 32.0f, 32.0f);
+            ProjectAsset asset = unit.getKey();
+            EditorWidget.iconButton(String.format("%s/%s_SS", asset.category(), asset.name()), sprite, null, 32.0f, 32.0f);
             float height = ImGui.getItemRectSizeY();
             if (ImGui.isItemHovered()) {
                 ImGui.beginTooltip();
                 ImGui.text("Preview");
-                int textureID = sprite.getTextureID();
-                Vector2f[] textureCoordinates = sprite.getTextureCoordinates();
-                Vector2f previewImageSize = TextureScale.calculateFitDimension(sprite.getWidth(), sprite.getHeight(), 160.0f, 160.f);
+                int textureID = sprite.textureID();
+                Vector2f[] textureCoordinates = sprite.textureCoordinates();
+                Vector2f previewImageSize = TextureScale.calculateFitDimension(sprite.width(), sprite.height(), 160.0f, 160.f);
                 ImGui.image(textureID, previewImageSize.x, previewImageSize.y,
                         textureCoordinates[2].x, textureCoordinates[0].y,
                         textureCoordinates[0].x, textureCoordinates[2].y);
@@ -221,23 +222,22 @@ final class ResourcePanel {
             if (ImGui.beginDragDropSource()) {
                 SpriteDragDropPayload.setPayload(sprite);
                 ImGui.setDragDropPayload(SpriteDragDropPayload.getPayloadType(), sprite);
-                ImGui.text("Texture: " + sprite.getTexture().canonicalPath());
-                Vector2f previewImageSize = TextureScale.calculateFitDimension(sprite.getWidth(), sprite.getHeight(), 80.0f, 80.f);
-                int textureID = sprite.getTextureID();
-                Vector2f[] textureCoordinates = sprite.getTextureCoordinates();
+                ImGui.text("Texture: " + sprite.textureReference());
+                Vector2f previewImageSize = TextureScale.calculateFitDimension(sprite.width(), sprite.height(), 80.0f, 80.f);
+                int textureID = sprite.textureID();
+                Vector2f[] textureCoordinates = sprite.textureCoordinates();
                 ImGui.image(textureID, previewImageSize.x, previewImageSize.y,
                         textureCoordinates[2].x, textureCoordinates[0].y,
                         textureCoordinates[0].x, textureCoordinates[2].y);
                 ImGui.endDragDropSource();
             }
             ImGui.tableNextColumn();
-            ProjectAssetMap am = Project.currentProject().assets().get(unit.getKey());
             ImGui.setCursorPosY(ImGui.getCursorPosY() + (height - ImGui.getTextLineHeight()) / 2.0f);
-            String path = am.path();
+            String path = asset.path();
             int lastSeparatorIndex = path.lastIndexOf('/');
             if (lastSeparatorIndex + 1 <= path.length()) path = path.substring(lastSeparatorIndex + 1);
             path = UnifiedPaths.stripMetadata(path);
-            String infoText = String.format("(%d,%d) %s", am.sizeX(), am.sizeY(), path);
+            String infoText = String.format("%s (%d, %d)%n%s", asset.name(), asset.sizeX(), asset.sizeY(), path);
             ImGui.text(infoText);
             if (ImGui.isItemHovered() && ImGui.calcTextSizeX(infoText) >= ImGui.getContentRegionAvailX()) {
                 ImGui.beginTooltip();
@@ -246,8 +246,8 @@ final class ResourcePanel {
             }
             ImGui.tableNextColumn();
             ImGui.setCursorPosY(ImGui.getCursorPosY() + (height - ImGui.getTextLineHeightWithSpacing()) / 2.0f);
-            if (!EditorWidget.iconButton(String.format("Delete##SE_Delete_%s_TextureUnit", unit.getKey()), EditorIcons.Icons.Delete, String.format("Remove (%d,%d) %s texture unit import (does not remove image on disk)", am.sizeX(), am.sizeY(), path))) continue;
-            Project.removeAsset(unit.getKey());
+            if (!EditorWidget.iconButton(String.format("Delete##RP_Delete_%s_%s_SingleSprite", asset.category(), asset.name()), EditorIcons.Icons.Delete, String.format("Remove single sprite '%s' import (does not remove image on disk)", asset.name()))) continue;
+            Project.removeAsset(asset.category(), asset.name());
             removedSkip = true;
             ImGui.spacing();
         }
@@ -258,12 +258,12 @@ final class ResourcePanel {
         float spacing = ImGui.getStyle().getItemSpacingX();
         float availWidth = ImGui.getContentRegionAvailX();
         float consumedWidth = 0.0f;
-        for (int i = 0; i < sheet.numberOfAvailableSprites(); i++) {
+        for (int i = 0; i < sheet.availableSpriteCount(); i++) {
             Sprite sprite = sheet.spriteIndex(i);
             if (sprite == null) continue;
-            int textureID = sprite.getTextureID();
-            Vector2f scaledSpriteSize = TextureScale.calculateFitDimension(sprite.getWidth(), sprite.getHeight(), 32, 32);
-            Vector2f[] textureCoordinates = sprite.getTextureCoordinates();
+            int textureID = sprite.textureID();
+            Vector2f scaledSpriteSize = TextureScale.calculateFitDimension(sprite.width(), sprite.height(), 32, 32);
+            Vector2f[] textureCoordinates = sprite.textureCoordinates();
             String compositeId = name + i;
             ImGui.pushID(compositeId);
             ImGui.imageButton(compositeId, textureID, scaledSpriteSize.x, scaledSpriteSize.y,
@@ -275,20 +275,20 @@ final class ResourcePanel {
             if (ImGui.isItemHovered()) {
                 ImGui.beginTooltip();
                 ImGui.text("Preview");
-                Vector2f previewImageSize = TextureScale.calculateFitDimension(sprite.getWidth(), sprite.getHeight(), 160.0f, 160.f);
+                Vector2f previewImageSize = TextureScale.calculateFitDimension(sprite.width(), sprite.height(), 160.0f, 160.f);
                 ImGui.image(textureID, previewImageSize.x, previewImageSize.y,
                         textureCoordinates[2].x, textureCoordinates[0].y,
                         textureCoordinates[0].x, textureCoordinates[2].y);
-                ImGui.text("Width: " + sprite.getWidth());
-                ImGui.text("Height: " + sprite.getHeight());
+                ImGui.text("Width: " + sprite.width());
+                ImGui.text("Height: " + sprite.height());
                 ImGui.endTooltip();
             }
             if (ImGui.beginDragDropSource()) {
                 SpriteDragDropPayload.setPayload(sprite);
                 ImGui.setDragDropPayload(SpriteDragDropPayload.getPayloadType(), sprite);
-                ImGui.text("Sheet: " + sprite.getTexture().canonicalPath());
+                ImGui.text("Sheet: " + sprite.textureReference());
                 ImGui.text("Index: " + i);
-                Vector2f previewImageSize = TextureScale.calculateFitDimension(sprite.getWidth(), sprite.getHeight(), 80.0f, 80.f);
+                Vector2f previewImageSize = TextureScale.calculateFitDimension(sprite.width(), sprite.height(), 80.0f, 80.f);
                 ImGui.image(textureID, previewImageSize.x, previewImageSize.y,
                         textureCoordinates[2].x, textureCoordinates[0].y,
                         textureCoordinates[0].x, textureCoordinates[2].y);
@@ -329,13 +329,13 @@ final class ResourcePanel {
         removedSkip = false;
         ProjectData project = Project.currentProject();
         categorizedSpriteSheetList.clear();
-        for (Map.Entry<String, Map<String, ProjectSheetMap>> categories : project.sheets().entrySet()) {
+        for (Map.Entry<String, Map<String, ProjectSheet>> categories : project.sheets().entrySet()) {
             String category = categories.getKey();
             Map<String, SpriteSheet> categorySheets = new HashMap<>();
-            for (Map.Entry<String, ProjectSheetMap> sheets : categories.getValue().entrySet()) {
+            for (Map.Entry<String, ProjectSheet> sheets : categories.getValue().entrySet()) {
                 String name = sheets.getKey();
-                ProjectSheetMap sM = sheets.getValue();
-                String path = sM.metadata(category, name);
+                ProjectSheet sheet = sheets.getValue();
+                String path = sheet.metadata();
                 SpriteSheet spriteSheet = AssetManager.getSpriteSheet(path);
                 if (spriteSheet != null) categorySheets.put(name, spriteSheet);
             }
@@ -344,18 +344,15 @@ final class ResourcePanel {
 
     }
 
-    private static void loadTextureUnits() {
+    private static void loadSingleSprites() {
         if (!Project.loaded()) return;
         removedSkip = false;
-        ProjectData project = Project.currentProject();
-        textureUnits.clear();
-        for (Map.Entry<UUID, ProjectAssetMap> entry : project.assets().entrySet()) {
-            UUID uuid = entry.getKey();
-            ProjectAssetMap aM = entry.getValue();
-            String path = aM.metadata();
-            if (path == null || path.isBlank()) continue;
-            TextureUnit unit = AssetManager.getTextureUnit(path);
-            if (unit != null) textureUnits.put(uuid, unit);
-        }
+        singleSprites.clear();
+        Project.assetEntries().forEach(asset -> {
+            String path = asset.metadata();
+            if (path == null || path.isBlank()) return;
+            SingleSprite unit = AssetManager.getSingleSprite(path);
+            if (unit != null) singleSprites.put(asset, unit);
+        });
     }
 }

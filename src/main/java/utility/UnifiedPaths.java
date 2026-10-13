@@ -38,6 +38,7 @@ public final class UnifiedPaths {
     public static final String MetaTag = "$";
     public static final String MetaValueDelimiter = "::";
     public static final String MetaSeparator = ",";
+    public static final String MetaCannotContain = String.format("%s%s%s%s%s", MetaStart, MetaEnd, MetaTag, MetaValueDelimiter, MetaSeparator);
     private static String projectRoot = null;
     private static final ConcurrentHashMap<String, AssetPath> pathCache = new ConcurrentHashMap<>();
     private UnifiedPaths() {}
@@ -314,6 +315,11 @@ public final class UnifiedPaths {
         return List.of();
     }
 
+    /**
+     * Check if a string does not collide with reserved character for metadata tag.
+     * @param value the string to check against
+     * @return true if the name is null or blank, or it contains reserved metadata characters
+     */
     public static boolean invalidMetadata(String value) {
         if (value == null || value.isBlank()) return true;
         return value.contains(MetaStart) || value.contains(MetaEnd) || value.contains(MetaTag) || value.contains(MetaValueDelimiter) || value.contains(MetaSeparator);

@@ -39,16 +39,14 @@ final class SpriteRendererTemplate implements IComponentTemplate<SpriteRenderer>
         float availX = ImGui.getContentRegionAvailX();
         ImGui.text("Sprite: ");
         Sprite sprite = component.sprite();
-        if (sprite != null && sprite.getTexture() != null) {
+        if (sprite != null && sprite.hasTexture()) {
             ImGui.sameLine();
-            ImGui.pushStyleColor(ImGuiCol.Button, 0.7f, 0.2f, 0.2f, 1.0f);
-            ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.8f, 0.3f, 0.3f, 1.0f);
-            ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0.7f, 0.2f, 0.2f, 1.0f);
-            if (ImGui.button("Clear sprite##SpriteRenderer_ClearSprite_" + uuid)) component.sprite(null);
-            ImGui.popStyleColor(3);
+            EditorColors.RedButton.create(() -> {
+                if (ImGui.button("Clear sprite##SpriteRenderer_ClearSprite_" + uuid)) component.sprite(null);
+            });
         }
         float previewLimitY = 160.0f;
-        if (sprite == null || sprite.getTexture() == null) {
+        if (sprite == null || !sprite.hasTexture()) {
             if (ImGui.beginChild("##SpriteRender_DropTarget_Region_" + component.getUUID(), ImGui.getContentRegionAvailX(), previewLimitY, ImGuiChildFlags.Borders)) {
                 ImGui.pushStyleColor(ImGuiCol.Text, EditorColors.InstructionHighLight);
                 ImGui.textWrapped("No sprite assigned. Drag and drop a sprite from Sprite list here.");
@@ -56,9 +54,9 @@ final class SpriteRendererTemplate implements IComponentTemplate<SpriteRenderer>
             }
             ImGui.endChild();
         } else {
-            int textureId = sprite.getTextureID();
-            Vector2f[] textureCoordinates = sprite.getTextureCoordinates();
-            Vector2f previewSize = TextureScale.calculateFitDimension(sprite.getWidth(), sprite.getHeight(), availX, previewLimitY);
+            int textureId = sprite.textureID();
+            Vector2f[] textureCoordinates = sprite.textureCoordinates();
+            Vector2f previewSize = TextureScale.calculateFitDimension(sprite.width(), sprite.height(), availX, previewLimitY);
             ImGui.image(textureId, previewSize.x, previewSize.y,
                     textureCoordinates[2].x, textureCoordinates[0].y,
                     textureCoordinates[0].x, textureCoordinates[2].y

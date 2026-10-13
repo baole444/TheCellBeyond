@@ -2,7 +2,9 @@ package render;
 
 import TheCellBeyond.internal.ResourceID;
 import TheCellBeyond.internal.ResourceStatus;
+import org.joml.Vector2i;
 import org.lwjgl.BufferUtils;
+import render.texture.ImageHeader;
 import render.texture.TextureHandle;
 import render.texture.TextureManager;
 import utility.AssetReference;
@@ -12,12 +14,10 @@ import utility.log.EngineLog;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
 import java.util.Objects;
 
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL11.glBindTexture;
-import static org.lwjgl.stb.STBImage.stbi_info_from_memory;
 
 /**
  * Texture is a native GPU resource represent the corresponding texture image on disk.
@@ -49,23 +49,21 @@ public class Texture {
             ByteBuffer buffer = BufferUtils.createByteBuffer(data.length);
             buffer.put(data);
             buffer.flip();
-            IntBuffer wBuffer = BufferUtils.createIntBuffer(1);
-            IntBuffer hBuffer = BufferUtils.createIntBuffer(1);
-            IntBuffer cBuffer = BufferUtils.createIntBuffer(1);
-            if (stbi_info_from_memory(buffer, wBuffer, hBuffer, cBuffer)) {
-                width = wBuffer.get(0);
-                height = hBuffer.get(0);
+            Vector2i size = ImageHeader.size(buffer);
+            if (size != null) {
+                width = size.x;
+                height = size.y;
             }
             handle = TextureManager.get().getTextureHandle(buffer, assetReference, RID);
         } catch (IOException e) {
             handle = TextureManager.get().failedHandle(RID, "Failed to read texture file:" + e.getMessage());
-            Logger.error(String.format("Failed to load texture %s: %s", assetReference.canonicalPath(), e.getMessage()));
+            Logger.error(String.format("Failed to load texture at '%s': %s", assetReference.canonicalPath(), e.getMessage()));
         }
     }
 
     public void bind() {
         checkInitialization();
-        int textureId = getID();
+        int textureId = nativeID();
         if (textureId > 0) glBindTexture(GL_TEXTURE_2D, textureId);
     }
 
@@ -73,32 +71,32 @@ public class Texture {
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 
-    public int getWidth() {
+    public int width() {
         checkInitialization();
         return width;
     }
 
-    public int getHeight() {
+    public int height() {
         checkInitialization();
         return height;
     }
 
-    public int getID() {
+    public int nativeID() {
         checkInitialization();
         if (handle != null && handle.isReady()) return handle.getTextureId();
         return -1;
     }
 
-    public boolean isReady() {
+    public boolean readied() {
         checkInitialization();
         return handle != null && handle.isReady();
     }
 
-    public boolean isFailed() {
+    public boolean failed() {
         return handle != null && handle.isFailed();
     }
 
-    public ResourceStatus getStatus() {
+    public ResourceStatus status() {
         return handle != null ? handle.getStatus() : ResourceStatus.Waiting;
     }
 
@@ -149,13 +147,9 @@ public class Texture {
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder("Texture{");
-        if (assetReference != null) {
-            builder.append("path=").append(assetReference.canonicalPath()).append("', ");
-        }
+        if (assetReference != null) builder.append("path=").append(assetReference.canonicalPath()).append("', ");
         builder.append("size=").append(width).append("x").append(height);
-        if (handle != null) {
-            builder.append(", status=").append(handle.getStatus());
-        }
+        if (handle != null) builder.append(", status=").append(handle.getStatus());
         builder.append(", RID=").append(RID.id);
         builder.append("}");
         return builder.toString();

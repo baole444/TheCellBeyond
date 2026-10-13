@@ -14,10 +14,12 @@ import imgui.type.ImString;
 import org.joml.Vector2f;
 import org.joml.Vector2i;
 import project.Project;
-import project.ProjectSheetMap;
+import project.ProjectSheet;
 import render.Texture;
+import render.texture.ImageHeader;
 import utility.IdPool;
 import utility.UnifiedPaths;
+import utility.log.EngineLog;
 
 import java.io.IOException;
 import java.nio.file.*;
@@ -27,6 +29,7 @@ import java.util.List;
  * Editor dialogue for importing sprite sheet to user project.
  */
 public final class AddSpriteSheetDialog {
+    private static final EngineLog Logger = new EngineLog(AddSpriteSheetDialog.class);
     private static final IdPool IDPool = new IdPool(0, false);
     private static final String PopupID = "Add new SpriteSheet";
     private static final String PreviewSheetID = "SpriteSheet_Preview";
@@ -203,7 +206,7 @@ public final class AddSpriteSheetDialog {
             ImGui.textDisabled("Choose a sprite sheet using the \"Browse Files\" button");
             return;
         }
-        if (!previewTexture.isReady()) {
+        if (!previewTexture.readied()) {
             ImGui.textDisabled("Loading preview image...");
             return;
         }
@@ -211,8 +214,8 @@ public final class AddSpriteSheetDialog {
             ImGui.endChild();
             return;
         }
-        int imageW = previewTexture.getWidth();
-        int imageH = previewTexture.getHeight();
+        int imageW = previewTexture.width();
+        int imageH = previewTexture.height();
         ImVec2 avail = ImGui.getContentRegionAvail();
         float scaledImageW = imageW * previewScale;
         float scaledImageH = imageH * previewScale;
@@ -221,7 +224,7 @@ public final class AddSpriteSheetDialog {
         ImVec2 centeredPos = new ImVec2(portX + ImGui.getCursorPosX(), portY + ImGui.getCursorPosY());
         ImGui.setCursorPos(centeredPos);
         ImVec2 cursorPos = ImGui.getCursorScreenPos();
-        ImGui.image(previewTexture.getID(), scaledImageW, scaledImageH, 0.0f, 1.0f, 1.0f, 0.0f);
+        ImGui.image(previewTexture.nativeID(), scaledImageW, scaledImageH, 0.0f, 1.0f, 1.0f, 0.0f);
         if (spriteSize.x > 0 && spriteSize.y > 0) drawSpriteDivider(cursorPos, new Vector2f(scaledImageW, scaledImageH), imageW, imageH);
         ImGui.endChild();
     }
@@ -360,13 +363,15 @@ public final class AddSpriteSheetDialog {
                 Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
                 relativePath = "sheets/" + target.getFileName().toString();
             }
-            ProjectSheetMap sheetMap = new ProjectSheetMap(relativePath, numberOfSprite,
+            Vector2i imageSize = ImageHeader.sizeOfFile(selectedFilePath.get());
+            if (imageSize == null) imageSize = new Vector2i();
+            ProjectSheet sheetMap = new ProjectSheet(cat, name, relativePath, numberOfSprite,
                     spriteSize.x, spriteSize.y, spriteSpacing.x, spriteSpacing.y,
-                    spriteStartPosition.x, spriteStartPosition.y
+                    spriteStartPosition.x, spriteStartPosition.y, imageSize.x, imageSize.y
             );
             boolean success = Project.addSheet(cat, name, sheetMap);
             if (success) {
-                System.out.println("New sheet '" + sheetName.get() + "' added to project");
+                Logger.debug(String.format("New asset '%s/%s' added to project", cat, name));
                 EngineEventCallback.emit(null, new EditorEvent(EditorEvent.Type.ReloadSceneResource));
             }
             showDialog = false;

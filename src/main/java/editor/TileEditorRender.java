@@ -37,8 +37,8 @@ final class TileEditorRender {
         float spriteWidth = 0.0f;
         float spriteHeight = 0.0f;
         if (sprite != null) {
-            spriteWidth = sprite.getWidth();
-            spriteHeight = sprite.getHeight();
+            spriteWidth = sprite.width();
+            spriteHeight = sprite.height();
         }
         if (sprite != cache.sprite || spriteWidth != cache.spriteWidth || spriteHeight != cache.spriteHeight) {
             invalidateChecker(cache);
@@ -213,7 +213,7 @@ final class TileEditorRender {
     }
 
     private static void initOutlineBuild(TileEditorRenderCache cache, TileSet tileSet) {
-        HashSet<Vector2i> coordinates = tileSet.getTileCoordinates();
+        HashSet<Vector2i> coordinates = tileSet.tileCoordinates();
         cache.outlineBuildSet = coordinates;
         cache.outlineBuildList = coordinates.toArray(new Vector2i[0]);
         cache.outlineBuildCursor = 0;

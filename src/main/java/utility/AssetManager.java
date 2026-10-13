@@ -5,15 +5,16 @@ import TheCellBeyond.internal.ResourceID;
 import TheCellBeyond.internal.ResourceRegistry;
 import TheCellBeyond.internal.ResourceStatus;
 import TheCellBeyond.internal.ResourceStatusCallback;
+import org.joml.Vector2i;
 import render.FontAtlasTexture;
 import render.Shader;
 import render.Texture;
 import render.text.FontManager;
 import render.text.GlyphRange;
 import render.text.TCBFont;
+import render.texture.SingleSprite;
 import render.texture.SpriteSheet;
 import render.texture.TextureManager;
-import render.texture.TextureUnit;
 import scripting.API;
 
 import java.util.Map;
@@ -27,20 +28,19 @@ import java.util.function.BiConsumer;
 public final class AssetManager {
     private record AtlasKey(String canonicalPath, GlyphRange glyphRange) {}
     private record FontKey(String canonicalPath, GlyphRange glyphRange, float points) {}
-    private static final Map<String, ResourceID> textureIDs = new ConcurrentHashMap<>();
     private static final Map<AtlasKey, ResourceID> fontAtlasIDs = new ConcurrentHashMap<>();
     private static final Map<FontKey, ResourceID> fontIDs = new ConcurrentHashMap<>();
     private static final Map<String, ResourceID> shaderIDs = new ConcurrentHashMap<>();
     private static final Map<String, ResourceID> spriteSheetIDs = new ConcurrentHashMap<>();
-    private static final Map<String, ResourceID> textureUnitIDs = new ConcurrentHashMap<>();
+    private static final Map<String, ResourceID> singleSpriteIDs = new ConcurrentHashMap<>();
     private static final Map<String, ResourceID> soundIDs = new ConcurrentHashMap<>();
-    private static final ResourceRegistry<Texture> textureRegistry = new ResourceRegistry<>();
     private static final ResourceRegistry<FontAtlasTexture> fontAtlasRegistry = new ResourceRegistry<>();
     private static final ResourceRegistry<TCBFont> fontRegistry = new ResourceRegistry<>();
     private static final ResourceRegistry<Shader> shaderRegistry = new ResourceRegistry<>();
     private static final ResourceRegistry<SpriteSheet> spriteSheetRegistry = new ResourceRegistry<>();
-    private static final ResourceRegistry<TextureUnit> textureUnitRegistry = new ResourceRegistry<>();
+    private static final ResourceRegistry<SingleSprite> singleSpriteRegistry = new ResourceRegistry<>();
     private static final ResourceRegistry<Sound> soundRegistry = new ResourceRegistry<>();
+
     private AssetManager() {}
 
     /**
@@ -55,24 +55,69 @@ public final class AssetManager {
     }
 
     /**
-     * Request loading a new texture into cache.
+     * Request to load a new texture into cache. This simply return the RID if the texture already exists.
      * @param path the path to the image
-     * @return the {@link ResourceID} for the requested texture
+     * @return the {@link ResourceID} for the requested texture, or null if the path is null
      */
     public static ResourceID loadTexture(String path) {
+        if (path == null) return null;
         String canonicalPath = UnifiedPaths.stripMetadata(asCanonicalPath(path));
-        ResourceID RID = textureIDs.get(canonicalPath);
-        if (RID != null) return RID;
-        Texture texture = new Texture();
-        texture.init(canonicalPath);
-        RID = texture.RID;
-        textureIDs.put(canonicalPath, RID);
-        textureRegistry.register(RID, texture);
-        return RID;
+        return TextureManager.get().loadTexture(canonicalPath);
     }
 
-    public static ResourceID getTextureRID(String path) {
-        return textureIDs.get(UnifiedPaths.stripMetadata(asCanonicalPath(path)));
+    /**
+     * Request to load a new texture into cache. This simply return the RID if the texture already exists.
+     * @param reference the reference to the image
+     * @return the {@link ResourceID} for the requested texture, or null if the reference is null
+     */
+    public static ResourceID loadTexture(AssetReference reference) {
+        if (reference == null) return null;
+        ResourceID cached = reference.RID;
+        if (cached != null && TextureManager.get().texture(cached) != null) return cached;
+        cached = loadTexture(reference.canonicalPath());
+        reference.RID = cached;
+        return cached;
+    }
+
+    /**
+     * Get the size of a loaded texture image.
+     * @param RID the RID of the texture
+     * @return the image's size in pixels, or null if there is no texture with the given RID
+     */
+    public static Vector2i textureSize(ResourceID RID) {
+        Texture texture = TextureManager.get().texture(RID);
+        if (texture == null || texture.width() <= 0 || texture.height() <= 0) return null;
+        return new Vector2i(texture.width(), texture.height());
+    }
+
+    /**
+     * Get the native ID for a texture on the GPU.
+     * @param RID he RID of the texture
+     * @return the texture's ID number, or -1 if there is no texture with the given RID loaded on the GPU
+     */
+    public static int textureID(ResourceID RID) {
+        Texture texture = TextureManager.get().texture(RID);
+        return texture != null ? texture.nativeID() : -1;
+    }
+
+    /**
+     * Get the current status of a texture.
+     * @param RID the RID of the texture
+     * @return the texture's status, or null when there is no texture with the given RID
+     */
+    public static ResourceStatus textureStatus(ResourceID RID) {
+        Texture texture = TextureManager.get().texture(RID);
+        return texture != null ? texture.status() : null;
+    }
+
+    /**
+     * Get the path of a load texture's image.
+     * @param RID the RID of the texture
+     * @return the canonical path of the image, or null when there is no texture with the given RID
+     */
+    public static String texturePath(ResourceID RID) {
+        Texture texture = TextureManager.get().texture(RID);
+        return texture != null ? texture.canonicalPath() : null;
     }
 
     /**
@@ -149,18 +194,18 @@ public final class AssetManager {
     }
 
     /**
-     * Add a texture unit into cache, keyed by the given path, if it is not cached yet.
-     * @param path the path to the texture unit's texture
-     * @param textureUnit the texture unit to cache
-     * @return the {@link ResourceID} of the existing texture unit or from a new one
+     * Add a single sprite into cache, keyed by the given path, if it is not cached yet.
+     * @param path the path to the single sprite's texture
+     * @param singleSprite the single sprite to cache
+     * @return the {@link ResourceID} of the existing single sprite or from a new one
      */
-    public static ResourceID addTextureUnit(String path, TextureUnit textureUnit) {
+    public static ResourceID addSingleSprite(String path, SingleSprite singleSprite) {
         String canonicalPath = asCanonicalPath(path);
-        ResourceID RID = textureUnitIDs.get(canonicalPath);
+        ResourceID RID = singleSpriteIDs.get(canonicalPath);
         if (RID != null) return RID;
-        RID = new ResourceID(AssetResourceType.TextureUnit);
-        textureUnitIDs.put(canonicalPath, RID);
-        textureUnitRegistry.register(RID, textureUnit);
+        RID = new ResourceID(AssetResourceType.SingleSprite);
+        singleSpriteIDs.put(canonicalPath, RID);
+        singleSpriteRegistry.register(RID, singleSprite);
         return RID;
     }
 
@@ -201,12 +246,12 @@ public final class AssetManager {
     }
 
     /**
-     * Check if there is a texture unit cached for the given path or not.
-     * @param path the path to the texture unit's texture file
+     * Check if there is a single sprite cached for the given path or not.
+     * @param path the path to the single sprite's texture file
      * @return true if cached
      */
-    public static boolean hasTextureUnit(String path) {
-        return textureUnitIDs.containsKey(asCanonicalPath(path));
+    public static boolean hasSingleSprite(String path) {
+        return singleSpriteIDs.containsKey(asCanonicalPath(path));
     }
 
     /**
@@ -230,13 +275,13 @@ public final class AssetManager {
     }
 
     /**
-     * Get the texture unit from cache.
-     * @param path the path to the texture unit's texture file
-     * @return the texture unit or null if there is none
+     * Get the single sprite from cache.
+     * @param path the path to the single sprite's texture file
+     * @return the single sprite or null if there is none
      */
-    public static TextureUnit getTextureUnit(String path) {
-        ResourceID RID = textureUnitIDs.get(asCanonicalPath(path));
-        return RID != null ? textureUnitRegistry.get(RID) : null;
+    public static SingleSprite getSingleSprite(String path) {
+        ResourceID RID = singleSpriteIDs.get(asCanonicalPath(path));
+        return RID != null ? singleSpriteRegistry.get(RID) : null;
     }
 
     /**
@@ -253,15 +298,6 @@ public final class AssetManager {
      */
     public static void reloadAllShader() {
         for (Shader shader : shaderRegistry.values()) shader.reload();
-    }
-
-    /**
-     * Get a texture from cache, using the given RID.
-     * @param RID the RID of the texture
-     * @return the cached texture or null if there is none
-     */
-    public static Texture getTexture(ResourceID RID) {
-        return textureRegistry.get(RID);
     }
 
     /**
@@ -301,12 +337,12 @@ public final class AssetManager {
     }
 
     /**
-     * Get a texture unit from cache, using the given RID.
-     * @param RID the RID of the texture unit
-     * @return the cached texture unit or null if there is none
+     * Get a single sprite from cache, using the given RID.
+     * @param RID the RID of the single sprite
+     * @return the cached single sprite or null if there is none
      */
-    public static TextureUnit getTextureUnit(ResourceID RID) {
-        return textureUnitRegistry.get(RID);
+    public static SingleSprite getSingleSprite(ResourceID RID) {
+        return singleSpriteRegistry.get(RID);
     }
 
     /**
@@ -321,11 +357,7 @@ public final class AssetManager {
     public static void unloadTexture(String path) {
         if (path == null || path.isBlank()) return;
         String canonicalPath = UnifiedPaths.stripMetadata(asCanonicalPath(path));
-        ResourceID RID = textureIDs.remove(canonicalPath);
-        if (RID == null) return;
-        Texture texture = textureRegistry.get(RID);
-        textureRegistry.unregister(RID);
-        if (texture != null) texture.dispose();
+        TextureManager.get().unloadTexture(canonicalPath);
     }
 
     public static void unloadSpriteSheet(String path) {
@@ -338,14 +370,12 @@ public final class AssetManager {
         if (sheet != null) sheet.dispose();
     }
 
-    public static void unloadTextureUnit(String path) {
+    public static void unloadSingleSprite(String path) {
         if (path == null || path.isBlank()) return;
         String canonicalPath = asCanonicalPath(path);
-        ResourceID RID = textureUnitIDs.remove(canonicalPath);
+        ResourceID RID = singleSpriteIDs.remove(canonicalPath);
         if (RID == null) return;
-        TextureUnit unit = textureUnitRegistry.get(RID);
-        textureUnitRegistry.unregister(RID);
-        if (unit != null) unit.dispose();
+        singleSpriteRegistry.unregister(RID);
     }
 
     /**
@@ -411,20 +441,19 @@ public final class AssetManager {
     public static void clearCache() {
         for (Shader shader : shaderRegistry.values()) shader.dispose();
         for (Sound sound : soundRegistry.values()) sound.dispose();
-        textureIDs.clear();
         fontAtlasIDs.clear();
         fontIDs.clear();
         shaderIDs.clear();
         spriteSheetIDs.clear();
-        textureUnitIDs.clear();
+        singleSpriteIDs.clear();
         soundIDs.clear();
-        textureRegistry.clear();
         fontAtlasRegistry.clear();
         fontRegistry.clear();
         shaderRegistry.clear();
         spriteSheetRegistry.clear();
-        textureUnitRegistry.clear();
+        singleSpriteRegistry.clear();
         soundRegistry.clear();
+        TextureManager.get().clearTextures();
         TextureManager.get().clearPathCache();
     }
 

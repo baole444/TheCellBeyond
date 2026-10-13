@@ -1,5 +1,7 @@
 package project;
 
+import org.joml.Vector2i;
+import render.texture.ImageHeader;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.type.MapType;
@@ -11,10 +13,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Migrator for the project file {@link ProjectData}. Values of old entries are preserve via mapping on none breaking changes,
@@ -28,9 +27,17 @@ final class ProjectMigrator {
     /**
      * The set of version numbers that carry breaking changes (renamed keys, structure changes) that need explicit remap.
      */
-    private static final Set<Integer> BreakingChanges = Set.of();
-    static final int MaxBackups = 3;
+    private static final Set<Integer> BreakingChanges = Set.of(2);
     private static final String BackupDirName = ".backups";
+    private static final String SheetsKey = "sheets";
+    private static final String AssetsKey = "assets";
+    private static final String AssetCategoryKey = "category";
+    private static final String AssetNameKey = "name";
+    private static final String AssetSizeXKey = "sizeX";
+    private static final String AssetSizeYKey = "sizeY";
+    private static final String SheetPathKey = "path";
+    private static final String SheetEndXKey = "spriteEndPosX";
+    private static final String SheetEndYKey = "spriteEndPosY";
     private final Path projectFile;
     private final ObjectMapper mapper;
     private final MapType mapType;
@@ -101,14 +108,16 @@ final class ProjectMigrator {
     }
 
     /**
-     * Currently there is no breaking change to remap yet.
-     * @apiNote Change to a switch statement when there is a breaking change.
+     * Apply the structure for breaking changes introduced by a version.
      * @param data the data to remap
      * @param version the target version
      * @return the remapped data to the targeted version
      */
     private Map<String, Object> remapBreakingChange(Map<String, Object> data, int version) {
-        return data;
+        return switch (version) {
+            case 2 -> updateToV2(data);
+            default -> data;
+        };
     }
 
     private Map<String, Object> read() {
@@ -155,6 +164,11 @@ final class ProjectMigrator {
         }
     }
 
+    private String resolveAgainstProject(String relativePath) {
+        Path parent = projectFile.getParent();
+        return parent == null ? relativePath : parent.resolve(relativePath).toString();
+    }
+
     private static boolean addUUID(Map<String, Object> stored) {
         Object uuid = stored.get(ProjectData.UUIDKey);
         if (uuid != null && !uuid.toString().isBlank()) return false;
@@ -172,5 +186,88 @@ final class ProjectMigrator {
             if (BreakingChanges.contains(v)) return v;
         }
         return -1;
+    }
+
+    private Map<String, Object> updateToV2(Map<String, Object> data) {
+        writeSheetRegions(data);
+        renameAssets(data);
+        return data;
+    }
+
+    /**
+     * Rewrite all the cut region of imported sheets.
+     * @param data the data to remap
+     */
+    private void writeSheetRegions(Map<String, Object> data) {
+        if (!(data.get(SheetsKey) instanceof Map<?, ?> categories)) return;
+        Map<String, Object> migratedCategories = new LinkedHashMap<>();
+        for (Map.Entry<?, ?> category : categories.entrySet()) {
+            if (!(category.getValue() instanceof Map<?, ?> named)) continue;
+            Map<String, Object> migratedNamed = new LinkedHashMap<>();
+            for (Map.Entry<?, ?> sheet : named.entrySet()) {
+                migratedNamed.put(String.valueOf(sheet.getKey()), withCutRegion(sheet.getValue(), String.valueOf(category.getKey()), String.valueOf(sheet.getKey())));
+            }
+            migratedCategories.put(String.valueOf(category.getKey()), migratedNamed);
+        }
+        data.put(SheetsKey, migratedCategories);
+    }
+
+    /**
+     * Rewrite the cut region of the sheet.
+     * @param sheet the stored sheet entry
+     * @param category the sheet's category
+     * @param name the name of the sheet
+     * @return the entry with rewritten cut region
+     */
+    private Object withCutRegion(Object sheet, String category, String name) {
+        if (!(sheet instanceof Map<?, ?> stored)) return sheet;
+        String sheetName = String.format("%s/%s", category, name);
+        Map<String, Object> entry = new LinkedHashMap<>();
+        stored.forEach((k, v) -> entry.put(String.valueOf(k), v));
+        entry.put(AssetCategoryKey, category);
+        entry.put(AssetNameKey, name);
+        Object path = entry.get(SheetPathKey);
+        Vector2i size = path != null ? ImageHeader.sizeOfFile(resolveAgainstProject(path.toString())) : null;
+        if (size == null) Logger.warning(String.format("Cannot read image file at %s for sheet '%s'", path, sheetName));
+        else {
+            entry.put(SheetEndXKey, size.x);
+            entry.put(SheetEndYKey, size.y);
+        }
+        return entry;
+    }
+
+    /**
+     * Move all single sprite imports from UUID key to categories and names.
+     * @param data the data to remap
+     */
+    private void renameAssets(Map<String, Object> data) {
+        if (!(data.get(AssetsKey) instanceof Map<?, ?> stored)) return;
+        Map<String, Object> named = new LinkedHashMap<>();
+        Set<String> taken = new HashSet<>();
+        for (Map.Entry<?, ?> asset : stored.entrySet()) {
+            if (!(asset.getValue() instanceof Map<?, ?> oldEntry)) continue;
+            Map<String, Object> entry = new LinkedHashMap<>();
+            oldEntry.forEach((k, v) -> entry.put(String.valueOf(k), v));
+            Object path = entry.get(SheetPathKey);
+            String base = path == null ? "sprite" : path.toString();
+            String fileName = base.substring(base.lastIndexOf('/') + 1);
+            int ext = fileName.lastIndexOf('.');
+            if (ext > 0) fileName = fileName.substring(0, ext);
+            String cleaned = fileName.toLowerCase().replaceAll("[^a-z0-9]+", "_").replaceAll("^_+|_+$", "");
+            base = cleaned.isBlank() ? "sprite" : cleaned;
+            String name = String.format("%s_%s_%s", base, entry.getOrDefault(AssetSizeXKey, 0), entry.getOrDefault(AssetSizeYKey, 0));
+            int suffix = 1;
+            String newName = name;
+            while (!taken.add(newName)) {
+                newName = name + "_" + suffix;
+                suffix++;
+            }
+            entry.put(AssetCategoryKey, ProjectAsset.DefaultCategory);
+            entry.put(AssetNameKey, newName);
+            named.put(newName, entry);
+        }
+        Map<String, Object> categories = new LinkedHashMap<>();
+        if (!named.isEmpty()) categories.put(ProjectAsset.DefaultCategory, named);
+        data.put(AssetsKey, categories);
     }
 }

@@ -9,7 +9,7 @@ import org.joml.Vector4f;
 import org.lwjgl.opengl.GL11;
 import render.commands.RectCommand;
 import render.commands.TransformCommand;
-import utility.AssetManager;
+import render.texture.TextureManager;
 import utility.log.EngineLog;
 
 import java.util.*;
@@ -353,13 +353,13 @@ public class TextureBatch {
 
     private static Texture resolveTexture(ResourceID textureRID) {
         if (textureRID == null) return null;
-        return AssetManager.getTexture(textureRID);
+        return TextureManager.get().texture(textureRID);
     }
 
     private static TextureDraw textureDraw(RectCommand command, Texture texture) {
-        if (!command.hasTextureReference) return TextureDraw.Skip;
+        if (command.textureRID == null) return TextureDraw.Skip;
         if (texture == null) return TextureDraw.Missing;
-        return switch (texture.getStatus()) {
+        return switch (texture.status()) {
             case Ready -> TextureDraw.Draw;
             case Waiting -> TextureDraw.Skip;
             case Failed, Disposed -> TextureDraw.Missing;

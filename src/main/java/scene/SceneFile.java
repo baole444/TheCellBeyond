@@ -17,7 +17,7 @@ import java.util.UUID;
  * @param objects list of serialized game object
  */
 public record SceneFile(UUID uuid, String name, String sceneType, int version, GameObject root, List<GameObject> objects) {
-    static final int SaveVersion = 2;
+    static final int SaveVersion = 3;
 
     static final String UUIDKey = "uuid";
     static final String NameKey = "name";

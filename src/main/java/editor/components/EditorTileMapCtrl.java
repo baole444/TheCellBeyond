@@ -66,7 +66,7 @@ public final class EditorTileMapCtrl extends Component implements NotSerializeCo
             clearData();
             return;
         }
-        if (TileMapEditor.isDrawMode()) {
+        if (TileMapEditor.inDrawMode()) {
             List<Tile> selectedTiles = TileMapEditor.getSelectedTiles();
             if (selectedTiles.isEmpty()) {
                 if (KeyListener.isKeyTapped(GLFW_KEY_ESCAPE)) TileMapEditor.escapeMode();
@@ -80,7 +80,7 @@ public final class EditorTileMapCtrl extends Component implements NotSerializeCo
             handleDrawInput(editingTileMap, gridPos, selectedTiles);
             return;
         }
-        if (TileMapEditor.isEraseMode()) {
+        if (TileMapEditor.inEraseMode()) {
             if (holdingObj != null) clearData();
             drawEraserSquare(editingTileMap, tileSet, gridPos);
             handleEraseInput(editingTileMap, gridPos);
@@ -115,10 +115,11 @@ public final class EditorTileMapCtrl extends Component implements NotSerializeCo
             Vector2i offset = new Vector2i(tile.setCoordinate).sub(firstCoordinate);
             SpriteRenderer spriteRenderer = new SpriteRenderer();
             Sprite sprite = new Sprite();
-            sprite.setTexture(tileSet.texture());
-            sprite.setTextureCoordinates(tile.textureCoordinates);
-            sprite.setWidth(gridSize.x);
-            sprite.setHeight(gridSize.y);
+            Sprite tileSetSprite = tileSet.tileSetSprite();
+            if (tileSetSprite != null && tileSetSprite.textureReference() != null) sprite.texture(tileSetSprite.textureReference().canonicalPath());
+            sprite.textureCoordinates(tile.textureCoordinates);
+            sprite.width(gridSize.x);
+            sprite.height(gridSize.y);
             spriteRenderer.sprite(sprite);
             spriteRenderer.color(previewColor);
             Vector2f localOffset = new Vector2f(offset.x * gridWorldSize.x, -offset.y * gridWorldSize.y);

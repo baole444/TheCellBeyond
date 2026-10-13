@@ -1993,10 +1993,17 @@
       "superClassChain": [],
       "methods": [
         {
-          "javaName": "release",
-          "snakeAlias": "release",
+          "javaName": "equals",
+          "snakeAlias": "equals",
           "signatures": [
-            "()V"
+            "(Ljava/lang/Object;)Z"
+          ]
+        },
+        {
+          "javaName": "hashCode",
+          "snakeAlias": "hash_code",
+          "signatures": [
+            "()I"
           ]
         },
         {
@@ -2032,10 +2039,10 @@
       "methods": [],
       "fields": [],
       "enumConstants": [
-        "WAITING",
-        "READY",
-        "FAILED",
-        "DISPOSED"
+        "Waiting",
+        "Ready",
+        "Failed",
+        "Disposed"
       ]
     },
     {
@@ -3289,13 +3296,6 @@
           "snakeAlias": "sprite_size_as_world_unit",
           "signatures": [
             "()Lorg/joml/Vector2f;"
-          ]
-        },
-        {
-          "javaName": "texture",
-          "snakeAlias": "texture",
-          "signatures": [
-            "()Lrender/Texture;"
           ]
         },
         {
@@ -4587,20 +4587,6 @@
           ]
         },
         {
-          "javaName": "isLayerIndexValid",
-          "snakeAlias": "is_layer_index_valid",
-          "signatures": [
-            "(I)Z"
-          ]
-        },
-        {
-          "javaName": "isMaskValid",
-          "snakeAlias": "is_mask_valid",
-          "signatures": [
-            "(I)Z"
-          ]
-        },
-        {
           "javaName": "layerName",
           "snakeAlias": "layer_name",
           "signatures": [
@@ -4640,6 +4626,20 @@
           "snakeAlias": "toggle_layer_in_mask",
           "signatures": [
             "(II)I"
+          ]
+        },
+        {
+          "javaName": "validLayerIndex",
+          "snakeAlias": "valid_layer_index",
+          "signatures": [
+            "(I)Z"
+          ]
+        },
+        {
+          "javaName": "validMask",
+          "snakeAlias": "valid_mask",
+          "signatures": [
+            "(I)Z"
           ]
         }
       ],
@@ -5351,7 +5351,7 @@
           "javaName": "addAsset",
           "snakeAlias": "add_asset",
           "signatures": [
-            "(Ljava/util/UUID;Lproject/ProjectAssetMap;)Z"
+            "(Ljava/lang/String;Ljava/lang/String;Lproject/ProjectAsset;)Z"
           ]
         },
         {
@@ -5365,7 +5365,7 @@
           "javaName": "addScene",
           "snakeAlias": "add_scene",
           "signatures": [
-            "(Ljava/lang/String;Lproject/ProjectSceneMap;)Z"
+            "(Ljava/lang/String;Lproject/ProjectScene;)Z"
           ]
         },
         {
@@ -5379,7 +5379,14 @@
           "javaName": "addSheet",
           "snakeAlias": "add_sheet",
           "signatures": [
-            "(Ljava/lang/String;Ljava/lang/String;Lproject/ProjectSheetMap;)Z"
+            "(Ljava/lang/String;Ljava/lang/String;Lproject/ProjectSheet;)Z"
+          ]
+        },
+        {
+          "javaName": "assetEntries",
+          "snakeAlias": "asset_entries",
+          "signatures": [
+            "()Ljava/util/stream/Stream;"
           ]
         },
         {
@@ -5411,27 +5418,6 @@
           ]
         },
         {
-          "javaName": "getPhysicLayerName",
-          "snakeAlias": "get_physic_layer_name",
-          "signatures": [
-            "(I)Ljava/lang/String;"
-          ]
-        },
-        {
-          "javaName": "getScene",
-          "snakeAlias": "get_scene",
-          "signatures": [
-            "(Ljava/lang/String;)Lproject/ProjectSceneMap;"
-          ]
-        },
-        {
-          "javaName": "getSceneNames",
-          "snakeAlias": "get_scene_names",
-          "signatures": [
-            "()Ljava/util/List;"
-          ]
-        },
-        {
           "javaName": "loadFromYaml",
           "snakeAlias": "load_from_yaml",
           "signatures": [
@@ -5450,6 +5436,13 @@
           "snakeAlias": "loaded",
           "signatures": [
             "()Z"
+          ]
+        },
+        {
+          "javaName": "physicLayerName",
+          "snakeAlias": "physic_layer_name",
+          "signatures": [
+            "(I)Ljava/lang/String;"
           ]
         },
         {
@@ -5477,7 +5470,7 @@
           "javaName": "removeAsset",
           "snakeAlias": "remove_asset",
           "signatures": [
-            "(Ljava/util/UUID;)Z"
+            "(Ljava/lang/String;Ljava/lang/String;)Z"
           ]
         },
         {
@@ -5523,6 +5516,20 @@
           ]
         },
         {
+          "javaName": "scene",
+          "snakeAlias": "scene",
+          "signatures": [
+            "(Ljava/lang/String;)Lproject/ProjectScene;"
+          ]
+        },
+        {
+          "javaName": "sceneNames",
+          "snakeAlias": "scene_names",
+          "signatures": [
+            "()Ljava/util/List;"
+          ]
+        },
+        {
           "javaName": "scriptScanDirs",
           "snakeAlias": "script_scan_dirs",
           "signatures": [
@@ -5530,10 +5537,17 @@
           ]
         },
         {
+          "javaName": "sheetEntries",
+          "snakeAlias": "sheet_entries",
+          "signatures": [
+            "()Ljava/util/stream/Stream;"
+          ]
+        },
+        {
           "javaName": "updateAsset",
           "snakeAlias": "update_asset",
           "signatures": [
-            "(Ljava/util/UUID;Lproject/ProjectAssetMap;)Z"
+            "(Ljava/lang/String;Ljava/lang/String;Lproject/ProjectAsset;)Z"
           ]
         },
         {
@@ -5568,14 +5582,14 @@
           "javaName": "updateScene",
           "snakeAlias": "update_scene",
           "signatures": [
-            "(Ljava/lang/String;Lproject/ProjectSceneMap;)Z"
+            "(Ljava/lang/String;Lproject/ProjectScene;)Z"
           ]
         },
         {
           "javaName": "updateSheet",
           "snakeAlias": "update_sheet",
           "signatures": [
-            "(Ljava/lang/String;Ljava/lang/String;Lproject/ProjectSheetMap;)Z"
+            "(Ljava/lang/String;Ljava/lang/String;Lproject/ProjectSheet;)Z"
           ]
         },
         {
@@ -5589,8 +5603,8 @@
       "fields": []
     },
     {
-      "fqn": "project.ProjectAssetMap",
-      "simpleName": "ProjectAssetMap",
+      "fqn": "project.ProjectAsset",
+      "simpleName": "ProjectAsset",
       "kind": "Class",
       "isFinal": true,
       "isAbstract": false,
@@ -5598,6 +5612,13 @@
         "java.lang.Record"
       ],
       "methods": [
+        {
+          "javaName": "category",
+          "snakeAlias": "category",
+          "signatures": [
+            "()Ljava/lang/String;"
+          ]
+        },
         {
           "javaName": "equals",
           "snakeAlias": "equals",
@@ -5615,6 +5636,13 @@
         {
           "javaName": "metadata",
           "snakeAlias": "metadata",
+          "signatures": [
+            "()Ljava/lang/String;"
+          ]
+        },
+        {
+          "javaName": "name",
+          "snakeAlias": "name",
           "signatures": [
             "()Ljava/lang/String;"
           ]
@@ -5650,7 +5678,12 @@
       ],
       "fields": [
         {
-          "javaName": "metadataTag",
+          "javaName": "DefaultCategory",
+          "snakeAlias": "default_category",
+          "type": "java.lang.String"
+        },
+        {
+          "javaName": "MetadataTag",
           "snakeAlias": "metadata_tag",
           "type": "java.lang.String"
         }
@@ -5858,8 +5891,8 @@
       "fields": []
     },
     {
-      "fqn": "project.ProjectSceneMap",
-      "simpleName": "ProjectSceneMap",
+      "fqn": "project.ProjectScene",
+      "simpleName": "ProjectScene",
       "kind": "Class",
       "isFinal": true,
       "isAbstract": false,
@@ -5899,8 +5932,8 @@
       "fields": []
     },
     {
-      "fqn": "project.ProjectSheetMap",
-      "simpleName": "ProjectSheetMap",
+      "fqn": "project.ProjectSheet",
+      "simpleName": "ProjectSheet",
       "kind": "Class",
       "isFinal": true,
       "isAbstract": false,
@@ -5908,6 +5941,13 @@
         "java.lang.Record"
       ],
       "methods": [
+        {
+          "javaName": "category",
+          "snakeAlias": "category",
+          "signatures": [
+            "()Ljava/lang/String;"
+          ]
+        },
         {
           "javaName": "equals",
           "snakeAlias": "equals",
@@ -5926,7 +5966,14 @@
           "javaName": "metadata",
           "snakeAlias": "metadata",
           "signatures": [
-            "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;"
+            "()Ljava/lang/String;"
+          ]
+        },
+        {
+          "javaName": "name",
+          "snakeAlias": "name",
+          "signatures": [
+            "()Ljava/lang/String;"
           ]
         },
         {
@@ -5941,6 +5988,20 @@
           "snakeAlias": "path",
           "signatures": [
             "()Ljava/lang/String;"
+          ]
+        },
+        {
+          "javaName": "spriteEndPosX",
+          "snakeAlias": "sprite_end_pos_x",
+          "signatures": [
+            "()I"
+          ]
+        },
+        {
+          "javaName": "spriteEndPosY",
+          "snakeAlias": "sprite_end_pos_y",
+          "signatures": [
+            "()I"
           ]
         },
         {
@@ -5995,7 +6056,7 @@
       ],
       "fields": [
         {
-          "javaName": "metadataTag",
+          "javaName": "MetadataTag",
           "snakeAlias": "metadata_tag",
           "type": "java.lang.String"
         }
@@ -6515,135 +6576,6 @@
         {
           "javaName": "use",
           "snakeAlias": "use",
-          "signatures": [
-            "()V"
-          ]
-        }
-      ],
-      "fields": [
-        {
-          "javaName": "RID",
-          "snakeAlias": "rid",
-          "type": "TheCellBeyond.internal.ResourceID"
-        }
-      ]
-    },
-    {
-      "fqn": "render.Texture",
-      "simpleName": "Texture",
-      "kind": "Class",
-      "isFinal": false,
-      "isAbstract": false,
-      "superClassChain": [],
-      "methods": [
-        {
-          "javaName": "bind",
-          "snakeAlias": "bind",
-          "signatures": [
-            "()V"
-          ]
-        },
-        {
-          "javaName": "copy",
-          "snakeAlias": "copy",
-          "signatures": [
-            "()Lrender/Texture;"
-          ]
-        },
-        {
-          "javaName": "dispose",
-          "snakeAlias": "dispose",
-          "signatures": [
-            "()V"
-          ]
-        },
-        {
-          "javaName": "equals",
-          "snakeAlias": "equals",
-          "signatures": [
-            "(Ljava/lang/Object;)Z"
-          ]
-        },
-        {
-          "javaName": "getCanonicalPath",
-          "snakeAlias": "get_canonical_path",
-          "signatures": [
-            "()Ljava/lang/String;"
-          ]
-        },
-        {
-          "javaName": "getErrorMessage",
-          "snakeAlias": "get_error_message",
-          "signatures": [
-            "()Ljava/lang/String;"
-          ]
-        },
-        {
-          "javaName": "getHeight",
-          "snakeAlias": "get_height",
-          "signatures": [
-            "()I"
-          ]
-        },
-        {
-          "javaName": "getID",
-          "snakeAlias": "get_id",
-          "signatures": [
-            "()I"
-          ]
-        },
-        {
-          "javaName": "getStatus",
-          "snakeAlias": "get_status",
-          "signatures": [
-            "()LTheCellBeyond/internal/ResourceStatus;"
-          ]
-        },
-        {
-          "javaName": "getWidth",
-          "snakeAlias": "get_width",
-          "signatures": [
-            "()I"
-          ]
-        },
-        {
-          "javaName": "hashCode",
-          "snakeAlias": "hash_code",
-          "signatures": [
-            "()I"
-          ]
-        },
-        {
-          "javaName": "init",
-          "snakeAlias": "init",
-          "signatures": [
-            "(Ljava/lang/String;)V"
-          ]
-        },
-        {
-          "javaName": "isFailed",
-          "snakeAlias": "is_failed",
-          "signatures": [
-            "()Z"
-          ]
-        },
-        {
-          "javaName": "isReady",
-          "snakeAlias": "is_ready",
-          "signatures": [
-            "()Z"
-          ]
-        },
-        {
-          "javaName": "toString",
-          "snakeAlias": "to_string",
-          "signatures": [
-            "()Ljava/lang/String;"
-          ]
-        },
-        {
-          "javaName": "unbind",
-          "snakeAlias": "unbind",
           "signatures": [
             "()V"
           ]
@@ -7298,6 +7230,108 @@
       ]
     },
     {
+      "fqn": "render.texture.SingleSprite",
+      "simpleName": "SingleSprite",
+      "kind": "Class",
+      "isFinal": false,
+      "isAbstract": false,
+      "superClassChain": [],
+      "methods": [
+        {
+          "javaName": "requireCompute",
+          "snakeAlias": "require_compute",
+          "signatures": [
+            "()V"
+          ]
+        },
+        {
+          "javaName": "sprite",
+          "snakeAlias": "sprite",
+          "signatures": [
+            "()Lrender/texture/Sprite;"
+          ]
+        },
+        {
+          "javaName": "spriteSize",
+          "snakeAlias": "sprite_size",
+          "signatures": [
+            "()Lorg/joml/Vector2i;",
+            "(II)V",
+            "(Lorg/joml/Vector2i;)V"
+          ]
+        },
+        {
+          "javaName": "texture",
+          "snakeAlias": "texture",
+          "signatures": [
+            "(Ljava/lang/String;)V",
+            "(Ljava/lang/String;II)V"
+          ]
+        },
+        {
+          "javaName": "textureRID",
+          "snakeAlias": "texture_rid",
+          "signatures": [
+            "()LTheCellBeyond/internal/ResourceID;"
+          ]
+        },
+        {
+          "javaName": "textureReference",
+          "snakeAlias": "texture_reference",
+          "signatures": [
+            "()Lutility/AssetReference;"
+          ]
+        }
+      ],
+      "fields": []
+    },
+    {
+      "fqn": "render.texture.SingleSprites",
+      "simpleName": "SingleSprites",
+      "kind": "Class",
+      "isFinal": true,
+      "isAbstract": false,
+      "superClassChain": [],
+      "methods": [
+        {
+          "javaName": "clear",
+          "snakeAlias": "clear",
+          "signatures": [
+            "()V"
+          ]
+        },
+        {
+          "javaName": "get",
+          "snakeAlias": "get",
+          "signatures": [
+            "(Ljava/lang/String;Ljava/lang/String;)Lrender/texture/SingleSprite;"
+          ]
+        },
+        {
+          "javaName": "has",
+          "snakeAlias": "has",
+          "signatures": [
+            "(Ljava/lang/String;Ljava/lang/String;)Z"
+          ]
+        },
+        {
+          "javaName": "register",
+          "snakeAlias": "register",
+          "signatures": [
+            "(Ljava/lang/String;Ljava/lang/String;Lrender/texture/SingleSprite;)Z"
+          ]
+        },
+        {
+          "javaName": "unregister",
+          "snakeAlias": "unregister",
+          "signatures": [
+            "(Ljava/lang/String;Ljava/lang/String;)Z"
+          ]
+        }
+      ],
+      "fields": []
+    },
+    {
       "fqn": "render.texture.Sprite",
       "simpleName": "Sprite",
       "kind": "Class",
@@ -7306,81 +7340,62 @@
       "superClassChain": [],
       "methods": [
         {
-          "javaName": "getHeight",
-          "snakeAlias": "get_height",
-          "signatures": [
-            "()F"
-          ]
-        },
-        {
-          "javaName": "getTexture",
-          "snakeAlias": "get_texture",
-          "signatures": [
-            "()Lrender/Texture;"
-          ]
-        },
-        {
-          "javaName": "getTextureCoordinates",
-          "snakeAlias": "get_texture_coordinates",
-          "signatures": [
-            "()[Lorg/joml/Vector2f;"
-          ]
-        },
-        {
-          "javaName": "getTextureID",
-          "snakeAlias": "get_texture_id",
-          "signatures": [
-            "()I"
-          ]
-        },
-        {
-          "javaName": "getWidth",
-          "snakeAlias": "get_width",
-          "signatures": [
-            "()F"
-          ]
-        },
-        {
-          "javaName": "rendererUpdated",
-          "snakeAlias": "renderer_updated",
-          "signatures": [
-            "()V"
-          ]
-        },
-        {
-          "javaName": "requestRendererUpdate",
-          "snakeAlias": "request_renderer_update",
+          "javaName": "dirtied",
+          "snakeAlias": "dirtied",
           "signatures": [
             "()Z"
           ]
         },
         {
-          "javaName": "setHeight",
-          "snakeAlias": "set_height",
+          "javaName": "hasTexture",
+          "snakeAlias": "has_texture",
           "signatures": [
+            "()Z"
+          ]
+        },
+        {
+          "javaName": "height",
+          "snakeAlias": "height",
+          "signatures": [
+            "()F",
             "(F)V"
           ]
         },
         {
-          "javaName": "setTexture",
-          "snakeAlias": "set_texture",
+          "javaName": "markClean",
+          "snakeAlias": "mark_clean",
           "signatures": [
-            "(Ljava/lang/String;)V",
-            "(Lrender/Texture;)V"
+            "()V"
           ]
         },
         {
-          "javaName": "setTextureCoordinates",
-          "snakeAlias": "set_texture_coordinates",
+          "javaName": "rect",
+          "snakeAlias": "rect",
           "signatures": [
+            "()Lrender/texture/SpriteRect;",
+            "([Lorg/joml/Vector2f;II)Lrender/texture/SpriteRect;"
+          ]
+        },
+        {
+          "javaName": "texture",
+          "snakeAlias": "texture",
+          "signatures": [
+            "(Ljava/lang/String;)V"
+          ]
+        },
+        {
+          "javaName": "textureCoordinates",
+          "snakeAlias": "texture_coordinates",
+          "signatures": [
+            "()[Lorg/joml/Vector2f;",
             "([Lorg/joml/Vector2f;)V"
           ]
         },
         {
-          "javaName": "setWidth",
-          "snakeAlias": "set_width",
+          "javaName": "textureID",
+          "snakeAlias": "texture_id",
           "signatures": [
-            "(F)V"
+            "()I"
           ]
         },
         {
@@ -7388,6 +7403,111 @@
           "snakeAlias": "texture_rid",
           "signatures": [
             "()LTheCellBeyond/internal/ResourceID;"
+          ]
+        },
+        {
+          "javaName": "textureReference",
+          "snakeAlias": "texture_reference",
+          "signatures": [
+            "()Lutility/AssetReference;"
+          ]
+        },
+        {
+          "javaName": "width",
+          "snakeAlias": "width",
+          "signatures": [
+            "()F",
+            "(F)V"
+          ]
+        }
+      ],
+      "fields": []
+    },
+    {
+      "fqn": "render.texture.SpriteRect",
+      "simpleName": "SpriteRect",
+      "kind": "Class",
+      "isFinal": true,
+      "isAbstract": false,
+      "superClassChain": [
+        "java.lang.Record"
+      ],
+      "methods": [
+        {
+          "javaName": "equals",
+          "snakeAlias": "equals",
+          "signatures": [
+            "(Ljava/lang/Object;)Z"
+          ]
+        },
+        {
+          "javaName": "hashCode",
+          "snakeAlias": "hash_code",
+          "signatures": [
+            "()I"
+          ]
+        },
+        {
+          "javaName": "height",
+          "snakeAlias": "height",
+          "signatures": [
+            "()I"
+          ]
+        },
+        {
+          "javaName": "max",
+          "snakeAlias": "max",
+          "signatures": [
+            "()Lorg/joml/Vector2i;"
+          ]
+        },
+        {
+          "javaName": "maxX",
+          "snakeAlias": "max_x",
+          "signatures": [
+            "()I"
+          ]
+        },
+        {
+          "javaName": "maxY",
+          "snakeAlias": "max_y",
+          "signatures": [
+            "()I"
+          ]
+        },
+        {
+          "javaName": "minX",
+          "snakeAlias": "min_x",
+          "signatures": [
+            "()I"
+          ]
+        },
+        {
+          "javaName": "minY",
+          "snakeAlias": "min_y",
+          "signatures": [
+            "()I"
+          ]
+        },
+        {
+          "javaName": "origin",
+          "snakeAlias": "origin",
+          "signatures": [
+            "()Lorg/joml/Vector2i;"
+          ]
+        },
+        {
+          "javaName": "toString",
+          "snakeAlias": "to_string",
+          "signatures": [
+            "()Ljava/lang/String;"
+          ]
+        },
+        {
+          "javaName": "width",
+          "snakeAlias": "width",
+          "signatures": [
+            "()I"
           ]
         }
       ],
@@ -7402,6 +7522,13 @@
       "superClassChain": [],
       "methods": [
         {
+          "javaName": "availableSpriteCount",
+          "snakeAlias": "available_sprite_count",
+          "signatures": [
+            "()I"
+          ]
+        },
+        {
           "javaName": "dispose",
           "snakeAlias": "dispose",
           "signatures": [
@@ -7409,38 +7536,27 @@
           ]
         },
         {
-          "javaName": "getSpriteSize",
-          "snakeAlias": "get_sprite_size",
+          "javaName": "endPosition",
+          "snakeAlias": "end_position",
           "signatures": [
-            "()Lorg/joml/Vector2i;"
+            "()Lorg/joml/Vector2i;",
+            "(II)V",
+            "(Lorg/joml/Vector2i;)V"
           ]
         },
         {
-          "javaName": "getSpriteSpacing",
-          "snakeAlias": "get_sprite_spacing",
+          "javaName": "importSpriteCount",
+          "snakeAlias": "import_sprite_count",
           "signatures": [
-            "()Lorg/joml/Vector2i;"
+            "()I",
+            "(I)V"
           ]
         },
         {
-          "javaName": "getStartPosition",
-          "snakeAlias": "get_start_position",
+          "javaName": "requireCompute",
+          "snakeAlias": "require_compute",
           "signatures": [
-            "()Lorg/joml/Vector2i;"
-          ]
-        },
-        {
-          "javaName": "numberOfAvailableSprites",
-          "snakeAlias": "number_of_available_sprites",
-          "signatures": [
-            "()I"
-          ]
-        },
-        {
-          "javaName": "setTexture",
-          "snakeAlias": "set_texture",
-          "signatures": [
-            "(Lrender/Texture;)V"
+            "()V"
           ]
         },
         {
@@ -7449,45 +7565,99 @@
           "signatures": [
             "(I)Lrender/texture/Sprite;"
           ]
+        },
+        {
+          "javaName": "spriteSize",
+          "snakeAlias": "sprite_size",
+          "signatures": [
+            "()Lorg/joml/Vector2i;",
+            "(II)V",
+            "(Lorg/joml/Vector2i;)V"
+          ]
+        },
+        {
+          "javaName": "spriteSpacing",
+          "snakeAlias": "sprite_spacing",
+          "signatures": [
+            "()Lorg/joml/Vector2i;",
+            "(II)V",
+            "(Lorg/joml/Vector2i;)V"
+          ]
+        },
+        {
+          "javaName": "startPosition",
+          "snakeAlias": "start_position",
+          "signatures": [
+            "()Lorg/joml/Vector2i;",
+            "(II)V",
+            "(Lorg/joml/Vector2i;)V"
+          ]
+        },
+        {
+          "javaName": "texture",
+          "snakeAlias": "texture",
+          "signatures": [
+            "(Ljava/lang/String;)V"
+          ]
+        },
+        {
+          "javaName": "textureRID",
+          "snakeAlias": "texture_rid",
+          "signatures": [
+            "()LTheCellBeyond/internal/ResourceID;"
+          ]
+        },
+        {
+          "javaName": "textureReference",
+          "snakeAlias": "texture_reference",
+          "signatures": [
+            "()Lutility/AssetReference;"
+          ]
         }
       ],
       "fields": []
     },
     {
-      "fqn": "render.texture.TextureUnit",
-      "simpleName": "TextureUnit",
+      "fqn": "render.texture.SpriteSheets",
+      "simpleName": "SpriteSheets",
       "kind": "Class",
-      "isFinal": false,
+      "isFinal": true,
       "isAbstract": false,
       "superClassChain": [],
       "methods": [
         {
-          "javaName": "dispose",
-          "snakeAlias": "dispose",
+          "javaName": "clear",
+          "snakeAlias": "clear",
           "signatures": [
             "()V"
           ]
         },
         {
-          "javaName": "getSprite",
-          "snakeAlias": "get_sprite",
+          "javaName": "get",
+          "snakeAlias": "get",
           "signatures": [
-            "()Lrender/texture/Sprite;"
+            "(Ljava/lang/String;Ljava/lang/String;)Lrender/texture/SpriteSheet;"
           ]
         },
         {
-          "javaName": "onTextureStatusChange",
-          "snakeAlias": "on_texture_status_change",
+          "javaName": "has",
+          "snakeAlias": "has",
           "signatures": [
-            "(LTheCellBeyond/internal/ResourceID;LTheCellBeyond/internal/ResourceStatus;)V"
+            "(Ljava/lang/String;Ljava/lang/String;)Z"
           ]
         },
         {
-          "javaName": "setTexture",
-          "snakeAlias": "set_texture",
+          "javaName": "register",
+          "snakeAlias": "register",
           "signatures": [
-            "(Lrender/Texture;)V",
-            "(Lrender/Texture;Lorg/joml/Vector2i;)V"
+            "(Ljava/lang/String;Ljava/lang/String;Lrender/texture/SpriteSheet;)Z"
+          ]
+        },
+        {
+          "javaName": "unregister",
+          "snakeAlias": "unregister",
+          "signatures": [
+            "(Ljava/lang/String;Ljava/lang/String;)Z"
           ]
         }
       ],
@@ -7549,6 +7719,38 @@
           ]
         },
         {
+          "javaName": "collisionLayer",
+          "snakeAlias": "collision_layer",
+          "signatures": [
+            "()I",
+            "(I)V"
+          ]
+        },
+        {
+          "javaName": "collisionMask",
+          "snakeAlias": "collision_mask",
+          "signatures": [
+            "()I",
+            "(I)V"
+          ]
+        },
+        {
+          "javaName": "dirtied",
+          "snakeAlias": "dirtied",
+          "signatures": [
+            "()Z"
+          ]
+        },
+        {
+          "javaName": "endPosition",
+          "snakeAlias": "end_position",
+          "signatures": [
+            "()Lorg/joml/Vector2i;",
+            "(II)V",
+            "(Lorg/joml/Vector2i;)V"
+          ]
+        },
+        {
           "javaName": "findTiles",
           "snakeAlias": "find_tiles",
           "signatures": [
@@ -7556,31 +7758,11 @@
           ]
         },
         {
-          "javaName": "getCollisionLayer",
-          "snakeAlias": "get_collision_layer",
-          "signatures": [
-            "()I"
-          ]
-        },
-        {
-          "javaName": "getCollisionMask",
-          "snakeAlias": "get_collision_mask",
-          "signatures": [
-            "()I"
-          ]
-        },
-        {
-          "javaName": "getTileCoordinates",
-          "snakeAlias": "get_tile_coordinates",
-          "signatures": [
-            "()Ljava/util/HashSet;"
-          ]
-        },
-        {
           "javaName": "gridSize",
           "snakeAlias": "grid_size",
           "signatures": [
             "()Lorg/joml/Vector2i;",
+            "(II)V",
             "(Lorg/joml/Vector2i;)V"
           ]
         },
@@ -7589,6 +7771,13 @@
           "snakeAlias": "height",
           "signatures": [
             "()F"
+          ]
+        },
+        {
+          "javaName": "markClean",
+          "snakeAlias": "mark_clean",
+          "signatures": [
+            "()V"
           ]
         },
         {
@@ -7613,17 +7802,10 @@
           ]
         },
         {
-          "javaName": "rendererUpdated",
-          "snakeAlias": "renderer_updated",
+          "javaName": "requireCompute",
+          "snakeAlias": "require_compute",
           "signatures": [
             "()V"
-          ]
-        },
-        {
-          "javaName": "requestRendererUpdate",
-          "snakeAlias": "request_renderer_update",
-          "signatures": [
-            "()Z"
           ]
         },
         {
@@ -7634,32 +7816,12 @@
           ]
         },
         {
-          "javaName": "setCollisionLayer",
-          "snakeAlias": "set_collision_layer",
-          "signatures": [
-            "(I)V"
-          ]
-        },
-        {
-          "javaName": "setCollisionMask",
-          "snakeAlias": "set_collision_mask",
-          "signatures": [
-            "(I)V"
-          ]
-        },
-        {
           "javaName": "startPosition",
           "snakeAlias": "start_position",
           "signatures": [
             "()Lorg/joml/Vector2i;",
+            "(II)V",
             "(Lorg/joml/Vector2i;)V"
-          ]
-        },
-        {
-          "javaName": "texture",
-          "snakeAlias": "texture",
-          "signatures": [
-            "()Lrender/Texture;"
           ]
         },
         {
@@ -7674,6 +7836,13 @@
           "snakeAlias": "tile",
           "signatures": [
             "(Lorg/joml/Vector2i;)Lrender/texture/Tile;"
+          ]
+        },
+        {
+          "javaName": "tileCoordinates",
+          "snakeAlias": "tile_coordinates",
+          "signatures": [
+            "()Ljava/util/HashSet;"
           ]
         },
         {
@@ -8199,17 +8368,17 @@
       "superClassChain": [],
       "methods": [
         {
+          "javaName": "addSingleSprite",
+          "snakeAlias": "add_single_sprite",
+          "signatures": [
+            "(Ljava/lang/String;Lrender/texture/SingleSprite;)LTheCellBeyond/internal/ResourceID;"
+          ]
+        },
+        {
           "javaName": "addSpriteSheet",
           "snakeAlias": "add_sprite_sheet",
           "signatures": [
             "(Ljava/lang/String;Lrender/texture/SpriteSheet;)LTheCellBeyond/internal/ResourceID;"
-          ]
-        },
-        {
-          "javaName": "addTextureUnit",
-          "snakeAlias": "add_texture_unit",
-          "signatures": [
-            "(Ljava/lang/String;Lrender/texture/TextureUnit;)LTheCellBeyond/internal/ResourceID;"
           ]
         },
         {
@@ -8242,6 +8411,14 @@
           ]
         },
         {
+          "javaName": "getSingleSprite",
+          "snakeAlias": "get_single_sprite",
+          "signatures": [
+            "(LTheCellBeyond/internal/ResourceID;)Lrender/texture/SingleSprite;",
+            "(Ljava/lang/String;)Lrender/texture/SingleSprite;"
+          ]
+        },
+        {
           "javaName": "getSound",
           "snakeAlias": "get_sound",
           "signatures": [
@@ -8257,28 +8434,6 @@
           ]
         },
         {
-          "javaName": "getTexture",
-          "snakeAlias": "get_texture",
-          "signatures": [
-            "(LTheCellBeyond/internal/ResourceID;)Lrender/Texture;"
-          ]
-        },
-        {
-          "javaName": "getTextureRID",
-          "snakeAlias": "get_texture_rid",
-          "signatures": [
-            "(Ljava/lang/String;)LTheCellBeyond/internal/ResourceID;"
-          ]
-        },
-        {
-          "javaName": "getTextureUnit",
-          "snakeAlias": "get_texture_unit",
-          "signatures": [
-            "(LTheCellBeyond/internal/ResourceID;)Lrender/texture/TextureUnit;",
-            "(Ljava/lang/String;)Lrender/texture/TextureUnit;"
-          ]
-        },
-        {
           "javaName": "hasShader",
           "snakeAlias": "has_shader",
           "signatures": [
@@ -8286,15 +8441,15 @@
           ]
         },
         {
-          "javaName": "hasSpriteSheet",
-          "snakeAlias": "has_sprite_sheet",
+          "javaName": "hasSingleSprite",
+          "snakeAlias": "has_single_sprite",
           "signatures": [
             "(Ljava/lang/String;)Z"
           ]
         },
         {
-          "javaName": "hasTextureUnit",
-          "snakeAlias": "has_texture_unit",
+          "javaName": "hasSpriteSheet",
+          "snakeAlias": "has_sprite_sheet",
           "signatures": [
             "(Ljava/lang/String;)Z"
           ]
@@ -8331,7 +8486,8 @@
           "javaName": "loadTexture",
           "snakeAlias": "load_texture",
           "signatures": [
-            "(Ljava/lang/String;)LTheCellBeyond/internal/ResourceID;"
+            "(Ljava/lang/String;)LTheCellBeyond/internal/ResourceID;",
+            "(Lutility/AssetReference;)LTheCellBeyond/internal/ResourceID;"
           ]
         },
         {
@@ -8349,10 +8505,66 @@
           ]
         },
         {
+          "javaName": "textureID",
+          "snakeAlias": "texture_id",
+          "signatures": [
+            "(LTheCellBeyond/internal/ResourceID;)I"
+          ]
+        },
+        {
+          "javaName": "texturePath",
+          "snakeAlias": "texture_path",
+          "signatures": [
+            "(LTheCellBeyond/internal/ResourceID;)Ljava/lang/String;"
+          ]
+        },
+        {
+          "javaName": "textureSize",
+          "snakeAlias": "texture_size",
+          "signatures": [
+            "(LTheCellBeyond/internal/ResourceID;)Lorg/joml/Vector2i;"
+          ]
+        },
+        {
+          "javaName": "textureStatus",
+          "snakeAlias": "texture_status",
+          "signatures": [
+            "(LTheCellBeyond/internal/ResourceID;)LTheCellBeyond/internal/ResourceStatus;"
+          ]
+        },
+        {
           "javaName": "track",
           "snakeAlias": "track",
           "signatures": [
             "(LTheCellBeyond/internal/ResourceID;Ljava/util/function/BiConsumer;)Lutility/ResourceTracker;"
+          ]
+        },
+        {
+          "javaName": "unloadFont",
+          "snakeAlias": "unload_font",
+          "signatures": [
+            "(Ljava/lang/String;Lrender/text/GlyphRange;F)V"
+          ]
+        },
+        {
+          "javaName": "unloadShader",
+          "snakeAlias": "unload_shader",
+          "signatures": [
+            "(Ljava/lang/String;)V"
+          ]
+        },
+        {
+          "javaName": "unloadSingleSprite",
+          "snakeAlias": "unload_single_sprite",
+          "signatures": [
+            "(Ljava/lang/String;)V"
+          ]
+        },
+        {
+          "javaName": "unloadSound",
+          "snakeAlias": "unload_sound",
+          "signatures": [
+            "(Ljava/lang/String;)V"
           ]
         },
         {
@@ -8365,13 +8577,6 @@
         {
           "javaName": "unloadTexture",
           "snakeAlias": "unload_texture",
-          "signatures": [
-            "(Ljava/lang/String;)V"
-          ]
-        },
-        {
-          "javaName": "unloadTextureUnit",
-          "snakeAlias": "unload_texture_unit",
           "signatures": [
             "(Ljava/lang/String;)V"
           ]
@@ -8466,7 +8671,7 @@
       ],
       "enumConstants": [
         "SpriteSheet",
-        "TextureUnit"
+        "SingleSprite"
       ]
     },
     {
@@ -9070,6 +9275,11 @@
         {
           "javaName": "EnginePrefix",
           "snakeAlias": "engine_prefix",
+          "type": "java.lang.String"
+        },
+        {
+          "javaName": "MetaCannotContain",
+          "snakeAlias": "meta_cannot_contain",
           "type": "java.lang.String"
         },
         {

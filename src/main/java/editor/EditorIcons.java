@@ -7,6 +7,8 @@ import utility.Settings;
 
 /**
  * EditorIcons is a collections of icon sprites used by the Editor UI.
+ * <p>
+ * All the icons here are enums under the {@link EditorIconSprite} interfaces.
  */
 public final class EditorIcons {
     private static final String Path = Settings.TexturePath.EditorControls;
@@ -193,7 +195,13 @@ public final class EditorIcons {
         }
     }
 
+    /**
+     * Icons related to TCBScript tools.
+     */
     public enum ScriptIcons implements EditorIconSprite {
+        /**
+         * Hammer.
+         */
         BuildScript(28);
 
         final int index;
@@ -208,8 +216,17 @@ public final class EditorIcons {
         }
     }
 
+    /**
+     * Icons used by {@link SceneEditorViewport}'s buttons for switching drag handler mode.
+     */
     public enum GizmoModeIcons implements EditorIconSprite {
+        /**
+         * Two arrows, each on x and y axes at the corner.
+         */
         MoveMode(29),
+        /**
+         * Two square head arrow, each on the x and y axes at the corner, with sizing circle.
+         */
         ScaleMode(30);
 
         final int index;
@@ -232,7 +249,7 @@ public final class EditorIcons {
     public static void init() {
         if (isInitialized) return;
         try {
-            if (!AssetManager.hasSpriteSheet(Path)) AssetManager.addSpriteSheet(Path, new SpriteSheet(AssetManager.getTexture(AssetManager.loadTexture(Path)), width, height, iconCount, 0));
+            if (!AssetManager.hasSpriteSheet(Path)) AssetManager.addSpriteSheet(Path, new SpriteSheet(Path, width, height, iconCount));
             icons = AssetManager.getSpriteSheet(Path);
             isInitialized = true;
         } catch (Exception e) {

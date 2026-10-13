@@ -1,17 +1,29 @@
 package utility;
 
+import TheCellBeyond.internal.ResourceID;
 import scripting.API;
 
 import java.util.Objects;
 
 /**
- * AssetReference contains the canonical unified path of the asset.<br>
+ * AssetReference contains the canonically unified path of the asset, a way to safely persisting location on disk,
+ * as the true path get resolved on first request during runtime.
+ * <p>
+ * This is the recommended way to use {@link utility.UnifiedPaths.AssetPath}, as it provide automatic conversion from original path.
+ * </p>
  * Wrapper for asset's raw file path.
  */
 @API
 public class AssetReference {
     private final String canonicalPath;
     private transient volatile UnifiedPaths.AssetPath resolvedPath;
+    /**
+     * The resource ID this reference last resolved to during runtime, often belong to a native resource, regardless of status,
+     * created from the canonical path of this reference.
+     * <p>
+     * Null until resolved.
+     */
+    transient volatile ResourceID RID = null;
 
     /**
      * Create a new {@link AssetReference} with the given path.
@@ -49,7 +61,7 @@ public class AssetReference {
     }
 
     /**
-     * Get the absolute path of this reference.
+     * Get the resolved absolute path of this reference.
      * @return the string of the absolute path that leads to the asset's file on the system
      */
     public String absolutePath() {

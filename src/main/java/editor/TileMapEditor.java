@@ -57,17 +57,17 @@ public final class TileMapEditor {
         editingTileMap = tileMap;
     }
 
-    public static boolean isSelectMode() {
+    public static boolean inSelectMode() {
         if (editingMode == null) return false;
         return editingMode.equals(Mode.Select);
     }
 
-    public static boolean isDrawMode() {
+    public static boolean inDrawMode() {
         if (editingMode == null) return false;
         return editingMode.equals(Mode.Draw);
     }
 
-    public static boolean isEraseMode() {
+    public static boolean inEraseMode() {
         if (editingMode == null) return false;
         return editingMode.equals(Mode.Erase);
     }
@@ -177,10 +177,10 @@ public final class TileMapEditor {
             ImGui.endChild();
             return;
         }
-        int textureID = sprite.getTextureID();
-        float w = sprite.getWidth() * zoom;
-        float h = sprite.getHeight() * zoom;
-        Vector2f[] textureCoordinates = sprite.getTextureCoordinates();
+        int textureID = sprite.textureID();
+        float w = sprite.width() * zoom;
+        float h = sprite.height() * zoom;
+        Vector2f[] textureCoordinates = sprite.textureCoordinates();
         ImVec2 cursorScreenPos = ImGui.getCursorScreenPos();
         TileEditorRender.drawCheckerboard(renderCache, cursorScreenPos, zoom);
         ImGui.image(textureID, w, h,
@@ -262,6 +262,7 @@ public final class TileMapEditor {
         float startY = startPos.y * zoom;
         float gridW = gridSize.x * zoom;
         float gridH = gridSize.y * zoom;
+        if (gridW <= 0 || gridH <= 0) return null;
         if (relativeX < startX || relativeY < startY || relativeX > width || relativeY > height) return null;
         float clickedPixelX = relativeX - startX;
         float clickedPixelY = relativeY - startY;

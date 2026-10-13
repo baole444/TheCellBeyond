@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 /**
  * Marker for the engine's public scripting API.
  * <p>
- * A type with this annotation mean that its entire public and protected surface is API that maybe be used by user script.
+ * A type with this annotation mean that its entire public and protected surface is API that can be used by user's scripts.
  * The build compute the transitive closure of every seed over that surface, including supertypes, interfaces, field types, method parameter/return/throws types and their generic arguments.
  * That closure is the set of classes packaged into the API jar. Every export is a deliberated annotation.
  * </p>

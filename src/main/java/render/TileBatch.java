@@ -8,6 +8,8 @@ import org.joml.Vector2i;
 import org.joml.Vector4f;
 import render.commands.MeshCommand;
 import render.commands.TransformCommand;
+import render.texture.Sprite;
+import render.texture.TextureManager;
 import render.texture.Tile;
 import render.texture.TileSet;
 import utility.WorldUnit;
@@ -170,8 +172,9 @@ public class TileBatch {
                 cached.dirty = false;
             }
             if (cached.tileCount <= 0) continue;
-            Texture texture = command.tileSet.texture();
-            if (texture == null || !texture.isReady()) continue;
+            Sprite tileSetSprite = command.tileSet.tileSetSprite();
+            Texture texture = tileSetSprite != null ? TextureManager.get().texture(tileSetSprite.textureRID()) : null;
+            if (texture == null || !texture.readied()) continue;
             glActiveTexture(GL_TEXTURE0 + 1);
             texture.bind();
             glBindVertexArray(vaoID);

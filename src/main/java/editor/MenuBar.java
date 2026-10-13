@@ -77,7 +77,7 @@ final class MenuBar {
             ImGui.endMenu();
             return;
         }
-        List<String> sceneNameList = Project.getSceneNames();
+        List<String> sceneNameList = Project.sceneNames();
         if (sceneNameList.isEmpty()) {
             ImGui.text("No scene added yet.");
             if (ImGui.menuItem("Create new Scene?##MenuBar_Scene_Menu_Ask_New_Scene")) showCreateSceneDialog();

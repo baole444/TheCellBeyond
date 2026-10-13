@@ -65,9 +65,7 @@ public class EditorGizmoCtrl extends Component {
                 int w = 16;
                 int h = 48;
                 int count = 3;
-                AssetManager.addSpriteSheet(Path,
-                        new SpriteSheet(AssetManager.getTexture(AssetManager.loadTexture(Path)), w, h, count, 0)
-                );
+                AssetManager.addSpriteSheet(Path, new SpriteSheet(Path, w, h, count));
             }
             gizmo = AssetManager.getSpriteSheet(Path);
             completeInit();

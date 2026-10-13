@@ -4,11 +4,23 @@ import TheCellBeyond.InputAction;
 
 import java.util.*;
 
+/**
+ * ProjectData is a record for a game project's manifest file.
+ * @param version the manifest version number
+ * @param uuid the project's UUID
+ * @param project the project's preferences
+ * @param assets the imported single sprite records
+ * @param sheets the imported sprite sheet records
+ * @param scenes the imported scene records
+ * @param inputActions the imported input actions
+ * @param physicLayers the physic layers' custom name
+ * @param scriptScanDirs the directories to scan for user's scripts
+ */
 public record ProjectData(
         int version, UUID uuid, ProjectPreference project,
-        Map<UUID, ProjectAssetMap> assets,
-        Map<String, Map<String, ProjectSheetMap>> sheets,
-        Map<String, ProjectSceneMap> scenes,
+        Map<String, Map<String, ProjectAsset>> assets,
+        Map<String, Map<String, ProjectSheet>> sheets,
+        Map<String, ProjectScene> scenes,
         Map<String, InputAction> inputActions,
         PhysicLayerName physicLayers,
         List<String> scriptScanDirs
@@ -16,7 +28,7 @@ public record ProjectData(
     /**
      * The current project file schema version. Files without version are treated as version 0.
      */
-    static final int SaveVersion = 1;
+    static final int SaveVersion = 2;
     /**
      * The YAML key that store the project file schema version number.
      */
