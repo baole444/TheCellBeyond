@@ -4,9 +4,12 @@ import TheCellBeyond.GameObject;
 import TheCellBeyond.GameObject2D;
 import TheCellBeyond.Transform2D;
 import TheCellBeyond.Viewport;
+import TheCellBeyond.internal.LogicServer;
 import components.Component2D;
 import components.IsNotSelectable;
 import components.NotSerializeComponent;
+import eventviewer.EngineEventCallback;
+import eventviewer.event.SceneEvent;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import render.commands.RectCommand;
@@ -86,7 +89,10 @@ public final class EditorObjectIndicator extends Component2D implements NotSeria
         if (go == null || go.isDestroyed() || !go.isSerialize()) return;
         if (go.getFirstComponent(IsNotSelectable.class) != null) return;
         go.removeComponents(EditorObjectIndicator.class);
-        if (go instanceof GameObject2D go2D) go2D.addComponent(new EditorObjectIndicator());
+        if (!(go instanceof GameObject2D go2D)) return;
+        EditorObjectIndicator indicator = new EditorObjectIndicator();
+        go2D.addComponent(indicator);
+        EngineEventCallback.emit(new SceneEvent(SceneEvent.Type.ComponentAdded, LogicServer.currentScene(), indicator));
     }
 
     private void deactivate() {

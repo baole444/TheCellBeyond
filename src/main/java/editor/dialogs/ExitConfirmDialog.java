@@ -48,7 +48,9 @@ public final class ExitConfirmDialog {
     private ExitConfirmDialog() {}
 
     /**
-     * Show the exit dialogue. If auto save on exit is enabled, this will skip showing the dialogue entirely.
+     * Show the exit dialogue.
+     * <p>
+     * If auto save on exit is enabled, this will save the current scene and skip showing the dialogue entirely.
      * @return true if the user choose exit (regardless of saving or not), false if cancelled
      */
     public static boolean exitDialog() {
@@ -58,7 +60,10 @@ public final class ExitConfirmDialog {
             return false;
         }
         if (isAutoSaveOnExitOn()) {
-            if (LogicServer.currentSceneName() != null) return true;
+            if (LogicServer.currentSceneName() != null) {
+                EngineEventCallback.emit(new EditorEvent(EditorEvent.Type.SaveEditingSceneToDisk));
+                return true;
+            }
             SaveSceneAsDialog.show(() -> {
                 EngineEventCallback.emit(new EditorEvent(EditorEvent.Type.SaveEditingSceneToDisk));
                 Window.get().forceClose();

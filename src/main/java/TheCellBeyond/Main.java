@@ -1,27 +1,24 @@
 package TheCellBeyond;
 
+import TheCellBeyond.internal.Engine;
+import editor.EditorHost;
 import editor.ExitToProjectList;
 import editor.StartupWindow;
 import scripting.ScriptLoader;
 import utility.CrashReport;
+import utility.log.EngineLog;
 
 public class Main {
-    private static String openProjectPath;
-
     static void main(String[] args) {
         CrashReport.install();
         ScriptLoader.bindMainThread();
         StartupWindow.init();
-        openProjectPath = StartupWindow.show();
+        String openProjectPath = StartupWindow.show();
         StartupWindow.dispose();
         if (openProjectPath == null || openProjectPath.isBlank()) return;
+        Engine.host(new EditorHost(openProjectPath));
         Window window = Window.get();
         window.run();
-        System.out.println("Ending editor instance...");
         ExitToProjectList.spawnNewProcess();
-    }
-
-    static String openProjectPath() {
-        return openProjectPath;
     }
 }

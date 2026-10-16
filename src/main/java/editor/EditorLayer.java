@@ -57,7 +57,7 @@ public final class EditorLayer {
      * Init DearImGui backend.
      * @param glslVer the GLSL version to use
      */
-    public void initImGui(String glslVer) {
+    public void init(String glslVer) {
         ImGui.createContext();
         this.io = ImGui.getIO();
         guiFont(io);
@@ -235,6 +235,15 @@ public final class EditorLayer {
     }
 
     /**
+     * Shutdown and destroy GL context for editor layer.
+     */
+    public void dispose() {
+        imGuiGl3.shutdown();
+        imGuiGlfw.shutdown();
+        ImGui.destroyContext();
+    }
+
+    /**
      * Request the Editor UI to reset its layout.
      */
     public static void resetLayout() {
@@ -258,7 +267,7 @@ public final class EditorLayer {
     }
 
     /**
-     * Should the editor prioritize the input to be consumed by the Editor's widget or not.
+     * Should the editor prioritise the input to be consumed by the Editor's widget or not.
      * @param prioritize the priority state
      */
     public static void prioritizeEngineInputCallback(boolean prioritize) {

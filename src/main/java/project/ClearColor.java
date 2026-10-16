@@ -2,6 +2,7 @@ package project;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.joml.Vector4f;
+import scripting.API;
 
 /**
  * ClearColor store the 4 colour components for the clear texture of window.
@@ -12,6 +13,7 @@ import org.joml.Vector4f;
  * @param b blue component value
  * @param a alpha component value
  */
+@API
 public record ClearColor(float r, float g, float b, float a) {
     /**
      * Compact constructor, ensure colour components are within range.

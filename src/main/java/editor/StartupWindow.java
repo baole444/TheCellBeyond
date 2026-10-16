@@ -81,7 +81,7 @@ public final class StartupWindow {
         glfwSetInputMode(windowPtr, GLFW_IME, GLFW_TRUE);
         NFD_Init();
         editorLayer = new EditorLayer(windowPtr);
-        editorLayer.initImGui("#version 330 core");
+        editorLayer.init("#version 330 core");
         ImGui.getIO().setIniFilename(null);
         glfwShowWindow(windowPtr);
         loadIcon();

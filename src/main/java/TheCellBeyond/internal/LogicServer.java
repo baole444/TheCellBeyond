@@ -2,6 +2,7 @@ package TheCellBeyond.internal;
 
 import TheCellBeyond.GameObject;
 import TheCellBeyond.Viewport;
+import editor.SceneEditor;
 import eventviewer.EngineEventCallback;
 import eventviewer.EngineEventListener;
 import eventviewer.event.EditorEvent;
@@ -57,9 +58,11 @@ public class LogicServer implements EngineEventListener {
      */
     public static void loadUnsavedScene(GameObject root) {
         if (root == null || runtimeMode) return;
+        SceneLoader editLoader = editSceneLoader();
+        if (editLoader == null) return;
         if (currentScene != null) currentScene.destroy();
         EngineEventCallback.emit(new SceneEvent(SceneEvent.Type.SceneChanging, null));
-        currentScene = new Scene(new SceneEditor());
+        currentScene = new Scene(editLoader);
         SceneManager.initUnsavedScene(currentScene, root);
         currentScene.init();
         currentScene.editorStart();
@@ -175,6 +178,12 @@ public class LogicServer implements EngineEventListener {
         }
     }
 
+    private static SceneLoader editSceneLoader() {
+        SceneLoader editLoader = Engine.host().editSceneLoader();
+        if (editLoader == null) Logger.warning("Cannot change to an edit mode scene: not supported by current engine host");
+        return editLoader;
+    }
+
     private static void changeScene(SceneLoader sceneLoader) {
         String sceneName = currentScene == null ? null : currentScene.name();
         changeScene(sceneLoader, sceneName);
@@ -212,20 +221,24 @@ public class LogicServer implements EngineEventListener {
                 Logger.info(String.format("Runtime started for '%s'", currentSceneName()));
             }
             case RuntimeEvent.Type.RuntimeStopped -> {
+                SceneLoader editLoader = editSceneLoader();
+                if (editLoader == null) return;
                 String returnScene = runtimeStartScene != null ? runtimeStartScene : currentSceneName();
                 pendingSceneName = null;
                 runtimeStartScene = null;
                 runtimeMode = false;
-                changeScene(new SceneEditor(), returnScene);
+                changeScene(editLoader, returnScene);
                 Logger.info(String.format("Runtime stopped for '%s'", currentSceneName()));
             }
             case RuntimeEvent.Type.RuntimeCrashed -> {
+                SceneLoader editLoader = editSceneLoader();
+                if (editLoader == null) return;
                 String returnScene = runtimeStartScene != null ? runtimeStartScene : currentSceneName();
                 pendingSceneName = null;
                 runtimeStartScene = null;
                 runtimeMode = false;
                 runtimeCrashed = false;
-                changeScene(new SceneEditor(), returnScene);
+                changeScene(editLoader, returnScene);
             }
         }
     }
@@ -237,9 +250,11 @@ public class LogicServer implements EngineEventListener {
                 Logger.debug("Saving current level...");
             }
             case LoadEditingSceneFromDisk -> {
+                SceneLoader editLoader = editSceneLoader();
+                if (editLoader == null) return;
                 runtimeMode = false;
                 String sceneName = (String) object;
-                changeScene(new SceneEditor(), sceneName);
+                changeScene(editLoader, sceneName);
                 Logger.debug("Requested to load Scene: " + sceneName);
             }
             default -> {}

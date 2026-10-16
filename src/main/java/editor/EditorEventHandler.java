@@ -1,9 +1,12 @@
 package editor;
 
+import TheCellBeyond.GameObject;
 import TheCellBeyond.internal.LogicServer;
+import editor.components.EditorObjectIndicator;
 import editor.dialogs.ConfirmSaveSceneDialog;
 import editor.dialogs.MissingRunnerJDKDialog;
 import editor.dialogs.SaveSceneAsDialog;
+import editor.log.LogFileWriter;
 import editor.preference.RecentProject;
 import editor.preference.UserPreference;
 import editor.template.ScriptExportCache;
@@ -40,9 +43,17 @@ final class EditorEventHandler implements EngineEventListener {
     }
 
     private static void handleSceneEvent(SceneEvent event) {
-        if (event.type != SceneEvent.Type.SceneChanging) return;
-        Properties.clearSelection();
-        SceneTree.clearSelection();
+        switch (event.type) {
+            case SceneChanging -> {
+                Properties.clearSelection();
+                SceneTree.clearSelection();
+            }
+            case ObjectAdded -> {
+                if (LogicServer.runtimeMode() || event.params.isEmpty()) return;
+                if (event.params.getFirst() instanceof GameObject go) EditorObjectIndicator.add(go);
+            }
+            default -> {}
+        }
     }
 
     private static void handleEditorEvent(Object object, EditorEvent event) {
@@ -68,7 +79,12 @@ final class EditorEventHandler implements EngineEventListener {
                 RecentProject update = new RecentProject(preference.name(), path, sceneName);
                 UserPreference.updateRecentProject(update);
             }
-            case ProjectLoaded, ReloadSceneResource -> {
+            case ProjectLoaded -> {
+                if (Project.loaded()) LogFileWriter.start(UserPreference.logDirectory(Project.uuid()));
+                Project.loadProjectData();
+                ResourcePanel.refreshCache();
+            }
+            case ReloadSceneResource -> {
                 Project.loadProjectData();
                 ResourcePanel.refreshCache();
             }

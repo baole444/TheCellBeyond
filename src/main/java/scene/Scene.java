@@ -5,11 +5,11 @@ import TheCellBeyond.Viewport;
 import TheCellBeyond.internal.DataSnapshot;
 import TheCellBeyond.internal.LogicServer;
 import components.Component;
-import editor.components.EditorObjectIndicator;
 import eventviewer.EngineEventCallback;
 import eventviewer.event.SceneEvent;
 import physic2d.CollisionObject2D;
 import physic2d.Physic2D;
+import project.ClearColor;
 import scripting.API;
 import signal.Callable;
 import utility.log.EngineLog;
@@ -36,6 +36,12 @@ public class Scene {
     private final List<Component> removedComponents;
     private final HashMap<GameObject, GameObject> addedGameObjectWithParents;
     private final List<DeferredCall> deferredCalls;
+    /**
+     * The colour of the window clear background texture, or null to use project's clear colour.
+     * <p>
+     * This override only last for as long as this scene. Changing scene will reset the clear colour override.
+     */
+    public ClearColor clearColor = null;
     private UUID sceneUUID;
     private String name;
     private GameObject root;
@@ -56,7 +62,7 @@ public class Scene {
     }
 
     /**
-     * Initialize and load the scene resource.
+     * Initialise and load the scene resource.
      */
     public void init() {
         sceneLoader.loadResource(this);
@@ -74,7 +80,7 @@ public class Scene {
 
     /**
      * Start the scene in runtime mode.
-     * This will start all the game objects within it and initialize the scene's physic world.
+     * This will start all the game objects within it and initialise the scene's physic world.
      * <p>
      * This will emit the {@link SceneEvent.Type#SceneEntered} event before starting the game objects.
      * <p>
@@ -385,7 +391,6 @@ public class Scene {
         if (go == root) sceneData.gameObjects().addFirst(go);
         else sceneData.gameObjects().add(go);
         if (parent != null) parent.addChild(go);
-        EditorObjectIndicator.add(go);
         if (sceneStarted) {
             if (LogicServer.runtimeMode()) {
                 go.start();
@@ -497,9 +502,9 @@ public class Scene {
     }
 
     /**
-     * Initialize this scene wit the given root object as an unsaved scene.
-     * The scene will have no name and the uuid is randomized.
-     * @param root the root object to initialize with
+     * Initialise this scene wit the given root object as an unsaved scene.
+     * The scene will have no name and the uuid is randomised.
+     * @param root the root object to initialise with
      */
     void initWithRoot(GameObject root) {
         if (root == null) return;

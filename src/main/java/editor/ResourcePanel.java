@@ -16,7 +16,6 @@ import project.ProjectSheet;
 import render.texture.SingleSprite;
 import render.texture.Sprite;
 import render.texture.SpriteSheet;
-import scene.SceneEditor;
 import utility.AssetManager;
 import utility.TextureScale;
 import utility.UnifiedPaths;

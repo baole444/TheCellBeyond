@@ -1,19 +1,15 @@
 package TheCellBeyond;
 
+import TheCellBeyond.internal.Engine;
+import TheCellBeyond.internal.EngineHost;
 import TheCellBeyond.internal.LogicServer;
 import TheCellBeyond.internal.RenderingServer;
-import editor.EditorLayer;
-import editor.dialogs.ExitConfirmDialog;
-import editor.log.LogFileWriter;
-import editor.preference.UserPreference;
 import eventviewer.EngineEventCallback;
 import eventviewer.EngineEventListener;
 import eventviewer.event.EditorEvent;
 import eventviewer.event.Event;
 import eventviewer.event.ProjectEvent;
-import imgui.ImGui;
 import org.joml.Vector2i;
-import org.joml.Vector4f;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWImage;
@@ -31,7 +27,7 @@ import project.RenderingSetting;
 import project.VsyncMode;
 import render.*;
 import render.text.FontManager;
-import scene.SceneManager;
+import scene.Scene;
 import scripting.ScriptLoader;
 import utility.AssetManager;
 import utility.Settings;
@@ -47,11 +43,9 @@ import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.openal.ALC10.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
-import static org.lwjgl.util.nfd.NativeFileDialog.NFD_Init;
-import static org.lwjgl.util.nfd.NativeFileDialog.NFD_Quit;
 
 /**
- * The main window of TheCellBeyond Engine, responsible for initializing GLFW window and IO callbacks.
+ * The main window of TheCellBeyond Engine, responsible for initialising GLFW window and IO callbacks.
  */
 public final class Window implements EngineEventListener {
     private static final EngineLog Logger = new EngineLog(Window.class);
@@ -62,41 +56,12 @@ public final class Window implements EngineEventListener {
      * This is not the FPS cap, adjusting this value only affect the displayed metric on screen.
      */
     public static float FPS = 0.0f;
-    /**
-     * Should the texture clear colour be overridden. Upon enabled (true), the {@link #r}{@link #g}{@link #b}{@link #a}
-     * values will take effect as the clear colour until this is disabled (false) again.
-     */
-    public static boolean overrideClearColor = false;
-    /**
-     * The red component of the overriding texture clear colour, will take effect if {@link #overrideClearColor} is true.
-     * <p>
-     * This value is normalized internally to range of [0,1].
-     */
-    public float r;
-    /**
-     * The green component of the overriding texture clear colour, will take effect if {@link #overrideClearColor} is true.
-     * <p>
-     * This value is normalized internally to range of [0,1].
-     */
-    public float g;
-    /**
-     * The blue component of the overriding texture clear colour, will take effect if {@link #overrideClearColor} is true.
-     * <p>
-     * This value is normalized internally to range of [0,1].
-     */
-    public float b;
-    /**
-     * The alpha component of the overriding texture clear colour, will take effect if {@link #overrideClearColor} is true.
-     * <p>
-     * This value is normalized internally to range of (0,1).
-     */
-    public float a;
     private int width;
     private int height;
     private final String title;
     private long windowPtr;
     private static Window window = null;
-    private EditorLayer editorLayer;
+    private EngineHost host;
     private FrameBuffer frameBuffer;
     private ObjectSelection objectSelection;
     private final IconLoader iconFile = IconLoader.loadIcon(Settings.TexturePath.TCBIcon);
@@ -107,7 +72,6 @@ public final class Window implements EngineEventListener {
     private boolean projectLoaded = false;
     private static boolean noAudioSupport = true;
     private long targetFrameTime = 1_000_000_000L / 60;
-    private final Vector4f clearColor = new Vector4f();
 
     /**
      * Create a new window instance and register it with the Engine Event Callback.
@@ -116,10 +80,6 @@ public final class Window implements EngineEventListener {
         this.width = 640;
         this.height = 480;
         this.title = "TheCellBeyond";
-        r = 0.027f;
-        g = 0.122f;
-        b = 0.067f;
-        a = 1.0f;
         register();
     }
 
@@ -137,13 +97,14 @@ public final class Window implements EngineEventListener {
      */
     public void run() {
         Logger.info("Starting LWJGL " + Version.getVersion());
+        host = Engine.host();
         initWindow();
         RenderingServer.init();
         Renderer.init();
         String renderer = glGetString(GL_RENDERER);
         String version = glGetString(GL_VERSION);
         Logger.info("Active GPU: " + renderer + " Driver version: " + version);
-        EngineEventCallback.emit(Main.openProjectPath(), new EditorEvent(EditorEvent.Type.LoadProjectFromDisk));
+        host.boot();
         projectLoaded = Project.loaded();
         String projectDetail = " - [" + Project.preference().name() + "] [" + Project.projectRoot() + "]";
         glfwSetWindowTitle(windowPtr, this.title + projectDetail);
@@ -173,10 +134,6 @@ public final class Window implements EngineEventListener {
 
     public static float getTargetAspectRatio() {
         return Project.getGameAspectRatio();
-    }
-
-    public static EditorLayer getImGuiLayer() {
-        return get().editorLayer;
     }
 
     public static ObjectSelection getObjectSelection() {
@@ -209,14 +166,13 @@ public final class Window implements EngineEventListener {
         if (glfwPlatformSupported(GLFW_PLATFORM_WAYLAND)) glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_WAYLAND);
         GLFWErrorCallback.createPrint(Stream2Log.err).set();
         if (!glfwInit()) throw new RuntimeException("Failed to initialize GLFW");
-        String glslVer = "#version 330 core";
         Vector2i windowSize = screenSize();
         width = windowSize.x;
         height = windowSize.y;
         applyWindowHints();
         windowPtr = glfwCreateWindow(width, height, title, NULL, NULL);
         Logger.info("Creating new window, dimension: " + width + " x " + height);
-        if (windowPtr == NULL) throw new RuntimeException("Failed to create editor window");
+        if (windowPtr == NULL) throw new RuntimeException("Failed to create window");
         setupWindowCallback();
         glfwMakeContextCurrent(windowPtr);
         applyVsync(VsyncMode.Enabled);
@@ -225,12 +181,10 @@ public final class Window implements EngineEventListener {
         GL.createCapabilities();
         glEnable(GL_BLEND);
         glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-        NFD_Init();
         frameBuffer = new FrameBuffer(width, height);
         objectSelection = new ObjectSelection(width, height);
         glViewport(0, 0, width, height);
-        editorLayer = new EditorLayer(windowPtr);
-        editorLayer.initImGui(glslVer);
+        host.initialize(windowPtr);
         glfwMaximizeWindow(windowPtr);
         loadIcon();
     }
@@ -304,9 +258,8 @@ public final class Window implements EngineEventListener {
                 glfwSetWindowShouldClose(windowPtr, true);
                 return;
             }
-            if (projectLoaded && UserPreference.preferences().autoSaveOnExit()) SceneManager.saveCurrentScene();
             glfwSetWindowShouldClose(windowPtr, false);
-            shouldClose = ExitConfirmDialog.exitDialog();
+            shouldClose = host.closeRequested();
             if (shouldClose) glfwSetWindowShouldClose(windowPtr, true);
         }));
 
@@ -321,18 +274,14 @@ public final class Window implements EngineEventListener {
         AssetManager.clearCache();
         RendererState.cleanup();
         EngineEventCallback.dispose();
-        editorLayer.getImGuiGl3().shutdown();
-        editorLayer.getImGuiGlfw().shutdown();
-        ImGui.destroyContext();
+        host.dispose();
         if (soundContext != 0) alcDestroyContext(soundContext);
         if (audioDevice != 0) alcCloseDevice(audioDevice);
         frameBuffer.dispose();
         glfwFreeCallbacks(window.windowPtr);
         glfwDestroyWindow(window.windowPtr);
         glfwTerminate();
-        NFD_Quit();
         Objects.requireNonNull(glfwSetErrorCallback(null)).free();
-        LogFileWriter.stop();
     }
 
     private void loop() {
@@ -367,7 +316,7 @@ public final class Window implements EngineEventListener {
                 objectSelectionPass(rendererState, objectSelectShader);
                 normalPass(rendererState, defaultShader);
                 RenderingServer.postFrameClear();
-                editorLayer.update(dt, LogicServer.currentScene());
+                host.frame(dt, LogicServer.currentScene());
             }
             MouseListener.endFrame();
             KeyListener.endFrame();
@@ -414,30 +363,24 @@ public final class Window implements EngineEventListener {
         rendererState.setRenderPass(RendererState.RenderPass.NORMAL);
         rendererState.setShader(defaultShader);
         frameBuffer.use();
-        if (overrideClearColor) {
-            clearColor.set(r, g, b, a).normalize();
-            glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
-        }
-        else if (projectLoaded) {
-            ClearColor clearColor = Project.preference().clearColor();
-            glClearColor(clearColor.r(), clearColor.g(), clearColor.b(), clearColor.a());
-        }
+        ClearColor clearColor = clearColor();
+        if (clearColor != null) glClearColor(clearColor.r(), clearColor.g(), clearColor.b(), clearColor.a());
         glClear(GL_COLOR_BUFFER_BIT);
         Renderer.get().render();
         DebugDraw.draw();
         frameBuffer.detach();
     }
 
+    private ClearColor clearColor() {
+        Scene scene = LogicServer.currentScene();
+        if (scene != null && scene.clearColor != null) return scene.clearColor;
+        return projectLoaded ? Project.preference().clearColor() : null;
+    }
+
     private void handleEditorEvent(EditorEvent event) {
         if (event.type != EditorEvent.Type.ProjectLoaded) return;
         projectLoaded = Project.loaded();
         if (!projectLoaded) return;
-        LogFileWriter.start(UserPreference.logDirectory(Project.uuid()));
-        ClearColor clearColor = Project.preference().clearColor();
-        r = clearColor.r();
-        g = clearColor.g();
-        b = clearColor.b();
-        a = clearColor.a();
         RenderingSetting setting = Project.preference().renderingSetting();
         applyVsync(setting.vsyncMode());
         targetFrameTime = setting.targetFrameRate() > 0 ? 1_000_000_000L / setting.targetFrameRate() : 0;

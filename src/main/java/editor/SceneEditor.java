@@ -1,9 +1,11 @@
-package scene;
+package editor;
 
 import TheCellBeyond.GameObject;
 import TheCellBeyond.Transform2D;
 import components.IsNotSelectable;
 import editor.components.*;
+import scene.Scene;
+import scene.SceneLoader;
 
 public class SceneEditor extends SceneLoader {
     private static GameObject levelEditorObject;
