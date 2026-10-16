@@ -8021,7 +8021,13 @@
           ]
         }
       ],
-      "fields": []
+      "fields": [
+        {
+          "javaName": "clearColor",
+          "snakeAlias": "clear_color",
+          "type": "project.ClearColor"
+        }
+      ]
     },
     {
       "fqn": "scene.SceneLoader",

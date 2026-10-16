@@ -2,7 +2,6 @@ package TheCellBeyond.internal;
 
 import TheCellBeyond.GameObject;
 import TheCellBeyond.Viewport;
-import editor.SceneEditor;
 import eventviewer.EngineEventCallback;
 import eventviewer.EngineEventListener;
 import eventviewer.event.EditorEvent;
@@ -13,7 +12,10 @@ import physic2d.Physic2D;
 import project.Project;
 import render.texture.SingleSprites;
 import render.texture.SpriteSheets;
-import scene.*;
+import scene.Scene;
+import scene.SceneLoader;
+import scene.SceneManager;
+import scene.SceneRuntime;
 import scripting.API;
 import utility.log.EngineLog;
 

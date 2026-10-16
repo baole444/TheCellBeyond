@@ -6,7 +6,6 @@ import editor.ExitToProjectList;
 import editor.StartupWindow;
 import scripting.ScriptLoader;
 import utility.CrashReport;
-import utility.log.EngineLog;
 
 public class Main {
     static void main(String[] args) {
